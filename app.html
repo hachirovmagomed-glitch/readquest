@@ -946,7 +946,7 @@ body.mvp #sumDailyBox{display:block}
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261006-1258'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261006-1306'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
@@ -1814,18 +1814,26 @@ function relayout(opts){
   if(R.mode==='pdf'){renderPdfPage(R.page);return;}
   const v=el('viewer');
   if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */
-  const anchor=o.anchor||captureAnchor();
+  const anchor=o.anchor||readingAnchor();
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   layout();
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
   goPage(p,false);
+  R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
+}
+/* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
+   has not turned the page, every relayout re-uses the anchor captured before the first one, so the
+   position never drifts page by page. A real page change (goPage with another page) drops it. */
+function readingAnchor(){
+  if(R.anc&&R.anc.page===R.page&&R.anc.a&&R.anc.a.node&&R.anc.a.node.isConnected)return R.anc.a;
+  return captureAnchor();
 }
 /** Font size change (Aa / pinch / Ctrl+wheel): exactly one reflow, position kept. */
 function setFontSizeKeepPos(size){
   size=Math.max(14,Math.min(30,Math.round(size)));
   if(size===SET.size)return false;
-  const anchor=captureAnchor();
+  const anchor=readingAnchor();
   SET.size=size;saveSet();applySet();
   relayout({force:true,anchor:anchor});
   return true;
@@ -1841,6 +1849,7 @@ function goPage(p,turn){
     R.lastTurn=Date.now();
   }
   if(R.mode==='pdf'&&np!==R.page){R.panX=0;R.panY=0;R.zoom=1;const w=el('pdfWrap');if(w){w.scrollTop=0;w.scrollLeft=0;}} // новая страница открывается по ширине
+  if(np!==prev)R.anc=null;
   R.page=np;
   if(R.mode==='pdf'){renderPdfPage(np);}
   else{el('content').style.transform='translateX('+(-np*R.step)+'px)';}
@@ -1874,33 +1883,68 @@ function viewerTap(cx,cy){
   if(y<0.12&&x>0.7){addBookmark();return;}       // угол: закладка
   const tapOn=!SET.nav||SET.nav.tap!==false;
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
-  if(tapOn&&x<0.3)goPage(R.page-1*inv,true);
-  else if(tapOn&&x>0.7)goPage(R.page+1*inv,true);
-  else{
-    if(IMM){exitImmersive();relayout();armChromeHide();}
-    else toggleChrome(); // тап по центру — показать/спрятать панели (как в ReadEra)
-  }
+  if(tapOn&&x<0.3){fsResume();goPage(R.page-1*inv,true);}
+  else if(tapOn&&x>0.7){fsResume();goPage(R.page+1*inv,true);}
+  else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen; next centre tap hides both
 }
-/* авто-скрытие верхней/нижней панелей при чтении */
+/* ===== Bars + fullscreen as ONE state (Интерфейс, build 4) =====
+   reading : .barsoff (our bars hidden)  + browser fullscreen (if wanted: phone / ⛶)
+   chrome  : bars shown                  + fullscreen exited (system bars back)
+   Centre tap toggles both in the same handler/frame. Bars auto-hide after 3.2 s; fullscreen is re-requested
+   from that timer — Chrome still accepts it while the tap's transient user activation is alive (~5 s; exit
+   does not consume it). If the browser refuses, the next reading gesture in the reader (edge tap / swipe)
+   re-enters fullscreen inside its own handler before the flip. Viewport resizes → relayout() with the kept
+   reading anchor (no jump, page number recomputed in the same goPage). */
 let chromeTimer=null;
-function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;r.classList.add('barsoff');relayout();},3200);}
-function showChrome(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}armChromeHide();}
-function hideChrome(){const r=el('reader');if(!r)return;clearTimeout(chromeTimer);if(!r.classList.contains('barsoff')){r.classList.add('barsoff');relayout();}}
-function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))showChrome();else hideChrome();}
-function stopChrome(){clearTimeout(chromeTimer);const r=el('reader');if(r)r.classList.remove('barsoff');}
-let IMM=false;
-function goFullscreen(){
+let FSW=false;          // fullscreen wanted while reading (phone / ⛶ button)
+let fsPending=false;    // timer re-entry was refused → retry on the next reading gesture
+window.__rqFsLog=[];    // diagnostics (tests): {how, ok, t}
+function fsActive(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
+function fsRequest(how){
+  if(!FSW||fsActive()){fsPending=false;return;}
   const d=document.documentElement;
   const fn=d.requestFullscreen||d.webkitRequestFullscreen||d.webkitRequestFullScreen||d.msRequestFullscreen;
-  if(fn){try{fn.call(d);}catch(e){}}
+  if(!fn){fsPending=false;return;}
+  const ua=navigator.userActivation;
+  if(how==='timer'&&ua&&!ua.isActive){fsPending=true;window.__rqFsLog.push({how:how,ok:false,why:'no-activation',t:Date.now()});return;}
+  const done=function(ok,why){if(!ok&&FSW)fsPending=true;else fsPending=false;window.__rqFsLog.push({how:how,ok:ok,why:why||'',t:Date.now()});};
+  try{
+    const pr=fn.call(d,{navigationUI:'hide'});
+    if(pr&&typeof pr.then==='function')pr.then(function(){done(true);},function(e){done(false,e&&e.name||'rejected');});
+    else setTimeout(function(){done(fsActive(),'legacy');},0);
+  }catch(e){done(false,e&&e.name||'throw');}
 }
+/** Next reading gesture: re-enter fullscreen if the timer could not (call inside the gesture handler). */
+function fsResume(){if(fsPending&&FSW&&!el('reader').classList.contains('hidden')&&el('reader').classList.contains('barsoff'))fsRequest('gesture');}
 function exitFullscreenSafe(){
   const fn=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
-  if(fn&&(document.fullscreenElement||document.webkitFullscreenElement)){try{fn.call(document);}catch(e){}}
+  if(fn&&fsActive()){try{const pr=fn.call(document);if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
 }
-function enterImmersive(){IMM=true;el('reader').classList.add('imm');goFullscreen();}
-function exitImmersive(){IMM=false;el('reader').classList.remove('imm');exitFullscreenSafe();}
-el('btnFull').onclick=()=>{enterImmersive();relayout();flashMsg('⛶ Полный экран · тап по центру — выход');};
+function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;concealChrome('timer');},3200);}
+/** reading state: hide our bars + (re)enter fullscreen */
+function concealChrome(how){
+  const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
+  if(!r.classList.contains('barsoff')){r.classList.add('barsoff');if(how!=='open')relayout();} /* open: the book is laid out right after */
+  fsRequest(how||'tap');
+}
+/** chrome state: show our bars + leave fullscreen — same handler, same frame */
+function revealChrome(){
+  const r=el('reader');if(!r||r.classList.contains('hidden'))return;
+  fsPending=false;
+  exitFullscreenSafe();
+  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}
+  armChromeHide();
+}
+function showChrome(){revealChrome();}
+function hideChrome(){concealChrome('tap');}
+function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}
+function stopChrome(){clearTimeout(chromeTimer);FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff');exitFullscreenSafe();}
+let IMM=false; /* legacy name kept for old callers: true ⇔ fullscreen wanted */
+function goFullscreen(){FSW=true;IMM=true;fsRequest('open');}
+function enterImmersive(){FSW=true;IMM=true;concealChrome('open');}
+function exitImmersive(){FSW=false;IMM=false;revealChrome();}
+document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});});
+el('btnFull').onclick=()=>{enterImmersive();flashMsg('⛶ Полный экран · тап по центру — панели');};
 function isLightBg(bg){
   const c=String(bg).replace('#','');
   const n=parseInt(c.length===3?c.split('').map(ch=>ch+ch).join(''):c,16);
@@ -2068,7 +2112,7 @@ el('viewer').addEventListener('touchend',e=>{
   if(tx0===null)return;
   const ct=e.changedTouches[0];
   const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
-  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+(dx<0?1:-1)*inv,true);return;}
+  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
   /* short, still touch = tap (not on buttons / selection popup) */
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tt0<450&&e.touches.length===0&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
@@ -4237,9 +4281,9 @@ import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
-} from './storage/index.js?v=20261006-1258';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1258';
-import * as game from './game-awards.js?v=20261006-1258';
+} from './storage/index.js?v=20261006-1306';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1306';
+import * as game from './game-awards.js?v=20261006-1306';
 
 window.__rqGame = game;
 const boot = await bootStorage();

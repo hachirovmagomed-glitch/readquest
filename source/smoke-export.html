@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>smoke-export</title>
+<pre id="out">running…</pre>
+<script type="module">
+const out = document.getElementById('out');
+const log = (m) => { out.textContent += '\n' + m; console.log(m); };
+try {
+  const {
+    bootStorage, exportBackup, importBackup, logSession, logReadingEvent, logAnalyticsEvent,
+    listSessions, listReadingEvents, clearSessions, clearReadingEvents, clearAllLocal, loadEnvelope
+  } = await import('./storage/index.js');
+
+  clearAllLocal({ settings: true, legacy: true });
+  await clearSessions().catch(()=>{});
+  await clearReadingEvents().catch(()=>{});
+  await bootStorage();
+
+  await logSession({ date: '2026-10-05', bookId: 'b1', minutes: 11, pageTurns: 5 });
+  await logSession({ date: '2026-10-04', bookId: 'b2', minutes: 15, pageTurns: 9 });
+  await logReadingEvent({ bookId: 'b1', pageVisibleMs: 3000, page: 1 });
+  await logAnalyticsEvent({ type: 'hero_create_tapped' });
+
+  // seed game fields
+  const env = loadEnvelope();
+  env.game.gold = 150;
+  env.game.dailyClaimed = '2026-10-05';
+  env.game.weeklyClaimed = '2026-09-29';
+  env.game.rewardPurchases = [{ id: 'rp1', title: 'Кофе', price: 100, at: '2026-10-05T10:00:00.000Z' }];
+  env.progress.streak = 3;
+  const { saveEnvelope } = await import('./storage/state.js');
+  saveEnvelope(env);
+
+  const payload = await exportBackup();
+  const keys = Object.keys(payload).sort();
+  log('exportKeys:' + keys.join(','));
+  log('hasSchema:' + (payload.schemaVersion === 1));
+  log('sessions:' + (payload.sessions||[]).length);
+  log('events:' + (payload.events||[]).length);
+  log('gold:' + payload.game.gold);
+  log('dailyClaimed:' + payload.game.dailyClaimed);
+  log('weeklyClaimed:' + payload.game.weeklyClaimed);
+  log('rewardPurchases:' + (payload.game.rewardPurchases||[]).length);
+  log('streakInProgress:' + payload.progress.streak);
+  log('streakNotInGame:' + (payload.game.streak === undefined));
+
+  const sCount = payload.sessions.length;
+  const eCount = payload.events.length;
+
+  // clear everything and import
+  clearAllLocal({ settings: true, legacy: true });
+  await clearSessions();
+  await clearReadingEvents();
+  await importBackup(payload);
+
+  const sessions2 = await listSessions({});
+  const events2 = await listReadingEvents({});
+  const env2 = loadEnvelope();
+  log('afterImport sessions:' + sessions2.length + ' events:' + events2.length);
+  log('roundTripSessions:' + (sessions2.length === sCount));
+  log('roundTripEvents:' + (events2.length === eCount));
+  log('gold2:' + env2.game.gold);
+  log('daily2:' + env2.game.dailyClaimed);
+  log('purchases2:' + (env2.game.rewardPurchases||[]).length);
+  log('streak2:' + env2.progress.streak);
+
+  const ok = payload.schemaVersion===1 && sessions2.length===sCount && events2.length===eCount
+    && env2.game.gold===150 && env2.game.dailyClaimed==='2026-10-05'
+    && (env2.game.rewardPurchases||[]).length===1 && env2.progress.streak===3;
+  log(ok ? 'OK' : 'FAIL');
+} catch (e) {
+  log('FAIL ' + (e && e.stack || e));
+}
+</script>

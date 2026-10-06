@@ -10,6 +10,18 @@
  *   - each page contributes at most `capMs` (default 3 min) — a forgotten open book
  *     can never add more than one cap, including the last page of the session;
  *   - `pageTurns` = forward turns where the page was visible ≥ `minSecMs` (default 12 s).
+ *   - optional per-page cap EXTENSION (PDF only, Product 2026-10-06): a qualifying activity
+ *     (zoom change, or a pan of more than `minFraction` of the screen) raises THIS page's cap by
+ *     `stepMs`, at most once per `everyMs`, never above `maxMs`. Text passes no extension → flat cap.
+ *
+ * Event API — reading modes (text columns, PDF canvas) only REPORT events; all accounting is here:
+ *   begin(bookId, startPage, { capMs, minSecMs, counting, extend })
+ *   pageTurned(forward)      user asked for another page (tap / swipe / slider / key); intent only
+ *   pageShown(page)          that page is now actually on screen → closes the previous page
+ *                            (min(dwell, pageCap) credited; a forward turn after ≥ minSec = pageTurns+1)
+ *   userActive(kind, info)   'pan' {fraction} | 'zoom' | … → may extend the current page's cap
+ *   onPageChange(page, fwd)  legacy shorthand = pageTurned(fwd) + pageShown(page)
+ *   end() / cancel() / snapshot() / setCounting(on)
  *
  * Day (Product lock 2026-10-06): `date` = the device's LOCAL day on which the session STARTED
  *   (captured in begin()); reading 23:50–00:15 is one row, entirely on the first day.
@@ -18,7 +30,7 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261006-1306';
+import { localDay, newSessionId } from './storage/sessions.js';
 export { newSessionId };
 
 export const DRAFT_KEY = 'rq_session_draft';
@@ -45,6 +57,11 @@ export function createSessionTracker(api) {
   let dwellClock = 0;
   let creditedMs = 0;     // sum of capped page dwell
   let capMs = 3 * 60000;
+  let pageCapMs = capMs;  // cap of the CURRENT page (capMs, possibly extended by userActive)
+  let extend = null;      // {stepMs, everyMs, maxMs, minFraction} | null (text: no extension)
+  let lastExtAt = -Infinity;
+  let pendingTurn = 0;    // +1 forward / -1 back requested by pageTurned(), consumed by pageShown()
+  let extCount = 0;       // diagnostics: extensions granted on the current page
   let minSecMs = 12000;
   let counting = true;
   let running = false;
@@ -79,11 +96,12 @@ export function createSessionTracker(api) {
   function creditPage() {
     dwellPause();
     const raw = dwellAcc;
-    creditedMs += Math.min(raw, capMs);
+    creditedMs += Math.min(raw, pageCapMs);
     dwellAcc = 0;
     return raw;
   }
-  function countedMsLive() { return creditedMs + Math.min(dwellLive(), capMs); }
+  function newPageCap() { pageCapMs = capMs; lastExtAt = -Infinity; extCount = 0; }
+  function countedMsLive() { return creditedMs + Math.min(dwellLive(), pageCapMs); }
 
   function persistDraft() {
     if (!running || !bookId) return;
@@ -134,7 +152,7 @@ export function createSessionTracker(api) {
     clearInterval(flushTimer); flushTimer = null;
     running = false; bookId = null; sessionId = null; startDay = null;
     pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
-    creditedMs = 0; turns = 0; pagesRead = 0;
+    creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; newPageCap();
     if (!keepDraft) lsDel(DRAFT_KEY);
   }
 
@@ -143,7 +161,8 @@ export function createSessionTracker(api) {
      * Reader opened a book.
      * @param {string} id
      * @param {number} startPage
-     * @param {{ capMs?: number, minSecMs?: number, counting?: boolean }} [opts]
+     * @param {{ capMs?: number, minSecMs?: number, counting?: boolean,
+     *          extend?: {stepMs:number, everyMs:number, maxMs:number, minFraction?:number}|null }} [opts]
      */
     begin(id, startPage, opts) {
       const o = opts || {};
@@ -156,6 +175,12 @@ export function createSessionTracker(api) {
       if (o.capMs != null) capMs = Math.max(0, Number(o.capMs));
       if (o.minSecMs != null) minSecMs = Math.max(0, Number(o.minSecMs));
       counting = o.counting !== false;
+      extend = o.extend && o.extend.stepMs > 0 ? {
+        stepMs: Number(o.extend.stepMs), everyMs: Number(o.extend.everyMs) || 60000,
+        maxMs: Math.max(capMs, Number(o.extend.maxMs) || capMs),
+        minFraction: o.extend.minFraction != null ? Number(o.extend.minFraction) : 0.2,
+      } : null;
+      pendingTurn = 0; newPageCap();
       startedAt = Date.now();
       startDay = today();
       running = !!bookId;
@@ -172,28 +197,67 @@ export function createSessionTracker(api) {
       else { counting = true; dwellStart(); }
     },
 
-    /**
-     * Page index changed (tap / swipe / slider / TOC / relayout).
-     * @param {number} newPage
-     * @param {boolean} [wasForwardTurn]
-     */
-    onPageChange(newPage, wasForwardTurn) {
+    /** The user asked for another page (tap / swipe / slider / key). Intent only — the page is
+     *  closed when the new one is actually shown (pageShown). */
+    pageTurned(forward) {
       if (!running) return;
+      pendingTurn = forward === false ? -1 : 1;
+    },
+
+    /**
+     * A page is now on screen (after the render/transform swap). Closes the previous page:
+     * min(dwell, pageCap) is credited; a pending FORWARD turn after ≥ minSec counts as pageTurns.
+     * @param {number} newPage
+     */
+    pageShown(newPage) {
+      if (!running) return;
+      if (newPage === page && !pendingTurn) return;
       flushEvent();
       const raw = creditPage();
-      if (wasForwardTurn) {
+      if (pendingTurn > 0) {
         turns += 1;
         if (counting && raw >= minSecMs) pagesRead += 1;
       }
+      pendingTurn = 0;
       page = newPage;
+      newPageCap();
       startClock();
       dwellStart();
       persistDraft();
     },
 
+    /**
+     * The reader is actively working with the current page.
+     * @param {'pan'|'zoom'|string} kind
+     * @param {{fraction?: number}} [info] pan: max(|dx|/screenW, |dy|/screenH)
+     * @returns {boolean} true when the page cap was extended
+     */
+    userActive(kind, info) {
+      if (!running || !extend) return false;
+      const qualifies = kind === 'zoom' ||
+        (kind === 'pan' && info && Number(info.fraction) > extend.minFraction);
+      if (!qualifies) return false;
+      const t = now();
+      if (t - lastExtAt < extend.everyMs) return false;
+      if (pageCapMs >= extend.maxMs) return false;
+      lastExtAt = t;
+      pageCapMs = Math.min(extend.maxMs, pageCapMs + extend.stepMs);
+      extCount += 1;
+      persistDraft();
+      return true;
+    },
+
+    /** Legacy shorthand: pageTurned(fwd) + pageShown(page). */
+    onPageChange(newPage, wasForwardTurn) {
+      if (!running) return;
+      if (wasForwardTurn) pendingTurn = 1;
+      this.pageShown(newPage);
+    },
+
     /** Live counted state (for the day-progress bar). */
     snapshot() {
-      return { countedMs: countedMsLive(), minutes: countedMsLive() / 60000, pageTurns: pagesRead, turns: turns };
+      return { countedMs: countedMsLive(), minutes: countedMsLive() / 60000, pageTurns: pagesRead, turns: turns,
+        page: page, pageCapMs: pageCapMs, pageDwellMs: dwellLive(), extensions: extCount };
     },
     getPageTurns() { return pagesRead; },
     getBookId() { return bookId; },

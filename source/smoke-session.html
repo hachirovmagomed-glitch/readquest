@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>smoke</title>
+<pre id="out">running…</pre>
+<script type="module">
+const out = document.getElementById('out');
+const log = (m) => { out.textContent += '\n' + m; console.log(m); };
+try {
+  const {
+    bootStorage, loadFlat, saveFlat, logSession, listSessions,
+    logReadingEvent, listReadingEvents, logAnalyticsEvent, clearSessions, clearReadingEvents
+  } = await import('./storage/index.js');
+
+  const boot = await bootStorage();
+  log('boot:' + JSON.stringify({ skipped: boot.migration?.skipped, migrated: boot.migration?.migrated, reason: boot.migration?.reason }));
+
+  const flat = loadFlat();
+  log('goal:' + flat.goal + ' schema:' + (flat.schemaVersion || boot.envelope?.schemaVersion));
+
+  // Ensure we don't require UI — write session + events directly
+  await clearSessions().catch(()=>{});
+  await clearReadingEvents().catch(()=>{});
+
+  const sess = await logSession({ date: '2026-10-05', bookId: 'smoke1', minutes: 12.5, pageTurns: 7 });
+  log('session:' + JSON.stringify(sess));
+
+  const ev = await logReadingEvent({ bookId: 'smoke1', pageVisibleMs: 4200, page: 2 });
+  log('event:' + JSON.stringify(ev));
+
+  const an = await logAnalyticsEvent({ type: 'hero_create_tapped' });
+  log('analytics:' + JSON.stringify(an));
+
+  const sessions = await listSessions({ bookId: 'smoke1' });
+  const events = await listReadingEvents({});
+  const heroes = await listReadingEvents({ type: 'hero_create_tapped' });
+
+  log('sessionsCount:' + sessions.length);
+  log('eventsCount:' + events.length);
+  log('heroEvents:' + heroes.length);
+  log('legacyKey:' + (localStorage.getItem('readquest') ? 'PRESENT' : 'absent'));
+  log('rq_v1:' + (localStorage.getItem('rq_v1') ? 'PRESENT' : 'MISSING'));
+
+  // saveFlat should not create legacy key
+  const before = localStorage.getItem('readquest');
+  await saveFlat(Object.assign({}, flat, { gold: (flat.gold||0) }));
+  const after = localStorage.getItem('readquest');
+  log('legacyAfterSaveFlat:' + (after ? 'PRESENT' : 'absent') + ' changed:' + (before !== after));
+
+  log('OK');
+} catch (e) {
+  log('FAIL ' + (e && e.stack || e));
+}
+</script>

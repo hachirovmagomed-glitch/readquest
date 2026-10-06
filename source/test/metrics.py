@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""ReadQuest test metrics from export JSONs (backup envelope schemaVersion 1).
+
+Usage: python3 metrics.py --start 2026-10-12 exports/*.json
+Each file = one tester's export (sessions[] rows may carry an `id` — ignored here). Sessions under ~10 s with 0 pages are never logged
+by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Week 1 = start..start+6, week 2 = start+7..start+13.
+"""
+import argparse, json, statistics, sys
+from collections import defaultdict
+from datetime import date, timedelta
+
+MIN_MINUTES = 10
+
+def d(s): return date.fromisoformat(s[:10])
+
+def tester(path, start):
+    data = json.load(open(path, encoding="utf-8"))
+    if data.get("schemaVersion") != 1:
+        print(f"! {path}: schemaVersion={data.get('schemaVersion')}", file=sys.stderr)
+    per_day = defaultdict(float)
+    sessions = data.get("sessions", [])
+    fake = 0
+    for s in sessions:
+        per_day[d(s["date"])] += s.get("minutes", 0) or 0
+        if (s.get("minutes", 0) or 0) > 0 and (s.get("pageTurns", 0) or 0) == 0:
+            fake += 1
+    def week(n):
+        lo = start + timedelta(days=7 * n); hi = lo + timedelta(days=6)
+        days = [k for k in per_day if lo <= k <= hi]
+        return sum(1 for k in days if per_day[k] >= MIN_MINUTES), len(days)
+    w1_ok, w1_any = week(0); w2_ok, w2_any = week(1)
+    hero = sum(1 for e in data.get("events", []) if e.get("type") == "hero_create_tapped")
+    buys = len((data.get("game") or {}).get("rewardPurchases") or [])
+    return {"buys": buys, "file": path, "w1_days10": w1_ok, "w2_days10": w2_ok, "w2_any": w2_any,
+            "sessions": len(sessions), "fake": fake, "hero_taps": hero}
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--start", required=True, help="test day 1, YYYY-MM-DD")
+    ap.add_argument("files", nargs="+")
+    a = ap.parse_args()
+    rows = [tester(f, d(a.start)) for f in a.files]
+    print("file | w1 days>=10 | w2 days>=10 | w2 active days | sessions | fake | hero taps | reward buys")
+    for r in rows:
+        print(f"{r['file']} | {r['w1_days10']} | {r['w2_days10']} | {r['w2_any']} | {r['sessions']} | {r['fake']} | {r['hero_taps']} | {r['buys']}")
+    n = len(rows); tot = sum(r["sessions"] for r in rows) or 1
+    med = statistics.median(r["w2_days10"] for r in rows)
+    ret = sum(1 for r in rows if r["w2_any"] > 0) / n
+    fake = sum(r["fake"] for r in rows) / tot
+    hero = sum(1 for r in rows if r["hero_taps"] > 0) / n
+    buy = sum(1 for r in rows if r["buys"] > 0) / n
+    print()
+    print(f"North star, week 2 median days >=10 min: {med}  (target >= 4)  {'OK' if med >= 4 else 'MISS'}")
+    print(f"Returned in week 2: {ret:.0%}  (alarm < 50%)")
+    print(f"Fake sessions (minutes, 0 page turns): {fake:.0%}  (alarm > 10%)")
+    print(f"Tapped 'Создать героя': {hero:.0%}  (build AI hero if > 33%)")
+    print(f"Bought at least one real reward: {buy:.0%}")
+
+if __name__ == "__main__":
+    main()

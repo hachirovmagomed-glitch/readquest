@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ReadQuest storage test</title>
+  <style>
+    :root{--bg:#0c2127;--card:#143039;--acc:#2bb3c0;--xp:#ffc107;--txt:#e8f1f3;--muted:#8aa5ad}
+    *{box-sizing:border-box}
+    body{margin:0;font:15px/1.45 system-ui,sans-serif;background:var(--bg);color:var(--txt);padding:20px;max-width:720px}
+    h1{font-size:20px;margin:0 0 8px}
+    h2{font-size:15px;color:var(--acc);margin:20px 0 8px}
+    .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+    button{background:var(--acc);color:#042026;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;margin:0 8px 8px 0}
+    button.ghost{background:#1a3a44;color:var(--txt)}
+    button.danger{background:#c0392b;color:#fff}
+    #log{background:var(--card);border-radius:12px;padding:12px;font:12px/1.4 ui-monospace,monospace;white-space:pre-wrap;min-height:180px;max-height:420px;overflow:auto}
+    .ok{color:#4cd97b}.err{color:#ff6b6b}.info{color:var(--xp)}
+    .row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <h1>ReadQuest · storage harness</h1>
+  <p class="sub">Проверка migrate v6 → v1, save/load envelope, IDB book bodies. Открывать через локальный сервер (ES modules).</p>
+  <div class="row">
+    <button id="btnBoot">1. Boot + migrate</button>
+    <button id="btnSeed" class="ghost">2. Seed legacy v6</button>
+    <button id="btnMigrate" class="ghost">3. Force migrate</button>
+    <button id="btnSave" class="ghost">4. Save progress</button>
+    <button id="btnBook" class="ghost">5. Put/get text book</button>
+    <button id="btnExport" class="ghost">6. Export JSON</button>
+    <button id="btnSession" class="ghost">7. logSession</button>
+    <button id="btnEvent" class="ghost">8. pageVisibleMs</button>
+    <button id="btnClear" class="danger">Clear LS keys</button>
+  </div>
+  <h2>Log</h2>
+  <div id="log"></div>
+<script type="module">
+import {
+  SCHEMA_VERSION, KEYS, PROGRESS_DEF,
+  bootStorage, migrateFromV6, loadEnvelope, saveEnvelope,
+  loadFlat, exportBackup, clearAllLocal, idb,
+  logSession, listSessions, daysMeetingThreshold,
+  logReadingEvent, listReadingEvents,
+} from './index.js';
+
+const logEl = document.getElementById('log');
+function log(msg, cls) {
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+log('SCHEMA_VERSION=' + SCHEMA_VERSION + ' default goal=' + PROGRESS_DEF.goal, 'info');
+log('keys: ' + JSON.stringify(KEYS), 'info');
+
+document.getElementById('btnSeed').onclick = () => {
+  const legacy = {
+    xp: 120, gold: 40, streak: 2, lastDay: '2026-10-04',
+    goal: 15, dayKey: '2026-10-05', minToday: 3, sessions: 5,
+    totalMin: 40, totalPages: 12,
+    stats: {Интеллект: 2, Мудрость: 0, Харизма: 1, Воображение: 0, Воля: 3},
+    badges: ['first'], finished: [], progress: {u1: {ratio: 0.2}},
+    userBooks: [
+      {id: 'u1', title: 'Тестовая повесть', author: 'Автор', genre: 'Своя книга',
+       stat: 'Воля', cover: '📜', text: 'Раз. Два. Три.\n\nДлинный текст книги для проверки выноса тела в IndexedDB.',
+       fname: 'test.txt', size: 80},
+      {id: 'u2', title: 'PDF-заглушка', author: 'PDF', genre: 'PDF', type: 'pdf',
+       pages: 3, text: '', fname: 'x.pdf', size: 1000}
+    ],
+    quotes: {}, hl: {}, owned: [], claimed: {}, hist: {}, hidden: [],
+    favs: ['u1'], shelfOrder: ['u1','u2']
+  };
+  localStorage.setItem('readquest', JSON.stringify(legacy));
+  localStorage.removeItem(KEYS.envelope);
+  localStorage.removeItem(KEYS.legacyMigratedFlag);
+  log('Seeded legacy key "readquest" with text book u1 (goal=15)', 'ok');
+};
+
+document.getElementById('btnBoot').onclick = async () => {
+  try {
+    const r = await bootStorage();
+    log('boot migration: ' + JSON.stringify(r.migration, (k,v) => k==='envelope'?undefined:v), 'ok');
+    const e = r.envelope;
+    log('goal=' + e.progress.goal + ' books=' + e.library.userBooks.length +
+      ' firstHasText=' + !!(e.library.userBooks[0] && e.library.userBooks[0].text), 'info');
+    const raw = localStorage.getItem(KEYS.envelope) || '';
+    if (raw.includes('"text":') && /"text":"[^"]{20,}"/.test(raw)) {
+      log('FAIL: envelope still contains long text body', 'err');
+    } else {
+      log('PASS: no long text bodies in localStorage envelope', 'ok');
+    }
+  } catch (e) {
+    log('boot error: ' + e.message, 'err');
+    console.error(e);
+  }
+};
+
+document.getElementById('btnMigrate').onclick = async () => {
+  try {
+    const r = await migrateFromV6({ force: true });
+    log('force migrate: ' + JSON.stringify(r, (k,v)=>k==='envelope'?'{…}':v), r.migrated || r.skipped ? 'ok' : 'err');
+    if (r.booksMoved != null) log('booksMoved to IDB: ' + r.booksMoved, 'info');
+    const t = await idb.getText('u1');
+    log('idb text:u1 length=' + (t ? t.length : 0) + ' preview=' + JSON.stringify((t||'').slice(0,40)), t ? 'ok' : 'err');
+  } catch (e) {
+    log('migrate error: ' + e.message, 'err');
+  }
+};
+
+document.getElementById('btnSave').onclick = () => {
+  const e = loadEnvelope();
+  e.progress.minToday = (e.progress.minToday || 0) + 1;
+  e.progress.goal = 10; // team default going forward for new; explicit set
+  const r = saveEnvelope(e);
+  log('saveEnvelope ok=' + r.ok + ' minToday=' + loadEnvelope().progress.minToday + ' goal=' + loadEnvelope().progress.goal, r.ok ? 'ok' : 'err');
+};
+
+document.getElementById('btnBook').onclick = async () => {
+  try {
+    const id = 't' + Date.now();
+    const body = 'Глава 1.\n\nТекст только в IndexedDB, не в localStorage.';
+    await idb.putText(id, body);
+    const e = loadEnvelope();
+    e.library.userBooks.push({
+      id, title: 'IDB book', author: 'Test', genre: 'Своя книга',
+      stat: 'Воля', cover: '📜', fname: 'idb.txt', size: body.length
+    });
+    saveEnvelope(e);
+    const got = await idb.getText(id);
+    const envStr = localStorage.getItem(KEYS.envelope) || '';
+    const leaked = envStr.indexOf(body.slice(0, 30)) !== -1;
+    log('put/get id=' + id + ' match=' + (got === body) + ' leakedToLS=' + leaked, got === body && !leaked ? 'ok' : 'err');
+  } catch (e) {
+    log('book error: ' + e.message, 'err');
+  }
+};
+
+document.getElementById('btnExport').onclick = async () => {
+  const payload = await exportBackup();
+  log('export schema=' + payload.schemaVersion + ' flat.goal=' + (payload.readquest && payload.readquest.goal) +
+    ' userBooks[0].text=' + (payload.library.userBooks[0] && payload.library.userBooks[0].text), 'info');
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rq-storage-test-backup.json';
+  a.click();
+  log('download started', 'ok');
+};
+
+document.getElementById('btnSession').onclick = async () => {
+  try {
+    const rec = await logSession({ bookId: 'u1', minutes: 12, pageTurns: 7, date: new Date() });
+    const rows = await listSessions({ from: rec.date, to: rec.date });
+    const ns = await daysMeetingThreshold({ from: rec.date, to: rec.date, minMinutes: 10 });
+    const shapeOk = rec.bookId === 'u1' && rec.pageTurns === 7 && rec.minutes === 12 && !!rec.date;
+    log('session ' + JSON.stringify(rec) + ' list=' + rows.length + ' northStarDays=' + ns.count, shapeOk ? 'ok' : 'err');
+  } catch (e) { log('session error: ' + e.message, 'err'); }
+};
+
+document.getElementById('btnEvent').onclick = async () => {
+  try {
+    const rec = await logReadingEvent({ bookId: 'u1', pageVisibleMs: 12000, page: 2 });
+    const ev = await listReadingEvents({ bookId: 'u1' });
+    log('event ' + JSON.stringify(rec) + ' total=' + ev.length, rec.pageVisibleMs === 12000 ? 'ok' : 'err');
+  } catch (e) { log('event error: ' + e.message, 'err'); }
+};
+
+document.getElementById('btnClear').onclick = () => {
+  clearAllLocal({ settings: true, legacy: true });
+  log('cleared rq_v1, rq_set, readquest, migrate flag', 'ok');
+};
+</script>
+</body>
+</html>

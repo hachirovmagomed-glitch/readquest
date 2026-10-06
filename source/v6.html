@@ -3,14 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ReadQuest</title>
-<meta name="theme-color" content="#0c2127">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ReadQuest">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>ReadQuest — прототип</title>
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -89,32 +82,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .rhead button{font-size:19px;padding:4px 8px}
 .rtitle{flex:1;text-align:left;font-size:14px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #viewer{flex:1;position:relative;overflow:hidden;margin:0 var(--r-margin,24px)}
-/* Android fix 2026-10-06: NO transition / will-change on the multi-column strip.
-   A transform transition promoted the whole N-page strip to one huge GPU layer and the
-   compositor animated it to tiles that were never rasterized (blank page mid-flip).
-   Now the flip is a single main-thread commit: Chrome keeps the previous frame on screen
-   until the new page's tiles are rasterized. Pinch never scales this layer (touch-action). */
-#content{height:100%;column-fill:auto;transition:none;transform:translateX(0)}
-#reader:not(.pdfmode) #viewer{touch-action:none}
-#dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
-#dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
-body:not(.mvp) #dayBar{display:none}
-/* Always-on page number «34 / 210» (Интерфейс, build 3): own 18px strip between the text and the day bar →
-   outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
-   running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
-#pgLine{flex:none;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 var(--r-margin,24px);pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
-#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:inherit;opacity:.45;letter-spacing:.2px}
-#reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
-#mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}
-#libGoldLine{margin-top:10px;font-size:13px;font-weight:600;color:#ffc107;opacity:.92}
-#sumQuestGold{margin-top:8px;font-size:14px;font-weight:700;color:#ffc107;line-height:1.5}
-/* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
-#pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
-#pinchHint b{color:#2bb3c0;font-weight:700;margin-right:6px}
-#pinchHintN{display:inline-block;min-width:2ch;text-align:right}
-/* page number / book progress flip in the SAME frame as the text: no transitions */
-.rfoot span,.rfoot input[type=range]{transition:none!important}
-body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
+#content{height:100%;column-fill:auto;transition:transform .22s ease}
 #content p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
 #content .meta{text-indent:0;opacity:.6;font-style:italic;margin-bottom:1.6em}
@@ -460,37 +428,6 @@ body.pixel .charpanel .cbtn,body.pixel .charpanel .swatch{border-radius:0}
 .talnode.can{border-color:var(--accent);cursor:pointer}
 .talnode.lock{opacity:.45}
 body.pixel .talnode{border-radius:0}
-
-/* ===== MVP bottom nav + rewards sheet ===== */
-#botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;background:var(--card);border-top:1px solid #1d4250;padding:6px 10px calc(6px + env(safe-area-inset-bottom));gap:6px;justify-content:space-around}
-body.mvp #botnav{display:flex}
-body.mvp .screen > .scroll{padding-bottom:76px}
-body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
-.botnav-btn{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:12px;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.botnav-btn .ico{font-size:20px;line-height:1}
-.botnav-btn.on{color:var(--accent);background:rgba(43,179,192,.12)}
-#rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
-#rewardsSheet.open{transform:translateY(0)}
-#rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
-.tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}
-.tierseg button.on{background:var(--accent);color:#fff}
-.mvp-quest{margin-bottom:10px}
-.mvp-quest .pbar{margin-top:8px}
-.mvp-hist{font-size:12px;color:var(--muted);margin-top:10px}
-.mvp-hist li{margin:4px 0}
-body.mvp .mvp-hide{display:none!important}
-body.mvp #goldChip,body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
-body.mvp #drawer .ditem:not(#dLib):not(#dProf):not(#dSet){display:none!important}
-body.mvp #sumGoldCell,body.mvp #sumStatCell,body.mvp #luckLbl,body.mvp #sumBadges,body.mvp #lvlUp{display:none!important}
-body.mvp #profile .mvp-full{display:none!important}
-body.mvp #btnProfSetup{display:none!important}
-#mvpProfileBlock{display:none}
-body.mvp #mvpProfileBlock{display:block}
-#sumDailyBox{display:none;margin:12px 0;text-align:left}
-body.mvp #sumDailyBox{display:block}
-.tinyava{width:22px;height:22px;border-radius:50%;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-size:12px;margin-right:4px;vertical-align:middle;overflow:hidden}
-.tinyava svg{width:100%;height:100%}
 </style>
 </head>
 <body>
@@ -508,10 +445,9 @@ body.mvp #sumDailyBox{display:block}
       <div>
         <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель дня: 15 мин</b><button class="stepbtn" id="goalMinus">−</button><button class="stepbtn" id="goalPlus">＋</button></div>
         <div class="sub" id="goalSub">Сегодня: 0 мин</div>
-        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt">🔥 0 дней</span><span id="lvlTxt">⭐ Ур. 1</span></div>
+        <div class="streakline"><span id="streakTxt">🔥 0 дней</span><span id="lvlTxt">⭐ Ур. 1</span></div>
       </div>
     </div>
-    <div id="libGoldLine" class="hidden" role="status"></div>
     <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="🔍 Поиск по названию и автору"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
@@ -533,45 +469,30 @@ body.mvp #sumDailyBox{display:block}
         <div class="herobars">
           <b id="pName">Читатель</b>
           <div class="lvl" id="pLvl">Уровень 1</div>
-          <div class="barline mvp-full"><span class="barlbl" title="Здоровье">❤️</span><div class="statbar hp"><i id="hpFill"></i></div><span class="barnum" id="hpTxt">50 / 50</span></div>
+          <div class="barline"><span class="barlbl" title="Здоровье">❤️</span><div class="statbar hp"><i id="hpFill"></i></div><span class="barnum" id="hpTxt">50 / 50</span></div>
           <div class="barline"><span class="barlbl" title="Опыт">✨</span><div class="statbar xp"><i id="xpFill"></i></div><span class="barnum" id="xpTxt2">0%</span></div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px" id="xpTxt"></div>
         </div>
       </div>
-      <div class="hphint mvp-full" id="hpHint"></div>
-      <div class="mvp-full" style="font-size:11px;color:var(--muted);margin-top:8px">Тап по аватару — сменить облик</div>
-      <div id="avaPal" class="emojigrid hidden mvp-full"></div>
-      <button class="ghostbtn" id="btnHeroCreate" style="margin-top:12px;width:100%">✨ Создать героя</button>
+      <div class="hphint" id="hpHint"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">Тап по аватару — сменить облик</div>
+      <div id="avaPal" class="emojigrid hidden"></div>
     </div>
-
-    <div id="mvpProfileBlock">
-      <div class="kpis" style="margin-top:12px">
-        <div class="kpi"><b id="mvpGold">0</b><span>🪙 золото</span></div>
-        <div class="kpi"><b id="mvpStreak">0</b><span>🔥 стрик</span></div>
-        <div class="kpi"><b id="mvpMinToday">0</b><span>мин сегодня</span></div>
-      </div>
-      <h2>🎯 Квесты</h2>
-      <div id="mvpQuestBox"></div>
-      <button class="addbtn" id="btnOpenRewards" style="margin-top:8px">🎁 Награды из жизни</button>
-      <div style="height:8px"></div>
-      <button class="ghostbtn" id="btnMvpSettings" style="width:100%">⚙️ Настройки</button>
-    </div>
-
-    <div class="kpis mvp-full">
+    <div class="kpis">
       <div class="kpi"><b id="kStreak">0</b><span>🔥 стрик</span></div>
       <div class="kpi"><b id="kGold">0</b><span id="kGoldLbl">🪙 золото</span></div>
       <div class="kpi"><b id="kMin">0</b><span>минут всего</span></div>
     </div>
-    <div class="pcard bosscard mvp-full" id="bossCard"></div>
-    <div id="petCard" class="mvp-full"></div>
-    <h2 class="mvp-full">Характеристики</h2>
-    <div class="pcard mvp-full" id="statBox"></div>
-    <h2 class="mvp-full">🌳 Дерево талантов <span id="talPts" style="font-size:13px;color:var(--muted);font-weight:400"></span></h2>
-    <div class="pcard mvp-full" id="talentTree"></div>
-    <h2 class="mvp-full">🛡 Экипировка</h2>
-    <div class="pcard mvp-full" id="equipBox"></div>
+    <div class="pcard bosscard" id="bossCard"></div>
+    <div id="petCard"></div>
+    <h2>Характеристики</h2>
+    <div class="pcard" id="statBox"></div>
+    <h2>🌳 Дерево талантов <span id="talPts" style="font-size:13px;color:var(--muted);font-weight:400"></span></h2>
+    <div class="pcard" id="talentTree"></div>
+    <h2>🛡 Экипировка</h2>
+    <div class="pcard" id="equipBox"></div>
     <div style="height:18px"></div>
-    <button class="ghostbtn mvp-full" id="btnReset">Сбросить весь прогресс</button>
+    <button class="ghostbtn" id="btnReset">Сбросить весь прогресс</button>
   </div></div>
 </div>
 
@@ -616,11 +537,6 @@ body.mvp #sumDailyBox{display:block}
 <div id="settings" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuSet">☰</button><h1>⚙️ Настройки</h1></div>
-        <h2>MVP</h2>
-    <div class="pcard">
-      <div class="setrow"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
-      <div class="setrow"><div class="lab">Режим фокуса в читалке<div class="sub">Без RPG-тостов во время сессии; награда только на итоге</div></div><button class="ghostbtn" id="focusTgl">Вкл</button></div>
-    </div>
     <h2>Язык · Language</h2>
     <div class="pcard"><div class="seg" id="langSeg"></div></div>
     <h2>Честное чтение</h2>
@@ -664,7 +580,6 @@ body.mvp #sumDailyBox{display:block}
     <div class="pcard">
       <div class="setrow"><div class="lab">Экспорт прогресса<div class="sub">Резервная копия в файл (JSON)</div></div><button class="ghostbtn" id="btnExport">Сохранить</button></div>
       <div class="setrow"><div class="lab">Импорт прогресса</div><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></div>
-      <div class="setrow"><div class="lab">Версия сборки<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
       <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
       <div class="setrow"><div class="lab" style="color:#ff8a80">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
     </div>
@@ -779,22 +694,6 @@ body.mvp #sumDailyBox{display:block}
   <div class="b3dhint">Крутите пальцем или мышью 🔄</div>
 </div>
 
-
-<nav id="botnav" aria-label="MVP">
-  <button class="botnav-btn on" id="bnLib" type="button"><span class="ico">📚</span>Библиотека</button>
-  <button class="botnav-btn" id="bnProf" type="button"><span class="ico">🧙</span>Профиль</button>
-</nav>
-<div id="rewardsScrim" class="hidden"></div>
-<div id="rewardsSheet" role="dialog" aria-label="Награды из жизни">
-  <button class="closes" id="rewardsClose" type="button">✕</button>
-  <h3 style="margin:0 0 6px">🎁 Награды из жизни</h3>
-  <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Цена только по ступени. Золото — из квестов за чтение.</div>
-  <div class="row" style="margin-bottom:10px"><span class="chip" id="rewGoldChip">🪙 0</span><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
-  <div id="rewSlots"></div>
-  <h2 style="font-size:14px;margin-top:16px">История</h2>
-  <ul class="mvp-hist" id="rewHist"></ul>
-</div>
-
 <div id="scrim" class="hidden"></div>
 <aside id="drawer">
   <div class="dhead"><div class="logo">📚</div><div><b>ReadQuest</b><div style="font-size:12px;color:var(--muted)">прототип v6</div></div></div>
@@ -848,9 +747,6 @@ body.mvp #sumDailyBox{display:block}
       <button id="spCopy">📋</button>
     </div>
   </div>
-  <div id="pgLine" aria-hidden="true"><span id="pgNum"></span></div>
-  <div id="dayBar" aria-hidden="true"><i></i></div>
-  <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span></footer>
   <div class="sheet hidden" id="panel">
     <button class="closes" id="panelClose">✕</button>
@@ -924,195 +820,18 @@ body.mvp #sumDailyBox{display:block}
     <div class="sumgrid">
       <div class="sumcell"><b id="sumPages">0</b><span>страниц</span></div>
       <div class="sumcell"><b id="sumMin">0</b><span>минут</span></div>
-      <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">🪙 золота</span></div>
-      <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
-    </div>
-    <div id="sumDailyBox" class="pcard" style="background:rgba(255,255,255,.06)">
-      <div class="row"><b style="font-size:14px">🎯 Ежедневка</b><div class="spacer"></div><span id="sumDailyInfo" class="chip">0 / 10</span></div>
-      <div class="pbar" style="margin-top:8px"><i id="sumDailyBar" style="width:0%"></i></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px" id="sumWeeklyInfo"></div>
-      <div id="sumQuestGold" class="hidden"></div>
+      <div class="sumcell"><b id="sumGold">+0</b><span id="sumGoldLbl">🪙 золота</span></div>
+      <div class="sumcell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
     </div>
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
     <div id="sumBadges"></div>
     <div class="flame" id="sumStreak"></div>
-    <button class="cta" id="btnDone">В библиотеку</button>
+    <button class="cta" id="btnDone">Продолжить</button>
   </div>
 </div>
 
 <script>
 'use strict';
-
-/* ================= MVP helpers ================= */
-const REWARD_TIERS={small:100,mid:250,big:500};
-const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261006-1306'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
-function isMvp(){return SET.mvp!==false;}
-function isFocus(){return SET.focusMode!==false;}
-function applyMvpChrome(){
-  document.body.classList.toggle('mvp', isMvp());
-  const bn=el('botnav');
-  if(bn){
-    const onLib=!el('library').classList.contains('hidden');
-    const onProf=!el('profile').classList.contains('hidden');
-    if(el('bnLib'))el('bnLib').classList.toggle('on', onLib||(!onProf&&isMvp()));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', onProf);
-  }
-  /* tiny avatar on library streak */
-  const ava=el('streakAva');
-  if(ava){
-    if(isMvp()){
-      ava.style.display='inline-flex';
-      try{
-        if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
-        else ava.textContent=S.avatar||'📖';
-      }catch(e){ava.textContent='📖';}
-    }else ava.style.display='none';
-  }
-}
-function weekKey(d){
-  if(window.__rqGame&&window.__rqGame.weekStartOf)return window.__rqGame.weekStartOf(d||today());
-  const x=new Date((d||today())+'T12:00:00');
-  const day=(x.getDay()+6)%7; // Mon=0
-  const mon=new Date(x);mon.setDate(x.getDate()-day);
-  const y=mon.getFullYear(),m=String(mon.getMonth()+1).padStart(2,'0'),dd=String(mon.getDate()).padStart(2,'0');
-  return y+'-'+m+'-'+dd;
-}
-/* ===== sessions[] = single source of truth for minutes / XP / daily / weekly =====
-   SESS mirrors IDB sessions[] (loaded at boot, appended by closeReader). */
-let SESS=[];
-function dayMin(key){let m=0;for(let i=0;i<SESS.length;i++){const r=SESS[i];if(r&&String(r.date).slice(0,10)===key)m+=Number(r.minutes)||0;}return m;}
-function minTodaySess(){return dayMin(today());}
-function daysInWeekAtGoal(minNeed,wk){
-  const need=minNeed!=null?minNeed:(S.goal||10);
-  wk=wk||weekKey(today());
-  const days=window.__rqGame?window.__rqGame.daysAtGoalInWeek(SESS,wk,need):[];
-  return {count:days.length,days:days,need:need,week:wk};
-}
-/** Award every sessions[] row not yet in game.awardedSessionIds (idempotent):
-    XP = Math.round(min)*10 per row, and AUTO daily +30 / weekly +120 for the (local) days of exactly
-    these rows (game.dailyPaidDays / game.weeklyPaidWeeks). No claim button. */
-function awardPendingSessions(){
-  if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[]};
-  const G=window.__rqGame;
-  const res=G.applySessionAwards(S,SESS);
-  const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
-  const q=G.applyQuestAwards(S,SESS,fresh,{goal:S.goal||10});
-  res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
-  if(res.ids.length||q.gold)save();
-  return res;
-}
-function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}
-function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today()))>=0;}
-function mvpDailyProg(day){const g=S.goal||10;return Math.min(1,dayMin(day||today())/g);}
-function mvpDailyInfo(day){return Math.round(dayMin(day||today()))+' / '+(S.goal||10)+' мин';}
-function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(S.goal||10,wk);return Math.min(1,w.count/4);}
-function mvpWeeklyInfo(wk){const w=daysInWeekAtGoal(S.goal||10,wk);return Math.min(4,w.count)+' / 4 дня';}
-function renderMvpQuests(){
-  /* Status only — daily/weekly gold is paid automatically on the session summary */
-  const box=el('mvpQuestBox');if(!box)return;
-  const dDone=dailyPaid(), dP=dDone?1:mvpDailyProg();
-  const wDone=weeklyPaid(), wP=wDone?1:mvpWeeklyProg();
-  box.innerHTML=
-    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px">Ежедневка +30 🪙</span><div class="spacer"></div>'+
-      '<span class="chip" style="white-space:nowrap">'+(dDone?'✓ выполнено сегодня':mvpDailyInfo())+'</span>'+
-    '</div><div class="pbar"><i style="width:'+Math.round(dP*100)+'%"></i></div></div>'+
-    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">Неделя +120 🪙</span><div class="spacer"></div>'+
-      '<span class="chip" style="white-space:nowrap">'+mvpWeeklyInfo()+'</span>'+
-    '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div>'+
-      '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+(S.goal||10)+' мин за пн–вс'))+'</div></div>';
-}
-function renderMvpProfile(){
-  if(el('mvpGold'))el('mvpGold').textContent=goldDisp();
-  if(el('mvpStreak'))el('mvpStreak').textContent=S.streak||0;
-  if(el('mvpMinToday'))el('mvpMinToday').textContent=Math.round(minTodaySess());
-  renderMvpQuests();
-}
-function clearConfetti(){
-  document.querySelectorAll('.confetti').forEach(function(n){try{n.remove();}catch(e){}});
-}
-function clearToasts(){
-  document.querySelectorAll('.rq-toast').forEach(function(n){try{n.remove();}catch(e){}});
-}
-function openRewardsSheet(){
-  clearConfetti();clearToasts();
-  renderRewardsSheet();
-  el('rewardsScrim').classList.remove('hidden');
-  el('rewardsSheet').classList.add('open');
-}
-function closeRewardsSheet(){
-  el('rewardsSheet').classList.remove('open');
-  el('rewardsScrim').classList.add('hidden');
-}
-function ensureMvpRewards(){
-  if(!S.rewards||!S.rewards.length){
-    S.rewards=[
-      {name:'Кофе',tier:'small',cost:100,bought:0},
-      {name:'Серия сериала',tier:'small',cost:100,bought:0},
-      {name:'',tier:'small',cost:100,bought:0,placeholder:true}
-    ];
-  }
-  S.rewards.forEach(function(r){
-    if(!r.tier)r.tier=(r.cost>=500?'big':(r.cost>=250?'mid':'small'));
-    r.cost=REWARD_TIERS[r.tier]||100;
-  });
-  S.rewardPurchases=S.rewardPurchases||[];
-}
-function renderRewardsSheet(){
-  ensureMvpRewards();
-  if(el('rewGoldChip'))el('rewGoldChip').textContent=curI()+' '+goldDisp();
-  const box=el('rewSlots');if(!box)return;
-  box.innerHTML=S.rewards.map(function(r,i){
-    const label=r.name&&r.name.trim()?esc(r.name):(r.placeholder?'Назови награду…':'Без названия');
-    const tiers=['small','mid','big'].map(function(t){
-      return '<button type="button" class="'+(r.tier===t?'on':'')+'" onclick="setRewardTier('+i+',\''+t+'\')">'+REWARD_TIER_LABELS[t]+'</button>';
-    }).join('');
-    return '<div class="pcard" style="margin-bottom:10px">'+
-      '<div class="row" style="gap:8px;align-items:center">'+
-        '<input class="searchinp" style="flex:1;margin:0" value="'+esc(r.name||'')+'" placeholder="Название" onchange="renameRewardSlot('+i+',this.value)">'+
-        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+r.cost+' 🪙</button>'+
-      '</div>'+
-      '<div class="tierseg">'+tiers+'</div>'+
-      '<div class="row" style="font-size:12px;color:var(--muted)"><span>получено: '+(r.bought||0)+'</span><div class="spacer"></div>'+
-        (S.rewards.length>1?'<button class="lnk danger" onclick="delRewardSlot('+i+')">удалить</button>':'')+
-      '</div></div>';
-  }).join('');
-  const hist=el('rewHist');
-  if(hist){
-    const rows=(S.rewardPurchases||[]).slice().reverse().slice(0,12);
-    hist.innerHTML=rows.length?rows.map(function(h){
-      const when=h.at?localDay(h.at):''; /* stored ISO stamp, shown as the local day */
-      return '<li>'+esc(when)+' · '+esc(h.title||'')+' −'+(h.price||0)+' 🪙</li>';
-    }).join(''):'<li>Пока пусто — купите награду за золото с квестов</li>';
-  }
-}
-function setRewardTier(i,t){
-  ensureMvpRewards();const r=S.rewards[i];if(!r||!REWARD_TIERS[t])return;
-  r.tier=t;r.cost=REWARD_TIERS[t];save();renderRewardsSheet();
-}
-function renameRewardSlot(i,name){
-  ensureMvpRewards();const r=S.rewards[i];if(!r)return;
-  r.name=(name||'').trim().slice(0,60);r.placeholder=!r.name;save();renderRewardsSheet();
-}
-function delRewardSlot(i){
-  ensureMvpRewards();if(S.rewards.length<=1)return;
-  if(!confirm('Удалить слот?'))return;S.rewards.splice(i,1);save();renderRewardsSheet();
-}
-function buyRewardTier(i){
-  ensureMvpRewards();const r=S.rewards[i];if(!r||!r.name||!r.name.trim()){flashMsg('Сначала назовите награду');return;}
-  r.cost=REWARD_TIERS[r.tier]||r.cost;if(!canAfford(r.cost))return;
-  spend(r.cost);r.bought=(r.bought||0)+1;
-  S.rewardPurchases=S.rewardPurchases||[];
-  S.rewardPurchases.push({id:'rp_'+Date.now()+'_'+i, title:r.name, price:r.cost, at:new Date().toISOString()});
-  save();try{confettiReward();}catch(e){}flashMsg('🎉 «'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
-  if(!isMvp())renderShop();
-}
-function addRewardSlot(){
-  ensureMvpRewards();
-  if(S.rewards.length>=5){flashMsg('Максимум 5 слотов');return;}
-  S.rewards.push({name:'',tier:'small',cost:100,bought:0,placeholder:true});save();renderRewardsSheet();
-}
-
 /* ================= ДАННЫЕ ================= */
 const BOOK_NONF = "Эта мини-книга встроена в прототип ReadQuest как пример нон-фикшна. Читая её, вы прокачиваете Интеллект.\n\nПочему мы бросаем книги? Чаще всего не потому, что книга плохая, а потому, что чтение проигрывает конкуренцию за внимание. Телефон даёт награду каждые несколько секунд, книга — раз в несколько страниц. Мозг выбирает короткую петлю.\n\nХорошая новость: петлю можно перенастроить. Исследования привычек показывают, что устойчивое поведение складывается из трёх частей — триггер, действие, награда. Триггером может быть время и место: десять минут после кофе, кресло у окна. Действие должно быть смехотворно маленьким: не «прочитать главу», а «открыть книгу и прочитать одну страницу». Награда должна приходить сразу — и именно здесь помогает геймификация: очки опыта, серия дней, видимый прогресс.\n\nВторой принцип — снижение трения. Книга должна быть ближе, чем соблазн: приложение на первом экране телефона, закладка на нужной странице, заранее выбранная следующая книга. Каждый лишний шаг между желанием и чтением убивает часть желания.\n\nТретий принцип — серия важнее объёма. Десять минут каждый день дают за год больше шестидесяти часов чтения — это двадцать-тридцать книг. Один героический выходной с книгой даёт три часа и чувство вины на месяц. Не рвите цепочку: пусть минимальная планка будет такой низкой, чтобы её невозможно было не взять.\n\nЧетвёртый принцип — разнообразие жанров. Мозг быстрее устаёт от однотипного материала. Чередуйте художественное и прикладное, тяжёлое и лёгкое. В ReadQuest за это отвечают характеристики персонажа: перекошенный профиль сам подсказывает, чего не хватает.\n\nИ последнее: отслеживайте не только количество, но и удовольствие. Книга, которую мучительно дочитываешь из упрямства, стоит дороже, чем кажется: она крадёт желание открывать следующую. Разрешите себе бросать скучное — серия дней важнее гордости.\n\nТеперь вы знаете, как устроен этот прототип изнутри. Откройте рассказ с полки — и проверьте петлю на себе.";
 
@@ -1158,93 +877,58 @@ const FONTS=[
 ];
 
 /* ================= СОСТОЯНИЕ ================= */
-const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sessions:0,totalMin:0,totalPages:0,
+const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:15,dayKey:null,minToday:0,sessions:0,totalMin:0,totalPages:0,
  stats:{Интеллект:0,Мудрость:0,Харизма:0,Воображение:0,Воля:0},badges:[],finished:[],progress:{},userBooks:[],
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false};
-/* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
-let S=Object.assign({},DEF);
-let __rq=null;          // storage API from module boot
-let __tracker=null;     // reader-session tracker
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null};
+let S;
+try{S=Object.assign({},DEF,JSON.parse(localStorage.getItem('readquest')||'{}'));}catch(e){S=Object.assign({},DEF);}
+S.stats=Object.assign({},DEF.stats,S.stats||{});
+S.quotes=S.quotes||{};S.hl=S.hl||{};S.owned=S.owned||[];S.claimed=S.claimed||{};S.stickers=S.stickers||{};S.marks=S.marks||{};
+S.favs=S.favs||[];S.hidden=S.hidden||[];S.hist=S.hist||{};S.status=S.status||{};S.vocab=S.vocab||[];if(S.lastRead===undefined)S.lastRead=null;S.petXp=S.petXp||0;if(S.dailyClaim===undefined)S.dailyClaim=null;S.boss=S.boss||null;S.hourHist=(S.hourHist&&S.hourHist.length===24)?S.hourHist:new Array(24).fill(0);S.finishDates=S.finishDates||{};S.talents=S.talents||{};
+if(!S.anti)S.anti={minSec:12,maxMin:4};
+if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
+if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
+S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
+if(S.autoDiff===undefined)S.autoDiff=true;
+if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
+if(!S.appTheme)S.appTheme='teal';
+S.bookStats=S.bookStats||{};
+if(!S.cur||!S.cur.icon)S.cur={icon:'🪙',name:'золото'};
+if(!S.rewards)S.rewards=[{name:'Серия любимого сериала',cost:100,bought:0},{name:'Кофе с десертом',cost:200,bought:0}];
+S.planned=S.planned||{};S.bookImp=S.bookImp||{};
+S.customQuests=S.customQuests||[];S.customStats=S.customStats||[];
+if(!S.notif)S.notif={on:false,time:'20:00'};
+S.customStats.forEach(s=>{if(S.stats[s]===undefined)S.stats[s]=0;});
 const DEFAULT_SKILLS=['Концентрация','Дисциплина','Аналитика','Скорочтение'];
 const DEFAULT_SKILL_LINKS={Концентрация:{Воля:100,Интеллект:30},Дисциплина:{Воля:100},Аналитика:{Интеллект:100,Мудрость:40},Скорочтение:{Интеллект:60}};
-function hydrateS(raw){
-  S=Object.assign({},DEF,raw||{});
-  S.stats=Object.assign({},DEF.stats,S.stats||{});
-  S.quotes=S.quotes||{};S.hl=S.hl||{};S.owned=S.owned||[];S.claimed=S.claimed||{};S.stickers=S.stickers||{};S.marks=S.marks||{};
-  S.favs=S.favs||[];S.hidden=S.hidden||[];S.hist=S.hist||{};S.status=S.status||{};S.vocab=S.vocab||[];if(S.lastRead===undefined)S.lastRead=null;S.petXp=S.petXp||0;if(S.dailyClaim===undefined)S.dailyClaim=null;S.boss=S.boss||null;S.hourHist=(S.hourHist&&S.hourHist.length===24)?S.hourHist:new Array(24).fill(0);S.finishDates=S.finishDates||{};S.talents=S.talents||{};
-  if(!S.anti)S.anti={minSec:12,maxMin:3,v:2};
-  else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
-  S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
-  S.dailyPaidDays=Array.isArray(S.dailyPaidDays)?S.dailyPaidDays:[];S.weeklyPaidWeeks=Array.isArray(S.weeklyPaidWeeks)?S.weeklyPaidWeeks:[];
-  if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
-  if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
-  S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
-  if(S.autoDiff===undefined)S.autoDiff=true;
-  if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
-  if(!S.appTheme)S.appTheme='teal';
-  S.bookStats=S.bookStats||{};
-  if(!S.cur||!S.cur.icon)S.cur={icon:'🪙',name:'золото'};
-  if(!S.rewards||!S.rewards.length)S.rewards=[
-    {name:'Кофе',tier:'small',cost:100,bought:0},
-    {name:'Серия сериала',tier:'small',cost:100,bought:0},
-    {name:'',tier:'small',cost:100,bought:0,placeholder:true}
-  ];
-  S.rewards.forEach(function(r){if(!r.tier){r.tier=r.cost>=500?'big':(r.cost>=250?'mid':'small');r.cost=REWARD_TIERS[r.tier]||r.cost;}});
-
-  S.planned=S.planned||{};S.bookImp=S.bookImp||{};
-  S.customQuests=S.customQuests||[];S.customStats=S.customStats||[];
-  if(!S.notif)S.notif={on:false,time:'20:00'};
-  S.customStats.forEach(s=>{if(S.stats[s]===undefined)S.stats[s]=0;});
-  S.skillMeta=S.skillMeta||{};
-  DEFAULT_SKILLS.forEach(k=>{if(S.skills[k]===undefined)S.skills[k]=0;if(!S.skillMeta[k])S.skillMeta[k]={links:Object.assign({},DEFAULT_SKILL_LINKS[k]||{})};});
-  Object.keys(S.skills).forEach(k=>{if(!S.skillMeta[k])S.skillMeta[k]={links:{}};});
-  S.customAch=S.customAch||[];S.achUnlocked=S.achUnlocked||[];
-  if(S.xpMult===undefined)S.xpMult=1;
-  S.goldAllTime=S.goldAllTime||0;
-  S.inventory=S.inventory||[];S.invHist=S.invHist||[];
-  S.rewardPurchases=S.rewardPurchases||[];
-  S.rewardHist=S.rewardHist||[];
-  if(S.rewardHist.length&&!S.rewardPurchases.length){
-    S.rewardPurchases=S.rewardHist.map(function(h,i){return {id:h.id||('rp_legacy_'+i),title:h.title||h.name||'Награда',price:h.price!=null?h.price:(h.cost||0),at:h.at||(h.date?h.date+'T12:00:00.000Z':new Date().toISOString())};});
-  }
-  if(S.dailyClaimed==null&&S.dailyClaim)S.dailyClaimed=S.dailyClaim;
-  if(S.weeklyClaimed===undefined)S.weeklyClaimed=null;
-
-  if(!S.statuses)S.statuses=[[1,'Новичок'],[3,'Читатель'],[5,'Книжный странник'],[8,'Магистр'],[12,'Архимаг чтения']];
-  if(!S.heroName)S.heroName='Читатель';
-  if(S.pixelOwned===undefined)S.pixelOwned=false;
-  if(S.pixelOn===undefined)S.pixelOn=false;
-  if(!S.lang)S.lang='ru';
-  if(S.hpMax===undefined)S.hpMax=50;
-  if(S.hp===undefined||S.hp===null)S.hp=S.hpMax;
-  S.ownedGear=S.ownedGear||[];
-  S.equipped=S.equipped||{};
-  if(S.devMoney===undefined)S.devMoney=false;
-  S.shelfOrder=S.shelfOrder||[];
-  if(S.useChar===undefined)S.useChar=true;
-  S.char=S.char||{};
-  /* Team lock: defaultMinutes 10 for fresh installs; keep user's stored goal otherwise */
-  if(S.goal==null||S.goal===undefined)S.goal=10;
-}
-hydrateS({});
+S.skillMeta=S.skillMeta||{};
+DEFAULT_SKILLS.forEach(k=>{if(S.skills[k]===undefined)S.skills[k]=0;if(!S.skillMeta[k])S.skillMeta[k]={links:Object.assign({},DEFAULT_SKILL_LINKS[k]||{})};});
+Object.keys(S.skills).forEach(k=>{if(!S.skillMeta[k])S.skillMeta[k]={links:{}};});
+S.customAch=S.customAch||[];S.achUnlocked=S.achUnlocked||[];
+if(S.xpMult===undefined)S.xpMult=1;
+S.goldAllTime=S.goldAllTime||0;
+S.inventory=S.inventory||[];S.invHist=S.invHist||[];
+S.rewardHist=S.rewardHist||[];
+if(!S.statuses)S.statuses=[[1,'Новичок'],[3,'Читатель'],[5,'Книжный странник'],[8,'Магистр'],[12,'Архимаг чтения']];
+if(!S.heroName)S.heroName='Читатель';
+if(S.pixelOwned===undefined)S.pixelOwned=false;
+if(S.pixelOn===undefined)S.pixelOn=false;
+if(!S.lang)S.lang='ru';
+if(S.hpMax===undefined)S.hpMax=50;
+if(S.hp===undefined||S.hp===null)S.hp=S.hpMax;
+S.ownedGear=S.ownedGear||[];
+S.equipped=S.equipped||{};
+if(S.devMoney===undefined)S.devMoney=false;
+S.shelfOrder=S.shelfOrder||[];
+if(S.useChar===undefined)S.useChar=true;
+S.char=S.char||{};
 let saveWarned=false;
-/** Single writer → rq_v1 via saveFlat (strips book bodies to IDB). Never touches legacy `readquest`. */
 function save(){
-  if(!__rq||!__rq.saveFlat){
-    console.warn('[rq] save() before boot — skipped');
-    return;
-  }
-  __rq.saveFlat(S).then(function(r){
-    if(r&&r.ok===false){
-      if(!saveWarned){saveWarned=true;try{alert('⚠️ Не удалось сохранить прогресс (rq_v1). Сделайте экспорт в Настройках.');}catch(_){}}
-    }else{saveWarned=false;}
-  }).catch(function(e){
-    console.warn('[rq] saveFlat failed',e);
-    if(!saveWarned){saveWarned=true;try{alert('⚠️ Не удалось сохранить прогресс.');}catch(_){}}
-  });
+  try{localStorage.setItem('readquest',JSON.stringify(S));saveWarned=false;}
+  catch(e){if(!saveWarned){saveWarned=true;try{alert('⚠️ Не удалось сохранить прогресс: память браузера переполнена (чаще всего из-за больших импортированных книг). Сделайте резервную копию: Настройки → Данные → Экспорт, затем удалите часть книг.');}catch(_){}}}
 }
 function allStats(){return STATS_BASE.concat((S.customStats||[]).filter(s=>!STATS_BASE.includes(s)));}
 /* === валюта (тест-режим) === */
@@ -1300,13 +984,8 @@ function renderEquip(){
   }).join('');
 }
 function el(id){return document.getElementById(id);}
-/* Reading day = LOCAL device day (Product 2026-10-06), never the UTC day.
-   Same code as storage/sessions.js localDay(); module boot replaces these globals with the
-   storage exports, so at runtime there is ONE implementation. */
-var localDay=function(ts){const x=ts instanceof Date?ts:new Date(ts==null||ts===''?Date.now():ts);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};
-var addLocalDays=function(day,n){const p=String(day).slice(0,10).split('-').map(Number);return localDay(new Date(p[0],p[1]-1,p[2]+(n||0),12,0,0));};
-function today(){return localDay(Date.now());}
-function yesterday(){return addLocalDays(today(),-1);}
+function today(){return new Date().toISOString().slice(0,10);}
+function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);}
 function allBooks(){return BOOKS.filter(b=>!S.hidden.includes(b.id)).concat(S.userBooks||[]);}
 function level(xp){return Math.floor(Math.sqrt(xp/100))+1;}
 function lvlBounds(lv){return [100*(lv-1)*(lv-1),100*lv*lv];}
@@ -1322,20 +1001,9 @@ function curI(){return S.cur.icon;}
 const SCREENS=['library','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','reader','summary'];
 const DRAWER={library:'dLib',quotes:'dJournal',vocab:'dJournal',shop:'dShop',profile:'dProf',quests:'dJournal',stats:'dProg',calendar:'dProg',achievements:'dProg',shelfScreen:'dProg',settings:'dSet'};
 function show(id){
-  /* Keep confetti on summary; clear on every other screen change */
-  clearToasts();
-  if(id!=='summary')clearConfetti();
-  try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
-  if(id!=='library'&&__bootGold){__bootGold=0;const gl=el('libGoldLine');if(gl)gl.classList.add('hidden');}
-  if(isMvp() && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
-    id = 'library';
-  }
   SCREENS.forEach(s=>el(s).classList.toggle('hidden',s!==id));
   const tgt=DRAWER[id];
   Array.from(new Set(Object.values(DRAWER))).forEach(di=>{const e=el(di);if(e)e.classList.toggle('on',di===tgt);});
-  const hideNav = (id==='reader'||id==='summary');
-  if(el('botnav'))el('botnav').style.display = (isMvp()&&!hideNav)?'flex':'none';
-  applyMvpChrome();
 }
 function openDrawer(){el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
@@ -1394,9 +1062,6 @@ el('dProg').onclick=()=>openProgress(progLast);
 el('dSet').onclick=()=>{renderSettings();show('settings');closeDrawer();};
 
 /* ================= БИБЛИОТЕКА ================= */
-/* gold auto-paid at boot for a session recovered after a kill: one quiet line on the library, once
-   (runtime only — gone after any screen change or reload; never shown in the reader) */
-let __bootGold=0;
 function renderLibrary(){
   rollDay();
   if(!renderLibrary._bk){renderLibrary._bk=true;
@@ -1406,12 +1071,10 @@ function renderLibrary(){
   }
   el('goldChip').textContent=curI()+' '+goldDisp();
   el('goalTitle').textContent='Цель дня: '+S.goal+' мин';
-  const _mt=isMvp()?minTodaySess():S.minToday;
-  el('goalSub').textContent='Сегодня: '+Math.round(_mt)+' мин';
-  const gl=el('libGoldLine');if(gl){gl.textContent=__bootGold?('+'+__bootGold+' 🪙 за прошлую сессию'):'';gl.classList.toggle('hidden',!__bootGold);}
+  el('goalSub').textContent='Сегодня: '+Math.round(S.minToday)+' мин';
   el('streakTxt').textContent='🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').textContent='⭐ Ур. '+level(S.xp);
-  const pct=Math.min(1,_mt/S.goal);
+  const pct=Math.min(1,S.minToday/S.goal);
   el('ringFg').style.strokeDashoffset=207*(1-pct);
   el('ringFg').style.stroke=pct>=1?'#4cd97b':'#2bb3c0';
   el('ringTxt').textContent=Math.round(pct*100)+'%';
@@ -1446,12 +1109,6 @@ function renderLibrary(){
     card.onclick=()=>openBook(b.id);
     shelf.appendChild(card);
   });
-  if(isMvp()){
-    document.querySelectorAll('#shelf .bpct').forEach(function(n){
-      n.textContent=n.textContent.replace(/\s·\sкачает.*$/,'');
-    });
-  }
-  applyMvpChrome();
 }
 function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)return a;if(m>=2&&m<=4)return b;return c;}
 /* --- поиск и фильтры библиотеки --- */
@@ -1541,7 +1198,7 @@ el('fileInp').onchange=async e=>{
 
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focusMode:true};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem('rq_set')||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 if(!SET.nav)SET.nav={btns:false,tap:true,invert:false,swipe:true};
 function saveSet(){try{localStorage.setItem('rq_set',JSON.stringify(SET));}catch(e){}}
@@ -1564,7 +1221,7 @@ function applySet(){
   c.style.hyphens=SET.hyph===false?'none':'auto';
   c.style.webkitHyphens=SET.hyph===false?'none':'auto';
   c.classList.toggle('noind',SET.indent===false);
-  c.style.transition='none'; /* Android: never animate the giant column strip (blank-page bug) */
+  c.style.transition=(S.ux&&S.ux.anim===false)?'none':'transform .22s ease';
   el('szVal').textContent=SET.size+'px';
   el('lhVal').textContent=SET.lh.toFixed(2);
   el('lsVal').textContent=(SET.ls||0)+'px';
@@ -1606,8 +1263,8 @@ function renderThemeSeg(){
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
   SHOP_THEMES.forEach(t=>add(t.id,t.bg,t.name,!S.owned.includes(t.id)));
 }
-el('szMinus').onclick=()=>{setFontSizeKeepPos(SET.size-1);};
-el('szPlus').onclick=()=>{setFontSizeKeepPos(SET.size+1);};
+el('szMinus').onclick=()=>{SET.size=Math.max(14,SET.size-1);saveSet();applySet();relayout();};
+el('szPlus').onclick=()=>{SET.size=Math.min(30,SET.size+1);saveSet();applySet();relayout();};
 el('lhMinus').onclick=()=>{SET.lh=Math.max(1.2,+(SET.lh-0.1).toFixed(2));saveSet();applySet();relayout();};
 el('lhPlus').onclick=()=>{SET.lh=Math.min(2.4,+(SET.lh+0.1).toFixed(2));saveSet();applySet();relayout();};
 el('mgMinus').onclick=()=>{SET.margin=Math.max(10,SET.margin-6);saveSet();applySet();relayout();};
@@ -1645,54 +1302,22 @@ el('navSwipe').onclick=()=>{SET.nav.swipe=!(SET.nav.swipe!==false);saveSet();app
 
 /* ================= ЧИТАЛКА ================= */
 let R={book:null,page:0,pageCount:1,step:0,start:0,turned:0,maxRatio:0,mode:'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0};
-async function openBook(id){
-  const b0=allBooks().find(x=>x.id===id);if(!b0)return;
-  /* Hydrate text body from IDB (single-writer: bodies not in rq_v1 / LS) */
-  let b=b0;
-  if(b.type!=='pdf'&&!b.text&&__rq&&__rq.idb){
-    try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
-  }
-  if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+function openBook(id){
+  const b=allBooks().find(x=>x.id===id);if(!b)return;
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
   R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),credSec:0,pagesRead:0,timerOn:false,timerAccum:0,timerOnAt:0};
   el('rTitle').textContent=b.title+' — '+b.author;
   const c=el('content');
   el('pdfWrap').classList.toggle('hidden',R.mode!=='pdf');
   c.classList.toggle('hidden',R.mode==='pdf');
-  el('reader').classList.toggle('pdfmode',R.mode==='pdf');
-  c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
   show('reader');applySet();reqWake();resetTimer();armChromeHide();
-  if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
-  startDayBar();
+  if(window.innerWidth<700){enterImmersive();flashMsg('📖 Полный экран · тап по центру — показать панель');}
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
-  /* measure + position synchronously in the same task: the first painted frame is already the right page */
-  layout();
-  const p=Math.round(((S.progress[id]||{}).ratio||0)*(R.pageCount-1));
-  if(__tracker)__tracker.begin(id,p,trackerOpts());
-  goPage(p,false);
+  requestAnimationFrame(()=>{layout();const p=Math.round(((S.progress[id]||{}).ratio||0)*(R.pageCount-1));goPage(p,false);});
 }
-/** Anti-cheat params for the session tracker (single source of counted minutes). */
-function trackerOpts(){
-  const a=S.anti||{minSec:12,maxMin:3};
-  const capMin=isMvp()?Math.min(3,a.maxMin||3):(a.maxMin||3);
-  return {capMs:capMin*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn};
-}
-/* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
-let dayBarIv=null;
-function updDayBar(){
-  const bar=el('dayBar');if(!bar||!isMvp())return;
-  const run=!!(__tracker&&__tracker.isRunning&&__tracker.isRunning());
-  const live=run?__tracker.snapshot().minutes:0;
-  const day=(run&&__tracker.getSessionDay&&__tracker.getSessionDay())||today(); /* session day = day it started */
-  const pct=Math.max(0,Math.min(1,(dayMin(day)+live)/(S.goal||10)));
-  const w=Math.round(pct*1000)/10+'%';
-  const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
-}
-function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
-function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}
 async function openPdf(b){
   try{
     await loadPdfJs();
@@ -1701,7 +1326,6 @@ async function openPdf(b){
     R.pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
     R.pageCount=R.pdf.numPages;
     const p=Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1));
-    if(__tracker)__tracker.begin(b.id, p, trackerOpts());
     goPage(p,false);
   }catch(e2){alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
@@ -1762,8 +1386,6 @@ async function buildTextLayer(page,scale,cssW,cssH){
 }
 function clampPan(){}
 function applyPan(){}
-window.__rqLayoutCount=0; /* test hook: number of full column reflows */
-function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|');}
 function layout(){
   if(R.mode==='pdf'){renderPdfPage(R.page);return;}
   const v=el('viewer'),c=el('content');
@@ -1774,177 +1396,75 @@ function layout(){
   c.style.height=h+'px';c.style.width=w+'px';
   R.step=w+gap;
   R.pageCount=Math.max(1,Math.ceil((c.scrollWidth+gap)/R.step));
-  R.layoutKey=layoutKey(w,h);
-  window.__rqLayoutCount++;
 }
-/* Reading-position anchor: the first character visible on the current page.
-   Survives font-size / viewport changes better than a page ratio. */
-function captureAnchor(){
-  if(R.mode==='pdf')return null;
-  const v=el('viewer'),c=el('content');
-  const vr=v.getBoundingClientRect();
-  const cr=document.caretRangeFromPoint?function(x,y){return document.caretRangeFromPoint(x,y);}:
-    (document.caretPositionFromPoint?function(x,y){const p=document.caretPositionFromPoint(x,y);if(!p)return null;const r=document.createRange();r.setStart(p.offsetNode,p.offset);return r;}:null);
-  if(!cr)return null;
-  const xs=[4,vr.width*0.33,vr.width*0.66],ys=[4,16,32,56,90];
-  for(let j=0;j<ys.length;j++)for(let i=0;i<xs.length;i++){
-    const rg=cr(vr.left+xs[i],vr.top+ys[j]);
-    if(rg&&rg.startContainer&&rg.startContainer.nodeType===3&&c.contains(rg.startContainer)){
-      return {node:rg.startContainer,offset:rg.startOffset};
-    }
-  }
-  return null;
-}
-function pageOfAnchor(a){
-  try{
-    if(!a||!a.node||!a.node.isConnected)return -1;
-    const c=el('content');const len=a.node.nodeValue.length;
-    const rg=document.createRange();
-    const o=Math.min(a.offset,Math.max(0,len-1));
-    rg.setStart(a.node,o);rg.setEnd(a.node,Math.min(len,o+1));
-    const rects=rg.getClientRects();const r=rects.length?rects[0]:rg.getBoundingClientRect();
-    const x=r.left-c.getBoundingClientRect().left;
-    return Math.max(0,Math.floor((x+2)/R.step));
-  }catch(e){return -1;}
-}
-/** Re-measure only when geometry/typography really changed; keep the reading position. */
-function relayout(opts){
-  const o=opts||{};
+function relayout(){
   if(el('reader').classList.contains('hidden'))return;
   if(R.mode==='pdf'){renderPdfPage(R.page);return;}
-  const v=el('viewer');
-  if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */
-  const anchor=o.anchor||readingAnchor();
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
-  layout();
-  let p=anchor?pageOfAnchor(anchor):-1;
-  if(p<0)p=Math.round(ratio*(R.pageCount-1));
-  goPage(p,false);
-  R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
-}
-/* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
-   has not turned the page, every relayout re-uses the anchor captured before the first one, so the
-   position never drifts page by page. A real page change (goPage with another page) drops it. */
-function readingAnchor(){
-  if(R.anc&&R.anc.page===R.page&&R.anc.a&&R.anc.a.node&&R.anc.a.node.isConnected)return R.anc.a;
-  return captureAnchor();
-}
-/** Font size change (Aa / pinch / Ctrl+wheel): exactly one reflow, position kept. */
-function setFontSizeKeepPos(size){
-  size=Math.max(14,Math.min(30,Math.round(size)));
-  if(size===SET.size)return false;
-  const anchor=readingAnchor();
-  SET.size=size;saveSet();applySet();
-  relayout({force:true,anchor:anchor});
-  return true;
+  layout();goPage(Math.round(ratio*(R.pageCount-1)),false);
 }
 function goPage(p,turn){
-  const prev=R.page;
   const np=Math.max(0,Math.min(R.pageCount-1,p));
-  const forwardTurn=!!(turn&&np>prev);
-  if(forwardTurn){
+  if(turn&&np>R.page){
     R.turned++;
-    /* counted minutes / pages: reader-session tracker (per-page cap, visible time only) */
-    if(!isMvp()&&!R.timerOn)timerNudge();
-    R.lastTurn=Date.now();
+    // анти-чит: честный учёт времени и страниц — только при включённом таймере
+    const now=Date.now();
+    const a=S.anti||{minSec:12,maxMin:4};
+    const dt=(now-(R.lastTurn||now))/1000;
+    if(R.timerOn){
+      R.credSec=(R.credSec||0)+Math.min(dt,a.maxMin*60);
+      if(dt>=a.minSec)R.pagesRead=(R.pagesRead||0)+1;
+    }else{timerNudge();}
+    R.lastTurn=now;
   }
   if(R.mode==='pdf'&&np!==R.page){R.panX=0;R.panY=0;R.zoom=1;const w=el('pdfWrap');if(w){w.scrollTop=0;w.scrollLeft=0;}} // новая страница открывается по ширине
-  if(np!==prev)R.anc=null;
   R.page=np;
   if(R.mode==='pdf'){renderPdfPage(np);}
   else{el('content').style.transform='translateX('+(-np*R.step)+'px)';}
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
   R.maxRatio=Math.max(R.maxRatio,ratio);
-  /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
-  el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
   el('rPct').textContent=Math.round(ratio*100)+'%';
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
-  /* Architect: reader writes pageVisibleMs on page change */
-  if(__tracker&&(np!==prev||forwardTurn))__tracker.onPageChange(np, forwardTurn);
-  if(np!==prev)updDayBar();
 }
 el('pgSlider').oninput=e=>goPage(parseInt(e.target.value,10)||0,false);
-let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;return;}
-  if(Date.now()<pinchQuietUntil)return; /* trailing click right after a two-finger gesture */
-  if(Date.now()-touchTapAt<800)return;   /* already handled as a touch tap (see touchend) */
-  viewerTap(e.clientX,e.clientY);
-});
-/* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
-   click right after a swipe), mouse/keyboard clicks via 'click'. */
-function viewerTap(cx,cy){
   if(selText())return; // идёт выделение текста — не листаем
   const r=el('viewer').getBoundingClientRect();
-  const x=(cx-r.left)/r.width;
-  const y=(cy-r.top)/r.height;
+  const x=(e.clientX-r.left)/r.width;
+  const y=(e.clientY-r.top)/r.height;
   if(y<0.12&&x<0.3){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra)
   if(y<0.12&&x>0.7){addBookmark();return;}       // угол: закладка
   const tapOn=!SET.nav||SET.nav.tap!==false;
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
-  if(tapOn&&x<0.3){fsResume();goPage(R.page-1*inv,true);}
-  else if(tapOn&&x>0.7){fsResume();goPage(R.page+1*inv,true);}
-  else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen; next centre tap hides both
-}
-/* ===== Bars + fullscreen as ONE state (Интерфейс, build 4) =====
-   reading : .barsoff (our bars hidden)  + browser fullscreen (if wanted: phone / ⛶)
-   chrome  : bars shown                  + fullscreen exited (system bars back)
-   Centre tap toggles both in the same handler/frame. Bars auto-hide after 3.2 s; fullscreen is re-requested
-   from that timer — Chrome still accepts it while the tap's transient user activation is alive (~5 s; exit
-   does not consume it). If the browser refuses, the next reading gesture in the reader (edge tap / swipe)
-   re-enters fullscreen inside its own handler before the flip. Viewport resizes → relayout() with the kept
-   reading anchor (no jump, page number recomputed in the same goPage). */
+  if(tapOn&&x<0.3)goPage(R.page-1*inv,true);
+  else if(tapOn&&x>0.7)goPage(R.page+1*inv,true);
+  else{
+    if(IMM){exitImmersive();relayout();armChromeHide();}
+    else toggleChrome(); // тап по центру — показать/спрятать панели (как в ReadEra)
+  }
+});
+/* авто-скрытие верхней/нижней панелей при чтении */
 let chromeTimer=null;
-let FSW=false;          // fullscreen wanted while reading (phone / ⛶ button)
-let fsPending=false;    // timer re-entry was refused → retry on the next reading gesture
-window.__rqFsLog=[];    // diagnostics (tests): {how, ok, t}
-function fsActive(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
-function fsRequest(how){
-  if(!FSW||fsActive()){fsPending=false;return;}
+function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;r.classList.add('barsoff');relayout();},3200);}
+function showChrome(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}armChromeHide();}
+function hideChrome(){const r=el('reader');if(!r)return;clearTimeout(chromeTimer);if(!r.classList.contains('barsoff')){r.classList.add('barsoff');relayout();}}
+function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))showChrome();else hideChrome();}
+function stopChrome(){clearTimeout(chromeTimer);const r=el('reader');if(r)r.classList.remove('barsoff');}
+let IMM=false;
+function goFullscreen(){
   const d=document.documentElement;
   const fn=d.requestFullscreen||d.webkitRequestFullscreen||d.webkitRequestFullScreen||d.msRequestFullscreen;
-  if(!fn){fsPending=false;return;}
-  const ua=navigator.userActivation;
-  if(how==='timer'&&ua&&!ua.isActive){fsPending=true;window.__rqFsLog.push({how:how,ok:false,why:'no-activation',t:Date.now()});return;}
-  const done=function(ok,why){if(!ok&&FSW)fsPending=true;else fsPending=false;window.__rqFsLog.push({how:how,ok:ok,why:why||'',t:Date.now()});};
-  try{
-    const pr=fn.call(d,{navigationUI:'hide'});
-    if(pr&&typeof pr.then==='function')pr.then(function(){done(true);},function(e){done(false,e&&e.name||'rejected');});
-    else setTimeout(function(){done(fsActive(),'legacy');},0);
-  }catch(e){done(false,e&&e.name||'throw');}
+  if(fn){try{fn.call(d);}catch(e){}}
 }
-/** Next reading gesture: re-enter fullscreen if the timer could not (call inside the gesture handler). */
-function fsResume(){if(fsPending&&FSW&&!el('reader').classList.contains('hidden')&&el('reader').classList.contains('barsoff'))fsRequest('gesture');}
 function exitFullscreenSafe(){
   const fn=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
-  if(fn&&fsActive()){try{const pr=fn.call(document);if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
+  if(fn&&(document.fullscreenElement||document.webkitFullscreenElement)){try{fn.call(document);}catch(e){}}
 }
-function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;concealChrome('timer');},3200);}
-/** reading state: hide our bars + (re)enter fullscreen */
-function concealChrome(how){
-  const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
-  if(!r.classList.contains('barsoff')){r.classList.add('barsoff');if(how!=='open')relayout();} /* open: the book is laid out right after */
-  fsRequest(how||'tap');
-}
-/** chrome state: show our bars + leave fullscreen — same handler, same frame */
-function revealChrome(){
-  const r=el('reader');if(!r||r.classList.contains('hidden'))return;
-  fsPending=false;
-  exitFullscreenSafe();
-  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}
-  armChromeHide();
-}
-function showChrome(){revealChrome();}
-function hideChrome(){concealChrome('tap');}
-function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}
-function stopChrome(){clearTimeout(chromeTimer);FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff');exitFullscreenSafe();}
-let IMM=false; /* legacy name kept for old callers: true ⇔ fullscreen wanted */
-function goFullscreen(){FSW=true;IMM=true;fsRequest('open');}
-function enterImmersive(){FSW=true;IMM=true;concealChrome('open');}
-function exitImmersive(){FSW=false;IMM=false;revealChrome();}
-document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});});
-el('btnFull').onclick=()=>{enterImmersive();flashMsg('⛶ Полный экран · тап по центру — панели');};
+function enterImmersive(){IMM=true;el('reader').classList.add('imm');goFullscreen();}
+function exitImmersive(){IMM=false;el('reader').classList.remove('imm');exitFullscreenSafe();}
+el('btnFull').onclick=()=>{enterImmersive();relayout();flashMsg('⛶ Полный экран · тап по центру — выход');};
 function isLightBg(bg){
   const c=String(bg).replace('#','');
   const n=parseInt(c.length===3?c.split('').map(ch=>ch+ch).join(''):c,16);
@@ -1964,18 +1484,11 @@ function addBookmark(){
   save();
   flashMsg('🔖 Закладка: стр. '+(R.page+1));
 }
-function flashMsg(t,ms){
-  if(isFocus()&&isMvp()&&el('reader')&&!el('reader').classList.contains('hidden')){
-    /* focus mode: allow only reading chrome hints, skip RPG */
-    if(/XP|🪙|босс|Босс|квест|талант|золото|награда|Удача|питом/i.test(String(t||'')))return;
-  }
+function flashMsg(t){
   const d=document.createElement('div');
-  d.className='rq-toast';
   d.textContent=t;
   d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:#fff;padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
-  document.body.appendChild(d);
-  const dur=ms!=null?ms:1600;
-  setTimeout(function(){try{d.remove();}catch(e){}},dur);
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1600);
 }
 
 /* --- выделение текста → цитаты --- */
@@ -2049,28 +1562,9 @@ document.addEventListener('keydown',e=>{
 });
 /* --- жесты: свайп, щипок-зум, панорамирование --- */
 let tx0=null,pinch0=null,zoom0=1,panStart=null,suppressClick=false,mdrag=null,bright=null;
-/* Text pinch = font size (Интерфейс): the text layer is NEVER scaled. During the gesture only a tiny
-   «Aa N» hint changes; on the first finger up → ONE reflow via setFontSizeKeepPos. */
-let pinchSize0=19,pinchTarget=0,pinchQuietUntil=0;
 function tDist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
-function pinchSizeFor(k){if(Math.abs(k-1)<0.08)return pinchSize0;return Math.max(14,Math.min(30,Math.round(pinchSize0*k)));}
-function showPinchHint(n){
-  const h=el('pinchHint'),v=el('pinchHintN');if(!h)return;
-  if(v&&v.textContent!==String(n))v.textContent=n;
-  if(h.classList.contains('hidden'))h.classList.remove('hidden');
-}
-function hidePinchHint(){const h=el('pinchHint');if(h&&!h.classList.contains('hidden'))h.classList.add('hidden');}
-function endTextPinch(){
-  hidePinchHint();
-  const t=pinchTarget;pinchTarget=0;pinchQuietUntil=Date.now()+450;
-  if(t&&t!==SET.size)setFontSizeKeepPos(t);
-}
-el('viewer').addEventListener('gesturestart',e=>{if(R.mode!=='pdf')e.preventDefault();}); /* iOS Safari: no native page zoom in the reader */
-let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
-  if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
-  if(pinch0||e.touches.length>2)return;
-  ty0=e.touches[0].clientY;tt0=Date.now();
+  if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;return;}
   if(e.touches[0].clientX<28){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края
   tx0=e.touches[0].clientX;
 },{passive:true});
@@ -2081,16 +1575,10 @@ el('viewer').addEventListener('touchmove',e=>{
     return;
   }
   if(e.touches.length===2&&pinch0){
-    if(R.mode!=='pdf'){
-      if(e.cancelable)e.preventDefault(); /* belt & braces with touch-action:none — browser must not zoom the page */
-      const t=pinchSizeFor(tDist(e)/pinch0);
-      if(t!==pinchTarget){pinchTarget=t;showPinchHint(t);} /* «Aa N» follows the fingers; text reflows once on touchend */
-      return;
-    }
     if(Math.abs(tDist(e)-pinch0)<16)return; // игнорируем мелкое дрожание двух пальцев (от него «само зумилось»)
     let z=zoom0*tDist(e)/pinch0;if(z<1.08)z=1;
     R.zoom=Math.max(1,Math.min(4,z));
-    el('pdfPage').style.transformOrigin='50% 0';el('pdfPage').style.transform='scale('+(R.zoom/(R.rzoom||1)).toFixed(3)+')';
+    if(R.mode==='pdf'){el('pdfPage').style.transformOrigin='50% 0';el('pdfPage').style.transform='scale('+(R.zoom/(R.rzoom||1)).toFixed(3)+')';}
     return;
   }
   if(panStart&&e.touches.length===1){
@@ -2098,28 +1586,24 @@ el('viewer').addEventListener('touchmove',e=>{
     R.panY=e.touches[0].clientY-panStart.y;
     applyPan();
   }
-},{passive:false});
+},{passive:true});
 el('viewer').addEventListener('touchend',e=>{
   if(bright){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');bright=null;return;}
   if(pinch0){
-    pinch0=null;tx0=null;
+    pinch0=null;
     if(R.mode==='pdf'){if(R.zoom<1.08){R.zoom=1;R.panX=0;R.panY=0;}renderPdfPage(R.page);}
-    else{R.zoom=1;endTextPinch();} // текст: щипок = размер шрифта, один рефлоу после жеста
+    else{ // в текстовом режиме щипок меняет размер шрифта
+      const k=R.zoom||1;R.zoom=1;
+      if(k>1.15){SET.size=Math.min(30,SET.size+2);saveSet();applySet();relayout();}
+      else if(k<0.87){SET.size=Math.max(14,SET.size-2);saveSet();applySet();relayout();}
+    }
     return;
   }
-  if(Date.now()<pinchQuietUntil){tx0=null;return;} /* second finger lifting after a pinch is not a swipe */
   if(panStart){panStart=null;return;}
   if(tx0===null)return;
-  const ct=e.changedTouches[0];
-  const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
-  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
-  /* short, still touch = tap (not on buttons / selection popup) */
-  if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tt0<450&&e.touches.length===0&&
-     !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
-    touchTapAt=Date.now();viewerTap(ct.clientX,ct.clientY);
-  }
+  const dx=e.changedTouches[0].clientX-tx0;tx0=null;
+  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+(dx<0?1:-1)*inv,true);}
 },{passive:true});
-el('viewer').addEventListener('touchcancel',()=>{if(pinch0){pinch0=null;tx0=null;if(R.mode!=='pdf')endTextPinch();}},{passive:true});
 /* мышь: Ctrl+колесо — зум, колесо — листание, перетаскивание — панорама */
 el('viewer').addEventListener('wheel',e=>{
   if(el('reader').classList.contains('hidden'))return;
@@ -2130,7 +1614,8 @@ el('viewer').addEventListener('wheel',e=>{
       if(R.zoom<1.02)R.zoom=1;
       renderPdfPage(R.page);
     }else{
-      setFontSizeKeepPos(SET.size+(e.deltaY<0?1:-1));
+      SET.size=Math.max(14,Math.min(30,SET.size+(e.deltaY<0?1:-1)));
+      saveSet();applySet();relayout();
     }
     return;
   }
@@ -2296,33 +1781,20 @@ el('btnTts').onclick=()=>{
 };
 
 /* ================= СЕССИЯ И НАГРАДЫ ================= */
-let __closingReader=false;
-async function closeReader(){
-  if(__closingReader)return; /* double tap on ← must not end the session twice */
-  __closingReader=true;
-  try{await closeReaderImpl();}finally{__closingReader=false;}
-}
-async function closeReaderImpl(){
-  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
+function closeReader(){
+  stopChrome();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
   const b=R.book;if(!b){show('library');return;}
-  R.book=null;
   S.progress[b.id]={ratio:R.maxRatio};
-  const a=S.anti||{minSec:12,maxMin:3};
+  const a=S.anti||{minSec:12,maxMin:4};
+  const tail=R.timerOn?(Date.now()-(R.lastTurn||R.start))/1000:0;
+  const credSec=(R.credSec||0)+Math.min(tail,a.maxMin*60);
   stopTimerTick();
+  const min=credSec/60;        // время сверх лимита на странице не идёт в опыт
+  const pages=R.pagesRead||0;  // пролистанные быстрее минимума страницы не в счёт
   rollDay();
-  /* Single source of truth: the reader-session tracker computes counted minutes (per-page cap,
-     visible time only, last page capped too) and writes ONE sessions[] row with a reader-generated UUID id. */
+  if(min<0.15&&pages===0){save();renderLibrary();show('library');return;}
   const lvBefore=level(S.xp);
-  let row=null;
-  if(__tracker){
-    try{row=await __tracker.end();}catch(e){console.warn('[rq] session end',e);} /* row.date = LOCAL day the session started */
-  }
-  if(!row){save();renderLibrary();show('library');return;} /* empty session (or write failed → draft recovered on next boot) */
-  SESS.push(row);
-  const sd=String(row.date||today()).slice(0,10); /* session day: 23:50–00:15 belongs entirely to the first day */
-  const min=row.minutes;        // время сверх лимита на странице не идёт в опыт
-  const pages=row.pageTurns||0; // пролистанные быстрее минимума страницы не в счёт
   // статистика по книге (накопительная, только честные минуты/страницы)
   const bs=(S.bookStats[b.id]=S.bookStats[b.id]||{min:0,pages:0});
   bs.min+=min;bs.pages+=pages;
@@ -2333,42 +1805,29 @@ async function closeReaderImpl(){
   if(justFinished){S.finished.push(b.id);S.shelfOrder=S.shelfOrder||[];if(S.shelfOrder.indexOf(b.id)<0)S.shelfOrder.push(b.id);shelfJustAdded=b.id;S.finishDates=S.finishDates||{};S.finishDates[b.id]=today();}
   const dIdx=diffOf(b.id);const dmul=DIFFS[dIdx].m; // множитель сложности книги
   const imMul=impMulOf(b.id);                       // важность книги → больше валюты
-  let xp, gold, mult=1, questPaid={gold:0,daily:[],weekly:[]};
-  if(isMvp()){
-    /* MVP: XP only from reading — +10 per counted minute, derived by game from sessions[]
-       and awarded once per sessionId (game.awardedSessionIds). */
-    const res=awardPendingSessions();
-    xp=res.byId[row.id]||0;
-    gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
-    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[]};
-  }else{
-    xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
-    gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
-    const luck=Math.random();mult=luck<0.02?3:luck<0.08?2:1;
-    xp=Math.round(xp*mult*(S.xpMult||1)*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
-  }
+  let xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
+  let gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
+  const luck=Math.random();const mult=luck<0.02?3:luck<0.08?2:1; // шанс удачи, как в Do It Now
+  xp=Math.round(xp*mult*(S.xpMult||1)*talVal('xp'));gold=Math.round(gold*mult*talVal('gold')); // множители достижений + талантов
   const stN=statOf(b);
   const statGain=Math.max(1,Math.round((Math.round(min)+pages)*dmul*talVal('stat')));
-  if(!isMvp()){S.xp+=xp;if(window.__rqGame)window.__rqGame.markAwarded(S,[row.id]);}
-  S.gold+=gold;S.goldAllTime=(S.goldAllTime||0)+gold;
+  S.xp+=xp;S.gold+=gold;S.goldAllTime=(S.goldAllTime||0)+gold;
   S.stats[stN]=(S.stats[stN]||0)+statGain;
-  if(sd===today())S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
+  S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
   S.hp=Math.min(S.hpMax,(S.hp==null?S.hpMax:S.hp)+15);if(justFinished)S.hp=S.hpMax; // чтение восстанавливает здоровье
   dealBossDamage(min,pages,justFinished);S.petXp=(S.petXp||0)+min; // урон боссу + рост питомца
-  /* Soft streak ≥2 min (Boss/Product): preserve streak when day's total minutes ≥2.
-     Daily quest / north-star still require goal minutes (default 10) — not changed here. */
-  if((isMvp()?dayMin(sd):(sd===today()?S.minToday:min))>=2){
-    if(!S.lastDay||sd>String(S.lastDay)){
-      S.streak=(S.lastDay===addLocalDays(sd,-1))?S.streak+1:1;
-      S.lastDay=sd;
+  if(min>=1||pages>=2){
+    if(S.lastDay!==today()){
+      S.streak=(S.lastDay===yesterday())?S.streak+1:1;
+      S.lastDay=today();
     }
   }
   const hour=new Date().getHours();
   S.hourHist=S.hourHist||new Array(24).fill(0);S.hourHist[hour]=(S.hourHist[hour]||0)+min; // учёт «когда читаю»
   // история по дням и навыки
-  const dkey=sd;
+  const dkey=today();
   const h=(S.hist[dkey]=S.hist[dkey]||{min:0,pages:0,xp:0,gold:0});
-  h.min+=min;h.pages+=pages;h.xp+=xp;h.gold+=gold+questPaid.gold;
+  h.min+=min;h.pages+=pages;h.xp+=xp;h.gold+=gold;
   h.books=h.books||{};if(b&&min>0)h.books[b.id]=(h.books[b.id]||0)+min;
   addSkillXp('Концентрация',Math.floor(min/10));
   if(hour<9&&min>=5)addSkillXp('Дисциплина',1);
@@ -2385,12 +1844,8 @@ async function closeReaderImpl(){
   if(level(S.xp)>=5)earn('lvl5');
   const newAch=checkAchievements();
   save();
-  /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid};
-  renderSummary(_sumArgs);
+  renderSummary({xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch});
   show('summary');
-  if(isMvp())confettiSummary();
-  else if(_sumArgs.newB.length||(_sumArgs.newAch&&_sumArgs.newAch.length)||level(S.xp)>_sumArgs.lvBefore||_sumArgs.justFinished||_sumArgs.mult>1)confetti();
 }
 function countUp(elm,to,fmt){
   const t0=performance.now(),dur=900;
@@ -2416,50 +1871,25 @@ function renderSummary(r){
   el('lvlUp').classList.toggle('hidden',lvNow<=r.lvBefore);
   if(lvNow>r.lvBefore)el('lvlUp').textContent='🎉 Новый уровень: '+lvNow+'!';
   el('sumStreak').textContent='🔥 Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
-    (r.dmul>1&&!isMvp()?' · ⚔️ '+r.dName+' ×'+r.dmul:'')+
+    (r.dmul>1?' · ⚔️ '+r.dName+' ×'+r.dmul:'')+
     (r.justFinished?' · 🏁 Книга прочитана, бонус!':'');
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
-  /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
-  const sday=r.day||today();
-  if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
-  if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg(sday)*100)+'%';
-  if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo(weekKey(sday))+(weeklyPaid(weekKey(sday))?' · ✓ неделя выполнена':'');
-  /* gold lines ONLY for what was paid by THIS session (re-render with no `quest` → no lines) */
-  const qp=r.quest||{daily:[],weekly:[]},ql=[];
-  if(qp.daily&&qp.daily.length)ql.push('+'+(30*qp.daily.length)+' 🪙 ежедневка выполнена');
-  if(qp.weekly&&qp.weekly.length)ql.push('+'+(120*qp.weekly.length)+' 🪙 неделя выполнена');
-  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+t+'</div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
-  if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
-  applyMvpChrome();
+  if(r.newB.length||(r.newAch&&r.newAch.length)||lvNow>r.lvBefore||r.justFinished||r.mult>1)confetti();
 }
-
-function confetti(opts){
-  opts=opts||{};
-  const count=opts.count!=null?opts.count:26;
-  const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
+function confetti(){
   const em=['🎉','✨','⭐','🪙','📖'];
-  for(let i=0;i<count;i++){
+  for(let i=0;i<26;i++){
     const s=document.createElement('div');s.className='confetti';
     s.textContent=em[i%em.length];
-    s.style.left=(8+Math.random()*84)+'vw';
-    /* start well below heading when avoidTop */
-    s.style.top=avoidTop?((32+Math.random()*40)+'vh'):'-30px';
-    s.style.left=avoidTop?( (5+Math.random()*40)*(i%2?1:1.4)+'vw' ): ((8+Math.random()*84)+'vw');
-    if(avoidTop){ /* bias to sides */
-      s.style.left=(i%2===0?(4+Math.random()*22):(74+Math.random()*22))+'vw';
-    }
-    s.style.animationDelay=(Math.random()*0.45)+'s';
-    s.style.fontSize=(12+Math.random()*8)+'px';
-    if(avoidTop)s.style.zIndex='40';
+    s.style.left=Math.random()*100+'vw';
+    s.style.animationDelay=(Math.random()*0.7)+'s';
+    s.style.fontSize=(16+Math.random()*16)+'px';
     document.body.appendChild(s);
-    setTimeout(function(n){return function(){try{n.remove();}catch(e){};};}(s),2800);
+    setTimeout(()=>s.remove(),3400);
   }
 }
-function confettiSummary(){confetti({count:10,avoidTop:true});}
-function confettiReward(){confetti({count:14});}
-function maybeConfetti(){if(isMvp())return;confetti();}
 el('btnDone').onclick=()=>{renderLibrary();show('library');};
 
 /* ================= ПРОФИЛЬ ================= */
@@ -2675,12 +2105,12 @@ function ensureBoss(){if(!S.boss||!S.boss.n)S.boss={n:1,hp:bossMax(1)};return S.
 function dealBossDamage(min,pages,finished){
   const bo=ensureBoss();const dmg=Math.round((min*10+pages*2+(finished?150:0))*talVal('boss'));if(dmg<=0)return;
   bo.hp-=dmg;
-  if(bo.hp<=0){const cur=bo.n,rew=isMvp()?0:(80+cur*40),xpr=isMvp()?0:(40+cur*20);if(!isMvp()){S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.xp+=xpr;}bo.n=cur+1;bo.hp=bossMax(bo.n);
+  if(bo.hp<=0){const cur=bo.n,rew=80+cur*40,xpr=40+cur*20;S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.xp+=xpr;bo.n=cur+1;bo.hp=bossMax(bo.n);
     try{confetti();}catch(e){}try{flashMsg('⚔️ Повержен «'+bossInfo(cur).name+'»! +'+rew+' '+curI()+', +'+xpr+' XP');}catch(e){}}
 }
 /* ===== Ежедневный бонус ===== */
 function dailyReward(){return Math.round((20+Math.min(10,S.streak||0)*10)*talVal('daily'));}
-function claimDaily(){if(isMvp()){flashMsg('В MVP золото начисляется само: ежедневка +30 и неделя +120');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
+function claimDaily(){if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
 /* ===== Стадии питомца ===== */
 const PET_STAGES=[['Малыш',0],['Подросток',60],['Взрослый',180],['Легендарный',420]];
 function petStage(){const px=S.petXp||0;let st=0;for(let i=0;i<PET_STAGES.length;i++)if(px>=PET_STAGES[i][1])st=i;return st;}
@@ -2749,16 +2179,11 @@ function renderProfile(){
   }).join('')+'<button class="miniadd" onclick="addStat()">＋ Добавить характеристику</button>';
   renderTalents();
   renderEquip();
-  renderMvpProfile();
-  applyMvpChrome();
 }
 el('goalMinus').onclick=()=>{S.goal=Math.max(5,S.goal-5);save();renderLibrary();};
 el('goalPlus').onclick=()=>{S.goal=Math.min(120,S.goal+5);save();renderLibrary();};
 el('btnReset').onclick=()=>{
-  if(!confirm('Точно сбросить весь прогресс?'))return;
-  if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
-  try{localStorage.removeItem('rq_v1');localStorage.removeItem('rq_migrated_v1');localStorage.removeItem('readquest');}catch(e){}
-  location.reload();
+  if(confirm('Точно сбросить весь прогресс?')){localStorage.removeItem('readquest');location.reload();}
 };
 
 /* ================= ЦИТАТЫ ================= */
@@ -2899,7 +2324,7 @@ function buyReward(i){
   const infinite=(r.qty==null);
   if(!infinite&&((r.qty||0)-(r.bought||0))<=0){alert('Награда закончилась');return;}
   spend(r.cost);r.bought=(r.bought||0)+1;
-  S.rewardPurchases=S.rewardPurchases||[];S.rewardPurchases.push({id:'rp_'+Date.now(),title:r.name,price:r.cost,at:new Date().toISOString()});
+  S.rewardHist=S.rewardHist||[];S.rewardHist.push({name:r.name,cost:r.cost,date:today()});
   save();confetti();renderShop();
   alert('🎉 Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
 }
@@ -2962,7 +2387,6 @@ function renderQuests(){
   }).join('')+'<button class="miniadd" onclick="addCustomQuest()">＋ Добавить свой квест</button>';
 }
 function claimQuest(id){
-  if(isMvp()){flashMsg('В MVP — только дневной/недельный квест в профиле');return;}
   const q=allQuests().find(x=>x.id===id);if(!q)return;
   const key=q.id+':'+q.period();
   if(S.claimed[key]||q.prog()<1)return;
@@ -2984,30 +2408,14 @@ function loadPdfJs(){
   });
 }
 function idb(){
-  /* Same DB as storage/idb.js (v3: files + sessions + events). Prefer __rq.idb when booted. */
-  if(__rq&&__rq.idb&&__rq.idb.openDb)return __rq.idb.openDb();
   return new Promise(function(res,rej){
-    const r=indexedDB.open('readquest',3);
-    r.onupgradeneeded=function(){
-      const db=r.result;
-      if(!db.objectStoreNames.contains('files'))db.createObjectStore('files');
-      if(!db.objectStoreNames.contains('sessions')){
-        const s=db.createObjectStore('sessions',{keyPath:'id',autoIncrement:true});
-        s.createIndex('byDate','date',{unique:false});
-        s.createIndex('byBookId','bookId',{unique:false});
-      }
-      if(!db.objectStoreNames.contains('events')){
-        const e=db.createObjectStore('events',{keyPath:'id',autoIncrement:true});
-        e.createIndex('byDate','date',{unique:false});
-        e.createIndex('byBookId','bookId',{unique:false});
-      }
-    };
+    const r=indexedDB.open('readquest',1);
+    r.onupgradeneeded=function(){r.result.createObjectStore('files');};
     r.onsuccess=function(){res(r.result);};
     r.onerror=function(){rej(r.error);};
   });
 }
 async function idbPut(k,v){
-  if(__rq&&__rq.idb&&__rq.idb.put)return __rq.idb.put(k,v);
   const d=await idb();
   return new Promise(function(res,rej){
     const t=d.transaction('files','readwrite');
@@ -3016,7 +2424,6 @@ async function idbPut(k,v){
   });
 }
 async function idbGet(k){
-  if(__rq&&__rq.idb&&__rq.idb.get)return __rq.idb.get(k);
   const d=await idb();
   return new Promise(function(res,rej){
     const g=d.transaction('files').objectStore('files').get(k);
@@ -3263,7 +2670,7 @@ let statPeriod=7;
 function histDays(n){
   const out=[];
   for(let i=n-1;i>=0;i--){
-    const d=addLocalDays(today(),-i);
+    const d=new Date(Date.now()-i*86400000).toISOString().slice(0,10);
     out.push({d:d,v:S.hist[d]||{min:0,pages:0,xp:0,gold:0}});
   }
   return out;
@@ -3406,8 +2813,6 @@ function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
 
 /* ================= НАСТРОЙКИ ================= */
 function renderSettings(){
-  if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
-  if(el('focusTgl'))el('focusTgl').textContent=isFocus()?'Вкл':'Выкл';
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
   const ls=el('langSeg');ls.innerHTML='';
   [['ru','Русский'],['en','English']].forEach(o=>{
@@ -3462,19 +2867,10 @@ el('goalMinus2').onclick=()=>{S.goal=Math.max(5,S.goal-5);save();renderSettings(
 el('goalPlus2').onclick=()=>{S.goal=Math.min(120,S.goal+5);save();renderSettings();};
 el('btnUnhide').onclick=()=>{S.hidden=[];save();renderLibrary();flashMsg('Демо-книги возвращены на полку');};
 el('btnReset2').onclick=()=>{
-  if(!confirm('Точно сбросить весь прогресс?'))return;
-  if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
-  try{localStorage.removeItem('rq_v1');localStorage.removeItem('rq_migrated_v1');localStorage.removeItem('readquest');}catch(e){}
-  location.reload();
+  if(confirm('Точно сбросить весь прогресс?')){localStorage.removeItem('readquest');location.reload();}
 };
-el('btnExport').onclick=async ()=>{
-  let payload;
-  if(__rq&&__rq.exportBackup){
-    payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
-  }else{
-    payload={format:'readquest-backup',schemaVersion:1,readquest:S,settings:SET};
-  }
-  const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
+el('btnExport').onclick=()=>{
+  const blob=new Blob([JSON.stringify({readquest:S,settings:SET},null,1)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='readquest-backup.json';
   document.body.appendChild(a);a.click();a.remove();
@@ -3486,12 +2882,9 @@ el('impInp').onchange=async e=>{
   const f=e.target.files[0];if(!f)return;e.target.value='';
   try{
     const d=JSON.parse(await f.text());
-    if(__rq&&__rq.importBackup){
-      await __rq.importBackup(d);
-    }else{
-      throw new Error('хранилище ещё не готово — обновите страницу');
-    }
-    /* Single-writer: do NOT write legacy `readquest` key */
+    if(!d.readquest)throw new Error('это не резервная копия ReadQuest');
+    localStorage.setItem('readquest',JSON.stringify(d.readquest));
+    if(d.settings)localStorage.setItem('rq_set',JSON.stringify(d.settings));
     location.reload();
   }catch(err){alert('Импорт не удался: '+err.message);}
 };
@@ -3508,31 +2901,23 @@ function updTimerBtn(){
 function startTimerTick(){stopTimerTick();timerIv=setInterval(updTimerBtn,1000);}
 function stopTimerTick(){if(timerIv){clearInterval(timerIv);timerIv=null;}}
 function resetTimer(){
-  if(isMvp()){
-    /* MVP test: no separate timer — opening a book starts counting (anti-cheat lives in the tracker).
-       No ▶ button, no hints, no toasts. */
-    R.timerOn=true;R.timerAccum=0;R.timerOnAt=Date.now();stopTimerTick();
-    el('timerHint').classList.add('hidden');clearTimeout(R._hintT);
-    return;
-  }
   R.timerOn=false;R.timerAccum=0;R.timerOnAt=0;stopTimerTick();updTimerBtn();
   const h=el('timerHint');h.textContent='▶ Нажмите таймер вверху, чтобы засчитывать чтение и получать опыт';
   h.classList.remove('hidden');clearTimeout(R._hintT);R._hintT=setTimeout(()=>h.classList.add('hidden'),4500);
 }
 function toggleTimer(){
-  if(!R.book||isMvp())return; /* MVP: counting can't be switched off */
+  if(!R.book)return;
   if(R.timerOn){
-    R.timerAccum=timerElapsed();R.timerOn=false;stopTimerTick();if(__tracker)__tracker.setCounting(false);
+    R.timerAccum=timerElapsed();R.timerOn=false;stopTimerTick();
     flashMsg('⏸ Таймер на паузе — опыт не начисляется');
   }else{
-    R.timerOn=true;R.timerOnAt=Date.now();R.lastTurn=Date.now();startTimerTick();if(__tracker)__tracker.setCounting(true);
+    R.timerOn=true;R.timerOnAt=Date.now();R.lastTurn=Date.now();startTimerTick();
     el('timerHint').classList.add('hidden');
-    flashMsg('▶ Таймер пошёл — чтение засчитывается',2000);
+    flashMsg('▶ Таймер пошёл — чтение засчитывается');
   }
   updTimerBtn();
 }
 function timerNudge(){
-  if(isMvp())return;
   const now=Date.now();if(now-nudgeT<8000)return;nudgeT=now;
   const h=el('timerHint');h.textContent='⏸ Таймер выключен — листание не идёт в опыт. Нажмите ▶ вверху';
   h.classList.remove('hidden');clearTimeout(R._hintT);R._hintT=setTimeout(()=>h.classList.add('hidden'),2800);
@@ -3687,7 +3072,7 @@ function customQuestObjs(){
   });
 }
 function allQuests(){return QUESTS.concat(customQuestObjs());}
-function addCustomQuest(){if(isMvp()){flashMsg('Кастомные квесты выключены в MVP');return;}
+function addCustomQuest(){
   const name=prompt('Название квеста (например, «Марафон выходного дня»):');
   if(!name||!name.trim())return;
   let list='Что считать? Введите номер:\n';
@@ -4209,92 +3594,11 @@ function shelfOpen(elm,id){
   setTimeout(function(){openBook(id);},340);
 }
 
-/* ================= СТАРТ (ждёт bootStorage) ================= */
-
-/* ================= MVP UI wiring ================= */
-(function wireMvp(){
-  function goLib(){closeRewardsSheet();renderLibrary();show('library');closeDrawer();}
-  function goProf(){closeRewardsSheet();renderProfile();show('profile');closeDrawer();}
-  if(el('bnLib'))el('bnLib').onclick=goLib;
-  if(el('bnProf'))el('bnProf').onclick=goProf;
-  if(el('btnOpenRewards'))el('btnOpenRewards').onclick=function(){openRewardsSheet();};
-  if(el('rewardsClose'))el('rewardsClose').onclick=closeRewardsSheet;
-  if(el('rewardsScrim'))el('rewardsScrim').onclick=closeRewardsSheet;
-  if(el('btnAddRewardSlot'))el('btnAddRewardSlot').onclick=addRewardSlot;
-  if(el('btnMvpSettings'))el('btnMvpSettings').onclick=function(){closeRewardsSheet();renderSettings();show('settings');};
-  if(el('mvpTgl'))el('mvpTgl').onclick=function(){
-    SET.mvp=!(SET.mvp!==false);saveSet();applyMvpChrome();renderSettings();
-    if(isMvp()){renderLibrary();show('library');}else{renderLibrary();show('library');}
-    flashMsg(isMvp()?'MVP включён (4 экрана)':'Полный UI v6');
-  };
-  if(el('focusTgl'))el('focusTgl').onclick=function(){
-    SET.focusMode=!(SET.focusMode!==false);saveSet();renderSettings();
-    flashMsg(isFocus()?'Фокус: RPG скрыт в читалке':'Фокус выключен');
-  };
-})();
-
-window.__rqStart=async function(api, tracker){
-  __rq=api; window.__rq=api; window.__tracker=tracker;
-  __tracker=tracker;
-  const flat=api.loadFlat?api.loadFlat():{};
-  hydrateS(flat);
-  if(api.loadSettings){try{SET=Object.assign({},SETDEF,api.loadSettings());}catch(e){}}
-  /* Hydrate user book texts from IDB */
-  const books=S.userBooks||[];
-  for(let i=0;i<books.length;i++){
-    const b=books[i];
-    if(!b||b.type==='pdf'||b.text)continue;
-    try{const t=await api.idb.getText(b.id);if(typeof t==='string')b.text=t;}catch(e){}
-  }
-  if(!S.grant40k){if(!isMvp()){S.gold=(S.gold||0)+40000;}S.grant40k=true;save();}
-  /* sessions[] is the source of truth: recover a session left open by a killed tab, then award
-     any row not yet in game.awardedSessionIds (idempotent across reloads / imports). */
-  try{if(api.ensureSessionIds)await api.ensureSessionIds();}catch(e){console.warn('[rq] ensureSessionIds',e);} /* pre-UUID rows → legacy-… ids */
-  try{if(api.recoverDraft)await api.recoverDraft(api);}catch(e){console.warn('[rq] recoverDraft',e);}
-  try{SESS=api.listSessions?await api.listSessions({}):[];}catch(e){SESS=[];console.warn('[rq] listSessions',e);}
-  /* old «Забрать» claims (incl. a UTC-day claim of today) → paid lists, once */
-  if(window.__rqGame&&window.__rqGame.migrateClaimedToPaid(S,Date.now()))save();
-  if(isMvp()){const br=awardPendingSessions();__bootGold=br.gold||0;} /* recovered session: paid now, silently */
-  if(el('buildVer'))el('buildVer').textContent=RQ_BUILD;
-  applyAppTheme();applyScale();applyPixel();
-  renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
-  console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
-  window.__rqReady=true;
-};
-/* Stub: Создать героя → analytics event only (no AI / no network) */
-document.addEventListener('click',function(ev){
-  const t=ev.target&&ev.target.closest&&ev.target.closest('#btnHeroCreate');
-  if(!t)return;
-  ev.preventDefault();
-  if(__rq&&__rq.logAnalyticsEvent){
-    __rq.logAnalyticsEvent({type:'hero_create_tapped'}).catch(function(e){console.warn(e);});
-  }else if(__rq&&__rq.logReadingEvent){
-    /* fallback if analytics helper missing */
-    __rq.logReadingEvent({bookId:'_ui', pageVisibleMs:0, type:'hero_create_tapped'}).catch(function(){});
-  }
-  flashMsg('Скоро ✨');
-});
-/* UI blocked until module boot calls __rqStart */
-</script>
-<script type="module">
-import {
-  bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
-  listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
-  loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
-} from './storage/index.js?v=20261006-1306';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1306';
-import * as game from './game-awards.js?v=20261006-1306';
-
-window.__rqGame = game;
-const boot = await bootStorage();
-window.localDay = localDay; window.addLocalDays = addLocalDays; /* one day helper for the whole app */
-const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return localDay(Date.now()); } });
-await window.__rqStart({
-  boot,
-  loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
-  listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
-  importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings
-}, tracker);
+/* ================= СТАРТ ================= */
+if(!S.grant40k){S.gold=(S.gold||0)+40000;S.grant40k=true;save();} // разовый тест-грант валюты
+applyAppTheme();applyScale();applyPixel();
+renderThemeSeg();renderLibrary();show('library');startLang();
+/* v8 */
 </script>
 </body>
 </html>

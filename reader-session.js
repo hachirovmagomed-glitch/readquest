@@ -1,49 +1,96 @@
 /**
- * Reader session wiring — Product #1 + Architect contract.
+ * Reader session wiring — single source of truth for counted reading minutes.
  *
- * - logSession({ date, bookId, minutes, pageTurns }) at session end
+ * - logSession({ id, date, bookId, minutes, pageTurns }) — ONE row per sitting; `id` = UUID made here
  * - logReadingEvent({ bookId, pageVisibleMs, page }) while reading
- *   (reader WRITES; game only reads)
+ *   (reader WRITES; game only reads sessions[] and awards by sessions[].id)
  *
- * Soft streak ≥2 min is handled in app.html closeReader (comment + hook).
+ * Counted minutes (anti-cheat, Product lock 2026-10-06):
+ *   - time is measured per page, only while the tab is visible (hidden/background = 0);
+ *   - each page contributes at most `capMs` (default 3 min) — a forgotten open book
+ *     can never add more than one cap, including the last page of the session;
+ *   - `pageTurns` = forward turns where the page was visible ≥ `minSecMs` (default 12 s).
+ *
+ * Crash safety: an open session is mirrored to localStorage (`rq_session_draft`) on every
+ * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
+ * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { dayKey } from './storage/sessions.js';
+import { dayKey, newSessionId } from './storage/sessions.js?v=20261006-1230';
+export { newSessionId };
+
+export const DRAFT_KEY = 'rq_session_draft';
+
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* quota */ } }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+
+/** Skip empty sessions: < ~9 s counted and no counted page. */
+function isEmpty(minutes, turns) { return minutes < 0.15 && !turns; }
 
 /**
- * @param {{
- *   logSession: Function,
- *   logReadingEvent: Function,
- * }} api
+ * @param {{ logSession: Function, logReadingEvent: Function, now?: Function, dayFn?: Function }} api
  */
 export function createSessionTracker(api) {
   let bookId = null;
+  let sessionId = null;
   let page = 0;
-  let pageTurns = 0;
-  let visibleAccum = 0;
+  let turns = 0;          // all forward turns
+  let pagesRead = 0;      // forward turns after ≥ minSec on the page
+  let visibleAccum = 0;   // for pageVisibleMs events
   let pageClock = 0;
+  let dwellAcc = 0;       // visible ms on the current page (counting only)
+  let dwellClock = 0;
+  let creditedMs = 0;     // sum of capped page dwell
+  let capMs = 3 * 60000;
+  let minSecMs = 12000;
+  let counting = true;
   let running = false;
+  let startedAt = 0;
   let flushTimer = null;
   const FLUSH_EVERY_MS = 15000;
 
   function docVisible() {
-    return typeof document === 'undefined'
-      ? true
-      : document.visibilityState !== 'hidden';
+    return typeof document === 'undefined' ? true : document.visibilityState !== 'hidden';
   }
-
   function now() {
+    if (api.now) return api.now();
     return typeof performance !== 'undefined' ? performance.now() : Date.now();
   }
+  function today() { return api.dayFn ? api.dayFn() : dayKey(new Date()); }
 
-  function startClock() {
-    pageClock = docVisible() ? now() : 0;
+  /* --- visible-time clock for pageVisibleMs events (unchanged semantics) --- */
+  function startClock() { pageClock = docVisible() ? now() : 0; }
+  function pauseClock() {
+    if (pageClock) { visibleAccum += now() - pageClock; pageClock = 0; }
   }
 
-  function pauseClock() {
-    if (pageClock) {
-      visibleAccum += now() - pageClock;
-      pageClock = 0;
-    }
+  /* --- counted dwell on the current page --- */
+  function dwellStart() { dwellClock = running && counting && docVisible() ? now() : 0; }
+  function dwellPause() {
+    if (dwellClock) { dwellAcc += now() - dwellClock; dwellClock = 0; }
+  }
+  function dwellLive() { return dwellAcc + (dwellClock ? now() - dwellClock : 0); }
+  /** Close the current page: add min(dwell, cap); returns raw dwell. */
+  function creditPage() {
+    dwellPause();
+    const raw = dwellAcc;
+    creditedMs += Math.min(raw, capMs);
+    dwellAcc = 0;
+    return raw;
+  }
+  function countedMsLive() { return creditedMs + Math.min(dwellLive(), capMs); }
+
+  function persistDraft() {
+    if (!running || !bookId) return;
+    lsSet(DRAFT_KEY, JSON.stringify({
+      id: sessionId,
+      bookId: bookId,
+      date: today(),
+      countedMs: Math.round(countedMsLive()),
+      pageTurns: pagesRead,
+      startedAt: startedAt,
+      updatedAt: Date.now(),
+    }));
   }
 
   async function flushEvent() {
@@ -54,11 +101,7 @@ export function createSessionTracker(api) {
     if (docVisible()) startClock();
     if (ms <= 0) return null;
     try {
-      return await api.logReadingEvent({
-        bookId: bookId,
-        pageVisibleMs: ms,
-        page: page,
-      });
+      return await api.logReadingEvent({ bookId: bookId, pageVisibleMs: ms, page: page });
     } catch (e) {
       console.warn('[rq] logReadingEvent failed', e);
       return null;
@@ -67,99 +110,159 @@ export function createSessionTracker(api) {
 
   function armFlush() {
     clearInterval(flushTimer);
-    flushTimer = setInterval(function () {
-      flushEvent();
-    }, FLUSH_EVERY_MS);
+    flushTimer = setInterval(function () { flushEvent(); persistDraft(); }, FLUSH_EVERY_MS);
   }
 
   function onVis() {
     if (!running) return;
-    if (docVisible()) startClock();
-    else {
-      flushEvent();
-    }
+    if (docVisible()) { startClock(); dwellStart(); }
+    else { dwellPause(); persistDraft(); flushEvent(); }
   }
-
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', onVis);
   }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', function () { if (running) { dwellPause(); persistDraft(); } });
+  }
+
+  function reset(keepDraft) {
+    clearInterval(flushTimer); flushTimer = null;
+    running = false; bookId = null; sessionId = null;
+    pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
+    creditedMs = 0; turns = 0; pagesRead = 0;
+    if (!keepDraft) lsDel(DRAFT_KEY);
+  }
 
   return {
-    /** Call when reader opens a book */
-    begin(id, startPage) {
+    /**
+     * Reader opened a book.
+     * @param {string} id
+     * @param {number} startPage
+     * @param {{ capMs?: number, minSecMs?: number, counting?: boolean }} [opts]
+     */
+    begin(id, startPage, opts) {
+      const o = opts || {};
       flushEvent();
       bookId = id != null ? String(id) : null;
+      sessionId = newSessionId();
       page = startPage || 0;
-      pageTurns = 0;
-      visibleAccum = 0;
+      turns = 0; pagesRead = 0; visibleAccum = 0;
+      dwellAcc = 0; dwellClock = 0; creditedMs = 0;
+      if (o.capMs != null) capMs = Math.max(0, Number(o.capMs));
+      if (o.minSecMs != null) minSecMs = Math.max(0, Number(o.minSecMs));
+      counting = o.counting !== false;
+      startedAt = Date.now();
       running = !!bookId;
       startClock();
+      dwellStart();
       armFlush();
+      persistDraft();
+    },
+
+    /** Full UI only (timer ▶/⏸). MVP keeps counting on. */
+    setCounting(on) {
+      if (!running) { counting = !!on; return; }
+      if (!on) { dwellPause(); counting = false; }
+      else { counting = true; dwellStart(); }
     },
 
     /**
-     * Call from goPage when page index changes.
+     * Page index changed (tap / swipe / slider / TOC / relayout).
      * @param {number} newPage
-     * @param {boolean} [wasForwardTurn] — user turned forward (counts as pageTurn)
+     * @param {boolean} [wasForwardTurn]
      */
     onPageChange(newPage, wasForwardTurn) {
       if (!running) return;
-      // Flush visibility for the previous page before switching
       flushEvent();
-      if (wasForwardTurn) pageTurns += 1;
+      const raw = creditPage();
+      if (wasForwardTurn) {
+        turns += 1;
+        if (counting && raw >= minSecMs) pagesRead += 1;
+      }
       page = newPage;
       startClock();
+      dwellStart();
+      persistDraft();
     },
 
-    getPageTurns() {
-      return pageTurns;
+    /** Live counted state (for the day-progress bar). */
+    snapshot() {
+      return { countedMs: countedMsLive(), minutes: countedMsLive() / 60000, pageTurns: pagesRead, turns: turns };
     },
-
-    getBookId() {
-      return bookId;
-    },
+    getPageTurns() { return pagesRead; },
+    getBookId() { return bookId; },
+    getSessionId() { return sessionId; },
+    isRunning() { return running; },
 
     /**
-     * End of session — flush last pageVisibleMs, then append sessions[] row.
-     * @param {{ minutes: number, pageTurns?: number, date?: string|Date }} opts
+     * End of session: close the last page (capped), flush pageVisibleMs and append ONE
+     * sessions[] row. Minutes are computed HERE (single source of truth).
+     * @param {{ date?: string|Date }} [opts]
+     * @returns {Promise<object|null>} stored row (with UUID id) or null if empty
      */
     async end(opts) {
       const options = opts || {};
-      clearInterval(flushTimer);
-      flushTimer = null;
+      if (!running) return null;
+      creditPage();
+      clearInterval(flushTimer); flushTimer = null;
       await flushEvent();
-      const turns =
-        options.pageTurns != null ? Number(options.pageTurns) : pageTurns;
-      const minutes = Number(options.minutes) || 0;
-      const id = bookId;
-      running = false;
-      pageClock = 0;
-      visibleAccum = 0;
-      if (!id) return null;
-      // Skip empty sessions (same soft gate as closeReader early-exit)
-      if (minutes < 0.15 && turns === 0) return null;
+      const minutes = creditedMs / 60000;
+      const row = {
+        id: sessionId,
+        date: options.date || today(),
+        bookId: bookId,
+        minutes: minutes,
+        pageTurns: pagesRead,
+      };
+      if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return null; }
+      /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
+      reset(true);
       try {
-        return await api.logSession({
-          date: options.date || dayKey(new Date()),
-          bookId: id,
-          minutes: minutes,
-          pageTurns: turns,
-        });
+        const stored = await api.logSession(row);
+        lsDel(DRAFT_KEY);
+        return stored;
       } catch (e) {
-        console.warn('[rq] logSession failed', e);
+        console.warn('[rq] logSession failed — draft kept for recovery', e);
+        lsSet(DRAFT_KEY, JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
+          countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, updatedAt: Date.now() }));
         return null;
       }
     },
 
     /** Abort without logging a session (still flush visibility crumbs) */
     async cancel() {
-      clearInterval(flushTimer);
-      flushTimer = null;
+      clearInterval(flushTimer); flushTimer = null;
       await flushEvent();
-      running = false;
-      bookId = null;
-      pageClock = 0;
-      visibleAccum = 0;
+      reset();
     },
   };
+}
+
+/**
+ * Boot-time recovery: a draft left by a killed tab becomes its sessions[] row.
+ * Idempotent: the draft is removed first; a row with the same id is never written twice
+ * (checked against existing rows; IDB key uniqueness is the second guard).
+ */
+export async function recoverDraft(api) {
+  const raw = lsGet(DRAFT_KEY);
+  if (!raw) return null;
+  lsDel(DRAFT_KEY);
+  let d;
+  try { d = JSON.parse(raw); } catch (e) { return null; }
+  if (!d || !d.bookId || typeof d.id !== 'string') return null;
+  const minutes = (Number(d.countedMs) || 0) / 60000;
+  const turns = Number(d.pageTurns) || 0;
+  if (isEmpty(minutes, turns)) return null;
+  try {
+    if (api.listSessions) {
+      const rows = await api.listSessions({});
+      if (rows.some(function (r) { return r.id === d.id; })) return null;
+    }
+    return await api.logSession({
+      id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns,
+    });
+  } catch (e) {
+    console.warn('[rq] recoverDraft failed', e);
+    return null;
+  }
 }

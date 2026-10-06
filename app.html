@@ -89,7 +89,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .rhead button{font-size:19px;padding:4px 8px}
 .rtitle{flex:1;text-align:left;font-size:14px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #viewer{flex:1;position:relative;overflow:hidden;margin:0 var(--r-margin,24px)}
-#content{height:100%;column-fill:auto;transition:transform .22s ease}
+/* Android fix 2026-10-06: NO transition / will-change on the multi-column strip.
+   A transform transition promoted the whole N-page strip to one huge GPU layer and the
+   compositor animated it to tiles that were never rasterized (blank page mid-flip).
+   Now the flip is a single main-thread commit: Chrome keeps the previous frame on screen
+   until the new page's tiles are rasterized. Pinch never scales this layer (touch-action). */
+#content{height:100%;column-fill:auto;transition:none;transform:translateX(0)}
+#reader:not(.pdfmode) #viewer{touch-action:none}
+#dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
+#dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
+body:not(.mvp) #dayBar{display:none}
+#pinchHint{position:absolute;top:8px;right:8px;z-index:9;pointer-events:none;background:rgba(0,0,0,.45);color:#fff;font:600 12px system-ui,sans-serif;padding:4px 9px;border-radius:99px}
+body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
 #content .meta{text-indent:0;opacity:.6;font-style:italic;margin-bottom:1.6em}
@@ -638,6 +649,7 @@ body.mvp #sumDailyBox{display:block}
     <div class="pcard">
       <div class="setrow"><div class="lab">Экспорт прогресса<div class="sub">Резервная копия в файл (JSON)</div></div><button class="ghostbtn" id="btnExport">Сохранить</button></div>
       <div class="setrow"><div class="lab">Импорт прогресса</div><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></div>
+      <div class="setrow"><div class="lab">Версия сборки<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
       <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
       <div class="setrow"><div class="lab" style="color:#ff8a80">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
     </div>
@@ -810,6 +822,7 @@ body.mvp #sumDailyBox{display:block}
     <div id="pdfWrap" class="hidden"><div id="pdfPage"><canvas id="pdfCanvas"></canvas><div id="pdfText" class="textLayer"></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
+    <div id="pinchHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>
     <button id="navNext" class="navbtn hidden">›</button>
     <div id="selpop" class="hidden">
@@ -821,6 +834,7 @@ body.mvp #sumDailyBox{display:block}
       <button id="spCopy">📋</button>
     </div>
   </div>
+  <div id="dayBar" aria-hidden="true"><i></i></div>
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span></footer>
   <div class="sheet hidden" id="panel">
     <button class="closes" id="panelClose">✕</button>
@@ -915,6 +929,7 @@ body.mvp #sumDailyBox{display:block}
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
+const RQ_BUILD='20261006-1230'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
@@ -945,27 +960,28 @@ function weekKey(d){
   const y=mon.getFullYear(),m=String(mon.getMonth()+1).padStart(2,'0'),dd=String(mon.getDate()).padStart(2,'0');
   return y+'-'+m+'-'+dd;
 }
+/* ===== sessions[] = single source of truth for minutes / XP / daily / weekly =====
+   SESS mirrors IDB sessions[] (loaded at boot, appended by closeReader). */
+let SESS=[];
+function dayMin(key){let m=0;for(let i=0;i<SESS.length;i++){const r=SESS[i];if(r&&String(r.date).slice(0,10)===key)m+=Number(r.minutes)||0;}return m;}
+function minTodaySess(){return dayMin(today());}
 function daysInWeekAtGoal(minNeed){
   const need=minNeed!=null?minNeed:(S.goal||10);
   const wk=weekKey(today());
-  const start=new Date(wk+'T12:00:00');
-  let n=0;const days=[];
-  for(let i=0;i<7;i++){
-    const d=new Date(start);d.setDate(start.getDate()+i);
-    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const mins=(S.hist[key]&&S.hist[key].min)||0;
-    /* include today live */
-    if(key===today()){/* minToday already rolled into hist on session end; also count live */ 
-      const live=Math.max(mins, S.minToday||0);
-      if(live>=need){n++;days.push(key);}
-    }else if(mins>=need){n++;days.push(key);}
-  }
-  return {count:n,days:days,need:need,week:wk};
+  const days=window.__rqGame?window.__rqGame.daysAtGoalInWeek(SESS,wk,need):[];
+  return {count:days.length,days:days,need:need,week:wk};
+}
+/** Award XP for every sessions[] row not yet in game.awardedSessionIds (idempotent). */
+function awardPendingSessions(){
+  if(!window.__rqGame)return {xp:0,byId:{},ids:[]};
+  const res=window.__rqGame.applySessionAwards(S,SESS);
+  if(res.ids.length)save();
+  return res;
 }
 function dailyQuestClaimed(){return S.dailyClaimed===today();}
 function weeklyQuestClaimed(){return S.weeklyClaimed===weekKey(today());}
-function mvpDailyProg(){const g=S.goal||10;return Math.min(1,(S.minToday||0)/g);}
-function mvpDailyInfo(){return Math.round(S.minToday||0)+' / '+(S.goal||10)+' мин';}
+function mvpDailyProg(){const g=S.goal||10;return Math.min(1,minTodaySess()/g);}
+function mvpDailyInfo(){return Math.round(minTodaySess())+' / '+(S.goal||10)+' мин';}
 function mvpWeeklyProg(){const w=daysInWeekAtGoal(S.goal||10);return Math.min(1,w.count/4);}
 function mvpWeeklyInfo(){const w=daysInWeekAtGoal(S.goal||10);return w.count+' / 4 дня (≥'+(S.goal||10)+' мин)';}
 function claimMvpDaily(){
@@ -997,7 +1013,7 @@ function renderMvpQuests(){
 function renderMvpProfile(){
   if(el('mvpGold'))el('mvpGold').textContent=goldDisp();
   if(el('mvpStreak'))el('mvpStreak').textContent=S.streak||0;
-  if(el('mvpMinToday'))el('mvpMinToday').textContent=Math.round(S.minToday||0);
+  if(el('mvpMinToday'))el('mvpMinToday').textContent=Math.round(minTodaySess());
   renderMvpQuests();
 }
 function clearConfetti(){
@@ -1135,7 +1151,7 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[]};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
@@ -1147,7 +1163,9 @@ function hydrateS(raw){
   S.stats=Object.assign({},DEF.stats,S.stats||{});
   S.quotes=S.quotes||{};S.hl=S.hl||{};S.owned=S.owned||[];S.claimed=S.claimed||{};S.stickers=S.stickers||{};S.marks=S.marks||{};
   S.favs=S.favs||[];S.hidden=S.hidden||[];S.hist=S.hist||{};S.status=S.status||{};S.vocab=S.vocab||[];if(S.lastRead===undefined)S.lastRead=null;S.petXp=S.petXp||0;if(S.dailyClaim===undefined)S.dailyClaim=null;S.boss=S.boss||null;S.hourHist=(S.hourHist&&S.hourHist.length===24)?S.hourHist:new Array(24).fill(0);S.finishDates=S.finishDates||{};S.talents=S.talents||{};
-  if(!S.anti)S.anti={minSec:12,maxMin:4};
+  if(!S.anti)S.anti={minSec:12,maxMin:3,v:2};
+  else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
+  S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
@@ -1365,10 +1383,11 @@ function renderLibrary(){
   }
   el('goldChip').textContent=curI()+' '+goldDisp();
   el('goalTitle').textContent='Цель дня: '+S.goal+' мин';
-  el('goalSub').textContent='Сегодня: '+Math.round(S.minToday)+' мин';
+  const _mt=isMvp()?minTodaySess():S.minToday;
+  el('goalSub').textContent='Сегодня: '+Math.round(_mt)+' мин';
   el('streakTxt').textContent='🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').textContent='⭐ Ур. '+level(S.xp);
-  const pct=Math.min(1,S.minToday/S.goal);
+  const pct=Math.min(1,_mt/S.goal);
   el('ringFg').style.strokeDashoffset=207*(1-pct);
   el('ringFg').style.stroke=pct>=1?'#4cd97b':'#2bb3c0';
   el('ringTxt').textContent=Math.round(pct*100)+'%';
@@ -1521,7 +1540,7 @@ function applySet(){
   c.style.hyphens=SET.hyph===false?'none':'auto';
   c.style.webkitHyphens=SET.hyph===false?'none':'auto';
   c.classList.toggle('noind',SET.indent===false);
-  c.style.transition=(S.ux&&S.ux.anim===false)?'none':'transform .22s ease';
+  c.style.transition='none'; /* Android: never animate the giant column strip (blank-page bug) */
   el('szVal').textContent=SET.size+'px';
   el('lhVal').textContent=SET.lh.toFixed(2);
   el('lsVal').textContent=(SET.ls||0)+'px';
@@ -1563,8 +1582,8 @@ function renderThemeSeg(){
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
   SHOP_THEMES.forEach(t=>add(t.id,t.bg,t.name,!S.owned.includes(t.id)));
 }
-el('szMinus').onclick=()=>{SET.size=Math.max(14,SET.size-1);saveSet();applySet();relayout();};
-el('szPlus').onclick=()=>{SET.size=Math.min(30,SET.size+1);saveSet();applySet();relayout();};
+el('szMinus').onclick=()=>{setFontSizeKeepPos(SET.size-1);};
+el('szPlus').onclick=()=>{setFontSizeKeepPos(SET.size+1);};
 el('lhMinus').onclick=()=>{SET.lh=Math.max(1.2,+(SET.lh-0.1).toFixed(2));saveSet();applySet();relayout();};
 el('lhPlus').onclick=()=>{SET.lh=Math.min(2.4,+(SET.lh+0.1).toFixed(2));saveSet();applySet();relayout();};
 el('mgMinus').onclick=()=>{SET.margin=Math.max(10,SET.margin-6);saveSet();applySet();relayout();};
@@ -1616,14 +1635,38 @@ async function openBook(id){
   const c=el('content');
   el('pdfWrap').classList.toggle('hidden',R.mode!=='pdf');
   c.classList.toggle('hidden',R.mode==='pdf');
+  el('reader').classList.toggle('pdfmode',R.mode==='pdf');
+  c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
   show('reader');applySet();reqWake();resetTimer();armChromeHide();
-  if(window.innerWidth<700){enterImmersive();flashMsg('📖 Полный экран · тап по центру — показать панель');}
+  if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
+  startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
-  requestAnimationFrame(()=>{layout();const p=Math.round(((S.progress[id]||{}).ratio||0)*(R.pageCount-1));if(__tracker)__tracker.begin(id,p);goPage(p,false);});
+  /* measure + position synchronously in the same task: the first painted frame is already the right page */
+  layout();
+  const p=Math.round(((S.progress[id]||{}).ratio||0)*(R.pageCount-1));
+  if(__tracker)__tracker.begin(id,p,trackerOpts());
+  goPage(p,false);
 }
+/** Anti-cheat params for the session tracker (single source of counted minutes). */
+function trackerOpts(){
+  const a=S.anti||{minSec:12,maxMin:3};
+  const capMin=isMvp()?Math.min(3,a.maxMin||3):(a.maxMin||3);
+  return {capMs:capMin*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn};
+}
+/* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
+let dayBarIv=null;
+function updDayBar(){
+  const bar=el('dayBar');if(!bar||!isMvp())return;
+  const live=(__tracker&&__tracker.isRunning&&__tracker.isRunning())?__tracker.snapshot().minutes:0;
+  const pct=Math.max(0,Math.min(1,(minTodaySess()+live)/(S.goal||10)));
+  const w=Math.round(pct*1000)/10+'%';
+  const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
+}
+function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
+function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}
 async function openPdf(b){
   try{
     await loadPdfJs();
@@ -1632,7 +1675,7 @@ async function openPdf(b){
     R.pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
     R.pageCount=R.pdf.numPages;
     const p=Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1));
-    if(__tracker)__tracker.begin(b.id, p);
+    if(__tracker)__tracker.begin(b.id, p, trackerOpts());
     goPage(p,false);
   }catch(e2){alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
@@ -1693,6 +1736,8 @@ async function buildTextLayer(page,scale,cssW,cssH){
 }
 function clampPan(){}
 function applyPan(){}
+window.__rqLayoutCount=0; /* test hook: number of full column reflows */
+function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|');}
 function layout(){
   if(R.mode==='pdf'){renderPdfPage(R.page);return;}
   const v=el('viewer'),c=el('content');
@@ -1703,12 +1748,61 @@ function layout(){
   c.style.height=h+'px';c.style.width=w+'px';
   R.step=w+gap;
   R.pageCount=Math.max(1,Math.ceil((c.scrollWidth+gap)/R.step));
+  R.layoutKey=layoutKey(w,h);
+  window.__rqLayoutCount++;
 }
-function relayout(){
+/* Reading-position anchor: the first character visible on the current page.
+   Survives font-size / viewport changes better than a page ratio. */
+function captureAnchor(){
+  if(R.mode==='pdf')return null;
+  const v=el('viewer'),c=el('content');
+  const vr=v.getBoundingClientRect();
+  const cr=document.caretRangeFromPoint?function(x,y){return document.caretRangeFromPoint(x,y);}:
+    (document.caretPositionFromPoint?function(x,y){const p=document.caretPositionFromPoint(x,y);if(!p)return null;const r=document.createRange();r.setStart(p.offsetNode,p.offset);return r;}:null);
+  if(!cr)return null;
+  const xs=[4,vr.width*0.33,vr.width*0.66],ys=[4,16,32,56,90];
+  for(let j=0;j<ys.length;j++)for(let i=0;i<xs.length;i++){
+    const rg=cr(vr.left+xs[i],vr.top+ys[j]);
+    if(rg&&rg.startContainer&&rg.startContainer.nodeType===3&&c.contains(rg.startContainer)){
+      return {node:rg.startContainer,offset:rg.startOffset};
+    }
+  }
+  return null;
+}
+function pageOfAnchor(a){
+  try{
+    if(!a||!a.node||!a.node.isConnected)return -1;
+    const c=el('content');const len=a.node.nodeValue.length;
+    const rg=document.createRange();
+    const o=Math.min(a.offset,Math.max(0,len-1));
+    rg.setStart(a.node,o);rg.setEnd(a.node,Math.min(len,o+1));
+    const rects=rg.getClientRects();const r=rects.length?rects[0]:rg.getBoundingClientRect();
+    const x=r.left-c.getBoundingClientRect().left;
+    return Math.max(0,Math.floor((x+2)/R.step));
+  }catch(e){return -1;}
+}
+/** Re-measure only when geometry/typography really changed; keep the reading position. */
+function relayout(opts){
+  const o=opts||{};
   if(el('reader').classList.contains('hidden'))return;
   if(R.mode==='pdf'){renderPdfPage(R.page);return;}
+  const v=el('viewer');
+  if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */
+  const anchor=o.anchor||captureAnchor();
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
-  layout();goPage(Math.round(ratio*(R.pageCount-1)),false);
+  layout();
+  let p=anchor?pageOfAnchor(anchor):-1;
+  if(p<0)p=Math.round(ratio*(R.pageCount-1));
+  goPage(p,false);
+}
+/** Font size change (Aa / pinch / Ctrl+wheel): exactly one reflow, position kept. */
+function setFontSizeKeepPos(size){
+  size=Math.max(14,Math.min(30,Math.round(size)));
+  if(size===SET.size)return false;
+  const anchor=captureAnchor();
+  SET.size=size;saveSet();applySet();
+  relayout({force:true,anchor:anchor});
+  return true;
 }
 function goPage(p,turn){
   const prev=R.page;
@@ -1716,15 +1810,9 @@ function goPage(p,turn){
   const forwardTurn=!!(turn&&np>prev);
   if(forwardTurn){
     R.turned++;
-    // анти-чит: честный учёт времени и страниц — только при включённом таймере
-    const now=Date.now();
-    const a=S.anti||{minSec:12,maxMin:4};
-    const dt=(now-(R.lastTurn||now))/1000;
-    if(R.timerOn){
-      R.credSec=(R.credSec||0)+Math.min(dt,a.maxMin*60);
-      if(dt>=a.minSec)R.pagesRead=(R.pagesRead||0)+1;
-    }else{timerNudge();}
-    R.lastTurn=now;
+    /* counted minutes / pages: reader-session tracker (per-page cap, visible time only) */
+    if(!isMvp()&&!R.timerOn)timerNudge();
+    R.lastTurn=Date.now();
   }
   if(R.mode==='pdf'&&np!==R.page){R.panX=0;R.panY=0;R.zoom=1;const w=el('pdfWrap');if(w){w.scrollTop=0;w.scrollLeft=0;}} // новая страница открывается по ширине
   R.page=np;
@@ -1737,14 +1825,23 @@ function goPage(p,turn){
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
   /* Architect: reader writes pageVisibleMs on page change */
   if(__tracker&&(np!==prev||forwardTurn))__tracker.onPageChange(np, forwardTurn);
+  if(np!==prev)updDayBar();
 }
 el('pgSlider').oninput=e=>goPage(parseInt(e.target.value,10)||0,false);
+let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;return;}
+  if(Date.now()<pinchQuietUntil)return; /* trailing click right after a two-finger gesture */
+  if(Date.now()-touchTapAt<800)return;   /* already handled as a touch tap (see touchend) */
+  viewerTap(e.clientX,e.clientY);
+});
+/* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
+   click right after a swipe), mouse/keyboard clicks via 'click'. */
+function viewerTap(cx,cy){
   if(selText())return; // идёт выделение текста — не листаем
   const r=el('viewer').getBoundingClientRect();
-  const x=(e.clientX-r.left)/r.width;
-  const y=(e.clientY-r.top)/r.height;
+  const x=(cx-r.left)/r.width;
+  const y=(cy-r.top)/r.height;
   if(y<0.12&&x<0.3){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra)
   if(y<0.12&&x>0.7){addBookmark();return;}       // угол: закладка
   const tapOn=!SET.nav||SET.nav.tap!==false;
@@ -1755,7 +1852,7 @@ el('viewer').addEventListener('click',e=>{
     if(IMM){exitImmersive();relayout();armChromeHide();}
     else toggleChrome(); // тап по центру — показать/спрятать панели (как в ReadEra)
   }
-});
+}
 /* авто-скрытие верхней/нижней панелей при чтении */
 let chromeTimer=null;
 function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;r.classList.add('barsoff');relayout();},3200);}
@@ -1880,9 +1977,22 @@ document.addEventListener('keydown',e=>{
 });
 /* --- жесты: свайп, щипок-зум, панорамирование --- */
 let tx0=null,pinch0=null,zoom0=1,panStart=null,suppressClick=false,mdrag=null,bright=null;
+/* Text pinch = font size (Интерфейс): the text layer is NEVER scaled. During the gesture only a tiny
+   «Aa N» hint changes; on the first finger up → ONE reflow via setFontSizeKeepPos. */
+let pinchSize0=19,pinchTarget=0,pinchQuietUntil=0;
 function tDist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+function pinchSizeFor(k){if(Math.abs(k-1)<0.08)return pinchSize0;return Math.max(14,Math.min(30,Math.round(pinchSize0*k)));}
+function endTextPinch(){
+  const h=el('pinchHint');if(h)h.classList.add('hidden');
+  const t=pinchTarget;pinchTarget=0;pinchQuietUntil=Date.now()+450;
+  if(t&&t!==SET.size)setFontSizeKeepPos(t);
+}
+el('viewer').addEventListener('gesturestart',e=>{if(R.mode!=='pdf')e.preventDefault();}); /* iOS Safari: no native page zoom in the reader */
+let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
-  if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;return;}
+  if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;return;}
+  if(pinch0||e.touches.length>2)return;
+  ty0=e.touches[0].clientY;tt0=Date.now();
   if(e.touches[0].clientX<28){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края
   tx0=e.touches[0].clientX;
 },{passive:true});
@@ -1893,10 +2003,16 @@ el('viewer').addEventListener('touchmove',e=>{
     return;
   }
   if(e.touches.length===2&&pinch0){
+    if(R.mode!=='pdf'){
+      if(e.cancelable)e.preventDefault(); /* belt & braces with touch-action:none — browser must not zoom the page */
+      const t=pinchSizeFor(tDist(e)/pinch0);
+      if(t!==pinchTarget){pinchTarget=t;const h=el('pinchHint');if(h){h.textContent='Aa '+t;h.classList.toggle('hidden',t===pinchSize0);}}
+      return;
+    }
     if(Math.abs(tDist(e)-pinch0)<16)return; // игнорируем мелкое дрожание двух пальцев (от него «само зумилось»)
     let z=zoom0*tDist(e)/pinch0;if(z<1.08)z=1;
     R.zoom=Math.max(1,Math.min(4,z));
-    if(R.mode==='pdf'){el('pdfPage').style.transformOrigin='50% 0';el('pdfPage').style.transform='scale('+(R.zoom/(R.rzoom||1)).toFixed(3)+')';}
+    el('pdfPage').style.transformOrigin='50% 0';el('pdfPage').style.transform='scale('+(R.zoom/(R.rzoom||1)).toFixed(3)+')';
     return;
   }
   if(panStart&&e.touches.length===1){
@@ -1904,24 +2020,28 @@ el('viewer').addEventListener('touchmove',e=>{
     R.panY=e.touches[0].clientY-panStart.y;
     applyPan();
   }
-},{passive:true});
+},{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(bright){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');bright=null;return;}
   if(pinch0){
-    pinch0=null;
+    pinch0=null;tx0=null;
     if(R.mode==='pdf'){if(R.zoom<1.08){R.zoom=1;R.panX=0;R.panY=0;}renderPdfPage(R.page);}
-    else{ // в текстовом режиме щипок меняет размер шрифта
-      const k=R.zoom||1;R.zoom=1;
-      if(k>1.15){SET.size=Math.min(30,SET.size+2);saveSet();applySet();relayout();}
-      else if(k<0.87){SET.size=Math.max(14,SET.size-2);saveSet();applySet();relayout();}
-    }
+    else{R.zoom=1;endTextPinch();} // текст: щипок = размер шрифта, один рефлоу после жеста
     return;
   }
+  if(Date.now()<pinchQuietUntil){tx0=null;return;} /* second finger lifting after a pinch is not a swipe */
   if(panStart){panStart=null;return;}
   if(tx0===null)return;
-  const dx=e.changedTouches[0].clientX-tx0;tx0=null;
-  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+(dx<0?1:-1)*inv,true);}
+  const ct=e.changedTouches[0];
+  const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
+  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+(dx<0?1:-1)*inv,true);return;}
+  /* short, still touch = tap (not on buttons / selection popup) */
+  if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tt0<450&&e.touches.length===0&&
+     !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
+    touchTapAt=Date.now();viewerTap(ct.clientX,ct.clientY);
+  }
 },{passive:true});
+el('viewer').addEventListener('touchcancel',()=>{if(pinch0){pinch0=null;tx0=null;if(R.mode!=='pdf')endTextPinch();}},{passive:true});
 /* мышь: Ctrl+колесо — зум, колесо — листание, перетаскивание — панорама */
 el('viewer').addEventListener('wheel',e=>{
   if(el('reader').classList.contains('hidden'))return;
@@ -1932,8 +2052,7 @@ el('viewer').addEventListener('wheel',e=>{
       if(R.zoom<1.02)R.zoom=1;
       renderPdfPage(R.page);
     }else{
-      SET.size=Math.max(14,Math.min(30,SET.size+(e.deltaY<0?1:-1)));
-      saveSet();applySet();relayout();
+      setFontSizeKeepPos(SET.size+(e.deltaY<0?1:-1));
     }
     return;
   }
@@ -2099,23 +2218,32 @@ el('btnTts').onclick=()=>{
 };
 
 /* ================= СЕССИЯ И НАГРАДЫ ================= */
-function closeReader(){
-  stopChrome();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
+let __closingReader=false;
+async function closeReader(){
+  if(__closingReader)return; /* double tap on ← must not end the session twice */
+  __closingReader=true;
+  try{await closeReaderImpl();}finally{__closingReader=false;}
+}
+async function closeReaderImpl(){
+  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
   const b=R.book;if(!b){show('library');return;}
+  R.book=null;
   S.progress[b.id]={ratio:R.maxRatio};
-  const a=S.anti||{minSec:12,maxMin:4};
-  const tail=R.timerOn?(Date.now()-(R.lastTurn||R.start))/1000:0;
-  const credSec=(R.credSec||0)+Math.min(tail,a.maxMin*60);
+  const a=S.anti||{minSec:12,maxMin:3};
   stopTimerTick();
-  const min=credSec/60;        // время сверх лимита на странице не идёт в опыт
-  const pages=R.pagesRead||0;  // пролистанные быстрее минимума страницы не в счёт
   rollDay();
-  if(min<0.15&&pages===0){
-    if(__tracker)__tracker.cancel();
-    save();renderLibrary();show('library');return;
-  }
+  /* Single source of truth: the reader-session tracker computes counted minutes (per-page cap,
+     visible time only, last page capped too) and writes ONE sessions[] row with a reader-generated UUID id. */
   const lvBefore=level(S.xp);
+  let row=null;
+  if(__tracker){
+    try{row=await __tracker.end({date:today()});}catch(e){console.warn('[rq] session end',e);}
+  }
+  if(!row){save();renderLibrary();show('library');return;} /* empty session (or write failed → draft recovered on next boot) */
+  SESS.push(row);
+  const min=row.minutes;        // время сверх лимита на странице не идёт в опыт
+  const pages=row.pageTurns||0; // пролистанные быстрее минимума страницы не в счёт
   // статистика по книге (накопительная, только честные минуты/страницы)
   const bs=(S.bookStats[b.id]=S.bookStats[b.id]||{min:0,pages:0});
   bs.min+=min;bs.pages+=pages;
@@ -2128,8 +2256,10 @@ function closeReader(){
   const imMul=impMulOf(b.id);                       // важность книги → больше валюты
   let xp, gold, mult=1;
   if(isMvp()){
-    /* MVP: XP only from reading — +10 per counted minute. No page/finish/luck/talent/ach multipliers. */
-    xp=Math.round(min)*10; // same rounding as the minutes shown on summary
+    /* MVP: XP only from reading — +10 per counted minute, derived by game from sessions[]
+       and awarded once per sessionId (game.awardedSessionIds). */
+    const res=awardPendingSessions();
+    xp=res.byId[row.id]||0;
     gold=0;
   }else{
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
@@ -2139,14 +2269,15 @@ function closeReader(){
   }
   const stN=statOf(b);
   const statGain=Math.max(1,Math.round((Math.round(min)+pages)*dmul*talVal('stat')));
-  S.xp+=xp;S.gold+=gold;S.goldAllTime=(S.goldAllTime||0)+gold;
+  if(!isMvp()){S.xp+=xp;if(window.__rqGame)window.__rqGame.markAwarded(S,[row.id]);}
+  S.gold+=gold;S.goldAllTime=(S.goldAllTime||0)+gold;
   S.stats[stN]=(S.stats[stN]||0)+statGain;
   S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
   S.hp=Math.min(S.hpMax,(S.hp==null?S.hpMax:S.hp)+15);if(justFinished)S.hp=S.hpMax; // чтение восстанавливает здоровье
   dealBossDamage(min,pages,justFinished);S.petXp=(S.petXp||0)+min; // урон боссу + рост питомца
   /* Soft streak ≥2 min (Boss/Product): preserve streak when day's total minutes ≥2.
      Daily quest / north-star still require goal minutes (default 10) — not changed here. */
-  if(S.minToday>=2){
+  if((isMvp()?minTodaySess():S.minToday)>=2){
     if(S.lastDay!==today()){
       S.streak=(S.lastDay===yesterday())?S.streak+1:1;
       S.lastDay=today();
@@ -2174,12 +2305,7 @@ function closeReader(){
   if(level(S.xp)>=5)earn('lvl5');
   const newAch=checkAchievements();
   save();
-  /* Product #1: append sessions[] row (date, bookId, minutes, pageTurns) — reader writes, not game */
-  if(__tracker){
-    __tracker.end({date:today(), minutes:min, pageTurns:pages}).catch(function(e){console.warn('[rq] logSession',e);});
-  }else if(__rq&&__rq.logSession){
-    __rq.logSession({date:today(), bookId:b.id, minutes:min, pageTurns:pages}).catch(function(e){console.warn('[rq] logSession',e);});
-  }
+  /* sessions[] row already written above by __tracker.end (one row, UUID id) */
   const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch};
   renderSummary(_sumArgs);
   show('summary');
@@ -2210,7 +2336,7 @@ function renderSummary(r){
   el('lvlUp').classList.toggle('hidden',lvNow<=r.lvBefore);
   if(lvNow>r.lvBefore)el('lvlUp').textContent='🎉 Новый уровень: '+lvNow+'!';
   el('sumStreak').textContent='🔥 Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
-    (r.dmul>1?' · ⚔️ '+r.dName+' ×'+r.dmul:'')+
+    (r.dmul>1&&!isMvp()?' · ⚔️ '+r.dName+' ×'+r.dmul:'')+
     (r.justFinished?' · 🏁 Книга прочитана, бонус!':'');
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
@@ -3295,23 +3421,31 @@ function updTimerBtn(){
 function startTimerTick(){stopTimerTick();timerIv=setInterval(updTimerBtn,1000);}
 function stopTimerTick(){if(timerIv){clearInterval(timerIv);timerIv=null;}}
 function resetTimer(){
+  if(isMvp()){
+    /* MVP test: no separate timer — opening a book starts counting (anti-cheat lives in the tracker).
+       No ▶ button, no hints, no toasts. */
+    R.timerOn=true;R.timerAccum=0;R.timerOnAt=Date.now();stopTimerTick();
+    el('timerHint').classList.add('hidden');clearTimeout(R._hintT);
+    return;
+  }
   R.timerOn=false;R.timerAccum=0;R.timerOnAt=0;stopTimerTick();updTimerBtn();
   const h=el('timerHint');h.textContent='▶ Нажмите таймер вверху, чтобы засчитывать чтение и получать опыт';
   h.classList.remove('hidden');clearTimeout(R._hintT);R._hintT=setTimeout(()=>h.classList.add('hidden'),4500);
 }
 function toggleTimer(){
-  if(!R.book)return;
+  if(!R.book||isMvp())return; /* MVP: counting can't be switched off */
   if(R.timerOn){
-    R.timerAccum=timerElapsed();R.timerOn=false;stopTimerTick();
+    R.timerAccum=timerElapsed();R.timerOn=false;stopTimerTick();if(__tracker)__tracker.setCounting(false);
     flashMsg('⏸ Таймер на паузе — опыт не начисляется');
   }else{
-    R.timerOn=true;R.timerOnAt=Date.now();R.lastTurn=Date.now();startTimerTick();
+    R.timerOn=true;R.timerOnAt=Date.now();R.lastTurn=Date.now();startTimerTick();if(__tracker)__tracker.setCounting(true);
     el('timerHint').classList.add('hidden');
     flashMsg('▶ Таймер пошёл — чтение засчитывается',2000);
   }
   updTimerBtn();
 }
 function timerNudge(){
+  if(isMvp())return;
   const now=Date.now();if(now-nudgeT<8000)return;nudgeT=now;
   const h=el('timerHint');h.textContent='⏸ Таймер выключен — листание не идёт в опыт. Нажмите ▶ вверху';
   h.classList.remove('hidden');clearTimeout(R._hintT);R._hintT=setTimeout(()=>h.classList.add('hidden'),2800);
@@ -4026,9 +4160,17 @@ window.__rqStart=async function(api, tracker){
     try{const t=await api.idb.getText(b.id);if(typeof t==='string')b.text=t;}catch(e){}
   }
   if(!S.grant40k){if(!isMvp()){S.gold=(S.gold||0)+40000;}S.grant40k=true;save();}
+  /* sessions[] is the source of truth: recover a session left open by a killed tab, then award
+     any row not yet in game.awardedSessionIds (idempotent across reloads / imports). */
+  try{if(api.ensureSessionIds)await api.ensureSessionIds();}catch(e){console.warn('[rq] ensureSessionIds',e);} /* pre-UUID rows → legacy-… ids */
+  try{if(api.recoverDraft)await api.recoverDraft(api);}catch(e){console.warn('[rq] recoverDraft',e);}
+  try{SESS=api.listSessions?await api.listSessions({}):[];}catch(e){SESS=[];console.warn('[rq] listSessions',e);}
+  if(isMvp())awardPendingSessions();
+  if(el('buildVer'))el('buildVer').textContent=RQ_BUILD;
   applyAppTheme();applyScale();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
+  window.__rqReady=true;
 };
 /* Stub: Создать героя → analytics event only (no AI / no network) */
 document.addEventListener('click',function(ev){
@@ -4049,16 +4191,18 @@ document.addEventListener('click',function(ev){
 import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
-  loadSettings, saveSettings
-} from './storage/index.js';
-import { createSessionTracker } from './reader-session.js';
+  loadSettings, saveSettings, ensureSessionIds
+} from './storage/index.js?v=20261006-1230';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1230';
+import * as game from './game-awards.js?v=20261006-1230';
 
+window.__rqGame = game;
 const boot = await bootStorage();
-const tracker = createSessionTracker({ logSession, logReadingEvent });
+const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return new Date().toISOString().slice(0, 10); } });
 await window.__rqStart({
   boot,
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
-  listSessions, listReadingEvents, idb,
+  listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
   importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings
 }, tracker);
 </script>

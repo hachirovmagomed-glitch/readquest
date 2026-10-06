@@ -106,6 +106,8 @@ export const GAME_DEF = {
   invHist: [],
   /** Architect: [{id, title, price, at}] ISO at */
   rewardPurchases: [],
+  /** sessions[].id (UUID) already turned into XP — idempotent awards (reload/import safe) */
+  awardedSessionIds: [],
   /** Legacy → migrated to rewardPurchases in hydrateGame */
   rewardHist: [],
   ownedGear: [],
@@ -216,6 +218,7 @@ export function hydrateGame(g) {
   out.invHist = out.invHist || [];
   /* Architect fields + compat */
   out.rewardPurchases = Array.isArray(out.rewardPurchases) ? out.rewardPurchases : [];
+  out.awardedSessionIds = Array.isArray(out.awardedSessionIds) ? out.awardedSessionIds : [];
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {
     out.rewardPurchases = out.rewardHist.map(function (h, i) {
@@ -247,7 +250,12 @@ export function hydrateGame(g) {
   out.char = out.char || {};
   out.vocab = out.vocab || [];
   out.skillMeta = out.skillMeta || {};
-  if (!out.anti) out.anti = { minSec: 12, maxMin: 4 };
+  /* Product 2026-10-06: forgotten-book guard — max 3 min counted per page (was 4) */
+  if (!out.anti) out.anti = { minSec: 12, maxMin: 3, v: 2 };
+  else if (!out.anti.v) {
+    out.anti = Object.assign({}, out.anti, { v: 2 });
+    if (out.anti.maxMin === 4) out.anti.maxMin = 3;
+  }
   if (!out.skills)
     out.skills = {
       Концентрация: 0,

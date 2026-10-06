@@ -22,8 +22,8 @@ import {
   stripBookBody,
   mergeFlat,
   splitLegacyState,
-} from './schema.js';
-import * as idb from './idb.js';
+} from './schema.js?v=20261006-1230';
+import * as idb from './idb.js?v=20261006-1230';
 
 let saveWarned = false;
 
@@ -208,8 +208,9 @@ export async function exportBackup(envelope, settings, opts) {
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions } = await import('./sessions.js');
-  const { listReadingEvents } = await import('./events.js');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261006-1230');
+  const { listReadingEvents } = await import('./events.js?v=20261006-1230');
+  await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
 
@@ -280,13 +281,14 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession } = await import('./sessions.js');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261006-1230');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js'
+    './events.js?v=20261006-1230'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */
-  const sessions = Array.isArray(data.sessions) ? data.sessions : [];
+  /* id-less / numeric-id rows (old exports) → deterministic legacy ids → re-import is idempotent */
+  const sessions = withLegacyIds(Array.isArray(data.sessions) ? data.sessions : []);
   const events = Array.isArray(data.events) ? data.events : [];
 
   await clearSessions();
@@ -295,6 +297,7 @@ export async function importBackup(data) {
     if (!s || s.bookId == null) continue;
     try {
       await logSession({
+        id: s.id,
         date: s.date,
         bookId: s.bookId,
         minutes: s.minutes,

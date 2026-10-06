@@ -57,34 +57,50 @@ if (!OLD) ids.t = await upload(TXT);
 // ---------- pixel analysis ----------
 const decode = (b64) => PNG.sync.read(Buffer.from(b64, 'base64'));
 function analyze(png) {
+  // Page features only (the reader bars' small blue/red icons are ignored): the header band = rows with ≥25 % blue
+  // pixels, the footer mark = rows with ≥ max(12 px, 5 %) red pixels; body ink is counted strictly between them.
   const d = png.data, W = png.width, H = png.height;
-  let ink = 0, bn = 0, by = 0, bxmin = 1e9, bxmax = -1, bymin = 1e9, bymax = -1, rn = 0, ry = 0, rymin = 1e9;
-  const green = []; const inkRows = new Int32Array(H); const inkCols = new Int32Array(W);
+  let ink = 0; const green = [];
+  const inkRows = new Int32Array(H), inkCols = new Int32Array(W), bRow = new Int32Array(H), rRow = new Int32Array(H), bMin = new Int32Array(H).fill(1e9), bMax = new Int32Array(H).fill(-1);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const i = (y * W + x) * 4, r = d[i], g = d[i + 1], b = d[i + 2];
     const L = 0.299 * r + 0.587 * g + 0.114 * b;
-    if (r > 150 && g < 110 && b < 110 && r > g + 70) { rn++; ry += y; if (y < rymin) rymin = y; }
-    else if (b > 140 && r < 110 && g < 140 && b > r + 60) { bn++; by += y; if (x < bxmin) bxmin = x; if (x > bxmax) bxmax = x; if (y < bymin) bymin = y; if (y > bymax) bymax = y; }
+    if (r > 150 && g < 110 && b < 110 && r > g + 70) rRow[y]++;
+    else if (b > 140 && r <110 && g < 140 && b > r + 60) { bRow[y]++; if (x < bMin[y]) bMin[y] = x; if (x > bMax[y]) bMax[y] = x; }
     else if (g > 100 && g > r + 40 && g > b + 25) green.push([x, y]);
     else if (L < 140 && r > b + 8 && r >= g) { ink++; inkRows[y]++; inkCols[x]++; }
   }
-  const blue = bn > 15 ? { n: bn, y: by / bn, xmin: bxmin, xmax: bxmax, ymin: bymin, ymax: bymax } : null;
-  const red = rn > 4 ? { n: rn, y: ry / rn, ymin: rymin } : null;
+  // group band / mark rows into runs; a capture taken during setViewport can contain the page TWICE (tiled
+  // composite) — then only the first band and the first mark below it are used, and the frame is flagged `tiled`.
+  const runs = (pred) => { const out = []; let cur = null; for (let y = 0; y < H; y++) { if (pred(y)) { if (cur && y - cur.b <= 2) cur.b = y; else { cur = { a: y, b: y }; out.push(cur); } } } return out; };
+  const bRuns = runs(y => bRow[y] >= W * 0.25), rRuns = runs(y => rRow[y] >= Math.max(8, W * 0.015));
+  const b0 = bRuns[0] || null; const r0 = b0 ? (rRuns.find(r => r.a > b0.b) || null) : (rRuns[0] || null);
+  const tiled = bRuns.length > 1 || rRuns.length > 1;
+  let bn = 0, by = 0, bxmin = 1e9, bxmax = -1, bymin = 1e9, bymax = -1, rn = 0, ry = 0, rymin = 1e9;
+  if (b0) for (let y = b0.a; y <= b0.b; y++) { bn += bRow[y]; by += y * bRow[y]; bxmin = Math.min(bxmin, bMin[y]); bxmax = Math.max(bxmax, bMax[y]); bymin = Math.min(bymin, y); bymax = Math.max(bymax, y); }
+  const rr = r0 || (rRuns.length ? rRuns[0] : null);
+  if (rr) for (let y = rr.a; y <= rr.b; y++) { rn += rRow[y]; ry += y * rRow[y]; rymin = Math.min(rymin, y); }
+  // flipped page: the mark is ABOVE the band (only meaningful for a single, non-tiled copy)
+  const blue = bn > 0 ? { n: bn, y: by / bn, xmin: bxmin, xmax: bxmax, ymin: bymin, ymax: bymax } : null;
+  const red = rn > 0 ? { n: rn, y: ry / rn, ymin: rymin } : null;
   let body = ink;
   if (blue && red && blue.y < red.y) { body = 0; for (let y = Math.ceil(blue.ymax + 3); y < Math.floor(red.ymin - 3); y++) body += inkRows[y]; }
-  const flipped = !!(blue && red && blue.y > red.y);
+  const flipped = !tiled && !!(blue && red && blue.y > red.y && !rRuns.some(r => r.a > b0.b));
   let idx = null;
-  if (blue && red && !flipped && green.length >= 6 && blue.xmax - blue.xmin > W * 0.5) {
-    const ys = green.map(p => p[1]); const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
-    const up = green.filter(p => p[1] < mid), lo = green.filter(p => p[1] >= mid);
-    if (up.length >= 2 && lo.length >= 2) {
-      const pt = (xs) => { const x = xs.reduce((a, p) => a + p[0], 0) / xs.length; return (x - blue.xmin) / (blue.xmax - blue.xmin) * 364 + 28; };
-      const k1 = Math.round((pt(up) - 45) / 30), k0 = Math.round((pt(lo) - 45) / 30);
-      idx = k1 * 12 + k0;
+  if (blue && red && !flipped && blue.xmax - blue.xmin > W * 0.5) {
+    const gg = green.filter(p => p[1] > red.y && p[1] < red.y + (red.y - blue.y) * 0.08 && p[0] >= blue.xmin - 2 && p[0] <= blue.xmax + 2);
+    if (gg.length >= 6) {
+      const ys = gg.map(p => p[1]); const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
+      const up = gg.filter(p => p[1] < mid), lo = gg.filter(p => p[1] >= mid);
+      if (up.length >= 2 && lo.length >= 2) {
+        const pt = (xs) => { const x = xs.reduce((a, p) => a + p[0], 0) / xs.length; return (x - blue.xmin) / (blue.xmax - blue.xmin) * 364 + 28; };
+        idx = Math.round((pt(up) - 45) / 30) * 12 + Math.round((pt(lo) - 45) / 30);
+      }
     }
   }
   let firstCol = -1, lastCol = -1; for (let x = 0; x < W; x++) if (inkCols[x] > 0) { if (firstCol < 0) firstCol = x; lastCol = x; }
-  return { ink, body, blue: !!blue, red: !!red, blueY: blue ? Math.round(blue.y) : null, redY: red ? Math.round(red.y) : null, flipped, idx, firstCol, lastCol, W, H };
+  let firstRow = -1, lastRow = -1; for (let y = 0; y < H; y++) if (inkRows[y] > 0 || bRow[y] > 0 || rRow[y] > 0) { if (firstRow < 0) firstRow = y; lastRow = y; }
+  return { tiled, ink, body, blue: !!blue, red: !!red, blueY: blue ? Math.round(blue.y) : null, redY: red ? Math.round(red.y) : null, flipped, idx, firstCol, lastCol, firstRow, lastRow, W, H };
 }
 function strip(pngs, file, k = 2) {
   const ws = pngs.map(p => Math.floor(p.width / k)), h = Math.max(...pngs.map(p => Math.floor(p.height / k)));
@@ -165,7 +181,7 @@ async function capture(label, action, settleMs = 700, keepStrip = false) {
   const pp = await probeStop();
   const pngs = bursts.map(b => decode(b.data));
   const an = pngs.map(analyze);
-  const rec = { label, bursts: an.length, raf: pp.length, blank: an.filter(a => a.body < BODY_MIN && a.ink < BODY_MIN * 3).length, headerOnly: an.filter(a => a.blue && a.red && a.body < BODY_MIN).length, flipped: an.filter(a => a.flipped).length,
+  const rec = { label, bursts: an.length, raf: pp.length, blank: an.filter(a => a.body < BODY_MIN && a.ink < BODY_MIN * 3).length, headerOnly: an.filter(a => a.blue && a.red && a.body < BODY_MIN).length, flipped: an.filter(a => a.flipped).length, tiled: an.filter(a => a.tiled).length,
     minBody: an.length ? Math.min(...an.map(a => a.body)) : null, idxSeen: [...new Set(an.map(a => a.idx))], dom: probeBad(pp), last: pp[pp.length - 1], lastAn: an[an.length - 1] };
   const worst = an.map((a, i) => [a.flipped ? -1 : a.body, i]).sort((x, y) => x[0] - y[0]).slice(0, 3).map(x => x[1]);
   if (keepStrip || rec.blank || rec.flipped || rec.headerOnly) {
@@ -223,9 +239,11 @@ async function scenarioA(tag, cpu) {
     const before = (await st()).target;
     const r = await capture(`${tag}-flip-${i + 1}`, act, cpu > 1 ? 1500 : 700, i === 0 || i === 5);
     let lost = false;
-    if (!OLD) { try { await page.waitForFunction((b) => __rqPdf.target !== b, { timeout: 5000, polling: 20 }, before); } catch (e) { lost = true; } }
+    if (!OLD) { try { await page.waitForFunction((b) => __rqPdf.target !== b, { timeout: 5000, polling: 20 }, before); } catch (e) { lost = await ev(() => __rqPdf.log.slice(-4)); } }
     await settled(); const s = await st(); const an = await shot();
-    r.after = { page: s.page, num: s.num, sv: s.sv, idx: an.idx, want: LABEL_A(s.page) + ' / 144', lost }; recs.push(r);
+    r.after = { page: s.page, num: s.num, sv: s.sv, idx: an.idx, want: LABEL_A(s.page) + ' / 144', lost };
+    if (!OLD && (lost || s.target !== s.shown)) r.after.diag = await ev(() => ({ target: __rqPdf.target, shown: __rqPdf.shown, task: !!__rqPdf.task, log: __rqPdf.log.slice(-6) }));
+    recs.push(r);
   }
   const s1 = await st();
   // pinch in at the centre, pan while zoomed, pinch out
@@ -246,7 +264,7 @@ async function scenarioA(tag, cpu) {
 }
 function sumA(run) {
   const R = run.recs; const t = (f) => R.reduce((a, r) => a + f(r), 0);
-  return { bursts: t(r => r.bursts), raf: t(r => r.raf), blank: t(r => r.blank), headerOnly: t(r => r.headerOnly), flipped: t(r => r.flipped), scale0: t(r => r.dom.scale0), rotated: t(r => r.dom.rotated), bboxDiff: t(r => r.dom.bboxDiff), numBad: t(r => r.dom.numBad || 0), vv: t(r => r.dom.vv), hidden: t(r => r.dom.hidden || 0),
+  return { bursts: t(r => r.bursts), raf: t(r => r.raf), blank: t(r => r.blank), headerOnly: t(r => r.headerOnly), flipped: t(r => r.flipped), scale0: t(r => r.dom.scale0), rotated: t(r => r.dom.rotated), bboxDiff: t(r => r.dom.bboxDiff), numBad: t(r => r.dom.numBad || 0), vv: t(r => r.dom.vv), hidden: t(r => r.dom.hidden || 0), tiledCaptures: t(r => r.tiled || 0),
     minBody: Math.min(...R.map(r => r.minBody ?? 1e9)), perStep: R.map(r => `${r.label.split('-').slice(1).join('-')}:${r.bursts}b/${r.raf}f bl${r.blank} ho${r.headerOnly} fl${r.flipped} s0${r.dom.scale0} bb${r.dom.bboxDiff} nb${r.dom.numBad || 0} min${r.minBody}`) };
 }
 
@@ -281,6 +299,7 @@ for (const [k, run] of [['×1', runA1], ['×6', runA6]]) {
     ok(`(в) CPU ${k}: number = label of the shown page on EVERY rAF of the 10 flips (same frame as the swap)`, run.recs.slice(0, 10).every(r => r.dom.numBad === 0), run.recs.slice(0, 10).map(r => r.dom.numBad));
   }
 }
+if (process.env.RQ_ONLY === 'a') { fs.writeFileSync(`${OUT}/results-a.json`, JSON.stringify(results, null, 1)); console.log(`only-a: ${results.checks.filter(c => c.pass).length}/${results.checks.length}`); await browser.close(); process.exit(0); }
 if (!OLD) ok('(г) zoom resets on flip / after pinch-out back at width', runA1.sz.z > 1.5 && runA1.sOut.z === 1, { zoomed: runA1.sz.z, out: runA1.sOut.z });
 
 // =====================================================================================
@@ -314,7 +333,7 @@ if (!OLD) ok('(г) zoom resets on flip / after pinch-out back at width', runA1.s
       await sleep(300);
       const a = await shot();
       const dom = await page.evaluate(() => { const v = document.getElementById('viewer').getBoundingClientRect(), t = document.getElementById('pdfSheet').getBoundingClientRect(); return { v: [v.left, v.top, v.right, v.bottom].map(Math.round), page: [t.left, t.top, t.right, t.bottom].map(Math.round), z: __rqPdf.z, shown: __rqPdf.shown }; });
-      edges[name] = { firstCol: a.firstCol, lastCol: a.lastCol, W: a.W, H: a.H, dom, ink: a.ink, blue: a.blue, red: a.red };
+      edges[name] = { firstCol: a.firstCol, lastCol: a.lastCol, firstRow: a.firstRow, lastRow: a.lastRow, W: a.W, H: a.H, dom, ink: a.ink, blue: a.blue, red: a.red };
       await page.screenshot({ path: `${OUT}/zoom-edge-${name}.png`, clip: { x: vrect.x, y: vrect.y, width: vrect.w, height: vrect.h, scale: 0.5 } });
     }
   }
@@ -323,8 +342,8 @@ if (!OLD) ok('(г) zoom resets on flip / after pinch-out back at width', runA1.s
   if (!OLD) {
   const leftOk = e.left.dom.page[0] === e.left.dom.v[0] && e.left.firstCol > 4;
   const rightOk = e.right.dom.page[2] === e.right.dom.v[2] && e.right.lastCol < e.right.W - 5;
-  const topOk = e.top.dom.page[1] === e.top.dom.v[1];
-  const botOk = e.bottom.dom.page[3] === e.bottom.dom.v[3] && e.bottom.red;
+  const topOk = e.top.dom.page[1] === e.top.dom.v[1] && e.top.blue && e.top.firstRow > 4;
+  const botOk = e.bottom.dom.page[3] === e.bottom.dom.v[3] && e.bottom.lastRow < e.bottom.H - 5;
   const stay = Object.values(e).every(x => x.dom.z === 2.5 && x.dom.shown === 30);
   ok('(б) zoomed ×2.5: each page edge (left/right/top/bottom) can be panned to the screen edge, the page margin is visible there — no glyph cut by the container', sz.z > 2 && stay && leftOk && rightOk && topOk && botOk, { zoom: sz.z, edges });
   }
@@ -433,8 +452,8 @@ if (!OLD) {
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
   await openPdfBook(ids.a); await goTo(60);
   const recs = [];
-  for (let k = 0; k < 3; k++) recs.push(await capture(`race-dblflip-${k}`, async () => { await tapAt(0.85); await sleep(60); await tapAt(0.85); }, 2500, k === 0));
-  for (let k = 0; k < 2; k++) recs.push(await capture(`race-resize-${k}`, async () => { await tapAt(0.85); await sleep(80); await page.setViewport({ ...PHONE, height: k % 2 ? 915 : 851 }); }, 2500, k === 0));
+  for (let k = 0; k < 5; k++) recs.push(await capture(`race-dblflip-${k}`, async () => { await tapAt(0.85); await sleep(60); await tapAt(0.85); }, 2500, k === 0));
+  for (let k = 0; k < 4; k++) recs.push(await capture(`race-resize-${k}`, async () => { await tapAt(0.85); await sleep(80); await page.setViewport({ ...PHONE, height: k % 2 ? 915 : 851 }); }, 2500, k === 0));
   await page.setViewport(PHONE);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const sm = sumA({ recs });

@@ -1710,7 +1710,7 @@ function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}
    stable non-zero size (2 equal rAF samples + 120 ms). Labels: pdf.getPageLabels(), else the 1-based file number. */
 const PDF_MAX_PX=16e6, PDF_ZMAX=4, PDF_DBL_MS=250, PDF_SWIPE=50;
 const P={seq:0,task:null,front:null,frontSc:0,shown:-1,target:0,baseW:0,baseH:0,bw:0,k:1,z:1,tx:0,ty:0,labels:null,
-  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0};
+  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,log:[]};
 window.__rqPdf=P; /* diagnostics for tests (read-only) */
 function pdfLabel(n){const l=P.labels&&P.labels[n];return (l!=null&&String(l).trim()!=='')?String(l):String(n+1);}
 function pdfViewSize(){const v=el('viewer');return {w:v.clientWidth,h:v.clientHeight};}
@@ -1730,7 +1730,7 @@ async function openPdf(b){
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
     pdfNumbers(p);
-    pdfRender('open');
+    pdfRender('open');pdfWatch();
   }catch(e2){alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
 function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
@@ -1740,7 +1740,7 @@ function pdfReset(){
   sh.querySelectorAll('canvas').forEach(c=>{c.remove();c.width=0;c.height=0;});
   el('pdfText').textContent='';
   P.front=null;P.frontSc=0;P.shown=-1;P.target=0;P.z=1;P.k=1;P.tx=0;P.ty=0;P.baseW=0;P.baseH=0;P.bw=0;P.labels=null;P.g=null;P.sliding=false;
-  clearTimeout(P.tapT);P.tapT=null;
+  clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;
   const st=el('pdfStage');st.style.transform='';st.style.visibility='hidden';
 }
 function pdfClose(){pdfReset();if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
@@ -1748,8 +1748,8 @@ function pdfClose(){pdfReset();if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=n
 async function pdfRender(why){
   if(!R.pdf)return;
   const n=P.target;
-  const seq=++P.seq;pdfCancel();
-  let page;try{page=await R.pdf.getPage(n+1);}catch(e){return;}
+  const seq=++P.seq;pdfCancel();P.reqAt=performance.now();
+  let page;try{page=await R.pdf.getPage(n+1);}catch(e){pdfRenderFailed(seq,e);return;}
   if(seq!==P.seq||!R.pdf)return;
   const sz=pdfViewSize();
   if(!(sz.w>8&&sz.h>8)){pdfOnResize();return;} /* never lay out against a 0-size viewport */
@@ -1766,7 +1766,7 @@ async function pdfRender(why){
   const ctx=cv.getContext('2d',{alpha:false});
   ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
   const task=page.render({canvasContext:ctx,viewport:vp});P.task=task;P.renders++;
-  try{await task.promise;}catch(e){if(P.task===task)P.task=null;cv.width=0;cv.height=0;return;} /* cancelled: only the back buffer is dropped */
+  try{await task.promise;}catch(e){if(P.task===task)P.task=null;cv.width=0;cv.height=0;pdfRenderFailed(seq,e);return;} /* cancelled: only the back buffer is dropped */
   if(P.task===task)P.task=null;
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   const baseW=sz.w,baseH=vp1.height*s0;
@@ -1778,12 +1778,28 @@ async function pdfRender(why){
     pdfSwap(n,cv,sc,baseW,baseH,tl,sz);
   });
 }
+/** A render that failed for another reason than our own cancel() is retried (the front frame stays meanwhile). */
+function pdfRenderFailed(seq,e){
+  if(e&&e.name==='RenderingCancelledException')return;
+  pdfLog({ev:'render-error',msg:String(e&&e.message||e).slice(0,120),t:Math.round(performance.now())});
+  if(seq!==P.seq||!R.pdf)return;
+  P.retry=(P.retry||0)+1;
+  if(P.retry<=3)setTimeout(function(){if(seq===P.seq&&R.pdf)pdfRender('retry');},120*P.retry);
+}
+/** Safety net: a requested page that is neither rendering nor shown after 1.5 s is requested again. */
+function pdfWatch(){
+  clearInterval(P.watch);
+  P.watch=setInterval(function(){
+    if(!R.pdf||R.mode!=='pdf'){clearInterval(P.watch);P.watch=0;return;}
+    if(P.target!==P.shown&&!P.task&&!P.rsRaf&&performance.now()-(P.reqAt||0)>1500){pdfLog({ev:'watchdog',target:P.target,shown:P.shown});pdfRender('watchdog');}
+  },700);
+}
 function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   const sh=el('pdfSheet'),old=P.front,isNew=(n!==P.shown);
   sh.style.width=baseW+'px';sh.style.height=baseH+'px';
   cv.className='pdfc';sh.insertBefore(cv,sh.firstChild);
   if(old&&old!==cv){old.remove();old.width=0;old.height=0;}
-  P.front=cv;P.frontSc=sc;P.swaps++;
+  P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
   el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
   if(isNew){P.z=1;P.tx=0;P.ty=0;}
@@ -1901,7 +1917,9 @@ function pdfZoomAt(z,cx,cy){
 }
 /* --- taps: edges flip at once at width; centre waits ≤250 ms for a double tap; when zoomed every tap waits --- */
 function pdfTap(cx,cy){
-  if(selText())return;
+  const sel=selText();
+  pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
+  if(sel)return;
   const now=performance.now();
   if(P.tapT&&now-P.tapAt<=PDF_DBL_MS&&Math.hypot(cx-P.tapX,cy-P.tapY)<60){clearTimeout(P.tapT);P.tapT=null;pdfDoubleTap(cx,cy);return;}
   const r=pdfVR(),x=(cx-r.left)/r.width,y=(cy-r.top)/r.height;
@@ -1937,7 +1955,7 @@ function pdfTouchStart(e){
     P.g={type:'pinch',d0:Math.max(1,Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)),z0:P.z,px:(mx-P.tx)/zz,py:(my-P.ty)/zz,moved:false};
     return;
   }
-  if(P.g&&(P.g.type==='pinch'||P.g.type==='quiet'))return;
+  if(P.g&&(P.g.type==='pinch'||P.g.type==='quiet')){pdfLog({ev:'start-blocked',g:P.g.type,n:e.touches.length});return;}
   const t=e.touches[0],G=pdfGeom();
   P.g={type:'one',x0:t.clientX,y0:t.clientY,t0:performance.now(),tx0:P.tx,ty0:P.ty,atL:G.atL,atR:G.atR,pannable:G.pannable,moved:false,
     bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.dim||0}:null};
@@ -1963,8 +1981,9 @@ function pdfTouchMove(e){
   if(g.bright){SET.dim=Math.max(0,Math.min(0.7,g.bright.d0+dy/400));el('dimmer').style.opacity=SET.dim;return;}
   if(g.pannable&&g.moved){P.tx=g.tx0+dx;P.ty=g.ty0+dy;pdfApplySoon();}
 }
+function pdfLog(o){P.log.push(o);if(P.log.length>40)P.log.shift();} /* gesture decisions (tests / diagnostics) */
 function pdfTouchEnd(e){
-  const g=P.g;if(!g)return;
+  const g=P.g;if(!g){pdfLog({ev:'end-no-g',n:e.touches.length,t:Math.round(performance.now())});return;}
   if(g.type==='pinch'){
     if(e.touches.length<2){
       P.g=e.touches.length?{type:'quiet'}:null;
@@ -1983,6 +2002,7 @@ function pdfTouchEnd(e){
   const swipeOn=!SET.nav||SET.nav.swipe!==false;
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
+  pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
   if(g.pannable&&g.moved){
     pdfApply();
     const s=pdfViewSize();
@@ -1996,7 +2016,7 @@ function pdfTouchEnd(e){
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&performance.now()-g.t0<450&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
-  }
+  }else if(!g.moved)pdfLog({ev:'tap-rejected',tgt:e.target&&e.target.tagName,id:e.target&&e.target.id,ms:Math.round(performance.now()-g.t0)});
 }
 function pdfWheel(e){
   e.preventDefault();
@@ -2083,7 +2103,10 @@ function setFontSizeKeepPos(size){
   return true;
 }
 function goPage(p,turn){
-  if(R.mode==='pdf'){pdfGo(p,turn?'flip':'nav');return;} /* PDF: the page is shown (and counted) at the swap */
+  if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
+    if(turn&&Math.abs(p-R.page)===1)pdfFlip(p-R.page);else pdfGo(p,turn?'flip':'nav');
+    return;
+  }
   const prev=R.page;
   const np=Math.max(0,Math.min(R.pageCount-1,p));
   const forwardTurn=!!(turn&&np>prev);
@@ -2208,7 +2231,7 @@ function addBookmark(){
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   arr.push({ratio:ratio,page:R.page+1,date:today()});
   save();
-  flashMsg('🔖 Закладка: стр. '+(R.page+1));
+  flashMsg('🔖 Закладка: стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)));
 }
 function flashMsg(t,ms){
   if(isFocus()&&isMvp()&&el('reader')&&!el('reader').classList.contains('hidden')){

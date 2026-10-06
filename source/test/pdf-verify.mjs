@@ -164,7 +164,7 @@ async function burstLoop() {
   while (bursting) {
     try {
       const r = vrect;
-      const data = await page.screenshot({ type: 'png', encoding: 'base64', optimizeForSpeed: true, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 0.5 } });
+      const data = await page.screenshot({ type: 'png', encoding: 'base64', optimizeForSpeed: true, captureBeyondViewport: false, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 0.5 } });
       bursts.push({ data, t: Date.now() });
     } catch (e) { await sleep(5); }
   }
@@ -463,6 +463,52 @@ if (!OLD) {
   await closeViaBack();
 }
 
+// =====================================================================================
+// regression (P.redo): a forward flip requested while the viewport is collapsed (fullscreen / system-bar transition
+// → 0-height viewer for a moment) must be shown as soon as the size is back, CPU ×6 — by the resize path itself
+// (P.redo), not by the 1.5 s pdfWatch() safety net. Pre-fix app: the render bailed on the 0-size viewport and was only
+// re-issued by the watchdog (f30fdc1) or never (b452060).
+// =====================================================================================
+if (!OLD) {
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+  await openPdfBook(ids.a); await goTo(60);
+  const r0 = await st();
+  await page.evaluate(() => { if (window.__rqPdf.log) window.__rqPdf.log.length = 0; });   // P.log is a 40-entry ring: start empty
+  await page.setViewport({ ...PHONE, height: 1 });          // viewer collapses to 0 px height (resize in progress)
+  await page.keyboard.press('ArrowRight');                  // forward flip intent during the resize (key: no touch hit-test in a 1-px window)
+  await sleep(150);
+  const tBack = Date.now();
+  await page.setViewport(PHONE);                            // size back, same fit width
+  await settled(10000);
+  const backMs = Date.now() - tBack;
+  await sleep(300);
+  const r1 = await st(); const ar = await shot();
+  const dbg = await page.evaluate(() => ({ redo: window.__rqPdf.redo, wd: (window.__rqPdf.log || []).filter(e => e.ev === 'watchdog').length }));
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  ok('(а) regression: forward flip during a 0-height viewport at CPU ×6 → shown +1 once the size is back (page on screen = file index), P.redo === false, no watchdog needed (shown < 1.5 s after the size is back)',
+    r1.target === r0.page + 1 && r1.shown === r0.page + 1 && ar.idx === r0.page + 1 && dbg.redo === false && dbg.wd === 0 && backMs < 1500, { before: r0.page, after: { target: r1.target, shown: r1.shown, decoded: ar.idx, num: r1.num }, redo: dbg.redo, watchdogFired: dbg.wd, backMs });
+  await closeViaBack();
+}
+
+// =====================================================================================
+// pdfWatch() recovery → ONE `pdf_stall_recovered` analytics event in the events store (page, label, stalledMs, reason), never in sessions[]
+// =====================================================================================
+if (!OLD) {
+  await openPdfBook(ids.a); await goTo(79);
+  const before = await page.evaluate(async () => ({ ev: (await __rq.listReadingEvents({ type: 'pdf_stall_recovered' })).length, rows: (await __rq.listSessions({})).length }));
+  // simulate a lost render: target moved, nothing rendering, request 2 s old → the 700 ms watchdog must re-render it
+  await page.evaluate(() => { const P = window.__rqPdf; P.target = P.shown + 1; P.reqWhy = 'flip'; P.reqAt = performance.now() - 2000; });
+  await page.waitForFunction(() => __rqPdf.shown === __rqPdf.target && __rqPdf.front, { timeout: 6000, polling: 50 }).catch(() => { });
+  await sleep(500);
+  const after = await page.evaluate(async () => ({ shown: __rqPdf.shown, evs: await __rq.listReadingEvents({ type: 'pdf_stall_recovered' }), rows: await __rq.listSessions({}) }));
+  const e = after.evs[after.evs.length - 1] || {};
+  await closeViaBack(); await sleep(500);
+  const rowsAfterClose = await page.evaluate(async () => (await __rq.listSessions({})));
+  ok('watchdog: a stalled page is recovered and logged once as `pdf_stall_recovered` {page index 80, label «78», stalledMs ≥ 1500, reason «flip»} in events; no such row in sessions[]',
+    after.shown === 80 && after.evs.length === before.ev + 1 && e.page === 80 && e.label === '78' && e.stalledMs >= 1500 && e.reason === 'flip' && e.bookId === ids.a &&
+    !after.rows.concat(rowsAfterClose).some(r => r.type === 'pdf_stall_recovered' || 'stalledMs' in r), { shown: after.shown, event: e, events: after.evs.length - before.ev });
+}
+
 if (!OLD) {
   // =====================================================================================
   // (д) 2–3 min in PDF on an accelerated clock, exit with ←, export: pageTurns > 0, minutes, 3-min cap, XP/daily idempotent
@@ -471,11 +517,11 @@ if (!OLD) {
   const rows = () => page.evaluate(async () => (await __rq.listSessions({})));
   const game = () => page.evaluate(() => ({ xp: S.xp, gold: S.gold, daily: (__rq && __rq.getGame ? null : null), dailyPaid: (S.game && S.game.dailyPaidDays) || null }));
   const ids0 = (await rows()).map(r => r.id);
-  await page.evaluate(() => { S.goal = 5; save(); });
+  await page.evaluate(() => { S.goal = 5; save(); });   // MVP ignores it: goal is fixed at 10 min in code
   const xpGold0 = await page.evaluate(() => ({ xp: S.xp, gold: S.gold }));
   await openPdfBook(ids.a); await goTo(70);
   const sStart = await st();
-  for (let i = 0; i < 3; i++) { await adv(50000); await tapAt(0.85); await settled(); }   // 3 pages × 50 s
+  for (let i = 0; i < 3; i++) { await adv(170000); await tapAt(0.85); await settled(); }  // 3 pages × 170 s (< 3-min cap)
   await adv(6 * 60000); await tapAt(0.85); await settled();                              // 1 page idle 6 min → capped at 3
   await adv(10000);                                                                     // last page 10 s
   const snapBefore = (await st()).snap;
@@ -483,8 +529,8 @@ if (!OLD) {
   const newRows = (await rows()).filter(r => !ids0.includes(r.id));
   const row = newRows[0] || {};
   const xpGold1 = await page.evaluate(() => ({ xp: S.xp, gold: S.gold, dailyPaid: JSON.stringify(S.game || null) }));
-  const expMin = (150 + 180 + 10) / 60;
-  ok('(д) PDF session: ONE sessions[] row (UUID id, local day), pageTurns = 4 (> 0), minutes = 3×50 s + 3-min cap + 10 s', newRows.length === 1 && /^[0-9a-f-]{36}$/.test(row.id) && row.pageTurns === 4 && Math.abs(row.minutes - expMin) < 0.12 && row.date === (await page.evaluate(() => localDay())), { row, expectedMin: +expMin.toFixed(3), snapBefore });
+  const expMin = (510 + 180 + 10) / 60;   // 11.67 min ≥ fixed MVP goal 10
+  ok('(д) PDF session: ONE sessions[] row (UUID id, local day), pageTurns = 4 (> 0), minutes = 3×170 s + 3-min cap + 10 s', newRows.length === 1 && /^[0-9a-f-]{36}$/.test(row.id) && row.pageTurns === 4 && Math.abs(row.minutes - expMin) < 0.12 && row.date === (await page.evaluate(() => localDay())), { row, expectedMin: +expMin.toFixed(3), snapBefore });
   const sum = await page.evaluate(() => ({ vis: !document.getElementById('summary') || !document.getElementById('summary').classList.contains('hidden'), txt: (document.getElementById('summary') || {}).textContent }));
   await page.screenshot({ path: `${OUT}/pdf-session-summary.png` });
   const awarded = await page.evaluate((id) => (window.__rqGame && __rqGame.awardedSessionIds ? __rqGame.awardedSessionIds.includes(id) : null), row.id);
@@ -497,7 +543,7 @@ if (!OLD) {
   fs.mkdirSync('/workspace/rqtest/exports', { recursive: true }); fs.writeFileSync('/workspace/rqtest/exports/pdf-session.json', JSON.stringify(exp));
   const er = exp.sessions.find(r => r.id === row.id);
   const paid = exp.game && exp.game.dailyPaidDays || [];
-  ok('(д) XP + daily (goal 5 min reached) granted once: XP and gold rose at ← and do NOT change after a reload; row once in export; schemaVersion 1; summary shown', g1.xp > xpGold0.xp && g1.gold >= xpGold0.gold + 30 && g2.xp === g1.xp && g2.gold === g1.gold && rowsAfter === 1 && er && er.pageTurns === 4 && exp.schemaVersion === 1 && paid.includes(row.date) && exp.game.awardedSessionIds.includes(row.id) && sum.vis,
+  ok('(д) XP + daily (fixed MVP goal 10 min reached; saved goal 5 ignored) granted once: XP and gold rose at ← and do NOT change after a reload; row once in export; schemaVersion 1; summary shown', g1.xp > xpGold0.xp && g1.gold >= xpGold0.gold + 30 && g2.xp === g1.xp && g2.gold === g1.gold && rowsAfter === 1 && er && er.pageTurns === 4 && exp.schemaVersion === 1 && paid.includes(row.date) && exp.game.awardedSessionIds.includes(row.id) && sum.vis,
     { before: xpGold0, afterBack: g1, afterReload: g2, exportRow: er, dailyPaidDays: paid, summary: (sum.txt || '').replace(/\s+/g, ' ').slice(0, 160) });
   await page.evaluate(() => { try { document.querySelectorAll('#summary button, #sumClose').forEach(b => { if (/закрыть|ок|продолж|в библиотеку/i.test(b.textContent)) b.click(); }); } catch (e) { } });
 

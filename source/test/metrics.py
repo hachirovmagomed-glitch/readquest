@@ -30,9 +30,11 @@ def tester(path, start):
         return sum(1 for k in days if per_day[k] >= MIN_MINUTES), len(days)
     w1_ok, w1_any = week(0); w2_ok, w2_any = week(1)
     hero = sum(1 for e in data.get("events", []) if e.get("type") == "hero_create_tapped")
+    # PDF watchdog recoveries: events[] {type, date, at, bookId, page, label, stalledMs, reason} (STORAGE.md)
+    stalls = sum(1 for e in data.get("events", []) if e.get("type") == "pdf_stall_recovered")
     buys = len((data.get("game") or {}).get("rewardPurchases") or [])
     return {"buys": buys, "file": path, "w1_days10": w1_ok, "w2_days10": w2_ok, "w2_any": w2_any,
-            "sessions": len(sessions), "fake": fake, "hero_taps": hero}
+            "sessions": len(sessions), "fake": fake, "hero_taps": hero, "pdf_stalls": stalls}
 
 def main():
     ap = argparse.ArgumentParser()
@@ -55,6 +57,9 @@ def main():
     print(f"Fake sessions (minutes, 0 page turns): {fake:.0%}  (alarm > 10%)")
     print(f"Tapped 'Создать героя': {hero:.0%}  (build AI hero if > 33%)")
     print(f"Bought at least one real reward: {buy:.0%}")
+    stall_tot = sum(r["pdf_stalls"] for r in rows)
+    stall_testers = sum(1 for r in rows if r["pdf_stalls"] > 0)
+    print(f"PDF stalls recovered by watchdog (pdf_stall_recovered): {stall_tot} total, {stall_testers}/{n} testers with >= 1")
 
 if __name__ == "__main__":
     main()

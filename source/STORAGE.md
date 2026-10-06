@@ -144,6 +144,9 @@ const ev = await listReadingEvents({ bookId: 'u1', from: '2026-10-05' });
 // Analytics / UI stubs (same `events` store, NEVER sessions[]):
 await logAnalyticsEvent({ type: 'hero_create_tapped' });
 // → { type, date, at }  (+ optional bookId)
+// PDF watchdog recovery (app.html pdfStallLog):
+await logAnalyticsEvent({ type: 'pdf_stall_recovered', bookId, page: 59, label: '60', stalledMs: 1830, reason: 'flip' });
+// → { type, date, at, bookId, page, label, stalledMs, reason }  (page = 0-based index, label = printed page label)
 ```
 
 ## Миграция v6 → v1

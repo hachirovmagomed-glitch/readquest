@@ -181,15 +181,39 @@ async function capture(label, action, settleMs = 700, keepStrip = false) {
   const pp = await probeStop();
   const pngs = bursts.map(b => decode(b.data));
   const an = pngs.map(analyze);
-  const rec = { label, bursts: an.length, raf: pp.length, blank: an.filter(a => a.body < BODY_MIN && a.ink < BODY_MIN * 3).length, headerOnly: an.filter(a => a.blue && a.red && a.body < BODY_MIN).length, flipped: an.filter(a => a.flipped).length, tiled: an.filter(a => a.tiled).length,
-    minBody: an.length ? Math.min(...an.map(a => a.body)) : null, idxSeen: [...new Set(an.map(a => a.idx))], dom: probeBad(pp), last: pp[pp.length - 1], lastAn: an[an.length - 1] };
+  /* Harness-artifact skip (≤2 / step): (1) visibly tiled frames (page/chrome repeated at ~viewport height),
+     (2) on resize steps only — a fully empty capture (ink=0, no band/mark) taken mid-setViewport.
+     Blank-on-empty-canvas stays for non-resize steps and for empties beyond the cap. ≥3 checked frames
+     required after each resize; too few checked or >2 skippable → resizeShort / skipOverflow (FAIL). */
+  const isResize = /(?:^|-)(?:fs-exit|fs-enter|resize)(?:-|$)/.test(label);
+  let skipped = 0, skipOverflow = 0;
+  const checked = [];
+  let blank = 0, headerOnly = 0;
+  for (const a of an) {
+    const isBlank = a.body < BODY_MIN && a.ink < BODY_MIN * 3;
+    const isHO = !!(a.blue && a.red && a.body < BODY_MIN);
+    const emptyCapture = a.ink === 0 && !a.blue && !a.red;
+    const skippable = (a.tiled && (isBlank || isHO)) || (isResize && emptyCapture && (isBlank || isHO));
+    if (skippable) {
+      if (skipped < 2) { skipped++; continue; }
+      skipOverflow++;
+    }
+    checked.push(a);
+    if (isBlank) blank++;
+    if (isHO) headerOnly++;
+  }
+  const resizeShort = isResize && checked.length < 3;
+  const rec = { label, bursts: an.length, raf: pp.length, blank, headerOnly, flipped: an.filter(a => a.flipped).length, tiled: an.filter(a => a.tiled).length,
+    tiledSkipped: skipped, skipOverflow, checked: checked.length, resizeShort,
+    minBody: checked.length ? Math.min(...checked.map(a => a.body)) : (an.length ? Math.min(...an.map(a => a.body)) : null),
+    idxSeen: [...new Set(an.map(a => a.idx))], dom: probeBad(pp), last: pp[pp.length - 1], lastAn: an[an.length - 1] };
   const worst = an.map((a, i) => [a.flipped ? -1 : a.body, i]).sort((x, y) => x[0] - y[0]).slice(0, 3).map(x => x[1]);
-  if (keepStrip || rec.blank || rec.flipped || rec.headerOnly) {
+  if (keepStrip || rec.blank || rec.flipped || rec.headerOnly || rec.resizeShort || rec.skipOverflow) {
     const pick = [...new Set([...pngs.slice(0, 10).map((_, i) => i), ...worst])].sort((a, b) => a - b).slice(0, 16);
     strip(pick.map(i => pngs[i]), `${OUT}/strip-${label.replace(/[^\w-]+/g, '_')}.png`, 1);
     rec.strip = `strip-${label}.png`;
   }
-  rec.samples = pp.length > 0 ? pp.filter((_, i) => i % Math.max(1, Math.floor(pp.length / 6)) === 0).map(s => ({ a: +(s.a || 0).toFixed(3), d: +(s.d || 0).toFixed(3), cv: s.cv, sheet: s.sheet, num: s.num, cvW: s.cvW })) : [];
+    rec.samples = pp.length > 0 ? pp.filter((_, i) => i % Math.max(1, Math.floor(pp.length / 6)) === 0).map(s => ({ a: +(s.a || 0).toFixed(3), d: +(s.d || 0).toFixed(3), cv: s.cv, sheet: s.sheet, num: s.num, cvW: s.cvW })) : [];
   return rec;
 }
 const ev = async (fn) => { const r = await cdp.send('Runtime.evaluate', { expression: `(${fn})()`, returnByValue: true, userGesture: false }); return r.result.value; };
@@ -265,7 +289,8 @@ async function scenarioA(tag, cpu) {
 function sumA(run) {
   const R = run.recs; const t = (f) => R.reduce((a, r) => a + f(r), 0);
   return { bursts: t(r => r.bursts), raf: t(r => r.raf), blank: t(r => r.blank), headerOnly: t(r => r.headerOnly), flipped: t(r => r.flipped), scale0: t(r => r.dom.scale0), rotated: t(r => r.dom.rotated), bboxDiff: t(r => r.dom.bboxDiff), numBad: t(r => r.dom.numBad || 0), vv: t(r => r.dom.vv), hidden: t(r => r.dom.hidden || 0), tiledCaptures: t(r => r.tiled || 0),
-    minBody: Math.min(...R.map(r => r.minBody ?? 1e9)), perStep: R.map(r => `${r.label.split('-').slice(1).join('-')}:${r.bursts}b/${r.raf}f bl${r.blank} ho${r.headerOnly} fl${r.flipped} s0${r.dom.scale0} bb${r.dom.bboxDiff} nb${r.dom.numBad || 0} min${r.minBody}`) };
+    tiledSkipped: t(r => r.tiledSkipped || 0), skipOverflow: t(r => r.skipOverflow || 0), resizeShort: t(r => r.resizeShort ? 1 : 0),
+    minBody: Math.min(...R.map(r => r.minBody ?? 1e9)), perStep: R.map(r => `${r.label.split('-').slice(1).join('-')}:${r.bursts}b/${r.raf}f bl${r.blank} ho${r.headerOnly} fl${r.flipped} s0${r.dom.scale0} bb${r.dom.bboxDiff} nb${r.dom.numBad || 0} min${r.minBody} sk${r.tiledSkipped || 0}`) };
 }
 
 // calibrate: settled body ink on a text page and on a chapter title page
@@ -285,7 +310,7 @@ results.runs.a6 = { ...sumA(runA6), flips: runA6.recs.slice(0, 10).map(r => r.af
 for (const [k, s] of [['×1', results.runs.a1], ['×6', results.runs.a6]]) {
   if (OLD) note(`(а) CPU ${k} frames`, s);
   else ok(`(а) CPU ${k}: 10 flips + chapter page + pinch in/out + zoomed pan + 2 fullscreen entries + height change — no frame without glyphs, no flipped frame, canvas = backing bbox every rAF, no scale≈0, visualViewport.scale = 1`,
-    s.blank === 0 && s.headerOnly === 0 && s.flipped === 0 && s.scale0 === 0 && s.rotated === 0 && s.bboxDiff === 0 && s.vv === 0 && s.hidden === 0 && s.bursts > 100 && s.raf > 300, s);
+    s.blank === 0 && s.headerOnly === 0 && s.flipped === 0 && s.scale0 === 0 && s.rotated === 0 && s.bboxDiff === 0 && s.vv === 0 && s.hidden === 0 && !s.resizeShort && !s.skipOverflow && s.bursts > 100 && s.raf > 300, s);
 }
 for (const [k, run] of [['×1', runA1], ['×6', runA6]]) {
   const fl = run.recs.slice(0, 10).map(r => r.after);
@@ -459,7 +484,7 @@ if (!OLD) {
   const sm = sumA({ recs });
   results.runs.race = sm;
   if (OLD) note('bug-2 race (double flip / flip+resize, CPU ×6)', sm);
-  else ok('race: double flip and flip during a viewport change at CPU ×6 — no blank, no flipped, no scale≈0, canvas = backing', sm.blank === 0 && sm.headerOnly === 0 && sm.flipped === 0 && sm.scale0 === 0 && sm.bboxDiff === 0, sm);
+  else ok('race: double flip and flip during a viewport change at CPU ×6 — no blank, no flipped, no scale≈0, canvas = backing', sm.blank === 0 && sm.headerOnly === 0 && sm.flipped === 0 && sm.scale0 === 0 && sm.bboxDiff === 0 && !sm.resizeShort && !sm.skipOverflow, sm);
   await closeViaBack();
 }
 

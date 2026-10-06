@@ -95,10 +95,16 @@ export const GAME_DEF = {
   statuses: null,
   talents: {},
   petXp: 0,
-  /** Architect: last claimed MVP daily quest date YYYY-MM-DD */
+  /** LEGACY (claim button, ≤ build 20261006-1240): last claimed MVP daily date — read once by migrateClaimedToPaid, never written */
   dailyClaimed: null,
-  /** Architect: week key (Mon YYYY-MM-DD) of last claimed weekly quest */
+  /** LEGACY: week key of last claimed weekly — read by migrateClaimedToPaid, never written */
   weeklyClaimed: null,
+  /** Auto-paid MVP daily (+30): local days YYYY-MM-DD already paid (build 3, additive; schemaVersion 1) */
+  dailyPaidDays: [],
+  /** Auto-paid MVP weekly (+120): week keys (Mon YYYY-MM-DD) already paid */
+  weeklyPaidWeeks: [],
+  /** true once old claim dates (dailyClaimed/weeklyClaimed) were folded into the *Paid lists */
+  paidMigrated: false,
   /** Legacy v6 daily-bonus button (full UI) */
   dailyClaim: null,
   boss: null,
@@ -219,6 +225,8 @@ export function hydrateGame(g) {
   /* Architect fields + compat */
   out.rewardPurchases = Array.isArray(out.rewardPurchases) ? out.rewardPurchases : [];
   out.awardedSessionIds = Array.isArray(out.awardedSessionIds) ? out.awardedSessionIds : [];
+  out.dailyPaidDays = Array.isArray(out.dailyPaidDays) ? out.dailyPaidDays : [];
+  out.weeklyPaidWeeks = Array.isArray(out.weeklyPaidWeeks) ? out.weeklyPaidWeeks : [];
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {
     out.rewardPurchases = out.rewardHist.map(function (h, i) {

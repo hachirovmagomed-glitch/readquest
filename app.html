@@ -99,6 +99,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
 #dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
 body:not(.mvp) #dayBar{display:none}
+/* Always-on page number «34 / 210» (Интерфейс, build 3): own 18px strip between the text and the day bar →
+   outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
+   running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
+#pgLine{flex:none;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 var(--r-margin,24px);pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
+#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:inherit;opacity:.45;letter-spacing:.2px}
+#reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
+#mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}
+#libGoldLine{margin-top:10px;font-size:13px;font-weight:600;color:#ffc107;opacity:.92}
+#sumQuestGold{margin-top:8px;font-size:14px;font-weight:700;color:#ffc107;line-height:1.5}
 /* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
 #pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
 #pinchHint b{color:#2bb3c0;font-weight:700;margin-right:6px}
@@ -502,6 +511,7 @@ body.mvp #sumDailyBox{display:block}
         <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt">🔥 0 дней</span><span id="lvlTxt">⭐ Ур. 1</span></div>
       </div>
     </div>
+    <div id="libGoldLine" class="hidden" role="status"></div>
     <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="🔍 Поиск по названию и автору"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
@@ -838,6 +848,7 @@ body.mvp #sumDailyBox{display:block}
       <button id="spCopy">📋</button>
     </div>
   </div>
+  <div id="pgLine" aria-hidden="true"><span id="pgNum"></span></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span></footer>
@@ -917,9 +928,10 @@ body.mvp #sumDailyBox{display:block}
       <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
     </div>
     <div id="sumDailyBox" class="pcard" style="background:rgba(255,255,255,.06)">
-      <div class="row"><b style="font-size:14px">🎯 Дневной квест</b><div class="spacer"></div><span id="sumDailyInfo" class="chip">0 / 10</span></div>
+      <div class="row"><b style="font-size:14px">🎯 Ежедневка</b><div class="spacer"></div><span id="sumDailyInfo" class="chip">0 / 10</span></div>
       <div class="pbar" style="margin-top:8px"><i id="sumDailyBar" style="width:0%"></i></div>
       <div style="font-size:12px;color:var(--muted);margin-top:6px" id="sumWeeklyInfo"></div>
+      <div id="sumQuestGold" class="hidden"></div>
     </div>
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
     <div id="sumBadges"></div>
@@ -934,7 +946,7 @@ body.mvp #sumDailyBox{display:block}
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261006-1240'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261006-1258'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
@@ -977,62 +989,38 @@ function daysInWeekAtGoal(minNeed,wk){
   const days=window.__rqGame?window.__rqGame.daysAtGoalInWeek(SESS,wk,need):[];
   return {count:days.length,days:days,need:need,week:wk};
 }
-/** Award XP for every sessions[] row not yet in game.awardedSessionIds (idempotent). */
+/** Award every sessions[] row not yet in game.awardedSessionIds (idempotent):
+    XP = Math.round(min)*10 per row, and AUTO daily +30 / weekly +120 for the (local) days of exactly
+    these rows (game.dailyPaidDays / game.weeklyPaidWeeks). No claim button. */
 function awardPendingSessions(){
-  if(!window.__rqGame)return {xp:0,byId:{},ids:[]};
-  const res=window.__rqGame.applySessionAwards(S,SESS);
-  if(res.ids.length)save();
+  if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[]};
+  const G=window.__rqGame;
+  const res=G.applySessionAwards(S,SESS);
+  const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
+  const q=G.applyQuestAwards(S,SESS,fresh,{goal:S.goal||10});
+  res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
+  if(res.ids.length||q.gold)save();
   return res;
 }
-/* Daily/weekly are paid for the LOCAL day/week of the session rows (row.date = day the session
-   STARTED). A session 23:50–00:15 counts for the first day, so after midnight yesterday's daily
-   (or last week's weekly on Monday) can still be claimed. Idempotent without new keys:
-   S.dailyClaimed / S.weeklyClaimed only move forward, a day ≤ the claimed one is never paid again. */
-function dailyClaimDay(){
-  const g=S.goal||10,last=String(S.dailyClaimed||'');
-  const ds=[yesterday(),today()];
-  for(let i=0;i<ds.length;i++){if(ds[i]>last&&dayMin(ds[i])>=g)return ds[i];}
-  return null;
-}
-function weeklyClaimWeek(){
-  const last=String(S.weeklyClaimed||'');
-  const ws=[weekKey(yesterday()),weekKey(today())];
-  for(let i=0;i<ws.length;i++){if(ws[i]>last&&daysInWeekAtGoal(S.goal||10,ws[i]).count>=4)return ws[i];}
-  return null;
-}
-function dailyQuestClaimed(day){return String(S.dailyClaimed||'')>=(day||today());}
-function weeklyQuestClaimed(){return String(S.weeklyClaimed||'')>=weekKey(today());}
+function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}
+function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today()))>=0;}
 function mvpDailyProg(day){const g=S.goal||10;return Math.min(1,dayMin(day||today())/g);}
 function mvpDailyInfo(day){return Math.round(dayMin(day||today()))+' / '+(S.goal||10)+' мин';}
-function mvpWeeklyProg(){const w=daysInWeekAtGoal(S.goal||10);return Math.min(1,w.count/4);}
-function mvpWeeklyInfo(){const w=daysInWeekAtGoal(S.goal||10);return w.count+' / 4 дня (≥'+(S.goal||10)+' мин)';}
-function claimMvpDaily(){
-  if(!isMvp())return;
-  const d=dailyClaimDay();
-  if(!d){if(!dailyQuestClaimed())flashMsg('Нужно ≥'+(S.goal||10)+' мин сегодня');return;}
-  S.dailyClaimed=d;S.gold+=30;S.goldAllTime=(S.goldAllTime||0)+30;save();
-  flashMsg('🎯 Дневной квест'+(d!==today()?' (вчера)':'')+': +30 🪙');renderMvpProfile();
-}
-function claimMvpWeekly(){
-  if(!isMvp())return;
-  const w=weeklyClaimWeek();
-  if(!w){if(!weeklyQuestClaimed())flashMsg('Нужно 4 дня с ≥'+(S.goal||10)+' мин');return;}
-  S.weeklyClaimed=w;S.gold+=120;S.goldAllTime=(S.goldAllTime||0)+120;save();
-  flashMsg('📅 Недельный квест'+(w!==weekKey(today())?' (прошлая неделя)':'')+': +120 🪙');renderMvpProfile();
-}
+function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(S.goal||10,wk);return Math.min(1,w.count/4);}
+function mvpWeeklyInfo(wk){const w=daysInWeekAtGoal(S.goal||10,wk);return Math.min(4,w.count)+' / 4 дня';}
 function renderMvpQuests(){
+  /* Status only — daily/weekly gold is paid automatically on the session summary */
   const box=el('mvpQuestBox');if(!box)return;
-  const dDay=dailyClaimDay(), dOld=!!dDay&&dDay!==today();
-  const dDone=!dDay&&dailyQuestClaimed(), dP=dDay?1:mvpDailyProg();
-  const wWk=weeklyClaimWeek(), wOld=!!wWk&&wWk!==weekKey(today());
-  const wDone=!wWk&&weeklyQuestClaimed(), wP=wWk?1:mvpWeeklyProg();
+  const dDone=dailyPaid(), dP=dDone?1:mvpDailyProg();
+  const wDone=weeklyPaid(), wP=wDone?1:mvpWeeklyProg();
   box.innerHTML=
-    '<div class="pcard mvp-quest"><div class="row"><span style="font-size:14px">Дневной: '+(S.goal||10)+' мин'+(dOld?' · вчера':'')+'</span><div class="spacer"></div>'+
-      (dDay?'<button class="buy" onclick="claimMvpDaily()">Забрать +30 🪙</button>':(dDone?'<span class="chip">✅ +30</span>':'<span class="chip">'+mvpDailyInfo()+'</span>'))+
+    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px">Ежедневка +30 🪙</span><div class="spacer"></div>'+
+      '<span class="chip" style="white-space:nowrap">'+(dDone?'✓ выполнено сегодня':mvpDailyInfo())+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(dP*100)+'%"></i></div></div>'+
-    '<div class="pcard mvp-quest"><div class="row"><span style="font-size:14px">Недельный: 4 дня'+(wOld?' · прошлая неделя':'')+'</span><div class="spacer"></div>'+
-      (wWk?'<button class="buy" onclick="claimMvpWeekly()">Забрать +120 🪙</button>':(wDone?'<span class="chip">✅ +120</span>':'<span class="chip">'+mvpWeeklyInfo()+'</span>'))+
-    '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div></div>';
+    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">Неделя +120 🪙</span><div class="spacer"></div>'+
+      '<span class="chip" style="white-space:nowrap">'+mvpWeeklyInfo()+'</span>'+
+    '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div>'+
+      '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+(S.goal||10)+' мин за пн–вс'))+'</div></div>';
 }
 function renderMvpProfile(){
   if(el('mvpGold'))el('mvpGold').textContent=goldDisp();
@@ -1175,7 +1163,7 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[]};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
@@ -1190,6 +1178,7 @@ function hydrateS(raw){
   if(!S.anti)S.anti={minSec:12,maxMin:3,v:2};
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
   S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
+  S.dailyPaidDays=Array.isArray(S.dailyPaidDays)?S.dailyPaidDays:[];S.weeklyPaidWeeks=Array.isArray(S.weeklyPaidWeeks)?S.weeklyPaidWeeks:[];
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
@@ -1337,6 +1326,7 @@ function show(id){
   clearToasts();
   if(id!=='summary')clearConfetti();
   try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
+  if(id!=='library'&&__bootGold){__bootGold=0;const gl=el('libGoldLine');if(gl)gl.classList.add('hidden');}
   if(isMvp() && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
     id = 'library';
   }
@@ -1404,6 +1394,9 @@ el('dProg').onclick=()=>openProgress(progLast);
 el('dSet').onclick=()=>{renderSettings();show('settings');closeDrawer();};
 
 /* ================= БИБЛИОТЕКА ================= */
+/* gold auto-paid at boot for a session recovered after a kill: one quiet line on the library, once
+   (runtime only — gone after any screen change or reload; never shown in the reader) */
+let __bootGold=0;
 function renderLibrary(){
   rollDay();
   if(!renderLibrary._bk){renderLibrary._bk=true;
@@ -1415,6 +1408,7 @@ function renderLibrary(){
   el('goalTitle').textContent='Цель дня: '+S.goal+' мин';
   const _mt=isMvp()?minTodaySess():S.minToday;
   el('goalSub').textContent='Сегодня: '+Math.round(_mt)+' мин';
+  const gl=el('libGoldLine');if(gl){gl.textContent=__bootGold?('+'+__bootGold+' 🪙 за прошлую сессию'):'';gl.classList.toggle('hidden',!__bootGold);}
   el('streakTxt').textContent='🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').textContent='⭐ Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/S.goal);
@@ -1854,6 +1848,7 @@ function goPage(p,turn){
   R.maxRatio=Math.max(R.maxRatio,ratio);
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
+  el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
   el('rPct').textContent=Math.round(ratio*100)+'%';
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
   /* Architect: reader writes pageVisibleMs on page change */
@@ -2294,13 +2289,14 @@ async function closeReaderImpl(){
   if(justFinished){S.finished.push(b.id);S.shelfOrder=S.shelfOrder||[];if(S.shelfOrder.indexOf(b.id)<0)S.shelfOrder.push(b.id);shelfJustAdded=b.id;S.finishDates=S.finishDates||{};S.finishDates[b.id]=today();}
   const dIdx=diffOf(b.id);const dmul=DIFFS[dIdx].m; // множитель сложности книги
   const imMul=impMulOf(b.id);                       // важность книги → больше валюты
-  let xp, gold, mult=1;
+  let xp, gold, mult=1, questPaid={gold:0,daily:[],weekly:[]};
   if(isMvp()){
     /* MVP: XP only from reading — +10 per counted minute, derived by game from sessions[]
        and awarded once per sessionId (game.awardedSessionIds). */
     const res=awardPendingSessions();
     xp=res.byId[row.id]||0;
-    gold=0;
+    gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
+    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[]};
   }else{
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
@@ -2328,7 +2324,7 @@ async function closeReaderImpl(){
   // история по дням и навыки
   const dkey=sd;
   const h=(S.hist[dkey]=S.hist[dkey]||{min:0,pages:0,xp:0,gold:0});
-  h.min+=min;h.pages+=pages;h.xp+=xp;h.gold+=gold;
+  h.min+=min;h.pages+=pages;h.xp+=xp;h.gold+=gold+questPaid.gold;
   h.books=h.books||{};if(b&&min>0)h.books[b.id]=(h.books[b.id]||0)+min;
   addSkillXp('Концентрация',Math.floor(min/10));
   if(hour<9&&min>=5)addSkillXp('Дисциплина',1);
@@ -2346,7 +2342,7 @@ async function closeReaderImpl(){
   const newAch=checkAchievements();
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd};
+  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid};
   renderSummary(_sumArgs);
   show('summary');
   if(isMvp())confettiSummary();
@@ -2383,9 +2379,14 @@ function renderSummary(r){
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
   /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
   const sday=r.day||today();
-  if(el('sumDailyInfo'))el('sumDailyInfo').textContent=mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
+  if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
   if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg(sday)*100)+'%';
-  if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo()+(dailyQuestClaimed(sday)?' · daily ✅':'');
+  if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo(weekKey(sday))+(weeklyPaid(weekKey(sday))?' · ✓ неделя выполнена':'');
+  /* gold lines ONLY for what was paid by THIS session (re-render with no `quest` → no lines) */
+  const qp=r.quest||{daily:[],weekly:[]},ql=[];
+  if(qp.daily&&qp.daily.length)ql.push('+'+(30*qp.daily.length)+' 🪙 ежедневка выполнена');
+  if(qp.weekly&&qp.weekly.length)ql.push('+'+(120*qp.weekly.length)+' 🪙 неделя выполнена');
+  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+t+'</div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
   applyMvpChrome();
 }
@@ -2635,7 +2636,7 @@ function dealBossDamage(min,pages,finished){
 }
 /* ===== Ежедневный бонус ===== */
 function dailyReward(){return Math.round((20+Math.min(10,S.streak||0)*10)*talVal('daily'));}
-function claimDaily(){if(isMvp()){flashMsg('В MVP золото — только с квестов в профиле');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
+function claimDaily(){if(isMvp()){flashMsg('В MVP золото начисляется само: ежедневка +30 и неделя +120');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
 /* ===== Стадии питомца ===== */
 const PET_STAGES=[['Малыш',0],['Подросток',60],['Взрослый',180],['Легендарный',420]];
 function petStage(){const px=S.petXp||0;let st=0;for(let i=0;i<PET_STAGES.length;i++)if(px>=PET_STAGES[i][1])st=i;return st;}
@@ -4207,7 +4208,9 @@ window.__rqStart=async function(api, tracker){
   try{if(api.ensureSessionIds)await api.ensureSessionIds();}catch(e){console.warn('[rq] ensureSessionIds',e);} /* pre-UUID rows → legacy-… ids */
   try{if(api.recoverDraft)await api.recoverDraft(api);}catch(e){console.warn('[rq] recoverDraft',e);}
   try{SESS=api.listSessions?await api.listSessions({}):[];}catch(e){SESS=[];console.warn('[rq] listSessions',e);}
-  if(isMvp())awardPendingSessions();
+  /* old «Забрать» claims (incl. a UTC-day claim of today) → paid lists, once */
+  if(window.__rqGame&&window.__rqGame.migrateClaimedToPaid(S,Date.now()))save();
+  if(isMvp()){const br=awardPendingSessions();__bootGold=br.gold||0;} /* recovered session: paid now, silently */
   if(el('buildVer'))el('buildVer').textContent=RQ_BUILD;
   applyAppTheme();applyScale();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
@@ -4234,9 +4237,9 @@ import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
-} from './storage/index.js?v=20261006-1240';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1240';
-import * as game from './game-awards.js?v=20261006-1240';
+} from './storage/index.js?v=20261006-1258';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1258';
+import * as game from './game-awards.js?v=20261006-1258';
 
 window.__rqGame = game;
 const boot = await bootStorage();

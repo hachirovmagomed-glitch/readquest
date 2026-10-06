@@ -95,7 +95,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
    Now the flip is a single main-thread commit: Chrome keeps the previous frame on screen
    until the new page's tiles are rasterized. Pinch never scales this layer (touch-action). */
 #content{height:100%;column-fill:auto;transition:none;transform:translateX(0)}
-#reader:not(.pdfmode) #viewer{touch-action:none}
+#reader #viewer{touch-action:none} /* text AND pdf: the browser never zooms/scrolls the page; pdf zoom is ours */
 #dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
 #dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
 body:not(.mvp) #dayBar{display:none}
@@ -177,7 +177,6 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 
 /* ===== PDF, панель, слайдер ===== */
 .rfoot input[type=range]{flex:1;margin:0 12px;accent-color:var(--accent2)}
-#pdfCanvas{display:block;margin:0 auto;max-width:100%}
 .ptabs{display:flex;gap:6px;margin-bottom:12px}
 .ptabs button{flex:1;background:var(--card2);border-radius:10px;padding:9px;font-size:13px;color:var(--muted)}
 .ptabs button.on{background:var(--accent);color:#fff}
@@ -235,10 +234,13 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .appsw.on{border-color:var(--accent)}
 
 /* ===== PDF: полноэкранный скролл + текстовый слой для выделения ===== */
-#pdfWrap{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--r-bg,#f4ecd8);text-align:center}
+#pdfWrap{position:absolute;inset:0;overflow:hidden;background:var(--r-bg,#f4ecd8);touch-action:none;contain:strict}
 #pdfWrap.hidden{display:none!important}
-#pdfPage{position:relative;margin:0 auto;display:inline-block}
-#pdfCanvas{display:block}
+/* ONE transform parent: backing (#pdfSheet), bitmap and text layer zoom/pan together */
+#pdfStage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#pdfSheet{position:relative;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.18)}
+#pdfSheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
 .textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent}
 .textLayer span::selection{background:rgba(43,179,192,.45)}
@@ -348,7 +350,7 @@ body.pixel .buy:active,body.pixel .cta:active,body.pixel .ghostbtn:active,body.p
 body.pixel .pbar,body.pixel .xpbar{border:2px solid #0a0713;background:#0a0713}
 body.pixel #drawer{border-right:3px solid #0a0713}
 body.pixel .rhead,body.pixel .rfoot{border-bottom:3px solid #0a0713}
-body.pixel img,body.pixel #pdfCanvas,body.pixel .cover img{image-rendering:pixelated;image-rendering:crisp-edges}
+body.pixel img,body.pixel #pdfSheet canvas,body.pixel .cover img{image-rendering:pixelated;image-rendering:crisp-edges}
 body.pixel .coin .face{border:4px solid #0a0713;box-shadow:inset 0 0 0 6px rgba(255,255,255,.18),6px 6px 0 #0a0713}
 .lnk{color:var(--muted);text-decoration:underline;font-size:12px;padding:0}
 .lnk.danger{color:#ff8a80}
@@ -834,7 +836,7 @@ body.mvp #sumDailyBox{display:block}
   </header>
   <div id="viewer">
     <div id="content"></div>
-    <div id="pdfWrap" class="hidden"><div id="pdfPage"><canvas id="pdfCanvas"></canvas><div id="pdfText" class="textLayer"></div></div></div>
+    <div id="pdfWrap" class="hidden"><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>
@@ -946,7 +948,7 @@ body.mvp #sumDailyBox{display:block}
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261006-1306'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261006-1537'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
@@ -1516,9 +1518,10 @@ el('fileInp').onchange=async e=>{
       await loadPdfJs();
       const buf=await f.arrayBuffer();
       const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
+      const nPages=doc.numPages;try{doc.destroy();}catch(_){} /* only the page count is needed here */
       const id='u'+Date.now();
       await idbPut('pdf:'+id,buf);
-      b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:doc.numPages,text:'',fname:f.name,size:f.size};
+      b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
     }else if(/\.fb2$/i.test(f.name)){
       btn.textContent='⏳ Разбираю FB2...';
       const r=await parseFb2(f);
@@ -1552,7 +1555,7 @@ function applySet(){
   r.style.setProperty('--r-bg',bg);r.style.setProperty('--r-txt',tx);
   r.style.background=bg;r.style.color=tx;
   r.style.setProperty('--r-margin',SET.margin+'px');
-  el('viewer').style.margin='0 '+SET.margin+'px';
+  el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
   el('dimmer').style.opacity=SET.dim||0;
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
@@ -1654,7 +1657,7 @@ async function openBook(id){
   }
   if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
-  R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),credSec:0,pagesRead:0,timerOn:false,timerAccum:0,timerOnAt:0};
+  R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
   el('rTitle').textContent=b.title+' — '+b.author;
   const c=el('content');
   el('pdfWrap').classList.toggle('hidden',R.mode!=='pdf');
@@ -1678,7 +1681,10 @@ async function openBook(id){
 function trackerOpts(){
   const a=S.anti||{minSec:12,maxMin:3};
   const capMin=isMvp()?Math.min(3,a.maxMin||3):(a.maxMin||3);
-  return {capMs:capMin*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn};
+  /* PDF only: active work with the page (pan > 20 % of the screen / zoom change) extends THIS page's cap
+     by +1 min, at most once per 60 s, hard ceiling 8 min. Text: flat 3 min. Accounting lives in reader-session.js. */
+  const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:8*60000,minFraction:0.2}:null;
+  return {capMs:capMin*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend};
 }
 /* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
 let dayBarIv=null;
@@ -1693,79 +1699,337 @@ function updDayBar(){
 }
 function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
 function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}
+/* ===== PDF reader (build PDF-blocker) =====================================================
+   ONE transform parent: #pdfStage > #pdfSheet > [front canvas, #pdfText]. Pinch / pan / interim resize
+   move the whole sheet (backing + bitmap + text layer) through one CSS transform — they can never drift apart.
+   Double buffer: every render goes into a fresh off-DOM canvas; the visible (front) canvas is never resized,
+   cleared or cancelled. Swap = canvas + text layer + sheet size + page number + transform, in ONE rAF after
+   render().promise resolved. A newer request cancels only the back render.
+   Rotation: getViewport() without a rotation argument = page.rotate (the file's /Rotate) — nothing else rotates.
+   Viewport changes (bars / fullscreen / rotation): the old frame is CSS-scaled at once, the re-render waits for a
+   stable non-zero size (2 equal rAF samples + 120 ms). Labels: pdf.getPageLabels(), else the 1-based file number. */
+const PDF_MAX_PX=16e6, PDF_ZMAX=4, PDF_DBL_MS=250, PDF_SWIPE=50;
+const P={seq:0,task:null,front:null,frontSc:0,shown:-1,target:0,baseW:0,baseH:0,bw:0,k:1,z:1,tx:0,ty:0,labels:null,
+  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,log:[]};
+window.__rqPdf=P; /* diagnostics for tests (read-only) */
+function pdfLabel(n){const l=P.labels&&P.labels[n];return (l!=null&&String(l).trim()!=='')?String(l):String(n+1);}
+function pdfViewSize(){const v=el('viewer');return {w:v.clientWidth,h:v.clientHeight};}
+function pdfVR(){return el('viewer').getBoundingClientRect();}
+function pdfAct(kind,info){if(__tracker&&__tracker.userActive)__tracker.userActive(kind,info||{});}
 async function openPdf(b){
   try{
     await loadPdfJs();
     const buf=await idbGet('pdf:'+b.id);
     if(!buf)throw new Error('файл не найден на этом устройстве');
-    R.pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
-    R.pageCount=R.pdf.numPages;
-    const p=Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1));
+    pdfReset();
+    const doc=await window.pdfjsLib.getDocument({data:buf}).promise;
+    if(R.book!==b){try{doc.destroy();}catch(e){}return;} /* closed while loading */
+    R.pdf=doc;R.pageCount=doc.numPages;
+    try{const L=await doc.getPageLabels();P.labels=(Array.isArray(L)&&L.length===R.pageCount)?L:null;}catch(e){P.labels=null;}
+    const p=Math.max(0,Math.min(R.pageCount-1,Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1))));
+    R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
-    goPage(p,false);
+    pdfNumbers(p);
+    pdfRender('open');pdfWatch();
   }catch(e2){alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
-async function renderPdfPage(n){
-  if(!R.pdf)return;
-  try{
-    const page=await R.pdf.getPage(n+1);
-    const v=el('viewer'),cv=el('pdfCanvas'),pg=el('pdfPage');
-    el('viewer').style.margin='0';            // PDF на всю ширину — без чёрных полей
-    const dpr=window.devicePixelRatio||1;
-    const z=R.zoom||1;
-    const vp0=page.getViewport({scale:1});
-    const cssScale=(v.clientWidth/vp0.width)*z; // вписываем по ширине × зум
-    const cssW=Math.round(vp0.width*cssScale), cssH=Math.round(vp0.height*cssScale);
-    const vp=page.getViewport({scale:cssScale*dpr});
-    cv.width=Math.round(vp0.width*cssScale*dpr);
-    cv.height=Math.round(vp0.height*cssScale*dpr);
-    cv.style.width=cssW+'px';cv.style.height=cssH+'px';cv.style.transform='';
-    pg.style.width=cssW+'px';pg.style.height=cssH+'px';pg.style.transform='';
-    R.cw=cssW;R.ch=cssH;R.rzoom=z;
-    const ctx=cv.getContext('2d');
-    ctx.clearRect(0,0,cv.width,cv.height);
-    await page.render({canvasContext:ctx,viewport:vp}).promise;
-    buildTextLayer(page,cssScale,cssW,cssH);
-  }catch(e2){/* пропуск кадра при быстром листании */}
+function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
+function pdfReset(){
+  P.seq++;pdfCancel();
+  const sh=el('pdfSheet');
+  sh.querySelectorAll('canvas').forEach(c=>{c.remove();c.width=0;c.height=0;});
+  el('pdfText').textContent='';
+  P.front=null;P.frontSc=0;P.shown=-1;P.target=0;P.z=1;P.k=1;P.tx=0;P.ty=0;P.baseW=0;P.baseH=0;P.bw=0;P.labels=null;P.g=null;P.sliding=false;
+  clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;
+  const st=el('pdfStage');st.style.transform='';st.style.visibility='hidden';
 }
-async function buildTextLayer(page,scale,cssW,cssH){
-  const tl=el('pdfText');if(!tl)return;
-  const myToken=(R.tlToken=(R.tlToken||0)+1); // отменяем устаревший слой при быстром листании
-  tl.innerHTML='';tl.style.width=cssW+'px';tl.style.height=cssH+'px';
+function pdfClose(){pdfReset();if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
+/** Render P.target into a back canvas; swap in the next frame. */
+async function pdfRender(why){
+  if(!R.pdf)return;
+  const n=P.target;
+  const seq=++P.seq;pdfCancel();P.reqAt=performance.now();
+  let page;try{page=await R.pdf.getPage(n+1);}catch(e){pdfRenderFailed(seq,e);return;}
+  if(seq!==P.seq||!R.pdf)return;
+  const sz=pdfViewSize();
+  if(!(sz.w>8&&sz.h>8)){pdfOnResize();return;} /* never lay out against a 0-size viewport */
+  const vp1=page.getViewport({scale:1});        /* rotation = page.rotate (/Rotate) */
+  const s0=sz.w/vp1.width;                       /* fit to width */
+  const same=(n===P.shown);
+  const zr=same?P.z:1;                           /* a flip always opens at width */
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  let sc=s0*zr*dpr;
+  if(vp1.width*sc*vp1.height*sc>PDF_MAX_PX)sc=Math.sqrt(PDF_MAX_PX/(vp1.width*vp1.height)); /* ≤ 16 MP */
+  const vp=page.getViewport({scale:sc});
+  const cv=document.createElement('canvas');
+  cv.width=Math.max(1,Math.floor(vp.width));cv.height=Math.max(1,Math.floor(vp.height));
+  const ctx=cv.getContext('2d',{alpha:false});
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+  const task=page.render({canvasContext:ctx,viewport:vp});P.task=task;P.renders++;
+  try{await task.promise;}catch(e){if(P.task===task)P.task=null;cv.width=0;cv.height=0;pdfRenderFailed(seq,e);return;} /* cancelled: only the back buffer is dropped */
+  if(P.task===task)P.task=null;
+  if(seq!==P.seq){cv.width=0;cv.height=0;return;}
+  const baseW=sz.w,baseH=vp1.height*s0;
+  let tl=null;
+  if(!same||Math.abs(baseW-P.bw)>0.5)tl=await pdfTextLayer(page,s0);
+  if(seq!==P.seq){cv.width=0;cv.height=0;return;}
+  requestAnimationFrame(function(){
+    if(seq!==P.seq){cv.width=0;cv.height=0;return;}
+    pdfSwap(n,cv,sc,baseW,baseH,tl,sz);
+  });
+}
+/** A render that failed for another reason than our own cancel() is retried (the front frame stays meanwhile). */
+function pdfRenderFailed(seq,e){
+  if(e&&e.name==='RenderingCancelledException')return;
+  pdfLog({ev:'render-error',msg:String(e&&e.message||e).slice(0,120),t:Math.round(performance.now())});
+  if(seq!==P.seq||!R.pdf)return;
+  P.retry=(P.retry||0)+1;
+  if(P.retry<=3)setTimeout(function(){if(seq===P.seq&&R.pdf)pdfRender('retry');},120*P.retry);
+}
+/** Safety net: a requested page that is neither rendering nor shown after 1.5 s is requested again. */
+function pdfWatch(){
+  clearInterval(P.watch);
+  P.watch=setInterval(function(){
+    if(!R.pdf||R.mode!=='pdf'){clearInterval(P.watch);P.watch=0;return;}
+    if(P.target!==P.shown&&!P.task&&!P.rsRaf&&performance.now()-(P.reqAt||0)>1500){pdfLog({ev:'watchdog',target:P.target,shown:P.shown});pdfRender('watchdog');}
+  },700);
+}
+function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
+  const sh=el('pdfSheet'),old=P.front,isNew=(n!==P.shown);
+  sh.style.width=baseW+'px';sh.style.height=baseH+'px';
+  cv.className='pdfc';sh.insertBefore(cv,sh.firstChild);
+  if(old&&old!==cv){old.remove();old.width=0;old.height=0;}
+  P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
+  if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
+  el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
+  if(isNew){P.z=1;P.tx=0;P.ty=0;}
+  P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
+  pdfApply();
+  el('pdfStage').style.visibility='';
+  if(isNew){
+    P.shown=n;R.page=n;
+    const ratio=R.pageCount>1?n/(R.pageCount-1):1;
+    R.maxRatio=Math.max(R.maxRatio,ratio);
+    pdfNumbers(P.sliding?P.target:n);
+    if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
+    updDayBar();
+  }
+}
+/** Corner number + bar number + slider: printed label / total (same frame as the swap). */
+function pdfNumbers(n,fromSlider){
+  const t=pdfLabel(n)+' / '+R.pageCount;
+  if(el('rPage').textContent!==t)el('rPage').textContent=t;
+  if(el('pgNum').textContent!==t)el('pgNum').textContent=t;
+  const ratio=R.pageCount>1?n/(R.pageCount-1):1;
+  el('rPct').textContent=Math.round(ratio*100)+'%';
+  const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);if(!fromSlider)sl.value=n;
+}
+/** Clamp the pan to the page edges and write the ONE transform. */
+function pdfApply(){
+  const s=pdfViewSize();if(!(s.w>8&&s.h>8)||!P.baseW)return;
+  const zz=P.z*P.k,W=P.baseW*zz,H=P.baseH*zz;
+  P.tx=W<=s.w+0.5?(s.w-W)/2:Math.min(0,Math.max(s.w-W,P.tx));
+  P.ty=H<=s.h+0.5?(s.h-H)/2:Math.min(0,Math.max(s.h-H,P.ty));
+  el('pdfStage').style.transform='translate3d('+P.tx.toFixed(2)+'px,'+P.ty.toFixed(2)+'px,0) scale('+zz.toFixed(5)+')';
+}
+function pdfApplySoon(){if(!P.applyRaf)P.applyRaf=requestAnimationFrame(function(){P.applyRaf=0;pdfApply();});}
+function pdfGeom(){const s=pdfViewSize(),zz=P.z*P.k,W=P.baseW*zz,H=P.baseH*zz;return {s:s,W:W,H:H,atL:P.tx>=-0.5,atR:P.tx<=s.w-W+0.5,pannable:W>s.w+1||H>s.h+1};}
+/** Viewport changed: CSS-scale the old frame now, re-render once the size is stable and non-zero. */
+function pdfOnResize(){
+  if(R.mode!=='pdf'||!R.pdf)return;
+  pdfInterim();
+  P.rsAt=performance.now();P.stableN=0;P.lastSz='';
+  if(!P.rsRaf)P.rsRaf=requestAnimationFrame(pdfRsTick);
+}
+function pdfInterim(){
+  const s=pdfViewSize();
+  if(s.w>8&&s.h>8&&P.bw){const kn=s.w/P.bw;if(kn!==P.k){P.tx*=kn/P.k;P.ty*=kn/P.k;P.k=kn;}pdfApply();}
+}
+function pdfRsTick(){
+  P.rsRaf=0;
+  if(R.mode!=='pdf'||!R.pdf)return;
+  const s=pdfViewSize(),key=s.w+'x'+s.h;
+  if(key===P.lastSz&&s.w>8&&s.h>8)P.stableN++;else{P.stableN=0;P.lastSz=key;pdfInterim();}
+  if(P.stableN>=2&&performance.now()-P.rsAt>=120){
+    if(!P.bw||Math.abs(s.w-P.bw)>0.5)pdfRender('resize'); /* new fit width → one re-render */
+    else pdfApply();
+    return;
+  }
+  P.rsRaf=requestAnimationFrame(pdfRsTick);
+}
+/** Text layer in BASE (fit-width) coordinates; widths fitted with canvas measureText (no layout). */
+let pdfMeasure=null;
+async function pdfTextLayer(page,s0){
+  const frag=document.createDocumentFragment();
   try{
     const tc=await page.getTextContent();
-    if(myToken!==R.tlToken)return;
-    const vp=page.getViewport({scale:scale});
-    const U=window.pdfjsLib&&window.pdfjsLib.Util;
-    const frag=document.createDocumentFragment();
-    const fit=[];
-    tc.items.forEach(it=>{
+    const vp=page.getViewport({scale:s0});
+    const U=window.pdfjsLib.Util;
+    if(!pdfMeasure)pdfMeasure=document.createElement('canvas').getContext('2d');
+    tc.items.forEach(function(it){
       if(!it.str)return;
-      const tx=U?U.transform(vp.transform,it.transform):it.transform;
+      const tx=U.transform(vp.transform,it.transform);
       const fh=Math.hypot(tx[2],tx[3])||12;
+      const ang=Math.atan2(tx[1],tx[0]);
+      const st=tc.styles&&tc.styles[it.fontName];
+      const fam=(st&&st.fontFamily)||'sans-serif';
       const sp=document.createElement('span');
       sp.textContent=it.str;
-      sp.style.left=tx[4]+'px';
-      sp.style.top=(tx[5]-fh)+'px';
-      sp.style.fontSize=fh+'px';
-      sp.style.fontFamily=(it.fontName&&/serif/i.test(it.fontName))?'serif':'sans-serif';
-      sp.style.whiteSpace='pre';
-      if(it.str.trim())fit.push({sp:sp,w:(it.width||0)*scale});
+      sp.style.left=tx[4].toFixed(2)+'px';sp.style.top=(tx[5]-fh).toFixed(2)+'px';
+      sp.style.fontSize=fh.toFixed(2)+'px';sp.style.fontFamily=fam;
+      let tr=Math.abs(ang)>0.01?'rotate('+ang.toFixed(4)+'rad) ':'';
+      if(it.str.trim()&&it.width>0){pdfMeasure.font=fh.toFixed(2)+'px '+fam;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
+      if(tr)sp.style.transform=tr;
       frag.appendChild(sp);
     });
-    tl.appendChild(frag);
-    // второй проход: подгоняем ширину строк под исходные, чтобы выделение совпадало с буквами
-    fit.forEach(o=>{
-      if(o.w>0){const aw=o.sp.getBoundingClientRect().width;if(aw>0){o.sp.style.transformOrigin='0 0';o.sp.style.transform='scaleX('+(o.w/aw).toFixed(3)+')';}}
-    });
-  }catch(e){/* у скана нет текстового слоя */}
+  }catch(e){/* scans have no text layer */}
+  return frag;
 }
-function clampPan(){}
-function applyPan(){}
+/** Navigation (tap / swipe / slider / TOC / keys): request a page; it is shown at the swap. */
+function pdfGo(np,why){
+  if(!R.pdf)return;
+  np=Math.max(0,Math.min(R.pageCount-1,np));
+  if(np===P.target){if(why==='slider')pdfNumbers(np,true);return;}
+  const fwd=np>P.target;
+  if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
+  if(fwd){R.turned++;R.lastTurn=Date.now();if(!isMvp()&&!R.timerOn)timerNudge();}
+  P.target=np;
+  if(why==='slider')pdfNumbers(np,true); /* slider shows the TARGET label while dragging */
+  pdfRender(why||'flip');
+}
+function pdfFlip(d){pdfGo(P.target+d,'flip');}
+/** Re-render the shown page at the current zoom when the bitmap would be visibly soft (after pinch / double tap). */
+function pdfHiRes(){
+  if(!R.pdf||P.target!==P.shown||!P.front)return;
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  const pw=P.front.width/P.frontSc; /* page width in pt */
+  const ph=P.front.height/P.frontSc;
+  let want=(P.bw/pw)*P.z*dpr;
+  if(pw*want*ph*want>PDF_MAX_PX)want=Math.sqrt(PDF_MAX_PX/(pw*ph));
+  if(Math.abs(want/P.frontSc-1)>0.12)pdfRender('zoom');
+}
+function pdfZoomAt(z,cx,cy){
+  const r=pdfVR(),mx=cx-r.left,my=cy-r.top,zz=P.z*P.k;
+  const px=(mx-P.tx)/zz,py=(my-P.ty)/zz;
+  P.z=Math.max(1,Math.min(PDF_ZMAX,z));
+  P.tx=mx-px*P.z*P.k;P.ty=my-py*P.z*P.k;
+  pdfApply();
+}
+/* --- taps: edges flip at once at width; centre waits ≤250 ms for a double tap; when zoomed every tap waits --- */
+function pdfTap(cx,cy){
+  const sel=selText();
+  pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
+  if(sel)return;
+  const now=performance.now();
+  if(P.tapT&&now-P.tapAt<=PDF_DBL_MS&&Math.hypot(cx-P.tapX,cy-P.tapY)<60){clearTimeout(P.tapT);P.tapT=null;pdfDoubleTap(cx,cy);return;}
+  const r=pdfVR(),x=(cx-r.left)/r.width,y=(cy-r.top)/r.height;
+  const zoomed=P.z>1.01;
+  if(!zoomed&&(x<0.3||x>0.7)){pdfSingleTap(x,y);return;}
+  if(P.tapT){clearTimeout(P.tapT);P.tapT=null;}
+  P.tapAt=now;P.tapX=cx;P.tapY=cy;
+  P.tapT=setTimeout(function(){P.tapT=null;pdfSingleTap(x,y);},PDF_DBL_MS);
+}
+function pdfSingleTap(x,y){
+  if(el('reader').classList.contains('hidden'))return;
+  if(y<0.12&&x<0.3){toggleDayNight();return;}
+  if(y<0.12&&x>0.7){addBookmark();return;}
+  const tapOn=!SET.nav||SET.nav.tap!==false;
+  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  if(tapOn&&x<0.3){fsResume();pdfFlip(-inv);}
+  else if(tapOn&&x>0.7){fsResume();pdfFlip(inv);}
+  else toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen */
+}
+function pdfDoubleTap(cx,cy){
+  if(P.z>1.01){P.z=1;P.k=P.k||1;pdfApply();}   /* back to width */
+  else pdfZoomAt(2,cx,cy);                      /* ×2 at the tap point */
+  pdfAct('zoom');pdfHiRes();
+}
+function pdfShowPct(){showPinchHint(Math.round(P.z*P.k*100)+'%');}
+/* --- touch: pinch = zoom of the whole sheet around the midpoint; one finger = pan when zoomed, swipe = flip --- */
+function pdfTouchStart(e){
+  const r=pdfVR();
+  if(e.touches.length>=2){
+    if(P.tapT){clearTimeout(P.tapT);P.tapT=null;}
+    const a=e.touches[0],b=e.touches[1];
+    const mx=(a.clientX+b.clientX)/2-r.left,my=(a.clientY+b.clientY)/2-r.top,zz=P.z*P.k;
+    P.g={type:'pinch',d0:Math.max(1,Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)),z0:P.z,px:(mx-P.tx)/zz,py:(my-P.ty)/zz,moved:false};
+    return;
+  }
+  if(P.g&&(P.g.type==='pinch'||P.g.type==='quiet')){pdfLog({ev:'start-blocked',g:P.g.type,n:e.touches.length});return;}
+  const t=e.touches[0],G=pdfGeom();
+  P.g={type:'one',x0:t.clientX,y0:t.clientY,t0:performance.now(),tx0:P.tx,ty0:P.ty,atL:G.atL,atR:G.atR,pannable:G.pannable,moved:false,
+    bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.dim||0}:null};
+}
+function pdfTouchMove(e){
+  const g=P.g;if(!g)return;
+  if(e.cancelable)e.preventDefault(); /* the browser must never zoom/scroll the page itself */
+  const r=pdfVR();
+  if(g.type==='pinch'&&e.touches.length>=2){
+    const a=e.touches[0],b=e.touches[1];
+    const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+    if(!g.moved&&Math.abs(d-g.d0)<10)return;
+    g.moved=true;
+    const mx=(a.clientX+b.clientX)/2-r.left,my=(a.clientY+b.clientY)/2-r.top;
+    P.z=Math.max(1,Math.min(PDF_ZMAX,g.z0*d/g.d0));
+    P.tx=mx-g.px*P.z*P.k;P.ty=my-g.py*P.z*P.k;
+    pdfApplySoon();pdfShowPct();
+    return;
+  }
+  if(g.type!=='one'||e.touches.length!==1)return;
+  const t=e.touches[0],dx=t.clientX-g.x0,dy=t.clientY-g.y0;
+  if(!g.moved&&Math.hypot(dx,dy)>10)g.moved=true;
+  if(g.bright){SET.dim=Math.max(0,Math.min(0.7,g.bright.d0+dy/400));el('dimmer').style.opacity=SET.dim;return;}
+  if(g.pannable&&g.moved){P.tx=g.tx0+dx;P.ty=g.ty0+dy;pdfApplySoon();}
+}
+function pdfLog(o){P.log.push(o);if(P.log.length>40)P.log.shift();} /* gesture decisions (tests / diagnostics) */
+function pdfTouchEnd(e){
+  const g=P.g;if(!g){pdfLog({ev:'end-no-g',n:e.touches.length,t:Math.round(performance.now())});return;}
+  if(g.type==='pinch'){
+    if(e.touches.length<2){
+      P.g=e.touches.length?{type:'quiet'}:null;
+      hidePinchHint();pinchQuietUntil=Date.now()+450;
+      if(P.z<1.04)P.z=1;
+      pdfApply();
+      if(Math.abs(P.z-g.z0)>0.02){pdfAct('zoom');pdfHiRes();}
+    }
+    return;
+  }
+  if(g.type==='quiet'){if(!e.touches.length)P.g=null;return;}
+  if(e.touches.length)return;
+  P.g=null;
+  const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
+  if(g.bright&&g.moved){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');return;}
+  const swipeOn=!SET.nav||SET.nav.swipe!==false;
+  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
+  pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
+  if(g.pannable&&g.moved){
+    pdfApply();
+    const s=pdfViewSize();
+    const movedX=Math.abs(P.tx-g.tx0)/s.w,moved=Math.max(movedX,Math.abs(P.ty-g.ty0)/s.h);
+    /* zoomed: a swipe flips only if the page edge on that side already touched the screen edge */
+    if(swipeOn&&horiz&&((dx<0&&g.atR)||(dx>0&&g.atL))&&movedX<0.02){fsResume();pdfFlip((dx<0?1:-1)*inv);return;}
+    if(moved>0)pdfAct('pan',{fraction:moved});
+    return;
+  }
+  if(swipeOn&&horiz){fsResume();pdfFlip((dx<0?1:-1)*inv);return;}
+  if(Math.abs(dx)<12&&Math.abs(dy)<12&&performance.now()-g.t0<450&&
+     !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
+    touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
+  }else if(!g.moved)pdfLog({ev:'tap-rejected',tgt:e.target&&e.target.tagName,id:e.target&&e.target.id,ms:Math.round(performance.now()-g.t0)});
+}
+function pdfWheel(e){
+  e.preventDefault();
+  if(e.ctrlKey){pdfZoomAt(P.z*(e.deltaY<0?1.15:0.87),e.clientX,e.clientY);if(P.z<1.02){P.z=1;pdfApply();}pdfAct('zoom');clearTimeout(P.wheelT);P.wheelT=setTimeout(pdfHiRes,200);return;}
+  const G=pdfGeom();
+  if(G.pannable){P.tx-=e.deltaX;P.ty-=e.deltaY;pdfApply();return;}
+  const now=performance.now();if(now-P.wheelAt<250)return;P.wheelAt=now;
+  pdfFlip(e.deltaY>0?1:-1);
+}
 window.__rqLayoutCount=0; /* test hook: number of full column reflows */
 function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|');}
 function layout(){
-  if(R.mode==='pdf'){renderPdfPage(R.page);return;}
+  if(R.mode==='pdf'){pdfOnResize();return;}
   const v=el('viewer'),c=el('content');
   const w=v.clientWidth,h=v.clientHeight,gap=48;
   const cols=w>=860?2:1;
@@ -1811,7 +2075,7 @@ function pageOfAnchor(a){
 function relayout(opts){
   const o=opts||{};
   if(el('reader').classList.contains('hidden'))return;
-  if(R.mode==='pdf'){renderPdfPage(R.page);return;}
+  if(R.mode==='pdf'){pdfOnResize();return;} /* CSS-scale now, one re-render when the size is stable */
   const v=el('viewer');
   if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */
   const anchor=o.anchor||readingAnchor();
@@ -1839,6 +2103,10 @@ function setFontSizeKeepPos(size){
   return true;
 }
 function goPage(p,turn){
+  if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
+    if(turn&&Math.abs(p-R.page)===1)pdfFlip(p-R.page);else pdfGo(p,turn?'flip':'nav');
+    return;
+  }
   const prev=R.page;
   const np=Math.max(0,Math.min(R.pageCount-1,p));
   const forwardTurn=!!(turn&&np>prev);
@@ -1848,11 +2116,9 @@ function goPage(p,turn){
     if(!isMvp()&&!R.timerOn)timerNudge();
     R.lastTurn=Date.now();
   }
-  if(R.mode==='pdf'&&np!==R.page){R.panX=0;R.panY=0;R.zoom=1;const w=el('pdfWrap');if(w){w.scrollTop=0;w.scrollLeft=0;}} // новая страница открывается по ширине
   if(np!==prev)R.anc=null;
   R.page=np;
-  if(R.mode==='pdf'){renderPdfPage(np);}
-  else{el('content').style.transform='translateX('+(-np*R.step)+'px)';}
+  el('content').style.transform='translateX('+(-np*R.step)+'px)';
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
   R.maxRatio=Math.max(R.maxRatio,ratio);
   /* page number + book progress: same task as the transform → same frame as the new text */
@@ -1861,15 +2127,18 @@ function goPage(p,turn){
   el('rPct').textContent=Math.round(ratio*100)+'%';
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
   /* Architect: reader writes pageVisibleMs on page change */
-  if(__tracker&&(np!==prev||forwardTurn))__tracker.onPageChange(np, forwardTurn);
+  /* the reading mode only REPORTS events; reader-session.js does all the accounting */
+  if(__tracker&&(np!==prev||forwardTurn)){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
   if(np!==prev)updDayBar();
 }
-el('pgSlider').oninput=e=>goPage(parseInt(e.target.value,10)||0,false);
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else goPage(v,false);};
+el('pgSlider').onchange=e=>{if(R.mode==='pdf'){P.sliding=false;pdfGo(parseInt(e.target.value,10)||0,'slider');if(P.target===P.shown)pdfNumbers(P.shown);}};
 let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;return;}
   if(Date.now()<pinchQuietUntil)return; /* trailing click right after a two-finger gesture */
   if(Date.now()-touchTapAt<800)return;   /* already handled as a touch tap (see touchend) */
+  if(R.mode==='pdf'){pdfTap(e.clientX,e.clientY);return;}
   viewerTap(e.clientX,e.clientY);
 });
 /* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
@@ -1943,7 +2212,7 @@ let IMM=false; /* legacy name kept for old callers: true ⇔ fullscreen wanted *
 function goFullscreen(){FSW=true;IMM=true;fsRequest('open');}
 function enterImmersive(){FSW=true;IMM=true;concealChrome('open');}
 function exitImmersive(){FSW=false;IMM=false;revealChrome();}
-document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});});
+document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});if(R.mode==='pdf')pdfOnResize();});
 el('btnFull').onclick=()=>{enterImmersive();flashMsg('⛶ Полный экран · тап по центру — панели');};
 function isLightBg(bg){
   const c=String(bg).replace('#','');
@@ -1962,7 +2231,7 @@ function addBookmark(){
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   arr.push({ratio:ratio,page:R.page+1,date:today()});
   save();
-  flashMsg('🔖 Закладка: стр. '+(R.page+1));
+  flashMsg('🔖 Закладка: стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)));
 }
 function flashMsg(t,ms){
   if(isFocus()&&isMvp()&&el('reader')&&!el('reader').classList.contains('hidden')){
@@ -2057,6 +2326,7 @@ function pinchSizeFor(k){if(Math.abs(k-1)<0.08)return pinchSize0;return Math.max
 function showPinchHint(n){
   const h=el('pinchHint'),v=el('pinchHintN');if(!h)return;
   if(v&&v.textContent!==String(n))v.textContent=n;
+  h.classList.toggle('pct',R.mode==='pdf'); /* pdf: «150%», text: «Aa 21» */
   if(h.classList.contains('hidden'))h.classList.remove('hidden');
 }
 function hidePinchHint(){const h=el('pinchHint');if(h&&!h.classList.contains('hidden'))h.classList.add('hidden');}
@@ -2065,9 +2335,10 @@ function endTextPinch(){
   const t=pinchTarget;pinchTarget=0;pinchQuietUntil=Date.now()+450;
   if(t&&t!==SET.size)setFontSizeKeepPos(t);
 }
-el('viewer').addEventListener('gesturestart',e=>{if(R.mode!=='pdf')e.preventDefault();}); /* iOS Safari: no native page zoom in the reader */
+el('viewer').addEventListener('gesturestart',e=>{e.preventDefault();}); /* iOS Safari: no native page zoom in the reader */
 let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
+  if(R.mode==='pdf'){pdfTouchStart(e);return;}
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
@@ -2075,6 +2346,7 @@ el('viewer').addEventListener('touchstart',e=>{
   tx0=e.touches[0].clientX;
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
+  if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
     SET.dim=Math.max(0,Math.min(0.7,bright.d0+(e.touches[0].clientY-bright.y0)/400));
     el('dimmer').style.opacity=SET.dim;
@@ -2087,28 +2359,18 @@ el('viewer').addEventListener('touchmove',e=>{
       if(t!==pinchTarget){pinchTarget=t;showPinchHint(t);} /* «Aa N» follows the fingers; text reflows once on touchend */
       return;
     }
-    if(Math.abs(tDist(e)-pinch0)<16)return; // игнорируем мелкое дрожание двух пальцев (от него «само зумилось»)
-    let z=zoom0*tDist(e)/pinch0;if(z<1.08)z=1;
-    R.zoom=Math.max(1,Math.min(4,z));
-    el('pdfPage').style.transformOrigin='50% 0';el('pdfPage').style.transform='scale('+(R.zoom/(R.rzoom||1)).toFixed(3)+')';
     return;
-  }
-  if(panStart&&e.touches.length===1){
-    R.panX=e.touches[0].clientX-panStart.x;
-    R.panY=e.touches[0].clientY-panStart.y;
-    applyPan();
   }
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
+  if(R.mode==='pdf'){pdfTouchEnd(e);return;}
   if(bright){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');bright=null;return;}
   if(pinch0){
     pinch0=null;tx0=null;
-    if(R.mode==='pdf'){if(R.zoom<1.08){R.zoom=1;R.panX=0;R.panY=0;}renderPdfPage(R.page);}
-    else{R.zoom=1;endTextPinch();} // текст: щипок = размер шрифта, один рефлоу после жеста
+    endTextPinch(); // текст: щипок = размер шрифта, один рефлоу после жеста
     return;
   }
   if(Date.now()<pinchQuietUntil){tx0=null;return;} /* second finger lifting after a pinch is not a swipe */
-  if(panStart){panStart=null;return;}
   if(tx0===null)return;
   const ct=e.changedTouches[0];
   const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
@@ -2119,42 +2381,15 @@ el('viewer').addEventListener('touchend',e=>{
     touchTapAt=Date.now();viewerTap(ct.clientX,ct.clientY);
   }
 },{passive:true});
-el('viewer').addEventListener('touchcancel',()=>{if(pinch0){pinch0=null;tx0=null;if(R.mode!=='pdf')endTextPinch();}},{passive:true});
+el('viewer').addEventListener('touchcancel',()=>{if(R.mode==='pdf'){P.g=null;hidePinchHint();pdfApply();return;}if(pinch0){pinch0=null;tx0=null;if(R.mode!=='pdf')endTextPinch();}},{passive:true});
 /* мышь: Ctrl+колесо — зум, колесо — листание, перетаскивание — панорама */
 el('viewer').addEventListener('wheel',e=>{
   if(el('reader').classList.contains('hidden'))return;
-  if(e.ctrlKey){
-    e.preventDefault();
-    if(R.mode==='pdf'){
-      R.zoom=Math.max(1,Math.min(4,(R.zoom||1)*(e.deltaY<0?1.15:0.87)));
-      if(R.zoom<1.02)R.zoom=1;
-      renderPdfPage(R.page);
-    }else{
-      setFontSizeKeepPos(SET.size+(e.deltaY<0?1:-1));
-    }
-    return;
-  }
-  if(R.mode==='pdf')return; // PDF прокручивается вертикально нативно (внутри #pdfWrap)
+  if(R.mode==='pdf'){pdfWheel(e);return;}
+  if(e.ctrlKey){e.preventDefault();setFontSizeKeepPos(SET.size+(e.deltaY<0?1:-1));return;}
   e.preventDefault();
   goPage(R.page+(e.deltaY>0?1:-1),true);
 },{passive:false});
-el('viewer').addEventListener('dblclick',()=>{
-  if(R.mode!=='pdf')return;
-  R.zoom=R.zoom>1?1:2;R.panX=0;R.panY=0;renderPdfPage(R.page);
-});
-el('viewer').addEventListener('mousedown',e=>{
-  /* PDF: панорамирование мышью отключено — перетаскивание выделяет текст */
-});
-el('viewer').addEventListener('mousemove',e=>{
-  if(!mdrag)return;
-  const nx=e.clientX-mdrag.x,ny=e.clientY-mdrag.y;
-  if(Math.abs(nx-R.panX)+Math.abs(ny-R.panY)>4)mdrag.moved=true;
-  R.panX=nx;R.panY=ny;applyPan();
-});
-el('viewer').addEventListener('mouseup',()=>{
-  if(mdrag&&mdrag.moved)suppressClick=true;
-  mdrag=null;
-});
 window.addEventListener('resize',relayout);
 el('btnBack').onclick=closeReader;
 
@@ -2303,6 +2538,7 @@ async function closeReader(){
   try{await closeReaderImpl();}finally{__closingReader=false;}
 }
 async function closeReaderImpl(){
+  if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
   const b=R.book;if(!b){show('library');return;}
@@ -2974,12 +3210,13 @@ function loadPdfJs(){
   return new Promise(function(res,rej){
     if(window.pdfjsLib)return res();
     const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    /* vendored with the build (vendor/pdfjs, pdf.js 3.11.174) — works offline / without a CDN */
+    s.src='vendor/pdfjs/pdf.min.js';
     s.onload=function(){
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdfjs/pdf.worker.min.js';
       res();
     };
-    s.onerror=function(){rej(new Error('нет сети для загрузки PDF-модуля'));};
+    s.onerror=function(){rej(new Error('не загрузился PDF-модуль (vendor/pdfjs)'));};
     document.head.appendChild(s);
   });
 }
@@ -4281,9 +4518,9 @@ import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
-} from './storage/index.js?v=20261006-1306';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1306';
-import * as game from './game-awards.js?v=20261006-1306';
+} from './storage/index.js?v=20261006-1537';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1537';
+import * as game from './game-awards.js?v=20261006-1537';
 
 window.__rqGame = game;
 const boot = await bootStorage();

@@ -1,7 +1,7 @@
 /**
  * Public entry — Architect save contract (schemaVersion: 1).
  *
- *   import { bootStorage, logSession, listSessions, logReadingEvent } from './storage/index.js?v=20261006-1230';
+ *   import { bootStorage, logSession, listSessions, logReadingEvent } from './storage/index.js?v=20261006-1240';
  */
 export {
   SCHEMA_VERSION,
@@ -26,9 +26,9 @@ export {
   hydrateGame,
   hydrateLibrary,
   hydrateSettings,
-} from './schema.js?v=20261006-1230';
+} from './schema.js?v=20261006-1240';
 
-export * as idb from './idb.js?v=20261006-1230';
+export * as idb from './idb.js?v=20261006-1240';
 
 export {
   loadEnvelope,
@@ -42,9 +42,9 @@ export {
   exportBackup,
   importBackup,
   clearAllLocal,
-} from './state.js?v=20261006-1230';
+} from './state.js?v=20261006-1240';
 
-export { migrateFromV6, bootStorage, isMigrated, hasLegacy } from './migrate-v6.js?v=20261006-1230';
+export { migrateFromV6, bootStorage, isMigrated, hasLegacy } from './migrate-v6.js?v=20261006-1240';
 
 export {
   logSession,
@@ -53,15 +53,17 @@ export {
   daysMeetingThreshold,
   clearSessions,
   dayKey,
+  localDay,
+  addLocalDays,
   newSessionId,
   legacySessionId,
   withLegacyIds,
   ensureSessionIds,
-} from './sessions.js?v=20261006-1230';
+} from './sessions.js?v=20261006-1240';
 
 export {
   logReadingEvent,
   logAnalyticsEvent,
   listReadingEvents,
   clearReadingEvents,
-} from './events.js?v=20261006-1230';
+} from './events.js?v=20261006-1240';

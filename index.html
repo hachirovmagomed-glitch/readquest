@@ -99,7 +99,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
 #dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
 body:not(.mvp) #dayBar{display:none}
-#pinchHint{position:absolute;top:8px;right:8px;z-index:9;pointer-events:none;background:rgba(0,0,0,.45);color:#fff;font:600 12px system-ui,sans-serif;padding:4px 9px;border-radius:99px}
+/* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
+#pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+#pinchHint b{color:#2bb3c0;font-weight:700;margin-right:6px}
+#pinchHintN{display:inline-block;min-width:2ch;text-align:right}
+/* page number / book progress flip in the SAME frame as the text: no transitions */
+.rfoot span,.rfoot input[type=range]{transition:none!important}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
@@ -822,7 +827,6 @@ body.mvp #sumDailyBox{display:block}
     <div id="pdfWrap" class="hidden"><div id="pdfPage"><canvas id="pdfCanvas"></canvas><div id="pdfText" class="textLayer"></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
-    <div id="pinchHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>
     <button id="navNext" class="navbtn hidden">›</button>
     <div id="selpop" class="hidden">
@@ -835,6 +839,7 @@ body.mvp #sumDailyBox{display:block}
     </div>
   </div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
+  <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span></footer>
   <div class="sheet hidden" id="panel">
     <button class="closes" id="panelClose">✕</button>
@@ -929,7 +934,7 @@ body.mvp #sumDailyBox{display:block}
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261006-1230'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261006-1240'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
@@ -954,7 +959,8 @@ function applyMvpChrome(){
   }
 }
 function weekKey(d){
-  const x=d?new Date(d+'T12:00:00'):new Date();
+  if(window.__rqGame&&window.__rqGame.weekStartOf)return window.__rqGame.weekStartOf(d||today());
+  const x=new Date((d||today())+'T12:00:00');
   const day=(x.getDay()+6)%7; // Mon=0
   const mon=new Date(x);mon.setDate(x.getDate()-day);
   const y=mon.getFullYear(),m=String(mon.getMonth()+1).padStart(2,'0'),dd=String(mon.getDate()).padStart(2,'0');
@@ -965,9 +971,9 @@ function weekKey(d){
 let SESS=[];
 function dayMin(key){let m=0;for(let i=0;i<SESS.length;i++){const r=SESS[i];if(r&&String(r.date).slice(0,10)===key)m+=Number(r.minutes)||0;}return m;}
 function minTodaySess(){return dayMin(today());}
-function daysInWeekAtGoal(minNeed){
+function daysInWeekAtGoal(minNeed,wk){
   const need=minNeed!=null?minNeed:(S.goal||10);
-  const wk=weekKey(today());
+  wk=wk||weekKey(today());
   const days=window.__rqGame?window.__rqGame.daysAtGoalInWeek(SESS,wk,need):[];
   return {count:days.length,days:days,need:need,week:wk};
 }
@@ -978,36 +984,54 @@ function awardPendingSessions(){
   if(res.ids.length)save();
   return res;
 }
-function dailyQuestClaimed(){return S.dailyClaimed===today();}
-function weeklyQuestClaimed(){return S.weeklyClaimed===weekKey(today());}
-function mvpDailyProg(){const g=S.goal||10;return Math.min(1,minTodaySess()/g);}
-function mvpDailyInfo(){return Math.round(minTodaySess())+' / '+(S.goal||10)+' мин';}
+/* Daily/weekly are paid for the LOCAL day/week of the session rows (row.date = day the session
+   STARTED). A session 23:50–00:15 counts for the first day, so after midnight yesterday's daily
+   (or last week's weekly on Monday) can still be claimed. Idempotent without new keys:
+   S.dailyClaimed / S.weeklyClaimed only move forward, a day ≤ the claimed one is never paid again. */
+function dailyClaimDay(){
+  const g=S.goal||10,last=String(S.dailyClaimed||'');
+  const ds=[yesterday(),today()];
+  for(let i=0;i<ds.length;i++){if(ds[i]>last&&dayMin(ds[i])>=g)return ds[i];}
+  return null;
+}
+function weeklyClaimWeek(){
+  const last=String(S.weeklyClaimed||'');
+  const ws=[weekKey(yesterday()),weekKey(today())];
+  for(let i=0;i<ws.length;i++){if(ws[i]>last&&daysInWeekAtGoal(S.goal||10,ws[i]).count>=4)return ws[i];}
+  return null;
+}
+function dailyQuestClaimed(day){return String(S.dailyClaimed||'')>=(day||today());}
+function weeklyQuestClaimed(){return String(S.weeklyClaimed||'')>=weekKey(today());}
+function mvpDailyProg(day){const g=S.goal||10;return Math.min(1,dayMin(day||today())/g);}
+function mvpDailyInfo(day){return Math.round(dayMin(day||today()))+' / '+(S.goal||10)+' мин';}
 function mvpWeeklyProg(){const w=daysInWeekAtGoal(S.goal||10);return Math.min(1,w.count/4);}
 function mvpWeeklyInfo(){const w=daysInWeekAtGoal(S.goal||10);return w.count+' / 4 дня (≥'+(S.goal||10)+' мин)';}
 function claimMvpDaily(){
   if(!isMvp())return;
-  if(dailyQuestClaimed())return;
-  if(mvpDailyProg()<1){flashMsg('Нужно ≥'+(S.goal||10)+' мин сегодня');return;}
-  S.dailyClaimed=today();S.gold+=30;S.goldAllTime=(S.goldAllTime||0)+30;save();
-  flashMsg('🎯 Дневной квест: +30 🪙');renderMvpProfile();
+  const d=dailyClaimDay();
+  if(!d){if(!dailyQuestClaimed())flashMsg('Нужно ≥'+(S.goal||10)+' мин сегодня');return;}
+  S.dailyClaimed=d;S.gold+=30;S.goldAllTime=(S.goldAllTime||0)+30;save();
+  flashMsg('🎯 Дневной квест'+(d!==today()?' (вчера)':'')+': +30 🪙');renderMvpProfile();
 }
 function claimMvpWeekly(){
   if(!isMvp())return;
-  if(weeklyQuestClaimed())return;
-  if(mvpWeeklyProg()<1){flashMsg('Нужно 4 дня с ≥'+(S.goal||10)+' мин');return;}
-  S.weeklyClaimed=weekKey(today());S.gold+=120;S.goldAllTime=(S.goldAllTime||0)+120;save();
-  flashMsg('📅 Недельный квест: +120 🪙');renderMvpProfile();
+  const w=weeklyClaimWeek();
+  if(!w){if(!weeklyQuestClaimed())flashMsg('Нужно 4 дня с ≥'+(S.goal||10)+' мин');return;}
+  S.weeklyClaimed=w;S.gold+=120;S.goldAllTime=(S.goldAllTime||0)+120;save();
+  flashMsg('📅 Недельный квест'+(w!==weekKey(today())?' (прошлая неделя)':'')+': +120 🪙');renderMvpProfile();
 }
 function renderMvpQuests(){
   const box=el('mvpQuestBox');if(!box)return;
-  const dDone=dailyQuestClaimed(), dP=mvpDailyProg();
-  const wDone=weeklyQuestClaimed(), wP=mvpWeeklyProg();
+  const dDay=dailyClaimDay(), dOld=!!dDay&&dDay!==today();
+  const dDone=!dDay&&dailyQuestClaimed(), dP=dDay?1:mvpDailyProg();
+  const wWk=weeklyClaimWeek(), wOld=!!wWk&&wWk!==weekKey(today());
+  const wDone=!wWk&&weeklyQuestClaimed(), wP=wWk?1:mvpWeeklyProg();
   box.innerHTML=
-    '<div class="pcard mvp-quest"><div class="row"><span style="font-size:14px">Дневной: '+(S.goal||10)+' мин</span><div class="spacer"></div>'+
-      (dDone?'<span class="chip">✅ +30</span>':(dP>=1?'<button class="buy" onclick="claimMvpDaily()">Забрать +30 🪙</button>':'<span class="chip">'+mvpDailyInfo()+'</span>'))+
+    '<div class="pcard mvp-quest"><div class="row"><span style="font-size:14px">Дневной: '+(S.goal||10)+' мин'+(dOld?' · вчера':'')+'</span><div class="spacer"></div>'+
+      (dDay?'<button class="buy" onclick="claimMvpDaily()">Забрать +30 🪙</button>':(dDone?'<span class="chip">✅ +30</span>':'<span class="chip">'+mvpDailyInfo()+'</span>'))+
     '</div><div class="pbar"><i style="width:'+Math.round(dP*100)+'%"></i></div></div>'+
-    '<div class="pcard mvp-quest"><div class="row"><span style="font-size:14px">Недельный: 4 дня</span><div class="spacer"></div>'+
-      (wDone?'<span class="chip">✅ +120</span>':(wP>=1?'<button class="buy" onclick="claimMvpWeekly()">Забрать +120 🪙</button>':'<span class="chip">'+mvpWeeklyInfo()+'</span>'))+
+    '<div class="pcard mvp-quest"><div class="row"><span style="font-size:14px">Недельный: 4 дня'+(wOld?' · прошлая неделя':'')+'</span><div class="spacer"></div>'+
+      (wWk?'<button class="buy" onclick="claimMvpWeekly()">Забрать +120 🪙</button>':(wDone?'<span class="chip">✅ +120</span>':'<span class="chip">'+mvpWeeklyInfo()+'</span>'))+
     '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div></div>';
 }
 function renderMvpProfile(){
@@ -1069,7 +1093,7 @@ function renderRewardsSheet(){
   if(hist){
     const rows=(S.rewardPurchases||[]).slice().reverse().slice(0,12);
     hist.innerHTML=rows.length?rows.map(function(h){
-      const when=(h.at||'').slice(0,10)||'';
+      const when=h.at?localDay(h.at):''; /* stored ISO stamp, shown as the local day */
       return '<li>'+esc(when)+' · '+esc(h.title||'')+' −'+(h.price||0)+' 🪙</li>';
     }).join(''):'<li>Пока пусто — купите награду за золото с квестов</li>';
   }
@@ -1287,8 +1311,13 @@ function renderEquip(){
   }).join('');
 }
 function el(id){return document.getElementById(id);}
-function today(){return new Date().toISOString().slice(0,10);}
-function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);}
+/* Reading day = LOCAL device day (Product 2026-10-06), never the UTC day.
+   Same code as storage/sessions.js localDay(); module boot replaces these globals with the
+   storage exports, so at runtime there is ONE implementation. */
+var localDay=function(ts){const x=ts instanceof Date?ts:new Date(ts==null||ts===''?Date.now():ts);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};
+var addLocalDays=function(day,n){const p=String(day).slice(0,10).split('-').map(Number);return localDay(new Date(p[0],p[1]-1,p[2]+(n||0),12,0,0));};
+function today(){return localDay(Date.now());}
+function yesterday(){return addLocalDays(today(),-1);}
 function allBooks(){return BOOKS.filter(b=>!S.hidden.includes(b.id)).concat(S.userBooks||[]);}
 function level(xp){return Math.floor(Math.sqrt(xp/100))+1;}
 function lvlBounds(lv){return [100*(lv-1)*(lv-1),100*lv*lv];}
@@ -1307,6 +1336,7 @@ function show(id){
   /* Keep confetti on summary; clear on every other screen change */
   clearToasts();
   if(id!=='summary')clearConfetti();
+  try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
   if(isMvp() && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
     id = 'library';
   }
@@ -1660,8 +1690,10 @@ function trackerOpts(){
 let dayBarIv=null;
 function updDayBar(){
   const bar=el('dayBar');if(!bar||!isMvp())return;
-  const live=(__tracker&&__tracker.isRunning&&__tracker.isRunning())?__tracker.snapshot().minutes:0;
-  const pct=Math.max(0,Math.min(1,(minTodaySess()+live)/(S.goal||10)));
+  const run=!!(__tracker&&__tracker.isRunning&&__tracker.isRunning());
+  const live=run?__tracker.snapshot().minutes:0;
+  const day=(run&&__tracker.getSessionDay&&__tracker.getSessionDay())||today(); /* session day = day it started */
+  const pct=Math.max(0,Math.min(1,(dayMin(day)+live)/(S.goal||10)));
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
 }
@@ -1820,6 +1852,7 @@ function goPage(p,turn){
   else{el('content').style.transform='translateX('+(-np*R.step)+'px)';}
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
   R.maxRatio=Math.max(R.maxRatio,ratio);
+  /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('rPct').textContent=Math.round(ratio*100)+'%';
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
@@ -1982,15 +2015,21 @@ let tx0=null,pinch0=null,zoom0=1,panStart=null,suppressClick=false,mdrag=null,br
 let pinchSize0=19,pinchTarget=0,pinchQuietUntil=0;
 function tDist(e){const a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
 function pinchSizeFor(k){if(Math.abs(k-1)<0.08)return pinchSize0;return Math.max(14,Math.min(30,Math.round(pinchSize0*k)));}
+function showPinchHint(n){
+  const h=el('pinchHint'),v=el('pinchHintN');if(!h)return;
+  if(v&&v.textContent!==String(n))v.textContent=n;
+  if(h.classList.contains('hidden'))h.classList.remove('hidden');
+}
+function hidePinchHint(){const h=el('pinchHint');if(h&&!h.classList.contains('hidden'))h.classList.add('hidden');}
 function endTextPinch(){
-  const h=el('pinchHint');if(h)h.classList.add('hidden');
+  hidePinchHint();
   const t=pinchTarget;pinchTarget=0;pinchQuietUntil=Date.now()+450;
   if(t&&t!==SET.size)setFontSizeKeepPos(t);
 }
 el('viewer').addEventListener('gesturestart',e=>{if(R.mode!=='pdf')e.preventDefault();}); /* iOS Safari: no native page zoom in the reader */
 let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
-  if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;return;}
+  if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   if(e.touches[0].clientX<28){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края
@@ -2006,7 +2045,7 @@ el('viewer').addEventListener('touchmove',e=>{
     if(R.mode!=='pdf'){
       if(e.cancelable)e.preventDefault(); /* belt & braces with touch-action:none — browser must not zoom the page */
       const t=pinchSizeFor(tDist(e)/pinch0);
-      if(t!==pinchTarget){pinchTarget=t;const h=el('pinchHint');if(h){h.textContent='Aa '+t;h.classList.toggle('hidden',t===pinchSize0);}}
+      if(t!==pinchTarget){pinchTarget=t;showPinchHint(t);} /* «Aa N» follows the fingers; text reflows once on touchend */
       return;
     }
     if(Math.abs(tDist(e)-pinch0)<16)return; // игнорируем мелкое дрожание двух пальцев (от него «само зумилось»)
@@ -2238,10 +2277,11 @@ async function closeReaderImpl(){
   const lvBefore=level(S.xp);
   let row=null;
   if(__tracker){
-    try{row=await __tracker.end({date:today()});}catch(e){console.warn('[rq] session end',e);}
+    try{row=await __tracker.end();}catch(e){console.warn('[rq] session end',e);} /* row.date = LOCAL day the session started */
   }
   if(!row){save();renderLibrary();show('library');return;} /* empty session (or write failed → draft recovered on next boot) */
   SESS.push(row);
+  const sd=String(row.date||today()).slice(0,10); /* session day: 23:50–00:15 belongs entirely to the first day */
   const min=row.minutes;        // время сверх лимита на странице не идёт в опыт
   const pages=row.pageTurns||0; // пролистанные быстрее минимума страницы не в счёт
   // статистика по книге (накопительная, только честные минуты/страницы)
@@ -2272,21 +2312,21 @@ async function closeReaderImpl(){
   if(!isMvp()){S.xp+=xp;if(window.__rqGame)window.__rqGame.markAwarded(S,[row.id]);}
   S.gold+=gold;S.goldAllTime=(S.goldAllTime||0)+gold;
   S.stats[stN]=(S.stats[stN]||0)+statGain;
-  S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
+  if(sd===today())S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
   S.hp=Math.min(S.hpMax,(S.hp==null?S.hpMax:S.hp)+15);if(justFinished)S.hp=S.hpMax; // чтение восстанавливает здоровье
   dealBossDamage(min,pages,justFinished);S.petXp=(S.petXp||0)+min; // урон боссу + рост питомца
   /* Soft streak ≥2 min (Boss/Product): preserve streak when day's total minutes ≥2.
      Daily quest / north-star still require goal minutes (default 10) — not changed here. */
-  if((isMvp()?minTodaySess():S.minToday)>=2){
-    if(S.lastDay!==today()){
-      S.streak=(S.lastDay===yesterday())?S.streak+1:1;
-      S.lastDay=today();
+  if((isMvp()?dayMin(sd):(sd===today()?S.minToday:min))>=2){
+    if(!S.lastDay||sd>String(S.lastDay)){
+      S.streak=(S.lastDay===addLocalDays(sd,-1))?S.streak+1:1;
+      S.lastDay=sd;
     }
   }
   const hour=new Date().getHours();
   S.hourHist=S.hourHist||new Array(24).fill(0);S.hourHist[hour]=(S.hourHist[hour]||0)+min; // учёт «когда читаю»
   // история по дням и навыки
-  const dkey=today();
+  const dkey=sd;
   const h=(S.hist[dkey]=S.hist[dkey]||{min:0,pages:0,xp:0,gold:0});
   h.min+=min;h.pages+=pages;h.xp+=xp;h.gold+=gold;
   h.books=h.books||{};if(b&&min>0)h.books[b.id]=(h.books[b.id]||0)+min;
@@ -2306,7 +2346,7 @@ async function closeReaderImpl(){
   const newAch=checkAchievements();
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch};
+  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd};
   renderSummary(_sumArgs);
   show('summary');
   if(isMvp())confettiSummary();
@@ -2341,9 +2381,11 @@ function renderSummary(r){
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
-  if(el('sumDailyInfo'))el('sumDailyInfo').textContent=mvpDailyInfo();
-  if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg()*100)+'%';
-  if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo()+(dailyQuestClaimed()?' · daily ✅':'');
+  /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
+  const sday=r.day||today();
+  if(el('sumDailyInfo'))el('sumDailyInfo').textContent=mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
+  if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg(sday)*100)+'%';
+  if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo()+(dailyQuestClaimed(sday)?' · daily ✅':'');
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
   applyMvpChrome();
 }
@@ -3176,7 +3218,7 @@ let statPeriod=7;
 function histDays(n){
   const out=[];
   for(let i=n-1;i>=0;i--){
-    const d=new Date(Date.now()-i*86400000).toISOString().slice(0,10);
+    const d=addLocalDays(today(),-i);
     out.push({d:d,v:S.hist[d]||{min:0,pages:0,xp:0,gold:0}});
   }
   return out;
@@ -4191,14 +4233,15 @@ document.addEventListener('click',function(ev){
 import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
-  loadSettings, saveSettings, ensureSessionIds
-} from './storage/index.js?v=20261006-1230';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1230';
-import * as game from './game-awards.js?v=20261006-1230';
+  loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
+} from './storage/index.js?v=20261006-1240';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1240';
+import * as game from './game-awards.js?v=20261006-1240';
 
 window.__rqGame = game;
 const boot = await bootStorage();
-const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return new Date().toISOString().slice(0, 10); } });
+window.localDay = localDay; window.addLocalDays = addLocalDays; /* one day helper for the whole app */
+const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return localDay(Date.now()); } });
 await window.__rqStart({
   boot,
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,

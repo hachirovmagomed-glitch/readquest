@@ -11,11 +11,14 @@
  *     can never add more than one cap, including the last page of the session;
  *   - `pageTurns` = forward turns where the page was visible ≥ `minSecMs` (default 12 s).
  *
+ * Day (Product lock 2026-10-06): `date` = the device's LOCAL day on which the session STARTED
+ *   (captured in begin()); reading 23:50–00:15 is one row, entirely on the first day.
+ *
  * Crash safety: an open session is mirrored to localStorage (`rq_session_draft`) on every
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { dayKey, newSessionId } from './storage/sessions.js?v=20261006-1230';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261006-1240';
 export { newSessionId };
 
 export const DRAFT_KEY = 'rq_session_draft';
@@ -46,6 +49,7 @@ export function createSessionTracker(api) {
   let counting = true;
   let running = false;
   let startedAt = 0;
+  let startDay = null;    // local YYYY-MM-DD of begin() — the session's day
   let flushTimer = null;
   const FLUSH_EVERY_MS = 15000;
 
@@ -56,7 +60,8 @@ export function createSessionTracker(api) {
     if (api.now) return api.now();
     return typeof performance !== 'undefined' ? performance.now() : Date.now();
   }
-  function today() { return api.dayFn ? api.dayFn() : dayKey(new Date()); }
+  function today() { return api.dayFn ? api.dayFn() : localDay(Date.now()); }
+  function sessionDay() { return startDay || today(); }
 
   /* --- visible-time clock for pageVisibleMs events (unchanged semantics) --- */
   function startClock() { pageClock = docVisible() ? now() : 0; }
@@ -85,7 +90,7 @@ export function createSessionTracker(api) {
     lsSet(DRAFT_KEY, JSON.stringify({
       id: sessionId,
       bookId: bookId,
-      date: today(),
+      date: sessionDay(),
       countedMs: Math.round(countedMsLive()),
       pageTurns: pagesRead,
       startedAt: startedAt,
@@ -127,7 +132,7 @@ export function createSessionTracker(api) {
 
   function reset(keepDraft) {
     clearInterval(flushTimer); flushTimer = null;
-    running = false; bookId = null; sessionId = null;
+    running = false; bookId = null; sessionId = null; startDay = null;
     pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
     creditedMs = 0; turns = 0; pagesRead = 0;
     if (!keepDraft) lsDel(DRAFT_KEY);
@@ -152,6 +157,7 @@ export function createSessionTracker(api) {
       if (o.minSecMs != null) minSecMs = Math.max(0, Number(o.minSecMs));
       counting = o.counting !== false;
       startedAt = Date.now();
+      startDay = today();
       running = !!bookId;
       startClock();
       dwellStart();
@@ -192,12 +198,14 @@ export function createSessionTracker(api) {
     getPageTurns() { return pagesRead; },
     getBookId() { return bookId; },
     getSessionId() { return sessionId; },
+    /** Local day (YYYY-MM-DD) the running session belongs to (= day it started). */
+    getSessionDay() { return running ? sessionDay() : null; },
     isRunning() { return running; },
 
     /**
      * End of session: close the last page (capped), flush pageVisibleMs and append ONE
      * sessions[] row. Minutes are computed HERE (single source of truth).
-     * @param {{ date?: string|Date }} [opts]
+     * @param {{ date?: string|Date }} [opts] (date override for tests only; default = start day)
      * @returns {Promise<object|null>} stored row (with UUID id) or null if empty
      */
     async end(opts) {
@@ -209,7 +217,7 @@ export function createSessionTracker(api) {
       const minutes = creditedMs / 60000;
       const row = {
         id: sessionId,
-        date: options.date || today(),
+        date: options.date || sessionDay(),   // day the session STARTED (local)
         bookId: bookId,
         minutes: minutes,
         pageTurns: pagesRead,

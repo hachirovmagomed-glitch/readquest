@@ -11,8 +11,8 @@
  *
  * North-star: days/week with ≥10 minutes → daysMeetingThreshold({ minMinutes: 10 }).
  */
-import { IDB_STORE_SESSIONS } from './schema.js?v=20261006-1230';
-import { openDb } from './idb.js?v=20261006-1230';
+import { IDB_STORE_SESSIONS } from './schema.js?v=20261006-1240';
+import { openDb } from './idb.js?v=20261006-1240';
 
 /** Session UUID (reader-generated). crypto.randomUUID with a random v4 fallback. */
 export function newSessionId() {
@@ -63,23 +63,36 @@ export function withLegacyIds(rows) {
   });
 }
 
-/** YYYY-MM-DD in local timezone */
-export function dayKey(d) {
-  const x = d instanceof Date ? d : new Date(d || Date.now());
+/**
+ * THE day helper (2026-10-06, Product): a reading day is the device's LOCAL calendar day,
+ * never the UTC day (toISOString). YYYY-MM-DD from getFullYear/getMonth/getDate.
+ * @param {number|Date|string} [ts] timestamp (ms), Date or date-like; default = now (Date.now()).
+ */
+export function localDay(ts) {
+  const x = ts instanceof Date ? ts : new Date(ts == null || ts === '' ? Date.now() : ts);
   const y = x.getFullYear();
   const m = String(x.getMonth() + 1).padStart(2, '0');
   const day = String(x.getDate()).padStart(2, '0');
   return y + '-' + m + '-' + day;
 }
 
+/** Local-day key of `ts` shifted by `n` calendar days (DST-safe: setDate, not 86400000 ms). */
+export function addLocalDays(day, n) {
+  const p = String(day).slice(0, 10).split('-').map(Number);
+  return localDay(new Date(p[0], p[1] - 1, p[2] + (n || 0), 12, 0, 0));
+}
+
+/** Backward-compatible alias (same local-day semantics). */
+export function dayKey(d) { return localDay(d); }
+
 export function normalizeDate(input) {
-  if (!input) return dayKey(new Date());
+  if (!input) return localDay(Date.now());
   if (typeof input === 'string') {
     if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
     return dayKey(new Date(input));
   }
   if (input instanceof Date) return dayKey(input);
-  return dayKey(new Date());
+  return localDay(Date.now());
 }
 
 /**

@@ -8,7 +8,13 @@
  * Idempotency: awarded row ids (sessions[].id) live in game.awardedSessionIds.
  * Pre-2026-10-06 rows (`legacy-…` ids, or no string id) already got their XP from the old
  * closeReader — never re-awarded.
+ *
+ * Days are LOCAL device days (row.date = local day the session started, see reader-session.js);
+ * weeks are Mon–Sun of local days. No UTC (toISOString) anywhere.
  */
+import { localDay, addLocalDays } from './storage/sessions.js?v=20261006-1240';
+export { localDay, addLocalDays };
+
 export const XP_PER_MIN = 10;
 
 export function xpForRow(row) {
@@ -65,14 +71,20 @@ export function minutesOnDay(rows, day) {
   return minutesByDay(rows)[day] || 0;
 }
 
-/** Days (YYYY-MM-DD list) of the 7-day week starting `weekStart` with ≥ goal minutes. */
+/** Monday (local YYYY-MM-DD) of the week containing local day `day`. */
+export function weekStartOf(day) {
+  const p = String(day || localDay()).slice(0, 10).split('-').map(Number);
+  const d = new Date(p[0], p[1] - 1, p[2], 12, 0, 0);
+  const dow = (d.getDay() + 6) % 7; // Mon = 0
+  return addLocalDays(localDay(d), -dow);
+}
+
+/** Days (YYYY-MM-DD list) of the 7-day week starting `weekStart` with ≥ goal minutes (local days). */
 export function daysAtGoalInWeek(rows, weekStart, goal) {
   const by = minutesByDay(rows);
-  const start = new Date(weekStart + 'T12:00:00Z');
   const days = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(start.getTime() + i * 86400000);
-    const k = d.toISOString().slice(0, 10);
+    const k = addLocalDays(weekStart, i);
     if ((by[k] || 0) >= goal) days.push(k);
   }
   return days;

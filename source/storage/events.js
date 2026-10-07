@@ -82,6 +82,8 @@ export async function logAnalyticsEvent(entry) {
   if (entry.stalledMs != null && Number.isFinite(Number(entry.stalledMs))) rec.stalledMs = Math.max(0, Math.round(Number(entry.stalledMs)));
   if (entry.label != null) rec.label = String(entry.label).slice(0, 32);
   if (entry.reason != null) rec.reason = String(entry.reason).slice(0, 32);
+  // storage_persist (PWA): navigator.storage.persist() result
+  if (typeof entry.granted === 'boolean') rec.granted = entry.granted;
   return addEvent(rec);
 }
 

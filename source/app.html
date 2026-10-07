@@ -8,6 +8,35 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ReadQuest">
+<script>
+/* ===== PWA: single writer (rq-writer) + hard write gate. Runs before any app code. ===== */
+(function(){
+  'use strict';
+  var ID=(self.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Math.random()).slice(2)+Date.now();
+  var OWNER='rq_owner', gate={passive:false, id:ID};
+  window.__rqWriter=gate;
+  var LS=Object.getOwnPropertyDescriptor(Storage.prototype,'setItem').value;
+  var LR=Storage.prototype.removeItem, LG=Storage.prototype.getItem;
+  /* sync check: another window took over (steal from a frozen tab) → go passive before writing */
+  function mayWrite(){
+    if(gate.passive)return false;
+    if(gate.locks){try{var o=LG.call(localStorage,OWNER);if(o&&o!==ID){gate.demote&&gate.demote('owner');return false;}}catch(e){}}
+    return true;
+  }
+  gate.mayWrite=mayWrite;
+  function isRq(st,k){return st===window.localStorage&&/^rq_/.test(String(k))&&k!==OWNER;}
+  Storage.prototype.setItem=function(k,v){if(isRq(this,k)&&!mayWrite())return;return LS.call(this,k,v);};
+  Storage.prototype.removeItem=function(k){if(isRq(this,k)&&!mayWrite())return;return LR.call(this,k);};
+  if(window.IDBDatabase){
+    var T=IDBDatabase.prototype.transaction;
+    IDBDatabase.prototype.transaction=function(s,mode,o){
+      if(mode==='readwrite'&&!mayWrite())throw new DOMException('ReadQuest: passive window','ReadOnlyError');
+      return T.apply(this,arguments);
+    };
+  }
+  gate.setOwner=function(){try{LS.call(localStorage,OWNER,ID);}catch(e){}};
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -1260,6 +1289,7 @@ hydrateS({});
 let saveWarned=false;
 /** Single writer → rq_v1 via saveFlat (strips book bodies to IDB). Never touches legacy `readquest`. */
 function save(){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return; /* passive window: never write */
   if(!__rq||!__rq.saveFlat){
     console.warn('[rq] save() before boot — skipped');
     return;
@@ -4559,6 +4589,90 @@ document.addEventListener('click',function(ev){
 });
 /* UI blocked until module boot calls __rqStart */
 </script>
+<div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:#0c2127;color:#e6f1f2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
+  <h2 id="rqOtherH" style="font-size:20px;margin:0 0 12px">ReadQuest открыт в другом окне</h2>
+  <p style="font-size:14px;opacity:.75;margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
+  <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span>Открыть здесь</span></button>
+  <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
+</div>
+<script>
+/* ===== PWA: writer lock, takeover, SW, storage.persist ===== */
+(function(){
+  'use strict';
+  var gate=window.__rqWriter, TAKEOVER_MS=2000, bc=null, waitRelease=null;
+  try{bc=new BroadcastChannel('rq');}catch(e){}
+  function ov(on){var o=document.getElementById('rqOther');if(o)o.classList.toggle('hidden',!on);}
+  function spin(on){var b=document.getElementById('rqOtherBtn');if(!b)return;b.disabled=on;b.querySelector('.rq-spin').classList.toggle('hidden',!on);}
+  /* lose writer role: from here on this window writes nothing; re-read storage for display, show overlay silently */
+  gate.demote=function(why){
+    if(gate.passive)return; gate.passive=true; gate.why=why;
+    try{if(typeof __tracker!=='undefined'&&__tracker&&__tracker.cancel)Promise.resolve(__tracker.cancel()).catch(function(){});}catch(e){}
+    try{if(window.__rq&&__rq.loadFlat)hydrateS(__rq.loadFlat());}catch(e){}
+    if(gate.release){var r=gate.release;gate.release=null;r();}
+    spin(false);ov(true);
+  };
+  function hold(opts){
+    return new Promise(function(res){
+      navigator.locks.request('rq-writer',opts,function(lock){
+        if(!lock){res(false);return;}
+        gate.passive=false;gate.setOwner();res(true);
+        return new Promise(function(rel){gate.release=rel;});
+      }).catch(function(e){ /* stolen (AbortError on the held lock) or aborted wait */
+        if(e&&e.name==='AbortError'&&opts.signal&&opts.signal.aborted){res(false);return;}
+        gate.demote('stolen');res(false);
+      });
+    });
+  }
+  function takeover(){
+    spin(true);
+    var ac=new AbortController();
+    try{bc&&bc.postMessage({t:'takeover',from:gate.id});}catch(e){}
+    return Promise.race([
+      hold({signal:ac.signal}),
+      new Promise(function(r){setTimeout(function(){r('timeout');},TAKEOVER_MS);})
+    ]).then(function(x){
+      if(x===true)return true;
+      ac.abort(); /* holder frozen/unresponsive → steal */
+      return hold({steal:true});
+    });
+  }
+  window.__rqAcquire=async function(){
+    if(!navigator.locks||!navigator.locks.request)return true; /* fallback: as before */
+    gate.locks=true;
+    var auto=false;try{auto=sessionStorage.getItem('rq_takeover')==='1';sessionStorage.removeItem('rq_takeover');}catch(e){}
+    if(!auto&&await hold({ifAvailable:true}))return true;
+    gate.passive=true;
+    if(!auto)ov(true);
+    await new Promise(function(done){
+      var b=document.getElementById('rqOtherBtn');
+      var go=function(){takeover().then(function(ok){if(ok)done();else spin(false);});};
+      b.addEventListener('click',function h(){if(gate.booted){try{sessionStorage.setItem('rq_takeover','1');}catch(e){}location.reload();return;}go();});
+      if(auto){ov(true);go();}
+    });
+    ov(false);return true;
+  };
+  /* holder side: another window asks → end session cleanly, save, release, become passive */
+  if(bc)bc.onmessage=async function(ev){
+    var d=ev.data||{};
+    if(d.t!=='takeover'||d.from===gate.id||gate.passive||!gate.release)return;
+    try{if(typeof R!=='undefined'&&R.book&&typeof closeReader==='function')await closeReader();}catch(e){console.warn('[rq] takeover close',e);}
+    try{if(window.__rq&&__rq.saveFlat)await __rq.saveFlat(S);}catch(e){}
+    gate.demote('handover');
+  };
+  window.__rqAfterBoot=function(api){
+    gate.booted=true;
+    if(gate.persistLogged)return; gate.persistLogged=true;
+    if(navigator.storage&&navigator.storage.persist){
+      navigator.storage.persist().then(function(g){
+        if(gate.mayWrite()&&api.logAnalyticsEvent)return api.logAnalyticsEvent({type:'storage_persist',granted:!!g});
+      }).catch(function(e){console.warn('[rq] persist',e);});
+    }
+  };
+  if('serviceWorker' in navigator&&window.isSecureContext){
+    window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(function(e){console.warn('[rq] sw',e);});});
+  }
+})();
+</script>
 <script type="module">
 import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
@@ -4569,6 +4683,7 @@ import { createSessionTracker, recoverDraft } from './reader-session.js';
 import * as game from './game-awards.js';
 
 window.__rqGame = game;
+await window.__rqAcquire(); /* single writer: passive windows stop here and write nothing */
 const boot = await bootStorage();
 window.localDay = localDay; window.addLocalDays = addLocalDays; /* one day helper for the whole app */
 const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return localDay(Date.now()); } });
@@ -4578,6 +4693,7 @@ await window.__rqStart({
   listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
   importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings
 }, tracker);
+window.__rqAfterBoot(window.__rq);
 </script>
 </body>
 </html>

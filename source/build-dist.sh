@@ -13,6 +13,7 @@ cp "$ROOT/reader-session.js" "$DIST/reader-session.js"
 cp "$ROOT/game-awards.js" "$DIST/game-awards.js"
 cp "$ROOT/manifest.webmanifest" "$DIST/manifest.webmanifest"
 cp "$ROOT/icons/"*.png "$DIST/icons/"
+cp "$ROOT/sw.js" "$DIST/sw.js"
 
 # Storage modules only (no harness)
 for f in schema.js idb.js state.js sessions.js events.js migrate-v6.js adapter.js index.js; do
@@ -31,6 +32,11 @@ echo "Build marker: $BUILD"
 # Vendored pdf.js (3.11.174, Apache-2.0) + its worker — copied AFTER the ?v= rewrite so the library is byte-identical.
 mkdir -p "$DIST/vendor/pdfjs"
 cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT/vendor/pdfjs/LICENSE" "$DIST/vendor/pdfjs/"
+
+# Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
+PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE | sed 's#^\./##' | sort | while read -r f; do
+  case "$f" in vendor/*) echo "\"$f\"";; *.js) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
+sed -i "s/__RQ_BUILD__/$BUILD/g; s#__RQ_PRECACHE__#[\"./\",$PRE]#" "$DIST/sw.js"
 
 # Tiny README for deployers
 cat > "$DIST/README.txt" << 'EOR'

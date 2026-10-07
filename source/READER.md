@@ -184,6 +184,14 @@ never page turns.
 Tests: `test/pdf-verify.mjs` (criterion (а)–(д), (ж)–(л), rotation, scan, race; `RQ_MODE=old` = bug
 reproduction on 1306). Shots: `shots/pdf-fix/`.
 
+## Build 20261007-1118 (2026-10-07): small-fixes
+
+- MVP locked in code: goal 10 / minSec 12 / maxMin 3; `settings.mvp` forced true on load/import; devMoney off; steppers, MVP toggle, ∞, difficulty, AI helper, pixel Buy hidden.
+- `Math.floor` on minute captions incl. session summary.
+- PDF: `P.redo` + `lastVR`/`lastVS` refresh; `pdfWatch` kept as safety net, logs `pdf_stall_recovered` to events.
+- `test/pdf-verify.mjs`: 37 checks (regression + watchdog steps, capped skip of mid-resize empty frames); `metrics.py` stall line.
+- Results: pdf-verify 37/37 ×3, android-verify 71/71, mvp-check 27/27. Live on `main` (old `/test/` removed).
+
 ## Gaps / next
 
 - 4-screen MVP — see `MVP.md` (`SET.mvp`, focus mode, rewards sheet).

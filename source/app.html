@@ -1989,6 +1989,7 @@ async function pdfTextLayer(page,s0){
 }
 /** Navigation (tap / swipe / slider / TOC / keys): request a page; it is shown at the swap. */
 function pdfGo(np,why){
+  if(window.__rqWriter&&!__rqWriter.mayWrite())return;
   if(!R.pdf)return;
   np=Math.max(0,Math.min(R.pageCount-1,np));
   if(np===P.target){if(why==='slider')pdfNumbers(np,true);return;}
@@ -2205,6 +2206,7 @@ function setFontSizeKeepPos(size){
   return true;
 }
 function goPage(p,turn){
+  if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
     if(turn&&Math.abs(p-R.page)===1)pdfFlip(p-R.page);else pdfGo(p,turn?'flip':'nav');
     return;
@@ -2635,6 +2637,7 @@ el('btnTts').onclick=()=>{
 /* ================= СЕССИЯ И НАГРАДЫ ================= */
 let __closingReader=false;
 async function closeReader(){
+  if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive/stolen window: no summary, no payout, no write */
   if(__closingReader)return; /* double tap on ← must not end the session twice */
   __closingReader=true;
   try{await closeReaderImpl();}finally{__closingReader=false;}
@@ -4578,6 +4581,12 @@ function shelfOpen(elm,id){
 window.__rqStart=async function(api, tracker){
   __rq=api; window.__rq=api; window.__tracker=tracker;
   __tracker=tracker;
+  /* single writer: every tracker call that counts/writes is gated synchronously (a thawed, stolen-from
+     window demotes itself on its first call instead of counting minutes B already finished) */
+  ['begin','setCounting','pageTurned','pageShown','userActive','onPageChange','end'].forEach(function(m){
+    var f=tracker[m]; if(typeof f!=='function')return;
+    tracker[m]=function(){ if(window.__rqWriter&&!__rqWriter.mayWrite())return m==='end'?Promise.resolve(null):undefined; return f.apply(tracker,arguments); };
+  });
   const flat=api.loadFlat?api.loadFlat():{};
   hydrateS(flat);
   if(api.loadSettings){try{SET=Object.assign({},SETDEF,api.loadSettings());}catch(e){}}
@@ -4685,9 +4694,13 @@ document.addEventListener('click',function(ev){
     ov(false);return true;
   };
   /* holder side: another window asks → end session cleanly, save, release, become passive */
+  /* thaw (Page Lifecycle 'resume') / back to foreground: check ownership first thing */
+  document.addEventListener('resume',function(){gate.mayWrite();},true);
+  document.addEventListener('visibilitychange',function(){gate.mayWrite();},true);
   if(bc)bc.onmessage=async function(ev){
     var d=ev.data||{};
     if(d.t!=='takeover'||d.from===gate.id||gate.passive||!gate.release)return;
+    if(!gate.mayWrite())return; /* already stolen (queued message seen after thaw): mayWrite() demoted us — do NOT close the reader / write */
     try{if(typeof R!=='undefined'&&R.book&&typeof closeReader==='function')await closeReader();}catch(e){console.warn('[rq] takeover close',e);}
     try{if(window.__rq&&__rq.saveFlat)await __rq.saveFlat(S);}catch(e){}
     gate.demote('handover');

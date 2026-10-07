@@ -198,6 +198,80 @@ await p1.close(); p1 = pA;
 const pB = await twoWindows('e2', true);
 await p1.close(); p1 = pB;
 
+// ---------- (e3) phone case: A frozen mid-session BEFORE any takeover message, B steals, A thaws with the book STILL open ----------
+{
+  await p1.bringToFront();
+  const g0 = await gameOf(p1); const s0 = (await idbAll(p1, 'sessions')).length;
+  await readSession(p1, bookId, 12);
+  const draftA = await p1.evaluate(() => localStorage.getItem(RQ_K.v1.replace('_v1', '_session_draft')));
+  ok('(e3) A: reader active mid-session, draft present', !!draftA && await p1.evaluate(() => !!R.book && !document.getElementById('reader').classList.contains('hidden')));
+  const p2 = await mk();
+  await p2.goto(BASE, { waitUntil: 'load' });
+  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'));
+  await p1.evaluate(() => {
+    const L = window.__ev = []; const t = (x) => L.push([x, Date.now() - (window.__rqTimeOffset || 0)]);
+    window.__tick = 0; window.__gap = 0; let last = Date.now() - window.__rqTimeOffset; setInterval(() => { window.__tick++; const n = Date.now() - window.__rqTimeOffset; window.__gap = Math.max(window.__gap, n - last); last = n; }, 100);
+    const c = new BroadcastChannel(RQ_K.bc); c.onmessage = (e) => t('bc:' + (e.data && e.data.t) + (__rqWriter.passive ? ':passive' : ':writer'));
+    const d = __rqWriter.demote; __rqWriter.demote = function (w) { t('demote:' + w); return d.apply(this, arguments); };
+    const cr = window.closeReader; window.closeReader = function () { t('closeReader'); return cr.apply(this, arguments); };
+    const ps = __tracker.pageShown; if (ps) __tracker.pageShown = function () { const w = __rqWriter.mayWrite(); t('pageShown:' + (w ? 'writer' : 'blocked')); return ps.apply(this, arguments); };
+    const oset = window.setTimeout; window.setTimeout = function (fn, ms) { return oset(function () { if (window.__thawMark && !window.__firstTimerAfterThaw) window.__firstTimerAfterThaw = __rqWriter.passive ? 'passive' : 'writer'; return typeof fn === 'function' ? fn.apply(this, arguments) : undefined; }, ms); };
+    const oi = window.setTimeout; window.__firstTimer = null;
+    new MutationObserver(() => { if (!document.getElementById('rqOther').classList.contains('hidden')) t('overlay'); if (!document.getElementById('summary').classList.contains('hidden')) t('summary'); if (document.querySelector('.rq-toast')) t('toast:' + document.querySelector('.rq-toast').textContent); }).observe(document.body, { subtree: true, attributes: true, childList: true });
+    window.__page0 = R.page;
+  });
+  const tick0 = await p1.evaluate(() => window.__tick);
+  const cdp = await p1.target().createCDPSession();
+  /* Freeze A hard BEFORE B sends anything: lifecycle 'frozen' alone still let BroadcastChannel tasks run in
+     headless Chrome (seen: cooperative close started), so also suspend JS with the debugger. Queued tasks
+     (the stale takeover message, lock abort, timers) only run after resume — like a thawed phone tab. */
+  await cdp.send('Debugger.enable'); await cdp.send('Debugger.pause');
+  await cdp.send('Page.setWebLifecycleState', { state: 'frozen' });
+  await sleep(700);
+  const frozenOk = true;
+  await p2.bringToFront(); const t0 = Date.now();
+  await p2.evaluate(() => document.getElementById('rqOtherBtn').click());
+  await ready(p2); const dt = Date.now() - t0; await sleep(800);
+  ok('(e3) B takes over by steal after ~2 s', dt >= 1900 && dt < 6000, { dt });
+  const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2); const neu = s1.slice(s0);
+  const st1 = await rq(p2);
+  ok('(e3) B finished A\'s session: exactly 1 new row, paid once', neu.length === 1 && neu[0].minutes > 0 && g1.awarded.filter(x => x === neu[0].id).length === 1 && g1.xp > g0.xp, neu.map(r => ({ id: r.id, minutes: r.minutes })));
+  ok('(e3) B consumed the draft', !(await p2.evaluate(() => localStorage.getItem(RQ_K.v1.replace('_v1', '_session_draft')))));
+  console.log('   [e3] BEFORE', JSON.stringify(g0));
+  console.log('   [e3] AFTER ', JSON.stringify(g1));
+  await cdp.send('Page.setWebLifecycleState', { state: 'active' }); await cdp.send('Debugger.resume'); await cdp.send('Debugger.disable');
+  await sleep(1200);
+  const evs = await p1.evaluate(() => ({ ev: window.__ev, tick: window.__tick, gap: window.__gap }));
+  console.log('   [e3] A event order after thaw', JSON.stringify(evs.ev));
+  ok('(e3) A JS was frozen through the whole takeover (100 ms interval had a gap ≥ 2.5 s)', evs.gap >= 2500, { maxGapMs: evs.gap });
+  const names = evs.ev.map(e => e[0]); const iDem = names.findIndex(n => n.startsWith('demote'));
+  ok('(e3) order: A goes passive (demote:owner) before any pageShown/closeReader/summary/toast; stale takeover message ignored', iDem >= 0 && names[iDem] === 'demote:owner' && !names.some(n => n === 'pageShown:writer' || n === 'closeReader' || n === 'summary' || n.startsWith('toast')) && !names.slice(0, iDem).some(n => n.startsWith('pageShown')), names);
+  const ui = await p1.evaluate(() => ({ page: R.page, page0: window.__page0, summary: !document.getElementById('summary').classList.contains('hidden'), toast: !!document.querySelector('.rq-toast') }));
+  ok('(e3) A UI: overlay immediately, page number unchanged, no summary, no reward toast', ui.page === ui.page0 && !ui.summary && !ui.toast && names.includes('overlay'), ui);
+  const a = await p1.evaluate(() => ({ book: !!R.book, reader: !document.getElementById('reader').classList.contains('hidden'), passive: __rqWriter.passive }));
+  ok('(e3) thawed A: book STILL open in reader, A passive, overlay shown', a.book && a.reader && a.passive && await overlayOn(p1), a);
+  await p1.bringToFront();
+  await p1.evaluate(async () => {
+    for (let i = 0; i < 3; i++) { window.__rqTimeOffset += 60000; try { goPage(R.page + 1, true); } catch (e) {} }
+    document.dispatchEvent(new Event('visibilitychange')); window.dispatchEvent(new Event('pagehide'));
+    try { save(); } catch (e) {} try { await __tracker.end(); } catch (e) {} try { await closeReader(); } catch (e) {}
+  });
+  await sleep(17000); /* > 15 s draft/visibility flush timer */
+  const ui2 = await p1.evaluate(() => ({ page: R.page, page0: window.__page0, summary: !document.getElementById('summary').classList.contains('hidden'), toast: !!document.querySelector('.rq-toast'), book: !!R.book, ev: window.__ev.map(e => e[0]) }));
+  ok('(e3) after poking A (page turns, visibility, save, end, close): page unchanged, no summary/toast, book still open, no pageShown as writer', ui2.page === ui2.page0 && !ui2.summary && !ui2.toast && ui2.book && !ui2.ev.includes('pageShown:writer'), { page: ui2.page, page0: ui2.page0, book: ui2.book });
+  const dr2 = await p2.evaluate(() => localStorage.getItem(RQ_K.v1.replace('_v1', '_session_draft')));
+  ok('(e3) NS_session_draft: B removed it, A neither rewrote nor deleted anything (still absent, rq() identical)', dr2 === null);
+  const s2 = await idbAll(p2, 'sessions'); const st2 = await rq(p2); const g2a = await gameOf(p2);
+  ok('(e3) thawed A writes nothing: no 2nd row, draft + rq_v1 + rq_set byte-identical, no payout', s2.length === s1.length && st2 === st1 && JSON.stringify(g2a) === JSON.stringify(g1), { rows: [s1.length, s2.length] });
+  ok('(e3) exactly one row for A\'s session; gold/awarded/daily unchanged after thaw; A credited no XP', s2.filter(r => r.id === neu[0].id).length === 1 && s2.length - s0 === 1 && g2a.gold === g1.gold && g2a.xp === g1.xp && JSON.stringify(g2a.awarded) === JSON.stringify(g1.awarded) && JSON.stringify(g2a.daily) === JSON.stringify(g1.daily));
+  console.log('   [e3] AFTER THAW', JSON.stringify(g2a));
+  await p2.bringToFront(); await p2.reload({ waitUntil: 'load' }); await ready(p2); await sleep(500);
+  const g3 = await gameOf(p2); const s3 = await idbAll(p2, 'sessions');
+  console.log('   [e3] RELOAD', JSON.stringify(g3));
+  ok('(e3) B after reload: data intact, no repeat payout', JSON.stringify(g3) === JSON.stringify(g1) && s3.length === s1.length);
+  await p1.close(); p1 = p2;
+}
+
 // ---------- (C) test build (NS rqt, /readquest/test/) never touches rq_* data, lock or cache ----------
 const TB = '20990101-0099';
 execSync(`RQ_NS=rqt RQ_BUILD=${TB} ./build-dist.sh`, { cwd: SRC, stdio: 'pipe' });

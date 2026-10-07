@@ -1,0 +1,16 @@
+{
+  "name": "ReadQuest ТЕСТ",
+  "short_name": "RQ ТЕСТ",
+  "id": "/readquest/test/",
+  "start_url": "/readquest/test/",
+  "scope": "/readquest/test/",
+  "display": "standalone",
+  "background_color": "#0c2127",
+  "theme_color": "#0c2127",
+  "icons": [
+    { "src": "icons/icon-test-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-test-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-test-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-test-mono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "monochrome" }
+  ]
+}

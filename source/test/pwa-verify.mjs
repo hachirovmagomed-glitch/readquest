@@ -155,17 +155,29 @@ async function twoWindows(label, frozen) {
   let cdp1;
   if (frozen) { cdp1 = await p1.target().createCDPSession(); await cdp1.send('Page.setWebLifecycleState', { state: 'frozen' }); }
   await p2.bringToFront();
+  const obs = await mk(); await obs.goto(BASE + 'manifest.webmanifest');
+  await obs.evaluate(() => { window.__tk = 0; const c = new BroadcastChannel('rq'); c.onmessage = (e) => { if (e.data && e.data.t === 'takeover') window.__tk++; }; });
   const t0 = Date.now();
-  await p2.click('#rqOtherBtn');
+  await p2.bringToFront();
+  const dis = await p2.evaluate(() => { const b = document.getElementById('rqOtherBtn'); b.click(); const d = b.disabled; b.click(); b.dispatchEvent(new MouseEvent('click', { bubbles: true })); return d; });
+  await sleep(50);
   const spin = await p2.evaluate(() => !document.querySelector('#rqOtherBtn .rq-spin').classList.contains('hidden'));
   await ready(p2); const dt = Date.now() - t0; await sleep(600);
   ok(`(${label}) takeover: window 2 boots (${frozen ? 'steal after ~2 s' : 'cooperative'}) with spinner`, spin && !(await overlayOn(p2)) && (frozen ? dt >= 1900 && dt < 6000 : dt < 1900), { dt, spin });
+  const tkN = await obs.evaluate(() => window.__tk); await obs.close();
+  ok(`(${label}) double/triple click → button disabled while waiting, exactly one takeover sent`, dis && tkN === 1, { dis, takeovers: tkN });
   if (frozen) { await cdp1.send('Page.setWebLifecycleState', { state: 'active' }); }
   await sleep(1500);
   ok(`(${label}) old window shows overlay`, await overlayOn(p1));
   const snap = await rq(p2);
   await p1.bringToFront(); await p1.evaluate(() => { try { window.__rqTimeOffset += 60000; goPage(R.page + 1, true); } catch (e) {} try { save(); saveSet(); } catch (e) {} }); await sleep(1500);
   ok(`(${label}) old window after waking writes nothing (storage byte-identical)`, snap === await rq(p2));
+  if (frozen) {
+    const sBefore = (await idbAll(p2, 'sessions')).length; const st0 = await rq(p2);
+    const r = await p1.evaluate(async () => { const hadBook = !!R.book; try { await closeReader(); } catch (e) {} try { if (__tracker && __tracker.end) await __tracker.end(); } catch (e) {} return hadBook; });
+    await sleep(800);
+    ok(`(${label}) thawed old window: closing the session again writes no 2nd row, draft/rq_v1 not overwritten`, (await idbAll(p2, 'sessions')).length === sBefore && st0 === await rq(p2), { hadOpenBook: r });
+  }
   const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2);
   const neu = s1.slice(s0);
   ok(`(${label}) unfinished session counted exactly once (1 new row, minutes>0)`, neu.length === 1 && neu[0].minutes > 0, neu.map(r => ({ id: r.id, minutes: r.minutes })));
@@ -208,6 +220,8 @@ const tsw = await pt.evaluate(async () => ({ scope: (await navigator.serviceWork
 ok('(C) test SW scope /readquest/test/', tsw.scope === BASE + 'test/' && tsw.ctl === BASE + 'test/sw.js', tsw);
 const tman = await pt.evaluate(async () => (await fetch('manifest.webmanifest')).json());
 ok('(C) test manifest: own name/id/start_url in /readquest/test/, no orientation', tman.name === 'ReadQuest ТЕСТ' && new URL(tman.id, BASE + 'test/manifest.webmanifest').href === BASE + 'test/' && new URL(tman.start_url, BASE + 'test/manifest.webmanifest').href === BASE + 'test/' && !('orientation' in tman), { name: tman.name, id: tman.id, start: tman.start_url });
+const tIco = await pt.evaluate(async (ic) => { const out = []; for (const i of ic) { const r = await fetch(i.src); out.push({ src: i.src, purpose: i.purpose, ok: r.ok }); } return out; }, tman.icons);
+ok('(C) test manifest: Интерфейс test icons (any 192/512 + maskable + monochrome), all served; colors #0c2127; scope /readquest/test/', tIco.every(x => x.ok) && tIco.some(x => x.src.includes('icon-test-maskable') && x.purpose === 'maskable') && tIco.filter(x => x.purpose === 'any').length === 2 && tman.background_color === '#0c2127' && tman.theme_color === '#0c2127' && tman.scope === '/readquest/test/', tIco);
 { const ti = await pt.$('#fileInp'); await ti.uploadFile(BOOK); }
 await pt.waitForFunction(() => (S.userBooks || []).length > 0, { timeout: 10000 });
 const tBook = await pt.evaluate(() => S.userBooks[0].id);
@@ -222,7 +236,7 @@ const m1 = await mainSnap();
 ok('(C) main rq_* data / sessions / events / rq- caches byte-identical after test-build session', JSON.stringify(m0) === JSON.stringify(m1), { ev0: m0.ev, ev1: m1.ev });
 ok('(C) main window still the writer', await p1.evaluate(() => !__rqWriter.passive));
 await pt.bringToFront();
-await Promise.all([pt.waitForNavigation({ waitUntil: 'load' }), pt.click('#rqTestReset')]); await ready(pt); await sleep(500);
+await Promise.all([pt.waitForNavigation({ waitUntil: 'load' }), pt.click('#rqTestReset')]); /* real button + confirm dialog */ await ready(pt); await sleep(500);
 const after = await pt.evaluate(async () => ({ ses: (await __rq.listSessions({})).length, books: (S.userBooks || []).length }));
 const tdbs2 = await pt.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
 const tc2 = await keys(pt);
@@ -230,6 +244,16 @@ ok('(C) «Сбросить тест» cleared test data only (fresh test app, rq
 const m2 = await mainSnap();
 ok('(C) reset left main rq_* / readquest DB / rq- caches untouched', JSON.stringify(m0) === JSON.stringify(m2) && tdbs2.includes('readquest'));
 await pt.close();
+
+// ---------- (C2) test reset refuses in the main build ----------
+{
+  await p1.bringToFront();
+  const m0r = await mainSnap(); const db0 = await p1.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
+  const r = await p1.evaluate(async () => { const out = { fn: typeof window.__rqTestReset }; out.ret = await window.__rqTestReset({ noConfirm: true }); document.getElementById('rqTestReset').click(); out.banner = !document.getElementById('rqTestBanner').classList.contains('hidden'); return out; });
+  await sleep(800);
+  const m1r = await mainSnap(); const db1 = await p1.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
+  ok('(C2) main build: __rqTestReset() from console refuses (false), hidden button no-op, data/DBs/caches unchanged', r.ret === false && !r.banner && JSON.stringify(m0r) === JSON.stringify(m1r) && JSON.stringify(db0) === JSON.stringify(db1) && await p1.evaluate(() => !!window.__rqReady && !__rqWriter.passive), r);
+}
 
 // ---------- TODO (stage 1, not this build) ----------
 console.log('TODO (stage 1): mvp-check — backup import with legacy `cur` object (v6) must not break MVP lock-downs / payouts.');

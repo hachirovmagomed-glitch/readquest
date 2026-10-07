@@ -18,14 +18,17 @@ cp "$ROOT/manifest.webmanifest" "$DIST/manifest.webmanifest"
 if [ "$NS" = rq ]; then
   cp "$ROOT/icons/"*.png "$DIST/icons/"
 else
-  TI="${RQ_TEST_ICONS:-/workspace/readquest-ui/pwa/test}"   # Интерфейс's test icons if present
-  [ -f "$TI/icon-192.png" ] && [ -f "$TI/icon-512.png" ] && [ -f "$TI/icon-maskable-512.png" ] || TI="$ROOT/icons-test"  # placeholder
-  cp "$TI/icon-192.png" "$TI/icon-512.png" "$TI/icon-maskable-512.png" "$DIST/icons/"
-  python3 - "$DIST/manifest.webmanifest" << 'EOP'
+  # Test build: Интерфейс's test icons + manifest snippet (vendored into source/icons-test, source/manifest-test.json)
+  cp "$ROOT/icons-test/"* "$DIST/icons/"
+  cp "$ROOT/icons-test/icon-test-192.png" "$DIST/icons/icon-192.png"   # favicon / apple-touch-icon links in app.html
+  python3 - "$ROOT/manifest.webmanifest" "$ROOT/manifest-test.json" "$DIST/manifest.webmanifest" << 'EOP'
 import json,sys
-p=sys.argv[1]; m=json.load(open(p))
-m.update(name='ReadQuest ТЕСТ', short_name='RQ ТЕСТ', id='./', start_url='./', scope='./')
-json.dump(m,open(p,'w'),ensure_ascii=False,indent=2)
+main=json.load(open(sys.argv[1])); snip=json.load(open(sys.argv[2]))
+for k in ('background_color','theme_color'):
+    if snip.get(k,main[k]).lower()!=main[k].lower(): sys.exit(f'test manifest {k} {snip[k]} != main {main[k]}')
+m=dict(main); m.update(snip); m.pop('orientation',None)
+for k in ('id','start_url','scope'): assert m[k]=='/readquest/test/', (k,m[k])
+json.dump(m,open(sys.argv[3],'w'),ensure_ascii=False,indent=2)
 EOP
 fi
 cp "$ROOT/sw.js" "$DIST/sw.js"

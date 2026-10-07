@@ -538,10 +538,11 @@ body.mvp #sumDailyBox{display:block}
 <script>
 /* Test build only (NS!=='rq'): banner + reset that deletes ONLY this namespace (rqt* keys, readquest-test DB, rqt-* caches). */
 (function(){
-  var ns=window.RQ_NS; if(ns==='rq')return;
-  document.getElementById('rqTestBanner').classList.remove('hidden');
-  document.getElementById('rqTestReset').addEventListener('click',async function(){
-    if(!confirm('Удалить все данные тестовой версии? Основное приложение не затронется.'))return;
+  var ns=window.RQ_NS;
+  /* also callable from the console; refuses in the main build (NS 'rq') — never touches main data */
+  window.__rqTestReset=async function(opts){
+    if(ns==='rq'||ns.indexOf('rq')!==0||ns.length<3){console.warn('[rq] test reset refused in main build');return false;}
+    if(!(opts&&opts.noConfirm)&&!confirm('Удалить все данные тестовой версии? Основное приложение не затронется.'))return false;
     var pre=ns; /* 'rqt' — never matches 'rq_' */
     try{if(window.__rqWriter&&__rqWriter.release){__rqWriter.passive=true;__rqWriter.release();}}catch(e){}
     [localStorage,sessionStorage].forEach(function(st){for(var i=st.length-1;i>=0;i--){var k=st.key(i);if(k&&k.indexOf(pre)===0)__rqWriter.rawRemove(st,k);}});
@@ -549,7 +550,11 @@ body.mvp #sumDailyBox{display:block}
     try{var rg=await navigator.serviceWorker.getRegistration('./');if(rg&&rg.scope.indexOf('/test/')>0)await rg.unregister();}catch(e){} /* own test SW only */
     try{var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf(pre+'-')===0;}).map(function(k){return caches.delete(k);}));}catch(e){}
     location.reload();
-  });
+    return true;
+  };
+  if(ns==='rq')return;
+  document.getElementById('rqTestBanner').classList.remove('hidden');
+  document.getElementById('rqTestReset').addEventListener('click',function(){window.__rqTestReset();});
 })();
 </script>
 
@@ -4616,7 +4621,7 @@ document.addEventListener('click',function(ev){
 /* UI blocked until module boot calls __rqStart */
 </script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
-  <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
+  <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span>Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
@@ -4673,8 +4678,8 @@ document.addEventListener('click',function(ev){
     if(!auto)ov(true);
     await new Promise(function(done){
       var b=document.getElementById('rqOtherBtn');
-      var go=function(){takeover().then(function(ok){if(ok)done();else spin(false);});};
-      b.addEventListener('click',function h(){if(gate.booted){try{sessionStorage.setItem(RQ_K.takeover,'1');}catch(e){}location.reload();return;}go();});
+      var busy=false;var go=function(){if(busy)return;busy=true;b.disabled=true;/* one takeover per wait: no second steal */takeover().then(function(ok){busy=false;if(ok)done();else spin(false);});};
+      b.addEventListener('click',function h(){if(busy||b.disabled)return;if(gate.booted){try{sessionStorage.setItem(RQ_K.takeover,'1');}catch(e){}location.reload();return;}go();});
       if(auto){ov(true);go();}
     });
     ov(false);return true;

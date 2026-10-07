@@ -53,9 +53,9 @@ const scope = await p1.evaluate(async () => (await navigator.serviceWorker.getRe
 ok('(a) SW scope = /readquest/', scope === new URL(BASE).href, scope);
 let k = await keys(p1);
 ok('(a) cache rq-' + A + ' exists', k.includes('rq-' + A), k);
-const pre = await p1.evaluate(async (c) => (await (await caches.open(c)).keys()).map(r => new URL(r.url).pathname + new URL(r.url).search), 'rq-' + A);
+const pre0 = await p1.evaluate(async (c) => (await (await caches.open(c)).keys()).map(r => new URL(r.url).pathname + new URL(r.url).search), 'rq-' + A);
 ok('(a) precache has html, storage/, reader-session, pdf.js + worker, manifest, icons',
-  ['/readquest/', '/readquest/index.html', '/readquest/app.html', '/readquest/manifest.webmanifest', '/readquest/vendor/pdfjs/pdf.min.js', '/readquest/vendor/pdfjs/pdf.worker.min.js', '/readquest/icons/icon-maskable-512.png', `/readquest/storage/state.js?v=${A}`, `/readquest/reader-session.js?v=${A}`].every(x => pre.includes(x)), pre.length);
+  ['/readquest/', '/readquest/index.html', '/readquest/app.html', '/readquest/manifest.webmanifest', '/readquest/vendor/pdfjs/pdf.min.js', '/readquest/vendor/pdfjs/pdf.worker.min.js', '/readquest/icons/icon-maskable-512.png', `/readquest/storage/state.js?v=${A}`, `/readquest/reader-session.js?v=${A}`].every(x => pre0.includes(x)), pre0.length);
 
 // ---------- (f) manifest ----------
 const man = await p1.evaluate(async () => (await fetch('manifest.webmanifest')).json());
@@ -85,18 +85,55 @@ await p1.evaluate((id) => openBook(id), bookId); await sleep(600);
 const offRead = await p1.evaluate(() => !document.getElementById('reader').classList.contains('hidden') && !!R.book && (R.book.text || '').length > 1000);
 ok('(c) offline: previously imported book opens from IndexedDB', offRead);
 await p1.evaluate(() => closeReader()); await sleep(400);
+// /readquest/test/ is NOT ours: offline navigation there must fail (no SW fallback to the app)
+const probe = await p1.goto(BASE + 'test/probe.html', { waitUntil: 'load', timeout: 8000 }).then(r => ({ status: r && r.status(), sw: r && r.fromServiceWorker() }), e => ({ err: String(e.message).slice(0, 40) }));
+ok('(c) SW does not intercept /readquest/test/ (offline → network error, not cached app)', !!probe.err || (probe.sw === false && probe.status !== 200), probe);
 await p1.setOfflineMode(false);
+await p1.goto(BASE, { waitUntil: 'load' }); await ready(p1);
+const probe2 = await p1.goto(BASE + 'test/probe.html', { waitUntil: 'load' }).then(r => ({ status: r.status(), sw: r.fromServiceWorker() }));
+ok('(c) online /readquest/test/ request bypasses SW', probe2.sw === false, probe2);
+await p1.goto(BASE, { waitUntil: 'load' }); await ready(p1);
 
 // ---------- (b) update A → B ----------
 await p1.evaluate(async () => { await (await caches.open('other-x')).put('/readquest/foreign', new Response('x')); });
+// ---------- (A) old window stays on its build while a new build is deployed ----------
+const PDF = '/workspace/rqtest/pdf/b-nolabels-40.pdf';
+const swBuild = (p) => p.evaluate(() => new Promise((res) => { const c = navigator.serviceWorker.controller; if (!c) return res(null); const ch = new MessageChannel(); ch.port1.onmessage = (e) => res(e.data); c.postMessage({ t: 'build' }, [ch.port2]); setTimeout(() => res(null), 3000); }));
+{ const inpP = await p1.$('#fileInp'); await inpP.uploadFile(PDF); }
+await p1.waitForFunction(() => (S.userBooks || []).some(b => b.type === 'pdf'), { timeout: 15000 });
+const pdfId = await p1.evaluate(() => S.userBooks.find(b => b.type === 'pdf').id);
 build(B);
-await p1.reload({ waitUntil: 'load' }); await ready(p1);
+await p1.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update(); });
+await p1.waitForFunction(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting), { timeout: 15000 }).catch(() => {});
+const waitingB = await p1.evaluate(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting && !!r.active));
+ok('(A) new build B installed and WAITING while old window is open (no skipWaiting)', waitingB);
+await p1.evaluate(() => performance.clearResourceTimings());
+await p1.evaluate((id) => openBook(id), pdfId);
+await p1.waitForFunction(() => R.mode === 'pdf' && window.pdfjsLib && document.querySelector('#pdfWrap canvas'), { timeout: 20000 }).catch(() => {});
+await sleep(800);
+const ctlA = await swBuild(p1);
+ok('(A) old window still controlled by SW of build ' + A, ctlA && ctlA.build === A && ctlA.cache === 'rq-' + A, ctlA);
+const res = await p1.evaluate(() => performance.getEntriesByType('resource').filter(e => new URL(e.name).origin === location.origin && !e.name.startsWith('blob:')).map(e => ({ u: new URL(e.name).pathname + new URL(e.name).search, sw: e.workerStart > 0 })));
+const pdfFiles = res.filter(r => /vendor\/pdfjs/.test(r.u));
+const inA = await p1.evaluate(async (urls) => { const c = await caches.open(location.pathname.replace(/[^/]*$/, '') && 'rq-' + RQ_BUILD); const o = {}; for (const u of urls) o[u] = !!(await c.match(u)); return o; }, res.map(r => r.u));
+ok('(A) old window opens a PDF: pdf.js (+worker) loaded', pdfFiles.length >= 1 && await p1.evaluate(() => !!window.pdfjsLib), pdfFiles);
+ok('(A) every file it fetched came through the SW from cache rq-' + A + ' (no ?v=' + B + ')', res.length > 0 && res.every(r => r.sw && inA[r.u] && !r.u.includes('v=' + B)), res);
+ok('(A) old window page is build ' + A, await p1.evaluate(() => RQ_BUILD) === A);
+await p1.evaluate(() => closeReader()); await sleep(400);
+
+// ---------- (b) next open after all old windows closed → build B ----------
+await p1.close();
+p1 = await mk();
+await p1.goto(BASE, { waitUntil: 'load' }); await ready(p1);
 const shownB = await p1.evaluate(() => RQ_BUILD);
 ok('(b) next open shows new build ' + B, shownB === B, shownB);
 await p1.waitForFunction((b) => caches.keys().then(k => k.includes('rq-' + b) && !k.some(x => x.startsWith('rq-') && x !== 'rq-' + b)), { timeout: 15000 }, B).catch(() => {});
 k = await keys(p1);
 ok('(b) old rq-' + A + ' deleted, rq-' + B + ' present', !k.includes('rq-' + A) && k.includes('rq-' + B), k);
 ok('(b) foreign cache other-x survives', k.includes('other-x'), k);
+await p1.reload({ waitUntil: 'load' }); await ready(p1);
+const ctlB = await swBuild(p1);
+ok('(b) controlled by SW of build ' + B, ctlB && ctlB.build === B, ctlB);
 const mods = await p1.evaluate(() => performance.getEntriesByType('resource').map(e => e.name).filter(n => /\.js\?v=/.test(n)));
 ok('(b) no mixed builds: every module loaded with ?v=' + B, mods.length > 0 && mods.every(n => n.includes('v=' + B)), mods.length);
 
@@ -132,11 +169,14 @@ async function twoWindows(label, frozen) {
   const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2);
   const neu = s1.slice(s0);
   ok(`(${label}) unfinished session counted exactly once (1 new row, minutes>0)`, neu.length === 1 && neu[0].minutes > 0, neu.map(r => ({ id: r.id, minutes: r.minutes })));
+  console.log(`   [${label}] BEFORE`, JSON.stringify(g0));
+  console.log(`   [${label}] AFTER `, JSON.stringify(g1));
   const prev = g0.awarded;
   ok(`(${label}) awardedSessionIds kept + new row awarded once`, prev.every(x => g1.awarded.includes(x)) && g1.awarded.filter(x => x === (neu[0] || {}).id).length === 1 && new Set(g1.awarded).size === g1.awarded.length);
   ok(`(${label}) balance / dailyPaidDays / weeklyPaidWeeks preserved`, g1.gold >= g0.gold && g1.xp > g0.xp && g0.daily.every(x => g1.daily.includes(x)) && g0.weekly.every(x => g1.weekly.includes(x)), { g0: { gold: g0.gold, xp: g0.xp }, g1: { gold: g1.gold, xp: g1.xp } });
   await p2.reload({ waitUntil: 'load' }); await ready(p2); await sleep(500);
   const g2 = await gameOf(p2); const s2 = await idbAll(p2, 'sessions');
+  console.log(`   [${label}] RELOAD`, JSON.stringify(g2));
   ok(`(${label}) reload: no repeat payout`, JSON.stringify(g2) === JSON.stringify(g1) && s2.length === s1.length, { g1: [g1.gold, g1.xp], g2: [g2.gold, g2.xp] });
   // p1 becomes the old window for next round: swap roles by closing p1
   return p2;
@@ -144,7 +184,52 @@ async function twoWindows(label, frozen) {
 const pA = await twoWindows('e1', false);
 await p1.close(); p1 = pA;
 const pB = await twoWindows('e2', true);
-await p1.close();
+await p1.close(); p1 = pB;
+
+// ---------- (C) test build (NS rqt, /readquest/test/) never touches rq_* data, lock or cache ----------
+const TB = '20990101-0099';
+execSync(`RQ_NS=rqt RQ_BUILD=${TB} ./build-dist.sh`, { cwd: SRC, stdio: 'pipe' });
+const mainSnap = async () => ({
+  ls: await p1.evaluate(() => JSON.stringify(Object.keys(localStorage).filter(k => k.startsWith('rq_') && k !== 'rq_owner').sort().map(k => [k, localStorage.getItem(k)]))),
+  ses: JSON.stringify(await idbAll(p1, 'sessions')), ev: (await idbAll(p1, 'events')).length,
+  caches: JSON.stringify((await keys(p1)).filter(x => x.startsWith('rq-')).sort()),
+});
+await p1.bringToFront();
+const m0 = await mainSnap();
+const pt = await mk();
+pt.on('dialog', d => d.accept());
+const tnav = await pt.goto(BASE + 'test/', { waitUntil: 'load' });
+ok('(C) main SW does not serve /readquest/test/', tnav && !tnav.fromServiceWorker());
+await ready(pt);
+const tinfo = await pt.evaluate(() => ({ ns: RQ_NS, banner: !document.getElementById('rqTestBanner').classList.contains('hidden'), txt: document.getElementById('rqTestBanner').textContent, passive: __rqWriter.passive, idb: RQ_K.idb }));
+ok('(C) test build boots alongside main window (own lock), ТЕСТ banner shown', tinfo.ns === 'rqt' && tinfo.banner && tinfo.txt.includes('ТЕСТ') && !tinfo.passive && tinfo.idb === 'readquest-test', tinfo);
+await pt.evaluate(() => navigator.serviceWorker.ready); await pt.reload({ waitUntil: 'load' }); await ready(pt);
+const tsw = await pt.evaluate(async () => ({ scope: (await navigator.serviceWorker.getRegistration()).scope, ctl: navigator.serviceWorker.controller && navigator.serviceWorker.controller.scriptURL }));
+ok('(C) test SW scope /readquest/test/', tsw.scope === BASE + 'test/' && tsw.ctl === BASE + 'test/sw.js', tsw);
+const tman = await pt.evaluate(async () => (await fetch('manifest.webmanifest')).json());
+ok('(C) test manifest: own name/id/start_url in /readquest/test/, no orientation', tman.name === 'ReadQuest ТЕСТ' && new URL(tman.id, BASE + 'test/manifest.webmanifest').href === BASE + 'test/' && new URL(tman.start_url, BASE + 'test/manifest.webmanifest').href === BASE + 'test/' && !('orientation' in tman), { name: tman.name, id: tman.id, start: tman.start_url });
+{ const ti = await pt.$('#fileInp'); await ti.uploadFile(BOOK); }
+await pt.waitForFunction(() => (S.userBooks || []).length > 0, { timeout: 10000 });
+const tBook = await pt.evaluate(() => S.userBooks[0].id);
+await readSession(pt, tBook, 11); await pt.evaluate(() => closeReader()); await sleep(800);
+const tk = await pt.evaluate(() => ({ ls: Object.keys(localStorage).sort(), caches: [] }));
+tk.caches = await keys(pt);
+const tdbs = await pt.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
+ok('(C) test build wrote only rqt_* keys, readquest-test DB, rqt- cache', tk.ls.some(x => x === 'rqt_v1') && tk.caches.includes('rqt-' + TB) && tdbs.includes('readquest-test'), { ls: tk.ls, caches: tk.caches, dbs: tdbs });
+const heldT = await pt.evaluate(async () => (await navigator.locks.query()).held.map(l => l.name).sort());
+ok('(C) locks: main rq-writer and test rqt-writer held separately', heldT.includes('rq-writer') && heldT.includes('rqt-writer'), heldT);
+const m1 = await mainSnap();
+ok('(C) main rq_* data / sessions / events / rq- caches byte-identical after test-build session', JSON.stringify(m0) === JSON.stringify(m1), { ev0: m0.ev, ev1: m1.ev });
+ok('(C) main window still the writer', await p1.evaluate(() => !__rqWriter.passive));
+await pt.bringToFront();
+await Promise.all([pt.waitForNavigation({ waitUntil: 'load' }), pt.click('#rqTestReset')]); await ready(pt); await sleep(500);
+const after = await pt.evaluate(async () => ({ ses: (await __rq.listSessions({})).length, books: (S.userBooks || []).length }));
+const tdbs2 = await pt.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
+const tc2 = await keys(pt);
+ok('(C) «Сбросить тест» cleared test data only (fresh test app, rqt cache recreated only by SW)', after.ses === 0 && after.books === 0 && tc2.filter(x => x.startsWith('rqt-')).length <= 1, { after, tdbs2, tc2 });
+const m2 = await mainSnap();
+ok('(C) reset left main rq_* / readquest DB / rq- caches untouched', JSON.stringify(m0) === JSON.stringify(m2) && tdbs2.includes('readquest'));
+await pt.close();
 
 // ---------- TODO (stage 1, not this build) ----------
 console.log('TODO (stage 1): mvp-check — backup import with legacy `cur` object (v6) must not break MVP lock-downs / payouts.');

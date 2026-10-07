@@ -4,6 +4,7 @@
  *   import { bootStorage, logSession, listSessions, logReadingEvent } from './storage/index.js';
  */
 export {
+  NS,
   SCHEMA_VERSION,
   KEYS,
   PROGRESS_DEF,

@@ -192,6 +192,35 @@ reproduction on 1306). Shots: `shots/pdf-fix/`.
 - `test/pdf-verify.mjs`: 37 checks (regression + watchdog steps, capped skip of mid-resize empty frames); `metrics.py` stall line.
 - Results: pdf-verify 37/37 ×3, android-verify 71/71, mvp-check 27/27. Live on `main` (old `/test/` removed).
 
+## Этап 0 — приложение (PWA mini-build, branch `pwa`)
+
+### Контракт (копия из `readquest-arch/reader-contract.md`, без изменений)
+- Замок одного писателя: `navigator.locks.request('rq-writer')`. Без замка окно не пишет ни в `rq_v1`, ни в IndexedDB.
+- «Открыть здесь»: запрос через `BroadcastChannel('rq')`, ждать 2 с, затем `{steal:true}`. Потерявшее замок окно перестаёт писать и показывает экран «открыт в другом окне».
+- Незакрытая сессия старого окна доначисляется в новом через `awardPendingSessions()` ровно один раз.
+- Сервис-воркер: scope `/readquest/`, кеш `rq-<build>`, удаляет только `rq-*`, не трогает книги и `blob:`; `app.html` берёт из сети (network-first).
+- `navigator.storage.persist()` при запуске; событие `storage_persist {granted}`.
+- Манифест без `orientation`.
+
+### Как сделано в коде
+- **Namespace `NS`** (build-time, `RQ_NS=rq|rqt ./build-dist.sh`, default `rq`): `window.RQ_NS` / `window.RQ_K` in the first `<script>` of `app.html`, `NS` in `storage/schema.js`, `DRAFT_KEY` in `reader-session.js`, `const NS` in `sw.js`. Derived: `NS_v1`, `NS_set`, `NS_owner`, `NS_session_draft`, `NS_migrated_v1`; IndexedDB `readquest` (rq) / `readquest-test` (rqt); lock `NS-writer`; `BroadcastChannel(NS)`; cache `NS-<build>`. Test build → `dist/test/` (`/readquest/test/`): own SW scope, «ТЕСТ» banner, «Сбросить тест» (deletes only `rqt*` keys, `readquest-test`, `rqt-*` caches, unregisters the test SW), manifest `ReadQuest ТЕСТ`, icons from `readquest-ui/pwa/test/` if present else `icons-test/` (placeholder). Local only, not deployed.
+- **Write guard** (first `<script>` of `app.html`, before any app code): `Storage.prototype.setItem/removeItem` are wrapped — for `localStorage` keys matching `^NS_` (except `NS_owner`) the call is silently dropped when the window may not write. `IDBDatabase.prototype.transaction` is wrapped — a `readwrite` transaction in a non-writer window **throws `DOMException('ReadQuest: passive window','ReadOnlyError')`**. So a `ReadOnlyError` in the console / a rejected `logSession`/`addEvent` comes from this guard, not from the browser. Readonly transactions are untouched. `save()` also returns early. "May write" = `!gate.passive` **and** `localStorage.NS_owner === this window id` (synchronous check, so a thawed frozen tab that was stolen from stops writing even before its lock-abort promise fires; it then demotes itself).
+- **Lock:** at boot `navigator.locks.request(NS-writer, {ifAvailable:true})` before `bootStorage()`; a window without the lock never boots storage. Takeover: `postMessage({t:'takeover'})` → holder runs `closeReader()` (normal session end), `saveFlat`, becomes passive, releases; requester waits ≤2 s, else `{steal:true}`. Lock loss (AbortError on the held request, or foreign `NS_owner`) → passive, `hydrateS(loadFlat())` read-only, overlay, no toast.
+- **SW** (`sw.js`, generated precache incl. `?v=BUILD` URLs): no `skipWaiting` — a new SW waits until every old window is closed, so an open old window gets all files (also lazily loaded pdf.js) from its own `NS-<oldbuild>` cache. Navigations network-first with `cache:'no-cache'`; network copies are not stored (cache = only this SW's build). Static: cache-first from own cache, else network. Skips non-GET, cross-origin, `blob:`/`data:`, book extensions, paths outside scope, and (main SW) `/readquest/test/`. Activate deletes only `NS-*` ≠ current.
+- **persist:** after the lock is held, once per launch, `logAnalyticsEvent({type:'storage_persist', granted})` → `events`.
+- Tests: `test/pwa-verify.mjs` (rebuilds dist, run it alone).
+
+### Отличия кода от контракта
+1. Lock is requested with `{ifAvailable:true}` (non-blocking) instead of a plain `request('rq-writer')`; and the name is `NS-writer` (`rq-writer` in main, `rqt-writer` in test).
+2. Cooperative takeover: the old window ends its session itself (`closeReader()` writes the row and pays it). Only on steal (frozen tab) the session is finished in the new window — by `recoverDraft()` (draft → `sessions[]` row) followed by `awardPendingSessions()` at boot. `awardPendingSessions()` runs only in MVP (`isMvp()`), as before.
+3. Extra guard beyond the contract: synchronous `NS_owner` ownership check before every write; guard also covers `NS_set` and `NS_session_draft`, not only `rq_v1` / IndexedDB.
+4. Network-first applies to every navigation (`./`, `index.html`, `app.html`), not just `app.html`; the network copy is not written to cache.
+5. SW update: new build activates only after all old windows are closed (no `skipWaiting`). Contract doesn't specify; "next open" = next launch after the app was fully closed.
+6. SW also ignores book-file extensions and `/readquest/test/`; cache prefix is `NS-` (`rq-`/`rqt-`), and each SW deletes only its own prefix.
+7. `storage_persist` is logged only by the writer window (passive windows skip it) and only if `navigator.storage.persist` exists.
+8. No `navigator.locks` → app works as before without the single-writer guarantee (contract silent).
+9. Test-build namespace (`rqt`) and the `readquest-test` DB are an addition, not in the contract.
+
 ## Gaps / next
 
 - 4-screen MVP — see `MVP.md` (`SET.mvp`, focus mode, rewards sheet).

@@ -1,7 +1,13 @@
-/* ReadQuest service worker. Build number + precache list injected by build-dist.sh. */
+/* ReadQuest service worker. NS, build number + precache list injected by build-dist.sh.
+ * NS 'rq' = main app (scope /readquest/), 'rqt' = test build (scope /readquest/test/).
+ * Update strategy: NO skipWaiting. A new SW installs (precaches its own NS-<build>) and waits;
+ * it activates only when every window of the old build is closed, so an open old window keeps
+ * getting ALL its files (incl. lazily loaded pdf.js) from its own cache — never mixed builds.
+ * HTML is network-first, so the next open after all windows closed shows the new build. */
 'use strict';
+const NS = '__RQ_NS__';
 const BUILD = '__RQ_BUILD__';
-const CACHE = 'rq-' + BUILD;
+const CACHE = NS + '-' + BUILD;
 const PRECACHE = __RQ_PRECACHE__;
 
 self.addEventListener('install', function (e) {
@@ -12,14 +18,19 @@ self.addEventListener('install', function (e) {
         return c.put(u, r);
       });
     }));
-  }).then(function () { return self.skipWaiting(); }));
+  }));
 });
 
 self.addEventListener('activate', function (e) {
+  /* only our own namespace: 'rq-' never matches 'rqt-' and vice versa; foreign caches untouched */
   e.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k.indexOf('rq-') === 0 && k !== CACHE; })
+    return Promise.all(keys.filter(function (k) { return k.indexOf(NS + '-') === 0 && k !== CACHE; })
       .map(function (k) { return caches.delete(k); }));
-  }).then(function () { return self.clients.claim(); }));
+  }).then(function () { return self.clients.claim(); })); /* first install only: no older controller exists */
+});
+
+self.addEventListener('message', function (e) {
+  if (e.data && e.data.t === 'build' && e.ports && e.ports[0]) e.ports[0].postMessage({ ns: NS, build: BUILD, cache: CACHE });
 });
 
 function isBook(url) { return /\.(pdf|fb2|epub|txt|zip)$/i.test(url.pathname); }
@@ -29,22 +40,21 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;          /* also excludes blob:, data: */
-  const scope = new URL(self.registration.scope);
-  if (url.pathname.indexOf(scope.pathname) !== 0) return;   /* only /readquest/ */
+  const scope = new URL(self.registration.scope).pathname;
+  if (url.pathname.indexOf(scope) !== 0) return;
+  /* main SW: /readquest/test/ is a separate deployment with its own SW — never ours */
+  if (NS === 'rq' && url.pathname.indexOf(scope + 'test/') === 0) return;
   if (isBook(url)) return;                                  /* books live in IndexedDB */
   if (req.mode === 'navigate') {
-    /* network-first, bypass HTTP cache (Pages max-age=600) so a new build is seen on next open */
-    e.respondWith(fetch(req, { cache: 'no-cache' }).then(function (r) {
-      if (r && r.ok) { const cp = r.clone(); caches.open(CACHE).then(function (c) { c.put(url.pathname.endsWith('/') ? './' : req, cp); }); }
-      return r;
-    }).catch(function () {
+    /* network-first, bypass HTTP cache (Pages max-age=600). The network copy is NOT stored:
+       the cache only ever holds this SW's own build, so offline = consistent old build. */
+    e.respondWith(fetch(req, { cache: 'no-cache' }).catch(function () {
       return caches.open(CACHE).then(function (c) {
         return c.match(req, { ignoreSearch: true }).then(function (m) { return m || c.match('./') || c.match('index.html'); });
       });
     }));
     return;
   }
-  /* static: cache-first from the versioned cache only (never another rq- build) */
   e.respondWith(caches.open(CACHE).then(function (c) {
     return c.match(req).then(function (m) { return m || fetch(req); });
   }));

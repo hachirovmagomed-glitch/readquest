@@ -33,7 +33,7 @@
 import { localDay, newSessionId } from './storage/sessions.js';
 export { newSessionId };
 
-export const DRAFT_KEY = 'rq_session_draft';
+export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* quota */ } }

@@ -2,7 +2,10 @@
 # Build a clean static site into dist/ (GitHub Pages / any static host).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-DIST="$ROOT/dist"
+# RQ_NS: 'rq' (main, dist/ → /readquest/) or 'rqt' (test build, dist/test/ → /readquest/test/).
+# Test build: run AFTER the main build (main build wipes dist/). Local only for now.
+NS="${RQ_NS:-rq}"
+case "$NS" in rq) DIST="${RQ_DIST:-$ROOT/dist}";; rqt) DIST="${RQ_DIST:-$ROOT/dist/test}";; *) echo "RQ_NS must be rq or rqt" >&2; exit 1;; esac
 rm -rf "$DIST"
 mkdir -p "$DIST/storage" "$DIST/icons"
 
@@ -12,7 +15,19 @@ cp "$ROOT/app.html" "$DIST/app.html"
 cp "$ROOT/reader-session.js" "$DIST/reader-session.js"
 cp "$ROOT/game-awards.js" "$DIST/game-awards.js"
 cp "$ROOT/manifest.webmanifest" "$DIST/manifest.webmanifest"
-cp "$ROOT/icons/"*.png "$DIST/icons/"
+if [ "$NS" = rq ]; then
+  cp "$ROOT/icons/"*.png "$DIST/icons/"
+else
+  TI="${RQ_TEST_ICONS:-/workspace/readquest-ui/pwa/test}"   # Интерфейс's test icons if present
+  [ -f "$TI/icon-192.png" ] && [ -f "$TI/icon-512.png" ] && [ -f "$TI/icon-maskable-512.png" ] || TI="$ROOT/icons-test"  # placeholder
+  cp "$TI/icon-192.png" "$TI/icon-512.png" "$TI/icon-maskable-512.png" "$DIST/icons/"
+  python3 - "$DIST/manifest.webmanifest" << 'EOP'
+import json,sys
+p=sys.argv[1]; m=json.load(open(p))
+m.update(name='ReadQuest ТЕСТ', short_name='RQ ТЕСТ', id='./', start_url='./', scope='./')
+json.dump(m,open(p,'w'),ensure_ascii=False,indent=2)
+EOP
+fi
 cp "$ROOT/sw.js" "$DIST/sw.js"
 
 # Storage modules only (no harness)
@@ -24,10 +39,10 @@ done
 # Every relative ES-module specifier gets the SAME ?v=BUILD, so module identity stays consistent.
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 for f in "$DIST/index.html" "$DIST/app.html"; do
-  sed -i -E "s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g" "$f"
+  sed -i -E "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g" "$f"
 done
 find "$DIST" -name '*.js' -print0 | xargs -0 sed -i -E "s#'(\.{1,2}/[^'?]+\.js)'#'\1?v=$BUILD'#g"
-echo "Build marker: $BUILD"
+echo "Build marker: $BUILD (NS=$NS)"
 
 # Vendored pdf.js (3.11.174, Apache-2.0) + its worker — copied AFTER the ?v= rewrite so the library is byte-identical.
 mkdir -p "$DIST/vendor/pdfjs"
@@ -36,7 +51,7 @@ cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
 PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE | sed 's#^\./##' | sort | while read -r f; do
   case "$f" in vendor/*) echo "\"$f\"";; *.js) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
-sed -i "s/__RQ_BUILD__/$BUILD/g; s#__RQ_PRECACHE__#[\"./\",$PRE]#" "$DIST/sw.js"
+sed -i "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#__RQ_PRECACHE__#[\"./\",$PRE]#" "$DIST/sw.js"
 
 # Tiny README for deployers
 cat > "$DIST/README.txt" << 'EOR'

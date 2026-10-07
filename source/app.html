@@ -9,11 +9,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ReadQuest">
 <script>
-/* ===== PWA: single writer (rq-writer) + hard write gate. Runs before any app code. ===== */
+/* ===== Namespace (build-time): 'rq' main · 'rqt' test build (/readquest/test/). Source/unbuilt → 'rq'. ===== */
+(function(){
+  var ns='__RQ_NS__'; if(ns.indexOf('__')===0)ns='rq';
+  window.RQ_NS=ns;
+  window.RQ_K={v1:ns+'_v1',set:ns+'_set',owner:ns+'_owner',migrated:ns+'_migrated_v1',takeover:ns+'_takeover',
+    legacy:ns==='rq'?'readquest':ns+'_readquest',idb:ns==='rq'?'readquest':'readquest-test',lock:ns+'-writer',bc:ns,cache:ns+'-'};
+})();
+/* ===== PWA: single writer (NS-writer) + hard write gate. Runs before any app code. ===== */
 (function(){
   'use strict';
   var ID=(self.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Math.random()).slice(2)+Date.now();
-  var OWNER='rq_owner', gate={passive:false, id:ID};
+  var K=window.RQ_K, OWNER=K.owner, NSRE=new RegExp('^'+window.RQ_NS+'_'), gate={passive:false, id:ID};
   window.__rqWriter=gate;
   var LS=Object.getOwnPropertyDescriptor(Storage.prototype,'setItem').value;
   var LR=Storage.prototype.removeItem, LG=Storage.prototype.getItem;
@@ -24,7 +31,7 @@
     return true;
   }
   gate.mayWrite=mayWrite;
-  function isRq(st,k){return st===window.localStorage&&/^rq_/.test(String(k))&&k!==OWNER;}
+  function isRq(st,k){return st===window.localStorage&&NSRE.test(String(k))&&k!==OWNER;}
   Storage.prototype.setItem=function(k,v){if(isRq(this,k)&&!mayWrite())return;return LS.call(this,k,v);};
   Storage.prototype.removeItem=function(k){if(isRq(this,k)&&!mayWrite())return;return LR.call(this,k);};
   if(window.IDBDatabase){
@@ -34,6 +41,7 @@
       return T.apply(this,arguments);
     };
   }
+  gate.rawRemove=function(st,k){return LR.call(st,k);}; /* test-build reset only */
   gate.setOwner=function(){try{LS.call(localStorage,OWNER,ID);}catch(e){}};
 })();
 </script>
@@ -526,6 +534,24 @@ body.mvp #sumDailyBox{display:block}
 </style>
 </head>
 <body>
+<div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:24px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
+<script>
+/* Test build only (NS!=='rq'): banner + reset that deletes ONLY this namespace (rqt* keys, readquest-test DB, rqt-* caches). */
+(function(){
+  var ns=window.RQ_NS; if(ns==='rq')return;
+  document.getElementById('rqTestBanner').classList.remove('hidden');
+  document.getElementById('rqTestReset').addEventListener('click',async function(){
+    if(!confirm('Удалить все данные тестовой версии? Основное приложение не затронется.'))return;
+    var pre=ns; /* 'rqt' — never matches 'rq_' */
+    try{if(window.__rqWriter&&__rqWriter.release){__rqWriter.passive=true;__rqWriter.release();}}catch(e){}
+    [localStorage,sessionStorage].forEach(function(st){for(var i=st.length-1;i>=0;i--){var k=st.key(i);if(k&&k.indexOf(pre)===0)__rqWriter.rawRemove(st,k);}});
+    await new Promise(function(r){var q=indexedDB.deleteDatabase(RQ_K.idb);q.onsuccess=q.onerror=q.onblocked=function(){r();};});
+    try{var rg=await navigator.serviceWorker.getRegistration('./');if(rg&&rg.scope.indexOf('/test/')>0)await rg.unregister();}catch(e){} /* own test SW only */
+    try{var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf(pre+'-')===0;}).map(function(k){return caches.delete(k);}));}catch(e){}
+    location.reload();
+  });
+})();
+</script>
 
 <!-- БИБЛИОТЕКА -->
 <div id="library" class="screen">
@@ -1600,9 +1626,9 @@ el('fileInp').onchange=async e=>{
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
 const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focusMode:true};
-try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem('rq_set')||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
+try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 if(!SET.nav)SET.nav={btns:false,tap:true,invert:false,swipe:true};
-function saveSet(){try{localStorage.setItem('rq_set',JSON.stringify(SET));}catch(e){}}
+function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
 function applySet(){
   const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
@@ -3064,7 +3090,7 @@ el('goalPlus').onclick=()=>{if(isMvp())return;S.goal=Math.min(120,S.goal+5);save
 el('btnReset').onclick=()=>{
   if(!confirm('Точно сбросить весь прогресс?'))return;
   if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
-  try{localStorage.removeItem('rq_v1');localStorage.removeItem('rq_migrated_v1');localStorage.removeItem('readquest');}catch(e){}
+  try{localStorage.removeItem(RQ_K.v1);localStorage.removeItem(RQ_K.migrated);localStorage.removeItem(RQ_K.legacy);}catch(e){}
   location.reload();
 };
 
@@ -3295,7 +3321,7 @@ function idb(){
   /* Same DB as storage/idb.js (v3: files + sessions + events). Prefer __rq.idb when booted. */
   if(__rq&&__rq.idb&&__rq.idb.openDb)return __rq.idb.openDb();
   return new Promise(function(res,rej){
-    const r=indexedDB.open('readquest',3);
+    const r=indexedDB.open(RQ_K.idb,3);
     r.onupgradeneeded=function(){
       const db=r.result;
       if(!db.objectStoreNames.contains('files'))db.createObjectStore('files');
@@ -3774,7 +3800,7 @@ el('btnUnhide').onclick=()=>{S.hidden=[];save();renderLibrary();flashMsg('Дем
 el('btnReset2').onclick=()=>{
   if(!confirm('Точно сбросить весь прогресс?'))return;
   if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
-  try{localStorage.removeItem('rq_v1');localStorage.removeItem('rq_migrated_v1');localStorage.removeItem('readquest');}catch(e){}
+  try{localStorage.removeItem(RQ_K.v1);localStorage.removeItem(RQ_K.migrated);localStorage.removeItem(RQ_K.legacy);}catch(e){}
   location.reload();
 };
 el('btnExport').onclick=async ()=>{
@@ -4589,9 +4615,9 @@ document.addEventListener('click',function(ev){
 });
 /* UI blocked until module boot calls __rqStart */
 </script>
-<div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:#0c2127;color:#e6f1f2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
-  <h2 id="rqOtherH" style="font-size:20px;margin:0 0 12px">ReadQuest открыт в другом окне</h2>
-  <p style="font-size:14px;opacity:.75;margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
+<div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
+  <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
+  <p style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span>Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
@@ -4600,8 +4626,9 @@ document.addEventListener('click',function(ev){
 (function(){
   'use strict';
   var gate=window.__rqWriter, TAKEOVER_MS=2000, bc=null, waitRelease=null;
-  try{bc=new BroadcastChannel('rq');}catch(e){}
-  function ov(on){var o=document.getElementById('rqOther');if(o)o.classList.toggle('hidden',!on);}
+  try{bc=new BroadcastChannel(RQ_K.bc);}catch(e){}
+  function themeRO(){try{var v=JSON.parse(localStorage.getItem(RQ_K.v1)||'{}');if(v.game&&v.game.appTheme)S.appTheme=v.game.appTheme;applyAppTheme();}catch(e){}} /* read-only: CSS vars only */
+  function ov(on){if(on)themeRO();var o=document.getElementById('rqOther');if(o)o.classList.toggle('hidden',!on);}
   function spin(on){var b=document.getElementById('rqOtherBtn');if(!b)return;b.disabled=on;b.querySelector('.rq-spin').classList.toggle('hidden',!on);}
   /* lose writer role: from here on this window writes nothing; re-read storage for display, show overlay silently */
   gate.demote=function(why){
@@ -4613,7 +4640,7 @@ document.addEventListener('click',function(ev){
   };
   function hold(opts){
     return new Promise(function(res){
-      navigator.locks.request('rq-writer',opts,function(lock){
+      navigator.locks.request(RQ_K.lock,opts,function(lock){
         if(!lock){res(false);return;}
         gate.passive=false;gate.setOwner();res(true);
         return new Promise(function(rel){gate.release=rel;});
@@ -4639,14 +4666,15 @@ document.addEventListener('click',function(ev){
   window.__rqAcquire=async function(){
     if(!navigator.locks||!navigator.locks.request)return true; /* fallback: as before */
     gate.locks=true;
-    var auto=false;try{auto=sessionStorage.getItem('rq_takeover')==='1';sessionStorage.removeItem('rq_takeover');}catch(e){}
-    if(!auto&&await hold({ifAvailable:true}))return true;
+    var auto=false;try{auto=sessionStorage.getItem(RQ_K.takeover)==='1';sessionStorage.removeItem(RQ_K.takeover);}catch(e){}
+    /* reload race: the previous document of THIS tab may still hold the lock for a moment → retry ~1 s before showing the overlay */
+    if(!auto){for(var i=0;i<7;i++){if(await hold({ifAvailable:true}))return true;await new Promise(function(r){setTimeout(r,150);});}}
     gate.passive=true;
     if(!auto)ov(true);
     await new Promise(function(done){
       var b=document.getElementById('rqOtherBtn');
       var go=function(){takeover().then(function(ok){if(ok)done();else spin(false);});};
-      b.addEventListener('click',function h(){if(gate.booted){try{sessionStorage.setItem('rq_takeover','1');}catch(e){}location.reload();return;}go();});
+      b.addEventListener('click',function h(){if(gate.booted){try{sessionStorage.setItem(RQ_K.takeover,'1');}catch(e){}location.reload();return;}go();});
       if(auto){ov(true);go();}
     });
     ov(false);return true;

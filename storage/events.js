@@ -4,9 +4,9 @@
  * Do NOT invent separate DBs for focus / anti-cheat — those are rules on top of events.
  * Do NOT put analytics into sessions[] — sessions stay reading-only.
  */
-import { IDB_STORE_EVENTS } from './schema.js?v=20261006-1537';
-import { openDb } from './idb.js?v=20261006-1537';
-import { normalizeDate } from './sessions.js?v=20261006-1537';
+import { IDB_STORE_EVENTS } from './schema.js?v=20261007-1118';
+import { openDb } from './idb.js?v=20261007-1118';
+import { normalizeDate } from './sessions.js?v=20261007-1118';
 
 async function addEvent(rec) {
   const db = await openDb();
@@ -77,6 +77,11 @@ export async function logAnalyticsEvent(entry) {
     const ms = Number(entry.pageVisibleMs);
     if (Number.isFinite(ms) && ms >= 0) rec.pageVisibleMs = ms;
   }
+  // pdf_stall_recovered diagnostics: page (0-based index), label (printed), stalledMs, reason (render why)
+  if (entry.page != null && Number.isFinite(Number(entry.page))) rec.page = Number(entry.page);
+  if (entry.stalledMs != null && Number.isFinite(Number(entry.stalledMs))) rec.stalledMs = Math.max(0, Math.round(Number(entry.stalledMs)));
+  if (entry.label != null) rec.label = String(entry.label).slice(0, 32);
+  if (entry.reason != null) rec.reason = String(entry.reason).slice(0, 32);
   return addEvent(rec);
 }
 

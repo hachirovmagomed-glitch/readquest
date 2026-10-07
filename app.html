@@ -482,6 +482,7 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .mvp-hist{font-size:12px;color:var(--muted);margin-top:10px}
 .mvp-hist li{margin:4px 0}
 body.mvp .mvp-hide{display:none!important}
+body:not(.dev) .dev-only{display:none!important}
 body.mvp #goldChip,body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
 body.mvp #drawer .ditem:not(#dLib):not(#dProf):not(#dSet){display:none!important}
 body.mvp #sumGoldCell,body.mvp #sumStatCell,body.mvp #luckLbl,body.mvp #sumBadges,body.mvp #lvlUp{display:none!important}
@@ -508,7 +509,7 @@ body.mvp #sumDailyBox{display:block}
         <text id="ringTxt" x="40" y="45" text-anchor="middle">0%</text>
       </svg>
       <div>
-        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель дня: 15 мин</b><button class="stepbtn" id="goalMinus">−</button><button class="stepbtn" id="goalPlus">＋</button></div>
+        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
         <div class="sub" id="goalSub">Сегодня: 0 мин</div>
         <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt">🔥 0 дней</span><span id="lvlTxt">⭐ Ур. 1</span></div>
       </div>
@@ -620,25 +621,25 @@ body.mvp #sumDailyBox{display:block}
     <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuSet">☰</button><h1>⚙️ Настройки</h1></div>
         <h2>MVP</h2>
     <div class="pcard">
-      <div class="setrow"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
+      <div class="setrow dev-only"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
       <div class="setrow"><div class="lab">Режим фокуса в читалке<div class="sub">Без RPG-тостов во время сессии; награда только на итоге</div></div><button class="ghostbtn" id="focusTgl">Вкл</button></div>
     </div>
     <h2>Язык · Language</h2>
     <div class="pcard"><div class="seg" id="langSeg"></div></div>
     <h2>Честное чтение</h2>
     <div class="pcard">
-      <div class="setrow"><div class="lab">Мин. время на страницу<div class="sub">Быстрее — страница не идёт в прогресс. Настройте под свою скорость чтения.</div></div>
-        <button class="stepbtn" id="antiMinMinus">−</button><b id="antiMinVal" style="width:56px;text-align:center"></b><button class="stepbtn" id="antiMinPlus">＋</button></div>
+      <div class="setrow"><div class="lab">Мин. время на страницу<div class="sub">Быстрее — страница не идёт в прогресс.<span class="mvp-hide"> Настройте под свою скорость чтения.</span></div></div>
+        <button class="stepbtn mvp-hide" id="antiMinMinus">−</button><b id="antiMinVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMinPlus">＋</button></div>
       <div class="setrow"><div class="lab">Макс. время на страницу<div class="sub">Дольше — лишнее время не идёт в опыт (защита от «висящей» книги)</div></div>
-        <button class="stepbtn" id="antiMaxMinus">−</button><b id="antiMaxVal" style="width:56px;text-align:center"></b><button class="stepbtn" id="antiMaxPlus">＋</button></div>
+        <button class="stepbtn mvp-hide" id="antiMaxMinus">−</button><b id="antiMaxVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMaxPlus">＋</button></div>
       <div class="setrow"><div class="lab">Цель дня</div>
-        <button class="stepbtn" id="goalMinus2">−</button><b id="goalVal2" style="width:56px;text-align:center"></b><button class="stepbtn" id="goalPlus2">＋</button></div>
+        <button class="stepbtn mvp-hide" id="goalMinus2">−</button><b id="goalVal2" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="goalPlus2">＋</button></div>
     </div>
     <h2>Оформление приложения</h2>
     <div class="pcard">
       <div class="seg" id="appThemeBox"></div>
       <div style="font-size:12px;color:var(--muted);margin-top:10px">🌗 Авто — светлая тема днём (7:00–21:00), тёмная ночью</div>
-      <div class="setrow" style="margin-top:6px"><div class="lab">🧙 Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn" id="pixelTgl">Выкл</button></div>
+      <div class="setrow" style="margin-top:6px"><div class="lab">🧙 Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>
     <h2>Удобство</h2>
     <div class="pcard">
@@ -648,16 +649,16 @@ body.mvp #sumDailyBox{display:block}
       <div class="setrow"><div class="lab">Масштаб интерфейса</div>
         <button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
     </div>
-    <h2>🧪 Тест-режим</h2>
-    <div class="pcard">
+    <h2 class="dev-only">🧪 Тест-режим</h2>
+    <div class="pcard dev-only">
       <div class="setrow"><div class="lab">∞ Бесконечная валюта<div class="sub">Для тестирования: покупки бесплатны, баланс показывает ∞. Выключите перед обычной игрой.</div></div><button class="ghostbtn" id="devMoneyTgl">Выкл</button></div>
     </div>
-    <h2>Сложность книг</h2>
-    <div class="pcard">
+    <h2 class="mvp-hide">Сложность книг</h2>
+    <div class="pcard mvp-hide">
       <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги ⓘ. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
     </div>
-    <h2>ИИ-помощник (экспериментально)</h2>
-    <div class="pcard">
+    <h2 class="mvp-hide">ИИ-помощник (экспериментально)</h2>
+    <div class="pcard mvp-hide">
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Вставьте API-ключ OpenAI-совместимого сервиса — кнопка ✨ при выделении текста будет объяснять фрагменты. Ключ хранится только на этом устройстве.</div>
       <input class="searchinp" id="aiKey" type="password" placeholder="API-ключ (sk-...)" style="margin-bottom:8px">
       <input class="searchinp" id="aiModel" placeholder="Модель (gpt-4o-mini)">
@@ -846,7 +847,7 @@ body.mvp #sumDailyBox{display:block}
       <button id="spNote">📝 +заметка</button>
       <button id="spWord" title="В словарь">📖</button>
       <button id="spDict">🌐</button>
-      <button id="spAI">✨</button>
+      <button id="spAI" class="mvp-hide">✨</button>
       <button id="spCopy">📋</button>
     </div>
   </div>
@@ -948,8 +949,32 @@ body.mvp #sumDailyBox{display:block}
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261006-1537'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261007-1118'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
+/* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
+const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
+function goalMin(){return isMvp()?MVP_GOAL:(S.goal||10);}
+function antiCfg(){return isMvp()?{minSec:MVP_ANTI.minSec,maxMin:MVP_ANTI.maxMin}:(S.anti||{minSec:12,maxMin:3});}
+/** Boot/import only: a backup with settings.mvp=false must not disable MVP lock-downs.
+ *  ?dev=1 can still flip MVP off in-session via #mvpTgl; the next reload forces it back on. */
+function mvpForceOn(){
+  if(SET.mvp!==false)return false;
+  SET.mvp=true;return true;
+}
+/** MVP: overwrite persisted goal / anti / devMoney with the fixed values. true if S changed. */
+function mvpEnforce(){
+  if(!isMvp())return false;
+  let ch=false;
+  if(S.goal!==MVP_GOAL){S.goal=MVP_GOAL;ch=true;}
+  if(!S.anti||typeof S.anti!=='object'){S.anti={minSec:12,maxMin:3,v:2};ch=true;}
+  if(S.anti.minSec!==MVP_ANTI.minSec){S.anti.minSec=MVP_ANTI.minSec;ch=true;}
+  if(S.anti.maxMin!==MVP_ANTI.maxMin){S.anti.maxMin=MVP_ANTI.maxMin;ch=true;}
+  if(S.devMoney!==false){S.devMoney=false;ch=true;}
+  return ch;
+}
+/* ?dev=1 shows the MVP switch and «Тест-режим» (body.dev; .dev-only is hidden otherwise) */
+const RQ_DEV=/[?&]dev=1(?:&|$)/.test(location.search);
+document.body.classList.toggle('dev',RQ_DEV);
 function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
   document.body.classList.toggle('mvp', isMvp());
@@ -986,7 +1011,7 @@ let SESS=[];
 function dayMin(key){let m=0;for(let i=0;i<SESS.length;i++){const r=SESS[i];if(r&&String(r.date).slice(0,10)===key)m+=Number(r.minutes)||0;}return m;}
 function minTodaySess(){return dayMin(today());}
 function daysInWeekAtGoal(minNeed,wk){
-  const need=minNeed!=null?minNeed:(S.goal||10);
+  const need=minNeed!=null?minNeed:goalMin();
   wk=wk||weekKey(today());
   const days=window.__rqGame?window.__rqGame.daysAtGoalInWeek(SESS,wk,need):[];
   return {count:days.length,days:days,need:need,week:wk};
@@ -999,17 +1024,17 @@ function awardPendingSessions(){
   const G=window.__rqGame;
   const res=G.applySessionAwards(S,SESS);
   const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
-  const q=G.applyQuestAwards(S,SESS,fresh,{goal:S.goal||10});
+  const q=G.applyQuestAwards(S,SESS,fresh,{goal:goalMin()});
   res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
   if(res.ids.length||q.gold)save();
   return res;
 }
 function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}
 function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today()))>=0;}
-function mvpDailyProg(day){const g=S.goal||10;return Math.min(1,dayMin(day||today())/g);}
-function mvpDailyInfo(day){return Math.round(dayMin(day||today()))+' / '+(S.goal||10)+' мин';}
-function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(S.goal||10,wk);return Math.min(1,w.count/4);}
-function mvpWeeklyInfo(wk){const w=daysInWeekAtGoal(S.goal||10,wk);return Math.min(4,w.count)+' / 4 дня';}
+function mvpDailyProg(day){const g=goalMin();return Math.min(1,dayMin(day||today())/g);}
+function mvpDailyInfo(day){return Math.floor(dayMin(day||today()))+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
+function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(1,w.count/4);}
+function mvpWeeklyInfo(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(4,w.count)+' / 4 дня';}
 function renderMvpQuests(){
   /* Status only — daily/weekly gold is paid automatically on the session summary */
   const box=el('mvpQuestBox');if(!box)return;
@@ -1022,12 +1047,12 @@ function renderMvpQuests(){
     '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">Неделя +120 🪙</span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+mvpWeeklyInfo()+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div>'+
-      '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+(S.goal||10)+' мин за пн–вс'))+'</div></div>';
+      '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+goalMin()+' мин за пн–вс'))+'</div></div>';
 }
 function renderMvpProfile(){
   if(el('mvpGold'))el('mvpGold').textContent=goldDisp();
   if(el('mvpStreak'))el('mvpStreak').textContent=S.streak||0;
-  if(el('mvpMinToday'))el('mvpMinToday').textContent=Math.round(minTodaySess());
+  if(el('mvpMinToday'))el('mvpMinToday').textContent=Math.floor(minTodaySess());
   renderMvpQuests();
 }
 function clearConfetti(){
@@ -1407,16 +1432,16 @@ function renderLibrary(){
     if(ub>0&&stale)setTimeout(()=>flashMsg('💾 Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)'),1400);
   }
   el('goldChip').textContent=curI()+' '+goldDisp();
-  el('goalTitle').textContent='Цель дня: '+S.goal+' мин';
+  el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
   const _mt=isMvp()?minTodaySess():S.minToday;
-  el('goalSub').textContent='Сегодня: '+Math.round(_mt)+' мин';
+  el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
   const gl=el('libGoldLine');if(gl){gl.textContent=__bootGold?('+'+__bootGold+' 🪙 за прошлую сессию'):'';gl.classList.toggle('hidden',!__bootGold);}
   el('streakTxt').textContent='🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').textContent='⭐ Ур. '+level(S.xp);
-  const pct=Math.min(1,_mt/S.goal);
+  const pct=Math.min(1,_mt/goalMin());
   el('ringFg').style.strokeDashoffset=207*(1-pct);
   el('ringFg').style.stroke=pct>=1?'#4cd97b':'#2bb3c0';
-  el('ringTxt').textContent=Math.round(pct*100)+'%';
+  el('ringTxt').textContent=Math.floor(pct*100)+'%';
   renderLibChips();
   // карточка «Продолжить чтение»
   const cc=el('continueCard');
@@ -1679,8 +1704,8 @@ async function openBook(id){
 }
 /** Anti-cheat params for the session tracker (single source of counted minutes). */
 function trackerOpts(){
-  const a=S.anti||{minSec:12,maxMin:3};
-  const capMin=isMvp()?Math.min(3,a.maxMin||3):(a.maxMin||3);
+  const a=antiCfg();
+  const capMin=isMvp()?MVP_ANTI.maxMin:(a.maxMin||3);
   /* PDF only: active work with the page (pan > 20 % of the screen / zoom change) extends THIS page's cap
      by +1 min, at most once per 60 s, hard ceiling 8 min. Text: flat 3 min. Accounting lives in reader-session.js. */
   const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:8*60000,minFraction:0.2}:null;
@@ -1693,7 +1718,7 @@ function updDayBar(){
   const run=!!(__tracker&&__tracker.isRunning&&__tracker.isRunning());
   const live=run?__tracker.snapshot().minutes:0;
   const day=(run&&__tracker.getSessionDay&&__tracker.getSessionDay())||today(); /* session day = day it started */
-  const pct=Math.max(0,Math.min(1,(dayMin(day)+live)/(S.goal||10)));
+  const pct=Math.max(0,Math.min(1,(dayMin(day)+live)/goalMin()));
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
 }
@@ -1710,11 +1735,12 @@ function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}
    stable non-zero size (2 equal rAF samples + 120 ms). Labels: pdf.getPageLabels(), else the 1-based file number. */
 const PDF_MAX_PX=16e6, PDF_ZMAX=4, PDF_DBL_MS=250, PDF_SWIPE=50;
 const P={seq:0,task:null,front:null,frontSc:0,shown:-1,target:0,baseW:0,baseH:0,bw:0,k:1,z:1,tx:0,ty:0,labels:null,
-  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,log:[]};
+  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,redo:false,lastVS:null,lastVR:null,stall:null,reqWhy:'',tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,log:[]};
 window.__rqPdf=P; /* diagnostics for tests (read-only) */
 function pdfLabel(n){const l=P.labels&&P.labels[n];return (l!=null&&String(l).trim()!=='')?String(l):String(n+1);}
-function pdfViewSize(){const v=el('viewer');return {w:v.clientWidth,h:v.clientHeight};}
-function pdfVR(){return el('viewer').getBoundingClientRect();}
+function pdfViewSize(){const v=el('viewer'),s={w:v.clientWidth,h:v.clientHeight};if(s.w>8&&s.h>8)P.lastVS=s;return s;}
+/* gestures: during a transient 0/1-px viewport (fullscreen / resize in progress) use the last real size */
+function pdfVR(){const r=el('viewer').getBoundingClientRect();if(r.width>8&&r.height>8){P.lastVR=r;return r;}return P.lastVR||r;}
 function pdfAct(kind,info){if(__tracker&&__tracker.userActive)__tracker.userActive(kind,info||{});}
 async function openPdf(b){
   try{
@@ -1739,7 +1765,7 @@ function pdfReset(){
   const sh=el('pdfSheet');
   sh.querySelectorAll('canvas').forEach(c=>{c.remove();c.width=0;c.height=0;});
   el('pdfText').textContent='';
-  P.front=null;P.frontSc=0;P.shown=-1;P.target=0;P.z=1;P.k=1;P.tx=0;P.ty=0;P.baseW=0;P.baseH=0;P.bw=0;P.labels=null;P.g=null;P.sliding=false;
+  P.front=null;P.frontSc=0;P.shown=-1;P.target=0;P.z=1;P.k=1;P.tx=0;P.ty=0;P.baseW=0;P.baseH=0;P.bw=0;P.labels=null;P.g=null;P.sliding=false;P.redo=false;P.stall=null;
   clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;
   const st=el('pdfStage');st.style.transform='';st.style.visibility='hidden';
 }
@@ -1748,11 +1774,12 @@ function pdfClose(){pdfReset();if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=n
 async function pdfRender(why){
   if(!R.pdf)return;
   const n=P.target;
-  const seq=++P.seq;pdfCancel();P.reqAt=performance.now();
+  const seq=++P.seq;pdfCancel();P.reqAt=performance.now();P.reqWhy=why||'';
   let page;try{page=await R.pdf.getPage(n+1);}catch(e){pdfRenderFailed(seq,e);return;}
   if(seq!==P.seq||!R.pdf)return;
   const sz=pdfViewSize();
-  if(!(sz.w>8&&sz.h>8)){pdfOnResize();return;} /* never lay out against a 0-size viewport */
+  if(!(sz.w>8&&sz.h>8)){P.redo=true;pdfOnResize();return;} /* never lay out against a 0-size viewport; re-render P.target once the size is stable */
+  P.redo=false;
   const vp1=page.getViewport({scale:1});        /* rotation = page.rotate (/Rotate) */
   const s0=sz.w/vp1.width;                       /* fit to width */
   const same=(n===P.shown);
@@ -1786,12 +1813,23 @@ function pdfRenderFailed(seq,e){
   P.retry=(P.retry||0)+1;
   if(P.retry<=3)setTimeout(function(){if(seq===P.seq&&R.pdf)pdfRender('retry');},120*P.retry);
 }
+/** Watchdog recovery → one analytics event in the `events` store (never sessions[]). */
+function pdfStallLog(n){
+  const st=P.stall;P.stall=null;if(!st)return;
+  const ev={type:'pdf_stall_recovered',bookId:R.book&&R.book.id,page:n,label:pdfLabel(n),stalledMs:Math.round(performance.now()-st.t0),reason:st.why};
+  pdfLog({ev:'stall-recovered',page:n,ms:ev.stalledMs,why:st.why});
+  try{if(__rq&&__rq.logAnalyticsEvent)__rq.logAnalyticsEvent(ev).catch(function(e){console.warn(e);});}catch(e){}
+}
 /** Safety net: a requested page that is neither rendering nor shown after 1.5 s is requested again. */
 function pdfWatch(){
   clearInterval(P.watch);
   P.watch=setInterval(function(){
     if(!R.pdf||R.mode!=='pdf'){clearInterval(P.watch);P.watch=0;return;}
-    if(P.target!==P.shown&&!P.task&&!P.rsRaf&&performance.now()-(P.reqAt||0)>1500){pdfLog({ev:'watchdog',target:P.target,shown:P.shown});pdfRender('watchdog');}
+    if(P.target!==P.shown&&!P.task&&!P.rsRaf&&performance.now()-(P.reqAt||0)>1500){
+      pdfLog({ev:'watchdog',target:P.target,shown:P.shown});
+      if(!P.stall)P.stall={t0:P.reqAt||performance.now(),why:P.reqWhy||'',page:P.target}; /* logged as pdf_stall_recovered once the page is on screen */
+      pdfRender('watchdog');
+    }
   },700);
 }
 function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
@@ -1814,6 +1852,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
     if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
     updDayBar();
   }
+  if(P.stall)pdfStallLog(n);
 }
 /** Corner number + bar number + slider: printed label / total (same frame as the swap). */
 function pdfNumbers(n,fromSlider){
@@ -1833,10 +1872,11 @@ function pdfApply(){
   el('pdfStage').style.transform='translate3d('+P.tx.toFixed(2)+'px,'+P.ty.toFixed(2)+'px,0) scale('+zz.toFixed(5)+')';
 }
 function pdfApplySoon(){if(!P.applyRaf)P.applyRaf=requestAnimationFrame(function(){P.applyRaf=0;pdfApply();});}
-function pdfGeom(){const s=pdfViewSize(),zz=P.z*P.k,W=P.baseW*zz,H=P.baseH*zz;return {s:s,W:W,H:H,atL:P.tx>=-0.5,atR:P.tx<=s.w-W+0.5,pannable:W>s.w+1||H>s.h+1};}
+function pdfGeom(){const s0=pdfViewSize(),s=(s0.w>8&&s0.h>8)?s0:(P.lastVS||s0),zz=P.z*P.k,W=P.baseW*zz,H=P.baseH*zz;return {s:s,W:W,H:H,atL:P.tx>=-0.5,atR:P.tx<=s.w-W+0.5,pannable:W>s.w+1||H>s.h+1};}
 /** Viewport changed: CSS-scale the old frame now, re-render once the size is stable and non-zero. */
 function pdfOnResize(){
   if(R.mode!=='pdf'||!R.pdf)return;
+  pdfVR(); /* refresh the cached viewer rect (P.lastVR) as soon as the new size is real */
   pdfInterim();
   P.rsAt=performance.now();P.stableN=0;P.lastSz='';
   if(!P.rsRaf)P.rsRaf=requestAnimationFrame(pdfRsTick);
@@ -1848,10 +1888,11 @@ function pdfInterim(){
 function pdfRsTick(){
   P.rsRaf=0;
   if(R.mode!=='pdf'||!R.pdf)return;
+  pdfVR(); /* keep P.lastVR current while the size settles (top changes on fullscreen enter/exit) */
   const s=pdfViewSize(),key=s.w+'x'+s.h;
   if(key===P.lastSz&&s.w>8&&s.h>8)P.stableN++;else{P.stableN=0;P.lastSz=key;pdfInterim();}
   if(P.stableN>=2&&performance.now()-P.rsAt>=120){
-    if(!P.bw||Math.abs(s.w-P.bw)>0.5)pdfRender('resize'); /* new fit width → one re-render */
+    if(P.redo||!P.bw||Math.abs(s.w-P.bw)>0.5)pdfRender('resize'); /* new fit width, or a render that bailed on a 0-size viewport → one re-render */
     else pdfApply();
     return;
   }
@@ -2544,7 +2585,7 @@ async function closeReaderImpl(){
   const b=R.book;if(!b){show('library');return;}
   R.book=null;
   S.progress[b.id]={ratio:R.maxRatio};
-  const a=S.anti||{minSec:12,maxMin:3};
+  const a=antiCfg();
   stopTimerTick();
   rollDay();
   /* Single source of truth: the reader-session tracker computes counted minutes (per-page cap,
@@ -2636,7 +2677,7 @@ function countUp(elm,to,fmt){
 function renderSummary(r){
   countUp(el('sumXp'),r.xp,n=>'+'+n+' XP');
   countUp(el('sumPages'),r.pages,n=>n);
-  el('sumMin').textContent=r.min<1?'<1':Math.round(r.min);
+  el('sumMin').textContent=r.min<1?'<1':Math.floor(r.min); /* floor: never «10» while library shows «9 / 10» without payout */
   countUp(el('sumGold'),r.gold,n=>'+'+n);
   el('sumGoldLbl').textContent=curI()+' '+S.cur.name;
   el('sumStat').textContent='+'+r.statGain;
@@ -2988,8 +3029,8 @@ function renderProfile(){
   renderMvpProfile();
   applyMvpChrome();
 }
-el('goalMinus').onclick=()=>{S.goal=Math.max(5,S.goal-5);save();renderLibrary();};
-el('goalPlus').onclick=()=>{S.goal=Math.min(120,S.goal+5);save();renderLibrary();};
+el('goalMinus').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderLibrary();};
+el('goalPlus').onclick=()=>{if(isMvp())return;S.goal=Math.min(120,S.goal+5);save();renderLibrary();};
 el('btnReset').onclick=()=>{
   if(!confirm('Точно сбросить весь прогресс?'))return;
   if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
@@ -3646,14 +3687,16 @@ function renderSettings(){
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   if(el('focusTgl'))el('focusTgl').textContent=isFocus()?'Вкл':'Выкл';
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
+  el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */
   const ls=el('langSeg');ls.innerHTML='';
   [['ru','Русский'],['en','English']].forEach(o=>{
     const b=document.createElement('button');b.textContent=o[1];b.className=(S.lang===o[0]?'on':'');
     b.onclick=()=>setLang(o[0]);ls.appendChild(b);
   });
-  el('antiMinVal').textContent=S.anti.minSec+' с';
-  el('antiMaxVal').textContent=S.anti.maxMin+' мин';
-  el('goalVal2').textContent=S.goal+' мин';
+  const _a=antiCfg();
+  el('antiMinVal').textContent=_a.minSec+' с';
+  el('antiMaxVal').textContent=_a.maxMin+' мин';
+  el('goalVal2').textContent=goalMin()+' мин';
   el('uxAnim').textContent=S.ux.anim!==false?'Вкл':'Выкл';
   el('uxWake').textContent=S.ux.wake?'Вкл':'Выкл';
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
@@ -3691,12 +3734,12 @@ async function reqWake(){
   if(S.ux.wake&&navigator.wakeLock){try{wakeRef=await navigator.wakeLock.request('screen');}catch(e){}}
 }
 function relWake(){if(wakeRef){try{wakeRef.release();}catch(e){}wakeRef=null;}}
-el('antiMinMinus').onclick=()=>{S.anti.minSec=Math.max(4,S.anti.minSec-2);save();renderSettings();};
-el('antiMinPlus').onclick=()=>{S.anti.minSec=Math.min(90,S.anti.minSec+2);save();renderSettings();};
-el('antiMaxMinus').onclick=()=>{S.anti.maxMin=Math.max(1,S.anti.maxMin-1);save();renderSettings();};
-el('antiMaxPlus').onclick=()=>{S.anti.maxMin=Math.min(15,S.anti.maxMin+1);save();renderSettings();};
-el('goalMinus2').onclick=()=>{S.goal=Math.max(5,S.goal-5);save();renderSettings();};
-el('goalPlus2').onclick=()=>{S.goal=Math.min(120,S.goal+5);save();renderSettings();};
+el('antiMinMinus').onclick=()=>{if(isMvp())return;S.anti.minSec=Math.max(4,S.anti.minSec-2);save();renderSettings();};
+el('antiMinPlus').onclick=()=>{if(isMvp())return;S.anti.minSec=Math.min(90,S.anti.minSec+2);save();renderSettings();};
+el('antiMaxMinus').onclick=()=>{if(isMvp())return;S.anti.maxMin=Math.max(1,S.anti.maxMin-1);save();renderSettings();};
+el('antiMaxPlus').onclick=()=>{if(isMvp())return;S.anti.maxMin=Math.min(15,S.anti.maxMin+1);save();renderSettings();};
+el('goalMinus2').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderSettings();};
+el('goalPlus2').onclick=()=>{if(isMvp())return;S.goal=Math.min(120,S.goal+5);save();renderSettings();};
 el('btnUnhide').onclick=()=>{S.hidden=[];save();renderLibrary();flashMsg('Демо-книги возвращены на полку');};
 el('btnReset2').onclick=()=>{
   if(!confirm('Точно сбросить весь прогресс?'))return;
@@ -3796,7 +3839,7 @@ function renderCalendar(){
     const k=calKey(calY,calM,d);
     const h=S.hist[k];
     const read=h&&((h.min||0)>=1||(h.pages||0)>=1);
-    const goalMet=h&&(h.min||0)>=S.goal;
+    const goalMet=h&&(h.min||0)>=goalMin();
     const planned=!!S.planned[k];
     const cls=['calcell'];
     if(k===tk)cls.push('today');
@@ -3864,7 +3907,7 @@ function calRenderDay(k){
     '<div style="font-size:13px;color:var(--muted);margin-top:6px">'+
     (((h.min||0)>=1||(h.pages||0)>=1)?'✅ Прочитано '+Math.round(h.min)+' мин · '+(h.pages||0)+' стр · +'+Math.round(h.xp||0)+' XP':'Чтения не было')+'</div>'+
     books+
-    (future?'<div style="font-size:13px;margin-top:8px;color:'+(planned?'var(--accent2)':'var(--muted)')+'">'+(planned?'📌 Запланировано · цель '+S.goal+' мин (нажмите ещё раз, чтобы снять)':'Нажмите на день, чтобы запланировать чтение')+'</div>':'')+
+    (future?'<div style="font-size:13px;margin-top:8px;color:'+(planned?'var(--accent2)':'var(--muted)')+'">'+(planned?'📌 Запланировано · цель '+goalMin()+' мин (нажмите ещё раз, чтобы снять)':'Нажмите на день, чтобы запланировать чтение')+'</div>':'')+
     '</div>';
 }
 el('calPrev').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCalendar();};
@@ -4352,6 +4395,7 @@ const I18N={
 };
 const I18N_RE=[
  [/Цель дня: (\d+) мин/g,'Daily goal: $1 min'],
+ [/Цель (\d+) мин/g,'Goal $1 min'],
  [/Сегодня: (\d+) мин/g,'Today: $1 min'],
  [/⭐ Ур\. (\d+)/g,'⭐ Lv. $1'],
  [/Уровень (\d+)/g,'Level $1'],
@@ -4460,7 +4504,7 @@ function shelfOpen(elm,id){
   if(el('btnAddRewardSlot'))el('btnAddRewardSlot').onclick=addRewardSlot;
   if(el('btnMvpSettings'))el('btnMvpSettings').onclick=function(){closeRewardsSheet();renderSettings();show('settings');};
   if(el('mvpTgl'))el('mvpTgl').onclick=function(){
-    SET.mvp=!(SET.mvp!==false);saveSet();applyMvpChrome();renderSettings();
+    SET.mvp=!(SET.mvp!==false);saveSet();if(mvpEnforce())save();applyMvpChrome();renderSettings();
     if(isMvp()){renderLibrary();show('library');}else{renderLibrary();show('library');}
     flashMsg(isMvp()?'MVP включён (4 экрана)':'Полный UI v6');
   };
@@ -4476,6 +4520,8 @@ window.__rqStart=async function(api, tracker){
   const flat=api.loadFlat?api.loadFlat():{};
   hydrateS(flat);
   if(api.loadSettings){try{SET=Object.assign({},SETDEF,api.loadSettings());}catch(e){}}
+  if(mvpForceOn())saveSet(); /* import/load: settings.mvp=false → force true before lock-downs */
+  if(mvpEnforce())save(); /* MVP: goal 10 / 12 s / 3 min / no ∞ money */
   /* Hydrate user book texts from IDB */
   const books=S.userBooks||[];
   for(let i=0;i<books.length;i++){
@@ -4518,9 +4564,9 @@ import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
-} from './storage/index.js?v=20261006-1537';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261006-1537';
-import * as game from './game-awards.js?v=20261006-1537';
+} from './storage/index.js?v=20261007-1118';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261007-1118';
+import * as game from './game-awards.js?v=20261007-1118';
 
 window.__rqGame = game;
 const boot = await bootStorage();

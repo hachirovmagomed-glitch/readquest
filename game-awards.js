@@ -12,7 +12,7 @@
  * Days are LOCAL device days (row.date = local day the session started, see reader-session.js);
  * weeks are Mon–Sun of local days. No UTC (toISOString) anywhere.
  */
-import { localDay, addLocalDays } from './storage/sessions.js?v=20261006-1537';
+import { localDay, addLocalDays } from './storage/sessions.js?v=20261007-1118';
 export { localDay, addLocalDays };
 
 export const XP_PER_MIN = 10;

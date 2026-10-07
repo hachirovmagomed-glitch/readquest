@@ -1,4 +1,4 @@
-// ReadQuest PWA mini-build verification: service worker, update, offline, storage.persist, single writer, manifest.
+// ReadQuest PWA mini-build verification: service worker, update, offline, storage.persist, single writer (e1–e4), no navigator.locks (e5), manifest.
 // Rebuilds source/dist (served at http://127.0.0.1:8766/readquest/) with two test build numbers.
 import puppeteer from 'puppeteer-core';
 import { execSync } from 'child_process';
@@ -272,6 +272,36 @@ await p1.close(); p1 = pB;
   await p1.close(); p1 = p2;
 }
 
+// ---------- (e4) two LIVE windows, both with the book open, 2 min of reading → exactly ONE session row ----------
+{
+  await p1.bringToFront();
+  try { await p1.evaluate(() => { if (R.book) return closeReader(); }); } catch (e) {}
+  await sleep(600);
+  const g0 = await gameOf(p1); const ids0 = new Set((await idbAll(p1, 'sessions')).map(r => r.id)); /* sessions store is keyed by UUID → compare ids, not slice by index */
+  const p2 = await mk();
+  await p2.goto(BASE, { waitUntil: 'load' });
+  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'));
+  await p2.bringToFront(); await p2.evaluate(() => document.getElementById('rqOtherBtn').click());
+  await ready(p2); await sleep(800);
+  ok('(e4) A handed over cooperatively and is passive, B is the writer', await p1.evaluate(() => __rqWriter.passive) && await p2.evaluate(() => !__rqWriter.passive));
+  // both windows open the same book (A bypasses its overlay from the console, like a misbehaving/stale UI)
+  await p2.evaluate((id) => openBook(id), bookId);
+  try { await p1.evaluate((id) => openBook(id), bookId); } catch (e) {}
+  await sleep(600);
+  const open = { a: await p1.evaluate(() => !!(R && R.book)), b: await p2.evaluate(() => !!(R && R.book)) };
+  for (let i = 0; i < 2; i++) { // 2 minutes, both windows turning pages
+    for (const p of [p2, p1]) { try { await p.evaluate(() => { window.__rqTimeOffset += 60000; goPage(R.page + 1, true); }); } catch (e) {} }
+    await sleep(150);
+  }
+  try { await p1.evaluate(async () => { try { await closeReader(); } catch (e) {} try { await __tracker.end(); } catch (e) {} }); } catch (e) {}
+  await p2.evaluate(() => closeReader()); await sleep(1200);
+  const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2); const neu = s1.filter(r => !ids0.has(r.id));
+  ok('(e4) two live windows, 2 min: exactly 1 new session row (B), minutes in (0, 2.5]', neu.length === 1 && neu[0].minutes > 0 && neu[0].minutes <= 2.5, { open, rows: neu.map(r => ({ id: r.id, minutes: r.minutes })) });
+  ok('(e4) that row paid exactly once, no extra payout from A', neu.length === 1 && g1.awarded.filter(x => x === neu[0].id).length === 1 && g1.awarded.length === g0.awarded.length + 1, { g0: [g0.gold, g0.xp], g1: [g1.gold, g1.xp] });
+  ok('(e4) A stayed passive the whole time, overlay shown', await p1.evaluate(() => __rqWriter.passive) && await overlayOn(p1));
+  await p1.close(); p1 = p2;
+}
+
 // ---------- (C) test build (NS rqt, /readquest/test/) never touches rq_* data, lock or cache ----------
 const TB = '20990101-0099';
 execSync(`RQ_NS=rqt RQ_BUILD=${TB} ./build-dist.sh`, { cwd: SRC, stdio: 'pipe' });
@@ -327,6 +357,31 @@ await pt.close();
   await sleep(800);
   const m1r = await mainSnap(); const db1 = await p1.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
   ok('(C2) main build: __rqTestReset() from console refuses (false), hidden button no-op, data/DBs/caches unchanged', r.ret === false && !r.banner && JSON.stringify(m0r) === JSON.stringify(m1r) && JSON.stringify(db0) === JSON.stringify(db1) && await p1.evaluate(() => !!window.__rqReady && !__rqWriter.passive), r);
+}
+
+// ---------- (e5) browser WITHOUT navigator.locks: reading + page saved, but NO sessions / XP / coins; event no_locks; quiet line ----------
+{
+  await p1.close();
+  const mkNoLocks = async () => { const p = await mk(); await p.evaluateOnNewDocument(() => { try { Object.defineProperty(Navigator.prototype, 'locks', { get: () => undefined, configurable: true }); } catch (e) {} }); return p; };
+  const pn = await mkNoLocks();
+  const t0 = Date.now();
+  await pn.goto(BASE, { waitUntil: 'load' }); await ready(pn); const dt = Date.now() - t0;
+  ok('(e5) no navigator.locks: app boots to the library within 3 s, no overlay', !(await pn.evaluate(() => !!navigator.locks)) && !(await overlayOn(pn)) && dt < 3000, { dt });
+  const g0 = await gameOf(pn); const s0 = (await idbAll(pn, 'sessions')).length;
+  await pn.evaluate((id) => openBook(id), bookId); await sleep(500);
+  const quiet = await pn.evaluate(() => document.body.innerText.includes('В этом браузере опыт не начисляется'));
+  ok('(e5) reader shows the quiet line «В этом браузере опыт не начисляется. Чтение и страница сохраняются»', quiet);
+  for (let i = 0; i < 3; i++) { await pn.evaluate(() => { window.__rqTimeOffset += 60000; goPage(R.page + 1, true); }); await sleep(150); }
+  const ratio0 = await pn.evaluate(() => R.maxRatio);
+  await pn.evaluate(() => closeReader()); await sleep(1200);
+  const s1 = await idbAll(pn, 'sessions'); const g1 = await gameOf(pn);
+  ok('(e5) no new session row, XP / coins / awarded / daily unchanged', s1.length === s0 && g1.xp === g0.xp && g1.gold === g0.gold && JSON.stringify(g1.awarded) === JSON.stringify(g0.awarded) && JSON.stringify(g1.daily) === JSON.stringify(g0.daily), { rows: [s0, s1.length], xp: [g0.xp, g1.xp], gold: [g0.gold, g1.gold] });
+  const ev = (await idbAll(pn, 'events')).filter(e => e.type === 'no_locks');
+  ok('(e5) analytics event no_locks logged', ev.length >= 1, ev.length);
+  await pn.reload({ waitUntil: 'load' }); await ready(pn);
+  const ratio1 = await pn.evaluate((id) => (S.progress[id] || {}).ratio || 0, bookId);
+  ok('(e5) page saved: after reload progress = where reading stopped', ratio0 > 0 && Math.abs(ratio1 - ratio0) < 1e-9, { ratio0, ratio1 });
+  await pn.close();
 }
 
 // ---------- TODO (stage 1, not this build) ----------

@@ -404,7 +404,7 @@ await pt.close();
   const tv = await p1.evaluate(() => localStorage.getItem('rq_theme'));
   await p1.reload({ waitUntil: 'load' }); await ready(p1);
   const th = await p1.evaluate(() => ({ boot: window.__rqBootTheme || null, bootBg: getComputedStyle(document.getElementById('rqBoot')).backgroundColor, bg: getComputedStyle(document.body).backgroundColor }));
-  ok('(D) writer stores rq_theme as a plain string; next launch paints the boot screen in it (light: #eef2f3), same as the library', tv === '#eef2f3 #1d2b30 #5f7a80' && th.boot === tv && th.bootBg === 'rgb(238, 242, 243)' && th.bg === th.bootBg, { tv, ...th });
+  ok('(D) writer stores rq_theme as a plain string; next launch paints the boot screen in it (light: #eef2f3), same as the library', tv === '#eef2f3 #1d2b30 #526c73' && th.boot === tv && th.bootBg === 'rgb(238, 242, 243)' && th.bg === th.bootBg, { tv, ...th });
   await p1.evaluate(() => { S.appTheme = 'teal'; save(); applyAppTheme(); });
   ok('(D) back to teal → rq_theme updated', await p1.evaluate(() => localStorage.getItem('rq_theme')) === '#0c2127 #e8f1f2 #8fb0b5');
 }

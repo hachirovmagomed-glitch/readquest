@@ -10,6 +10,7 @@ const BUILD = '__RQ_BUILD__';
 const CACHE = NS + '-' + BUILD;
 const PRECACHE = __RQ_PRECACHE__;
 const NAV_TIMEOUT_MS = 1500; /* navigation: network vs cache race */
+const APP_MARK = '<meta name="rq-app" content="readquest">'; /* in app.html <head>; a captive portal page won't have it */
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
@@ -61,9 +62,20 @@ self.addEventListener('fetch', function (e) {
       let done = false;
       const finish = function (r) { if (!done && r) { done = true; resolve(r); } };
       const timer = setTimeout(function () { fromCache().then(finish, function () {}); }, NAV_TIMEOUT_MS);
-      fetch(req, { cache: 'no-cache' }).then(function (r) { clearTimeout(timer); finish(r); }, function () {
+      const cacheOr = function (r) { fromCache().then(function (m) { finish(m || r || Response.error()); }, function () { finish(r || Response.error()); }); };
+      fetch(req, { cache: 'no-cache' }).then(function (r) {
+        /* captive portal (Architect B1): accept only OUR page — ok, same origin, not a (manual-mode) redirect,
+           and HTML carrying the app marker. Anything else → this build from cache (or the response if nothing cached). */
+        let same = false; try { same = !r.url || new URL(r.url).origin === self.location.origin; } catch (x) {}
+        if (!r.ok || r.type === 'opaqueredirect' || r.type === 'opaque' || !same) { clearTimeout(timer); cacheOr(r); return; }
+        if (!/text\/html/i.test(r.headers.get('content-type') || '')) { clearTimeout(timer); finish(r); return; }
+        r.clone().text().then(function (t) {
+          clearTimeout(timer);
+          if (t.indexOf(APP_MARK) >= 0) finish(r); else cacheOr(r);
+        }, function () { clearTimeout(timer); cacheOr(r); });
+      }, function () {
         clearTimeout(timer);
-        fromCache().then(function (m) { finish(m || Response.error()); }, function () { finish(Response.error()); });
+        cacheOr(null);
       });
     }));
     return;

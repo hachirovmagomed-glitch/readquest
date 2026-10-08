@@ -516,6 +516,36 @@ await pt.close();
   }
 }
 
+// ---------- (g2) captive portal: network ANSWERS, but not with our app (302 → foreign host / 200 foreign HTML) → our cached build opens ----------
+{
+  const within = (pr, ms, fb) => Promise.race([pr, new Promise(r => setTimeout(() => r(fb), ms))]);
+  const swRespond = async (kind) => {
+    const swT = browser.targets().find(t => t.type() === 'service_worker' && t.url() === BASE + 'sw.js');
+    if (!swT) return { err: 'no SW target' };
+    const sws = await swT.createCDPSession(); const seen = [];
+    const h = (e) => {
+      const u = e.request.url; seen.push(u);
+      if (u !== BASE && u !== BASE + 'index.html') return sws.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
+      if (kind === '302') return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 302, responseHeaders: [{ name: 'Location', value: 'http://captive.invalid/login' }], body: '' }).catch(() => {});
+      return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }],
+        body: Buffer.from('<!doctype html><html><head><title>Wi-Fi login</title></head><body><h1>Captive portal</h1></body></html>').toString('base64') }).catch(() => {});
+    };
+    sws.on('Fetch.requestPaused', h);
+    await sws.send('Fetch.enable', { patterns: [{ urlPattern: new URL(BASE).origin + '/*' }] });
+    const pg = await mk(); await pg.bringToFront();
+    await pg.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 8000 }).catch(() => {});
+    await pg.waitForFunction(() => window.__rqReady, { timeout: 4000, polling: 100 }).catch(() => {});
+    const m = await within(pg.evaluate(() => ({ url: location.href, ready: !!window.__rqReady, title: document.title })).catch(e => ({ err: e.message })), 3000, { err: 'evaluate timeout' });
+    sws.off('Fetch.requestPaused', h); await within(sws.send('Fetch.disable').catch(() => {}), 3000);
+    await within(pg.close().catch(() => {}), 5000);
+    return { seen: seen.filter(u => u === BASE).length, ...m };
+  };
+  const r302 = await swRespond('302');
+  ok('(g2) captive 302 → foreign host: our cached build opens at /readquest/', r302.seen > 0 && r302.url === BASE && r302.ready && r302.title === 'ReadQuest', r302);
+  const r200 = await swRespond('200');
+  ok('(g2) captive 200 with foreign HTML: our cached build opens, not the portal page', r200.seen > 0 && r200.url === BASE && r200.ready && r200.title === 'ReadQuest', r200);
+}
+
 // ---------- TODO (stage 1, not this build) ----------
 console.log('TODO (stage 1): mvp-check — backup import with legacy `cur` object (v6) must not break MVP lock-downs / payouts.');
 

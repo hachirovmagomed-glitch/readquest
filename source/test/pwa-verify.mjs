@@ -425,6 +425,33 @@ await pt.close();
   await pn.close();
 }
 
+// ---------- (g) Wi-Fi without internet: SW network fetch hangs (never answered) → cached app within the race window ----------
+/* Method: CDP Fetch.enable on the SERVICE WORKER target (page-level Fetch does not see the SW's own fetch()),
+   requestPaused events are never continued. Check that the hold really caught the SW's navigation fetch. */
+{
+  const swT = browser.targets().find(t => t.type() === 'service_worker' && t.url() === BASE + 'sw.js');
+  const pg = await mk();
+  if (!swT) { ok('(g) main SW target found', false); await pg.close(); }
+  else {
+    const sws = await swT.createCDPSession(); const held = [];
+    sws.on('Fetch.requestPaused', (e) => held.push(e.request.url)); /* never continue = hanging network */
+    await sws.send('Fetch.enable', { patterns: [{ urlPattern: new URL(BASE).origin + '/*' }] });
+    const t0 = Date.now(); let nav = 'ok';
+    await pg.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 8000 }).catch(e => { nav = 'timeout ' + (Date.now() - t0) + ' ms'; });
+    await pg.waitForFunction(() => window.__rqReady, { polling: 100, timeout: 4000 }).catch(() => {});
+    const within = (pr, ms, fb) => Promise.race([pr, new Promise(r => setTimeout(() => r(fb), ms))]);
+    const m = await within(pg.evaluate(() => { const fcp = performance.getEntriesByName('first-contentful-paint')[0]; const st = (window.__rqDiag && __rqDiag.run.steps) || []; const lib = st.find(x => x.s === 'library');
+      return { url: location.href, fcp: fcp ? Math.round(fcp.startTime) : null, ready: lib ? lib.p : null, sw: !!navigator.serviceWorker.controller, boot: !!document.getElementById('rqBoot') }; }).catch(e => ({ err: e.message })), 3000, { err: 'no document (navigation still pending)', fcp: null, ready: null });
+    const navHeld = held.some(u => u === BASE || u === BASE + 'index.html');
+    console.log('   [g] held by SW-target Fetch:', JSON.stringify(held.slice(0, 5)), 'nav:', nav, JSON.stringify(m));
+    ok('(g) hold really caught the SW network fetch of the navigation', navHeld, held.slice(0, 5));
+    ok('(g) hanging network: first frame (#rqBoot / library) < 2 s', nav === 'ok' && m.fcp !== null && m.fcp < 2000, { nav, fcp: m.fcp });
+    ok('(g) hanging network: library ready ≤ 3 s, controlled by SW', nav === 'ok' && m.ready !== null && m.ready <= 3000 && m.sw, { nav, ready: m.ready });
+    await within(sws.send('Fetch.disable').catch(() => {}), 3000); await within(sws.detach().catch(() => {}), 3000);
+    await within(pg.close().catch(() => {}), 5000);
+  }
+}
+
 // ---------- TODO (stage 1, not this build) ----------
 console.log('TODO (stage 1): mvp-check — backup import with legacy `cur` object (v6) must not break MVP lock-downs / payouts.');
 

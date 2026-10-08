@@ -27,7 +27,12 @@ async function mk() {
   p.on('pageerror', e => console.log('PAGEERROR', e.message));
   return p;
 }
-const ready = (p) => p.waitForFunction(() => window.__rqReady, { timeout: 20000 });
+/* on timeout: dump the boot journal (rqdiag) of the stuck page before failing */
+/* polling by interval, not rAF: a background tab gets no animation frames → a 'raf' wait never resolves (test artefact) */
+const ready = (p) => p.waitForFunction(() => window.__rqReady, { timeout: 20000, polling: 100 }).catch(async (e) => {
+  const d = await Promise.race([p.evaluate(() => ({ url: location.href, sw: !!(navigator.serviceWorker && navigator.serviceWorker.controller), other: !document.getElementById('rqOther').classList.contains('hidden'), fail: !document.getElementById('rqFail').classList.contains('hidden'),
+    runs: JSON.parse(localStorage.getItem(RQ_NS + 'diag') || '[]').map(r => ({ id: r.id, t0: r.t0, sw: r.sw, steps: r.steps.map(x => x.s + (x.x !== undefined ? '=' + JSON.stringify(x.x) : '') + '@' + x.p).join(' > ') })) })).catch(x => ({ err: x.message })), sleep(3000).then(() => ({ err: 'evaluate timeout' }))]);
+  console.log('READY TIMEOUT', JSON.stringify(d, null, 1)); throw e; });
 const keys = (p) => p.evaluate(() => caches.keys());
 const idbAll = (p, store) => p.evaluate((store) => new Promise((res, rej) => {
   const r = indexedDB.open('readquest'); r.onsuccess = () => { const q = r.result.transaction(store, 'readonly').objectStore(store).getAll(); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); };
@@ -83,7 +88,7 @@ ok('(d) storage_persist never in sessions[]', !ses0.some(s => s.type === 'storag
 
 // ---------- (c) offline ----------
 const inp = await p1.$('#fileInp'); await inp.uploadFile(BOOK);
-await p1.waitForFunction(() => (S.userBooks || []).length > 0, { timeout: 10000 });
+await p1.waitForFunction(() => (S.userBooks || []).length > 0, { polling: 100, timeout: 10000 });
 const bookId = await p1.evaluate(() => S.userBooks[S.userBooks.length - 1].id);
 await p1.setOfflineMode(true);
 await p1.reload({ waitUntil: 'load' }); await ready(p1);
@@ -108,16 +113,16 @@ await p1.evaluate(async () => { await (await caches.open('other-x')).put('/readq
 const PDF = '/workspace/rqtest/pdf/b-nolabels-40.pdf';
 const swBuild = (p) => p.evaluate(() => new Promise((res) => { const c = navigator.serviceWorker.controller; if (!c) return res(null); const ch = new MessageChannel(); ch.port1.onmessage = (e) => res(e.data); c.postMessage({ t: 'build' }, [ch.port2]); setTimeout(() => res(null), 3000); }));
 { const inpP = await p1.$('#fileInp'); await inpP.uploadFile(PDF); }
-await p1.waitForFunction(() => (S.userBooks || []).some(b => b.type === 'pdf'), { timeout: 15000 });
+await p1.waitForFunction(() => (S.userBooks || []).some(b => b.type === 'pdf'), { polling: 100, timeout: 15000 });
 const pdfId = await p1.evaluate(() => S.userBooks.find(b => b.type === 'pdf').id);
 build(B);
 await p1.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update(); });
-await p1.waitForFunction(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting), { timeout: 15000 }).catch(() => {});
+await p1.waitForFunction(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting), { polling: 100, timeout: 15000 }).catch(() => {});
 const waitingB = await p1.evaluate(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting && !!r.active));
 ok('(A) new build B installed and WAITING while old window is open (no skipWaiting)', waitingB);
 await p1.evaluate(() => performance.clearResourceTimings());
 await p1.evaluate((id) => openBook(id), pdfId);
-await p1.waitForFunction(() => R.mode === 'pdf' && window.pdfjsLib && document.querySelector('#pdfWrap canvas'), { timeout: 20000 }).catch(() => {});
+await p1.waitForFunction(() => R.mode === 'pdf' && window.pdfjsLib && document.querySelector('#pdfWrap canvas'), { polling: 100, timeout: 20000 }).catch(() => {});
 await sleep(800);
 const ctlA = await swBuild(p1);
 ok('(A) old window still controlled by SW of build ' + A, ctlA && ctlA.build === A && ctlA.cache === 'rq-' + A, ctlA);
@@ -135,7 +140,7 @@ p1 = await mk();
 await p1.goto(BASE, { waitUntil: 'load' }); await ready(p1);
 const shownB = await p1.evaluate(() => RQ_BUILD);
 ok('(b) next open shows new build ' + B, shownB === B, shownB);
-await p1.waitForFunction((b) => caches.keys().then(k => k.includes('rq-' + b) && !k.some(x => x.startsWith('rq-') && x !== 'rq-' + b)), { timeout: 15000 }, B).catch(() => {});
+await p1.waitForFunction((b) => caches.keys().then(k => k.includes('rq-' + b) && !k.some(x => x.startsWith('rq-') && x !== 'rq-' + b)), { polling: 100, timeout: 15000 }, B).catch(() => {});
 k = await keys(p1);
 ok('(b) old rq-' + A + ' deleted, rq-' + B + ' present', !k.includes('rq-' + A) && k.includes('rq-' + B), k);
 ok('(b) foreign cache other-x survives', k.includes('other-x'), k);
@@ -218,7 +223,7 @@ await p1.close(); p1 = pB;
   ok('(e3) A: reader active mid-session, draft present', !!draftA && await p1.evaluate(() => !!R.book && !document.getElementById('reader').classList.contains('hidden')));
   const p2 = await mk();
   await p2.goto(BASE, { waitUntil: 'load' });
-  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'));
+  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'), { polling: 100 });
   await p1.evaluate(() => {
     const L = window.__ev = []; const t = (x) => L.push([x, Date.now() - (window.__rqTimeOffset || 0)]);
     window.__tick = 0; window.__gap = 0; let last = Date.now() - window.__rqTimeOffset; setInterval(() => { window.__tick++; const n = Date.now() - window.__rqTimeOffset; window.__gap = Math.max(window.__gap, n - last); last = n; }, 100);
@@ -292,7 +297,7 @@ await p1.close(); p1 = pB;
   const g0 = await gameOf(p1); const ids0 = new Set((await idbAll(p1, 'sessions')).map(r => r.id)); /* sessions store is keyed by UUID → compare ids, not slice by index */
   const p2 = await mk();
   await p2.goto(BASE, { waitUntil: 'load' });
-  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'));
+  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'), { polling: 100 });
   await p2.bringToFront(); await p2.evaluate(() => document.getElementById('rqOtherBtn').click());
   await ready(p2); await sleep(800);
   ok('(e4) A handed over cooperatively and is passive, B is the writer', await p1.evaluate(() => __rqWriter.passive) && await p2.evaluate(() => !__rqWriter.passive));
@@ -319,7 +324,7 @@ await p1.close(); p1 = pB;
   await p1.bringToFront();
   const p2 = await mk();
   await p2.goto(BASE, { waitUntil: 'load' });
-  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'));
+  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'), { polling: 100 });
   await p2.evaluate(() => document.getElementById('rqOtherBtn').click()); await ready(p2); await sleep(800);
   const o1 = await p1.evaluate(() => ({ h: document.getElementById('rqOtherH').textContent, p: document.getElementById('rqOtherP').textContent, b: document.getElementById('rqOtherL').textContent, passive: __rqWriter.passive, book: !!R.book }));
   ok('(e6) old window without an open book: «ReadQuest открыт в другом окне» / «Прогресс сохранён» / «Вернуться сюда»', o1.passive && !o1.book && o1.h === 'ReadQuest открыт в другом окне' && o1.p === 'Прогресс сохранён' && o1.b === 'Вернуться сюда', o1);
@@ -356,7 +361,7 @@ ok('(C) test manifest: own name/id/start_url in /readquest/test/, no orientation
 const tIco = await pt.evaluate(async (ic) => { const out = []; for (const i of ic) { const r = await fetch(i.src); out.push({ src: i.src, purpose: i.purpose, ok: r.ok }); } return out; }, tman.icons);
 ok('(C) test manifest: Интерфейс test icons (any 192/512 + maskable + monochrome), all served; colors #0c2127; scope /readquest/test/', tIco.every(x => x.ok) && tIco.some(x => x.src.includes('icon-test-maskable') && x.purpose === 'maskable') && tIco.filter(x => x.purpose === 'any').length === 2 && tman.background_color === '#0c2127' && tman.theme_color === '#0c2127' && tman.scope === '/readquest/test/', tIco);
 { const ti = await pt.$('#fileInp'); await ti.uploadFile(BOOK); }
-await pt.waitForFunction(() => (S.userBooks || []).length > 0, { timeout: 10000 });
+await pt.waitForFunction(() => (S.userBooks || []).length > 0, { polling: 100, timeout: 10000 });
 const tBook = await pt.evaluate(() => S.userBooks[0].id);
 await readSession(pt, tBook, 11); await pt.evaluate(() => closeReader()); await sleep(800);
 const tk = await pt.evaluate(() => ({ ls: Object.keys(localStorage).sort(), caches: [] }));
@@ -423,7 +428,7 @@ await pt.close();
 // ---------- TODO (stage 1, not this build) ----------
 console.log('TODO (stage 1): mvp-check — backup import with legacy `cur` object (v6) must not break MVP lock-downs / payouts.');
 
-await browser.close();
+await Promise.race([browser.close(), sleep(10000).then(() => { try { browser.process().kill('SIGKILL'); } catch (e) {} })]);
 const f = checks.filter(c => !c.p).length;
 console.log(`\nPWA: ${checks.length - f}/${checks.length} passed`);
 process.exit(f ? 1 : 0);

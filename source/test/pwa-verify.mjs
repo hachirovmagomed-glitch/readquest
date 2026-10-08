@@ -412,6 +412,8 @@ await pt.close();
   ok('(D) settings «Скопировать журнал запуска»: hit area ≥ 44 px tall (center ± 21.5 px hits the button)', hit.up && hit.down, hit);
   const qt = await p1.evaluate(async (id) => { await openBook(id); await new Promise(r => setTimeout(r, 400)); const g0 = S.gold, n0 = (S.quotes[id] || []).length; const os = window.selText; window.selText = () => 'Проверочная цитата';
     try { addQuote(false); } finally { window.selText = os; } const out = { mvp: isMvp(), gold: [g0, S.gold], quotes: [n0, (S.quotes[id] || []).length] }; await closeReader(); show('library'); return out; }, bookId);
+  const qe = await p1.evaluate(() => { const sv = S.quotes; S.quotes = {}; let t = ''; try { renderQuotes(); t = el('quoteBox').textContent; } finally { S.quotes = sv; renderQuotes(); } return { mvp: isMvp(), text: t }; });
+  ok('(D) MVP quotes empty screen: hint «🖍 Цитата» kept, no «+2» coin promise', qe.mvp && /Выделите текст/.test(qe.text) && qe.text.includes('«🖍 Цитата»') && !/\+\s*2/.test(qe.text) && !/приносит/.test(qe.text), qe);
   ok('(D) MVP: a quote is saved but gives no coins (+2 removed in MVP)', qt.mvp && qt.gold[0] === qt.gold[1] && qt.quotes[1] === qt.quotes[0] + 1, qt);
   ok('(D) back to teal → rq_theme updated', await p1.evaluate(() => localStorage.getItem('rq_theme')) === '#0c2127 #e8f1f2 #8fb0b5');
 }

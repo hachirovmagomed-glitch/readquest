@@ -3211,7 +3211,7 @@ function renderQuotes(){
     });
   });
   el('quoteBox').innerHTML=parts.length?parts.join(''):
-    '<div style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге пальцем или мышкой —<br>появится кнопка «🖍 Цитата».<br><br>Каждая цитата приносит +2 '+curI()+'</div>';
+    '<div style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге пальцем или мышкой —<br>появится кнопка «🖍 Цитата».'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;

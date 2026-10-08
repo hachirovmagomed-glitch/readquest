@@ -526,13 +526,14 @@ await pt.close();
 // ---------- (g2) captive portal: network ANSWERS, but not with our app (302 → foreign host / 200 foreign HTML) → our cached build opens ----------
 {
   const within = (pr, ms, fb) => Promise.race([pr, new Promise(r => setTimeout(() => r(fb), ms))]);
-  const swRespond = async (kind) => {
+  const swRespond = async (kind, html) => {
     const swT = browser.targets().find(t => t.type() === 'service_worker' && t.url() === BASE + 'sw.js');
     if (!swT) return { err: 'no SW target' };
     const sws = await swT.createCDPSession(); const seen = [];
     const h = (e) => {
       const u = e.request.url; seen.push(u);
       if (u !== BASE && u !== BASE + 'index.html') return sws.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
+      if (kind === 'html') return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }], body: Buffer.from(html).toString('base64') }).catch(() => {});
       if (kind === '302') return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 302, responseHeaders: [{ name: 'Location', value: 'http://captive.invalid/login' }], body: '' }).catch(() => {});
       return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }],
         body: Buffer.from('<!doctype html><html><head><title>Wi-Fi login</title></head><body><h1>Captive portal</h1></body></html>').toString('base64') }).catch(() => {});
@@ -542,7 +543,7 @@ await pt.close();
     const pg = await mk(); await pg.bringToFront();
     await pg.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 8000 }).catch(() => {});
     await pg.waitForFunction(() => window.__rqReady, { timeout: 4000, polling: 100 }).catch(() => {});
-    const m = await within(pg.evaluate(() => ({ url: location.href, ready: !!window.__rqReady, title: document.title})).catch(e => ({ err: e.message })), 3000, { err: 'evaluate timeout' });
+    const m = await within(pg.evaluate(() => ({ url: location.href, ready: !!window.__rqReady, title: document.title, build: typeof RQ_BUILD !== 'undefined' ? RQ_BUILD : null, diagBuild: window.__rqDiag && __rqDiag.run.build })).catch(e => ({ err: e.message })), 3000, { err: 'evaluate timeout' });
     sws.off('Fetch.requestPaused', h); await within(sws.send('Fetch.disable').catch(() => {}), 3000);
     await within(pg.close().catch(() => {}), 5000);
     return { seen: seen.filter(u => u === BASE).length, ...m };
@@ -551,6 +552,16 @@ await pt.close();
   ok('(g2) captive 302 → foreign host: our cached build opens at /readquest/', r302.seen > 0 && r302.url === BASE && r302.ready && r302.title === 'ReadQuest', r302);
   const r200 = await swRespond('200');
   ok('(g2) captive 200 with foreign HTML: our cached build opens, not the portal page', r200.seen > 0 && r200.url === BASE && r200.ready && r200.title === 'ReadQuest', r200);
+  /* positive path: network alive + fast, answers OUR page (meta rq-app) with a DIFFERENT build id → the network version is shown, not the cache.
+     G2_STRIP=1 strips the meta from that answer → the same assertion must go red (proves the check can fail). */
+  const cached = fs.readFileSync(SRC + 'dist/index.html', 'utf8'); const cb = (cached.match(/const RQ_BUILD='([^']+)'/) || [])[1]; const NB = '20990101-7777';
+  let netHtml = cached.replace(`const RQ_BUILD='${cb}'`, `const RQ_BUILD='${NB}'`).replace(`build:'${cb}'`, `build:'${NB}'`);
+  const META = '<meta name="rq-app" content="readquest">';
+  if (process.env.G2_STRIP) netHtml = netHtml.replace(META, '');
+  const rNet = await swRespond('html', netHtml);
+  ok(`(g2) network alive, our page (meta rq-app) with another build → network version shown (build ${NB}, cached ${cb})${process.env.G2_STRIP ? ' [G2_STRIP: meta removed]' : ''}`, cb && cb !== NB && rNet.seen > 0 && rNet.ready && rNet.build === NB && rNet.diagBuild === NB, { cachedBuild: cb, ...rNet });
+  const rNoMeta = await swRespond('html', netHtml.replace(META, ''));
+  ok('(g2) same answer WITHOUT the meta → treated as foreign: cached build shown', rNoMeta.seen > 0 && rNoMeta.ready && rNoMeta.build === cb, { cachedBuild: cb, ...rNoMeta });
 }
 
 // ---------- TODO (stage 1, not this build) ----------

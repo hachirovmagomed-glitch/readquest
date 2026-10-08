@@ -439,6 +439,53 @@ await pt.close();
   await pn.close();
 }
 
+// ---------- (h) IndexedDB answers late / never: watchdog screen at 3 s with «Продолжаем пробовать…», late open → library by itself ----------
+{
+  /* indexedDB.open('readquest') wrapper: the REAL open is issued only at ~DELAY ms after navigation start (Infinity = never).
+     'hangOnce': hang only in the first document of this tab (sessionStorage) → «Попробовать ещё раз» must then boot normally. */
+  const slowIdb = async (mode) => { const p = await mk(); await p.evaluateOnNewDocument((mode) => {
+    const o = IDBFactory.prototype.open;
+    let hang = mode === 'delay5' ? 5000 : Infinity;
+    if (mode === 'hangOnce') { if (sessionStorage.getItem('__hung')) hang = 0; else sessionStorage.setItem('__hung', '1'); }
+    if (!hang) return;
+    IDBFactory.prototype.open = function (n, v) {
+      if (n !== 'readquest') return o.apply(this, arguments);
+      const self = this, fake = { result: undefined, error: null };
+      if (hang !== Infinity) setTimeout(() => { const r = o.call(self, n, v);
+        r.onupgradeneeded = (e) => { fake.result = r.result; fake.onupgradeneeded && fake.onupgradeneeded(e); };
+        r.onsuccess = (e) => { fake.result = r.result; fake.onsuccess && fake.onsuccess(e); };
+        r.onerror = (e) => { fake.error = r.error; fake.onerror && fake.onerror(e); };
+        r.onblocked = (e) => { fake.onblocked && fake.onblocked(e); };
+      }, Math.max(0, hang - performance.now()));
+      return fake;
+    };
+  }, mode); return p; };
+  const failState = (p) => p.evaluate(() => { const f = document.getElementById('rqFail'), l = document.getElementById('rqFailLine');
+    return { fail: !f.classList.contains('hidden'), line: !!l && l.offsetHeight > 0 && l.textContent.trim(), spin: !!(l && l.querySelector('.rq-fspin')), ready: !!window.__rqReady }; });
+  // delayed: success at ~5 s
+  const pd = await slowIdb('delay5');
+  const t0 = Date.now(); await pd.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await sleep(Math.max(0, 3500 - (Date.now() - t0)));
+  const at35 = await failState(pd);
+  ok('(h) IDB answers at ~5 s: at 3.5 s fail screen + «Продолжаем пробовать…» with spinner, not ready', at35.fail && at35.line === 'Продолжаем пробовать…' && at35.spin && !at35.ready, at35);
+  await pd.waitForFunction(() => window.__rqReady, { timeout: 10000, polling: 100 }).catch(() => {});
+  const tReady = Date.now() - t0; await sleep(400);
+  const after = await failState(pd);
+  const dg = await pd.evaluate(() => __rqDiag.run.steps.map(x => x.s + (x.x !== undefined ? '=' + JSON.stringify(x.x) : '') + '@' + x.p));
+  ok('(h) … then the library by itself (no tap): fail screen gone, journal has watchdog → idb-success → late-recover', after.ready && !after.fail && tReady < 8000 && dg.some(x => x.startsWith('watchdog')) && dg.some(x => x.startsWith('late-recover')) && dg.findIndex(x => x.startsWith('late-recover')) > dg.findIndex(x => x.startsWith('watchdog')), { tReady, steps: dg.slice(-6) });
+  await pd.close();
+  // never: hang in the first document only → screen + line stay; «Попробовать ещё раз» boots normally
+  const ph = await slowIdb('hangOnce');
+  await ph.goto(BASE, { waitUntil: 'domcontentloaded' }); await sleep(6000);
+  const h6 = await failState(ph);
+  ok('(h) IDB never answers: at 6 s fail screen + «Продолжаем пробовать…» still shown, not ready', h6.fail && h6.line === 'Продолжаем пробовать…' && !h6.ready, h6);
+  await Promise.all([ph.waitForNavigation({ waitUntil: 'domcontentloaded' }), ph.click('#rqFailRetry')]);
+  await ph.waitForFunction(() => window.__rqReady, { timeout: 8000, polling: 100 }).catch(() => {});
+  const hr = await failState(ph);
+  ok('(h) «Попробовать ещё раз» → reload → library', hr.ready && !hr.fail, hr);
+  await ph.close();
+}
+
 // ---------- (g) Wi-Fi without internet: SW network fetch hangs (never answered) → cached app within the race window ----------
 /* Method: CDP Fetch.enable on the SERVICE WORKER target (page-level Fetch does not see the SW's own fetch()),
    requestPaused events are never continued. Check that the hold really caught the SW's navigation fetch. */
@@ -450,18 +497,21 @@ await pt.close();
     const sws = await swT.createCDPSession(); const held = [];
     sws.on('Fetch.requestPaused', (e) => held.push(e.request.url)); /* never continue = hanging network */
     await sws.send('Fetch.enable', { patterns: [{ urlPattern: new URL(BASE).origin + '/*' }] });
+    await pg.bringToFront();
+    /* first frame: FCP when Chrome reports it (headless sometimes doesn't), else first rAF after #rqBoot is in the DOM */
+    await pg.evaluateOnNewDocument(() => { const f = () => { if (document.getElementById('rqBoot')) requestAnimationFrame(() => { window.__ff = Math.round(performance.now()); }); else setTimeout(f, 5); }; f(); });
     const t0 = Date.now(); let nav = 'ok';
     await pg.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 8000 }).catch(e => { nav = 'timeout ' + (Date.now() - t0) + ' ms'; });
     await pg.waitForFunction(() => window.__rqReady, { polling: 100, timeout: 4000 }).catch(() => {});
     const within = (pr, ms, fb) => Promise.race([pr, new Promise(r => setTimeout(() => r(fb), ms))]);
     const m = await within(pg.evaluate(() => { const fcp = performance.getEntriesByName('first-contentful-paint')[0]; const st = (window.__rqDiag && __rqDiag.run.steps) || []; const lib = st.find(x => x.s === 'library');
-      return { url: location.href, fcp: fcp ? Math.round(fcp.startTime) : null, ready: lib ? lib.p : null, sw: !!navigator.serviceWorker.controller, boot: !!document.getElementById('rqBoot'), nav: window.__rqDiag && __rqDiag.run.nav }; }).catch(e => ({ err: e.message })), 3000, { err: 'no document (navigation still pending)', fcp: null, ready: null });
+      return { url: location.href, fcp: fcp ? Math.round(fcp.startTime) : (window.__ff || null), fcpSrc: fcp ? 'fcp' : 'raf', ready: lib ? lib.p : null, sw: !!navigator.serviceWorker.controller, boot: !!document.getElementById('rqBoot'), nav: window.__rqDiag && __rqDiag.run.nav }; }).catch(e => ({ err: e.message })), 3000, { err: 'no document (navigation still pending)', fcp: null, ready: null });
     const navHeld = held.some(u => u === BASE || u === BASE + 'index.html');
     console.log('   [g] held by SW-target Fetch:', JSON.stringify(held.slice(0, 5)), 'nav:', nav, JSON.stringify(m));
     ok('(g) hold really caught the SW network fetch of the navigation', navHeld, held.slice(0, 5));
     ok('(g) hanging network: first frame (#rqBoot / library) < 2 s', nav === 'ok' && m.fcp !== null && m.fcp < 2000, { nav, fcp: m.fcp });
     ok('(g) hanging network: library ready ≤ 3 s, controlled by SW', nav === 'ok' && m.ready !== null && m.ready <= 3000 && m.sw, { nav, ready: m.ready });
-    await within(sws.send('Fetch.disable').catch(() => {}), 3000); await within(sws.detach().catch(() => {}), 3000);
+    await within(sws.send('Fetch.disable').catch(() => {}), 3000); /* no detach: detaching the SW-target session broke later newPage() */
     await within(pg.close().catch(() => {}), 5000);
   }
 }

@@ -140,7 +140,7 @@ ok('(b) no mixed builds: every module loaded with ?v=' + B, mods.length > 0 && m
 // ---------- (e) single writer ----------
 async function twoWindows(label, frozen) {
   await p1.bringToFront();
-  const g0 = await gameOf(p1); const s0 = (await idbAll(p1, 'sessions')).length;
+  const g0 = await gameOf(p1); const ids0 = new Set((await idbAll(p1, 'sessions')).map(r => r.id)); /* sessions store is keyed by UUID → compare ids, not slice by index */
   const p2 = await mk();
   await p2.goto(BASE, { waitUntil: 'load' }); await sleep(1200);
   ok(`(${label}) second window shows overlay, does not boot`, await overlayOn(p2) && !(await p2.evaluate(() => window.__rqReady)));
@@ -179,7 +179,7 @@ async function twoWindows(label, frozen) {
     ok(`(${label}) thawed old window: closing the session again writes no 2nd row, draft/rq_v1 not overwritten`, (await idbAll(p2, 'sessions')).length === sBefore && st0 === await rq(p2), { hadOpenBook: r });
   }
   const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2);
-  const neu = s1.slice(s0);
+  const neu = s1.filter(r => !ids0.has(r.id));
   ok(`(${label}) unfinished session counted exactly once (1 new row, minutes>0)`, neu.length === 1 && neu[0].minutes > 0, neu.map(r => ({ id: r.id, minutes: r.minutes })));
   console.log(`   [${label}] BEFORE`, JSON.stringify(g0));
   console.log(`   [${label}] AFTER `, JSON.stringify(g1));
@@ -201,7 +201,7 @@ await p1.close(); p1 = pB;
 // ---------- (e3) phone case: A frozen mid-session BEFORE any takeover message, B steals, A thaws with the book STILL open ----------
 {
   await p1.bringToFront();
-  const g0 = await gameOf(p1); const s0 = (await idbAll(p1, 'sessions')).length;
+  const g0 = await gameOf(p1); const ids0 = new Set((await idbAll(p1, 'sessions')).map(r => r.id)); /* UUID-keyed store → set-of-ids diff */
   await readSession(p1, bookId, 12);
   const draftA = await p1.evaluate(() => localStorage.getItem(RQ_K.v1.replace('_v1', '_session_draft')));
   ok('(e3) A: reader active mid-session, draft present', !!draftA && await p1.evaluate(() => !!R.book && !document.getElementById('reader').classList.contains('hidden')));
@@ -233,7 +233,7 @@ await p1.close(); p1 = pB;
   await p2.evaluate(() => document.getElementById('rqOtherBtn').click());
   await ready(p2); const dt = Date.now() - t0; await sleep(800);
   ok('(e3) B takes over by steal after ~2 s', dt >= 1900 && dt < 6000, { dt });
-  const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2); const neu = s1.slice(s0);
+  const s1 = await idbAll(p2, 'sessions'); const g1 = await gameOf(p2); const neu = s1.filter(r => !ids0.has(r.id));
   const st1 = await rq(p2);
   ok('(e3) B finished A\'s session: exactly 1 new row, paid once', neu.length === 1 && neu[0].minutes > 0 && g1.awarded.filter(x => x === neu[0].id).length === 1 && g1.xp > g0.xp, neu.map(r => ({ id: r.id, minutes: r.minutes })));
   ok('(e3) B consumed the draft', !(await p2.evaluate(() => localStorage.getItem(RQ_K.v1.replace('_v1', '_session_draft')))));
@@ -263,7 +263,7 @@ await p1.close(); p1 = pB;
   ok('(e3) NS_session_draft: B removed it, A neither rewrote nor deleted anything (still absent, rq() identical)', dr2 === null);
   const s2 = await idbAll(p2, 'sessions'); const st2 = await rq(p2); const g2a = await gameOf(p2);
   ok('(e3) thawed A writes nothing: no 2nd row, draft + rq_v1 + rq_set byte-identical, no payout', s2.length === s1.length && st2 === st1 && JSON.stringify(g2a) === JSON.stringify(g1), { rows: [s1.length, s2.length] });
-  ok('(e3) exactly one row for A\'s session; gold/awarded/daily unchanged after thaw; A credited no XP', s2.filter(r => r.id === neu[0].id).length === 1 && s2.length - s0 === 1 && g2a.gold === g1.gold && g2a.xp === g1.xp && JSON.stringify(g2a.awarded) === JSON.stringify(g1.awarded) && JSON.stringify(g2a.daily) === JSON.stringify(g1.daily));
+  ok('(e3) exactly one row for A\'s session; gold/awarded/daily unchanged after thaw; A credited no XP', s2.filter(r => r.id === neu[0].id).length === 1 && s2.filter(r => !ids0.has(r.id)).length === 1 && g2a.gold === g1.gold && g2a.xp === g1.xp && JSON.stringify(g2a.awarded) === JSON.stringify(g1.awarded) && JSON.stringify(g2a.daily) === JSON.stringify(g1.daily));
   console.log('   [e3] AFTER THAW', JSON.stringify(g2a));
   await p2.bringToFront(); await p2.reload({ waitUntil: 'load' }); await ready(p2); await sleep(500);
   const g3 = await gameOf(p2); const s3 = await idbAll(p2, 'sessions');

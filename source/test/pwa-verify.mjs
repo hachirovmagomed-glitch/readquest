@@ -327,7 +327,7 @@ await p1.close(); p1 = pB;
   await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'), { polling: 100 });
   await p2.evaluate(() => document.getElementById('rqOtherBtn').click()); await ready(p2); await sleep(800);
   const o1 = await p1.evaluate(() => ({ h: document.getElementById('rqOtherH').textContent, p: document.getElementById('rqOtherP').textContent, b: document.getElementById('rqOtherL').textContent, passive: __rqWriter.passive, book: !!R.book }));
-  ok('(e6) old window without an open book: «ReadQuest открыт в другом окне» / «Прогресс сохранён» / «Вернуться сюда»', o1.passive && !o1.book && o1.h === 'ReadQuest открыт в другом окне' && o1.p === 'Прогресс сохранён' && o1.b === 'Вернуться сюда', o1);
+  ok('(e6) old window without an open book: «ReadQuest открыт в другом окне» / «Всё сохранено. Продолжайте в другом окне или вернитесь сюда» / «Вернуться сюда»', o1.passive && !o1.book && o1.h === 'ReadQuest открыт в другом окне' && o1.p === 'Всё сохранено. Продолжайте в другом окне или вернитесь сюда' && o1.b === 'Вернуться сюда', o1);
   await p1.bringToFront(); const t0 = Date.now();
   await Promise.all([p1.waitForNavigation({ waitUntil: 'load' }), p1.evaluate(() => document.getElementById('rqOtherBtn').click())]);
   await ready(p1); const dt = Date.now() - t0; await sleep(800);

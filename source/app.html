@@ -4753,7 +4753,7 @@ document.addEventListener('click',function(ev){
   function ovText(mode,page){
     var t=TXT_NEW;
     if(mode==='old')t=page!=null?{h:'Книга открыта в другом окне',p:'Прогресс сохранён на странице '+page,b:'Вернуться сюда'}
-                                 :{h:'ReadQuest открыт в другом окне',p:'Прогресс сохранён',b:'Вернуться сюда'};
+                                 :{h:'ReadQuest открыт в другом окне',p:'Всё сохранено. Продолжайте в другом окне или вернитесь сюда',b:'Вернуться сюда'};
     var h=document.getElementById('rqOtherH'),pp=document.getElementById('rqOtherP'),l=document.getElementById('rqOtherL');
     if(h)h.textContent=t.h;if(pp)pp.textContent=t.p;if(l)l.textContent=t.b;
   }

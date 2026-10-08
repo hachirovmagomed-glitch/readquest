@@ -20,7 +20,8 @@
    ("bg txt muted", or "auto <light bg txt muted> <dark bg txt muted>"); here we only READ it (no JSON / no state parse)
    so splash → boot screen → library has no colour jump in a light theme. ===== */
 (function(){
-  try{var v=localStorage.getItem(window.RQ_K.theme);if(!v)return;var a=String(v).split(' '),c=null;
+  var ls0=performance.now();
+  try{var v=localStorage.getItem(window.RQ_K.theme);window.__rqLs0={at:Math.round(ls0),ms:Math.round((performance.now()-ls0)*10)/10};if(!v)return;var a=String(v).split(' '),c=null;
     if(a[0]==='auto'&&a.length===7){var h=new Date().getHours();c=(h>=7&&h<21)?a.slice(1,4):a.slice(4,7);} /* same rule as resolveAppTheme() */
     else if(a.length===3)c=a;
     if(!c||!c.every(function(x){return /^#[0-9a-f]{3,8}$/i.test(x);}))return;
@@ -28,20 +29,23 @@
   }catch(e){}
 })();
 /* ===== Boot diag journal (Фронт, stage 0): key RQ_NS+'diag' (NOT RQ_NS+'_' → write gate never drops it,
-   passive windows log too). Last 5 runs; each step: Date.now() + performance.now(). ===== */
+   passive windows log too). Last 5 runs; each step: Date.now() + performance.now(). Steps are kept in memory and
+   written to localStorage only at checkpoints (FLUSH_AT, pagehide), not on every mark (Architect B2). ===== */
 (function(){
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
   var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'__RQ_BUILD__',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
-    locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,steps:[]};
+    locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
+  var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
   function flush(){try{var cur=[];try{cur=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(cur))cur=[];}catch(e){cur=[];}
     var i=-1;for(var j=0;j<cur.length;j++)if(cur[j]&&cur[j].id===run.id)i=j;if(i<0)cur.push(run);else cur[i]=run;
     while(cur.length>MAX)cur.shift();localStorage.setItem(KEY,JSON.stringify(cur));}catch(e){}}
   var D=window.__rqDiag={run:run,last:null,
-    mark:function(step,extra){if(run.steps.length>=120)return;var r={s:step,t:Date.now(),p:Math.round(performance.now())};if(extra!==undefined)r.x=extra;run.steps.push(r);D.last=step;flush();},
-    text:function(){var all=[run];try{all=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){}return JSON.stringify(all,null,1);},
+    mark:function(step,extra){if(run.steps.length>=120)return;var r={s:step,t:Date.now(),p:Math.round(performance.now())};if(extra!==undefined)r.x=extra;run.steps.push(r);D.last=step;if(FLUSH_AT[step])flush();},
+    flush:flush,
+    text:function(){flush();var all=[run];try{all=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){}return JSON.stringify(all,null,1);},
     copy:function(btn){var t=D.text(),done=function(){if(!btn)return;var o=btn.textContent;btn.textContent='Скопировано';setTimeout(function(){btn.textContent=o;},2000);};
       var fb=function(){try{var a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done();}catch(e){}};
       try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fb);return;}}catch(e){}fb();}
@@ -50,9 +54,13 @@
      workerStart>0 = the SW handled the navigation; responseStart = first HTML byte; domInteractive = parsed. */
   D.nav=function(){try{var n=performance.getEntriesByType('navigation')[0];if(!n)return;
     run.nav={type:n.type,workerStart:Math.round(n.workerStart),fetchStart:Math.round(n.fetchStart),responseStart:Math.round(n.responseStart),
-      responseEnd:Math.round(n.responseEnd),domInteractive:Math.round(n.domInteractive)||null};flush();}catch(e){}};
+      responseEnd:Math.round(n.responseEnd),domInteractive:Math.round(n.domInteractive)||null};}catch(e){}};
+  /* module graph timing: was the slow part fetching modules (SW/cache) or running them? ms from navigation start */
+  D.res=function(tag){try{(run.res||(run.res={}))[tag]=performance.getEntriesByType('resource').filter(function(e){return /\.js(\?|$)/.test(e.name)&&e.name.indexOf(location.origin)===0;})
+    .map(function(e){return {n:e.name.split('/').pop().split('?')[0],s:Math.round(e.startTime),w:Math.round(e.workerStart),rs:Math.round(e.responseStart),re:Math.round(e.responseEnd)};});}catch(e){}};
   D.mark('markup');D.nav();
   document.addEventListener('DOMContentLoaded',function(){D.nav();D.mark('dcl');});
+  window.addEventListener('pagehide',function(){D.mark('pagehide');flush();});
   window.addEventListener('error',function(e){D.mark('error',String(e.message||(e.target&&e.target.src)||e).slice(0,200));},true);
   window.addEventListener('unhandledrejection',function(e){D.mark('rejection',String(e.reason&&e.reason.message||e.reason).slice(0,200));});
   document.addEventListener('visibilitychange',function(){if(!window.__rqReady)D.mark('vis',document.visibilityState);});
@@ -60,7 +68,7 @@
   setTimeout(function(){
     if(window.__rqReady)return;
     var o=document.getElementById('rqOther');if(o&&!o.classList.contains('hidden'))return;
-    D.mark('watchdog',D.last);
+    D.res('watchdog');D.mark('watchdog',D.last);
     var b=document.getElementById('rqBoot');if(b)b.classList.add('hidden');
     var f=document.getElementById('rqFail');if(f)f.classList.remove('hidden');
   },3000);
@@ -4699,7 +4707,7 @@ window.__rqStart=async function(api, tracker){
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
   window.__rqReady=true;
   {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');if(fl&&!fl.classList.contains('hidden')){fl.classList.add('hidden');if(window.__rqDiag)__rqDiag.mark('late-library');}} /* late boot after the watchdog → show the library anyway */
-  if(window.__rqDiag)__rqDiag.mark('library');
+  if(window.__rqDiag){if(__rqDiag.res)__rqDiag.res('library');__rqDiag.mark('library');}
 };
 /* Stub: Создать героя → analytics event only (no AI / no network) */
 document.addEventListener('click',function(ev){
@@ -4839,6 +4847,7 @@ document.addEventListener('click',function(ev){
   }
 })();
 </script>
+<script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
@@ -4852,6 +4861,7 @@ import * as game from './game-awards.js';
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };
 if (DG.nav) DG.nav();
+if (DG.res) DG.res('module');
 DG.mark('module');
 DG.mark('acquire-in');
 await window.__rqAcquire();

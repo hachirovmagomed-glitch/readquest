@@ -456,7 +456,9 @@ await pt.close();
   /* Economy around late-recover (Архитектор/Квестмастер): xp, gold, goldAllTime, awardedSessionIds, dailyPaidDays, weeklyPaidWeeks
      from NS_v1.game (what the app saved), + sessions rows / today's minutes / session draft (IDB + localStorage), + in-memory S.
      H_BREAK (RED runs only, test-side like G2_STRIP): 'daily' = daily-already-paid guard stripped (every boot re-pays the days of ALL rows);
-     'session' = the fail-screen period opens a session (a reader draft is written while #rqFail is shown → recovered as a row at late boot). */
+     'session' = the fail-screen period opens a session (a reader draft is written while #rqFail is shown → recovered as a row at late boot);
+     'progress' = the late-recover path drops reading progress and saves (the open book would restart at page 1);
+     'progress-end' = the late-recover path moves every book to its last page and saves. */
   const H_BREAK = process.env.H_BREAK || '';
   const breakGuard = async (p) => { if (!H_BREAK) return; await p.evaluateOnNewDocument((mode, bid) => {
     if (mode === 'daily') { let g; Object.defineProperty(window, '__rqGame', { configurable: true, get: () => g, set: (v) => { g = Object.assign({}, v, {
@@ -466,6 +468,15 @@ await pt.close();
       if (window.__rqReady) { clearInterval(iv); return; } if (!f || f.classList.contains('hidden')) return; if (!t0) t0 = Date.now();
       const d = new Date(), day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       localStorage.setItem(RQ_NS + '_session_draft', JSON.stringify({ id: sid, bookId: bid, date: day, countedMs: Date.now() - t0, pageTurns: 1, startedAt: t0, updatedAt: Date.now() })); }, 200); }
+    if (mode === 'progress') { let f; Object.defineProperty(window, '__rqStart', { configurable: true, get: () => f, set: (v) => { f = async function () {
+      /* __rqStart hydrates S at ~1.6 s (localStorage) and then waits for IDB; break = the late-recover path drops reading progress and saves */
+      const r = await v.apply(this, arguments);
+      if (window.__rqDiag && __rqDiag.run.steps.some(x => x.s === 'late-recover')) { S.progress = {}; save(); }
+      return r; }; } }); }
+    if (mode === 'progress-end') { let f; Object.defineProperty(window, '__rqStart', { configurable: true, get: () => f, set: (v) => { f = async function () {
+      const r = await v.apply(this, arguments); /* break = the late-recover path sends every book to its LAST page and saves */
+      if (window.__rqDiag && __rqDiag.run.steps.some(x => x.s === 'late-recover')) { Object.keys(S.progress || {}).forEach(k => { S.progress[k] = { ratio: 1 }; }); save(); }
+      return r; }; } }); }
   }, H_BREAK, bookId); };
   const ECON = ['xp', 'gold', 'goldAllTime', 'awarded', 'daily', 'weekly', 'sessions', 'todayMin', 'draft'];
   const econ = async (p) => { const rows = await idbAll(p, 'sessions');
@@ -541,6 +552,32 @@ await pt.close();
   const hr = await failState(ph);
   ok('(h) «Попробовать ещё раз» → reload → library', hr.ready && !hr.fail, hr);
   await ph.close();
+  // open book + late IDB: the tab was killed while reading page N (strictly in the middle) → late-recover → reopens at page N
+  /* fresh copy of the book (progress 0): saving is monotonic (farthest page), so a book already read past the middle could not be put there */
+  const pb = await mk(); await pb.goto(BASE, { waitUntil: 'load' }); await ready(pb);
+  { const n0 = await pb.evaluate(() => S.userBooks.length); await (await pb.$('#fileInp')).uploadFile('/workspace/rqtest/Книга для позднего запуска.txt');
+    await pb.waitForFunction((n0) => S.userBooks.length > n0, { polling: 100, timeout: 10000 }, n0); }
+  const midId = await pb.evaluate(() => S.userBooks[S.userBooks.length - 1].id);
+  await pb.bringToFront(); await pb.evaluate((id) => openBook(id), midId); await sleep(500);
+  const mid = await pb.evaluate(() => Math.floor((R.pageCount - 1) / 2));
+  await pb.evaluate((m) => goPage(m - 2, false), mid); await sleep(150); /* jump near the middle, then two real page turns */
+  for (let i = 0; i < 2; i++) { await pb.evaluate(() => { window.__rqTimeOffset += 60000; goPage(R.page + 1, true); }); await sleep(150); }
+  await sleep(500);
+  const savedRatio = (p, id) => p.evaluate((id) => { const v = JSON.parse(localStorage.getItem(RQ_NS + '_v1') || '{}'); return ((v.progress && v.progress.progress) || {})[id] ? v.progress.progress[id].ratio : null; }, id);
+  const bk0 = await pb.evaluate((id) => ({ page: R.page, pages: R.pageCount, mem: (S.progress[id] || {}).ratio }), midId); bk0.saved = await savedRatio(pb, midId);
+  bk0.savedPage = bk0.saved == null ? null : Math.round(bk0.saved * (bk0.pages - 1)); bk0.last = bk0.pages - 1;
+  ok('(h) setup: saved page strictly in the middle (0 < saved < last, 30–70 % of the book), saved = page on screen', bk0.page === mid && bk0.savedPage === mid && bk0.savedPage > 0 && bk0.savedPage < bk0.last && bk0.savedPage / bk0.last >= 0.3 && bk0.savedPage / bk0.last <= 0.7, bk0);
+  await pb.close(); await sleep(400); /* closed with the book open (no closeReader) */
+  const pr = await slowIdb('delay5'); await pr.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await pr.waitForFunction(() => window.__rqReady, { timeout: 12000, polling: 100 }).catch(() => {}); await sleep(500);
+  const bk1 = await pr.evaluate((id) => ({ late: __rqDiag.run.steps.some(x => x.s === 'late-recover'), mem: (S.progress[id] || {}).ratio }), midId); bk1.saved = await savedRatio(pr, midId);
+  await pr.evaluate((id) => openBook(id), midId); await sleep(700);
+  const bk2 = await pr.evaluate(() => ({ page: R.page, pages: R.pageCount }));
+  await pr.evaluate(() => closeReader()); await sleep(500); bk2.savedAfter = await savedRatio(pr, midId);
+  ok('(h) open book + late IDB (late-recover): reopens exactly at the saved middle page (≠ first, ≠ last), saved progress unchanged' + (H_BREAK ? ` [H_BREAK=${H_BREAK}]` : ''),
+    bk1.late && bk1.mem === bk0.saved && bk1.saved === bk0.saved && bk2.pages === bk0.pages && bk2.page === bk0.savedPage && bk2.page !== 0 && bk2.page !== bk2.pages - 1 && bk2.savedAfter === bk0.saved,
+    { before: { page: bk0.page, savedPage: bk0.savedPage, of: bk0.pages, saved: bk0.saved }, afterLateBoot: bk1, reopened: bk2 });
+  await pr.close();
 }
 
 // ---------- (g) Wi-Fi without internet: SW network fetch hangs (never answered) → cached app within the race window ----------

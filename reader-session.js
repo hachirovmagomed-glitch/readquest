@@ -30,10 +30,10 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261007-1118';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261008-1054';
 export { newSessionId };
 
-export const DRAFT_KEY = 'rq_session_draft';
+export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* quota */ } }
@@ -104,7 +104,7 @@ export function createSessionTracker(api) {
   function countedMsLive() { return creditedMs + Math.min(dwellLive(), pageCapMs); }
 
   function persistDraft() {
-    if (!running || !bookId) return;
+    if (!running || !bookId || api.noDraft) return; /* noDraft: browser without navigator.locks — nothing to recover = no XP */
     lsSet(DRAFT_KEY, JSON.stringify({
       id: sessionId,
       bookId: bookId,

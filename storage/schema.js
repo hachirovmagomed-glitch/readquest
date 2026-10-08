@@ -4,17 +4,21 @@
  */
 export const SCHEMA_VERSION = 1;
 
+/** Namespace (build-time, set by build-dist.sh via window.RQ_NS): 'rq' = main app, 'rqt' = test build.
+ *  Every key / DB / lock / channel / cache is derived from it so a test build never touches main data. */
+export const NS = (typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq';
+
 /** localStorage keys (v1) */
 export const KEYS = {
-  envelope: 'rq_v1',
-  settings: 'rq_set',
+  envelope: NS + '_v1',
+  settings: NS + '_set',
   /** legacy v6 monolith */
-  legacyState: 'readquest',
-  legacyMigratedFlag: 'rq_migrated_v1',
+  legacyState: NS === 'rq' ? 'readquest' : NS + '_readquest',
+  legacyMigratedFlag: NS + '_migrated_v1',
 };
 
 /** IndexedDB — one DB; never invent separate DBs for focus/anti-cheat */
-export const IDB_NAME = 'readquest';
+export const IDB_NAME = NS === 'rq' ? 'readquest' : 'readquest-test';
 /** v1 files (v6) → v2 sessions → v3 reading events (pageVisibleMs) */
 export const IDB_VERSION = 3;
 export const IDB_STORE = 'files';

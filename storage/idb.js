@@ -10,7 +10,7 @@ import {
   IDB_STORE_EVENTS,
   idbKeyPdf,
   idbKeyText,
-} from './schema.js?v=20261007-1118';
+} from './schema.js?v=20261008-1054';
 
 function ensureStores(db) {
   if (!db.objectStoreNames.contains(IDB_STORE)) {
@@ -36,14 +36,22 @@ function ensureStores(db) {
 
 function openDb() {
   return new Promise(function (res, rej) {
+    const dg = (typeof window !== 'undefined' && window.__rqDiag && !window.__rqReady) ? window.__rqDiag : null; /* boot journal only */
     const r = indexedDB.open(IDB_NAME, IDB_VERSION);
-    r.onupgradeneeded = function () {
+    if (dg) dg.mark('idb-open');
+    r.onupgradeneeded = function (e) {
+      if (dg) dg.mark('idb-upgradeneeded', [e.oldVersion, e.newVersion]);
       ensureStores(r.result);
     };
+    r.onblocked = function () {
+      if (dg) dg.mark('idb-blocked');
+    };
     r.onsuccess = function () {
+      if (dg) dg.mark('idb-success');
       res(r.result);
     };
     r.onerror = function () {
+      if (dg) dg.mark('idb-error', String(r.error && r.error.name));
       rej(r.error);
     };
   });

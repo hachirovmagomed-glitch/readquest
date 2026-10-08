@@ -2463,7 +2463,11 @@ function addQuote(withNote){
   if(withNote)note=prompt('Заметка к цитате:')||'';
   (S.quotes[R.book.id]=S.quotes[R.book.id]||[]).push({text:t,note,date:today()});
   (S.hl[R.book.id]=S.hl[R.book.id]||[]).push(t);
-  if(!(window.__rqWriter&&__rqWriter.noLocks)){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;addSkillXp('Аналитика',1);checkAchievements();} /* no locks → no coins */save();
+  if(!(window.__rqWriter&&__rqWriter.noLocks)){
+    if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
+    addSkillXp('Аналитика',1);checkAchievements();
+  } /* no locks → no coins */
+  save();
   markInContent(t);
   if(window.getSelection)window.getSelection().removeAllRanges();
   el('selpop').classList.add('hidden');

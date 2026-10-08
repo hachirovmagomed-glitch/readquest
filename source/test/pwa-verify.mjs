@@ -410,6 +410,9 @@ await pt.close();
     const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2; const at = (y) => { const e = document.elementFromPoint(cx, y); return !!e && (e === b || b.contains(e)); };
     const out = { h: Math.round(r.height), up: at(cy - 21.5), down: at(cy + 21.5) }; show('library'); return out; });
   ok('(D) settings «Скопировать журнал запуска»: hit area ≥ 44 px tall (center ± 21.5 px hits the button)', hit.up && hit.down, hit);
+  const qt = await p1.evaluate(async (id) => { await openBook(id); await new Promise(r => setTimeout(r, 400)); const g0 = S.gold, n0 = (S.quotes[id] || []).length; const os = window.selText; window.selText = () => 'Проверочная цитата';
+    try { addQuote(false); } finally { window.selText = os; } const out = { mvp: isMvp(), gold: [g0, S.gold], quotes: [n0, (S.quotes[id] || []).length] }; await closeReader(); show('library'); return out; }, bookId);
+  ok('(D) MVP: a quote is saved but gives no coins (+2 removed in MVP)', qt.mvp && qt.gold[0] === qt.gold[1] && qt.quotes[1] === qt.quotes[0] + 1, qt);
   ok('(D) back to teal → rq_theme updated', await p1.evaluate(() => localStorage.getItem('rq_theme')) === '#0c2127 #e8f1f2 #8fb0b5');
 }
 

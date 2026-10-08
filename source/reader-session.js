@@ -104,7 +104,7 @@ export function createSessionTracker(api) {
   function countedMsLive() { return creditedMs + Math.min(dwellLive(), pageCapMs); }
 
   function persistDraft() {
-    if (!running || !bookId) return;
+    if (!running || !bookId || api.noDraft) return; /* noDraft: browser without navigator.locks — nothing to recover = no XP */
     lsSet(DRAFT_KEY, JSON.stringify({
       id: sessionId,
       bookId: bookId,

@@ -168,6 +168,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
 #dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
 body:not(.mvp) #dayBar{display:none}
+/* no navigator.locks: thin grey line under the session counter, in the flex column (never over the text), no close */
+#rqNoXp{display:none;flex:none;padding:3px var(--r-margin,24px);font-size:11px;line-height:14px;color:var(--muted);text-align:center;pointer-events:none}
+body.rq-nolocks #rqNoXp{display:block}
 /* Always-on page number «34 / 210» (Интерфейс, build 3): own 18px strip between the text and the day bar →
    outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
    running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
@@ -958,6 +961,7 @@ body.mvp #sumDailyBox{display:block}
   </div>
   <div id="pgLine" aria-hidden="true"><span id="pgNum"></span></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
+  <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span></footer>
   <div class="sheet hidden" id="panel">
@@ -2418,7 +2422,7 @@ function addQuote(withNote){
   if(withNote)note=prompt('Заметка к цитате:')||'';
   (S.quotes[R.book.id]=S.quotes[R.book.id]||[]).push({text:t,note,date:today()});
   (S.hl[R.book.id]=S.hl[R.book.id]||[]).push(t);
-  S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;addSkillXp('Аналитика',1);checkAchievements();save();
+  if(!(window.__rqWriter&&__rqWriter.noLocks)){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;addSkillXp('Аналитика',1);checkAchievements();} /* no locks → no coins */save();
   markInContent(t);
   if(window.getSelection)window.getSelection().removeAllRanges();
   el('selpop').classList.add('hidden');
@@ -4648,11 +4652,16 @@ window.__rqStart=async function(api, tracker){
   /* sessions[] is the source of truth: recover a session left open by a killed tab, then award
      any row not yet in game.awardedSessionIds (idempotent across reloads / imports). */
   try{if(api.ensureSessionIds)await api.ensureSessionIds();}catch(e){console.warn('[rq] ensureSessionIds',e);} /* pre-UUID rows → legacy-… ids */
-  try{if(api.recoverDraft)await api.recoverDraft(api);}catch(e){console.warn('[rq] recoverDraft',e);}
+  const noLocks=!!(window.__rqWriter&&__rqWriter.noLocks);
+  if(!noLocks){try{if(api.recoverDraft)await api.recoverDraft(api);}catch(e){console.warn('[rq] recoverDraft',e);}}
   try{SESS=api.listSessions?await api.listSessions({}):[];}catch(e){SESS=[];console.warn('[rq] listSessions',e);}
   /* old «Забрать» claims (incl. a UTC-day claim of today) → paid lists, once */
   if(window.__rqGame&&window.__rqGame.migrateClaimedToPaid(S,Date.now()))save();
-  if(isMvp()){const br=awardPendingSessions();__bootGold=br.gold||0;} /* recovered session: paid now, silently */
+  if(isMvp()&&!noLocks){const br=awardPendingSessions();__bootGold=br.gold||0;} /* recovered session: paid now, silently */
+  if(noLocks){
+    document.body.classList.add('rq-nolocks'); /* quiet line in the reader */
+    if(!window.__rqNoLocksLogged&&api.logAnalyticsEvent){window.__rqNoLocksLogged=true;api.logAnalyticsEvent({type:'no_locks'}).catch(function(e){console.warn('[rq] no_locks',e);});}
+  }
   if(el('buildVer'))el('buildVer').textContent=RQ_BUILD;
   applyAppTheme();applyScale();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
@@ -4725,7 +4734,7 @@ document.addEventListener('click',function(ev){
     });
   }
   window.__rqAcquire=async function(){
-    if(!navigator.locks||!navigator.locks.request){window.__rqDiag&&__rqDiag.mark('acquire-nolocks');return true;} /* fallback: as before */
+    if(!navigator.locks||!navigator.locks.request){gate.noLocks=true;window.__rqDiag&&__rqDiag.mark('acquire-nolocks');return true;} /* no single-writer guarantee → read + save page, but no sessions / XP / coins (see __rqStart) */
     gate.locks=true;
     var auto=false;try{auto=sessionStorage.getItem(RQ_K.takeover)==='1';sessionStorage.removeItem(RQ_K.takeover);}catch(e){}
     /* reload race: the previous document of THIS tab may still hold the lock for a moment → retry ~1 s before showing the overlay */
@@ -4787,7 +4796,11 @@ const boot = await bootStorage();
 DG.mark('storage-out');
 window.localDay = localDay; window.addLocalDays = addLocalDays; /* one day helper for the whole app */
 DG.mark('start-in');
-const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return localDay(Date.now()); } });
+const noLocks = !!(window.__rqWriter && window.__rqWriter.noLocks);
+/* no navigator.locks: two windows could double-count → the tracker still measures (UI), but writes no sessions[] row and no draft */
+const tracker = createSessionTracker(noLocks
+  ? { logSession: async function () { return null; }, logReadingEvent, noDraft: true, dayFn: function () { return localDay(Date.now()); } }
+  : { logSession, logReadingEvent, dayFn: function () { return localDay(Date.now()); } });
 await window.__rqStart({
   boot,
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,

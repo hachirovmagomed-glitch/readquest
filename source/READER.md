@@ -219,7 +219,7 @@ reproduction on 1306). Shots: `shots/pdf-fix/`.
 5. SW update: new build activates only after all old windows are closed (no `skipWaiting`). Contract doesn't specify; "next open" = next launch after the app was fully closed.
 6. SW also ignores book-file extensions and `/readquest/test/`; cache prefix is `NS-` (`rq-`/`rqt-`), and each SW deletes only its own prefix.
 7. `storage_persist` is logged only by the writer window (passive windows skip it) and only if `navigator.storage.persist` exists.
-8. No `navigator.locks` → app works as before without the single-writer guarantee (contract silent).
+8. No `navigator.locks` (Architect, stage 0) → reading works and the page is saved (`S.progress` on close), but **no sessions[] rows, no draft, no XP / coins**: the tracker gets a no-op `logSession` + `noDraft`, boot skips `recoverDraft()` / `awardPendingSessions()`, quote coins (+2) are skipped. Analytics `no_locks` once per boot. Reader shows a thin grey line under the day bar «В этом браузере опыт не начисляется. Чтение и страница сохраняются» (in the flex column, never over the text, no close). Test: pwa-verify e5.
 9. Test-build namespace (`rqt`) and the `readquest-test` DB are an addition, not in the contract.
 
 ## Gaps / next

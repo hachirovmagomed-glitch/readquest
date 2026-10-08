@@ -35,7 +35,13 @@
       var fb=function(){try{var a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done();}catch(e){}};
       try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fb);return;}}catch(e){}fb();}
   };
-  D.mark('markup');
+  /* navigation timing (ms from navigation start): before HTML (SW start / network) vs after (lock / IDB).
+     workerStart>0 = the SW handled the navigation; responseStart = first HTML byte; domInteractive = parsed. */
+  D.nav=function(){try{var n=performance.getEntriesByType('navigation')[0];if(!n)return;
+    run.nav={type:n.type,workerStart:Math.round(n.workerStart),fetchStart:Math.round(n.fetchStart),responseStart:Math.round(n.responseStart),
+      responseEnd:Math.round(n.responseEnd),domInteractive:Math.round(n.domInteractive)||null};flush();}catch(e){}};
+  D.mark('markup');D.nav();
+  document.addEventListener('DOMContentLoaded',function(){D.nav();D.mark('dcl');});
   window.addEventListener('error',function(e){D.mark('error',String(e.message||(e.target&&e.target.src)||e).slice(0,200));},true);
   window.addEventListener('unhandledrejection',function(e){D.mark('rejection',String(e.reason&&e.reason.message||e.reason).slice(0,200));});
   document.addEventListener('visibilitychange',function(){if(!window.__rqReady)D.mark('vis',document.visibilityState);});
@@ -4831,6 +4837,7 @@ import * as game from './game-awards.js';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };
+if (DG.nav) DG.nav();
 DG.mark('module');
 DG.mark('acquire-in');
 await window.__rqAcquire();

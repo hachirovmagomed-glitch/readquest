@@ -453,7 +453,38 @@ await pt.close();
 {
   /* indexedDB.open('readquest') wrapper: the REAL open is issued only at ~DELAY ms after navigation start (Infinity = never).
      'hangOnce': hang only in the first document of this tab (sessionStorage) → «Попробовать ещё раз» must then boot normally. */
-  const slowIdb = async (mode) => { const p = await mk(); await p.evaluateOnNewDocument((mode) => {
+  /* Economy around late-recover (Архитектор/Квестмастер): xp, gold, goldAllTime, awardedSessionIds, dailyPaidDays, weeklyPaidWeeks
+     from NS_v1.game (what the app saved), + sessions rows / today's minutes / session draft (IDB + localStorage), + in-memory S.
+     H_BREAK (RED runs only, test-side like G2_STRIP): 'daily' = daily-already-paid guard stripped (every boot re-pays the days of ALL rows);
+     'session' = the fail-screen period opens a session (a reader draft is written while #rqFail is shown → recovered as a row at late boot). */
+  const H_BREAK = process.env.H_BREAK || '';
+  const breakGuard = async (p) => { if (!H_BREAK) return; await p.evaluateOnNewDocument((mode, bid) => {
+    if (mode === 'daily') { let g; Object.defineProperty(window, '__rqGame', { configurable: true, get: () => g, set: (v) => { g = Object.assign({}, v, {
+      applyQuestAwards: (game, rows, newRows, o) => { const keep = (game.dailyPaidDays || []).slice(); game.dailyPaidDays = []; const out = v.applyQuestAwards(game, rows, rows, o);
+        keep.forEach(d => { if (game.dailyPaidDays.indexOf(d) < 0) game.dailyPaidDays.push(d); }); return out; } }); } }); }
+    if (mode === 'session') { const sid = 'hfail-' + Date.now(); let t0 = 0; const iv = setInterval(() => { const f = document.getElementById('rqFail');
+      if (window.__rqReady) { clearInterval(iv); return; } if (!f || f.classList.contains('hidden')) return; if (!t0) t0 = Date.now();
+      const d = new Date(), day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      localStorage.setItem(RQ_NS + '_session_draft', JSON.stringify({ id: sid, bookId: bid, date: day, countedMs: Date.now() - t0, pageTurns: 1, startedAt: t0, updatedAt: Date.now() })); }, 200); }
+  }, H_BREAK, bookId); };
+  const ECON = ['xp', 'gold', 'goldAllTime', 'awarded', 'daily', 'weekly', 'sessions', 'todayMin', 'draft'];
+  const econ = async (p) => { const rows = await idbAll(p, 'sessions');
+    const e = await p.evaluate(() => { const g = (JSON.parse(localStorage.getItem(RQ_NS + '_v1') || '{}').game) || {}; const srt = (a) => (a || []).slice().sort();
+      return { xp: g.xp, gold: g.gold, goldAllTime: g.goldAllTime, awarded: srt(g.awardedSessionIds), daily: srt(g.dailyPaidDays), weekly: srt(g.weeklyPaidWeeks),
+        draft: localStorage.getItem(RQ_NS + '_session_draft'), today: today(), mem: { xp: S.xp, gold: S.gold, goldAllTime: S.goldAllTime, daily: srt(S.dailyPaidDays), awarded: (S.awardedSessionIds || []).length } }; });
+    e.sessions = rows.length; e.todayMin = Math.round(rows.filter(r => String(r.date).slice(0, 10) === e.today).reduce((a, r) => a + (Number(r.minutes) || 0), 0) * 1000) / 1000; return e; };
+  const econDiff = (a, b) => ECON.filter(k => JSON.stringify(a[k]) !== JSON.stringify(b[k])).concat(['xp', 'gold', 'goldAllTime'].filter(k => b.mem[k] !== a[k]).map(k => 'mem.' + k), JSON.stringify(b.mem.daily) !== JSON.stringify(a.daily) ? ['mem.daily'] : []);
+  const short = (e) => ({ xp: e.xp, gold: e.gold, goldAllTime: e.goldAllTime, awarded: e.awarded.length, daily: e.daily, weekly: e.weekly, sessions: e.sessions, todayMin: e.todayMin, draft: !!e.draft });
+  // seed: today at goal AND today's daily already paid (eligible-but-awarded) → a repeat payout would be visible
+  const ps = await mk(); await ps.goto(BASE, { waitUntil: 'load' }); await ready(ps);
+  const seed = await ps.evaluate(async (id) => { const need = goalMin() - dayMin(today()); let added = 0;
+    added = Math.max(0, need) + 1; await __rq.logSession({ bookId: id, minutes: added, pageTurns: 3, date: today() }); SESS = await __rq.listSessions({});
+    const r = awardPendingSessions(); await new Promise(res => setTimeout(res, 300));
+    return { goal: goalMin(), added, todayMin: dayMin(today()), paidToday: dailyPaid(today()), seedAward: { xp: r.xp, gold: r.gold, daily: r.daily } }; }, bookId);
+  ok("(h) seed: today's minutes ≥ goal and today's daily already paid (eligible-but-awarded)", seed.todayMin >= seed.goal && seed.paidToday, seed);
+  const pre = await econ(ps); await ps.close(); await sleep(300);
+  console.log('   [h] BEFORE', JSON.stringify(short(pre)));
+  const slowIdb = async (mode) => { const p = await mk(); await breakGuard(p); await p.evaluateOnNewDocument((mode) => {
     const o = IDBFactory.prototype.open;
     let hang = mode === 'delay5' ? 5000 : Infinity;
     if (mode === 'hangOnce') { if (sessionStorage.getItem('__hung')) hang = 0; else sessionStorage.setItem('__hung', '1'); }
@@ -485,7 +516,21 @@ await pt.close();
   const after = await failState(pd);
   const dg = await pd.evaluate(() => __rqDiag.run.steps.map(x => x.s + (x.x !== undefined ? '=' + JSON.stringify(x.x) : '') + '@' + x.p));
   ok('(h) … then the library by itself (no tap): fail screen gone, journal has watchdog → idb-success → late-recover', after.ready && !after.fail && tReady < 8000 && dg.some(x => x.startsWith('watchdog')) && dg.some(x => x.startsWith('late-recover')) && dg.findIndex(x => x.startsWith('late-recover')) > dg.findIndex(x => x.startsWith('watchdog')), { tReady, steps: dg.slice(-6) });
-  await pd.close();
+  // economy: late-recover changes nothing; the fail-screen period opened/counted no session
+  const post = await econ(pd); console.log('   [h] AFTER late-recover', JSON.stringify(short(post)), 'mem', JSON.stringify(post.mem));
+  const d1 = econDiff(pre, post).filter(k => !['sessions', 'todayMin', 'draft'].includes(k));
+  ok('(h) economy after late-recover = before launch (xp, gold, goldAllTime, awardedSessionIds, dailyPaidDays, weeklyPaidWeeks; saved + in memory)' + (H_BREAK ? ` [H_BREAK=${H_BREAK}]` : ''), !d1.length, { changed: d1, before: short(pre), after: short(post) });
+  ok('(h) fail-screen time opened/counted no session: no draft, no new sessions row, today\'s minutes unchanged' + (H_BREAK ? ` [H_BREAK=${H_BREAK}]` : ''), !post.draft && post.sessions === pre.sessions && post.todayMin === pre.todayMin, { draft: post.draft, sessions: [pre.sessions, post.sessions], todayMin: [pre.todayMin, post.todayMin] });
+  // repeat launches the same day: another late-recover (same tab, IDB again late) + a normal boot → daily not paid twice, nothing changes
+  await pd.reload({ waitUntil: 'domcontentloaded' });
+  await pd.waitForFunction(() => window.__rqReady, { timeout: 12000, polling: 100 }).catch(() => {}); await sleep(600);
+  const lr2 = await pd.evaluate(() => __rqDiag.run.steps.some(x => x.s === 'late-recover'));
+  const post2 = await econ(pd); await pd.close(); await sleep(300);
+  const pn2 = await mk(); await breakGuard(pn2); await pn2.goto(BASE, { waitUntil: 'load' }); await ready(pn2); await sleep(600);
+  const post3 = await econ(pn2); await pn2.close(); await sleep(500);
+  console.log('   [h] AFTER 2nd late-recover', JSON.stringify(short(post2)), '| AFTER normal boot', JSON.stringify(short(post3)));
+  const d2 = econDiff(pre, post2), d3 = econDiff(pre, post3);
+  ok("(h) repeat launch same day (2nd late-recover + normal boot): today's daily not paid again, economy + sessions unchanged" + (H_BREAK ? ` [H_BREAK=${H_BREAK}]` : ''), lr2 && !d2.length && !d3.length && post3.daily.filter(x => x === pre.today).length === 1, { lateRecover2: lr2, changed2: d2, changed3: d3, gold: [pre.gold, post.gold, post2.gold, post3.gold], xp: [pre.xp, post.xp, post2.xp, post3.xp] });
   // never: hang in the first document only → screen + line stay; «Попробовать ещё раз» boots normally
   const ph = await slowIdb('hangOnce');
   await ph.goto(BASE, { waitUntil: 'domcontentloaded' }); await sleep(6000);

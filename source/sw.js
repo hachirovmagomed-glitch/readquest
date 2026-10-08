@@ -9,6 +9,7 @@ const NS = '__RQ_NS__';
 const BUILD = '__RQ_BUILD__';
 const CACHE = NS + '-' + BUILD;
 const PRECACHE = __RQ_PRECACHE__;
+const NAV_TIMEOUT_MS = 1500; /* navigation: network vs cache race */
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
@@ -47,10 +48,22 @@ self.addEventListener('fetch', function (e) {
   if (isBook(url)) return;                                  /* books live in IndexedDB */
   if (req.mode === 'navigate') {
     /* network-first, bypass HTTP cache (Pages max-age=600). The network copy is NOT stored:
-       the cache only ever holds this SW's own build, so offline = consistent old build. */
-    e.respondWith(fetch(req, { cache: 'no-cache' }).catch(function () {
+       the cache only ever holds this SW's own build, so offline = consistent old build.
+       Race (Architect, stage 0): Wi-Fi without internet / captive portal = fetch neither answers nor fails →
+       after NAV_TIMEOUT_MS serve this build from cache. The network request is NOT aborted (a late answer is
+       just ignored); network fails fast → cache at once; no cached copy → keep waiting for the network. */
+    const fromCache = function () {
       return caches.open(CACHE).then(function (c) {
         return c.match(req, { ignoreSearch: true }).then(function (m) { return m || c.match('./') || c.match('index.html'); });
+      });
+    };
+    e.respondWith(new Promise(function (resolve) {
+      let done = false;
+      const finish = function (r) { if (!done && r) { done = true; resolve(r); } };
+      const timer = setTimeout(function () { fromCache().then(finish, function () {}); }, NAV_TIMEOUT_MS);
+      fetch(req, { cache: 'no-cache' }).then(function (r) { clearTimeout(timer); finish(r); }, function () {
+        clearTimeout(timer);
+        fromCache().then(function (m) { finish(m || Response.error()); }, function () { finish(Response.error()); });
       });
     }));
     return;

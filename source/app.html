@@ -16,6 +16,38 @@
   window.RQ_K={v1:ns+'_v1',set:ns+'_set',owner:ns+'_owner',migrated:ns+'_migrated_v1',takeover:ns+'_takeover',
     legacy:ns==='rq'?'readquest':ns+'_readquest',idb:ns==='rq'?'readquest':'readquest-test',lock:ns+'-writer',bc:ns,cache:ns+'-'};
 })();
+/* ===== Boot diag journal (Фронт, stage 0): key RQ_NS+'diag' (NOT RQ_NS+'_' → write gate never drops it,
+   passive windows log too). Last 5 runs; each step: Date.now() + performance.now(). ===== */
+(function(){
+  'use strict';
+  var KEY=window.RQ_NS+'diag', MAX=5;
+  var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'__RQ_BUILD__',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+    locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,steps:[]};
+  /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
+  function flush(){try{var cur=[];try{cur=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(cur))cur=[];}catch(e){cur=[];}
+    var i=-1;for(var j=0;j<cur.length;j++)if(cur[j]&&cur[j].id===run.id)i=j;if(i<0)cur.push(run);else cur[i]=run;
+    while(cur.length>MAX)cur.shift();localStorage.setItem(KEY,JSON.stringify(cur));}catch(e){}}
+  var D=window.__rqDiag={run:run,last:null,
+    mark:function(step,extra){if(run.steps.length>=120)return;var r={s:step,t:Date.now(),p:Math.round(performance.now())};if(extra!==undefined)r.x=extra;run.steps.push(r);D.last=step;flush();},
+    text:function(){var all=[run];try{all=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){}return JSON.stringify(all,null,1);},
+    copy:function(btn){var t=D.text(),done=function(){if(!btn)return;var o=btn.textContent;btn.textContent='Скопировано';setTimeout(function(){btn.textContent=o;},2000);};
+      var fb=function(){try{var a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done();}catch(e){}};
+      try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fb);return;}}catch(e){}fb();}
+  };
+  D.mark('markup');
+  window.addEventListener('error',function(e){D.mark('error',String(e.message||(e.target&&e.target.src)||e).slice(0,200));},true);
+  window.addEventListener('unhandledrejection',function(e){D.mark('rejection',String(e.reason&&e.reason.message||e.reason).slice(0,200));});
+  document.addEventListener('visibilitychange',function(){if(!window.__rqReady)D.mark('vis',document.visibilityState);});
+  /* watchdog 3 s: library not shown and not waiting on «открыт в другом окне» → log last step, then show the error screen */
+  setTimeout(function(){
+    if(window.__rqReady)return;
+    var o=document.getElementById('rqOther');if(o&&!o.classList.contains('hidden'))return;
+    D.mark('watchdog',D.last);
+    var b=document.getElementById('rqBoot');if(b)b.classList.add('hidden');
+    var f=document.getElementById('rqFail');if(f)f.classList.remove('hidden');
+  },3000);
+})();
 /* ===== PWA: single writer (NS-writer) + hard write gate. Runs before any app code. ===== */
 (function(){
   'use strict';
@@ -534,6 +566,18 @@ body.mvp #sumDailyBox{display:block}
 </style>
 </head>
 <body>
+<div id="rqBoot" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:2147482900;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:system-ui,sans-serif">
+  <img src="icons/icon-192.png" alt="" width="72" height="72" style="border-radius:16px">
+  <div style="font-size:16px">Открываем библиотеку…</div>
+  <div style="width:160px;height:3px;border-radius:2px;background:var(--card2,#1d4250);overflow:hidden"><div style="width:40%;height:100%;background:var(--accent,#2bb3c0);animation:rqbar 1.1s ease-in-out infinite"></div></div>
+  <style>@keyframes rqbar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}</style>
+</div>
+<div id="rqFail" class="hidden" role="alertdialog" aria-labelledby="rqFailH" style="position:fixed;inset:0;z-index:2147482950;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
+  <h2 id="rqFailH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">Не получилось открыть приложение</h2>
+  <p style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Ваши книги и монеты на месте</p>
+  <button id="rqFailRetry" type="button" onclick="location.reload()" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600">Попробовать ещё раз</button>
+  <button id="rqFailCopy" type="button" onclick="window.__rqDiag&&__rqDiag.copy(this)" style="margin-top:16px;min-height:44px;padding:0 12px;border:0;background:none;color:var(--muted,#8fb0b5);font-size:13px">Скопировать журнал запуска</button>
+</div>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:24px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>
 /* Test build only (NS!=='rq'): banner + reset that deletes ONLY this namespace (rqt* keys, readquest-test DB, rqt-* caches). */
@@ -728,6 +772,7 @@ body.mvp #sumDailyBox{display:block}
       <div class="setrow"><div class="lab">Экспорт прогресса<div class="sub">Резервная копия в файл (JSON)</div></div><button class="ghostbtn" id="btnExport">Сохранить</button></div>
       <div class="setrow"><div class="lab">Импорт прогресса</div><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></div>
       <div class="setrow"><div class="lab">Версия сборки<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
+      <div class="setrow"><div class="lab">Журнал запуска<div class="sub">Пришлите его, если приложение долго открывалось</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
       <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
       <div class="setrow"><div class="lab" style="color:#ff8a80">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
     </div>
@@ -4613,6 +4658,8 @@ window.__rqStart=async function(api, tracker){
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
   window.__rqReady=true;
+  {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');if(fl&&!fl.classList.contains('hidden')){fl.classList.add('hidden');if(window.__rqDiag)__rqDiag.mark('late-library');}} /* late boot after the watchdog → show the library anyway */
+  if(window.__rqDiag)__rqDiag.mark('library');
 };
 /* Stub: Создать героя → analytics event only (no AI / no network) */
 document.addEventListener('click',function(ev){
@@ -4642,7 +4689,7 @@ document.addEventListener('click',function(ev){
   var gate=window.__rqWriter, TAKEOVER_MS=2000, bc=null, waitRelease=null;
   try{bc=new BroadcastChannel(RQ_K.bc);}catch(e){}
   function themeRO(){try{var v=JSON.parse(localStorage.getItem(RQ_K.v1)||'{}');if(v.game&&v.game.appTheme)S.appTheme=v.game.appTheme;applyAppTheme();}catch(e){}} /* read-only: CSS vars only */
-  function ov(on){if(on)themeRO();var o=document.getElementById('rqOther');if(o)o.classList.toggle('hidden',!on);}
+  function ov(on){if(on)themeRO();var o=document.getElementById('rqOther');if(o)o.classList.toggle('hidden',!on);if(on){var bt=document.getElementById('rqBoot');if(bt)bt.classList.add('hidden');}if(window.__rqDiag)__rqDiag.mark('other-window',on);}
   function spin(on){var b=document.getElementById('rqOtherBtn');if(!b)return;b.disabled=on;b.querySelector('.rq-spin').classList.toggle('hidden',!on);}
   /* lose writer role: from here on this window writes nothing; re-read storage for display, show overlay silently */
   gate.demote=function(why){
@@ -4678,11 +4725,12 @@ document.addEventListener('click',function(ev){
     });
   }
   window.__rqAcquire=async function(){
-    if(!navigator.locks||!navigator.locks.request)return true; /* fallback: as before */
+    if(!navigator.locks||!navigator.locks.request){window.__rqDiag&&__rqDiag.mark('acquire-nolocks');return true;} /* fallback: as before */
     gate.locks=true;
     var auto=false;try{auto=sessionStorage.getItem(RQ_K.takeover)==='1';sessionStorage.removeItem(RQ_K.takeover);}catch(e){}
     /* reload race: the previous document of THIS tab may still hold the lock for a moment → retry ~1 s before showing the overlay */
-    if(!auto){for(var i=0;i<7;i++){if(await hold({ifAvailable:true}))return true;await new Promise(function(r){setTimeout(r,150);});}}
+    var DG=window.__rqDiag||{mark:function(){}};
+    if(!auto){for(var i=0;i<7;i++){var got=await hold({ifAvailable:true});DG.mark('acquire-try',[i,got]);if(got)return true;await new Promise(function(r){setTimeout(r,150);});}}
     gate.passive=true;
     if(!auto)ov(true);
     await new Promise(function(done){
@@ -4729,9 +4777,16 @@ import { createSessionTracker, recoverDraft } from './reader-session.js';
 import * as game from './game-awards.js';
 
 window.__rqGame = game;
-await window.__rqAcquire(); /* single writer: passive windows stop here and write nothing */
+const DG = window.__rqDiag || { mark() {} };
+DG.mark('module');
+DG.mark('acquire-in');
+await window.__rqAcquire();
+DG.mark('acquire-out'); /* single writer: passive windows stop here and write nothing */
+DG.mark('storage-in');
 const boot = await bootStorage();
+DG.mark('storage-out');
 window.localDay = localDay; window.addLocalDays = addLocalDays; /* one day helper for the whole app */
+DG.mark('start-in');
 const tracker = createSessionTracker({ logSession, logReadingEvent, dayFn: function () { return localDay(Date.now()); } });
 await window.__rqStart({
   boot,

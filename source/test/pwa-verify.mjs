@@ -151,6 +151,8 @@ async function twoWindows(label, frozen) {
   await readSession(p1, bookId, 12);
   const before = await rq(p2);
   await sleep(1500);
+  const dgP = await p2.evaluate(() => { const r = JSON.parse(localStorage.getItem(RQ_NS + 'diag') || '[]'); const me = r.find(x => x.id === __rqDiag.run.id); return { n: r.length, steps: me ? me.steps.map(x => x.s) : null }; });
+  ok(`(${label}) boot journal: passive window logged its run (key ${'rqdiag'}, not dropped by the write gate), ≤5 runs kept`, dgP.steps && dgP.steps.includes('other-window') && dgP.steps.includes('acquire-try') && dgP.n <= 5, dgP);
   ok(`(${label}) passive window writes nothing (rq_v1/rq_set/draft identical)`, before === await rq(p2) && !(await p2.evaluate(() => window.__rqReady)));
   let cdp1;
   if (frozen) { cdp1 = await p1.target().createCDPSession(); await cdp1.send('Page.setWebLifecycleState', { state: 'frozen' }); }
@@ -334,6 +336,8 @@ const tk = await pt.evaluate(() => ({ ls: Object.keys(localStorage).sort(), cach
 tk.caches = await keys(pt);
 const tdbs = await pt.evaluate(async () => (await indexedDB.databases()).map(d => d.name).sort());
 ok('(C) test build wrote only rqt_* keys, readquest-test DB, rqt- cache', tk.ls.some(x => x === 'rqt_v1') && tk.caches.includes('rqt-' + TB) && tdbs.includes('readquest-test'), { ls: tk.ls, caches: tk.caches, dbs: tdbs });
+const tdg = await pt.evaluate(() => { const r = JSON.parse(localStorage.getItem('rqtdiag') || '[]'); const l = r[r.length - 1]; return { key: RQ_NS + 'diag', n: r.length, steps: l && l.steps.map(x => x.s), build: l && l.build }; });
+ok('(C) test build boot journal in rqtdiag (markup → module → idb → library), build marker filled', tdg.key === 'rqtdiag' && tdg.steps && ['markup', 'module', 'acquire-out', 'idb-open', 'idb-success', 'storage-out', 'library'].every(x => tdg.steps.includes(x)) && tdg.build === TB, tdg);
 const heldT = await pt.evaluate(async () => (await navigator.locks.query()).held.map(l => l.name).sort());
 ok('(C) locks: main rq-writer and test rqt-writer held separately', heldT.includes('rq-writer') && heldT.includes('rqt-writer'), heldT);
 const m1 = await mainSnap();

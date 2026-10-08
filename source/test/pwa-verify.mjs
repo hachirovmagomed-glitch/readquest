@@ -397,6 +397,18 @@ await pt.close();
   ok('(C2) main build: __rqTestReset() from console refuses (false), hidden button no-op, data/DBs/caches unchanged', r.ret === false && !r.banner && JSON.stringify(m0r) === JSON.stringify(m1r) && JSON.stringify(db0) === JSON.stringify(db1) && await p1.evaluate(() => !!window.__rqReady && !__rqWriter.passive), r);
 }
 
+// ---------- (D) light theme: boot screen already in the saved theme (NS_theme plain string, read before any app code) ----------
+{
+  await p1.bringToFront();
+  await p1.evaluate(() => { S.appTheme = 'light'; save(); applyAppTheme(); });
+  const tv = await p1.evaluate(() => localStorage.getItem('rq_theme'));
+  await p1.reload({ waitUntil: 'load' }); await ready(p1);
+  const th = await p1.evaluate(() => ({ boot: window.__rqBootTheme || null, bootBg: getComputedStyle(document.getElementById('rqBoot')).backgroundColor, bg: getComputedStyle(document.body).backgroundColor }));
+  ok('(D) writer stores rq_theme as a plain string; next launch paints the boot screen in it (light: #eef2f3), same as the library', tv === '#eef2f3 #1d2b30 #5f7a80' && th.boot === tv && th.bootBg === 'rgb(238, 242, 243)' && th.bg === th.bootBg, { tv, ...th });
+  await p1.evaluate(() => { S.appTheme = 'teal'; save(); applyAppTheme(); });
+  ok('(D) back to teal → rq_theme updated', await p1.evaluate(() => localStorage.getItem('rq_theme')) === '#0c2127 #e8f1f2 #8fb0b5');
+}
+
 // ---------- (e5) browser WITHOUT navigator.locks: reading + page saved, but NO sessions / XP / coins; event no_locks; quiet line ----------
 {
   await p1.close();

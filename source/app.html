@@ -14,7 +14,18 @@
   var ns='__RQ_NS__'; if(ns.indexOf('__')===0)ns='rq';
   window.RQ_NS=ns;
   window.RQ_K={v1:ns+'_v1',set:ns+'_set',owner:ns+'_owner',migrated:ns+'_migrated_v1',takeover:ns+'_takeover',
-    legacy:ns==='rq'?'readquest':ns+'_readquest',idb:ns==='rq'?'readquest':'readquest-test',lock:ns+'-writer',bc:ns,cache:ns+'-'};
+    theme:ns+'_theme',legacy:ns==='rq'?'readquest':ns+'_readquest',idb:ns==='rq'?'readquest':'readquest-test',lock:ns+'-writer',bc:ns,cache:ns+'-'};
+})();
+/* ===== Boot theme (Architect, stage 0): the writer keeps a tiny plain-string copy of the app theme in NS_theme
+   ("bg txt muted", or "auto <light bg txt muted> <dark bg txt muted>"); here we only READ it (no JSON / no state parse)
+   so splash → boot screen → library has no colour jump in a light theme. ===== */
+(function(){
+  try{var v=localStorage.getItem(window.RQ_K.theme);if(!v)return;var a=String(v).split(' '),c=null;
+    if(a[0]==='auto'&&a.length===7){var h=new Date().getHours();c=(h>=7&&h<21)?a.slice(1,4):a.slice(4,7);} /* same rule as resolveAppTheme() */
+    else if(a.length===3)c=a;
+    if(!c||!c.every(function(x){return /^#[0-9a-f]{3,8}$/i.test(x);}))return;
+    var r=document.documentElement.style;r.setProperty('--bg',c[0]);r.setProperty('--txt',c[1]);r.setProperty('--muted',c[2]);window.__rqBootTheme=c.join(' ');
+  }catch(e){}
 })();
 /* ===== Boot diag journal (Фронт, stage 0): key RQ_NS+'diag' (NOT RQ_NS+'_' → write gate never drops it,
    passive windows log too). Last 5 runs; each step: Date.now() + performance.now(). ===== */
@@ -3809,6 +3820,9 @@ function applyAppTheme(){
   r.style.setProperty('--card2',t.card2);r.style.setProperty('--txt',t.txt);
   r.style.setProperty('--muted',t.muted);r.style.setProperty('--bar',t.bar);
   r.style.setProperty('--sheet',t.sheet);r.style.setProperty('--drawer',t.drawer);
+  /* boot-screen copy (plain string, read by the first <script>); write gate: only the lock holder writes it */
+  const L=APP_THEMES.light,Dk=APP_THEMES.dark,v=S.appTheme==='auto'?['auto',L.bg,L.txt,L.muted,Dk.bg,Dk.txt,Dk.muted].join(' '):[t.bg,t.txt,t.muted].join(' ');
+  try{if(localStorage.getItem(RQ_K.theme)!==v)localStorage.setItem(RQ_K.theme,v);}catch(e){}
 }
 function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
 

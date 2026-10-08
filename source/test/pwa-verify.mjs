@@ -36,6 +36,14 @@ const gameOf = (p) => p.evaluate(() => { const v = JSON.parse(localStorage.getIt
   return { gold: g.gold, xp: g.xp, awarded: (g.awardedSessionIds || []).slice().sort(), daily: (g.dailyPaidDays || []).slice().sort(), weekly: (g.weeklyPaidWeeks || []).slice().sort() }; });
 const overlayOn = (p) => p.evaluate(() => { const o = document.getElementById('rqOther'); return !!o && !o.classList.contains('hidden') && getComputedStyle(o).display !== 'none'; });
 const rq = (p) => p.evaluate(() => localStorage.getItem('rq_v1') + '\u0000' + localStorage.getItem('rq_set') + '\u0000' + localStorage.getItem('rq_session_draft'));
+/* old window (lost the lock): «Книга открыта в другом окне» / «Прогресс сохранён на странице N» / «Вернуться сюда»;
+   N = page saved in NS_v1 (read by the NEW writer), and the saved page = the farthest page the old window reached */
+async function oldScreen(pOld, pNew, id) {
+  const o = await pOld.evaluate(() => ({ h: document.getElementById('rqOtherH').textContent, p: document.getElementById('rqOtherP').textContent, b: document.getElementById('rqOtherL').textContent, pc: R.pageCount, max: R.maxRatio, close: /Закрыть/.test(document.getElementById('rqOther').textContent) }));
+  const ratio = await pNew.evaluate((id) => (S.progress[id] || {}).ratio || 0, id);
+  const n = Math.round(ratio * (o.pc - 1)) + 1;
+  return { ...o, ratio, n, ok: o.h === 'Книга открыта в другом окне' && o.p === 'Прогресс сохранён на странице ' + n && o.b === 'Вернуться сюда' && !o.close && Math.abs(ratio - o.max) < 1e-9 && n > 1 };
+}
 async function readSession(p, id, steps) {
   await p.bringToFront();
   await p.evaluate((id) => openBook(id), id); await sleep(400);
@@ -171,6 +179,7 @@ async function twoWindows(label, frozen) {
   if (frozen) { await cdp1.send('Page.setWebLifecycleState', { state: 'active' }); }
   await sleep(1500);
   ok(`(${label}) old window shows overlay`, await overlayOn(p1));
+  { const o = await oldScreen(p1, p2, bookId); ok(`(${label}) old window screen: «Книга открыта в другом окне» / «Прогресс сохранён на странице N» (N = saved = farthest page) / «Вернуться сюда», no «Закрыть»`, o.ok, o); }
   const snap = await rq(p2);
   await p1.bringToFront(); await p1.evaluate(() => { try { window.__rqTimeOffset += 60000; goPage(R.page + 1, true); } catch (e) {} try { save(); saveSet(); } catch (e) {} }); await sleep(1500);
   ok(`(${label}) old window after waking writes nothing (storage byte-identical)`, snap === await rq(p2));
@@ -252,6 +261,7 @@ await p1.close(); p1 = pB;
   ok('(e3) A UI: overlay immediately, page number unchanged, no summary, no reward toast', ui.page === ui.page0 && !ui.summary && !ui.toast && names.includes('overlay'), ui);
   const a = await p1.evaluate(() => ({ book: !!R.book, reader: !document.getElementById('reader').classList.contains('hidden'), passive: __rqWriter.passive }));
   ok('(e3) thawed A: book STILL open in reader, A passive, overlay shown', a.book && a.reader && a.passive && await overlayOn(p1), a);
+  { const o = await oldScreen(p1, p2, bookId); ok('(e3) thawed A: old-window screen, page N = A\'s farthest page, already saved before the freeze (B sees it)', o.ok, o); }
   await p1.bringToFront();
   await p1.evaluate(async () => {
     for (let i = 0; i < 3; i++) { window.__rqTimeOffset += 60000; try { goPage(R.page + 1, true); } catch (e) {} }
@@ -302,6 +312,23 @@ await p1.close(); p1 = pB;
   ok('(e4) that row paid exactly once, no extra payout from A', neu.length === 1 && g1.awarded.filter(x => x === neu[0].id).length === 1 && g1.awarded.length === g0.awarded.length + 1, { g0: [g0.gold, g0.xp], g1: [g1.gold, g1.xp] });
   ok('(e4) A stayed passive the whole time, overlay shown', await p1.evaluate(() => __rqWriter.passive) && await overlayOn(p1));
   await p1.close(); p1 = p2;
+}
+
+// ---------- (e6) «Вернуться сюда»: old window (no book open) takes the lock back, the other window becomes the old one ----------
+{
+  await p1.bringToFront();
+  const p2 = await mk();
+  await p2.goto(BASE, { waitUntil: 'load' });
+  await p2.waitForFunction(() => !document.getElementById('rqOther').classList.contains('hidden'));
+  await p2.evaluate(() => document.getElementById('rqOtherBtn').click()); await ready(p2); await sleep(800);
+  const o1 = await p1.evaluate(() => ({ h: document.getElementById('rqOtherH').textContent, p: document.getElementById('rqOtherP').textContent, b: document.getElementById('rqOtherL').textContent, passive: __rqWriter.passive, book: !!R.book }));
+  ok('(e6) old window without an open book: «ReadQuest открыт в другом окне» / «Прогресс сохранён» / «Вернуться сюда»', o1.passive && !o1.book && o1.h === 'ReadQuest открыт в другом окне' && o1.p === 'Прогресс сохранён' && o1.b === 'Вернуться сюда', o1);
+  await p1.bringToFront(); const t0 = Date.now();
+  await Promise.all([p1.waitForNavigation({ waitUntil: 'load' }), p1.evaluate(() => document.getElementById('rqOtherBtn').click())]);
+  await ready(p1); const dt = Date.now() - t0; await sleep(800);
+  const st = { p1: await p1.evaluate(() => ({ passive: __rqWriter.passive, ov: !document.getElementById('rqOther').classList.contains('hidden') })), p2: await p2.evaluate(() => ({ passive: __rqWriter.passive, h: document.getElementById('rqOtherH').textContent, b: document.getElementById('rqOtherL').textContent })) };
+  ok('(e6) «Вернуться сюда» → reload + takeover: this window is the writer again, the other shows the old-window screen', !st.p1.passive && !st.p1.ov && st.p2.passive && st.p2.b === 'Вернуться сюда' && await overlayOn(p2) && dt < 6000, { dt, ...st });
+  await p2.close();
 }
 
 // ---------- (C) test build (NS rqt, /readquest/test/) never touches rq_* data, lock or cache ----------

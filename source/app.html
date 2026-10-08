@@ -1960,7 +1960,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
     R.maxRatio=Math.max(R.maxRatio,ratio);
     pdfNumbers(P.sliding?P.target:n);
     if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
-    updDayBar();
+    updDayBar();persistPage();
   }
   if(P.stall)pdfStallLog(n);
 }
@@ -2254,6 +2254,17 @@ function setFontSizeKeepPos(size){
   relayout({force:true,anchor:anchor});
   return true;
 }
+/* Page is saved while reading (not only on close): a frozen phone tab that gets stolen can't write later,
+   so the farthest page must already be in NS_v1. Sync, progress-only, monotonic (ratio only grows), writer only.
+   Session time is saved the same way by reader-session.js (NS_session_draft). */
+function persistPage(){
+  const b=R.book;if(!b||!__rq||!__rq.loadEnvelope||!__rq.saveEnvelope)return;
+  if(window.__rqWriter&&!__rqWriter.mayWrite())return;
+  const cur=(S.progress[b.id]||{}).ratio||0;if(!(R.maxRatio>cur))return;
+  S.progress[b.id]={ratio:R.maxRatio};
+  try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});
+    if(!((pr[b.id]||{}).ratio>=R.maxRatio)){pr[b.id]=Object.assign({},pr[b.id],{ratio:R.maxRatio});__rq.saveEnvelope(e);}}catch(err){console.warn('[rq] persistPage',err);}
+}
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
@@ -2282,7 +2293,7 @@ function goPage(p,turn){
   /* Architect: reader writes pageVisibleMs on page change */
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
   if(__tracker&&(np!==prev||forwardTurn)){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
-  if(np!==prev)updDayBar();
+  if(np!==prev){updDayBar();persistPage();}
 }
 el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else goPage(v,false);};
 el('pgSlider').onchange=e=>{if(R.mode==='pdf'){P.sliding=false;pdfGo(parseInt(e.target.value,10)||0,'slider');if(P.target===P.shown)pdfNumbers(P.shown);}};
@@ -4687,8 +4698,8 @@ document.addEventListener('click',function(ev){
 </script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
-  <p style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
-  <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span>Открыть здесь</span></button>
+  <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
+  <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
 <script>
@@ -4700,13 +4711,34 @@ document.addEventListener('click',function(ev){
   function themeRO(){try{var v=JSON.parse(localStorage.getItem(RQ_K.v1)||'{}');if(v.game&&v.game.appTheme)S.appTheme=v.game.appTheme;applyAppTheme();}catch(e){}} /* read-only: CSS vars only */
   function ov(on){if(on)themeRO();var o=document.getElementById('rqOther');if(o)o.classList.toggle('hidden',!on);if(on){var bt=document.getElementById('rqBoot');if(bt)bt.classList.add('hidden');}if(window.__rqDiag)__rqDiag.mark('other-window',on);}
   function spin(on){var b=document.getElementById('rqOtherBtn');if(!b)return;b.disabled=on;b.querySelector('.rq-spin').classList.toggle('hidden',!on);}
-  /* lose writer role: from here on this window writes nothing; re-read storage for display, show overlay silently */
+  /* overlay texts: 'new' = this window waits for the lock (default markup, tests check it verbatim);
+     'old' = this window HAD the lock and lost it (handover / stolen / owner) */
+  var TXT_NEW={h:'ReadQuest открыт в другом окне',p:'Чтобы прогресс не задвоился, читать можно только в одном окне',b:'Открыть здесь'};
+  function ovText(mode,page){
+    var t=TXT_NEW;
+    if(mode==='old')t=page!=null?{h:'Книга открыта в другом окне',p:'Прогресс сохранён на странице '+page,b:'Вернуться сюда'}
+                                 :{h:'ReadQuest открыт в другом окне',p:'Прогресс сохранён',b:'Вернуться сюда'};
+    var h=document.getElementById('rqOtherH'),pp=document.getElementById('rqOtherP'),l=document.getElementById('rqOtherL');
+    if(h)h.textContent=t.h;if(pp)pp.textContent=t.p;if(l)l.textContent=t.b;
+  }
+  /* page label of what is SAVED for the open book (= where it reopens: NS_v1 progress ratio, farthest page) */
+  function savedPage(){
+    try{if(typeof R==='undefined'||!R.book)return null;var pc=R.pageCount||1,ratio=((S.progress||{})[R.book.id]||{}).ratio||0;
+      var n=Math.max(0,Math.min(pc-1,Math.round(ratio*(pc-1))));return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(n):String(n+1);}catch(e){return null;}
+  }
+  /* lose writer role: from here on this window writes nothing; re-read storage for display, show the old-window screen.
+     Page + time were already saved while this window was the writer (persistPage on every page change, session draft;
+     handover: closeReader() wrote row + page before release) — after losing the lock nothing may be written. */
   gate.demote=function(why){
     if(gate.passive)return; gate.passive=true; gate.why=why;
     try{if(typeof __tracker!=='undefined'&&__tracker&&__tracker.cancel)Promise.resolve(__tracker.cancel()).catch(function(){});}catch(e){}
+    try{if(typeof stopDayBar==='function')stopDayBar();if(typeof stopTimerTick==='function')stopTimerTick();if(typeof R!=='undefined')R.timerOn=false;}catch(e){} /* reading timer stopped, no XP */
     try{if(window.__rq&&__rq.loadFlat)hydrateS(__rq.loadFlat());}catch(e){}
+    var page=gate.handoverPage!==undefined?gate.handoverPage:savedPage();gate.handoverPage=undefined;
     if(gate.release){var r=gate.release;gate.release=null;r();}
+    if(gate.booted)ovText('old',page);
     spin(false);ov(true);
+    if(window.__rqDiag)__rqDiag.mark('demote',[why,page]);
   };
   function hold(opts){
     return new Promise(function(res){
@@ -4745,11 +4777,21 @@ document.addEventListener('click',function(ev){
     await new Promise(function(done){
       var b=document.getElementById('rqOtherBtn');
       var busy=false;var go=function(){if(busy)return;busy=true;b.disabled=true;/* one takeover per wait: no second steal */takeover().then(function(ok){busy=false;if(ok)done();else spin(false);});};
-      b.addEventListener('click',function h(){if(busy||b.disabled)return;if(gate.booted){try{sessionStorage.setItem(RQ_K.takeover,'1');}catch(e){}location.reload();return;}go();});
+      waitGo=function(){if(busy||b.disabled)return;go();};
       if(auto){ov(true);go();}
     });
-    ov(false);return true;
+    waitGo=null;ov(false);return true;
   };
+  /* «Открыть здесь» (waiting at boot) / «Вернуться сюда» (old window, already booted): ONE handler for both.
+     Booted window → reload with the takeover flag → the fresh document runs the same takeover flow. */
+  var waitGo=null;
+  (function(){var b=document.getElementById('rqOtherBtn');if(!b)return;
+    b.addEventListener('click',function(){
+      if(b.disabled)return;
+      if(gate.booted){b.disabled=true;spin(true);try{sessionStorage.setItem(RQ_K.takeover,'1');}catch(e){}location.reload();return;}
+      if(waitGo)waitGo();
+    });
+  })();
   /* holder side: another window asks → end session cleanly, save, release, become passive */
   /* thaw (Page Lifecycle 'resume') / back to foreground: check ownership first thing */
   document.addEventListener('resume',function(){gate.mayWrite();},true);
@@ -4758,6 +4800,7 @@ document.addEventListener('click',function(ev){
     var d=ev.data||{};
     if(d.t!=='takeover'||d.from===gate.id||gate.passive||!gate.release)return;
     if(!gate.mayWrite())return; /* already stolen (queued message seen after thaw): mayWrite() demoted us — do NOT close the reader / write */
+    try{if(typeof R!=='undefined'&&R.book){persistPage();gate.handoverPage=savedPage();}else gate.handoverPage=null;}catch(e){}
     try{if(typeof R!=='undefined'&&R.book&&typeof closeReader==='function')await closeReader();}catch(e){console.warn('[rq] takeover close',e);}
     try{if(window.__rq&&__rq.saveFlat)await __rq.saveFlat(S);}catch(e){}
     gate.demote('handover');
@@ -4780,7 +4823,8 @@ document.addEventListener('click',function(ev){
 import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
-  loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays
+  loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
+  loadEnvelope, saveEnvelope
 } from './storage/index.js';
 import { createSessionTracker, recoverDraft } from './reader-session.js';
 import * as game from './game-awards.js';
@@ -4805,7 +4849,8 @@ await window.__rqStart({
   boot,
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
-  importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings
+  importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings,
+  loadEnvelope, saveEnvelope
 }, tracker);
 window.__rqAfterBoot(window.__rq);
 </script>

@@ -565,7 +565,7 @@ ok('MVP bottom nav still shown on settings/library', navOk === 'flex' || navOk =
   const dayTot = await p2.evaluate(() => ({ d1: dayMin('2026-10-07'), d2: dayMin('2026-10-08'), sumInfo: (document.getElementById('sumDailyInfo') || {}).textContent, streak: S.streak, lastDay: S.lastDay }));
   ok('(б) session 23:50–00:15 → ONE row dated 2026-10-07 (start day), 25 min all on that day, 0 on 2026-10-08',
     rB.length === 1 && rB[0].date === '2026-10-07' && Math.abs(rB[0].minutes - 25) < 0.05 && endClock.local === '2026-10-08' && endClock.h === 0 && endClock.m === 15 &&
-    Math.abs(dayTot.d1 - (rA[0].minutes + 25)) < 0.05 && dayTot.d2 === 0 && dayAfterMidnight.now === '2026-10-08' && dayAfterMidnight.sessionDay === '2026-10-07' && dayTot.lastDay === '2026-10-07',
+    dayTot.d1 === Math.floor(rA[0].minutes + rB[0].minutes + 1e-9) /* 1б (A): dayMin = floor(sum of the day's rows) */ && dayTot.d2 === 0 && dayAfterMidnight.now === '2026-10-08' && dayAfterMidnight.sessionDay === '2026-10-07' && dayTot.lastDay === '2026-10-07',
     { row: rB[0], endClock, dayTot, dayAfterMidnight });
   // (б) daily for the START day auto-paid on that session's summary
   const sumB = await p2.evaluate(() => ({ line: document.getElementById('sumQuestGold').textContent, gold: S.gold, paid: S.dailyPaidDays.slice() }));

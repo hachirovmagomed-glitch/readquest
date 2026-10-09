@@ -22,6 +22,7 @@ import {
   stripBookBody,
   mergeFlat,
   splitLegacyState,
+  NS,
 } from './schema.js';
 import * as idb from './idb.js';
 
@@ -193,6 +194,11 @@ export async function removeUserBook(envelope, bookId, wipeFile) {
  * Optional: settings, textBodies (when includeTextBodies), note.
  * No format/readquest flat mirror required — domains + IDB arrays are the contract.
  */
+function buildNo(b) {
+  // eslint-disable-next-line no-undef
+  const v = b || (typeof RQ_BUILD !== 'undefined' ? RQ_BUILD : null);
+  return typeof v === 'string' && v && v.indexOf('__') !== 0 ? v : null;
+}
 export async function exportBackup(envelope, settings, opts) {
   const options = opts || {};
   const e = envelope || loadEnvelope();
@@ -206,6 +212,9 @@ export async function exportBackup(envelope, settings, opts) {
 
   const payload = {
     schemaVersion: SCHEMA_VERSION,
+    ns: NS, // 'rq' main / 'rqt' test build (metrics.py counts only ns 'rq'); additive, schemaVersion stays 1
+    // real build number (core-a.js RQ_BUILD, substituted by build-dist.sh); null if unknown — never the raw marker
+    build: buildNo(options.build),
     progress: e.progress,
     game: e.game,
     library: e.library,

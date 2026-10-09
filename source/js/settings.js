@@ -101,7 +101,7 @@ el('btnExport').onclick=async ()=>{
   if(__rq&&__rq.exportBackup){
     payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,readquest:S,settings:SET};
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:S,settings:SET};
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');

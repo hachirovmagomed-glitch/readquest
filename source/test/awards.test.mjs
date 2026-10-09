@@ -1,5 +1,5 @@
 // 1б decisions A+B (node, no browser): dayMinutes = floor(day sum) is the one day rule; XP per session =
-// 10 × (dayMinutes after − before), «before» = same-day rows that STARTED earlier (startedAt, then id); stored in row.xp.
+// 10 × (dayMinutes after − before), «before» = same-day rows that STARTED earlier (startedAt; without it: order in sessions[]); stored in row.xp.
 // Run: node source/test/awards.test.mjs
 const G = await import(new URL('../game-awards.js', import.meta.url).href);
 let pass = 0, fail = 0;
@@ -35,6 +35,18 @@ const game = () => ({ xp: 0, gold: 0, awardedSessionIds: [] });
   // late row that STARTED first (e.g. a recovered draft): «before» is by start, not by what was paid
   const g = game(), rows = [{ ...b }]; G.applySessionAwards(g, rows); const late = { ...a }; rows.push(late); G.applySessionAwards(g, rows);
   ok('order by startedAt, not by award time (0.7 paid first: 0; then 1.4 that started earlier: 10)', rows[0].xp === 0 && late.xp === 10, rows.map(r => r.xp)); }
+// startedAt stored as ISO (logSession) → same order as ms
+{ const a = row(1.4, 0), b = row(0.7, 30); a.startedAt = new Date(a.startedAt).toISOString(); b.startedAt = new Date(b.startedAt).toISOString();
+  const rev = [b, a]; G.applySessionAwards(game(), rev);
+  ok('ISO startedAt, reverse order → 1.4: 10, 0.7: 10 (ordered by start time)', a.xp === 10 && b.xp === 10, [a.xp, b.xp]); }
+// rows WITHOUT startedAt (old rows) → order in sessions[], not id
+{ const a = { id: 'zzz', date: D, bookId: 'b', minutes: 0.7, pageTurns: 1 }, b = { id: 'aaa', date: D, bookId: 'b', minutes: 1.4, pageTurns: 1 };
+  const rows = [a, b]; G.applySessionAwards(game(), rows);
+  ok('no startedAt: sessions[] order decides (0.7 first: 0, then 1.4: 20), id ignored', a.xp === 0 && b.xp === 20, [a.xp, b.xp]);
+  const c = { ...b }, d = { ...a }; const rows2 = [c, d]; G.applySessionAwards(game(), rows2);
+  ok('… same rows, other sessions[] order (1.4 first: 10, then 0.7: 10)', c.xp === 10 && d.xp === 10, [c.xp, d.xp]);
+  const old = { id: 'zz-old', date: D, bookId: 'b', minutes: 0.7, pageTurns: 1 }, nw = row(1.4, 0); const rows3 = [old, nw]; G.applySessionAwards(game(), rows3);
+  ok('… mixed (old row without startedAt before a new one in sessions[]) → old first: 0, new: 20', old.xp === 0 && nw.xp === 20, [old.xp, nw.xp]); }
 // one formula: streak/daily/week/gold use dayMinutes (floor)
 { const rows = [row(1.4, 0), row(0.6, 10)];
   ok('1.4 + 0.6 (float sum 1.9999999999999998) → dayMinutes 2', G.dayMinutes(rows, D) === 2);

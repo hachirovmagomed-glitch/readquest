@@ -127,9 +127,10 @@ export async function logSession(entry) {
     minutes: minutes,
     pageTurns: pageTurns,
   };
-  /* optional (1б, additive, schemaVersion stays 1): session start (ms, orders XP inside a day) and the paid XP */
-  const st = Number(entry.startedAt);
-  if (entry.startedAt != null && Number.isFinite(st) && st > 0) rec.startedAt = st;
+  /* optional (1б, additive, schemaVersion stays 1): session start (ISO, orders XP inside a day) and the paid XP */
+  const sv = entry.startedAt;
+  const st = typeof sv === 'number' ? sv : (sv ? Date.parse(String(sv)) : NaN);
+  if (Number.isFinite(st) && st > 0) rec.startedAt = new Date(st).toISOString(); /* stored as ISO */
   const xp = Number(entry.xp);
   if (entry.xp != null && Number.isFinite(xp) && xp >= 0) rec.xp = xp;
 

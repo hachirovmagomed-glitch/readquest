@@ -32,7 +32,7 @@ async function session(p, min) {
     return { summary: !document.getElementById('summary').classList.contains('hidden'), library: !document.getElementById('library').classList.contains('hidden'),
       head: document.getElementById('sumHead').textContent, min: document.getElementById('sumMin').textContent, xpTxt: document.getElementById('sumXp').textContent,
       daily: document.getElementById('sumDailyInfo').textContent, libDaily: (typeof mvpDailyInfo === 'function' ? mvpDailyInfo() : ''), streak: S.streak, xp: S.xp, gold: S.gold,
-      rowMin: +last.minutes.toFixed(3), rowXp: last.xp, idbXp: idbRow.xp, startedAt: !!idbRow.startedAt, n: rows.length };
+      rowMin: +last.minutes.toFixed(3), rowXp: last.xp, idbXp: idbRow.xp, startedAt: typeof idbRow.startedAt === 'string' && /^\d{4}-\d\d-\d\dT/.test(idbRow.startedAt) && !isNaN(Date.parse(idbRow.startedAt)), n: rows.length };
   });
 }
 const done = async (p) => { await p.evaluate(() => { const b = document.getElementById('btnDone'); if (!document.getElementById('summary').classList.contains('hidden')) b.click(); }); await sleep(200); };
@@ -40,7 +40,7 @@ const done = async (p) => { await p.evaluate(() => { const b = document.getEleme
 // 0.9 + 0.9 + 0.9
 { const p = await fresh();
   const a = await session(p, 0.9); await done(p);
-  ok('0.9 #1: +0 XP → no summary, straight to library', !a.summary && a.library && a.rowXp === 0 && a.idbXp === 0 && a.startedAt, a);
+  ok('0.9 #1: +0 XP → no summary, straight to library', !a.summary && a.library && a.rowXp === 0 && a.idbXp === 0 && a.startedAt /* stored as ISO */, a);
   const b = await session(p, 0.9);
   ok('0.9 #2: +10 XP → summary, «меньше минуты», «+10 XP», row.xp 10 in IDB', b.summary && b.min === 'меньше минуты' && b.xpTxt === '+10 XP' && b.rowXp === 10 && b.idbXp === 10, b); await done(p);
   const c = await session(p, 0.9);

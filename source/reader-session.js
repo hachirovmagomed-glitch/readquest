@@ -170,7 +170,7 @@ export function createSessionTracker(api) {
       bookId: bookId,
       minutes: creditedMs / 60000,
       pageTurns: pagesRead,
-      startedAt: startedAt,                 // ms; orders XP inside a day (game-awards xpForSession)
+      startedAt: startedAt ? new Date(startedAt).toISOString() : undefined, // ISO; orders XP inside a day (game-awards xpForSession)
     };
     if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return { row: null, ev: ev }; }
     /* keep the draft until the row is durably written (recoverDraft retries on next boot) */

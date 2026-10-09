@@ -2,7 +2,7 @@
  * Game side of the session contract — derives rewards ONLY from sessions[] rows.
  *
  *   XP      = 10 × (dayMinutes with the row − dayMinutes without it), «before» = the same day's rows that STARTED
- *             earlier (startedAt, then id) — deterministic, import-order independent; stored as row.xp; once per id
+ *             earlier (startedAt; rows without it: order in sessions[]) — deterministic, import-order independent; stored as row.xp; once per id
  *   daily   = +30 gold when dayMinutes(day) ≥ goal (auto, once per day)
  *   weekly  = +120 gold when ≥ 4 days of the week have dayMinutes ≥ goal (auto, once per week)
  *   dayMinutes(day) = Math.floor(sum of the day's sessions[].minutes) — the ONLY day-minutes formula
@@ -25,12 +25,24 @@ export function xpForRow(row) {
 }
 
 function rowDay(r) { return r && r.date ? String(r.date).slice(0, 10) : null; }
-/** start order inside a day: startedAt (ms; missing = 0 → old rows first), then id */
-export function startOrder(a, b) {
-  const sa = Number(a && a.startedAt) || 0, sb = Number(b && b.startedAt) || 0;
-  if (sa !== sb) return sa < sb ? -1 : 1;
-  const ia = String(a && a.id), ib = String(b && b.id);
-  return ia < ib ? -1 : ia > ib ? 1 : 0;
+/** startedAt as ms (ISO string or legacy number); NaN when the row has none */
+export function startMs(r) {
+  const v = r && r.startedAt;
+  if (v == null || v === '') return NaN;
+  const t = typeof v === 'number' ? v : Date.parse(String(v));
+  return Number.isFinite(t) && t > 0 ? t : NaN;
+}
+/**
+ * Start order inside a day (Architect): both rows have startedAt → by startedAt; otherwise (old rows without it) →
+ * by their position in sessions[] (`rows`). Ties → position. Deterministic for a given sessions[].
+ */
+export function startOrder(a, b, rows) {
+  const sa = startMs(a), sb = startMs(b);
+  if (Number.isFinite(sa) && Number.isFinite(sb) && sa !== sb) return sa < sb ? -1 : 1;
+  const list = rows || [];
+  const ia = list.indexOf(a), ib = list.indexOf(b);
+  if (ia !== ib) return ia < ib ? -1 : 1;
+  return 0;
 }
 
 /**
@@ -41,7 +53,7 @@ export function xpForSession(rows, row) {
   const day = rowDay(row);
   if (!day) return 0;
   const before = (rows || []).filter(function (r) {
-    return r && r !== row && r.id !== row.id && rowDay(r) === day && startOrder(r, row) < 0;
+    return r && r !== row && r.id !== row.id && rowDay(r) === day && startOrder(r, row, rows) < 0;
   });
   return (dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN;
 }

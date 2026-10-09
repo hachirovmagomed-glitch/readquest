@@ -3,7 +3,7 @@
  * Drop into a future modular app; not auto-wired into v6.html (left intact).
  *
  * Example boot:
- *   import { createAdapter } from './storage/adapter.js?v=20261008-1027';
+ *   import { createAdapter } from './storage/adapter.js?v=20261009-2100';
  *   const api = await createAdapter();
  *   // api.S, api.save(), api.SET, api.saveSet(), api.getBookText(id)
  */
@@ -22,7 +22,7 @@ import {
   logReadingEvent,
   listReadingEvents,
   logAnalyticsEvent,
-} from './index.js?v=20261008-1027';
+} from './index.js?v=20261009-2100';
 
 export async function createAdapter(opts) {
   const boot = await bootStorage(opts);
@@ -48,8 +48,8 @@ export async function createAdapter(opts) {
   }
 
   async function save() {
-    // Persist via saveFlat which strips bodies
-    const { saveFlat } = await import('./state.js?v=20261008-1027');
+    // Persist via saveFlat: envelope only (bodies are written once by addBook → upsertUserBook)
+    const { saveFlat } = await import('./state.js?v=20261009-2100');
     const r = await saveFlat(S);
     envelope = loadEnvelope();
     S = syncFlat();

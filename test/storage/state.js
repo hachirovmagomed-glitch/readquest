@@ -22,8 +22,8 @@ import {
   stripBookBody,
   mergeFlat,
   splitLegacyState,
-} from './schema.js?v=20261008-1027';
-import * as idb from './idb.js?v=20261008-1027';
+} from './schema.js?v=20261009-2100';
+import * as idb from './idb.js?v=20261009-2100';
 
 let saveWarned = false;
 
@@ -126,26 +126,16 @@ export function loadFlat() {
 
 /**
  * Save from a flat S-like object (adapter for gradual cut).
- * Strips book bodies into IDB when present.
+ * Writes ONLY the rq_v1 envelope (progress / game / library meta). Book bodies are NOT written here
+ * (Architect 09.10): a text body goes to IDB exactly once — when the book is added (upsertUserBook),
+ * imported (importBackup) or migrated from v6 (migrateFromV6). Calling save() 10× writes 0 bodies.
  */
 export async function saveFlat(flat, opts) {
   const options = opts || {};
   const src = flat || {};
-  const progress = {};
-  const game = {};
-  const library = {};
 
-  // Re-split using migrate/split path
+  // Re-split using migrate/split path (book .text is stripped from library meta here; never persisted)
   const split = splitLegacyState(src);
-
-  // If caller left text on books, move to IDB
-  const books = Array.isArray(src.userBooks) ? src.userBooks : [];
-  for (let i = 0; i < books.length; i++) {
-    const b = books[i];
-    if (b && b.text && b.type !== 'pdf') {
-      await idb.putText(b.id, b.text);
-    }
-  }
 
   const envelope = {
     schemaVersion: SCHEMA_VERSION,
@@ -208,8 +198,8 @@ export async function exportBackup(envelope, settings, opts) {
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261008-1027');
-  const { listReadingEvents } = await import('./events.js?v=20261008-1027');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261009-2100');
+  const { listReadingEvents } = await import('./events.js?v=20261009-2100');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
@@ -281,9 +271,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261008-1027');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261009-2100');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261008-1027'
+    './events.js?v=20261009-2100'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */

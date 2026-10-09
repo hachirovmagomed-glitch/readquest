@@ -6,9 +6,9 @@
  * HTML is network-first, so the next open after all windows closed shows the new build. */
 'use strict';
 const NS = 'rqt';
-const BUILD = '20261008-1027';
+const BUILD = '20261009-2100';
 const CACHE = NS + '-' + BUILD;
-const PRECACHE = ["./","app.html","game-awards.js?v=20261008-1027","icons/icon-192.png","icons/icon-test-192.png","icons/icon-test-512.png","icons/icon-test-maskable-512.png","icons/icon-test-mono.svg","index.html","manifest.webmanifest","reader-session.js?v=20261008-1027","storage/adapter.js?v=20261008-1027","storage/events.js?v=20261008-1027","storage/idb.js?v=20261008-1027","storage/index.js?v=20261008-1027","storage/migrate-v6.js?v=20261008-1027","storage/schema.js?v=20261008-1027","storage/sessions.js?v=20261008-1027","storage/state.js?v=20261008-1027","vendor/pdfjs/pdf.min.js","vendor/pdfjs/pdf.worker.min.js"];
+const PRECACHE = ["./","app.html","game-awards.js?v=20261009-2100","icons/icon-192.png","icons/icon-test-192.png","icons/icon-test-512.png","icons/icon-test-maskable-512.png","icons/icon-test-mono.svg","index.html","js/books-builtin.js?v=20261009-2100","js/content.js?v=20261009-2100","js/core-a.js?v=20261009-2100","js/core-b.js?v=20261009-2100","js/library.js?v=20261009-2100","js/pdf.js?v=20261009-2100","js/pwa-lock.js?v=20261009-2100","js/reader-ui.js?v=20261009-2100","js/reader.js?v=20261009-2100","js/rpg.js?v=20261009-2100","js/settings.js?v=20261009-2100","js/start.js?v=20261009-2100","js/v6-extras.js?v=20261009-2100","manifest.webmanifest","reader-session.js?v=20261009-2100","storage/adapter.js?v=20261009-2100","storage/events.js?v=20261009-2100","storage/idb.js?v=20261009-2100","storage/index.js?v=20261009-2100","storage/migrate-v6.js?v=20261009-2100","storage/schema.js?v=20261009-2100","storage/sessions.js?v=20261009-2100","storage/state.js?v=20261009-2100","vendor/pdfjs/pdf.min.js","vendor/pdfjs/pdf.worker.min.js"];
 const NAV_TIMEOUT_MS = 1500; /* navigation: network vs cache race */
 const APP_MARK = '<meta name="rq-app" content="readquest">'; /* in app.html <head>; a captive portal page won't have it */
 

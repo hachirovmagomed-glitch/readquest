@@ -1,0 +1,127 @@
+theme	screen	element	fg	bg	ratio	need	result
+day	reader	body text PT Serif 17px	page-text #26241f	page-bg #fffdf8	15.25	4.5	OK
+day	reader	page number 11px «34 / 210»	page-number #6a665e	page-bg #fffdf8	5.62	4.5	OK
+day	reader	top bar title 17px bold	text #2a2826	bg #fbf8f2	13.85	4.5	OK
+day	reader	top bar icons	text #2a2826	bg #fbf8f2	13.85	3	OK
+day	all	Neucha heading 32–42px + grain	grain:text #5e5c59	bg #fbf8f2	6.29	4.5	OK
+day	sheet	sheet title Neucha 32px + grain (sheet = bg)	grain:text #5e5c59	bg #fbf8f2	6.29	4.5	OK
+day	nav	tab label Neucha 20px inactive	tab #5a5650	bg #fbf8f2	6.87	4.5	OK
+day	nav	tab label Neucha 20px active (accent text + loop + underline)	tab-active #1f4e8c	bg #fbf8f2	7.84	4.5	OK
+day	all	sketch outlines on paper	border #34322f	bg #fbf8f2	12.06	3	OK
+day	all	sketch outlines on cards	border #34322f	surface #fffefb	12.67	3	OK
+day	library	chip Neucha 20px inactive (on surface)	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	library	chip «Все» active Neucha 20px (on paper, red loop)	text #2a2826	bg #fbf8f2	13.85	4.5	OK
+day	library	balance «504» 15px	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	library	book title 13px bold on paper	text #2a2826	bg #fbf8f2	13.85	4.5	OK
+day	library	author / progress 12px muted on paper	text-muted #5a5650	bg #fbf8f2	6.87	4.5	OK
+day	library	format label 11px on cover band	text-muted #5a5650	surface #fffefb	7.23	4.5	OK
+day	library	search / gear / close icons	text #2a2826	bg #fbf8f2	13.85	3	OK
+day	summary	«Хамелеон · стр. 21–34» 15px muted	text-muted #5a5650	bg #fbf8f2	6.87	4.5	OK
+day	summary	«Неделя: 2 / 4 дня» 15px	text #2a2826	bg #fbf8f2	13.85	4.5	OK
+day	summary	stat number Neucha 40px	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	summary	stat caption 13.5px muted	text-muted #5a5650	surface #fffefb	7.23	4.5	OK
+day	summary	«+30 🪙 ежедневка выполнена» 16px	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	summary	button «В библиотеку» 17px bold	on-accent #ffffff	accent #1f4e8c	8.31	4.5	OK
+day	summary	button edge vs paper	accent #1f4e8c	bg #fbf8f2	7.84	3	OK
+day	profile	name Neucha 28px / rows 16px	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	profile	muted 13.5–14px on card	text-muted #5a5650	surface #fffefb	7.23	4.5	OK
+day	profile	«выполнено сегодня» 14px bold graphite	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	profile	tile numbers Neucha 27px	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	profile	tile caption 12.5px muted	text-muted #5a5650	surface #fffefb	7.23	4.5	OK
+day	profile	chevrons muted	text-muted #5a5650	surface #fffefb	7.23	3	OK
+day	profile	gift icon accent	accent #1f4e8c	surface #fffefb	8.24	3	OK
+day	sheet	slot name 16px	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	sheet	buy «100 монет» 15px	on-accent #ffffff	accent #1f4e8c	8.31	4.5	OK
+day	sheet	buy disabled «500 монет» 15px	text-muted #5a5650	surface #fffefb	7.23	4.5	OK
+day	sheet	tier 15px (active = bold + coloured loop)	text #2a2826	surface #fffefb	14.56	4.5	OK
+day	sheet	«получено: N» 13.5px	text-muted #5a5650	surface #fffefb	7.23	4.5	OK
+day	sheet	hint 13.5px	text-muted #5a5650	bg #fbf8f2	6.87	4.5	OK
+day	sheet	grabber	text-muted #5a5650	bg #fbf8f2	6.87	3	OK
+day	reader	day bar fallback (accent) vs track	daybar #1f4e8c	daybar-track #e9e4da	6.56	3	OK
+day	all	pencil-1 красный: active loops, title underline scribbles on paper	pencil-1 #c62f2f	bg #fbf8f2	5.15	3	OK
+day	cards	pencil-1 красный: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-1 #c62f2f	surface #fffefb	5.41	3	OK
+day	reader	pencil-1 красный: rainbow day-bar segment vs track	pencil-1 #c62f2f	daybar-track #e9e4da	4.31	3	OK
+day	reader	pencil-1 красный: rainbow day-bar segment vs page	pencil-1 #c62f2f	page-bg #fffdf8	5.37	3	OK
+day	all	pencil-2 оранжевый: active loops, title underline scribbles on paper	pencil-2 #c4570c	bg #fbf8f2	4.20	3	OK
+day	cards	pencil-2 оранжевый: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-2 #c4570c	surface #fffefb	4.42	3	OK
+day	reader	pencil-2 оранжевый: rainbow day-bar segment vs track	pencil-2 #c4570c	daybar-track #e9e4da	3.51	3	OK
+day	reader	pencil-2 оранжевый: rainbow day-bar segment vs page	pencil-2 #c4570c	page-bg #fffdf8	4.38	3	OK
+day	all	pencil-3 охра: active loops, title underline scribbles on paper	pencil-3 #9a6a00	bg #fbf8f2	4.47	3	OK
+day	cards	pencil-3 охра: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-3 #9a6a00	surface #fffefb	4.69	3	OK
+day	reader	pencil-3 охра: rainbow day-bar segment vs track	pencil-3 #9a6a00	daybar-track #e9e4da	3.74	3	OK
+day	reader	pencil-3 охра: rainbow day-bar segment vs page	pencil-3 #9a6a00	page-bg #fffdf8	4.66	3	OK
+day	all	pencil-4 зелёный: active loops, title underline scribbles on paper	pencil-4 #2e7a36	bg #fbf8f2	5.01	3	OK
+day	cards	pencil-4 зелёный: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-4 #2e7a36	surface #fffefb	5.27	3	OK
+day	reader	pencil-4 зелёный: rainbow day-bar segment vs track	pencil-4 #2e7a36	daybar-track #e9e4da	4.19	3	OK
+day	reader	pencil-4 зелёный: rainbow day-bar segment vs page	pencil-4 #2e7a36	page-bg #fffdf8	5.23	3	OK
+day	all	pencil-5 синий: active loops, title underline scribbles on paper	pencil-5 #1f5fae	bg #fbf8f2	5.99	3	OK
+day	cards	pencil-5 синий: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-5 #1f5fae	surface #fffefb	6.30	3	OK
+day	reader	pencil-5 синий: rainbow day-bar segment vs track	pencil-5 #1f5fae	daybar-track #e9e4da	5.01	3	OK
+day	reader	pencil-5 синий: rainbow day-bar segment vs page	pencil-5 #1f5fae	page-bg #fffdf8	6.25	3	OK
+day	all	pencil-6 фиолетовый: active loops, title underline scribbles on paper	pencil-6 #7a3ea6	bg #fbf8f2	6.46	3	OK
+day	cards	pencil-6 фиолетовый: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-6 #7a3ea6	surface #fffefb	6.79	3	OK
+day	reader	pencil-6 фиолетовый: rainbow day-bar segment vs track	pencil-6 #7a3ea6	daybar-track #e9e4da	5.40	3	OK
+day	reader	pencil-6 фиолетовый: rainbow day-bar segment vs page	pencil-6 #7a3ea6	page-bg #fffdf8	6.73	3	OK
+night	reader	body text PT Serif 17px	page-text #e6e4de	page-bg #212226	12.50	4.5	OK
+night	reader	page number 11px «34 / 210»	page-number #a6a59f	page-bg #212226	6.44	4.5	OK
+night	reader	top bar title 17px bold	text #ecebe6	bg #25262a	12.66	4.5	OK
+night	reader	top bar icons	text #ecebe6	bg #25262a	12.66	3	OK
+night	all	Neucha heading 32–42px + grain	grain:text #babab7	bg #25262a	7.77	4.5	OK
+night	sheet	sheet title Neucha 32px + grain (sheet = bg)	grain:text #babab7	bg #25262a	7.77	4.5	OK
+night	nav	tab label Neucha 20px inactive	tab #b9b8b2	bg #25262a	7.60	4.5	OK
+night	nav	tab label Neucha 20px active (accent text + loop + underline)	tab-active #8fb8ff	bg #25262a	7.53	4.5	OK
+night	all	sketch outlines on paper	border #d2d1cb	bg #25262a	9.88	3	OK
+night	all	sketch outlines on cards	border #d2d1cb	surface #303136	8.48	3	OK
+night	library	chip Neucha 20px inactive (on surface)	text #ecebe6	surface #303136	10.87	4.5	OK
+night	library	chip «Все» active Neucha 20px (on paper, red loop)	text #ecebe6	bg #25262a	12.66	4.5	OK
+night	library	balance «504» 15px	text #ecebe6	surface #303136	10.87	4.5	OK
+night	library	book title 13px bold on paper	text #ecebe6	bg #25262a	12.66	4.5	OK
+night	library	author / progress 12px muted on paper	text-muted #b9b8b2	bg #25262a	7.60	4.5	OK
+night	library	format label 11px on cover band	text-muted #b9b8b2	surface #303136	6.53	4.5	OK
+night	library	search / gear / close icons	text #ecebe6	bg #25262a	12.66	3	OK
+night	summary	«Хамелеон · стр. 21–34» 15px muted	text-muted #b9b8b2	bg #25262a	7.60	4.5	OK
+night	summary	«Неделя: 2 / 4 дня» 15px	text #ecebe6	bg #25262a	12.66	4.5	OK
+night	summary	stat number Neucha 40px	text #ecebe6	surface #303136	10.87	4.5	OK
+night	summary	stat caption 13.5px muted	text-muted #b9b8b2	surface #303136	6.53	4.5	OK
+night	summary	«+30 🪙 ежедневка выполнена» 16px	text #ecebe6	surface #303136	10.87	4.5	OK
+night	summary	button «В библиотеку» 17px bold	on-accent #1a1b1e	accent #8fb8ff	8.58	4.5	OK
+night	summary	button edge vs paper	accent #8fb8ff	bg #25262a	7.53	3	OK
+night	profile	name Neucha 28px / rows 16px	text #ecebe6	surface #303136	10.87	4.5	OK
+night	profile	muted 13.5–14px on card	text-muted #b9b8b2	surface #303136	6.53	4.5	OK
+night	profile	«выполнено сегодня» 14px bold graphite	text #ecebe6	surface #303136	10.87	4.5	OK
+night	profile	tile numbers Neucha 27px	text #ecebe6	surface #303136	10.87	4.5	OK
+night	profile	tile caption 12.5px muted	text-muted #b9b8b2	surface #303136	6.53	4.5	OK
+night	profile	chevrons muted	text-muted #b9b8b2	surface #303136	6.53	3	OK
+night	profile	gift icon accent	accent #8fb8ff	surface #303136	6.47	3	OK
+night	sheet	slot name 16px	text #ecebe6	surface #303136	10.87	4.5	OK
+night	sheet	buy «100 монет» 15px	on-accent #1a1b1e	accent #8fb8ff	8.58	4.5	OK
+night	sheet	buy disabled «500 монет» 15px	text-muted #b9b8b2	surface #303136	6.53	4.5	OK
+night	sheet	tier 15px (active = bold + coloured loop)	text #ecebe6	surface #303136	10.87	4.5	OK
+night	sheet	«получено: N» 13.5px	text-muted #b9b8b2	surface #303136	6.53	4.5	OK
+night	sheet	hint 13.5px	text-muted #b9b8b2	bg #25262a	7.60	4.5	OK
+night	sheet	grabber	text-muted #b9b8b2	bg #25262a	7.60	3	OK
+night	reader	day bar fallback (accent) vs track	daybar #8fb8ff	daybar-track #44454c	4.76	3	OK
+night	all	pencil-1 красный: active loops, title underline scribbles on paper	pencil-1 #ff8a80	bg #25262a	6.62	3	OK
+night	cards	pencil-1 красный: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-1 #ff8a80	surface #303136	5.68	3	OK
+night	reader	pencil-1 красный: rainbow day-bar segment vs track	pencil-1 #ff8a80	daybar-track #44454c	4.18	3	OK
+night	reader	pencil-1 красный: rainbow day-bar segment vs page	pencil-1 #ff8a80	page-bg #212226	6.96	3	OK
+night	all	pencil-2 оранжевый: active loops, title underline scribbles on paper	pencil-2 #ffb26b	bg #25262a	8.52	3	OK
+night	cards	pencil-2 оранжевый: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-2 #ffb26b	surface #303136	7.31	3	OK
+night	reader	pencil-2 оранжевый: rainbow day-bar segment vs track	pencil-2 #ffb26b	daybar-track #44454c	5.37	3	OK
+night	reader	pencil-2 оранжевый: rainbow day-bar segment vs page	pencil-2 #ffb26b	page-bg #212226	8.95	3	OK
+night	all	pencil-3 охра: active loops, title underline scribbles on paper	pencil-3 #f2d46b	bg #25262a	10.37	3	OK
+night	cards	pencil-3 охра: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-3 #f2d46b	surface #303136	8.90	3	OK
+night	reader	pencil-3 охра: rainbow day-bar segment vs track	pencil-3 #f2d46b	daybar-track #44454c	6.54	3	OK
+night	reader	pencil-3 охра: rainbow day-bar segment vs page	pencil-3 #f2d46b	page-bg #212226	10.90	3	OK
+night	all	pencil-4 зелёный: active loops, title underline scribbles on paper	pencil-4 #8ed99a	bg #25262a	9.03	3	OK
+night	cards	pencil-4 зелёный: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-4 #8ed99a	surface #303136	7.75	3	OK
+night	reader	pencil-4 зелёный: rainbow day-bar segment vs track	pencil-4 #8ed99a	daybar-track #44454c	5.70	3	OK
+night	reader	pencil-4 зелёный: rainbow day-bar segment vs page	pencil-4 #8ed99a	page-bg #212226	9.49	3	OK
+night	all	pencil-5 синий: active loops, title underline scribbles on paper	pencil-5 #8fb8ff	bg #25262a	7.53	3	OK
+night	cards	pencil-5 синий: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-5 #8fb8ff	surface #303136	6.47	3	OK
+night	reader	pencil-5 синий: rainbow day-bar segment vs track	pencil-5 #8fb8ff	daybar-track #44454c	4.76	3	OK
+night	reader	pencil-5 синий: rainbow day-bar segment vs page	pencil-5 #8fb8ff	page-bg #212226	7.92	3	OK
+night	all	pencil-6 фиолетовый: active loops, title underline scribbles on paper	pencil-6 #c9a2ff	bg #25262a	7.27	3	OK
+night	cards	pencil-6 фиолетовый: cover hatching, quest marker, tile band/icon, reward edge, tier loop, progress hatch on cards	pencil-6 #c9a2ff	surface #303136	6.24	3	OK
+night	reader	pencil-6 фиолетовый: rainbow day-bar segment vs track	pencil-6 #c9a2ff	daybar-track #44454c	4.59	3	OK
+night	reader	pencil-6 фиолетовый: rainbow day-bar segment vs page	pencil-6 #c9a2ff	page-bg #212226	7.64	3	OK

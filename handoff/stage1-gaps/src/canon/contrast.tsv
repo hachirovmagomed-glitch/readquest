@@ -1,0 +1,1069 @@
+method	screen_or_theme	text_or_pair	note_or_font	_	fg	bg	threshold	contrast_typical	contrast_worst_bg	status
+tokens	day	--rq-text на --rq-bg	основной текст		#3b3226	#faf6ec	4.5	11.65	11.65	ok
+tokens	day	--rq-text на --rq-surface	текст на карточке		#3b3226	#ffffff	4.5	12.57	12.57	ok
+tokens	day	--rq-text на --rq-surface-2	текст в чипе/сегменте		#3b3226	#f1e9d6	4.5	10.4	10.4	ok
+tokens	day	--rq-text на --rq-sheet	текст в шторке		#3b3226	#faf6ec	4.5	11.65	11.65	ok
+tokens	day	--rq-text-2 на --rq-bg	вторичный на фоне		#6e5d43	#faf6ec	4.5	5.88	5.88	ok
+tokens	day	--rq-text-2 на --rq-surface	вторичный на карточке		#6e5d43	#ffffff	4.5	6.34	6.34	ok
+tokens	day	--rq-text-2 на --rq-surface-2	вторичный в KPI/сегменте		#6e5d43	#f1e9d6	4.5	5.25	5.25	ok
+tokens	day	--rq-text-2 на --rq-sheet	вторичный в шторке		#6e5d43	#faf6ec	4.5	5.88	5.88	ok
+tokens	day	--rq-accent-text на --rq-bg	акцентный текст на фоне		#1f6f6b	#faf6ec	4.5	5.49	5.49	ok
+tokens	day	--rq-accent-text на --rq-surface	акцентный текст на карточке		#1f6f6b	#ffffff	4.5	5.92	5.92	ok
+tokens	day	--rq-accent-text на --rq-accent-tint	«вы здесь», меню активное		#1f6f6b	#dcebe7	4.5	4.82	4.82	ok
+tokens	day	--rq-accent-text на --rq-control-on	выбранный сегмент		#1f6f6b	#ffffff	4.5	5.92	5.92	ok
+tokens	day	--rq-accent-text на --rq-sheet	акцентный текст в шторке		#1f6f6b	#faf6ec	4.5	5.49	5.49	ok
+tokens	day	--rq-on-accent на --rq-accent	текст на главной кнопке		#ffffff	#1f6f6b	4.5	5.92	5.92	ok
+tokens	day	--rq-on-accent на --rq-accent-pressed	текст на нажатой кнопке		#ffffff	#17524f	4.5	8.91	8.91	ok
+tokens	day	--rq-coin на --rq-coin-tint	цифры в чипе монет		#7a4f10	#f3e6c8	4.5	5.74	5.74	ok
+tokens	day	--rq-coin на --rq-bg	монеты на фоне		#7a4f10	#faf6ec	4.5	6.59	6.59	ok
+tokens	day	--rq-coin на --rq-surface	монеты на карточке		#7a4f10	#ffffff	4.5	7.11	7.11	ok
+tokens	day	--rq-coin на --rq-sheet	монеты в итоге		#7a4f10	#faf6ec	4.5	6.59	6.59	ok
+tokens	day	--rq-success на --rq-success-tint	плашка «выполнено»		#2f6a22	#e6efdc	4.5	5.54	5.54	ok
+tokens	day	--rq-danger на --rq-surface	«Сбросить весь прогресс»		#b3392a	#ffffff	4.5	5.94	5.94	ok
+tokens	day	--rq-danger на --rq-bg	ошибка на фоне		#b3392a	#faf6ec	4.5	5.5	5.5	ok
+tokens	day	--rq-badge-text на --rq-badge-bg	плашка «N из M»		#ffffff	#3b3226	4.5	12.57	12.57	ok
+tokens	day	--rq-toast-game-fg на --rq-toast-game-bg	тост game		#ffffff	#1f6f6b	4.5	5.92	5.92	ok
+tokens	day	--rq-toast-info-fg на --rq-toast-info-bg	тост info		#3b3226	#ffffff	4.5	12.57	12.57	ok
+tokens	day	--rq-toast-info-icon на --rq-toast-info-bg	иконка тоста info (графика)		#1f6f6b	#ffffff	3.0	5.92	5.92	ok
+tokens	day	--rq-toast-error-fg на --rq-toast-error-bg	тост error		#ffffff	#b3392a	4.5	5.94	5.94	ok
+tokens	day	--rq-accent на --rq-bg	граница главной кнопки/слайдера к фону (1.4.11)		#1f6f6b	#faf6ec	3.0	5.49	5.49	ok
+tokens	day	--rq-accent на --rq-surface	слайдер, кольцо на карточке		#1f6f6b	#ffffff	3.0	5.92	5.92	ok
+tokens	day	--rq-accent на --rq-sheet	кнопка в итоге/шторке		#1f6f6b	#faf6ec	3.0	5.49	5.49	ok
+tokens	day	--rq-border-strong на --rq-bg	контур поля поиска/переключателя		#8c7c62	#faf6ec	3.0	3.76	3.76	ok
+tokens	day	--rq-border-strong на --rq-surface	контур переключателя на карточке		#8c7c62	#ffffff	3.0	4.06	4.06	ok
+tokens	day	--rq-focus на --rq-bg	кольцо фокуса		#1f6f6b	#faf6ec	3.0	5.49	5.49	ok
+tokens	night	--rq-text на --rq-bg	основной текст		#d6e2e0	#0c1719	4.5	13.72	13.72	ok
+tokens	night	--rq-text на --rq-surface	текст на карточке		#d6e2e0	#13232a	4.5	12.15	12.15	ok
+tokens	night	--rq-text на --rq-surface-2	текст в чипе/сегменте		#d6e2e0	#1a2f36	4.5	10.52	10.52	ok
+tokens	night	--rq-text на --rq-sheet	текст в шторке		#d6e2e0	#13232a	4.5	12.15	12.15	ok
+tokens	night	--rq-text-2 на --rq-bg	вторичный на фоне		#93aaa7	#0c1719	4.5	7.42	7.42	ok
+tokens	night	--rq-text-2 на --rq-surface	вторичный на карточке		#93aaa7	#13232a	4.5	6.57	6.57	ok
+tokens	night	--rq-text-2 на --rq-surface-2	вторичный в KPI/сегменте		#93aaa7	#1a2f36	4.5	5.68	5.68	ok
+tokens	night	--rq-text-2 на --rq-sheet	вторичный в шторке		#93aaa7	#13232a	4.5	6.57	6.57	ok
+tokens	night	--rq-accent-text на --rq-bg	акцентный текст на фоне		#5fb8ae	#0c1719	4.5	7.77	7.77	ok
+tokens	night	--rq-accent-text на --rq-surface	акцентный текст на карточке		#5fb8ae	#13232a	4.5	6.88	6.88	ok
+tokens	night	--rq-accent-text на --rq-accent-tint	«вы здесь», меню активное		#5fb8ae	#17363a	4.5	5.51	5.51	ok
+tokens	night	--rq-accent-text на --rq-control-on	выбранный сегмент		#5fb8ae	#17363a	4.5	5.51	5.51	ok
+tokens	night	--rq-accent-text на --rq-sheet	акцентный текст в шторке		#5fb8ae	#13232a	4.5	6.88	6.88	ok
+tokens	night	--rq-on-accent на --rq-accent	текст на главной кнопке		#0c1719	#5fb8ae	4.5	7.77	7.77	ok
+tokens	night	--rq-on-accent на --rq-accent-pressed	текст на нажатой кнопке		#0c1719	#7fcac1	4.5	9.65	9.65	ok
+tokens	night	--rq-coin на --rq-coin-tint	цифры в чипе монет		#e2b866	#2a2618	4.5	8.12	8.12	ok
+tokens	night	--rq-coin на --rq-bg	монеты на фоне		#e2b866	#0c1719	4.5	9.79	9.79	ok
+tokens	night	--rq-coin на --rq-surface	монеты на карточке		#e2b866	#13232a	4.5	8.67	8.67	ok
+tokens	night	--rq-coin на --rq-sheet	монеты в итоге		#e2b866	#13232a	4.5	8.67	8.67	ok
+tokens	night	--rq-success на --rq-success-tint	плашка «выполнено»		#9fd68c	#1d3324	4.5	8.04	8.04	ok
+tokens	night	--rq-danger на --rq-surface	«Сбросить весь прогресс»		#ff8a80	#13232a	4.5	7.07	7.07	ok
+tokens	night	--rq-danger на --rq-bg	ошибка на фоне		#ff8a80	#0c1719	4.5	7.98	7.98	ok
+tokens	night	--rq-badge-text на --rq-badge-bg	плашка «N из M»		#0c1719	#d6e2e0	4.5	13.72	13.72	ok
+tokens	night	--rq-toast-game-fg на --rq-toast-game-bg	тост game		#0c1719	#5fb8ae	4.5	7.77	7.77	ok
+tokens	night	--rq-toast-info-fg на --rq-toast-info-bg	тост info		#d6e2e0	#1f363d	4.5	9.57	9.57	ok
+tokens	night	--rq-toast-info-icon на --rq-toast-info-bg	иконка тоста info (графика)		#5fb8ae	#1f363d	3.0	5.42	5.42	ok
+tokens	night	--rq-toast-error-fg на --rq-toast-error-bg	тост error		#2a0d0a	#ff8a80	4.5	7.93	7.93	ok
+tokens	night	--rq-accent на --rq-bg	граница главной кнопки/слайдера к фону (1.4.11)		#5fb8ae	#0c1719	3.0	7.77	7.77	ok
+tokens	night	--rq-accent на --rq-surface	слайдер, кольцо на карточке		#5fb8ae	#13232a	3.0	6.88	6.88	ok
+tokens	night	--rq-accent на --rq-sheet	кнопка в итоге/шторке		#5fb8ae	#13232a	3.0	6.88	6.88	ok
+tokens	night	--rq-border-strong на --rq-bg	контур поля поиска/переключателя		#5a7a76	#0c1719	3.0	3.89	3.89	ok
+tokens	night	--rq-border-strong на --rq-surface	контур переключателя на карточке		#5a7a76	#13232a	3.0	3.44	3.44	ok
+tokens	night	--rq-focus на --rq-bg	кольцо фокуса		#7fcac1	#0c1719	3.0	9.65	9.65	ok
+tokens	page-sepia	--r-txt на --r-bg	текст книги		#5b4636	#f4ecd8	4.5	7.51	7.51	ok
+tokens	page-sepia	--r-txt-2 на --r-bg	номер страницы в углу		#725f4a	#f4ecd8	4.5	5.17	5.17	ok
+tokens	page-day	--r-txt на --r-bg	текст книги		#26241f	#fbfaf6	4.5	14.84	14.84	ok
+tokens	page-day	--r-txt-2 на --r-bg	номер страницы в углу		#6b6658	#fbfaf6	4.5	5.48	5.48	ok
+tokens	page-night	--r-txt на --r-bg	текст книги		#c2d0cd	#0f1c1f	4.5	10.94	10.94	ok
+tokens	page-night	--r-txt-2 на --r-bg	номер страницы в углу		#7f938f	#0f1c1f	4.5	5.37	5.37	ok
+tokens	night	PDF: #000 на #fff под слоем rgba(0,0,0,.35)	текст PDF ночью (страница ≈ #a6a6a6)		#000000	#a6a6a6	4.5	8.6	8.6	ok
+pixels	reader-clean-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-clean-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-clean-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-clean-day	98 / 185	11px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	reader-clean-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-clean-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-clean-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-clean-night	98 / 185	11px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	reader-panels-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	8.85	8.85	ok
+pixels	reader-panels-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-panels-day	Мастер и Маргарита	17px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Михаил Булгаков · FB2	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	reader-panels-day	98 из 185	14px/600		#ffffff		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Оглавление	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Ночь	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Aa	19px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Шрифт	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Фокус	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-day	Весь экран	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-panels-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.14	10.14	ok
+pixels	reader-panels-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-panels-night	Мастер и Маргарита	17px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-panels-night	Михаил Булгаков · FB2	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-panels-night	98 из 185	14px/600		#0c1719		4.5	13.72	13.72	ok
+pixels	reader-panels-night	Оглавление	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-panels-night	День	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-panels-night	Aa	19px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-panels-night	Шрифт	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-panels-night	Фокус	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-panels-night	Весь экран	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	8.85	8.85	ok
+pixels	reader-jump-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-jump-day	Мастер и Маргарита	17px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-day	Михаил Булгаков · FB2	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	reader-jump-day	142 из 185	14px/600		#ffffff		4.5	12.57	12.57	ok
+pixels	reader-jump-day	на стр. 98	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-jump-day	Оглавление	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-day	Ночь	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-day	Aa	19px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-day	Шрифт	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-day	Фокус	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-day	Весь экран	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-jump-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.14	10.14	ok
+pixels	reader-jump-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-jump-night	Мастер и Маргарита	17px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-night	Михаил Булгаков · FB2	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-jump-night	142 из 185	14px/600		#0c1719		4.5	13.72	13.72	ok
+pixels	reader-jump-night	на стр. 98	14px/600		#5fb8ae		4.5	6.88	6.88	ok
+pixels	reader-jump-night	Оглавление	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-night	День	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-night	Aa	19px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-night	Шрифт	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-night	Фокус	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-jump-night	Весь экран	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-focus-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-focus-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-focus-day	7 / 10 мин	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	reader-focus-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-focus-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-focus-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-focus-night	7 / 10 мин	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	reader-focus-done-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-focus-done-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-focus-done-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-focus-done-day	10 / 10 мин	12px/600		#1f6f6b		4.5	5.03	5.03	ok
+pixels	reader-focus-done-day	Яркость 60%	14px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-done-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-focus-done-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-focus-done-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-focus-done-night	10 / 10 мин	12px/600		#5fb8ae		4.5	7.42	7.42	ok
+pixels	reader-focus-done-night	Яркость 60%	14px/600		#d6e2e0		4.5	9.57	9.57	ok
+pixels	reader-focus-zones-day	Назад	15px/700		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-focus-zones-day	листает	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-day	Центр	15px/700		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-focus-zones-day	панели и выход из фокуса	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-day	Вперёд	15px/700		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-focus-zones-day	день / ночь	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-day	закладка	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-day	Углы, боковые тапы и свайпы фокус не трогают.	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-day	Выход из фокуса — только тап в центр.	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-day	Если листание тапом выключено, весь экран — це	13px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	reader-focus-zones-night	Назад	15px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	reader-focus-zones-night	листает	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-zones-night	Центр	15px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	reader-focus-zones-night	панели и выход из фокуса	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-zones-night	Вперёд	15px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	reader-focus-zones-night	день / ночь	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-zones-night	закладка	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-zones-night	Углы, боковые тапы и свайпы фокус не трогают.	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-zones-night	Выход из фокуса — только тап в центр.	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-focus-zones-night	Если листание тапом выключено, весь экран — це	13px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-pdf-day	41 / 312	11px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	reader-pdf-night	41 / 312	11px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	reader-settings-day	Вид страницы	20px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	reader-settings-day	Тема страницы	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	Аа	18px/600		#26241f		4.5	14.84	14.84	ok
+pixels	reader-settings-day	День	12px/600		#26241f		4.5	14.84	14.84	ok
+pixels	reader-settings-day	Аа	18px/600		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-settings-day	Сепия	12px/600		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-settings-day	Аа	18px/600		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-settings-day	Ночь	12px/600		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-settings-day	Размер текста	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	19	13px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	reader-settings-day	A	15px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	reader-settings-day	Шрифт	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	Georgia	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-settings-day	Times	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	reader-settings-day	Без засечек	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	reader-settings-day	Интервал и поля	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	Плотно	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	reader-settings-day	Обычно	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-settings-day	Свободно	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	reader-settings-day	Узкие поля	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	reader-settings-day	Средние	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	reader-settings-day	Широкие	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	reader-settings-day	Выравнивание по ширине	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	reader-settings-day	С переносами слов	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	Затемнение PDF ночью	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	35 %	13px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	reader-settings-day	0 %	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	работает в ночной теме	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-day	50 %	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	reader-settings-night	Вид страницы	20px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	reader-settings-night	Тема страницы	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	Аа	18px/600		#26241f		4.5	14.84	14.84	ok
+pixels	reader-settings-night	День	12px/600		#26241f		4.5	14.84	14.84	ok
+pixels	reader-settings-night	Аа	18px/600		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-settings-night	Сепия	12px/600		#5b4636		4.5	7.51	7.51	ok
+pixels	reader-settings-night	Аа	18px/600		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-settings-night	Ночь	12px/600		#c2d0cd		4.5	10.94	10.94	ok
+pixels	reader-settings-night	Размер текста	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	19	13px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-settings-night	A	15px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-settings-night	Шрифт	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	Georgia	14px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	reader-settings-night	Times	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	reader-settings-night	Без засечек	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	reader-settings-night	Интервал и поля	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	Плотно	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	reader-settings-night	Обычно	14px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	reader-settings-night	Свободно	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	reader-settings-night	Узкие поля	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	reader-settings-night	Средние	14px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	reader-settings-night	Широкие	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	reader-settings-night	Выравнивание по ширине	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-settings-night	С переносами слов	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	Затемнение PDF ночью	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	35 %	13px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	reader-settings-night	0 %	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	сейчас применяется к PDF	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	reader-settings-night	50 %	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-day	Оглавление	20px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	toc-day	Мастер и Маргарита · стр. 98 из 185	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Часть первая	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 1. Никогда не разговаривайте с неизвестн	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	5	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 2. Понтий Пилат	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	17	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 3. Седьмое доказательство	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	41	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 4. Погоня	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	45	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 5. Было дело в Грибоедове	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	52	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 6. Шизофрения, как и было сказано	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	64	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 7. Нехорошая квартира	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	72	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 8. Поединок между профессором и поэтом	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	81	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 9. Коровьевские штуки	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	toc-day	89	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toc-day	Глава 10. Вести из Ялты	15px/700		#3b3226		4.5	10.34	10.23	ok
+pixels	toc-day	вы здесь	12px/700		#1f6f6b		4.5	4.87	4.82	ok
+pixels	toc-day	97	13px/700		#3b3226		4.5	10.57	10.23	ok
+pixels	toc-day	Глава 11. Раздвоение Ивана	15px/400		#3b3226		4.5	11.65	10.94	ok
+pixels	toc-day	106	13px/400		#6e5d43		4.5	5.88	5.74	ok
+pixels	toc-night	Оглавление	20px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	toc-night	Мастер и Маргарита · стр. 98 из 185	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Часть первая	12px/700		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 1. Никогда не разговаривайте с неизвестн	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	5	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 2. Понтий Пилат	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	17	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 3. Седьмое доказательство	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	41	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 4. Погоня	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	45	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 5. Было дело в Грибоедове	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	52	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 6. Шизофрения, как и было сказано	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	64	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 7. Нехорошая квартира	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	72	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 8. Поединок между профессором и поэтом	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	81	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 9. Коровьевские штуки	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	toc-night	89	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	toc-night	Глава 10. Вести из Ялты	15px/700		#d6e2e0		4.5	9.97	9.73	ok
+pixels	toc-night	вы здесь	12px/700		#5fb8ae		4.5	5.64	5.51	ok
+pixels	toc-night	97	13px/700		#d6e2e0		4.5	10.36	9.73	ok
+pixels	toc-night	Глава 11. Раздвоение Ивана	15px/400		#d6e2e0		4.5	12.15	8.74	ok
+pixels	toc-night	106	13px/400		#93aaa7		4.5	6.57	5.19	ok
+pixels	library-day	Библиотека	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	library-day	390 монет	14px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	library-day	Цель 10 мин	17px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	library-day	Сегодня: 6 мин · ещё 4 до +30 монет	14px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	library-day	3 дня подряд	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	library-day	Уровень 4	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	library-day	Поиск по названию и автору	15px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	library-day	Все	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	library-day	Читаю	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	library-day	Хочу	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	library-day	Прочитано	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	library-day	ПРОДОЛЖИТЬ	12px/600		#6e5d43		4.5	6.34	6.34	ok
+pixels	library-day	Мастер и Маргарита	15px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	library-day	Стр. 98 из 185 · 53%	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	library-day	Читать	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	library-day	FB2	10px/700		#ffffff		4.5	17.92	17.7	ok
+pixels	library-day	Мастер и Маргарита	13px/700		#ffffff		4.5	14.81	14.1	ok
+pixels	library-day	М. Булгаков	10px/400		#ffffff		4.5	16.27	15.65	ok
+pixels	library-day	М. Булгаков	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	library-day	Преступление и наказание	13px/700		#ffffff		4.5	14.4	13.32	ok
+pixels	library-day	Ф. Достоевский	10px/400		#ffffff		4.5	15.99	15.09	ok
+pixels	library-day	Преступление и наказание	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	library-day	Ф. Достоевский	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	library-day	TXT	10px/700		#ffffff		4.5	13.23	13.23	ok
+pixels	library-day	Х	52px/700		#ffffff		3.0	5.34	5.34	ok
+pixels	library-day	Хамелеон	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	library-day	А. П. Чехов	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	library-day	PDF	10px/700		#ffffff		4.5	12.99	12.99	ok
+pixels	library-day	А	52px/700		#ffffff		3.0	5.06	5.06	ok
+pixels	library-day	EPUB	10px/700		#ffffff		4.5	17.9	17.73	ok
+pixels	library-day	Война и мир	13px/700		#ffffff		4.5	15.63	14.81	ok
+pixels	library-day	Л. Толстой	10px/400		#ffffff		4.5	16.21	15.63	ok
+pixels	library-day	S	52px/700		#ffffff		3.0	7.44	7.44	ok
+pixels	library-day	Библиотека	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	library-day	Награды	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	library-day	Профиль	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	library-night	Библиотека	22px/700		#d6e2e0		3.0	13.72	13.72	ok
+pixels	library-night	390 монет	14px/700		#e2b866		4.5	8.12	8.12	ok
+pixels	library-night	Цель 10 мин	17px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	library-night	Сегодня: 6 мин · ещё 4 до +30 монет	14px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	library-night	3 дня подряд	14px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	library-night	Уровень 4	14px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	library-night	Поиск по названию и автору	15px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	library-night	Все	14px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	library-night	Читаю	14px/500		#d6e2e0		4.5	10.52	10.52	ok
+pixels	library-night	Хочу	14px/500		#d6e2e0		4.5	10.52	10.52	ok
+pixels	library-night	Прочитано	14px/500		#d6e2e0		4.5	10.52	10.52	ok
+pixels	library-night	ПРОДОЛЖИТЬ	12px/600		#93aaa7		4.5	6.57	6.57	ok
+pixels	library-night	Мастер и Маргарита	15px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	library-night	Стр. 98 из 185 · 53%	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	library-night	Читать	14px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	library-night	FB2	10px/700		#ffffff		4.5	17.92	17.7	ok
+pixels	library-night	Мастер и Маргарита	13px/700		#ffffff		4.5	14.81	14.1	ok
+pixels	library-night	М. Булгаков	10px/400		#ffffff		4.5	16.27	15.65	ok
+pixels	library-night	М. Булгаков	12px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	library-night	Преступление и наказание	13px/700		#ffffff		4.5	14.4	13.32	ok
+pixels	library-night	Ф. Достоевский	10px/400		#ffffff		4.5	15.99	15.09	ok
+pixels	library-night	Преступление и наказание	13px/600		#d6e2e0		4.5	13.72	13.72	ok
+pixels	library-night	Ф. Достоевский	12px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	library-night	TXT	10px/700		#ffffff		4.5	13.23	13.23	ok
+pixels	library-night	Х	52px/700		#ffffff		3.0	5.34	5.34	ok
+pixels	library-night	Хамелеон	13px/600		#d6e2e0		4.5	13.72	13.72	ok
+pixels	library-night	А. П. Чехов	12px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	library-night	PDF	10px/700		#ffffff		4.5	12.99	12.99	ok
+pixels	library-night	А	52px/700		#ffffff		3.0	5.06	5.06	ok
+pixels	library-night	EPUB	10px/700		#ffffff		4.5	17.9	17.73	ok
+pixels	library-night	Война и мир	13px/700		#ffffff		4.5	15.63	14.81	ok
+pixels	library-night	Л. Толстой	10px/400		#ffffff		4.5	16.21	15.63	ok
+pixels	library-night	S	52px/700		#ffffff		3.0	7.44	7.44	ok
+pixels	library-night	Библиотека	12px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	library-night	Награды	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	library-night	Профиль	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	rewards-day	Награды	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	rewards-day	390 монет	14px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	rewards-day	Задание дня	16px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	rewards-day	Читать 10 мин · 6 из 10 мин	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	rewards-day	+30	13px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	rewards-day	Задание недели	16px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	rewards-day	4 дня по 10 мин · 2 из 4 дней	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	rewards-day	+120	13px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	rewards-day	Награды из жизни	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	rewards-day	3 из 5	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	rewards-day	Серия любимого сериала	15px/500		#3b3226		4.5	11.65	11.65	ok
+pixels	rewards-day	100 монет	13px/700		#7a4f10		4.5	6.59	6.59	ok
+pixels	rewards-day	Обменять	14px/600		#1f6f6b		4.5	5.49	5.49	ok
+pixels	rewards-day	Кофе в любимой кофейне	15px/500		#3b3226		4.5	11.65	11.65	ok
+pixels	rewards-day	250 монет	13px/700		#7a4f10		4.5	6.59	6.59	ok
+pixels	rewards-day	Новая книга	15px/500		#3b3226		4.5	11.65	11.65	ok
+pixels	rewards-day	500 монет	13px/700		#7a4f10		4.5	6.59	6.59	ok
+pixels	rewards-day	Обменять	14px/600		#a8987a		4.5	2.62	2.62	exempt: disabled
+pixels	rewards-day	не хватает 110 монет	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	rewards-day	Добавить награду	16px/600		#1f6f6b		4.5	5.49	5.49	ok
+pixels	rewards-day	Монеты приходят только за чтение: 30 за цель д	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	rewards-day	Библиотека	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	rewards-day	Награды	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	rewards-day	Профиль	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	rewards-night	Награды	22px/700		#d6e2e0		3.0	13.72	13.72	ok
+pixels	rewards-night	390 монет	14px/700		#e2b866		4.5	8.12	8.12	ok
+pixels	rewards-night	Задание дня	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	rewards-night	Читать 10 мин · 6 из 10 мин	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	rewards-night	+30	13px/700		#e2b866		4.5	8.12	8.12	ok
+pixels	rewards-night	Задание недели	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	rewards-night	4 дня по 10 мин · 2 из 4 дней	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	rewards-night	+120	13px/700		#e2b866		4.5	8.12	8.12	ok
+pixels	rewards-night	Награды из жизни	12px/700		#93aaa7		4.5	7.42	7.42	ok
+pixels	rewards-night	3 из 5	12px/500		#93aaa7		4.5	7.42	7.42	ok
+pixels	rewards-night	Серия любимого сериала	15px/500		#d6e2e0		4.5	13.72	13.72	ok
+pixels	rewards-night	100 монет	13px/700		#e2b866		4.5	9.79	9.79	ok
+pixels	rewards-night	Обменять	14px/600		#5fb8ae		4.5	7.77	7.77	ok
+pixels	rewards-night	Кофе в любимой кофейне	15px/500		#d6e2e0		4.5	13.72	13.72	ok
+pixels	rewards-night	250 монет	13px/700		#e2b866		4.5	9.79	9.79	ok
+pixels	rewards-night	Новая книга	15px/500		#d6e2e0		4.5	13.72	13.72	ok
+pixels	rewards-night	500 монет	13px/700		#e2b866		4.5	9.79	9.79	ok
+pixels	rewards-night	Обменять	14px/600		#5e7470		4.5	3.65	3.65	exempt: disabled
+pixels	rewards-night	не хватает 110 монет	12px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	rewards-night	Добавить награду	16px/600		#5fb8ae		4.5	7.77	7.77	ok
+pixels	rewards-night	Монеты приходят только за чтение: 30 за цель д	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	rewards-night	Библиотека	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	rewards-night	Награды	12px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	rewards-night	Профиль	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-day	Профиль	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	profile-day	Ч	26px/700		#1f6f6b		3.0	4.82	4.82	ok
+pixels	profile-day	Читатель	18px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	Уровень 4	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	profile-day	Опыт	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	1 240 / 1 600 XP	13px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	Ещё 360 XP до уровня 5 · это 36 минут чтения	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	390	24px/700		#3b3226		3.0	10.4	10.4	ok
+pixels	profile-day	монет	12px/400		#6e5d43		4.5	5.25	5.25	ok
+pixels	profile-day	3	24px/700		#3b3226		3.0	10.4	10.4	ok
+pixels	profile-day	дня подряд	12px/400		#6e5d43		4.5	5.25	5.25	ok
+pixels	profile-day	30	24px/700		#3b3226		3.0	10.4	10.4	ok
+pixels	profile-day	мин за неделю	12px/400		#6e5d43		4.5	5.25	5.25	ok
+pixels	profile-day	Эта неделя	16px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	цель дня — 10 мин	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	0	12px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	Пн	12px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	13	12px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	Вт	12px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	11	12px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	Ср	12px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	6	12px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	profile-day	Чт	12px/700		#1f6f6b		4.5	5.92	5.92	ok
+pixels	profile-day	Пт	12px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	Сб	12px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	Вс	12px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	Дней с целью: 2 из 4 — ещё 2, и неделя принесё	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	profile-day	Всего прочитано 124 мин · дочитано книг: 1	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	profile-day	Библиотека	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	profile-day	Награды	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	profile-day	Профиль	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	profile-night	Профиль	22px/700		#d6e2e0		3.0	13.72	13.72	ok
+pixels	profile-night	Ч	26px/700		#5fb8ae		3.0	5.51	5.51	ok
+pixels	profile-night	Читатель	18px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	Уровень 4	14px/600		#5fb8ae		4.5	6.88	6.88	ok
+pixels	profile-night	Опыт	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	1 240 / 1 600 XP	13px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	Ещё 360 XP до уровня 5 · это 36 минут чтения	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	390	24px/700		#d6e2e0		3.0	10.52	10.52	ok
+pixels	profile-night	монет	12px/400		#93aaa7		4.5	5.68	5.68	ok
+pixels	profile-night	3	24px/700		#d6e2e0		3.0	10.52	10.52	ok
+pixels	profile-night	дня подряд	12px/400		#93aaa7		4.5	5.68	5.68	ok
+pixels	profile-night	30	24px/700		#d6e2e0		3.0	10.52	10.52	ok
+pixels	profile-night	мин за неделю	12px/400		#93aaa7		4.5	5.68	5.68	ok
+pixels	profile-night	Эта неделя	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	цель дня — 10 мин	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	0	12px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	Пн	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	13	12px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	Вт	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	11	12px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	Ср	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	6	12px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	profile-night	Чт	12px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	profile-night	Пт	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	Сб	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	Вс	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	Дней с целью: 2 из 4 — ещё 2, и неделя принесё	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	Всего прочитано 124 мин · дочитано книг: 1	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	profile-night	Библиотека	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	Награды	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	profile-night	Профиль	12px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	settings-day	Настройки	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	settings-day	Оформление	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	settings-day	Тема	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Авто: по часам	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	settings-day	Авто	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	settings-day	День	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	settings-day	Ночь	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	settings-day	Язык	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Русский	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	settings-day	English	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	settings-day	Чтение	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	settings-day	Цель дня	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Одна для всех на время теста	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	settings-day	10 мин	15px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Режим фокуса	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	«Авто» — сам через 10 с чтения	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	settings-day	Выкл	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	settings-day	Кнопкой	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	settings-day	Показывать счётчик чтения	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	«7 / 10 мин» в углу в фокусе	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	settings-day	Не гасить экран при чтении	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Вибрация при наградах	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Данные	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	settings-day	Экспорт прогресса	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Резервная копия в файл JSON	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	settings-day	Сохранить	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	settings-day	Импорт прогресса	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Из сохранённого файла	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	settings-day	Загрузить	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	settings-day	Вернуть удалённые демо-книги	15px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	settings-day	Вернуть	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	settings-day	Сбросить весь прогресс	15px/600		#b3392a		4.5	5.94	5.94	ok
+pixels	settings-day	Скопировать журнал запуска	15px/600		#1f6f6b		4.5	5.49	5.49	ok
+pixels	settings-day	Пришлите его, если приложение долго открывалос	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	settings-day	Версия сборки 20261008-1027	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	settings-night	Настройки	22px/700		#d6e2e0		3.0	13.72	13.72	ok
+pixels	settings-night	Оформление	12px/700		#93aaa7		4.5	7.42	7.42	ok
+pixels	settings-night	Тема	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Авто: по часам	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	settings-night	Авто	13px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	settings-night	День	13px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	settings-night	Ночь	13px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	settings-night	Язык	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Русский	13px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	settings-night	English	13px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	settings-night	Чтение	12px/700		#93aaa7		4.5	7.42	7.42	ok
+pixels	settings-night	Цель дня	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Одна для всех на время теста	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	settings-night	10 мин	15px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Режим фокуса	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	«Авто» — сам через 10 с чтения	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	settings-night	Выкл	13px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	settings-night	Кнопкой	13px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	settings-night	Показывать счётчик чтения	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	«7 / 10 мин» в углу в фокусе	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	settings-night	Не гасить экран при чтении	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Вибрация при наградах	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Данные	12px/700		#93aaa7		4.5	7.42	7.42	ok
+pixels	settings-night	Экспорт прогресса	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Резервная копия в файл JSON	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	settings-night	Сохранить	14px/600		#5fb8ae		4.5	6.88	6.88	ok
+pixels	settings-night	Импорт прогресса	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Из сохранённого файла	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	settings-night	Загрузить	14px/600		#5fb8ae		4.5	6.88	6.88	ok
+pixels	settings-night	Вернуть удалённые демо-книги	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	settings-night	Вернуть	14px/600		#5fb8ae		4.5	6.88	6.88	ok
+pixels	settings-night	Сбросить весь прогресс	15px/600		#ff8a80		4.5	7.07	7.07	ok
+pixels	settings-night	Скопировать журнал запуска	15px/600		#5fb8ae		4.5	7.77	7.77	ok
+pixels	settings-night	Пришлите его, если приложение долго открывалос	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	settings-night	Версия сборки 20261008-1027	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	summary-regular-day	Хамелеон	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-regular-day	Сессия завершена	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	summary-regular-day	Хорошая порция чтения	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-regular-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	7 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	6	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	Книга прочитана	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	Хамелеон · А. П. Чехов	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-regular-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	+70 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	summary-regular-day	1 310 / 1 600 до уровня 5	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-regular-day	Цель дня уже выполнена	15px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	Сегодня 25 мин · монеты за день уже начислены	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-regular-day	Неделя: 3 из 4 дней	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-regular-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	summary-regular-night	Хамелеон	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-regular-night	Сессия завершена	22px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	summary-regular-night	Хорошая порция чтения	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-regular-night	Минуты чтения	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	7 мин	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	Страницы	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	6	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	Книга прочитана	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	Хамелеон · А. П. Чехов	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-regular-night	Опыт · Уровень 4	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	+70 XP	16px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	summary-regular-night	1 310 / 1 600 до уровня 5	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-regular-night	Цель дня уже выполнена	15px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	Сегодня 25 мин · монеты за день уже начислены	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-regular-night	Неделя: 3 из 4 дней	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-regular-night	В библиотеку	16px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	summary-day-day	Мастер и Маргарита	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-day-day	Сессия завершена	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	summary-day-day	Сегодняшняя цель закрыта	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-day-day	Цель дня	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	summary-day-day	+30 монет	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	summary-day-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	12 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	14	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	+120 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	summary-day-day	1 360 / 1 600 до уровня 5	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-day-day	Цель дня выполнена	15px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	Цель 10 мин · сегодня 12 мин	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-day-day	Неделя: 2 из 4 дней	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-day-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	summary-day-night	Мастер и Маргарита	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-day-night	Сессия завершена	22px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	summary-day-night	Сегодняшняя цель закрыта	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-day-night	Цель дня	15px/600		#e2b866		4.5	8.12	8.12	ok
+pixels	summary-day-night	+30 монет	15px/600		#e2b866		4.5	8.12	8.12	ok
+pixels	summary-day-night	Минуты чтения	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	12 мин	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	Страницы	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	14	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	Опыт · Уровень 4	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	+120 XP	16px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	summary-day-night	1 360 / 1 600 до уровня 5	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-day-night	Цель дня выполнена	15px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	Цель 10 мин · сегодня 12 мин	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-day-night	Неделя: 2 из 4 дней	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-day-night	В библиотеку	16px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	summary-week-day	Мастер и Маргарита	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-week-day	Сессия завершена	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	summary-week-day	Неделя закрыта, так держать	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-week-day	Цель дня	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	summary-week-day	+30 монет	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	summary-week-day	Неделя выполнена	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	summary-week-day	+120 монет	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	summary-week-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	11 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	9	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	+110 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	summary-week-day	1 350 / 1 600 до уровня 5	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-week-day	Цель дня выполнена	15px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	Цель 10 мин · сегодня 11 мин	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-week-day	Неделя: 4 из 4 дней	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-week-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	summary-week-night	Мастер и Маргарита	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-week-night	Сессия завершена	22px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	summary-week-night	Неделя закрыта, так держать	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-week-night	Цель дня	15px/600		#e2b866		4.5	8.12	8.12	ok
+pixels	summary-week-night	+30 монет	15px/600		#e2b866		4.5	8.12	8.12	ok
+pixels	summary-week-night	Неделя выполнена	15px/600		#e2b866		4.5	8.12	8.12	ok
+pixels	summary-week-night	+120 монет	15px/600		#e2b866		4.5	8.12	8.12	ok
+pixels	summary-week-night	Минуты чтения	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	11 мин	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	Страницы	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	9	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	Опыт · Уровень 4	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	+110 XP	16px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	summary-week-night	1 350 / 1 600 до уровня 5	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-week-night	Цель дня выполнена	15px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	Цель 10 мин · сегодня 11 мин	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-week-night	Неделя: 4 из 4 дней	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-week-night	В библиотеку	16px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	summary-missed-day	Мастер и Маргарита	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-missed-day	Сессия завершена	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	summary-missed-day	Почти получилось	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-missed-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	6 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	5	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	+60 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	summary-missed-day	1 300 / 1 600 до уровня 5	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-missed-day	Цель дня: 6 из 10 мин	15px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	Ещё 4 мин сегодня — и +30&nbsp;монет	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	summary-missed-day	Неделя: 2 из 4 дней	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	summary-missed-day	Почитать ещё 4 мин	16px/600		#1f6f6b		4.5	5.49	5.49	ok
+pixels	summary-missed-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	summary-missed-night	Мастер и Маргарита	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-missed-night	Сессия завершена	22px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	summary-missed-night	Почти получилось	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-missed-night	Минуты чтения	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	6 мин	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	Страницы	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	5	16px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	Опыт · Уровень 4	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	+60 XP	16px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	summary-missed-night	1 300 / 1 600 до уровня 5	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-missed-night	Цель дня: 6 из 10 мин	15px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	Ещё 4 мин сегодня — и +30&nbsp;монет	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	summary-missed-night	Неделя: 2 из 4 дней	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	summary-missed-night	Почитать ещё 4 мин	16px/600		#5fb8ae		4.5	6.88	6.88	ok
+pixels	summary-missed-night	В библиотеку	16px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	toasts-day	Тосты · flashMsg	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	toasts-day	Снизу по центру, над нижним меню (отступ 12 px	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-day	kind:'game'	13px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	toasts-day	монеты и опыт · 3 с · в читалке игровые тосты 	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-day	+30 монет · цель дня выполнена	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	toasts-day	+120 монет · неделя выполнена	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	toasts-day	kind:'info'	13px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	toasts-day	нейтральные · 3 с · можно и в читалке	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-day	Книга добавлена в библиотеку	14px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	toasts-day	Закладка добавлена	14px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	toasts-day	kind:'error'	13px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	toasts-day	ошибки · 5 с · можно с действием	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-day	Не удалось сохранить прогресс	14px/600		#ffffff		4.5	5.94	5.94	ok
+pixels	toasts-day	Повторить	14px/700		#ffffff		4.5	5.94	5.94	ok
+pixels	toasts-day	Файл не открылся: нужен PDF, FB2, EPUB или TXT	14px/600		#ffffff		4.5	5.94	5.94	ok
+pixels	toasts-day	Так тост стоит над нижним меню:	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-day	Библиотека	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	toasts-day	Награды	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-day	Профиль	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	toasts-night	Тосты · flashMsg	22px/700		#d6e2e0		3.0	13.72	13.72	ok
+pixels	toasts-night	Снизу по центру, над нижним меню (отступ 12 px	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	toasts-night	kind:'game'	13px/700		#5fb8ae		4.5	7.77	7.77	ok
+pixels	toasts-night	монеты и опыт · 3 с · в читалке игровые тосты 	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	toasts-night	+30 монет · цель дня выполнена	14px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	toasts-night	+120 монет · неделя выполнена	14px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	toasts-night	kind:'info'	13px/700		#5fb8ae		4.5	7.77	7.77	ok
+pixels	toasts-night	нейтральные · 3 с · можно и в читалке	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	toasts-night	Книга добавлена в библиотеку	14px/600		#d6e2e0		4.5	9.57	9.57	ok
+pixels	toasts-night	Закладка добавлена	14px/600		#d6e2e0		4.5	9.57	9.57	ok
+pixels	toasts-night	kind:'error'	13px/700		#5fb8ae		4.5	7.77	7.77	ok
+pixels	toasts-night	ошибки · 5 с · можно с действием	13px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	toasts-night	Не удалось сохранить прогресс	14px/600		#2a0d0a		4.5	7.93	7.93	ok
+pixels	toasts-night	Повторить	14px/700		#2a0d0a		4.5	7.93	7.93	ok
+pixels	toasts-night	Файл не открылся: нужен PDF, FB2, EPUB или TXT	14px/600		#2a0d0a		4.5	7.93	7.93	ok
+pixels	toasts-night	Так тост стоит над нижним меню:	12px/400		#93aaa7		4.5	7.42	7.42	ok
+pixels	toasts-night	Библиотека	12px/700		#5fb8ae		4.5	6.88	6.88	ok
+pixels	toasts-night	Награды	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	toasts-night	Профиль	12px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	adaptive/library-360x780-day	Библиотека	21.1px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/library-360x780-day	390 монет	14px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/library-360x780-day	Цель 10 мин	16.1px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-360x780-day	Сегодня: 6 мин · ещё 4 до +30 монет	14px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-360x780-day	3 дня подряд	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-360x780-day	Уровень 4	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-360x780-day	Поиск по названию и автору	15px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-360x780-day	Все	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-360x780-day	Читаю	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-360x780-day	Хочу	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-360x780-day	Прочитано	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-360x780-day	ПРОДОЛЖИТЬ	12px/600		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-360x780-day	Мастер и Маргарита	15px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-360x780-day	Стр. 98 из 185 · 53%	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-360x780-day	Читать	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-360x780-day	FB2	10px/700		#ffffff		4.5	17.92	17.7	ok
+pixels	adaptive/library-360x780-day	Мастер и Маргарита	13px/700		#ffffff		4.5	14.67	13.88	ok
+pixels	adaptive/library-360x780-day	М. Булгаков	10px/400		#ffffff		4.5	16.27	15.58	ok
+pixels	adaptive/library-360x780-day	М. Булгаков	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-360x780-day	Преступление и наказание	13px/700		#ffffff		4.5	13.3	12.26	ok
+pixels	adaptive/library-360x780-day	Ф. Достоевский	10px/400		#ffffff		4.5	15.99	15.09	ok
+pixels	adaptive/library-360x780-day	Преступление и наказание	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-360x780-day	Ф. Достоевский	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-360x780-day	TXT	10px/700		#ffffff		4.5	13.23	13.23	ok
+pixels	adaptive/library-360x780-day	Х	52px/700		#ffffff		3.0	5.34	5.34	ok
+pixels	adaptive/library-360x780-day	Хамелеон	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-360x780-day	А. П. Чехов	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-360x780-day	PDF	10px/700		#ffffff		4.5	12.99	12.99	ok
+pixels	adaptive/library-360x780-day	EPUB	10px/700		#ffffff		4.5	17.9	17.73	ok
+pixels	adaptive/library-360x780-day	Библиотека	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/library-360x780-day	Награды	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-360x780-day	Профиль	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/reader-panels-360x780-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	8.85	8.85	ok
+pixels	adaptive/reader-panels-360x780-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	adaptive/reader-panels-360x780-day	Мастер и Маргарита	16.1px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Михаил Булгаков · FB2	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/reader-panels-360x780-day	98 из 185	14px/600		#ffffff		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Оглавление	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Ночь	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Aa	19px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Шрифт	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Фокус	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-360x780-day	Весь экран	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/summary-day-360x780-day	Мастер и Маргарита	12.1px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-360x780-day	Сессия завершена	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	Сегодняшняя цель закрыта	12.1px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-360x780-day	Цель дня	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/summary-day-360x780-day	+30 монет	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/summary-day-360x780-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	12 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	14	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	+120 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/summary-day-360x780-day	1 360 / 1 600 до уровня 5	12.1px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-360x780-day	Цель дня выполнена	15px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	Цель 10 мин · сегодня 12 мин	12.1px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-360x780-day	Неделя: 2 из 4 дней	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-360x780-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	Настройки	21.1px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/settings-360x780-day	Оформление	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-360x780-day	Тема	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Авто: по часам	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-360x780-day	Авто	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-360x780-day	День	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	Ночь	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-360x780-day	Язык	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Русский	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	English	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-360x780-day	Чтение	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-360x780-day	Цель дня	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Одна для всех на время теста	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-360x780-day	10 мин	15px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Режим фокуса	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	«Авто» — сам через 10 с чтения	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-360x780-day	Выкл	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-360x780-day	Кнопкой	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	Показывать счётчик чтения	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	«7 / 10 мин» в углу в фокусе	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-360x780-day	Не гасить экран при чтении	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Вибрация при наградах	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Данные	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-360x780-day	Экспорт прогресса	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Резервная копия в файл JSON	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-360x780-day	Сохранить	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	Импорт прогресса	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Из сохранённого файла	12.1px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-360x780-day	Загрузить	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	Вернуть удалённые демо-книги	14.1px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-360x780-day	Вернуть	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-360x780-day	Сбросить весь прогресс	14.1px/600		#b3392a		4.5	5.94	5.94	ok
+pixels	adaptive/settings-360x780-day	Скопировать журнал запуска	14.1px/600		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/library-412x915-day	Библиотека	22.66px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/library-412x915-day	390 монет	14px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/library-412x915-day	Цель 10 мин	17.66px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-412x915-day	Сегодня: 6 мин · ещё 4 до +30 монет	14px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-412x915-day	3 дня подряд	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-412x915-day	Уровень 4	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-412x915-day	Поиск по названию и автору	15px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-412x915-day	Все	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-412x915-day	Читаю	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-412x915-day	Хочу	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-412x915-day	Прочитано	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-412x915-day	ПРОДОЛЖИТЬ	12px/600		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-412x915-day	Мастер и Маргарита	15px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-412x915-day	Стр. 98 из 185 · 53%	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-412x915-day	Читать	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-412x915-day	FB2	10px/700		#ffffff		4.5	17.92	17.7	ok
+pixels	adaptive/library-412x915-day	Мастер и Маргарита	13px/700		#ffffff		4.5	14.34	13.42	ok
+pixels	adaptive/library-412x915-day	М. Булгаков	10px/400		#ffffff		4.5	16.21	15.39	ok
+pixels	adaptive/library-412x915-day	М. Булгаков	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	Преступление и наказание	13px/700		#ffffff		4.5	11.57	5.34	ok
+pixels	adaptive/library-412x915-day	Ф. Достоевский	10px/400		#ffffff		4.5	14.39	13.81	ok
+pixels	adaptive/library-412x915-day	Преступление и наказание	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-412x915-day	Ф. Достоевский	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	TXT	10px/700		#ffffff		4.5	13.23	13.23	ok
+pixels	adaptive/library-412x915-day	Х	52px/700		#ffffff		3.0	5.34	5.34	ok
+pixels	adaptive/library-412x915-day	Хамелеон	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-412x915-day	А. П. Чехов	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	PDF	10px/700		#ffffff		4.5	12.99	12.99	ok
+pixels	adaptive/library-412x915-day	А	52px/700		#ffffff		3.0	5.06	5.06	ok
+pixels	adaptive/library-412x915-day	Атомные привычки	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-412x915-day	Джеймс Клир	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	EPUB	10px/700		#ffffff		4.5	17.9	17.71	ok
+pixels	adaptive/library-412x915-day	Война и мир	13px/700		#ffffff		4.5	14.36	13.56	ok
+pixels	adaptive/library-412x915-day	Л. Толстой	10px/400		#ffffff		4.5	16.07	15.42	ok
+pixels	adaptive/library-412x915-day	Война и мир	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-412x915-day	Л. Толстой	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	S	52px/700		#ffffff		3.0	7.44	7.44	ok
+pixels	adaptive/library-412x915-day	Sapiens	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-412x915-day	Ю. Н. Харари	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	Библиотека	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/library-412x915-day	Награды	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-412x915-day	Профиль	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/reader-panels-412x915-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	8.85	8.85	ok
+pixels	adaptive/reader-panels-412x915-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	adaptive/reader-panels-412x915-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	adaptive/reader-panels-412x915-day	Мастер и Маргарита	17.66px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Михаил Булгаков · FB2	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/reader-panels-412x915-day	98 из 185	14px/600		#ffffff		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Оглавление	11.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Ночь	11.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Aa	19px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Шрифт	11.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Фокус	11.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-412x915-day	Весь экран	11.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/summary-day-412x915-day	Мастер и Маргарита	13.66px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-412x915-day	Сессия завершена	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	Сегодняшняя цель закрыта	13.66px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-412x915-day	Цель дня	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/summary-day-412x915-day	+30 монет	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/summary-day-412x915-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	12 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	14	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	+120 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/summary-day-412x915-day	1 360 / 1 600 до уровня 5	13.66px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-412x915-day	Цель дня выполнена	15px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	Цель 10 мин · сегодня 12 мин	13.66px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-412x915-day	Неделя: 2 из 4 дней	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-412x915-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	Настройки	22.66px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/settings-412x915-day	Оформление	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-412x915-day	Тема	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Авто: по часам	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-412x915-day	Авто	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-412x915-day	День	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	Ночь	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-412x915-day	Язык	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Русский	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	English	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-412x915-day	Чтение	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-412x915-day	Цель дня	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Одна для всех на время теста	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-412x915-day	10 мин	15px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Режим фокуса	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	«Авто» — сам через 10 с чтения	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-412x915-day	Выкл	13px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/settings-412x915-day	Кнопкой	13px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	Показывать счётчик чтения	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	«7 / 10 мин» в углу в фокусе	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-412x915-day	Не гасить экран при чтении	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Вибрация при наградах	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Данные	12px/700		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-412x915-day	Экспорт прогресса	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Резервная копия в файл JSON	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-412x915-day	Сохранить	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	Импорт прогресса	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Из сохранённого файла	13.66px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/settings-412x915-day	Загрузить	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	Вернуть удалённые демо-книги	15.66px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/settings-412x915-day	Вернуть	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	adaptive/settings-412x915-day	Сбросить весь прогресс	15.66px/600		#b3392a		4.5	5.94	5.94	ok
+pixels	adaptive/settings-412x915-day	Скопировать журнал запуска	15.66px/600		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/settings-412x915-day	Пришлите его, если приложение долго открывалос	13.66px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/settings-412x915-day	Версия сборки 20261008-1027	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/reader-panels-844x390-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	8.85	8.85	ok
+pixels	adaptive/reader-panels-844x390-day	Мастер и Маргарита	17px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Михаил Булгаков · FB2	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/reader-panels-844x390-day	98 из 185	14px/600		#ffffff		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Оглавление	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Ночь	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Aa	19px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Шрифт	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Фокус	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-day	Весь экран	11px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/reader-panels-844x390-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.14	10.14	ok
+pixels	adaptive/reader-panels-844x390-night	Мастер и Маргарита	17px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/reader-panels-844x390-night	Михаил Булгаков · FB2	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	adaptive/reader-panels-844x390-night	98 из 185	14px/600		#0c1719		4.5	13.72	13.72	ok
+pixels	adaptive/reader-panels-844x390-night	Оглавление	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/reader-panels-844x390-night	День	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/reader-panels-844x390-night	Aa	19px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/reader-panels-844x390-night	Шрифт	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/reader-panels-844x390-night	Фокус	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/reader-panels-844x390-night	Весь экран	11px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	adaptive/summary-day-844x390-day	Мастер и Маргарита	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-844x390-day	Сессия завершена	20px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/summary-day-844x390-day	Сегодняшняя цель закрыта	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-844x390-day	Цель дня	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/summary-day-844x390-day	+30 монет	15px/600		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/summary-day-844x390-day	Минуты чтения	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-844x390-day	12 мин	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-844x390-day	Страницы	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-844x390-day	14	16px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-844x390-day	Опыт · Уровень 4	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/summary-day-844x390-day	+120 XP	16px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/summary-day-844x390-day	1 360 / 1 600 до уровня 5	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-844x390-day	Цель 10 мин · сегодня 12 мин	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/summary-day-844x390-day	В библиотеку	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-844x390-day	Библиотека	22px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	adaptive/library-844x390-day	390 монет	14px/700		#7a4f10		4.5	5.74	5.74	ok
+pixels	adaptive/library-844x390-day	Цель 10 мин	17px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-844x390-day	Сегодня: 6 мин · ещё 4 до +30 монет	14px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-844x390-day	3 дня подряд	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-844x390-day	Уровень 4	14px/400		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-844x390-day	Поиск по названию и автору	15px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-844x390-day	Все	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-844x390-day	Читаю	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-844x390-day	Хочу	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-844x390-day	Прочитано	14px/500		#3b3226		4.5	10.4	10.4	ok
+pixels	adaptive/library-844x390-day	ПРОДОЛЖИТЬ	12px/600		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-844x390-day	Мастер и Маргарита	15px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	adaptive/library-844x390-day	Стр. 98 из 185 · 53%	13px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	adaptive/library-844x390-day	Читать	14px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	adaptive/library-844x390-day	FB2	10px/700		#ffffff		4.5	17.86	17.7	ok
+pixels	adaptive/library-844x390-day	Мастер и Маргарита	13px/700		#ffffff		4.5	15.14	14.56	ok
+pixels	adaptive/library-844x390-day	М. Булгаков	10px/400		#ffffff		4.5	16.28	15.72	ok
+pixels	adaptive/library-844x390-day	М. Булгаков	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-844x390-day	Преступление и наказание	13px/700		#ffffff		4.5	14.88	13.86	ok
+pixels	adaptive/library-844x390-day	Ф. Достоевский	10px/400		#ffffff		4.5	15.99	15.26	ok
+pixels	adaptive/library-844x390-day	Преступление и наказание	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-844x390-day	Ф. Достоевский	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-844x390-day	TXT	10px/700		#ffffff		4.5	13.23	13.23	ok
+pixels	adaptive/library-844x390-day	Х	52px/700		#ffffff		3.0	5.34	5.34	ok
+pixels	adaptive/library-844x390-day	Хамелеон	13px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	adaptive/library-844x390-day	А. П. Чехов	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-844x390-day	Библиотека	12px/700		#1f6f6b		4.5	5.49	5.49	ok
+pixels	adaptive/library-844x390-day	Награды	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	adaptive/library-844x390-day	Профиль	12px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	Вид страницы	20px/700		#3b3226		3.0	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	Размер текста	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	19	13px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	A	15px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	Шрифт	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	Georgia	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	autoscroll/autoscroll-sheet-day	Times	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	autoscroll/autoscroll-sheet-day	Без засечек	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	autoscroll/autoscroll-sheet-day	Интервал и поля	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	Плотно	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	autoscroll/autoscroll-sheet-day	Обычно	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	autoscroll/autoscroll-sheet-day	Свободно	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	autoscroll/autoscroll-sheet-day	Узкие поля	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	autoscroll/autoscroll-sheet-day	Средние	14px/600		#1f6f6b		4.5	5.92	5.92	ok
+pixels	autoscroll/autoscroll-sheet-day	Широкие	14px/400		#3b3226		4.5	10.4	10.4	ok
+pixels	autoscroll/autoscroll-sheet-day	Выравнивание по ширине	15px/400		#3b3226		4.5	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	С переносами слов	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	Затемнение PDF ночью	13px/500		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	35 %	13px/700		#3b3226		4.5	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	0 %	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	работает в ночной теме	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	50 %	12px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	Автопрокрутка	15px/600		#3b3226		4.5	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	Скорость 6	15px/900		#3b3226		4.5	11.65	11.65	ok
+pixels	autoscroll/autoscroll-sheet-day	Текст поедет вверх сам. Тап в центр — пауза, с	13px/400		#6e5d43		4.5	5.88	5.88	ok
+pixels	autoscroll/autoscroll-sheet-day	Запустить	16px/600		#ffffff		4.5	5.92	5.92	ok
+pixels	autoscroll/autoscroll-sheet-night	Вид страницы	20px/700		#d6e2e0		3.0	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	Размер текста	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	19	13px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	A	15px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	Шрифт	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	Georgia	14px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	autoscroll/autoscroll-sheet-night	Times	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	autoscroll/autoscroll-sheet-night	Без засечек	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	autoscroll/autoscroll-sheet-night	Интервал и поля	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	Плотно	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	autoscroll/autoscroll-sheet-night	Обычно	14px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	autoscroll/autoscroll-sheet-night	Свободно	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	autoscroll/autoscroll-sheet-night	Узкие поля	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	autoscroll/autoscroll-sheet-night	Средние	14px/600		#5fb8ae		4.5	5.51	5.51	ok
+pixels	autoscroll/autoscroll-sheet-night	Широкие	14px/400		#d6e2e0		4.5	10.52	10.52	ok
+pixels	autoscroll/autoscroll-sheet-night	Выравнивание по ширине	15px/400		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	С переносами слов	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	Затемнение PDF ночью	13px/500		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	35 %	13px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	0 %	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	сейчас применяется к PDF	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	50 %	12px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	Автопрокрутка	15px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	Скорость 6	15px/900		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-sheet-night	Текст поедет вверх сам. Тап в центр — пауза, с	13px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-sheet-night	Запустить	16px/600		#0c1719		4.5	7.77	7.77	ok
+pixels	autoscroll/autoscroll-running-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-day	Глава 2. Понтий Пилат	22px/700		#5b4636		3.0	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-day	7 / 10 мин	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-running-day	6	18px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	autoscroll/autoscroll-running-day	скорость	11px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	autoscroll/autoscroll-running-day	Блокировать	14px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	autoscroll/autoscroll-running-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-night	Глава 2. Понтий Пилат	22px/700		#c2d0cd		3.0	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-night	7 / 10 мин	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-running-night	6	18px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-running-night	скорость	11px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-running-night	Блокировать	14px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-clean-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-clean-day	Глава 2. Понтий Пилат	22px/700		#5b4636		3.0	7.51	7.51	ok
+pixels	autoscroll/autoscroll-clean-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-clean-day	Автопрокрутка · 6	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-clean-day	7 / 10 мин	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-clean-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-clean-night	Глава 2. Понтий Пилат	22px/700		#c2d0cd		3.0	10.94	10.94	ok
+pixels	autoscroll/autoscroll-clean-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-clean-night	Автопрокрутка · 6	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-clean-night	7 / 10 мин	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-locked-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-locked-day	Глава 2. Понтий Пилат	22px/700		#5b4636		3.0	7.51	7.51	ok
+pixels	autoscroll/autoscroll-locked-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-locked-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-locked-day	Касания заблокированы	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-locked-day	7 / 10 мин	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-locked-day	Удерживайте, чтобы разблокировать	13px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	autoscroll/autoscroll-locked-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-locked-night	Глава 2. Понтий Пилат	22px/700		#c2d0cd		3.0	10.94	10.94	ok
+pixels	autoscroll/autoscroll-locked-night	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-locked-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-locked-night	Касания заблокированы	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-locked-night	7 / 10 мин	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-locked-night	Удерживайте, чтобы разблокировать	13px/600		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-pdf-day	Автопрокрутка · 6	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-pdf-day	7 / 10 мин	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-pdf-night	Автопрокрутка · 6	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-pdf-night	7 / 10 мин	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-running-844x390-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-844x390-day	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#5b4636		4.5	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-844x390-day	Глава 2. Понтий Пилат	22px/700		#5b4636		3.0	7.51	7.51	ok
+pixels	autoscroll/autoscroll-running-844x390-day	7 / 10 мин	12px/500		#725f4a		4.5	5.17	5.17	ok
+pixels	autoscroll/autoscroll-running-844x390-day	6	18px/700		#3b3226		4.5	12.57	12.57	ok
+pixels	autoscroll/autoscroll-running-844x390-day	скорость	11px/400		#6e5d43		4.5	6.34	6.34	ok
+pixels	autoscroll/autoscroll-running-844x390-day	Блокировать	14px/600		#3b3226		4.5	12.57	12.57	ok
+pixels	autoscroll/autoscroll-running-844x390-night	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-844x390-night	Вни­зу, во дво­ре, двор­ник уже мёл листья, и 	19px/400		#c2d0cd		4.5	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-844x390-night	Глава 2. Понтий Пилат	22px/700		#c2d0cd		3.0	10.94	10.94	ok
+pixels	autoscroll/autoscroll-running-844x390-night	7 / 10 мин	12px/500		#7f938f		4.5	5.37	5.37	ok
+pixels	autoscroll/autoscroll-running-844x390-night	6	18px/700		#d6e2e0		4.5	12.15	12.15	ok
+pixels	autoscroll/autoscroll-running-844x390-night	скорость	11px/400		#93aaa7		4.5	6.57	6.57	ok
+pixels	autoscroll/autoscroll-running-844x390-night	Блокировать	14px/600		#d6e2e0		4.5	12.15	12.15	ok

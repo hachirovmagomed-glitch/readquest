@@ -1,0 +1,63 @@
+/* ReadQuest skin «Журнал». Apply with <html data-theme="zhurnal-day|zhurnal-night"> */
+[data-theme="zhurnal-day"]{
+  --rq-bg:#f5f3ee;
+  --rq-surface:#fbfaf7;
+  --rq-text:#141414;
+  --rq-text-muted:#57544e;
+  --rq-accent:#c4330c;
+  --rq-on-accent:#ffffff;
+  --rq-border:#141414;
+  --rq-rule:#cfcbc2;
+  --rq-tab:#57544e;
+  --rq-tab-active:#141414;
+  --rq-page-bg:#f8f6f1;
+  --rq-page-text:#1b1a18;
+  --rq-page-number:#66625b;
+  --rq-daybar:#c4330c;
+  --rq-daybar-track:#dedad1;
+  --rq-scrim:rgba(20,20,20,.5);
+  --rq-cover-1:#2f4a3a;
+  --rq-cover-1-ink:#f5f3ee;
+  --rq-cover-2:#a8402a;
+  --rq-cover-2-ink:#ffffff;
+  --rq-cover-3:#22385c;
+  --rq-cover-3-ink:#f5f3ee;
+  --rq-cover-4:#d8b24a;
+  --rq-cover-4-ink:#141414;
+  --rq-cover-5:#e6ddcc;
+  --rq-cover-5-ink:#141414;
+  --rq-cover-6:#5b4a6e;
+  --rq-cover-6-ink:#f5f3ee;
+  color-scheme:light
+}
+[data-theme="zhurnal-night"]{
+  --rq-bg:#141518;
+  --rq-surface:#1c1d21;
+  --rq-text:#efece4;
+  --rq-text-muted:#aaa7a0;
+  --rq-accent:#ff6b3d;
+  --rq-on-accent:#141518;
+  --rq-border:#efece4;
+  --rq-rule:#3a3b40;
+  --rq-tab:#aaa7a0;
+  --rq-tab-active:#efece4;
+  --rq-page-bg:#17181b;
+  --rq-page-text:#e8e5dd;
+  --rq-page-number:#a3a09a;
+  --rq-daybar:#ff6b3d;
+  --rq-daybar-track:#34353b;
+  --rq-scrim:rgba(0,0,0,.62);
+  --rq-cover-1:#2f4a3a;
+  --rq-cover-1-ink:#f5f3ee;
+  --rq-cover-2:#a8402a;
+  --rq-cover-2-ink:#ffffff;
+  --rq-cover-3:#22385c;
+  --rq-cover-3-ink:#f5f3ee;
+  --rq-cover-4:#d8b24a;
+  --rq-cover-4-ink:#141414;
+  --rq-cover-5:#e6ddcc;
+  --rq-cover-5-ink:#141414;
+  --rq-cover-6:#5b4a6e;
+  --rq-cover-6-ink:#f5f3ee;
+  color-scheme:dark
+}

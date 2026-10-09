@@ -1,0 +1,101 @@
+theme	screen	element	fg	bg	ratio	need	result
+day	reader	body text PT Serif 17px	page-text #1b1a18	page-bg #f8f6f1	16.10	4.5	OK
+day	reader	page number 11px «34 / 210»	page-number #66625b	page-bg #f8f6f1	5.61	4.5	OK
+day	reader	top bar title 13px caps bold	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	reader	top bar icons / Aa	text #141414	bg #f5f3ee	16.61	3	OK
+day	reader	day bar 3px accent vs track	daybar #c4330c	daybar-track #dedad1	3.93	3	OK
+day	reader	day bar 3px accent vs page	daybar #c4330c	page-bg #f8f6f1	5.08	3	OK
+day	all	masthead heading Golos 900 40px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	all	small caps meta 11.5px muted	text-muted #57544e	bg #f5f3ee	6.80	4.5	OK
+day	all	3px masthead rule / section rules (ink)	border #141414	bg #f5f3ee	16.61	3	OK
+day	nav	tab label 15px inactive	tab #57544e	bg #f5f3ee	6.80	4.5	OK
+day	nav	tab label 15px active (bold + 4px bar)	tab-active #141414	bg #f5f3ee	16.61	4.5	OK
+day	nav	active bar accent 4px	accent #c4330c	bg #f5f3ee	4.95	3	OK
+day	library	filter inactive 15px	text-muted #57544e	bg #f5f3ee	6.80	4.5	OK
+day	library	filter active 15px bold + 3px bar	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	library	№ numbers Playfair 20px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	library	format caps 11.5px muted	text-muted #57544e	bg #f5f3ee	6.80	4.5	OK
+day	library	progress accent bar vs paper	accent #c4330c	bg #f5f3ee	4.95	3	OK
+day	library	progress % 12.5px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	library	search icon	text #141414	bg #f5f3ee	16.61	3	OK
+day	summary	huge «18» accent Playfair 168px	accent #c4330c	bg #f5f3ee	4.95	3	OK
+day	summary	«18» accent also checked as normal text	accent #c4330c	bg #f5f3ee	4.95	4.5	OK
+day	summary	headline 34px / units 30px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	summary	deck 15px muted	text-muted #57544e	bg #f5f3ee	6.80	4.5	OK
+day	summary	«✓ +30 🪙 ежедневка выполнена» 15.5px bold	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	summary	week squares filled accent	accent #c4330c	bg #f5f3ee	4.95	3	OK
+day	summary	week squares empty outline (ink)	border #141414	bg #f5f3ee	16.61	3	OK
+day	summary	button «В библиотеку» 16px caps bold	on-accent #ffffff	accent #c4330c	5.49	4.5	OK
+day	profile	section numbers Playfair 22px muted	text-muted #57544e	bg #f5f3ee	6.80	4.5	OK
+day	profile	name 26px / rows 16px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	profile	«✓ выполнено сегодня» 14px bold	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	profile	stat numbers Playfair 34px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	profile	muted 13–14px	text-muted #57544e	bg #f5f3ee	6.80	4.5	OK
+day	profile	arrow icons	text #141414	bg #f5f3ee	16.61	3	OK
+day	profile	«Настройки» caps 11.5px	text #141414	bg #f5f3ee	16.61	4.5	OK
+day	sheet	title 28px on sheet	text #141414	surface #fbfaf7	17.65	4.5	OK
+day	sheet	caps labels muted 11.5px	text-muted #57544e	surface #fbfaf7	7.23	4.5	OK
+day	sheet	reward name 16px / balance 15px	text #141414	surface #fbfaf7	17.65	4.5	OK
+day	sheet	«получено: N» 13px muted	text-muted #57544e	surface #fbfaf7	7.23	4.5	OK
+day	sheet	buy «100 монет» 14.5px bold	on-accent #ffffff	accent #c4330c	5.49	4.5	OK
+day	sheet	buy disabled «500 монет» outline	text-muted #57544e	surface #fbfaf7	7.23	4.5	OK
+day	sheet	tier inactive 14.5px	text-muted #57544e	surface #fbfaf7	7.23	4.5	OK
+day	sheet	tier active 14.5px bold + underline	text #141414	surface #fbfaf7	17.65	4.5	OK
+day	sheet	close icon / grabber	text-muted #57544e	surface #fbfaf7	7.23	3	OK
+day	sheet	3px sheet top rule	border #141414	surface #fbfaf7	17.65	3	OK
+day	library	cover-1: title Golos 900 23px + author 12px	cover-1-ink #f5f3ee	cover-1 #2f4a3a	8.76	4.5	OK
+day	library	cover-2: title Golos 900 23px + author 12px	cover-2-ink #ffffff	cover-2 #a8402a	6.12	4.5	OK
+day	library	cover-3: title Golos 900 23px + author 12px	cover-3-ink #f5f3ee	cover-3 #22385c	10.59	4.5	OK
+day	library	cover-4: title Golos 900 23px + author 12px	cover-4-ink #141414	cover-4 #d8b24a	9.11	4.5	OK
+day	library	cover-5: title Golos 900 23px + author 12px	cover-5-ink #141414	cover-5 #e6ddcc	13.67	4.5	OK
+day	library	cover-6: title Golos 900 23px + author 12px	cover-6-ink #f5f3ee	cover-6 #5b4a6e	7.15	4.5	OK
+night	reader	body text PT Serif 17px	page-text #e8e5dd	page-bg #17181b	14.10	4.5	OK
+night	reader	page number 11px «34 / 210»	page-number #a3a09a	page-bg #17181b	6.81	4.5	OK
+night	reader	top bar title 13px caps bold	text #efece4	bg #141518	15.47	4.5	OK
+night	reader	top bar icons / Aa	text #efece4	bg #141518	15.47	3	OK
+night	reader	day bar 3px accent vs track	daybar #ff6b3d	daybar-track #34353b	4.32	3	OK
+night	reader	day bar 3px accent vs page	daybar #ff6b3d	page-bg #17181b	6.27	3	OK
+night	all	masthead heading Golos 900 40px	text #efece4	bg #141518	15.47	4.5	OK
+night	all	small caps meta 11.5px muted	text-muted #aaa7a0	bg #141518	7.60	4.5	OK
+night	all	3px masthead rule / section rules (ink)	border #efece4	bg #141518	15.47	3	OK
+night	nav	tab label 15px inactive	tab #aaa7a0	bg #141518	7.60	4.5	OK
+night	nav	tab label 15px active (bold + 4px bar)	tab-active #efece4	bg #141518	15.47	4.5	OK
+night	nav	active bar accent 4px	accent #ff6b3d	bg #141518	6.45	3	OK
+night	library	filter inactive 15px	text-muted #aaa7a0	bg #141518	7.60	4.5	OK
+night	library	filter active 15px bold + 3px bar	text #efece4	bg #141518	15.47	4.5	OK
+night	library	№ numbers Playfair 20px	text #efece4	bg #141518	15.47	4.5	OK
+night	library	format caps 11.5px muted	text-muted #aaa7a0	bg #141518	7.60	4.5	OK
+night	library	progress accent bar vs paper	accent #ff6b3d	bg #141518	6.45	3	OK
+night	library	progress % 12.5px	text #efece4	bg #141518	15.47	4.5	OK
+night	library	search icon	text #efece4	bg #141518	15.47	3	OK
+night	summary	huge «18» accent Playfair 168px	accent #ff6b3d	bg #141518	6.45	3	OK
+night	summary	«18» accent also checked as normal text	accent #ff6b3d	bg #141518	6.45	4.5	OK
+night	summary	headline 34px / units 30px	text #efece4	bg #141518	15.47	4.5	OK
+night	summary	deck 15px muted	text-muted #aaa7a0	bg #141518	7.60	4.5	OK
+night	summary	«✓ +30 🪙 ежедневка выполнена» 15.5px bold	text #efece4	bg #141518	15.47	4.5	OK
+night	summary	week squares filled accent	accent #ff6b3d	bg #141518	6.45	3	OK
+night	summary	week squares empty outline (ink)	border #efece4	bg #141518	15.47	3	OK
+night	summary	button «В библиотеку» 16px caps bold	on-accent #141518	accent #ff6b3d	6.45	4.5	OK
+night	profile	section numbers Playfair 22px muted	text-muted #aaa7a0	bg #141518	7.60	4.5	OK
+night	profile	name 26px / rows 16px	text #efece4	bg #141518	15.47	4.5	OK
+night	profile	«✓ выполнено сегодня» 14px bold	text #efece4	bg #141518	15.47	4.5	OK
+night	profile	stat numbers Playfair 34px	text #efece4	bg #141518	15.47	4.5	OK
+night	profile	muted 13–14px	text-muted #aaa7a0	bg #141518	7.60	4.5	OK
+night	profile	arrow icons	text #efece4	bg #141518	15.47	3	OK
+night	profile	«Настройки» caps 11.5px	text #efece4	bg #141518	15.47	4.5	OK
+night	sheet	title 28px on sheet	text #efece4	surface #1c1d21	14.26	4.5	OK
+night	sheet	caps labels muted 11.5px	text-muted #aaa7a0	surface #1c1d21	7.01	4.5	OK
+night	sheet	reward name 16px / balance 15px	text #efece4	surface #1c1d21	14.26	4.5	OK
+night	sheet	«получено: N» 13px muted	text-muted #aaa7a0	surface #1c1d21	7.01	4.5	OK
+night	sheet	buy «100 монет» 14.5px bold	on-accent #141518	accent #ff6b3d	6.45	4.5	OK
+night	sheet	buy disabled «500 монет» outline	text-muted #aaa7a0	surface #1c1d21	7.01	4.5	OK
+night	sheet	tier inactive 14.5px	text-muted #aaa7a0	surface #1c1d21	7.01	4.5	OK
+night	sheet	tier active 14.5px bold + underline	text #efece4	surface #1c1d21	14.26	4.5	OK
+night	sheet	close icon / grabber	text-muted #aaa7a0	surface #1c1d21	7.01	3	OK
+night	sheet	3px sheet top rule	border #efece4	surface #1c1d21	14.26	3	OK
+night	library	cover-1: title Golos 900 23px + author 12px	cover-1-ink #f5f3ee	cover-1 #2f4a3a	8.76	4.5	OK
+night	library	cover-2: title Golos 900 23px + author 12px	cover-2-ink #ffffff	cover-2 #a8402a	6.12	4.5	OK
+night	library	cover-3: title Golos 900 23px + author 12px	cover-3-ink #f5f3ee	cover-3 #22385c	10.59	4.5	OK
+night	library	cover-4: title Golos 900 23px + author 12px	cover-4-ink #141414	cover-4 #d8b24a	9.11	4.5	OK
+night	library	cover-5: title Golos 900 23px + author 12px	cover-5-ink #141414	cover-5 #e6ddcc	13.67	4.5	OK
+night	library	cover-6: title Golos 900 23px + author 12px	cover-6-ink #f5f3ee	cover-6 #5b4a6e	7.15	4.5	OK

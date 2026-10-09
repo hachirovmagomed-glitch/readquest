@@ -1,0 +1,127 @@
+theme	screen	element	fg	bg	ratio	need	result
+day	reader	body text PT Serif 17px	page-text #26231e	page-bg #fcf8ee	14.76	4.5	OK
+day	reader	page number 11px «34 / 210»	page-number #6b6457	page-bg #fcf8ee	5.52	4.5	OK
+day	reader	top bar title 17px bold (chrome, no lines)	text #2b2925	bg #f6eedb	12.56	4.5	OK
+day	reader	top bar icons	text #2b2925	bg #f6eedb	12.56	3	OK
+day	reader	day-goal bar 3px vs track	daybar #a32f27	daybar-track #e6dcc6	5.15	3	OK
+day	reader	day-goal bar 3px vs page	daybar #a32f27	page-bg #fcf8ee	6.62	3	OK
+day	all	Neucha heading 32–42px + grain, on paper	grain:text #5e5a52	bg #f6eedb	5.94	4.5	OK
+day	library	active chip «Все» Neucha 20px accent (no fill), on paper	accent #a32f27	bg #f6eedb	6.07	4.5	OK
+day	library	scribble loop / pencil progress hatch, on paper	accent #a32f27	bg #f6eedb	6.07	3	OK
+day	library	book title 13px bold, on paper	text #2b2925	bg #f6eedb	12.56	4.5	OK
+day	library	author / progress 12px muted, on paper	text-muted #5b5548	bg #f6eedb	6.40	4.5	OK
+day	library/profile	search, gear icons, on paper	text #2b2925	bg #f6eedb	12.56	3	OK
+day	all	margin doodles graphite (decor), on paper	border #3b3833	bg #f6eedb	10.10	3	OK
+day	all	margin doodles accent (decor), on paper	accent #a32f27	bg #f6eedb	6.07	3	OK
+day	summary	«Хамелеон · стр. 21–34» 15px muted, on paper	text-muted #5b5548	bg #f6eedb	6.40	4.5	OK
+day	summary	«Неделя: 2 / 4 дня» 15px, on paper	text #2b2925	bg #f6eedb	12.56	4.5	OK
+day	summary	week circles outline, on paper	border #3b3833	bg #f6eedb	10.10	3	OK
+day	sheet	close icon, on paper	text #2b2925	bg #f6eedb	12.56	3	OK
+day	sheet	grabber, on paper	text-muted #5b5548	bg #f6eedb	6.40	3	OK
+day	sheet	hint 13.5px muted, on paper	text-muted #5b5548	bg #f6eedb	6.40	4.5	OK
+day	all	Neucha heading 32–42px + grain, on rule line	grain:text #57544b	rule #dcd3bd	5.08	4.5	OK
+day	library	active chip «Все» Neucha 20px accent (no fill), on rule line	accent #a32f27	rule #dcd3bd	4.71	4.5	OK
+day	library	scribble loop / pencil progress hatch, on rule line	accent #a32f27	rule #dcd3bd	4.71	3	OK
+day	library	book title 13px bold, on rule line	text #2b2925	rule #dcd3bd	9.74	4.5	OK
+day	library	author / progress 12px muted, on rule line	text-muted #5b5548	rule #dcd3bd	4.97	4.5	OK
+day	library/profile	search, gear icons, on rule line	text #2b2925	rule #dcd3bd	9.74	3	OK
+day	all	margin doodles graphite (decor), on rule line	border #3b3833	rule #dcd3bd	7.83	3	OK
+day	all	margin doodles accent (decor), on rule line	accent #a32f27	rule #dcd3bd	4.71	3	OK
+day	summary	«Хамелеон · стр. 21–34» 15px muted, on rule line	text-muted #5b5548	rule #dcd3bd	4.97	4.5	OK
+day	summary	«Неделя: 2 / 4 дня» 15px, on rule line	text #2b2925	rule #dcd3bd	9.74	4.5	OK
+day	summary	week circles outline, on rule line	border #3b3833	rule #dcd3bd	7.83	3	OK
+day	sheet	close icon, on rule line	text #2b2925	rule #dcd3bd	9.74	3	OK
+day	sheet	grabber, on rule line	text-muted #5b5548	rule #dcd3bd	4.97	3	OK
+day	sheet	hint 13.5px muted, on rule line	text-muted #5b5548	rule #dcd3bd	4.97	4.5	OK
+day	nav	tab label Neucha 20px inactive (nav fill masks lines)	tab #5b5548	bg #f6eedb	6.40	4.5	OK
+day	nav	tab label Neucha 20px active + loop + underline	tab-active #a32f27	bg #f6eedb	6.07	4.5	OK
+day	all	card / chip sketch outline on paper	border #3b3833	bg #f6eedb	10.10	3	OK
+day	all	card outline vs rule line	border #3b3833	rule #dcd3bd	7.83	3	OK
+day	library	inactive chip Neucha 20px on surface	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	library	balance «504» 15px on chip	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	library	cover doodle lines	border #3b3833	surface #fffaf0	11.22	3	OK
+day	library	cover accent scribble	accent #a32f27	surface #fffaf0	6.74	3	OK
+day	library	format label 11px on cover band	text-muted #5b5548	surface #fffaf0	7.11	4.5	OK
+day	summary	stat number Neucha 40px	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	summary	stat caption 13.5px muted	text-muted #5b5548	surface #fffaf0	7.11	4.5	OK
+day	summary	«+30 🪙 ежедневка выполнена» 16px	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	summary	pencil tick accent	accent #a32f27	surface #fffaf0	6.74	3	OK
+day	summary	button «В библиотеку» 17px bold	on-accent #fffaf0	accent #a32f27	6.74	4.5	OK
+day	profile	name Neucha 28px / row text 16px	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	profile	muted 13.5–14px on card	text-muted #5b5548	surface #fffaf0	7.11	4.5	OK
+day	profile	«выполнено сегодня» 14px accent + tick	accent #a32f27	surface #fffaf0	6.74	4.5	OK
+day	profile	«2 / 4 дня» 15px	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	profile	pencil progress hatch on card	accent #a32f27	surface #fffaf0	6.74	3	OK
+day	profile	tile numbers Neucha 27px	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	profile	tile caption 12.5px muted	text-muted #5b5548	surface #fffaf0	7.11	4.5	OK
+day	profile	chevrons muted	text-muted #5b5548	surface #fffaf0	7.11	3	OK
+day	profile	gift icon accent	accent #a32f27	surface #fffaf0	6.74	3	OK
+day	sheet	slot name 16px	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	sheet	buy «100 монет» 15px	on-accent #fffaf0	accent #a32f27	6.74	4.5	OK
+day	sheet	buy disabled «500 монет» 15px	text-muted #5b5548	surface #fffaf0	7.11	4.5	OK
+day	sheet	tier inactive 15px on card	text #2b2925	surface #fffaf0	13.95	4.5	OK
+day	sheet	tier active 15px accent + loop on card	accent #a32f27	surface #fffaf0	6.74	4.5	OK
+day	sheet	«получено: N» 13.5px	text-muted #5b5548	surface #fffaf0	7.11	4.5	OK
+night	reader	body text PT Serif 17px	page-text #e4e1d8	page-bg #1f273b	11.38	4.5	OK
+night	reader	page number 11px «34 / 210»	page-number #a3a7b5	page-bg #1f273b	6.20	4.5	OK
+night	reader	top bar title 17px bold (chrome, no lines)	text #e8e5dc	bg #1b2337	12.42	4.5	OK
+night	reader	top bar icons	text #e8e5dc	bg #1b2337	12.42	3	OK
+night	reader	day-goal bar 3px vs track	daybar #f2917e	daybar-track #3a4664	4.07	3	OK
+night	reader	day-goal bar 3px vs page	daybar #f2917e	page-bg #1f273b	6.47	3	OK
+night	all	Neucha heading 32–42px + grain, on paper	grain:text #b5b4b3	bg #1b2337	7.56	4.5	OK
+night	library	active chip «Все» Neucha 20px accent (no fill), on paper	accent #f2917e	bg #1b2337	6.80	4.5	OK
+night	library	scribble loop / pencil progress hatch, on paper	accent #f2917e	bg #1b2337	6.80	3	OK
+night	library	book title 13px bold, on paper	text #e8e5dc	bg #1b2337	12.42	4.5	OK
+night	library	author / progress 12px muted, on paper	text-muted #b6b9c6	bg #1b2337	8.00	4.5	OK
+night	library/profile	search, gear icons, on paper	text #e8e5dc	bg #1b2337	12.42	3	OK
+night	all	margin doodles graphite (decor), on paper	border #c9ccd6	bg #1b2337	9.75	3	OK
+night	all	margin doodles accent (decor), on paper	accent #f2917e	bg #1b2337	6.80	3	OK
+night	summary	«Хамелеон · стр. 21–34» 15px muted, on paper	text-muted #b6b9c6	bg #1b2337	8.00	4.5	OK
+night	summary	«Неделя: 2 / 4 дня» 15px, on paper	text #e8e5dc	bg #1b2337	12.42	4.5	OK
+night	summary	week circles outline, on paper	border #c9ccd6	bg #1b2337	9.75	3	OK
+night	sheet	close icon, on paper	text #e8e5dc	bg #1b2337	12.42	3	OK
+night	sheet	grabber, on paper	text-muted #b6b9c6	bg #1b2337	8.00	3	OK
+night	sheet	hint 13.5px muted, on paper	text-muted #b6b9c6	bg #1b2337	8.00	4.5	OK
+night	all	Neucha heading 32–42px + grain, on rule line	grain:text #b9b9b9	rule #2b3550	6.19	4.5	OK
+night	library	active chip «Все» Neucha 20px accent (no fill), on rule line	accent #f2917e	rule #2b3550	5.28	4.5	OK
+night	library	scribble loop / pencil progress hatch, on rule line	accent #f2917e	rule #2b3550	5.28	3	OK
+night	library	book title 13px bold, on rule line	text #e8e5dc	rule #2b3550	9.65	4.5	OK
+night	library	author / progress 12px muted, on rule line	text-muted #b6b9c6	rule #2b3550	6.22	4.5	OK
+night	library/profile	search, gear icons, on rule line	text #e8e5dc	rule #2b3550	9.65	3	OK
+night	all	margin doodles graphite (decor), on rule line	border #c9ccd6	rule #2b3550	7.58	3	OK
+night	all	margin doodles accent (decor), on rule line	accent #f2917e	rule #2b3550	5.28	3	OK
+night	summary	«Хамелеон · стр. 21–34» 15px muted, on rule line	text-muted #b6b9c6	rule #2b3550	6.22	4.5	OK
+night	summary	«Неделя: 2 / 4 дня» 15px, on rule line	text #e8e5dc	rule #2b3550	9.65	4.5	OK
+night	summary	week circles outline, on rule line	border #c9ccd6	rule #2b3550	7.58	3	OK
+night	sheet	close icon, on rule line	text #e8e5dc	rule #2b3550	9.65	3	OK
+night	sheet	grabber, on rule line	text-muted #b6b9c6	rule #2b3550	6.22	3	OK
+night	sheet	hint 13.5px muted, on rule line	text-muted #b6b9c6	rule #2b3550	6.22	4.5	OK
+night	nav	tab label Neucha 20px inactive (nav fill masks lines)	tab #b6b9c6	bg #1b2337	8.00	4.5	OK
+night	nav	tab label Neucha 20px active + loop + underline	tab-active #f2917e	bg #1b2337	6.80	4.5	OK
+night	all	card / chip sketch outline on paper	border #c9ccd6	bg #1b2337	9.75	3	OK
+night	all	card outline vs rule line	border #c9ccd6	rule #2b3550	7.58	3	OK
+night	library	inactive chip Neucha 20px on surface	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	library	balance «504» 15px on chip	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	library	cover doodle lines	border #c9ccd6	surface #253049	8.19	3	OK
+night	library	cover accent scribble	accent #f2917e	surface #253049	5.71	3	OK
+night	library	format label 11px on cover band	text-muted #b6b9c6	surface #253049	6.72	4.5	OK
+night	summary	stat number Neucha 40px	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	summary	stat caption 13.5px muted	text-muted #b6b9c6	surface #253049	6.72	4.5	OK
+night	summary	«+30 🪙 ежедневка выполнена» 16px	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	summary	pencil tick accent	accent #f2917e	surface #253049	5.71	3	OK
+night	summary	button «В библиотеку» 17px bold	on-accent #1b2337	accent #f2917e	6.80	4.5	OK
+night	profile	name Neucha 28px / row text 16px	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	profile	muted 13.5–14px on card	text-muted #b6b9c6	surface #253049	6.72	4.5	OK
+night	profile	«выполнено сегодня» 14px accent + tick	accent #f2917e	surface #253049	5.71	4.5	OK
+night	profile	«2 / 4 дня» 15px	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	profile	pencil progress hatch on card	accent #f2917e	surface #253049	5.71	3	OK
+night	profile	tile numbers Neucha 27px	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	profile	tile caption 12.5px muted	text-muted #b6b9c6	surface #253049	6.72	4.5	OK
+night	profile	chevrons muted	text-muted #b6b9c6	surface #253049	6.72	3	OK
+night	profile	gift icon accent	accent #f2917e	surface #253049	5.71	3	OK
+night	sheet	slot name 16px	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	sheet	buy «100 монет» 15px	on-accent #1b2337	accent #f2917e	6.80	4.5	OK
+night	sheet	buy disabled «500 монет» 15px	text-muted #b6b9c6	surface #253049	6.72	4.5	OK
+night	sheet	tier inactive 15px on card	text #e8e5dc	surface #253049	10.44	4.5	OK
+night	sheet	tier active 15px accent + loop on card	accent #f2917e	surface #253049	5.71	4.5	OK
+night	sheet	«получено: N» 13.5px	text-muted #b6b9c6	surface #253049	6.72	4.5	OK

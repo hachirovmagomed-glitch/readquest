@@ -1,0 +1,152 @@
+/* ReadQuest skin «Деловой журнал» → канонические токены stage1-final (stage1-2026-10-08). Сгенерировано src/tokens-rq/build_rq.py.
+   Подключать ПОСЛЕ stage1 tokens.css. День: <html data-skin="delovoy">, ночь: <html data-skin="delovoy" data-theme="night">.
+   Legacy-селекторы макетов data-theme="delovoy-day|delovoy-night" тоже работают. Все цветовые токены stage1 определены; размеры/тайминги наследуются, кроме overrides ниже. */
+[data-skin="delovoy"],
+[data-theme="delovoy-day"]{
+  --rq-bg:#ffffff;
+  --rq-surface:#ffffff;
+  --rq-surface-2:#f1f1f1;
+  --rq-sheet:#ffffff;
+  --rq-line:#dcdcdc;
+  --rq-border-strong:#111111;
+  --rq-text:#111111;
+  --rq-text-2:#5e5e5e;
+  --rq-text-disabled:#9e9e9e;
+  --rq-accent:#0b3b8f;
+  --rq-accent-pressed:#093075;
+  --rq-accent-text:#0b3b8f;
+  --rq-on-accent:#ffffff;
+  --rq-control-on:#ffffff;
+  --rq-accent-tint:#e2e7f2;
+  --rq-accent-border:#91a7cd;
+  --rq-coin:#7d5f0e;
+  --rq-coin-tint:#ede9dd;
+  --rq-success:#17703c;
+  --rq-success-tint:#dfebe4;
+  --rq-danger:#b3261e;
+  --rq-danger-tint:#f4e1df;
+  --rq-focus:#0b3b8f;
+  --rq-scrim:rgba(17,17,17,.5);
+  --rq-badge-bg:#111111;
+  --rq-badge-text:#ffffff;
+  --rq-toast-game-bg:#0b3b8f;
+  --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff;
+  --rq-toast-info-fg:#111111;
+  --rq-toast-info-icon:#0b3b8f;
+  --rq-toast-info-border:#dcdcdc;
+  --rq-toast-error-bg:#b3261e;
+  --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:none;
+  --rq-shadow-2:none;
+  --rq-shadow-3:none;
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-border:#111111;
+  --rq-skin-rule:#dcdcdc;
+  --rq-skin-tab:#5e5e5e;
+  --rq-skin-tab-active:#111111;
+  --rq-skin-up:#17703c;
+  --rq-skin-down:#b3261e;
+  --rq-skin-gold:#7d5f0e;
+  --rq-skin-daybar:#0b3b8f;
+  --rq-skin-daybar-track:#e2e2e2;
+  --rq-skin-cover-1:#0b2a5b;
+  --rq-skin-cover-1-ink:#ffffff;
+  --rq-skin-cover-2:#f3efe6;
+  --rq-skin-cover-2-ink:#111111;
+  --rq-skin-cover-3:#111111;
+  --rq-skin-cover-3-ink:#f3efe6;
+  --rq-skin-cover-4:#7a1f2b;
+  --rq-skin-cover-4-ink:#ffffff;
+  --rq-skin-cover-5:#1f4d3a;
+  --rq-skin-cover-5-ink:#ffffff;
+  --rq-skin-cover-6:#c9b98f;
+  --rq-skin-cover-6-ink:#111111;
+  color-scheme:light;
+}
+[data-skin="delovoy"][data-theme="night"],
+[data-theme="delovoy-night"]{
+  --rq-bg:#0f0f11;
+  --rq-surface:#1a1a1d;
+  --rq-surface-2:#2b2b2d;
+  --rq-sheet:#1a1a1d;
+  --rq-line:#333338;
+  --rq-border-strong:#f1efe9;
+  --rq-text:#f1efe9;
+  --rq-text-2:#a9a7a1;
+  --rq-text-disabled:#6b6a67;
+  --rq-accent:#8fb3ff;
+  --rq-accent-pressed:#a5c2ff;
+  --rq-accent-text:#8fb3ff;
+  --rq-on-accent:#0f0f11;
+  --rq-control-on:#2f3646;
+  --rq-accent-tint:#2f3646;
+  --rq-accent-border:#4f5f83;
+  --rq-coin:#e0c56e;
+  --rq-coin-tint:#363228;
+  --rq-success:#5fcf8a;
+  --rq-success-tint:#24332c;
+  --rq-danger:#ff8a7a;
+  --rq-danger-tint:#3a2a2a;
+  --rq-focus:#8fb3ff;
+  --rq-scrim:rgba(0,0,0,.62);
+  --rq-badge-bg:#f1efe9;
+  --rq-badge-text:#0f0f11;
+  --rq-toast-game-bg:#8fb3ff;
+  --rq-toast-game-fg:#0f0f11;
+  --rq-toast-info-bg:#2b2b2d;
+  --rq-toast-info-fg:#f1efe9;
+  --rq-toast-info-icon:#8fb3ff;
+  --rq-toast-info-border:#414042;
+  --rq-toast-error-bg:#ff8a7a;
+  --rq-toast-error-fg:#2a0d0a;
+  --rq-shadow-1:none;
+  --rq-shadow-2:none;
+  --rq-shadow-3:none;
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-border:#f1efe9;
+  --rq-skin-rule:#333338;
+  --rq-skin-tab:#a9a7a1;
+  --rq-skin-tab-active:#f1efe9;
+  --rq-skin-up:#5fcf8a;
+  --rq-skin-down:#ff8a7a;
+  --rq-skin-gold:#e0c56e;
+  --rq-skin-daybar:#8fb3ff;
+  --rq-skin-daybar-track:#2e2e33;
+  --rq-skin-cover-1:#0b2a5b;
+  --rq-skin-cover-1-ink:#ffffff;
+  --rq-skin-cover-2:#f3efe6;
+  --rq-skin-cover-2-ink:#111111;
+  --rq-skin-cover-3:#111111;
+  --rq-skin-cover-3-ink:#f3efe6;
+  --rq-skin-cover-4:#7a1f2b;
+  --rq-skin-cover-4-ink:#ffffff;
+  --rq-skin-cover-5:#1f4d3a;
+  --rq-skin-cover-5-ink:#ffffff;
+  --rq-skin-cover-6:#c9b98f;
+  --rq-skin-cover-6-ink:#111111;
+  color-scheme:dark;
+}
+/* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
+[data-skin="delovoy"],
+[data-theme="delovoy-day"],
+[data-theme="delovoy-night"]{
+  --rq-radius-xs:0px;
+  --rq-radius-sm:0px;
+  --rq-radius-md:0px;
+  --rq-radius-lg:0px;
+  --rq-toast-radius:0px;
+  --rq-font-ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --rq-skin-font-heading:"Prata",serif;
+  --rq-skin-font-num:"Playfair Display",serif;
+}
+/* страница читалки: структура как в stage1 (--r-bg/--r-txt/--r-txt-2/--r-dim); сепия — канон */
+[data-skin="delovoy"] [data-page="sepia"],
+[data-theme="delovoy-day"] [data-page="sepia"],
+[data-theme="delovoy-night"] [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
+[data-skin="delovoy"] [data-page="day"],
+[data-theme="delovoy-day"] [data-page="day"],
+[data-theme="delovoy-night"] [data-page="day"]{--r-bg:#fbfaf8;--r-txt:#1b1a18;--r-txt-2:#66625b;--r-dim:0;}
+[data-skin="delovoy"] [data-page="night"],
+[data-theme="delovoy-day"] [data-page="night"],
+[data-theme="delovoy-night"] [data-page="night"]{--r-bg:#121214;--r-txt:#e8e5dd;--r-txt-2:#a3a09a;--r-dim:.35;}

@@ -1,0 +1,197 @@
+theme	screen	element	fg	bg	ratio	need	result
+day	reader	body text PT Serif 17px	page-text #24132f	page-bg #fffafc	16.81	4.5	OK
+day	reader	page number 11px «34 / 210»	page-number #6e5a78	page-bg #fffafc	5.99	4.5	OK
+day	reader	top bar title 16px / icons	text #34184a	bg #fff6fa	14.40	4.5	OK
+day	reader	day bar segment 1 vs track	daybar-1 #c2185b	daybar-track #efe3ec	4.72	3	OK
+day	reader	day bar segment 1 vs page	daybar-1 #c2185b	page-bg #fffafc	5.69	3	OK
+day	reader	day bar segment 2 vs track	daybar-2 #7b2fa8	daybar-track #efe3ec	5.99	3	OK
+day	reader	day bar segment 2 vs page	daybar-2 #7b2fa8	page-bg #fffafc	7.22	3	OK
+day	reader	day bar segment 3 vs track	daybar-3 #1f6fb2	daybar-track #efe3ec	4.24	3	OK
+day	reader	day bar segment 3 vs page	daybar-3 #1f6fb2	page-bg #fffafc	5.12	3	OK
+day	reader	day bar segment 4 vs track	daybar-4 #17805a	daybar-track #efe3ec	3.95	3	OK
+day	reader	day bar segment 4 vs page	daybar-4 #17805a	page-bg #fffafc	4.76	3	OK
+day	reader	day bar segment 5 vs track	daybar-5 #a35f00	daybar-track #efe3ec	4.02	3	OK
+day	reader	day bar segment 5 vs page	daybar-5 #a35f00	page-bg #fffafc	4.85	3	OK
+day	all	heading 34px / body text on bg	text #34184a	bg #fff6fa	14.40	4.5	OK
+day	all	muted 13–14.5px on bg	text-muted #6a4a7e	bg #fff6fa	6.85	4.5	OK
+day	all	text on surface (cards, nav, sheet)	text #34184a	surface #ffffff	15.27	4.5	OK
+day	all	muted on surface	text-muted #6a4a7e	surface #ffffff	7.26	4.5	OK
+day	chips	text on chip-pink	text #34184a	chip-pink #ffe0ee	12.47	4.5	OK
+day	chips	muted on chip-pink	text-muted #6a4a7e	chip-pink #ffe0ee	5.93	4.5	OK
+day	chips	text on chip-lavender	text #34184a	chip-lavender #ece4ff	12.44	4.5	OK
+day	chips	muted on chip-lavender	text-muted #6a4a7e	chip-lavender #ece4ff	5.91	4.5	OK
+day	chips	text on chip-mint	text #34184a	chip-mint #d6f5e8	13.15	4.5	OK
+day	chips	muted on chip-mint	text-muted #6a4a7e	chip-mint #d6f5e8	6.25	4.5	OK
+day	chips	text on chip-sky	text #34184a	chip-sky #dbefff	12.94	4.5	OK
+day	chips	muted on chip-sky	text-muted #6a4a7e	chip-sky #dbefff	6.15	4.5	OK
+day	chips	text on chip-butter	text #34184a	chip-butter #fff3c4	13.72	4.5	OK
+day	chips	muted on chip-butter	text-muted #6a4a7e	chip-butter #fff3c4	6.52	4.5	OK
+day	nav	tab inactive 14.5px + outline icon	tab #6a4a7e	surface #ffffff	7.26	4.5	OK
+day	nav	tab active 900 + filled icon + pill (on lavender)	tab-active #34184a	chip-lavender #ece4ff	12.44	4.5	OK
+day	library	filter inactive 14.5px on surface	text #34184a	surface #ffffff	15.27	4.5	OK
+day	library	filter outline 1.5px vs bg	border-strong #8e6aa3	bg #fff6fa	4.18	3	OK
+day	library	filter active «✓ Все» 900 inverted (bg on text)	bg #fff6fa	text #34184a	14.40	4.5	OK
+day	library	progress fill vs track	accent #7b2fa8	daybar-track #efe3ec	5.99	3	OK
+day	library	search / chevron icons	text #34184a	surface #ffffff	15.27	3	OK
+day	summary	card text on card gradient stop A	text #34184a	card-a #ffe3f0	12.72	4.5	OK
+day	summary	card text on card gradient stop B	text #34184a	card-b #ebe2ff	12.25	4.5	OK
+day	summary	muted on card stop A	text-muted #6a4a7e	card-a #ffe3f0	6.05	4.5	OK
+day	summary	muted on card stop B	text-muted #6a4a7e	card-b #ebe2ff	5.82	4.5	OK
+day	summary	week dots filled vs card	accent #7b2fa8	card-b #ebe2ff	5.99	3	OK
+day	summary	week dots outline vs surface pill	border-strong #8e6aa3	surface #ffffff	4.43	3	OK
+day	button	«В библиотеку» / buy text on gloss top	on-primary #34184a	primary-gloss #ffe6f1	12.97	4.5	OK
+day	button	text on primary (mid)	on-primary #34184a	primary #ffc9e0	10.67	4.5	OK
+day	button	text on primary-2 (bottom)	on-primary #34184a	primary-2 #e3d4ff	11.00	4.5	OK
+day	sheet	tier inactive / labels muted on item (bg)	text-muted #6a4a7e	bg #fff6fa	6.85	4.5	OK
+day	sheet	tier active 900 + 2px ring	text #34184a	surface #ffffff	15.27	4.5	OK
+day	sheet	tier ring 2px vs item bg	text #34184a	bg #fff6fa	14.40	3	OK
+day	sheet	disabled buy «500 монет» dashed	text-muted #6a4a7e	bg #fff6fa	6.85	4.5	OK
+day	sheet	dashed outline vs item bg	border-strong #8e6aa3	bg #fff6fa	4.18	3	OK
+day	sheet	«+ Слот» outline vs surface	border-strong #8e6aa3	surface #ffffff	4.43	3	OK
+day	sheet	grabber vs surface	border-strong #8e6aa3	surface #ffffff	4.43	3	OK
+day	covers	cover-1a: title 19px 900	cover-ink #34184a	cover-1a #ffc9e0	10.67	4.5	OK
+day	covers	cover-1a: author 12px	cover-ink-muted #5a3a6e	cover-1a #ffc9e0	6.48	4.5	OK
+day	covers	cover-1a: emblem stroke	cover-ink #34184a	cover-1a #ffc9e0	10.67	3	OK
+day	covers	cover-1b: title 19px 900	cover-ink #34184a	cover-1b #d9c8ff	9.93	4.5	OK
+day	covers	cover-1b: author 12px	cover-ink-muted #5a3a6e	cover-1b #d9c8ff	6.03	4.5	OK
+day	covers	cover-1b: emblem stroke	cover-ink #34184a	cover-1b #d9c8ff	9.93	3	OK
+day	covers	cover-2a: title 19px 900	cover-ink #34184a	cover-2a #c4f1de	12.35	4.5	OK
+day	covers	cover-2a: author 12px	cover-ink-muted #5a3a6e	cover-2a #c4f1de	7.50	4.5	OK
+day	covers	cover-2a: emblem stroke	cover-ink #34184a	cover-2a #c4f1de	12.35	3	OK
+day	covers	cover-2b: title 19px 900	cover-ink #34184a	cover-2b #c6e6ff	11.75	4.5	OK
+day	covers	cover-2b: author 12px	cover-ink-muted #5a3a6e	cover-2b #c6e6ff	7.14	4.5	OK
+day	covers	cover-2b: emblem stroke	cover-ink #34184a	cover-2b #c6e6ff	11.75	3	OK
+day	covers	cover-3a: title 19px 900	cover-ink #34184a	cover-3a #fff0b3	13.35	4.5	OK
+day	covers	cover-3a: author 12px	cover-ink-muted #5a3a6e	cover-3a #fff0b3	8.11	4.5	OK
+day	covers	cover-3a: emblem stroke	cover-ink #34184a	cover-3a #fff0b3	13.35	3	OK
+day	covers	cover-3b: title 19px 900	cover-ink #34184a	cover-3b #ffd0e4	11.19	4.5	OK
+day	covers	cover-3b: author 12px	cover-ink-muted #5a3a6e	cover-3b #ffd0e4	6.80	4.5	OK
+day	covers	cover-3b: emblem stroke	cover-ink #34184a	cover-3b #ffd0e4	11.19	3	OK
+day	covers	cover-4a: title 19px 900	cover-ink #34184a	cover-4a #e0d0ff	10.64	4.5	OK
+day	covers	cover-4a: author 12px	cover-ink-muted #5a3a6e	cover-4a #e0d0ff	6.46	4.5	OK
+day	covers	cover-4a: emblem stroke	cover-ink #34184a	cover-4a #e0d0ff	10.64	3	OK
+day	covers	cover-4b: title 19px 900	cover-ink #34184a	cover-4b #bfe3ff	11.38	4.5	OK
+day	covers	cover-4b: author 12px	cover-ink-muted #5a3a6e	cover-4b #bfe3ff	6.91	4.5	OK
+day	covers	cover-4b: emblem stroke	cover-ink #34184a	cover-4b #bfe3ff	11.38	3	OK
+day	covers	cover-5a: title 19px 900	cover-ink #34184a	cover-5a #bfe3ff	11.38	4.5	OK
+day	covers	cover-5a: author 12px	cover-ink-muted #5a3a6e	cover-5a #bfe3ff	6.91	4.5	OK
+day	covers	cover-5a: emblem stroke	cover-ink #34184a	cover-5a #bfe3ff	11.38	3	OK
+day	covers	cover-5b: title 19px 900	cover-ink #34184a	cover-5b #c4f1de	12.35	4.5	OK
+day	covers	cover-5b: author 12px	cover-ink-muted #5a3a6e	cover-5b #c4f1de	7.50	4.5	OK
+day	covers	cover-5b: emblem stroke	cover-ink #34184a	cover-5b #c4f1de	12.35	3	OK
+day	covers	cover-6a: title 19px 900	cover-ink #34184a	cover-6a #ffd8c2	11.53	4.5	OK
+day	covers	cover-6a: author 12px	cover-ink-muted #5a3a6e	cover-6a #ffd8c2	7.00	4.5	OK
+day	covers	cover-6a: emblem stroke	cover-ink #34184a	cover-6a #ffd8c2	11.53	3	OK
+day	covers	cover-6b: title 19px 900	cover-ink #34184a	cover-6b #fff0b3	13.35	4.5	OK
+day	covers	cover-6b: author 12px	cover-ink-muted #5a3a6e	cover-6b #fff0b3	8.11	4.5	OK
+day	covers	cover-6b: emblem stroke	cover-ink #34184a	cover-6b #fff0b3	13.35	3	OK
+day	covers	cover-1a: format tag 11px on white .75	cover-ink #34184a	blend #fff2f7	14.03	4.5	OK
+day	covers	cover-1b: format tag 11px on white .75	cover-ink #34184a	blend #f6f1ff	13.77	4.5	OK
+day	covers	cover-2a: format tag 11px on white .75	cover-ink #34184a	blend #f0fcf7	14.52	4.5	OK
+day	covers	cover-2b: format tag 11px on white .75	cover-ink #34184a	blend #f1f9ff	14.35	4.5	OK
+day	covers	cover-3a: format tag 11px on white .75	cover-ink #34184a	blend #fffbec	14.73	4.5	OK
+day	covers	cover-3b: format tag 11px on white .75	cover-ink #34184a	blend #fff3f8	14.12	4.5	OK
+day	covers	cover-4a: format tag 11px on white .75	cover-ink #34184a	blend #f7f3ff	13.97	4.5	OK
+day	covers	cover-4b: format tag 11px on white .75	cover-ink #34184a	blend #eff8ff	14.21	4.5	OK
+day	covers	cover-5a: format tag 11px on white .75	cover-ink #34184a	blend #eff8ff	14.21	4.5	OK
+day	covers	cover-5b: format tag 11px on white .75	cover-ink #34184a	blend #f0fcf7	14.52	4.5	OK
+day	covers	cover-6a: format tag 11px on white .75	cover-ink #34184a	blend #fff5f0	14.23	4.5	OK
+day	covers	cover-6b: format tag 11px on white .75	cover-ink #34184a	blend #fffbec	14.73	4.5	OK
+night	reader	body text PT Serif 17px	page-text #ece3f0	page-bg #18121f	14.68	4.5	OK
+night	reader	page number 11px «34 / 210»	page-number #ab9fb5	page-bg #18121f	7.30	4.5	OK
+night	reader	top bar title 16px / icons	text #fbf0ff	bg #1d1233	16.02	4.5	OK
+night	reader	day bar segment 1 vs track	daybar-1 #ff9ec7	daybar-track #3a2b55	6.62	3	OK
+night	reader	day bar segment 1 vs page	daybar-1 #ff9ec7	page-bg #18121f	9.58	3	OK
+night	reader	day bar segment 2 vs track	daybar-2 #c7a6ff	daybar-track #3a2b55	6.23	3	OK
+night	reader	day bar segment 2 vs page	daybar-2 #c7a6ff	page-bg #18121f	9.02	3	OK
+night	reader	day bar segment 3 vs track	daybar-3 #8fd3ff	daybar-track #3a2b55	7.80	3	OK
+night	reader	day bar segment 3 vs page	daybar-3 #8fd3ff	page-bg #18121f	11.29	3	OK
+night	reader	day bar segment 4 vs track	daybar-4 #8fe3bf	daybar-track #3a2b55	8.40	3	OK
+night	reader	day bar segment 4 vs page	daybar-4 #8fe3bf	page-bg #18121f	12.15	3	OK
+night	reader	day bar segment 5 vs track	daybar-5 #ffe08a	daybar-track #3a2b55	9.83	3	OK
+night	reader	day bar segment 5 vs page	daybar-5 #ffe08a	page-bg #18121f	14.22	3	OK
+night	all	heading 34px / body text on bg	text #fbf0ff	bg #1d1233	16.02	4.5	OK
+night	all	muted 13–14.5px on bg	text-muted #cdb9e3	bg #1d1233	9.81	4.5	OK
+night	all	text on surface (cards, nav, sheet)	text #fbf0ff	surface #2a1b47	14.12	4.5	OK
+night	all	muted on surface	text-muted #cdb9e3	surface #2a1b47	8.65	4.5	OK
+night	chips	text on chip-pink	text #fbf0ff	chip-pink #4a2552	11.33	4.5	OK
+night	chips	muted on chip-pink	text-muted #cdb9e3	chip-pink #4a2552	6.94	4.5	OK
+night	chips	text on chip-lavender	text #fbf0ff	chip-lavender #3a2b63	11.15	4.5	OK
+night	chips	muted on chip-lavender	text-muted #cdb9e3	chip-lavender #3a2b63	6.83	4.5	OK
+night	chips	text on chip-mint	text #fbf0ff	chip-mint #1f4744	9.30	4.5	OK
+night	chips	muted on chip-mint	text-muted #cdb9e3	chip-mint #1f4744	5.70	4.5	OK
+night	chips	text on chip-sky	text #fbf0ff	chip-sky #1f3a5e	10.42	4.5	OK
+night	chips	muted on chip-sky	text-muted #cdb9e3	chip-sky #1f3a5e	6.38	4.5	OK
+night	chips	text on chip-butter	text #fbf0ff	chip-butter #4a3f22	9.39	4.5	OK
+night	chips	muted on chip-butter	text-muted #cdb9e3	chip-butter #4a3f22	5.75	4.5	OK
+night	nav	tab inactive 14.5px + outline icon	tab #cdb9e3	surface #2a1b47	8.65	4.5	OK
+night	nav	tab active 900 + filled icon + pill (on lavender)	tab-active #fbf0ff	chip-lavender #3a2b63	11.15	4.5	OK
+night	library	filter inactive 14.5px on surface	text #fbf0ff	surface #2a1b47	14.12	4.5	OK
+night	library	filter outline 1.5px vs bg	border-strong #a993c9	bg #1d1233	6.49	3	OK
+night	library	filter active «✓ Все» 900 inverted (bg on text)	bg #1d1233	text #fbf0ff	16.02	4.5	OK
+night	library	progress fill vs track	accent #e2b8ff	daybar-track #3a2b55	7.57	3	OK
+night	library	search / chevron icons	text #fbf0ff	surface #2a1b47	14.12	3	OK
+night	summary	card text on card gradient stop A	text #fbf0ff	card-a #3b2163	12.00	4.5	OK
+night	summary	card text on card gradient stop B	text #fbf0ff	card-b #2b2452	12.87	4.5	OK
+night	summary	muted on card stop A	text-muted #cdb9e3	card-a #3b2163	7.35	4.5	OK
+night	summary	muted on card stop B	text-muted #cdb9e3	card-b #2b2452	7.88	4.5	OK
+night	summary	week dots filled vs card	accent #e2b8ff	card-b #2b2452	8.49	3	OK
+night	summary	week dots outline vs surface pill	border-strong #a993c9	surface #2a1b47	5.72	3	OK
+night	button	«В библиотеку» / buy text on gloss top	on-primary #2a0f3d	primary-gloss #ffd6ea	13.01	4.5	OK
+night	button	text on primary (mid)	on-primary #2a0f3d	primary #ffb8d9	10.62	4.5	OK
+night	button	text on primary-2 (bottom)	on-primary #2a0f3d	primary-2 #cdb4ff	9.37	4.5	OK
+night	sheet	tier inactive / labels muted on item (bg)	text-muted #cdb9e3	bg #1d1233	9.81	4.5	OK
+night	sheet	tier active 900 + 2px ring	text #fbf0ff	surface #2a1b47	14.12	4.5	OK
+night	sheet	tier ring 2px vs item bg	text #fbf0ff	bg #1d1233	16.02	3	OK
+night	sheet	disabled buy «500 монет» dashed	text-muted #cdb9e3	bg #1d1233	9.81	4.5	OK
+night	sheet	dashed outline vs item bg	border-strong #a993c9	bg #1d1233	6.49	3	OK
+night	sheet	«+ Слот» outline vs surface	border-strong #a993c9	surface #2a1b47	5.72	3	OK
+night	sheet	grabber vs surface	border-strong #a993c9	surface #2a1b47	5.72	3	OK
+night	covers	cover-1a: title 19px 900	cover-ink #34184a	cover-1a #ffc9e0	10.67	4.5	OK
+night	covers	cover-1a: author 12px	cover-ink-muted #5a3a6e	cover-1a #ffc9e0	6.48	4.5	OK
+night	covers	cover-1a: emblem stroke	cover-ink #34184a	cover-1a #ffc9e0	10.67	3	OK
+night	covers	cover-1b: title 19px 900	cover-ink #34184a	cover-1b #d9c8ff	9.93	4.5	OK
+night	covers	cover-1b: author 12px	cover-ink-muted #5a3a6e	cover-1b #d9c8ff	6.03	4.5	OK
+night	covers	cover-1b: emblem stroke	cover-ink #34184a	cover-1b #d9c8ff	9.93	3	OK
+night	covers	cover-2a: title 19px 900	cover-ink #34184a	cover-2a #c4f1de	12.35	4.5	OK
+night	covers	cover-2a: author 12px	cover-ink-muted #5a3a6e	cover-2a #c4f1de	7.50	4.5	OK
+night	covers	cover-2a: emblem stroke	cover-ink #34184a	cover-2a #c4f1de	12.35	3	OK
+night	covers	cover-2b: title 19px 900	cover-ink #34184a	cover-2b #c6e6ff	11.75	4.5	OK
+night	covers	cover-2b: author 12px	cover-ink-muted #5a3a6e	cover-2b #c6e6ff	7.14	4.5	OK
+night	covers	cover-2b: emblem stroke	cover-ink #34184a	cover-2b #c6e6ff	11.75	3	OK
+night	covers	cover-3a: title 19px 900	cover-ink #34184a	cover-3a #fff0b3	13.35	4.5	OK
+night	covers	cover-3a: author 12px	cover-ink-muted #5a3a6e	cover-3a #fff0b3	8.11	4.5	OK
+night	covers	cover-3a: emblem stroke	cover-ink #34184a	cover-3a #fff0b3	13.35	3	OK
+night	covers	cover-3b: title 19px 900	cover-ink #34184a	cover-3b #ffd0e4	11.19	4.5	OK
+night	covers	cover-3b: author 12px	cover-ink-muted #5a3a6e	cover-3b #ffd0e4	6.80	4.5	OK
+night	covers	cover-3b: emblem stroke	cover-ink #34184a	cover-3b #ffd0e4	11.19	3	OK
+night	covers	cover-4a: title 19px 900	cover-ink #34184a	cover-4a #e0d0ff	10.64	4.5	OK
+night	covers	cover-4a: author 12px	cover-ink-muted #5a3a6e	cover-4a #e0d0ff	6.46	4.5	OK
+night	covers	cover-4a: emblem stroke	cover-ink #34184a	cover-4a #e0d0ff	10.64	3	OK
+night	covers	cover-4b: title 19px 900	cover-ink #34184a	cover-4b #bfe3ff	11.38	4.5	OK
+night	covers	cover-4b: author 12px	cover-ink-muted #5a3a6e	cover-4b #bfe3ff	6.91	4.5	OK
+night	covers	cover-4b: emblem stroke	cover-ink #34184a	cover-4b #bfe3ff	11.38	3	OK
+night	covers	cover-5a: title 19px 900	cover-ink #34184a	cover-5a #bfe3ff	11.38	4.5	OK
+night	covers	cover-5a: author 12px	cover-ink-muted #5a3a6e	cover-5a #bfe3ff	6.91	4.5	OK
+night	covers	cover-5a: emblem stroke	cover-ink #34184a	cover-5a #bfe3ff	11.38	3	OK
+night	covers	cover-5b: title 19px 900	cover-ink #34184a	cover-5b #c4f1de	12.35	4.5	OK
+night	covers	cover-5b: author 12px	cover-ink-muted #5a3a6e	cover-5b #c4f1de	7.50	4.5	OK
+night	covers	cover-5b: emblem stroke	cover-ink #34184a	cover-5b #c4f1de	12.35	3	OK
+night	covers	cover-6a: title 19px 900	cover-ink #34184a	cover-6a #ffd8c2	11.53	4.5	OK
+night	covers	cover-6a: author 12px	cover-ink-muted #5a3a6e	cover-6a #ffd8c2	7.00	4.5	OK
+night	covers	cover-6a: emblem stroke	cover-ink #34184a	cover-6a #ffd8c2	11.53	3	OK
+night	covers	cover-6b: title 19px 900	cover-ink #34184a	cover-6b #fff0b3	13.35	4.5	OK
+night	covers	cover-6b: author 12px	cover-ink-muted #5a3a6e	cover-6b #fff0b3	8.11	4.5	OK
+night	covers	cover-6b: emblem stroke	cover-ink #34184a	cover-6b #fff0b3	13.35	3	OK
+night	covers	cover-1a: format tag 11px on white .75	cover-ink #34184a	blend #fff2f7	14.03	4.5	OK
+night	covers	cover-1b: format tag 11px on white .75	cover-ink #34184a	blend #f6f1ff	13.77	4.5	OK
+night	covers	cover-2a: format tag 11px on white .75	cover-ink #34184a	blend #f0fcf7	14.52	4.5	OK
+night	covers	cover-2b: format tag 11px on white .75	cover-ink #34184a	blend #f1f9ff	14.35	4.5	OK
+night	covers	cover-3a: format tag 11px on white .75	cover-ink #34184a	blend #fffbec	14.73	4.5	OK
+night	covers	cover-3b: format tag 11px on white .75	cover-ink #34184a	blend #fff3f8	14.12	4.5	OK
+night	covers	cover-4a: format tag 11px on white .75	cover-ink #34184a	blend #f7f3ff	13.97	4.5	OK
+night	covers	cover-4b: format tag 11px on white .75	cover-ink #34184a	blend #eff8ff	14.21	4.5	OK
+night	covers	cover-5a: format tag 11px on white .75	cover-ink #34184a	blend #eff8ff	14.21	4.5	OK
+night	covers	cover-5b: format tag 11px on white .75	cover-ink #34184a	blend #f0fcf7	14.52	4.5	OK
+night	covers	cover-6a: format tag 11px on white .75	cover-ink #34184a	blend #fff5f0	14.23	4.5	OK
+night	covers	cover-6b: format tag 11px on white .75	cover-ink #34184a	blend #fffbec	14.73	4.5	OK

@@ -1,0 +1,120 @@
+/* ReadQuest skin «Карандашный — тетрадь» → канонические токены stage1-final (stage1-2026-10-08). Сгенерировано src/tokens-rq/build_rq.py.
+   Подключать ПОСЛЕ stage1 tokens.css. День: <html data-skin="pencil-b">, ночь: <html data-skin="pencil-b" data-theme="night">.
+   Legacy-селекторы макетов data-theme="pencil-b-day|pencil-b-night" тоже работают. Все цветовые токены stage1 определены; размеры/тайминги наследуются, кроме overrides ниже. */
+[data-skin="pencil-b"],
+[data-theme="pencil-b-day"]{
+  --rq-bg:#f6eedb;
+  --rq-surface:#fffaf0;
+  --rq-surface-2:#f2ede4;
+  --rq-sheet:#fffaf0;
+  --rq-line:#dcd3bd;
+  --rq-border-strong:#3b3833;
+  --rq-text:#2b2925;
+  --rq-text-2:#5b5548;
+  --rq-text-disabled:#999283;
+  --rq-accent:#a32f27;
+  --rq-accent-pressed:#862720;
+  --rq-accent-text:#a32f27;
+  --rq-on-accent:#fffaf0;
+  --rq-control-on:#fffaf0;
+  --rq-accent-tint:#f4e2d8;
+  --rq-accent-border:#d69f96;
+  --rq-coin:#7a4f10;
+  --rq-coin-tint:#ece2d1;
+  --rq-success:#2f6a22;
+  --rq-success-tint:#e2e6d3;
+  --rq-danger:#b3392a;
+  --rq-danger-tint:#f4dfd4;
+  --rq-focus:#a32f27;
+  --rq-scrim:rgba(43,41,37,.45);
+  --rq-badge-bg:#2b2925;
+  --rq-badge-text:#f6eedb;
+  --rq-toast-game-bg:#a32f27;
+  --rq-toast-game-fg:#fffaf0;
+  --rq-toast-info-bg:#fffaf0;
+  --rq-toast-info-fg:#2b2925;
+  --rq-toast-info-icon:#a32f27;
+  --rq-toast-info-border:#dcd3bd;
+  --rq-toast-error-bg:#b3392a;
+  --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.10);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.08);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.28);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-rule:#dcd3bd;
+  --rq-skin-margin:#d98a8a;
+  --rq-skin-border:#3b3833;
+  --rq-skin-tab:#5b5548;
+  --rq-skin-tab-active:#a32f27;
+  --rq-skin-daybar:#a32f27;
+  --rq-skin-daybar-track:#e6dcc6;
+  --rq-skin-hatch:#8a8274;
+  color-scheme:light;
+}
+[data-skin="pencil-b"][data-theme="night"],
+[data-theme="pencil-b-night"]{
+  --rq-bg:#1b2337;
+  --rq-surface:#253049;
+  --rq-surface-2:#353e55;
+  --rq-sheet:#253049;
+  --rq-line:#2b3550;
+  --rq-border-strong:#c9ccd6;
+  --rq-text:#e8e5dc;
+  --rq-text-2:#b6b9c6;
+  --rq-text-disabled:#787d8d;
+  --rq-accent:#f2917e;
+  --rq-accent-pressed:#f5a798;
+  --rq-accent-text:#f39a88;
+  --rq-on-accent:#1b2337;
+  --rq-control-on:#4a4153;
+  --rq-accent-tint:#4a4153;
+  --rq-accent-border:#815c61;
+  --rq-coin:#e2b866;
+  --rq-coin-tint:#3f434d;
+  --rq-success:#9fd68c;
+  --rq-success-tint:#364752;
+  --rq-danger:#ff8a80;
+  --rq-danger-tint:#443d51;
+  --rq-focus:#f2917e;
+  --rq-scrim:rgba(8,11,20,.62);
+  --rq-badge-bg:#e8e5dc;
+  --rq-badge-text:#1b2337;
+  --rq-toast-game-bg:#f2917e;
+  --rq-toast-game-fg:#1b2337;
+  --rq-toast-info-bg:#353e55;
+  --rq-toast-info-fg:#e8e5dc;
+  --rq-toast-info-icon:#f2917e;
+  --rq-toast-info-border:#485163;
+  --rq-toast-error-bg:#ff8a80;
+  --rq-toast-error-fg:#2a0d0a;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.40);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.45);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.60);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-rule:#2b3550;
+  --rq-skin-margin:#a8566a;
+  --rq-skin-border:#c9ccd6;
+  --rq-skin-tab:#b6b9c6;
+  --rq-skin-tab-active:#f2917e;
+  --rq-skin-daybar:#f2917e;
+  --rq-skin-daybar-track:#3a4664;
+  --rq-skin-hatch:#6f7891;
+  color-scheme:dark;
+}
+/* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
+[data-skin="pencil-b"],
+[data-theme="pencil-b-day"],
+[data-theme="pencil-b-night"]{
+  --rq-font-ui:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --rq-skin-font-heading:"Neucha",cursive;
+}
+/* страница читалки: структура как в stage1 (--r-bg/--r-txt/--r-txt-2/--r-dim); сепия — канон */
+[data-skin="pencil-b"] [data-page="sepia"],
+[data-theme="pencil-b-day"] [data-page="sepia"],
+[data-theme="pencil-b-night"] [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
+[data-skin="pencil-b"] [data-page="day"],
+[data-theme="pencil-b-day"] [data-page="day"],
+[data-theme="pencil-b-night"] [data-page="day"]{--r-bg:#fcf8ee;--r-txt:#26231e;--r-txt-2:#6b6457;--r-dim:0;}
+[data-skin="pencil-b"] [data-page="night"],
+[data-theme="pencil-b-day"] [data-page="night"],
+[data-theme="pencil-b-night"] [data-page="night"]{--r-bg:#1f273b;--r-txt:#e4e1d8;--r-txt-2:#a3a7b5;--r-dim:.35;}

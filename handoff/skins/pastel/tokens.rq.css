@@ -1,0 +1,193 @@
+/* ReadQuest skin «Пастельная сказка» → канонические токены stage1-final (stage1-2026-10-08). Сгенерировано src/tokens-rq/build_rq.py.
+   Подключать ПОСЛЕ stage1 tokens.css. День: <html data-skin="pastel">, ночь: <html data-skin="pastel" data-theme="night">.
+   Legacy-селекторы макетов data-theme="pastel-day|pastel-night" тоже работают. Все цветовые токены stage1 определены; размеры/тайминги наследуются, кроме overrides ниже. */
+[data-skin="pastel"],
+[data-theme="pastel-day"]{
+  --rq-bg:#fff6fa;
+  --rq-surface:#ffffff;
+  --rq-surface-2:#ece4ff;
+  --rq-sheet:#ffffff;
+  --rq-line:#f0dcea;
+  --rq-border-strong:#8e6aa3;
+  --rq-text:#34184a;
+  --rq-text-2:#6a4a7e;
+  --rq-text-disabled:#a68fb0;
+  --rq-accent:#7b2fa8;
+  --rq-accent-pressed:#65278a;
+  --rq-accent-text:#7b2fa8;
+  --rq-on-accent:#ffffff;
+  --rq-control-on:#ffffff;
+  --rq-accent-tint:#efe6f5;
+  --rq-accent-border:#c4a1d8;
+  --rq-coin:#7a4f10;
+  --rq-coin-tint:#ece6de;
+  --rq-success:#157653;
+  --rq-success-tint:#dfede8;
+  --rq-danger:#b3261e;
+  --rq-danger-tint:#f4e1df;
+  --rq-focus:#7b2fa8;
+  --rq-scrim:rgba(52,24,74,.42);
+  --rq-badge-bg:#34184a;
+  --rq-badge-text:#fff6fa;
+  --rq-toast-game-bg:#7b2fa8;
+  --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff;
+  --rq-toast-info-fg:#34184a;
+  --rq-toast-info-icon:#7b2fa8;
+  --rq-toast-info-border:#f0dcea;
+  --rq-toast-error-bg:#b3261e;
+  --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.10);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.08);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.28);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-primary:#ffc9e0;
+  --rq-skin-primary-2:#e3d4ff;
+  --rq-skin-primary-gloss:#ffe6f1;
+  --rq-skin-on-primary:#34184a;
+  --rq-skin-chip-pink:#ffe0ee;
+  --rq-skin-chip-lavender:#ece4ff;
+  --rq-skin-chip-mint:#d6f5e8;
+  --rq-skin-chip-sky:#dbefff;
+  --rq-skin-chip-butter:#fff3c4;
+  --rq-skin-rule:#f0dcea;
+  --rq-skin-tab:#6a4a7e;
+  --rq-skin-tab-active:#34184a;
+  --rq-skin-sparkle:#e0569a;
+  --rq-skin-card-a:#ffe3f0;
+  --rq-skin-card-b:#ebe2ff;
+  --rq-skin-daybar-track:#efe3ec;
+  --rq-skin-daybar-1:#c2185b;
+  --rq-skin-daybar-2:#7b2fa8;
+  --rq-skin-daybar-3:#1f6fb2;
+  --rq-skin-daybar-4:#17805a;
+  --rq-skin-daybar-5:#a35f00;
+  --rq-skin-rainbow-1:#ff9ec7;
+  --rq-skin-rainbow-2:#c7a6ff;
+  --rq-skin-rainbow-3:#8fd3ff;
+  --rq-skin-rainbow-4:#8fe3bf;
+  --rq-skin-rainbow-5:#ffe08a;
+  --rq-skin-cover-1a:#ffc9e0;
+  --rq-skin-cover-1b:#d9c8ff;
+  --rq-skin-cover-2a:#c4f1de;
+  --rq-skin-cover-2b:#c6e6ff;
+  --rq-skin-cover-3a:#fff0b3;
+  --rq-skin-cover-3b:#ffd0e4;
+  --rq-skin-cover-4a:#e0d0ff;
+  --rq-skin-cover-4b:#bfe3ff;
+  --rq-skin-cover-5a:#bfe3ff;
+  --rq-skin-cover-5b:#c4f1de;
+  --rq-skin-cover-6a:#ffd8c2;
+  --rq-skin-cover-6b:#fff0b3;
+  --rq-skin-cover-ink:#34184a;
+  --rq-skin-cover-ink-muted:#5a3a6e;
+  --rq-skin-pattern-dot:#f6d0e2;
+  --rq-skin-sticker-glow:transparent;
+  color-scheme:light;
+}
+[data-skin="pastel"][data-theme="night"],
+[data-theme="pastel-night"]{
+  --rq-bg:#1d1233;
+  --rq-surface:#2a1b47;
+  --rq-surface-2:#3a2b63;
+  --rq-sheet:#2a1b47;
+  --rq-line:#3a2a5a;
+  --rq-border-strong:#a993c9;
+  --rq-text:#fbf0ff;
+  --rq-text-2:#cdb9e3;
+  --rq-text-disabled:#87769d;
+  --rq-accent:#e2b8ff;
+  --rq-accent-pressed:#e8c6ff;
+  --rq-accent-text:#e2b8ff;
+  --rq-on-accent:#1d1233;
+  --rq-control-on:#4b3768;
+  --rq-accent-tint:#4b3768;
+  --rq-accent-border:#7d629a;
+  --rq-coin:#e2b866;
+  --rq-coin-tint:#44314b;
+  --rq-success:#8fe3bf;
+  --rq-success-tint:#383758;
+  --rq-danger:#ff8a7a;
+  --rq-danger-tint:#482b4e;
+  --rq-focus:#e2b8ff;
+  --rq-scrim:rgba(8,4,18,.6);
+  --rq-badge-bg:#fbf0ff;
+  --rq-badge-text:#1d1233;
+  --rq-toast-game-bg:#e2b8ff;
+  --rq-toast-game-fg:#1d1233;
+  --rq-toast-info-bg:#3b2c56;
+  --rq-toast-info-fg:#fbf0ff;
+  --rq-toast-info-icon:#e2b8ff;
+  --rq-toast-info-border:#504168;
+  --rq-toast-error-bg:#ff8a7a;
+  --rq-toast-error-fg:#2a0d0a;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.40);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.45);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.60);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-primary:#ffb8d9;
+  --rq-skin-primary-2:#cdb4ff;
+  --rq-skin-primary-gloss:#ffd6ea;
+  --rq-skin-on-primary:#2a0f3d;
+  --rq-skin-chip-pink:#4a2552;
+  --rq-skin-chip-lavender:#3a2b63;
+  --rq-skin-chip-mint:#1f4744;
+  --rq-skin-chip-sky:#1f3a5e;
+  --rq-skin-chip-butter:#4a3f22;
+  --rq-skin-rule:#3a2a5a;
+  --rq-skin-tab:#cdb9e3;
+  --rq-skin-tab-active:#fbf0ff;
+  --rq-skin-sparkle:#ffb8d9;
+  --rq-skin-card-a:#3b2163;
+  --rq-skin-card-b:#2b2452;
+  --rq-skin-daybar-track:#3a2b55;
+  --rq-skin-daybar-1:#ff9ec7;
+  --rq-skin-daybar-2:#c7a6ff;
+  --rq-skin-daybar-3:#8fd3ff;
+  --rq-skin-daybar-4:#8fe3bf;
+  --rq-skin-daybar-5:#ffe08a;
+  --rq-skin-rainbow-1:#ff9ec7;
+  --rq-skin-rainbow-2:#c7a6ff;
+  --rq-skin-rainbow-3:#8fd3ff;
+  --rq-skin-rainbow-4:#8fe3bf;
+  --rq-skin-rainbow-5:#ffe08a;
+  --rq-skin-cover-1a:#ffc9e0;
+  --rq-skin-cover-1b:#d9c8ff;
+  --rq-skin-cover-2a:#c4f1de;
+  --rq-skin-cover-2b:#c6e6ff;
+  --rq-skin-cover-3a:#fff0b3;
+  --rq-skin-cover-3b:#ffd0e4;
+  --rq-skin-cover-4a:#e0d0ff;
+  --rq-skin-cover-4b:#bfe3ff;
+  --rq-skin-cover-5a:#bfe3ff;
+  --rq-skin-cover-5b:#c4f1de;
+  --rq-skin-cover-6a:#ffd8c2;
+  --rq-skin-cover-6b:#fff0b3;
+  --rq-skin-cover-ink:#34184a;
+  --rq-skin-cover-ink-muted:#5a3a6e;
+  --rq-skin-pattern-dot:#3a2958;
+  --rq-skin-sticker-glow:rgba(255,184,217,.18);
+  color-scheme:dark;
+}
+/* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
+[data-skin="pastel"],
+[data-theme="pastel-day"],
+[data-theme="pastel-night"]{
+  --rq-radius-xs:9px;
+  --rq-radius-sm:18px;
+  --rq-radius-md:22px;
+  --rq-radius-lg:26px;
+  --rq-toast-radius:22px;
+  --rq-font-ui:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --rq-skin-font-heading:"Nunito",sans-serif;
+}
+/* страница читалки: структура как в stage1 (--r-bg/--r-txt/--r-txt-2/--r-dim); сепия — канон */
+[data-skin="pastel"] [data-page="sepia"],
+[data-theme="pastel-day"] [data-page="sepia"],
+[data-theme="pastel-night"] [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
+[data-skin="pastel"] [data-page="day"],
+[data-theme="pastel-day"] [data-page="day"],
+[data-theme="pastel-night"] [data-page="day"]{--r-bg:#fffafc;--r-txt:#24132f;--r-txt-2:#6e5a78;--r-dim:0;}
+[data-skin="pastel"] [data-page="night"],
+[data-theme="pastel-day"] [data-page="night"],
+[data-theme="pastel-night"] [data-page="night"]{--r-bg:#18121f;--r-txt:#ece3f0;--r-txt-2:#ab9fb5;--r-dim:.35;}

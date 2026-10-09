@@ -1,0 +1,116 @@
+/* ReadQuest skin «Карандашный» → канонические токены stage1-final (stage1-2026-10-08). Сгенерировано src/tokens-rq/build_rq.py.
+   Подключать ПОСЛЕ stage1 tokens.css. День: <html data-skin="pencil">, ночь: <html data-skin="pencil" data-theme="night">.
+   Legacy-селекторы макетов data-theme="pencil-day|pencil-night" тоже работают. Все цветовые токены stage1 определены; размеры/тайминги наследуются, кроме overrides ниже. */
+[data-skin="pencil"],
+[data-theme="pencil-day"]{
+  --rq-bg:#f3f0e7;
+  --rq-surface:#fbfaf5;
+  --rq-surface-2:#eeeee9;
+  --rq-sheet:#fbfaf5;
+  --rq-line:#d7d4cc;
+  --rq-border-strong:#3d3d3a;
+  --rq-text:#2a2a28;
+  --rq-text-2:#595853;
+  --rq-text-disabled:#97958e;
+  --rq-accent:#1d6464;
+  --rq-accent-pressed:#185252;
+  --rq-accent-text:#1d6464;
+  --rq-on-accent:#fbfaf5;
+  --rq-control-on:#fbfaf5;
+  --rq-accent-tint:#e0e8e4;
+  --rq-accent-border:#97b6b4;
+  --rq-coin:#7a4f10;
+  --rq-coin-tint:#e9e2d5;
+  --rq-success:#2f6a22;
+  --rq-success-tint:#dee6d7;
+  --rq-danger:#b3392a;
+  --rq-danger-tint:#f1dfd9;
+  --rq-focus:#1d6464;
+  --rq-scrim:rgba(42,42,40,.45);
+  --rq-badge-bg:#2a2a28;
+  --rq-badge-text:#f3f0e7;
+  --rq-toast-game-bg:#1d6464;
+  --rq-toast-game-fg:#fbfaf5;
+  --rq-toast-info-bg:#fbfaf5;
+  --rq-toast-info-fg:#2a2a28;
+  --rq-toast-info-icon:#1d6464;
+  --rq-toast-info-border:#d7d4cc;
+  --rq-toast-error-bg:#b3392a;
+  --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.10);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.08);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.28);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-border:#3d3d3a;
+  --rq-skin-tab:#595853;
+  --rq-skin-tab-active:#1d6464;
+  --rq-skin-daybar:#1d6464;
+  --rq-skin-daybar-track:#dedbd1;
+  --rq-skin-hatch:#8f8c84;
+  color-scheme:light;
+}
+[data-skin="pencil"][data-theme="night"],
+[data-theme="pencil-night"]{
+  --rq-bg:#2b3038;
+  --rq-surface:#353b45;
+  --rq-surface-2:#434951;
+  --rq-sheet:#353b45;
+  --rq-line:#4d5156;
+  --rq-border-strong:#cfccc3;
+  --rq-text:#e8e6df;
+  --rq-text-2:#b9b7ae;
+  --rq-text-disabled:#80817f;
+  --rq-accent:#86cbc2;
+  --rq-accent-pressed:#9ed5ce;
+  --rq-accent-text:#95d1c9;
+  --rq-on-accent:#1f2329;
+  --rq-control-on:#44555c;
+  --rq-accent-tint:#44555c;
+  --rq-accent-border:#597c7d;
+  --rq-coin:#e2b866;
+  --rq-coin-tint:#4d4c4a;
+  --rq-success:#9fd68c;
+  --rq-success-tint:#44514f;
+  --rq-danger:#ff9d94;
+  --rq-danger-tint:#51464d;
+  --rq-focus:#86cbc2;
+  --rq-scrim:rgba(12,14,18,.68);
+  --rq-badge-bg:#e8e6df;
+  --rq-badge-text:#2b3038;
+  --rq-toast-game-bg:#86cbc2;
+  --rq-toast-game-fg:#1f2329;
+  --rq-toast-info-bg:#434951;
+  --rq-toast-info-fg:#e8e6df;
+  --rq-toast-info-icon:#86cbc2;
+  --rq-toast-info-border:#555a61;
+  --rq-toast-error-bg:#ff9d94;
+  --rq-toast-error-fg:#2a0d0a;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.40);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.45);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.60);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-border:#cfccc3;
+  --rq-skin-tab:#b9b7ae;
+  --rq-skin-tab-active:#86cbc2;
+  --rq-skin-daybar:#86cbc2;
+  --rq-skin-daybar-track:#454c57;
+  --rq-skin-hatch:#7c828c;
+  color-scheme:dark;
+}
+/* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
+[data-skin="pencil"],
+[data-theme="pencil-day"],
+[data-theme="pencil-night"]{
+  --rq-font-ui:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --rq-skin-font-heading:"Caveat",cursive;
+}
+/* страница читалки: структура как в stage1 (--r-bg/--r-txt/--r-txt-2/--r-dim); сепия — канон */
+[data-skin="pencil"] [data-page="sepia"],
+[data-theme="pencil-day"] [data-page="sepia"],
+[data-theme="pencil-night"] [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
+[data-skin="pencil"] [data-page="day"],
+[data-theme="pencil-day"] [data-page="day"],
+[data-theme="pencil-night"] [data-page="day"]{--r-bg:#fbfaf6;--r-txt:#24231f;--r-txt-2:#6b6a64;--r-dim:0;}
+[data-skin="pencil"] [data-page="night"],
+[data-theme="pencil-day"] [data-page="night"],
+[data-theme="pencil-night"] [data-page="night"]{--r-bg:#262a31;--r-txt:#e3e0d8;--r-txt-2:#a7a59d;--r-dim:.35;}

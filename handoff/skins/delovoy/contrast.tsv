@@ -1,0 +1,115 @@
+theme	screen	element	fg	bg	ratio	need	result
+day	reader	body text PT Serif 17px	page-text #1b1a18	page-bg #fbfaf8	16.67	4.5	OK
+day	reader	page number 11px «34 / 210»	page-number #66625b	page-bg #fbfaf8	5.81	4.5	OK
+day	reader	top bar title Prata 18px	text #111111	bg #ffffff	18.88	4.5	OK
+day	reader	top bar icons / Aa	text #111111	bg #ffffff	18.88	3	OK
+day	reader	day bar 3px accent vs track	daybar #0b3b8f	daybar-track #e2e2e2	7.96	3	OK
+day	reader	day bar 3px accent vs page	daybar #0b3b8f	page-bg #fbfaf8	9.89	3	OK
+day	all	kicker caps 11px	text #111111	bg #ffffff	18.88	4.5	OK
+day	all	heading Prata 40px	text #111111	bg #ffffff	18.88	4.5	OK
+day	all	muted caps / meta 11–13px	text-muted #5e5e5e	bg #ffffff	6.48	4.5	OK
+day	all	double rule 3px+1px (ink)	border #111111	bg #ffffff	18.88	3	OK
+day	nav	tab label inactive 12.5px + outline icon	tab #5e5e5e	bg #ffffff	6.48	4.5	OK
+day	nav	tab label active bold + filled icon + 3px bar	tab-active #111111	bg #ffffff	18.88	4.5	OK
+day	nav	active bar accent 3px	accent #0b3b8f	bg #ffffff	10.31	3	OK
+day	library	filter inactive 14.5px	text-muted #5e5e5e	bg #ffffff	6.48	4.5	OK
+day	library	filter active bold + 3px ink underline	text #111111	bg #ffffff	18.88	4.5	OK
+day	library	rank #1–#5 serif 28–44px	text #111111	bg #ffffff	18.88	4.5	OK
+day	library	title 15.5–17px / % figures	text #111111	bg #ffffff	18.88	4.5	OK
+day	library	author 12.5–13px muted	text-muted #5e5e5e	bg #ffffff	6.48	4.5	OK
+day	library	▲ +4% 12–12.5px semibold (money green)	up #17703c	bg #ffffff	6.14	4.5	OK
+day	library	progress bar accent vs track (rule)	accent #0b3b8f	rule #dcdcdc	7.52	3	OK
+day	library	progress bar accent vs bg	accent #0b3b8f	bg #ffffff	10.31	3	OK
+day	library	cover frame 1px vs bg	border #111111	bg #ffffff	18.88	3	OK
+day	library	search icon	text #111111	bg #ffffff	18.88	3	OK
+day	summary	kicker «Главная тема» accent 11px caps	accent #0b3b8f	bg #ffffff	10.31	4.5	OK
+day	summary	headline «18 минут» Prata 76px	text #111111	bg #ffffff	18.88	4.5	OK
+day	summary	deck 17px	text #111111	bg #ffffff	18.88	4.5	OK
+day	summary	byline 12.5px muted	text-muted #5e5e5e	bg #ffffff	6.48	4.5	OK
+day	summary	«В цифрах» box border 1px	border #111111	bg #ffffff	18.88	3	OK
+day	summary	«✓ +30 🪙 ежедневка выполнена» 15px bold	text #111111	bg #ffffff	18.88	4.5	OK
+day	summary	week squares filled / outline (ink)	border #111111	bg #ffffff	18.88	3	OK
+day	summary	button «В библиотеку» 16.5px bold	on-accent #ffffff	accent #0b3b8f	10.31	4.5	OK
+day	profile	name Prata 46px / rows 15.5px	text #111111	bg #ffffff	18.88	4.5	OK
+day	profile	«Состояние: 504 монеты» Prata 28px gold	gold #7d5f0e	bg #ffffff	5.97	4.5	OK
+day	profile	table values 14.5px	text #111111	bg #ffffff	18.88	4.5	OK
+day	profile	▲ +N 13px (money green)	up #17703c	bg #ffffff	6.14	4.5	OK
+day	profile	▼ −N 13px (red)	down #b3261e	bg #ffffff	6.54	4.5	OK
+day	profile	footnote / small 11.5–12.5px muted	text-muted #5e5e5e	bg #ffffff	6.48	4.5	OK
+day	profile	«✓ выполнено» 13.5px bold	text #111111	bg #ffffff	18.88	4.5	OK
+day	profile	arrow icons	text #111111	bg #ffffff	18.88	3	OK
+day	sheet	title Prata 30px	text #111111	surface #ffffff	18.88	4.5	OK
+day	sheet	«Состояние» gold 22px	gold #7d5f0e	surface #ffffff	5.97	4.5	OK
+day	sheet	caps labels muted 11px	text-muted #5e5e5e	surface #ffffff	6.48	4.5	OK
+day	sheet	position name 15.5px	text #111111	surface #ffffff	18.88	4.5	OK
+day	sheet	«куплено: N» 12.5px muted	text-muted #5e5e5e	surface #ffffff	6.48	4.5	OK
+day	sheet	buy «100 монет» 14.5px bold	on-accent #ffffff	accent #0b3b8f	10.31	4.5	OK
+day	sheet	buy disabled «500 монет» dashed outline	text-muted #5e5e5e	surface #ffffff	6.48	4.5	OK
+day	sheet	tier inactive 14px	text-muted #5e5e5e	surface #ffffff	6.48	4.5	OK
+day	sheet	tier active bold + 1px box	text #111111	surface #ffffff	18.88	4.5	OK
+day	sheet	active tier box 1px	border #111111	surface #ffffff	18.88	3	OK
+day	sheet	close icon / grabber	text-muted #5e5e5e	surface #ffffff	6.48	3	OK
+day	sheet	3px sheet top rule / double rule	border #111111	surface #ffffff	18.88	3	OK
+day	library	cover-1: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-1-ink #ffffff	cover-1 #0b2a5b	14.03	4.5	OK
+day	library	cover-2: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-2-ink #111111	cover-2 #f3efe6	16.46	4.5	OK
+day	library	cover-3: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-3-ink #f3efe6	cover-3 #111111	16.46	4.5	OK
+day	library	cover-4: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-4-ink #ffffff	cover-4 #7a1f2b	10.20	4.5	OK
+day	library	cover-5: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-5-ink #ffffff	cover-5 #1f4d3a	9.63	4.5	OK
+day	library	cover-6: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-6-ink #111111	cover-6 #c9b98f	9.73	4.5	OK
+night	reader	body text PT Serif 17px	page-text #e8e5dd	page-bg #121214	14.86	4.5	OK
+night	reader	page number 11px «34 / 210»	page-number #a3a09a	page-bg #121214	7.17	4.5	OK
+night	reader	top bar title Prata 18px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	reader	top bar icons / Aa	text #f1efe9	bg #0f0f11	16.65	3	OK
+night	reader	day bar 3px accent vs track	daybar #8fb3ff	daybar-track #2e2e33	6.47	3	OK
+night	reader	day bar 3px accent vs page	daybar #8fb3ff	page-bg #121214	8.96	3	OK
+night	all	kicker caps 11px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	all	heading Prata 40px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	all	muted caps / meta 11–13px	text-muted #a9a7a1	bg #0f0f11	7.96	4.5	OK
+night	all	double rule 3px+1px (ink)	border #f1efe9	bg #0f0f11	16.65	3	OK
+night	nav	tab label inactive 12.5px + outline icon	tab #a9a7a1	bg #0f0f11	7.96	4.5	OK
+night	nav	tab label active bold + filled icon + 3px bar	tab-active #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	nav	active bar accent 3px	accent #8fb3ff	bg #0f0f11	9.17	3	OK
+night	library	filter inactive 14.5px	text-muted #a9a7a1	bg #0f0f11	7.96	4.5	OK
+night	library	filter active bold + 3px ink underline	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	library	rank #1–#5 serif 28–44px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	library	title 15.5–17px / % figures	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	library	author 12.5–13px muted	text-muted #a9a7a1	bg #0f0f11	7.96	4.5	OK
+night	library	▲ +4% 12–12.5px semibold (money green)	up #5fcf8a	bg #0f0f11	9.83	4.5	OK
+night	library	progress bar accent vs track (rule)	accent #8fb3ff	rule #333338	6.02	3	OK
+night	library	progress bar accent vs bg	accent #8fb3ff	bg #0f0f11	9.17	3	OK
+night	library	cover frame 1px vs bg	border #f1efe9	bg #0f0f11	16.65	3	OK
+night	library	search icon	text #f1efe9	bg #0f0f11	16.65	3	OK
+night	summary	kicker «Главная тема» accent 11px caps	accent #8fb3ff	bg #0f0f11	9.17	4.5	OK
+night	summary	headline «18 минут» Prata 76px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	summary	deck 17px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	summary	byline 12.5px muted	text-muted #a9a7a1	bg #0f0f11	7.96	4.5	OK
+night	summary	«В цифрах» box border 1px	border #f1efe9	bg #0f0f11	16.65	3	OK
+night	summary	«✓ +30 🪙 ежедневка выполнена» 15px bold	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	summary	week squares filled / outline (ink)	border #f1efe9	bg #0f0f11	16.65	3	OK
+night	summary	button «В библиотеку» 16.5px bold	on-accent #0f0f11	accent #8fb3ff	9.17	4.5	OK
+night	profile	name Prata 46px / rows 15.5px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	profile	«Состояние: 504 монеты» Prata 28px gold	gold #e0c56e	bg #0f0f11	11.29	4.5	OK
+night	profile	table values 14.5px	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	profile	▲ +N 13px (money green)	up #5fcf8a	bg #0f0f11	9.83	4.5	OK
+night	profile	▼ −N 13px (red)	down #ff8a7a	bg #0f0f11	8.36	4.5	OK
+night	profile	footnote / small 11.5–12.5px muted	text-muted #a9a7a1	bg #0f0f11	7.96	4.5	OK
+night	profile	«✓ выполнено» 13.5px bold	text #f1efe9	bg #0f0f11	16.65	4.5	OK
+night	profile	arrow icons	text #f1efe9	bg #0f0f11	16.65	3	OK
+night	sheet	title Prata 30px	text #f1efe9	surface #1a1a1d	15.10	4.5	OK
+night	sheet	«Состояние» gold 22px	gold #e0c56e	surface #1a1a1d	10.24	4.5	OK
+night	sheet	caps labels muted 11px	text-muted #a9a7a1	surface #1a1a1d	7.22	4.5	OK
+night	sheet	position name 15.5px	text #f1efe9	surface #1a1a1d	15.10	4.5	OK
+night	sheet	«куплено: N» 12.5px muted	text-muted #a9a7a1	surface #1a1a1d	7.22	4.5	OK
+night	sheet	buy «100 монет» 14.5px bold	on-accent #0f0f11	accent #8fb3ff	9.17	4.5	OK
+night	sheet	buy disabled «500 монет» dashed outline	text-muted #a9a7a1	surface #1a1a1d	7.22	4.5	OK
+night	sheet	tier inactive 14px	text-muted #a9a7a1	surface #1a1a1d	7.22	4.5	OK
+night	sheet	tier active bold + 1px box	text #f1efe9	surface #1a1a1d	15.10	4.5	OK
+night	sheet	active tier box 1px	border #f1efe9	surface #1a1a1d	15.10	3	OK
+night	sheet	close icon / grabber	text-muted #a9a7a1	surface #1a1a1d	7.22	3	OK
+night	sheet	3px sheet top rule / double rule	border #f1efe9	surface #1a1a1d	15.10	3	OK
+night	library	cover-1: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-1-ink #ffffff	cover-1 #0b2a5b	14.03	4.5	OK
+night	library	cover-2: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-2-ink #111111	cover-2 #f3efe6	16.46	4.5	OK
+night	library	cover-3: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-3-ink #f3efe6	cover-3 #111111	16.46	4.5	OK
+night	library	cover-4: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-4-ink #ffffff	cover-4 #7a1f2b	10.20	4.5	OK
+night	library	cover-5: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-5-ink #ffffff	cover-5 #1f4d3a	9.63	4.5	OK
+night	library	cover-6: title Prata 17.5px / monogram 30px + author 10.5px caps	cover-6-ink #111111	cover-6 #c9b98f	9.73	4.5	OK

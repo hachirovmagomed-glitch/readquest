@@ -1,0 +1,74 @@
+method	screen_or_theme	pair	note	fg	bg	threshold	contrast	status
+tokens	day	--rq-text на --rq-bg	основной текст	#141414	#f5f3ee	4.5	16.61	ok
+tokens	day	--rq-text на --rq-surface	текст на карточке	#141414	#fbfaf7	4.5	17.65	ok
+tokens	day	--rq-text на --rq-surface-2	текст в чипе/сегменте	#141414	#edece9	4.5	15.59	ok
+tokens	day	--rq-text на --rq-sheet	текст в шторке	#141414	#fbfaf7	4.5	17.65	ok
+tokens	day	--rq-text-2 на --rq-bg	вторичный на фоне	#57544e	#f5f3ee	4.5	6.80	ok
+tokens	day	--rq-text-2 на --rq-surface	вторичный на карточке	#57544e	#fbfaf7	4.5	7.23	ok
+tokens	day	--rq-text-2 на --rq-surface-2	вторичный в KPI/сегменте	#57544e	#edece9	4.5	6.39	ok
+tokens	day	--rq-text-2 на --rq-sheet	вторичный в шторке	#57544e	#fbfaf7	4.5	7.23	ok
+tokens	day	--rq-accent-text на --rq-bg	акцентный текст на фоне	#bc310c	#f5f3ee	4.5	5.29	ok
+tokens	day	--rq-accent-text на --rq-surface	акцентный текст на карточке	#bc310c	#fbfaf7	4.5	5.62	ok
+tokens	day	--rq-accent-text на --rq-accent-tint	«вы здесь», меню активное	#bc310c	#f4e2db	4.5	4.67	ok
+tokens	day	--rq-accent-text на --rq-control-on	выбранный сегмент	#bc310c	#fbfaf7	4.5	5.62	ok
+tokens	day	--rq-accent-text на --rq-sheet	акцентный текст в шторке	#bc310c	#fbfaf7	4.5	5.62	ok
+tokens	day	--rq-on-accent на --rq-accent	текст на главной кнопке	#ffffff	#c4330c	4.5	5.49	ok
+tokens	day	--rq-on-accent на --rq-accent-pressed	текст на нажатой кнопке	#ffffff	#a12a0a	4.5	7.37	ok
+tokens	day	--rq-coin на --rq-coin-tint	цифры в чипе монет	#7a4f10	#e9e2d7	4.5	5.53	ok
+tokens	day	--rq-coin на --rq-bg	монеты на фоне	#7a4f10	#f5f3ee	4.5	6.41	ok
+tokens	day	--rq-coin на --rq-surface	монеты на карточке	#7a4f10	#fbfaf7	4.5	6.81	ok
+tokens	day	--rq-coin на --rq-sheet	монеты в итоге	#7a4f10	#fbfaf7	4.5	6.81	ok
+tokens	day	--rq-success на --rq-success-tint	плашка «выполнено»	#2f6a22	#dee6d9	4.5	5.12	ok
+tokens	day	--rq-danger на --rq-surface	«Сбросить весь прогресс»	#a3261a	#fbfaf7	4.5	7.06	ok
+tokens	day	--rq-danger на --rq-bg	ошибка на фоне	#a3261a	#f5f3ee	4.5	6.65	ok
+tokens	day	--rq-badge-text на --rq-badge-bg	плашка «N из M»	#f5f3ee	#141414	4.5	16.61	ok
+tokens	day	--rq-toast-game-fg на --rq-toast-game-bg	тост game	#ffffff	#c4330c	4.5	5.49	ok
+tokens	day	--rq-toast-info-fg на --rq-toast-info-bg	тост info	#141414	#fbfaf7	4.5	17.65	ok
+tokens	day	--rq-toast-info-icon на --rq-toast-info-bg	иконка тоста info (графика)	#c4330c	#fbfaf7	3.0	5.26	ok
+tokens	day	--rq-toast-error-fg на --rq-toast-error-bg	тост error	#ffffff	#a3261a	4.5	7.37	ok
+tokens	day	--rq-accent на --rq-bg	граница главной кнопки/слайдера к фону (1.4.11)	#c4330c	#f5f3ee	3.0	4.95	ok
+tokens	day	--rq-accent на --rq-surface	слайдер, кольцо на карточке	#c4330c	#fbfaf7	3.0	5.26	ok
+tokens	day	--rq-accent на --rq-sheet	кнопка в итоге/шторке	#c4330c	#fbfaf7	3.0	5.26	ok
+tokens	day	--rq-border-strong на --rq-bg	контур поля поиска/переключателя	#141414	#f5f3ee	3.0	16.61	ok
+tokens	day	--rq-border-strong на --rq-surface	контур переключателя на карточке	#141414	#fbfaf7	3.0	17.65	ok
+tokens	day	--rq-focus на --rq-bg	кольцо фокуса	#c4330c	#f5f3ee	3.0	4.95	ok
+tokens	night	--rq-text на --rq-bg	основной текст	#efece4	#141518	4.5	15.47	ok
+tokens	night	--rq-text на --rq-surface	текст на карточке	#efece4	#1c1d21	4.5	14.26	ok
+tokens	night	--rq-text на --rq-surface-2	текст в чипе/сегменте	#efece4	#2d2e31	4.5	11.50	ok
+tokens	night	--rq-text на --rq-sheet	текст в шторке	#efece4	#1c1d21	4.5	14.26	ok
+tokens	night	--rq-text-2 на --rq-bg	вторичный на фоне	#aaa7a0	#141518	4.5	7.60	ok
+tokens	night	--rq-text-2 на --rq-surface	вторичный на карточке	#aaa7a0	#1c1d21	4.5	7.01	ok
+tokens	night	--rq-text-2 на --rq-surface-2	вторичный в KPI/сегменте	#aaa7a0	#2d2e31	4.5	5.65	ok
+tokens	night	--rq-text-2 на --rq-sheet	вторичный в шторке	#aaa7a0	#1c1d21	4.5	7.01	ok
+tokens	night	--rq-accent-text на --rq-bg	акцентный текст на фоне	#ff6b3d	#141518	4.5	6.45	ok
+tokens	night	--rq-accent-text на --rq-surface	акцентный текст на карточке	#ff6b3d	#1c1d21	4.5	5.95	ok
+tokens	night	--rq-accent-text на --rq-accent-tint	«вы здесь», меню активное	#ff6b3d	#452b26	4.5	4.56	ok
+tokens	night	--rq-accent-text на --rq-control-on	выбранный сегмент	#ff6b3d	#452b26	4.5	4.56	ok
+tokens	night	--rq-accent-text на --rq-sheet	акцентный текст в шторке	#ff6b3d	#1c1d21	4.5	5.95	ok
+tokens	night	--rq-on-accent на --rq-accent	текст на главной кнопке	#141518	#ff6b3d	4.5	6.45	ok
+tokens	night	--rq-on-accent на --rq-accent-pressed	текст на нажатой кнопке	#141518	#ff8964	4.5	7.84	ok
+tokens	night	--rq-coin на --rq-coin-tint	цифры в чипе монет	#e2b866	#38332b	4.5	6.73	ok
+tokens	night	--rq-coin на --rq-bg	монеты на фоне	#e2b866	#141518	4.5	9.81	ok
+tokens	night	--rq-coin на --rq-surface	монеты на карточке	#e2b866	#1c1d21	4.5	9.05	ok
+tokens	night	--rq-coin на --rq-sheet	монеты в итоге	#e2b866	#1c1d21	4.5	9.05	ok
+tokens	night	--rq-success на --rq-success-tint	плашка «выполнено»	#9fd68c	#2e3730	4.5	7.31	ok
+tokens	night	--rq-danger на --rq-surface	«Сбросить весь прогресс»	#ff8a80	#1c1d21	4.5	7.38	ok
+tokens	night	--rq-danger на --rq-bg	ошибка на фоне	#ff8a80	#141518	4.5	8.00	ok
+tokens	night	--rq-badge-text на --rq-badge-bg	плашка «N из M»	#141518	#efece4	4.5	15.47	ok
+tokens	night	--rq-toast-game-fg на --rq-toast-game-bg	тост game	#141518	#ff6b3d	4.5	6.45	ok
+tokens	night	--rq-toast-info-fg на --rq-toast-info-bg	тост info	#efece4	#2d2e31	4.5	11.50	ok
+tokens	night	--rq-toast-info-icon на --rq-toast-info-bg	иконка тоста info (графика)	#ff6b3d	#2d2e31	3.0	4.80	ok
+tokens	night	--rq-toast-error-fg на --rq-toast-error-bg	тост error	#2a0d0a	#ff8a80	4.5	7.93	ok
+tokens	night	--rq-accent на --rq-bg	граница главной кнопки/слайдера к фону (1.4.11)	#ff6b3d	#141518	3.0	6.45	ok
+tokens	night	--rq-accent на --rq-surface	слайдер, кольцо на карточке	#ff6b3d	#1c1d21	3.0	5.95	ok
+tokens	night	--rq-accent на --rq-sheet	кнопка в итоге/шторке	#ff6b3d	#1c1d21	3.0	5.95	ok
+tokens	night	--rq-border-strong на --rq-bg	контур поля поиска/переключателя	#efece4	#141518	3.0	15.47	ok
+tokens	night	--rq-border-strong на --rq-surface	контур переключателя на карточке	#efece4	#1c1d21	3.0	14.26	ok
+tokens	night	--rq-focus на --rq-bg	кольцо фокуса	#ff6b3d	#141518	3.0	6.45	ok
+tokens	page-sepia	--r-txt на --r-bg	текст книги	#5b4636	#f4ecd8	4.5	7.51	ok
+tokens	page-sepia	--r-txt-2 на --r-bg	номер страницы в углу	#725f4a	#f4ecd8	4.5	5.17	ok
+tokens	page-day	--r-txt на --r-bg	текст книги	#1b1a18	#f8f6f1	4.5	16.10	ok
+tokens	page-day	--r-txt-2 на --r-bg	номер страницы в углу	#66625b	#f8f6f1	4.5	5.61	ok
+tokens	page-night	--r-txt на --r-bg	текст книги	#e8e5dd	#17181b	4.5	14.10	ok
+tokens	page-night	--r-txt-2 на --r-bg	номер страницы в углу	#a3a09a	#17181b	4.5	6.81	ok
+tokens	night	PDF: #000 на #fff под слоем rgba(0,0,0,.35)	текст PDF ночью (страница ≈ #a6a6a6)	#000000	#a6a6a6	4.5	8.63	ok

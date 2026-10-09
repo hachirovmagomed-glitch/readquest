@@ -1,0 +1,43 @@
+/* ReadQuest skin «Карандашный — тетрадь». Apply with <html data-theme="pencil-b-day|pencil-b-night"> */
+[data-theme="pencil-b-day"]{
+  --rq-bg:#f6eedb;
+  --rq-rule:#dcd3bd;
+  --rq-margin:#d98a8a;
+  --rq-surface:#fffaf0;
+  --rq-text:#2b2925;
+  --rq-text-muted:#5b5548;
+  --rq-accent:#a32f27;
+  --rq-on-accent:#fffaf0;
+  --rq-border:#3b3833;
+  --rq-tab:#5b5548;
+  --rq-tab-active:#a32f27;
+  --rq-page-bg:#fcf8ee;
+  --rq-page-text:#26231e;
+  --rq-page-number:#6b6457;
+  --rq-daybar:#a32f27;
+  --rq-daybar-track:#e6dcc6;
+  --rq-hatch:#8a8274;
+  --rq-scrim:rgba(43,41,37,.45);
+  color-scheme:light
+}
+[data-theme="pencil-b-night"]{
+  --rq-bg:#1b2337;
+  --rq-rule:#2b3550;
+  --rq-margin:#a8566a;
+  --rq-surface:#253049;
+  --rq-text:#e8e5dc;
+  --rq-text-muted:#b6b9c6;
+  --rq-accent:#f2917e;
+  --rq-on-accent:#1b2337;
+  --rq-border:#c9ccd6;
+  --rq-tab:#b6b9c6;
+  --rq-tab-active:#f2917e;
+  --rq-page-bg:#1f273b;
+  --rq-page-text:#e4e1d8;
+  --rq-page-number:#a3a7b5;
+  --rq-daybar:#f2917e;
+  --rq-daybar-track:#3a4664;
+  --rq-hatch:#6f7891;
+  --rq-scrim:rgba(8,11,20,.62);
+  color-scheme:dark
+}

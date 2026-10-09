@@ -3,7 +3,7 @@
 
 Usage: python3 metrics.py --start 2026-10-12 exports/*.json
 Each file = one tester's export (sessions[] rows may carry an `id` — ignored here). Sessions under ~10 s with 0 pages are never logged
-by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Skins: theme_changed events (from, to); "kept" = last `to` differs from first `from`. Week 1 = start..start+6, week 2 = start+7..start+13.
+by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Skins: theme_changed events (from, to = data-skin values; day/night toggles must NOT emit it); "kept" = last `to` differs from first `from`. Week 1 = start..start+6, week 2 = start+7..start+13.
 """
 import argparse, json, statistics, sys
 from collections import defaultdict
@@ -37,7 +37,7 @@ def tester(path, start):
     hero = sum(1 for e in data.get("events", []) if e.get("type") == "hero_create_tapped")
     # PDF watchdog recoveries: events[] {type, date, at, bookId, page, label, stalledMs, reason} (STORAGE.md)
     stalls = sum(1 for e in data.get("events", []) if e.get("type") == "pdf_stall_recovered")
-    # Free 2nd theme: events[] {type:"theme_changed", from, to}. "kept" = ended on a theme other than the starting one.
+    # Free 2nd skin: events[] {type:"theme_changed", from, to} with data-skin values (not day/night). "kept" = ended on a theme other than the starting one.
     th = [e for e in data.get("events", []) if e.get("type") == "theme_changed"]
     theme_kept = bool(th) and th[-1].get("to") != th[0].get("from")
     buys = len((data.get("game") or {}).get("rewardPurchases") or [])

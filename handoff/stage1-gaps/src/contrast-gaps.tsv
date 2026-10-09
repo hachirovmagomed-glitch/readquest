@@ -1,0 +1,53 @@
+screen	element	theme	fg_token	bg_token	fg	bg	type	ratio	result
+profile-hero-stub	«Создать героя»	day	text	surface	#3b3226	#ffffff	text	12.57	ok
+profile-hero-stub	шеврон	day	text-2	surface	#6e5d43	#ffffff	graphic	6.34	ok
+profile-hero-stub-tapped	«Создать героя» нажата	day	text	PRESSED	#3b3226	#ebeae9	text	10.46	ok
+profile-hero-stub-tapped	тост «Скоро»	day	toast-info-fg	toast-info-bg	#3b3226	#ffffff	text	12.57	ok
+profile-hero-stub-tapped	иконка тоста	day	toast-info-icon	toast-info-bg	#1f6f6b	#ffffff	graphic	5.92	ok
+library-import-*	«Добавить книги»	day	accent-text	bg	#1f6f6b	#faf6ec	text	5.49	ok
+library-import-*	рамка «Добавить книги»	day	accent	bg	#1f6f6b	#faf6ec	graphic	5.49	ok
+library-import-*	плейсхолдер «Поиск»	day	text-2	surface	#6e5d43	#ffffff	text	6.34	ok
+library-import-*	чип «Все · 12»	day	on-accent	accent	#ffffff	#1f6f6b	text	5.92	ok
+library-import-progress/result	текст тоста	day	toast-info-fg	toast-info-bg	#3b3226	#ffffff	text	12.57	ok
+library-import-progress/result	иконки тоста	day	toast-info-icon	toast-info-bg	#1f6f6b	#ffffff	graphic	5.92	ok
+library-import-detail	имя файла	day	text	sheet	#3b3226	#faf6ec	text	11.65	ok
+library-import-detail	причина / подписи	day	text-2	sheet	#6e5d43	#faf6ec	text	5.88	ok
+library-import-detail	иконка ошибки	day	danger	sheet	#b3392a	#faf6ec	graphic	5.50	ok
+library-import-detail	иконка дубликата	day	text-2	sheet	#6e5d43	#faf6ec	graphic	5.88	ok
+library-import-detail	«Понятно»	day	on-accent	accent	#ffffff	#1f6f6b	text	5.92	ok
+reader-pdf-zoomed	подсказка «Дважды коснитесь…»	day	badge-text	badge-bg	#ffffff	#3b3226	text	12.57	ok
+reader-pinch-font	плашка «Aa 22»	day	on-accent	accent	#ffffff	#1f6f6b	text	5.92	ok
+summary-daily-not-done	строка «Ещё 4 мин…»	day	text-2	sheet	#6e5d43	#faf6ec	text	5.88	ok
+summary-daily-not-done	иконка монет	day	coin	sheet	#7a4f10	#faf6ec	graphic	6.59	ok
+reader-view-sheet-themes	подпись «Меню и экраны…»	day	text-2	sheet	#6e5d43	#faf6ec	text	5.88	ok
+reader-view-sheet-themes	«Базовая» (выбрана)	day	accent-text	surface	#1f6f6b	#ffffff	text	5.92	ok
+reader-view-sheet-themes	«Карандашная»	day	text	surface	#3b3226	#ffffff	text	12.57	ok
+reader-view-sheet-themes	рамка выбранной карточки	day	accent	sheet	#1f6f6b	#faf6ec	graphic	5.49	ok
+reader-view-sheet-themes	галочка	day	on-accent	accent	#ffffff	#1f6f6b	graphic	5.92	ok
+reader-pdf-zoomed	«76 / 144»	day	r-txt-2	r-bg (sepia)	#725f4a	#f4ecd8	text	5.17	ok
+profile-hero-stub	«Создать героя»	night	text	surface	#d6e2e0	#13232a	text	12.15	ok
+profile-hero-stub	шеврон	night	text-2	surface	#93aaa7	#13232a	graphic	6.57	ok
+profile-hero-stub-tapped	«Создать героя» нажата	night	text	PRESSED	#d6e2e0	#26363c	text	9.44	ok
+profile-hero-stub-tapped	тост «Скоро»	night	toast-info-fg	toast-info-bg	#d6e2e0	#1f363d	text	9.57	ok
+profile-hero-stub-tapped	иконка тоста	night	toast-info-icon	toast-info-bg	#5fb8ae	#1f363d	graphic	5.42	ok
+library-import-*	«Добавить книги»	night	accent-text	bg	#5fb8ae	#0c1719	text	7.77	ok
+library-import-*	рамка «Добавить книги»	night	accent	bg	#5fb8ae	#0c1719	graphic	7.77	ok
+library-import-*	плейсхолдер «Поиск»	night	text-2	surface	#93aaa7	#13232a	text	6.57	ok
+library-import-*	чип «Все · 12»	night	on-accent	accent	#0c1719	#5fb8ae	text	7.77	ok
+library-import-progress/result	текст тоста	night	toast-info-fg	toast-info-bg	#d6e2e0	#1f363d	text	9.57	ok
+library-import-progress/result	иконки тоста	night	toast-info-icon	toast-info-bg	#5fb8ae	#1f363d	graphic	5.42	ok
+library-import-detail	имя файла	night	text	sheet	#d6e2e0	#13232a	text	12.15	ok
+library-import-detail	причина / подписи	night	text-2	sheet	#93aaa7	#13232a	text	6.57	ok
+library-import-detail	иконка ошибки	night	danger	sheet	#ff8a80	#13232a	graphic	7.07	ok
+library-import-detail	иконка дубликата	night	text-2	sheet	#93aaa7	#13232a	graphic	6.57	ok
+library-import-detail	«Понятно»	night	on-accent	accent	#0c1719	#5fb8ae	text	7.77	ok
+reader-pdf-zoomed	подсказка «Дважды коснитесь…»	night	badge-text	badge-bg	#0c1719	#d6e2e0	text	13.72	ok
+reader-pinch-font	плашка «Aa 22»	night	on-accent	accent	#0c1719	#5fb8ae	text	7.77	ok
+summary-daily-not-done	строка «Ещё 4 мин…»	night	text-2	sheet	#93aaa7	#13232a	text	6.57	ok
+summary-daily-not-done	иконка монет	night	coin	sheet	#e2b866	#13232a	graphic	8.67	ok
+reader-view-sheet-themes	подпись «Меню и экраны…»	night	text-2	sheet	#93aaa7	#13232a	text	6.57	ok
+reader-view-sheet-themes	«Базовая» (выбрана)	night	accent-text	surface	#5fb8ae	#13232a	text	6.88	ok
+reader-view-sheet-themes	«Карандашная»	night	text	surface	#d6e2e0	#13232a	text	12.15	ok
+reader-view-sheet-themes	рамка выбранной карточки	night	accent	sheet	#5fb8ae	#13232a	graphic	6.88	ok
+reader-view-sheet-themes	галочка	night	on-accent	accent	#0c1719	#5fb8ae	graphic	7.77	ok
+reader-pdf-zoomed	«76 / 144»	night	r-txt-2	r-bg (night)	#7f938f	#0f1c1f	text	5.37	ok

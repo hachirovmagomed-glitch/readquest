@@ -1,0 +1,146 @@
+/* ReadQuest skin «Журнал» → канонические токены stage1-final (stage1-2026-10-08). Сгенерировано src/tokens-rq/build_rq.py.
+   Подключать ПОСЛЕ stage1 tokens.css. День: <html data-skin="zhurnal">, ночь: <html data-skin="zhurnal" data-theme="night">.
+   Legacy-селекторы макетов data-theme="zhurnal-day|zhurnal-night" тоже работают. Все цветовые токены stage1 определены; размеры/тайминги наследуются, кроме overrides ниже. */
+[data-skin="zhurnal"],
+[data-theme="zhurnal-day"]{
+  --rq-bg:#f5f3ee;
+  --rq-surface:#fbfaf7;
+  --rq-surface-2:#edece9;
+  --rq-sheet:#fbfaf7;
+  --rq-line:#cfcbc2;
+  --rq-border-strong:#141414;
+  --rq-text:#141414;
+  --rq-text-2:#57544e;
+  --rq-text-disabled:#96948e;
+  --rq-accent:#c4330c;
+  --rq-accent-pressed:#a12a0a;
+  --rq-accent-text:#bc310c;
+  --rq-on-accent:#ffffff;
+  --rq-control-on:#fbfaf7;
+  --rq-accent-tint:#f4e2db;
+  --rq-accent-border:#e2a08d;
+  --rq-coin:#7a4f10;
+  --rq-coin-tint:#e9e2d7;
+  --rq-success:#2f6a22;
+  --rq-success-tint:#dee6d9;
+  --rq-danger:#a3261a;
+  --rq-danger-tint:#efdcd8;
+  --rq-focus:#c4330c;
+  --rq-scrim:rgba(20,20,20,.5);
+  --rq-badge-bg:#141414;
+  --rq-badge-text:#f5f3ee;
+  --rq-toast-game-bg:#c4330c;
+  --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fbfaf7;
+  --rq-toast-info-fg:#141414;
+  --rq-toast-info-icon:#c4330c;
+  --rq-toast-info-border:#cfcbc2;
+  --rq-toast-error-bg:#a3261a;
+  --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:none;
+  --rq-shadow-2:none;
+  --rq-shadow-3:none;
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-border:#141414;
+  --rq-skin-rule:#cfcbc2;
+  --rq-skin-tab:#57544e;
+  --rq-skin-tab-active:#141414;
+  --rq-skin-daybar:#c4330c;
+  --rq-skin-daybar-track:#dedad1;
+  --rq-skin-cover-1:#2f4a3a;
+  --rq-skin-cover-1-ink:#f5f3ee;
+  --rq-skin-cover-2:#a8402a;
+  --rq-skin-cover-2-ink:#ffffff;
+  --rq-skin-cover-3:#22385c;
+  --rq-skin-cover-3-ink:#f5f3ee;
+  --rq-skin-cover-4:#d8b24a;
+  --rq-skin-cover-4-ink:#141414;
+  --rq-skin-cover-5:#e6ddcc;
+  --rq-skin-cover-5-ink:#141414;
+  --rq-skin-cover-6:#5b4a6e;
+  --rq-skin-cover-6-ink:#f5f3ee;
+  color-scheme:light;
+}
+[data-skin="zhurnal"][data-theme="night"],
+[data-theme="zhurnal-night"]{
+  --rq-bg:#141518;
+  --rq-surface:#1c1d21;
+  --rq-surface-2:#2d2e31;
+  --rq-sheet:#1c1d21;
+  --rq-line:#3a3b40;
+  --rq-border-strong:#efece4;
+  --rq-text:#efece4;
+  --rq-text-2:#aaa7a0;
+  --rq-text-disabled:#6e6d6a;
+  --rq-accent:#ff6b3d;
+  --rq-accent-pressed:#ff8964;
+  --rq-accent-text:#ff6b3d;
+  --rq-on-accent:#141518;
+  --rq-control-on:#452b26;
+  --rq-accent-tint:#452b26;
+  --rq-accent-border:#82402e;
+  --rq-coin:#e2b866;
+  --rq-coin-tint:#38332b;
+  --rq-success:#9fd68c;
+  --rq-success-tint:#2e3730;
+  --rq-danger:#ff8a80;
+  --rq-danger-tint:#3c2c2e;
+  --rq-focus:#ff6b3d;
+  --rq-scrim:rgba(0,0,0,.62);
+  --rq-badge-bg:#efece4;
+  --rq-badge-text:#141518;
+  --rq-toast-game-bg:#ff6b3d;
+  --rq-toast-game-fg:#141518;
+  --rq-toast-info-bg:#2d2e31;
+  --rq-toast-info-fg:#efece4;
+  --rq-toast-info-icon:#ff6b3d;
+  --rq-toast-info-border:#424244;
+  --rq-toast-error-bg:#ff8a80;
+  --rq-toast-error-fg:#2a0d0a;
+  --rq-shadow-1:none;
+  --rq-shadow-2:none;
+  --rq-shadow-3:none;
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-border:#efece4;
+  --rq-skin-rule:#3a3b40;
+  --rq-skin-tab:#aaa7a0;
+  --rq-skin-tab-active:#efece4;
+  --rq-skin-daybar:#ff6b3d;
+  --rq-skin-daybar-track:#34353b;
+  --rq-skin-cover-1:#2f4a3a;
+  --rq-skin-cover-1-ink:#f5f3ee;
+  --rq-skin-cover-2:#a8402a;
+  --rq-skin-cover-2-ink:#ffffff;
+  --rq-skin-cover-3:#22385c;
+  --rq-skin-cover-3-ink:#f5f3ee;
+  --rq-skin-cover-4:#d8b24a;
+  --rq-skin-cover-4-ink:#141414;
+  --rq-skin-cover-5:#e6ddcc;
+  --rq-skin-cover-5-ink:#141414;
+  --rq-skin-cover-6:#5b4a6e;
+  --rq-skin-cover-6-ink:#f5f3ee;
+  color-scheme:dark;
+}
+/* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
+[data-skin="zhurnal"],
+[data-theme="zhurnal-day"],
+[data-theme="zhurnal-night"]{
+  --rq-radius-xs:2px;
+  --rq-radius-sm:2px;
+  --rq-radius-md:2px;
+  --rq-radius-lg:2px;
+  --rq-toast-radius:2px;
+  --rq-font-ui:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --rq-skin-font-heading:"Golos Text",sans-serif;
+  --rq-skin-font-num:"Playfair Display",serif;
+}
+/* страница читалки: структура как в stage1 (--r-bg/--r-txt/--r-txt-2/--r-dim); сепия — канон */
+[data-skin="zhurnal"] [data-page="sepia"],
+[data-theme="zhurnal-day"] [data-page="sepia"],
+[data-theme="zhurnal-night"] [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
+[data-skin="zhurnal"] [data-page="day"],
+[data-theme="zhurnal-day"] [data-page="day"],
+[data-theme="zhurnal-night"] [data-page="day"]{--r-bg:#f8f6f1;--r-txt:#1b1a18;--r-txt-2:#66625b;--r-dim:0;}
+[data-skin="zhurnal"] [data-page="night"],
+[data-theme="zhurnal-day"] [data-page="night"],
+[data-theme="zhurnal-night"] [data-page="night"]{--r-bg:#17181b;--r-txt:#e8e5dd;--r-txt-2:#a3a09a;--r-dim:.35;}

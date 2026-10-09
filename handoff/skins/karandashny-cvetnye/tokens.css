@@ -1,0 +1,51 @@
+/* ReadQuest skin «Карандашный — цветные карандаши». Apply with <html data-theme="pencil-c-day|pencil-c-night"> */
+[data-theme="pencil-c-day"]{
+  --rq-bg:#fbf8f2;
+  --rq-surface:#fffefb;
+  --rq-text:#2a2826;
+  --rq-text-muted:#5a5650;
+  --rq-accent:#1f4e8c;
+  --rq-on-accent:#ffffff;
+  --rq-border:#34322f;
+  --rq-tab:#5a5650;
+  --rq-tab-active:#1f4e8c;
+  --rq-page-bg:#fffdf8;
+  --rq-page-text:#26241f;
+  --rq-page-number:#6a665e;
+  --rq-daybar:#1f4e8c;
+  --rq-daybar-track:#e9e4da;
+  --rq-hatch:#8c877e;
+  --rq-scrim:rgba(42,40,38,.45);
+  --rq-pencil-1:#c62f2f;
+  --rq-pencil-2:#c4570c;
+  --rq-pencil-3:#9a6a00;
+  --rq-pencil-4:#2e7a36;
+  --rq-pencil-5:#1f5fae;
+  --rq-pencil-6:#7a3ea6;
+  color-scheme:light
+}
+[data-theme="pencil-c-night"]{
+  --rq-bg:#25262a;
+  --rq-surface:#303136;
+  --rq-text:#ecebe6;
+  --rq-text-muted:#b9b8b2;
+  --rq-accent:#8fb8ff;
+  --rq-on-accent:#1a1b1e;
+  --rq-border:#d2d1cb;
+  --rq-tab:#b9b8b2;
+  --rq-tab-active:#8fb8ff;
+  --rq-page-bg:#212226;
+  --rq-page-text:#e6e4de;
+  --rq-page-number:#a6a59f;
+  --rq-daybar:#8fb8ff;
+  --rq-daybar-track:#44454c;
+  --rq-hatch:#7d7e86;
+  --rq-scrim:rgba(8,8,10,.6);
+  --rq-pencil-1:#ff8a80;
+  --rq-pencil-2:#ffb26b;
+  --rq-pencil-3:#f2d46b;
+  --rq-pencil-4:#8ed99a;
+  --rq-pencil-5:#8fb8ff;
+  --rq-pencil-6:#c9a2ff;
+  color-scheme:dark
+}

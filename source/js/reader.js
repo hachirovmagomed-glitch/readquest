@@ -153,7 +153,7 @@ function updDayBar(){
   const run=!!(__tracker&&__tracker.isRunning&&__tracker.isRunning());
   const live=run?__tracker.snapshot().minutes:0;
   const day=(run&&__tracker.getSessionDay&&__tracker.getSessionDay())||today(); /* session day = day it started */
-  const pct=Math.max(0,Math.min(1,(dayMin(day)+live)/goalMin()));
+  const pct=Math.max(0,Math.min(1,dayMin(day,live)/goalMin())); /* same whole-minute rule as «N / 10» */
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
 }

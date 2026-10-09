@@ -62,7 +62,9 @@ function weekKey(d){
 /* ===== sessions[] = single source of truth for minutes / XP / daily / weekly =====
    SESS mirrors IDB sessions[] (loaded at boot, appended by closeReader). */
 let SESS=[];
-function dayMin(key){let m=0;for(let i=0;i<SESS.length;i++){const r=SESS[i];if(r&&String(r.date).slice(0,10)===key)m+=Number(r.minutes)||0;}return m;}
+/* whole minutes of a local day — game-awards dayMinutes (Math.floor of the sum), the ONE rule for streak, «N / 10»,
+   week, gold, quests. `live` = counted minutes of the running session (day bar), counted as one more row. */
+function dayMin(key,live){const G=window.__rqGame;if(!G||!G.dayMinutes)return 0;return G.dayMinutes(live?SESS.concat([{date:key,minutes:live}]):SESS,key);}
 function minTodaySess(){return dayMin(today());}
 function daysInWeekAtGoal(minNeed,wk){
   const need=minNeed!=null?minNeed:goalMin();

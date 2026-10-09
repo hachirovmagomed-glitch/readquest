@@ -2,8 +2,9 @@
  * Game side of the session contract — derives rewards ONLY from sessions[] rows.
  *
  *   XP      = Math.round(row.minutes) * 10 per row, once per sessions[].id
- *   daily   = +30 gold when the day's sessions[] minutes ≥ goal (claim, once per day)
- *   weekly  = +120 gold when ≥ 4 days of the week have ≥ goal minutes (claim, once per week)
+ *   daily   = +30 gold when dayMinutes(day) ≥ goal (auto, once per day)
+ *   weekly  = +120 gold when ≥ 4 days of the week have dayMinutes ≥ goal (auto, once per week)
+ *   dayMinutes(day) = Math.floor(sum of the day's sessions[].minutes) — the ONLY day-minutes formula
  *
  * Idempotency: awarded row ids (sessions[].id) live in game.awardedSessionIds.
  * Pre-2026-10-06 rows (`legacy-…` ids, or no string id) already got their XP from the old
@@ -71,6 +72,28 @@ export function minutesOnDay(rows, day) {
   return minutesByDay(rows)[day] || 0;
 }
 
+/**
+ * THE day-minutes rule (1б, team decision A): whole minutes of a local day = Math.floor(sum of that day's
+ * sessions[].minutes). Streak (≥ 2), daily «N / 10», week, gold, quests, XP and metrics.py all use this —
+ * no second formula. EPS only absorbs float noise of the sum (1.4 + 0.6 = 1.9999999999999998 → 2).
+ */
+export const DAY_MIN_EPS = 1e-9;
+export function dayMinutes(rows, day) {
+  const k = String(day || '').slice(0, 10);
+  let m = 0;
+  (rows || []).forEach(function (r) {
+    if (r && r.date && String(r.date).slice(0, 10) === k) m += Number(r.minutes) || 0;
+  });
+  return Math.floor(m + DAY_MIN_EPS);
+}
+
+/** dayMinutes for every day that has rows: { 'YYYY-MM-DD': wholeMinutes } */
+export function dayMinutesMap(rows) {
+  const raw = minutesByDay(rows), out = {};
+  Object.keys(raw).forEach(function (k) { out[k] = Math.floor(raw[k] + DAY_MIN_EPS); });
+  return out;
+}
+
 /** Monday (local YYYY-MM-DD) of the week containing local day `day`. */
 export function weekStartOf(day) {
   const p = String(day || localDay()).slice(0, 10).split('-').map(Number);
@@ -81,7 +104,7 @@ export function weekStartOf(day) {
 
 /** Days (YYYY-MM-DD list) of the 7-day week starting `weekStart` with ≥ goal minutes (local days). */
 export function daysAtGoalInWeek(rows, weekStart, goal) {
-  const by = minutesByDay(rows);
+  const by = dayMinutesMap(rows);
   const days = [];
   for (let i = 0; i < 7; i++) {
     const k = addLocalDays(weekStart, i);
@@ -147,7 +170,7 @@ export function applyQuestAwards(game, rows, newRows, opts) {
   const o = opts || {};
   const goal = Number(o.goal) || 10;
   ensurePaid(game);
-  const by = minutesByDay(rows);
+  const by = dayMinutesMap(rows);
   const out = { gold: 0, daily: [], weekly: [] };
   const days = [];
   (newRows || []).forEach(function (r) { const k = r && r.date ? String(r.date).slice(0, 10) : null; if (k && days.indexOf(k) < 0) days.push(k); });

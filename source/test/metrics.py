@@ -5,7 +5,7 @@ Usage: python3 metrics.py --start 2026-10-12 exports/*.json
 Each file = one tester's export (sessions[] rows may carry an `id` — ignored here). Sessions under ~10 s with 0 pages are never logged
 by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Skins: theme_changed events (from, to = data-skin values; day/night toggles must NOT emit it); "kept" = last `to` differs from first `from`. Week 1 = start..start+6, week 2 = start+7..start+13.
 """
-import argparse, json, statistics, sys
+import argparse, json, math, statistics, sys
 from collections import defaultdict
 from datetime import date, timedelta
 
@@ -30,6 +30,8 @@ def tester(path, start):
         per_day[d(s["date"])] += s.get("minutes", 0) or 0
         if (s.get("minutes", 0) or 0) >= FAKE_MIN_MINUTES and (s.get("pageTurns", 0) or 0) == 0:
             fake += 1
+    # whole minutes of a day = floor(sum), the app's dayMinutes() (game-awards.js) — one rule for streak, «N / 10», week, metric
+    per_day = {k: math.floor(v + 1e-9) for k, v in per_day.items()}
     def week(n):
         lo = start + timedelta(days=7 * n); hi = lo + timedelta(days=6)
         days = [k for k in per_day if lo <= k <= hi]

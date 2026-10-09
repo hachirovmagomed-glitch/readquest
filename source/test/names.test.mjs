@@ -7,12 +7,17 @@
 // Red proof: NAMES_BREAK=<functionName> serves app.html / js/*.js with that function renamed away → must FAIL.
 // Stage 1a: handlers are also collected from js/**/*.js (cut-out classic scripts), and every global a js/ file declares
 // (top-level function/var/let/const at column 0, window.X = …) must resolve after boot.
+// Load errors per file: a window 'error' listener (installed before any script) records message + filename:line on every
+// load; no error may come from a js/* file (TDZ / ReferenceError when the <script src> order differs from app.html).
+// Red proof for the order: NAMES_SWAP=<file.js> serves the HTML with that file's <script src> moved before the preceding
+// <script> element (e.g. start.js before the big block → its top-level code runs before the globals it uses exist).
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8766/readquest/';
 const SRC = new URL('../app.html', import.meta.url).pathname;
 const BREAK = process.env.NAMES_BREAK || '';
+const SWAP = process.env.NAMES_SWAP || '';
 const checks = [];
 const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -52,16 +57,26 @@ const page = await browser.newPage();
 await page.setViewport({ width: 412, height: 915 });
 const errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message));
+const loadErrs = [];
+await page.exposeFunction('__rqNamesErr', (e) => { loadErrs.push(e); });
+await page.evaluateOnNewDocument(() => {
+  window.addEventListener('error', (e) => { try { window.__rqNamesErr({ m: String(e.message), f: String(e.filename || '').replace(/^.*\/readquest\//, ''), l: e.lineno, c: e.colno }); } catch (x) {} }, true);
+});
 page.on('console', m => { if (m.type() === 'error' && /ReferenceError|is not defined|TypeError/.test(m.text())) errors.push('console: ' + m.text()); });
-if (BREAK) {
+if (BREAK || SWAP) {
   await page.setRequestInterception(true);
   page.on('request', async (req) => {
     const isJs = /\/js\/[^?]+\.js$/.test(new URL(req.url()).pathname) && req.resourceType() === 'script';
     if (isJs || (/\/app\.html(\?|$)|\/readquest\/(\?|$)|\/$/.test(new URL(req.url()).pathname + (new URL(req.url()).search ? '?' : '')) && req.resourceType() === 'document')) {
       const r = await fetch(req.url()); let body = await r.text();
-      body = body.replace(new RegExp('function ' + BREAK + '\\s*\\('), 'function ' + BREAK + '__removed_by_test(');
-      if (isJs) body = body.replace(new RegExp('window\\.' + BREAK + '\\s*=(?!=)'), 'window.' + BREAK + '__removed_by_test=');
-      console.log(`NAMES_BREAK: ${BREAK} in ${new URL(req.url()).pathname} — ${body.includes(BREAK + '__removed_by_test') ? 'renamed' : 'not here'}`);
+      if (SWAP && !isJs) {
+        const m = body.match(new RegExp('<script src="js/' + SWAP.replace('.', '\\.') + '[^"]*"></script>\\n'));
+        if (m) { const i = body.indexOf(m[0]), prev = body.lastIndexOf('<script', i - 1); body = body.slice(0, i) + body.slice(i + m[0].length); body = body.slice(0, prev) + m[0] + body.slice(prev); }
+        console.log(`NAMES_SWAP: ${SWAP} ${m ? 'moved before the preceding <script>' : 'NOT FOUND'} in ${new URL(req.url()).pathname}`);
+      }
+      if (BREAK) body = body.replace(new RegExp('function ' + BREAK + '\\s*\\('), 'function ' + BREAK + '__removed_by_test(');
+      if (BREAK && isJs) body = body.replace(new RegExp('window\\.' + BREAK + '\\s*=(?!=)'), 'window.' + BREAK + '__removed_by_test=');
+      if (BREAK) console.log(`NAMES_BREAK: ${BREAK} in ${new URL(req.url()).pathname} — ${body.includes(BREAK + '__removed_by_test') ? 'renamed' : 'not here'}`);
       return req.respond({ status: 200, contentType: isJs ? 'text/javascript' : 'text/html; charset=utf-8', body });
     }
     req.continue();
@@ -98,6 +113,8 @@ ok('library ready ≤ 3 s (navigation → __rqReady, library shown): cold, media
   lib.visible && cold !== null && warm.length === 10 && warm4.length === 5 && !warm.includes(null) && !warm4.includes(null) && cold <= 3000 && Math.max(...warm) <= 3000 && med(warm4) <= 3000,
   { coldMs: cold, warmMedianMs: med(warm), warmMaxMs: Math.max(...warm), cpu4MedianMs: med(warm4), cpu4MaxMs: Math.max(...warm4), build: lib.build });
 ok('zero pageerror / ReferenceError across all reloads', errors.length === 0, errors);
+const jsErrs = loadErrs.filter(e => /^js\//.test(e.f));
+ok(`no js/* file throws while loading (window error with js/ filename, all ${1 + warm.length + warm4.length} loads; ${jsFiles.length} files)`, jsErrs.length === 0, jsErrs.slice(0, 5).map(e => `${e.f}:${e.l}:${e.c} ${e.m}`));
 
 await Promise.race([browser.close(), sleep(8000)]);
 const f = checks.filter(c => !c.p).length;

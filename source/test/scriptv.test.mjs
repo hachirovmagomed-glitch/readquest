@@ -5,6 +5,13 @@
 // build of SPLIT_BASE (default 1c5b7b9 = last commit before any cut) byte for byte; every other dist file identical, sw.js
 // differs only by the js/ precache entries. A path probe './probe-x.js' is appended to each js/ file (and to the same
 // inline script of the base) → any ?v= rewrite inside js/ by build-dist turns this red.
+// Pieces of ONE inline block (step 3 cuts the big block 1085 from the end): adjacent pieces are merged back at the seams
+// (`…\n</script>\n<script src=js/x>` and `<script src=js/x></script>\n<script src=js/y>`). A piece cut from a block that
+// starts with 'use strict'; carries exactly that one line first (its mode stays strict); it is dropped when merging at a
+// seam. The '<script src>' order is covered too: any other order cannot rebuild the base byte for byte.
+// Hoisting (static, any branch): inside one block a function declared further down can be called by top-level code;
+// across files it cannot. For every classic script in document order: identifiers used by code that RUNS AT LOAD
+// (top level + IIFE bodies, every branch) must not name a function declared only in a LATER script — new vs the base.
 // Red runs (dist post-processed after the build, as if step 1 were missing / the SW were wrong):
 //   SCRIPTV_BREAK=nov    — no ?v= on <script src="js/…"> and in the SW precache  → the new HTML must get an old script
 //   SCRIPTV_BREAK=swold  — the SW matches the cache with ignoreSearch               → ?v=B is answered with the ?v=A file
@@ -14,6 +21,8 @@ import { execSync } from 'child_process';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
+import { createRequire } from 'module';
+const esprima = createRequire(import.meta.url)('esprima');
 
 const SRC = new URL('..', import.meta.url).pathname;
 const BREAK = process.env.SCRIPTV_BREAK || '';
@@ -39,15 +48,49 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   fs.cpSync(SRC, CU, { recursive: true, filter: (s) => !/\/(dist|test|node_modules)(\/|$)/.test(path.relative(SRC, s) ? '/' + path.relative(SRC, s) : '') });
   const PROBE = "var __rqPathProbe = './probe-x.js';\n";
   let bh = fs.readFileSync(path.join(baseSrc, 'app.html'), 'utf8');
-  const notCut = [];
+  const notCut = [], STRICT = "'use strict';\n";
   for (const f of REAL) {
     const body = fs.readFileSync(path.join(CU, f), 'utf8');
-    const inl = '<script>\n' + body + '</script>';
-    if (!bh.includes(inl)) notCut.push(f); else bh = bh.replace(inl, '<script>\n' + body + PROBE + '</script>');
+    const strict = body.startsWith(STRICT), core = strict ? body.slice(STRICT.length) : body;
+    const idx = bh.indexOf(core);
+    if (idx < 0 || bh.indexOf(core, idx + 1) >= 0 || bh[idx - 1] !== '\n') { notCut.push([f, idx < 0 ? 'not found' : 'not unique / not at a line start']); continue; }
+    const k = bh.lastIndexOf('<script', idx), end = bh.indexOf('</script>', k);
+    const blockStrict = bh.startsWith('<script>\n' + STRICT, k);
+    if (!bh.startsWith('<script>\n', k) || end < idx + core.length) { notCut.push([f, 'not inside one inline <script>']); continue; }
+    if (strict !== blockStrict) { notCut.push([f, `mode: file strict=${strict}, block strict=${blockStrict}`]); continue; }
+    bh = bh.slice(0, idx + core.length) + PROBE + bh.slice(idx + core.length);
     fs.writeFileSync(path.join(CU, f), body + PROBE);
   }
   fs.writeFileSync(path.join(baseSrc, 'app.html'), bh);
-  ok(`(split) every js/*.js is a verbatim cut of an inline <script> of ${SPLIT_BASE} app.html (${REAL.join(', ') || 'none'})`, notCut.length === 0, notCut);
+  ok(`(split) every js/*.js is a verbatim, line-aligned cut of one inline <script> of ${SPLIT_BASE} app.html; 'use strict'; first iff its block is strict (${REAL.join(', ') || 'none'})`, notCut.length === 0, notCut);
+  /* ---- hoisting across files ---- */
+  const loadOrder = (srcDir) => {
+    const h = fs.readFileSync(path.join(srcDir, 'app.html'), 'utf8'), out = [];
+    for (const m of h.matchAll(/<script( src="(js\/[^"?]+\.js)")?>([\s\S]*?)<\/script>/g)) out.push(m[2] ? { n: m[2], code: fs.readFileSync(path.join(srcDir, m[2]), 'utf8') } : { n: 'inline@' + (h.slice(0, m.index).split('\n').length), code: m[3] });
+    return out;
+  };
+  const hoistBad = (srcDir) => {
+    const sc = loadOrder(srcDir).map(s => ({ ...s, ast: esprima.parseScript(s.code) }));
+    const declAt = new Map();
+    sc.forEach((s, i) => s.ast.body.forEach(st => { if (st.type === 'FunctionDeclaration' && !declAt.has(st.id.name)) declAt.set(st.id.name, i); }));
+    const bad = [];
+    sc.forEach((s, i) => {
+      const refs = new Set();
+      const walk = (n, parent, key) => {
+        if (!n || typeof n.type !== 'string') return;
+        if (n.type === 'FunctionDeclaration') return;
+        if ((n.type === 'FunctionExpression' || n.type === 'ArrowFunctionExpression') && !(parent && parent.type === 'CallExpression' && key === 'callee')) return;
+        if (n.type === 'Identifier') { if (!(parent && ((parent.type === 'MemberExpression' && key === 'property' && !parent.computed) || (parent.type === 'Property' && key === 'key' && !parent.computed)))) refs.add(n.name); return; }
+        for (const k of Object.keys(n)) { const v = n[k]; if (Array.isArray(v)) v.forEach(x => walk(x, n, k)); else if (v && typeof v === 'object') walk(v, n, k); }
+      };
+      s.ast.body.forEach(st => walk(st, null, null));
+      for (const r of refs) if (declAt.has(r) && declAt.get(r) > i) bad.push(`${s.n} → ${r} (${sc[declAt.get(r)].n})`);
+    });
+    return { bad, n: sc.length };
+  };
+  const hb = hoistBad(baseSrc), hc = hoistBad(CU);
+  const newBad = hc.bad.filter(x => !hb.bad.some(y => y.split(' (')[0].replace(/^inline@\d+/, 'I') === x.split(' (')[0].replace(/^inline@\d+/, 'I')));
+  ok(`(split) no load-time call/use of a function declared only in a LATER script (hoisting across files; ${hc.n} classic scripts, every branch)`, newBad.length === 0, { new: newBad, alreadyInBase: hb.bad.length });
   if (BREAK === 'sedjs') { const bd = path.join(CU, 'build-dist.sh'); fs.writeFileSync(bd, fs.readFileSync(bd, 'utf8').replace(`! -path "$DIST/js/*" `, '')); }
   for (const dir of [baseSrc, CU]) execSync(`RQ_BUILD=${SB} ./build-dist.sh && RQ_NS=rqt RQ_BUILD=${SB}t ./build-dist.sh`, { cwd: dir, stdio: 'pipe' });
   const walk = (d, r = '') => fs.readdirSync(path.join(d, r), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(d, path.join(r, e.name)) : [path.join(r, e.name)]);
@@ -57,7 +100,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const htmlBad = [];
     for (const f of ['index.html', 'app.html']) {
       let h = fs.readFileSync(path.join(dc, f), 'utf8');
-      h = h.replace(/<script src="(js\/[^"?]+\.js)\?v=([^"]+)"><\/script>/g, (m, s, v) => v === bb ? '<script>\n' + fs.readFileSync(path.join(dc, s), 'utf8') + '</script>' : m);
+      const S0 = '\u0001S', E0 = '\u0001E', SU = "(?:'use strict';\\n)?";
+      h = h.replace(/<script src="(js\/[^"?]+\.js)\?v=([^"]+)"><\/script>/g, (m, s, v) => v === bb ? S0 + fs.readFileSync(path.join(dc, s), 'utf8') + E0 : m);
+      h = h.replace(new RegExp('\\n</script>\\n' + S0 + SU, 'g'), '\n')          /* inline head of the block + cut tail */
+           .replace(new RegExp(E0 + '\\n' + S0 + SU, 'g'), '')                    /* two adjacent pieces of one block */
+           .replace(new RegExp(E0 + "\\n<script>\\n" + SU, 'g'), '')            /* piece + inline rest of the block */
+           .split(S0).join('<script>\n').split(E0).join('</script>');
       if (h !== fs.readFileSync(path.join(db, f), 'utf8')) htmlBad.push(f);
     }
     ok(`(split ${label}) built HTML with js/ re-inlined == build of ${SPLIT_BASE} (index.html, app.html)`, htmlBad.length === 0, htmlBad);

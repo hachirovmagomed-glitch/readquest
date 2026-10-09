@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 HOST="${RQ_HOST:-http://127.0.0.1:8767}"
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
-ALL="names savetext scriptv cap awards back begin summary streak-reset android pdf pwa"
+ALL="names savetext scriptv cap awards back begin summary streak-reset android pdf pdf-test pwa"
 SEL="${*:-$ALL}"
 mkdir -p /tmp/rq-runall; rc=0
 for t in $SEL; do
@@ -23,6 +23,7 @@ for t in $SEL; do
     streak-reset) cmd="env RQ_URL=$HOST/readquest/test/ node streak-reset.test.mjs";;
     android)      cmd="node android-verify.mjs";;
     pdf)          cmd="node pdf-verify.mjs";;
+    pdf-test)     cmd="env RQ_URL=$HOST/readquest/test/ node pdf-verify.mjs";;
     pwa)          cmd="node pwa-verify.mjs";;
     *) echo "unknown test $t"; rc=1; continue;;
   esac

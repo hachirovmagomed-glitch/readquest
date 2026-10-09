@@ -83,6 +83,26 @@
        - `window.f` в обработчике → охрана `later`;
        - `x&&x()` → узел.
    - Проверка: `scriptv` «split» вызывает `hoist-map` на каждом выносе. Самопроверка анализа: копия с отдельным `session-summary` → узел 2598; синтетика `a()`→`b()` из следующего файла → узел через `a()`.
+   - **Вынос `js/pdf.js` (1873–2358): обращения из кусков выше.** Условие Архитектора (1).
+     - `hoist-map` после выноса: 0 узлов. `--plan`: 0 узлов. Охраны: `pwa-lock.js:22 typeof pdfLabel` → `js/pdf.js:15`, цель выше, в `savedPage()`.
+     - В кусок вошёл и текстовый пагинатор: `layout`, `relayout`, `goPage`, `setFontSizeKeepPos`, `persistPage`, `readingAnchor`… — 51 имя верхнего уровня.
+     - Обращения к этим именам из оставшегося блока 1085 (`core-a`/`books-builtin`/`core-b`/`library`/`reader`). Найдены разовым разбором esprima (скрипт не в репо), сверены руками:
+
+| Место (app.html @ коммите выноса) | Кусок | Функция `js/pdf.js` | Где исполняется | `typeof`-защита |
+|---|---|---|---|---|
+| 1764 `b.onclick=()=>{…relayout();}` (внутри `FONTS.forEach`, сам `forEach` — при загрузке) | reader | `relayout` | обработчик кнопки шрифта | нет (не нужна) |
+| 1783, 1784 `szMinus/szPlus.onclick` | reader | `setFontSizeKeepPos` | обработчик | нет (не нужна) |
+| 1785–1797 `lh*/mg*/ls*/hyphTgl/indTgl/w*.onclick` (11 мест) | reader | `relayout` | обработчик | нет (не нужна) |
+| 1812 `navTurn` | reader | `goPage` | `navPrev/navNext.onclick` (1813–1814) | нет (не нужна) |
+| 1841 `openBook`: `if(R.mode==='pdf'){openPdf(b);…}` | reader | `openPdf` (рендер PDF) | `openBook` ← карточка библиотеки (onclick, 1590/1613), `js/v6-extras.js:670` (`setTimeout`) | нет (не нужна) |
+| 1846, 1849 `openBook` | reader | `layout`, `goPage` | там же | нет (не нужна) |
+
+     - Из `library` (1488–1715), `core-a`, `core-b` — ни одного обращения к `js/pdf.js`. `pdfLabel` и `pdfRender`/`pdfGo`/`pdfFlip` из кусков выше не вызываются вовсе: только внутри `pdf.js`, из файлов ниже и из `pwa-lock.js` под `typeof`.
+     - `library` читает PDF сам (`app.html:1685`, обложка через `window.pdfjsLib`) — это не функция `pdf.js`.
+     - Атрибутов `on…="pdf…(…)"` в разметке нет. Модуль после классических скриптов имён `pdf.js` не трогает.
+     - Вывод: всё — обработчики, после `__rqStart`. При загрузке ничего, защита `typeof` не нужна. В рантайме: `names` (10) — функции `js/pdf.js` определены, загрузчик и воркер работают.
+     - Загрузчик `pdf.js` (`js/content.js` `loadPdfJs`) не тронут: пути `vendor/pdfjs/*` относительно страницы. В самом `js/pdf.js` строк-путей нет.
+     - Проверка `names` (10): Resource Timing — `vendor/pdfjs/pdf.min.js` и `pdf.worker.min.js` от базы страницы, 200; настоящий Web Worker разбирает PDF в 1 стр. Красный: путь воркера `js/vendor/…` в dist → 9/10 («Setting up fake worker failed»).
 8. **Каждый файл — отдельный коммит.** Полный прогон на каждом коммите (для `git bisect`), счёт тестов пишется в сообщение коммита. `js/pdf.js` идёт отдельным пушем.
 
 **Перенос `js/pdf.js` — отдельным коммитом.**

@@ -141,6 +141,22 @@ ok(`typeof/window guards: every guarded function (${guardFns.length}: ${guardFns
 const ava = await page.evaluate(() => { const a = document.getElementById('streakAva'); const want = (typeof isMvp === 'function' && isMvp()) && S.useChar !== false;
   return { mvp: isMvp(), useChar: S.useChar !== false, svg: !!a && a.innerHTML.startsWith('<svg'), same: !!a && typeof avatarSvg === 'function' && (() => { const d = document.createElement('span'); d.innerHTML = avatarSvg(); return a.innerHTML === d.innerHTML; })(), /* both serialized by the browser */ want, txt: a ? a.textContent.slice(0, 4) : null }; });
 ok('streak avatar drawn by avatarSvg() after boot (guard app.html:1133 `typeof avatarSvg` → js/rpg.js took the function branch)', ava.want ? (ava.svg && ava.same) : !ava.svg, ava);
+/* pdf.js loader (js/content.js loadPdfJs) + worker after the split: paths resolve against the PAGE (not js/), a real Web Worker runs
+   (the worker's own request is not a page 'response' → Resource Timing + an in-page fetch of the resolved URLs) */
+{ const pl = await page.evaluate(async () => { try {
+    await loadPdfJs();
+    const pdf = '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF';
+    const task = window.pdfjsLib.getDocument({ data: new TextEncoder().encode(pdf) }); const doc = await task.promise;
+    const base = new URL('.', location.href).href, worker = window.pdfjsLib.GlobalWorkerOptions.workerSrc;
+    const res = performance.getEntriesByType('resource').map(e => e.name.split('?')[0]).filter(n => /pdfjs/.test(n)).map(n => n.replace(base, ''));
+    const st = await Promise.all(['vendor/pdfjs/pdf.min.js', worker].map(u => fetch(new URL(u, location.href)).then(r => r.status, () => 0)));
+    return { worker, pages: doc.numPages, realWorker: !!(task._worker && task._worker._webWorker), res, st,
+      fns: ['openPdf', 'pdfLabel', 'pdfRender', 'layout', 'goPage'].map(n => [n, eval('typeof ' + n)]) };
+  } catch (e) { return { err: String(e) }; } });
+  const want = ['vendor/pdfjs/pdf.min.js', 'vendor/pdfjs/pdf.worker.min.js'];
+  ok('pdf.js loader (js/content.js loadPdfJs) + worker: vendor/pdfjs/* resolved from the page base (Resource Timing, not js/vendor) and 200, a real Web Worker parses a 1-page PDF, js/pdf.js functions defined',
+    !pl.err && pl.worker === want[1] && pl.pages === 1 && pl.realWorker && want.every(w => pl.res.includes(w)) && !pl.res.some(u => /js\/vendor/.test(u)) && pl.st.every(s => s === 200) && pl.fns.every(([, v]) => v === 'function'), pl);
+}
 
 // ---- 3. library ready ≤ 3 s: cold (first load) + 10 warm reloads (SW cache) at CPU ×1, 5 warm at CPU ×4 ----
 const warm = [];

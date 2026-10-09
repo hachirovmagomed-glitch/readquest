@@ -1,7 +1,9 @@
 // Stage 1a step 1: after a BUILD change the new HTML gets the NEW js/ scripts, never an old one from the SW cache or HTTP cache.
 // Self-contained: copies source/ to a temp root, adds two probe scripts to js/ + <script src> tags into app.html,
 // builds A then B with build-dist.sh (rq and rqt), serves the temp dist with Cache-Control: max-age=600 (like GitHub Pages).
-// Part «split» (static, no browser): the 1a cut is behaviour-neutral. js/*.js re-inlined into the built HTML must give the
+// Part «split» (static, no browser). Architect: the byte-for-byte checks below run on the tree of SPLIT_TREE (default a6e0544 =
+// end of the 1a cut), not HEAD; HEAD gets rule checks only (<script src> order, 'use strict' on pieces of block 1085, hoist-map 0).
+// The 1a cut is behaviour-neutral. js/*.js re-inlined into the built HTML must give the
 // build of SPLIT_BASE (default 1c5b7b9 = last commit before any cut) byte for byte; every other dist file identical, sw.js
 // differs only by the js/ precache entries. A path probe './probe-x.js' is appended to each js/ file (and to the same
 // inline script of the base) → any ?v= rewrite inside js/ by build-dist turns this red.
@@ -32,6 +34,9 @@ const PROBES = ['js/probe-a.js', 'js/probe-b.js'];
 const REAL = fs.existsSync(path.join(SRC, 'js')) ? fs.readdirSync(path.join(SRC, 'js'), { recursive: true }).filter(f => f.endsWith('.js')).map(f => 'js/' + f).sort() : [];
 const ALLJS = [...REAL, ...PROBES].sort();
 const SPLIT_BASE = process.env.SPLIT_BASE || '1c5b7b9';
+/* Architect: byte-for-byte split checks apply ONLY to the 1a range — the tree at SPLIT_TREE (a6e0544 = end of the 1a cut)
+   re-inlined must equal the build of SPLIT_BASE. HEAD (later behaviour changes) gets only the rule checks below. */
+const SPLIT_TREE = process.env.SPLIT_TREE || 'a6e0544';
 const checks = [];
 const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -43,11 +48,15 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   fs.mkdirSync(BS);
   execSync(`git -C '${repo}' archive ${SPLIT_BASE} source | tar -x -C '${BS}'`);
   const baseSrc = path.join(BS, 'source');
-  fs.cpSync(SRC, CU, { recursive: true, filter: (s) => !/\/(dist|test|node_modules)(\/|$)/.test(path.relative(SRC, s) ? '/' + path.relative(SRC, s) : '') });
+  const TS = path.join(TMP, 'tree'); fs.mkdirSync(TS);
+  execSync(`git -C '${repo}' archive ${SPLIT_TREE} source | tar -x -C '${TS}'`);
+  const treeSrc = path.join(TS, 'source');
+  fs.cpSync(treeSrc, CU, { recursive: true, filter: (s) => !/\/(dist|test|node_modules)(\/|$)/.test(path.relative(treeSrc, s) ? '/' + path.relative(treeSrc, s) : '') });
+  const TREEJS = fs.readdirSync(path.join(CU, 'js'), { recursive: true }).filter(f => f.endsWith('.js')).map(f => 'js/' + f).sort();
   const PROBE = "var __rqPathProbe = './probe-x.js';\n";
   let bh = fs.readFileSync(path.join(baseSrc, 'app.html'), 'utf8');
   const notCut = [], STRICT = "'use strict';\n";
-  for (const f of REAL) {
+  for (const f of TREEJS) {
     const body = fs.readFileSync(path.join(CU, f), 'utf8');
     const strict = body.startsWith(STRICT), core = strict ? body.slice(STRICT.length) : body;
     const idx = bh.indexOf(core);
@@ -61,16 +70,18 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     fs.writeFileSync(path.join(CU, f), body + PROBE);
   }
   fs.writeFileSync(path.join(baseSrc, 'app.html'), bh);
-  ok(`(split) every js/*.js is a verbatim, line-aligned cut of one inline <script> of ${SPLIT_BASE} app.html; 'use strict'; first iff its block is strict (${REAL.join(', ') || 'none'})`, notCut.length === 0, notCut);
-  /* ---- hoisting across files: test/hoist-map.mjs (transitive: calls at load + sync callbacks, any branch) ---- */
-  const hm = (dir) => { const r = spawnSync(process.execPath, [path.join(SRC, 'test', 'hoist-map.mjs'), '--json'], { env: { ...process.env, HOIST_SRC: dir }, encoding: 'utf8' }); return JSON.parse(r.stdout); };
-  const hb = hm(baseSrc), hc = hm(CU);
-  const key = (x) => x.fn + '@' + x.unit.replace(/^inline app\.html:\d+/, 'inline');
-  const newBad = hc.nodes.filter(x => !hb.nodes.some(y => key(y) === key(x))).map(x => `[${x.unit}] ${x.ref} → ${x.fn} (${x.decl}) via ${x.chain}`);
-  /* guards (typeof X / window.X) on a LATER file that run AT LOAD: silently false after the split (were true inside one block) */
-  const gKey = (g) => g.fn + '@' + g.unit.replace(/^inline app\.html:\d+/, 'inline');
-  const newGuards = hc.guards.filter(g => g.atLoad && !hb.guards.some(y => y.atLoad && gKey(y) === gKey(g))).map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl} via ${g.chain}`);
-  ok(`(split) no load-time use of a function declared only in a LATER script, and no typeof/window guard on one at load (hoist-map, transitive; ${hc.units.length} classic scripts, every branch; guards on later files that run only after load: ${hc.guards.length})`, newBad.length === 0 && newGuards.length === 0, { new: newBad, newGuardsAtLoad: newGuards, laterOnly: hc.guards.filter(g => !g.atLoad).map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl}`), alreadyInBase: hb.nodes.length });
+  ok(`(split) every js/*.js is a verbatim, line-aligned cut of one inline <script> of ${SPLIT_BASE} app.html; 'use strict'; first iff its block is strict at ${SPLIT_TREE} (${TREEJS.join(', ') || 'none'})`, notCut.length === 0, notCut);
+  /* ---- HEAD: rule checks only (Architect) ---- */
+  { const tags = (h) => [...h.matchAll(/^<script src="(js\/[^"?]+\.js)"><\/script>$/gm)].map(m => m[1]);
+    const ht = tags(fs.readFileSync(path.join(SRC, 'app.html'), 'utf8')), tt = tags(fs.readFileSync(path.join(treeSrc, 'app.html'), 'utf8'));
+    ok(`(split HEAD) <script src="js/…"> order in app.html = the 1a order of ${SPLIT_TREE} (${tt.length} tags), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(ht) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
+    const STR = "'use strict';\n", strictBad = [];
+    for (const f of TREEJS) { const t = fs.readFileSync(path.join(treeSrc, f), 'utf8').startsWith(STR); const hp = path.join(SRC, f);
+      const hs = fs.existsSync(hp) && fs.readFileSync(hp, 'utf8').startsWith(STR); if (t !== hs) strictBad.push([f, { tree: t, head: hs }]); }
+    ok(`(split HEAD) 'use strict'; first line kept exactly on the pieces of the former strict block 1085 (${TREEJS.filter(f => fs.readFileSync(path.join(treeSrc, f), 'utf8').startsWith(STR)).length} files), none added elsewhere`, strictBad.length === 0, strictBad); }
+  { const hm = (dir) => { const r = spawnSync(process.execPath, [path.join(SRC, 'test', 'hoist-map.mjs'), '--json'], { env: { ...process.env, HOIST_SRC: dir }, encoding: 'utf8' }); return JSON.parse(r.stdout); };
+    const hc = hm(SRC), atLoad = hc.guards.filter(g => g.atLoad);
+    ok(`(split HEAD) hoist-map: 0 load-time uses of a function declared only in a LATER script, 0 typeof/window guards on one at load (transitive; ${hc.units.length} classic scripts)`, hc.nodes.length === 0 && atLoad.length === 0, { nodes: hc.nodes.map(x => `[${x.unit}] ${x.ref} → ${x.fn} (${x.decl}) via ${x.chain}`), guardsAtLoad: atLoad.map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl} via ${g.chain}`) }); }
   { const r = spawnSync(process.execPath, [path.join(SRC, 'test', 'hoist-map.mjs'), '--selftest'], { encoding: 'utf8' });
     ok('(split) hoist-map self-test on a synthetic page (node via a() → b(); deferred setTimeout ignored; typeof guard at load; window.X guard in a handler = later; x && x() = node)', r.status === 0, r.stdout.trim()); }
   if (BREAK === 'sedjs') { const bd = path.join(CU, 'build-dist.sh'); fs.writeFileSync(bd, fs.readFileSync(bd, 'utf8').replace(`! -path "$DIST/js/*" `, '')); }
@@ -90,9 +101,9 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
            .split(S0).join('<script>\n').split(E0).join('</script>');
       if (h !== fs.readFileSync(path.join(db, f), 'utf8')) htmlBad.push(f);
     }
-    ok(`(split ${label}) built HTML with js/ re-inlined == build of ${SPLIT_BASE} (index.html, app.html)`, htmlBad.length === 0, htmlBad);
-    const probeBad = REAL.filter(f => !fs.readFileSync(path.join(dc, f), 'utf8').endsWith(PROBE));
-    ok(`(split ${label}) path strings inside js/ untouched by the build ('./probe-x.js' verbatim)`, REAL.length > 0 && probeBad.length === 0, probeBad.map(f => [f, fs.readFileSync(path.join(dc, f), 'utf8').slice(-60)]));
+    ok(`(split ${label}) ${SPLIT_TREE}: built HTML with js/ re-inlined == build of ${SPLIT_BASE} (index.html, app.html)`, htmlBad.length === 0, htmlBad);
+    const probeBad = TREEJS.filter(f => !fs.readFileSync(path.join(dc, f), 'utf8').endsWith(PROBE));
+    ok(`(split ${label}) ${SPLIT_TREE}: path strings inside js/ untouched by the build ('./probe-x.js' verbatim)`, TREEJS.length > 0 && probeBad.length === 0, probeBad.map(f => [f, fs.readFileSync(path.join(dc, f), 'utf8').slice(-60)]));
     const fb = walk(db).filter(f => !skipSub(f)).sort(), fc = walk(dc).filter(f => !skipSub(f) && !f.startsWith('js/')).sort();
     const diffF = [...new Set([...fb, ...fc])].filter(f => {
       if (!fb.includes(f) || !fc.includes(f)) return true;
@@ -101,7 +112,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
       if (f === 'sw.js') { c = Buffer.from(c.toString().replace(/"js\/[^"]+",/g, '')); }
       return !a.equals(c);
     });
-    ok(`(split ${label}) every other dist file identical; sw.js differs only by js/ precache entries`, diffF.length === 0, diffF);
+    ok(`(split ${label}) ${SPLIT_TREE}: every other dist file identical; sw.js differs only by js/ precache entries`, diffF.length === 0, diffF);
   }
 }
 

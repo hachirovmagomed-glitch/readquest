@@ -24,8 +24,8 @@ async function mk(tag) {
   p.on('dialog', d => d.accept()); p.on('pageerror', e => { errs.push(tag + ': ' + e.message); console.log('PAGEERROR', tag, e.message); });
   return p;
 }
-const ready = (p) => p.waitForFunction(() => window.__rqReady, { timeout: 20000 });
-const st = (p) => p.evaluate(() => ({ passive: !!__rqWriter.passive, streak: S.streak, lastDay: S.lastDay, books: (S.userBooks || []).length, sess: SESS.length }));
+const ready = (p, t) => p.waitForFunction(() => window.__rqReady, { timeout: t || 20000 }).then(() => true, () => false);
+const st = (p) => p.evaluate(() => ({ ready: !!window.__rqReady, passive: !!__rqWriter.passive, streak: S.streak, lastDay: S.lastDay, books: (S.userBooks || []).length, sess: SESS.length })).catch(e => ({ err: e.message }));
 const lsv = (p) => p.evaluate(() => { const v = JSON.parse(localStorage.getItem('rqt_v1') || 'null'); return v ? { streak: v.progress.streak, lastDay: v.progress.lastDay, books: ((v.library || {}).userBooks || []).length } : null; });
 async function addBook(p) { const n = await p.evaluate(() => (S.userBooks || []).length); await (await p.$('#fileInp')).uploadFile(BOOK); await p.waitForFunction(k => (S.userBooks || []).length > k, { timeout: 10000 }, n); return p.evaluate(() => S.userBooks[S.userBooks.length - 1].id); }
 async function sess(p, id, ms) {
@@ -51,24 +51,31 @@ const a0 = await A.evaluate(() => ({ passive: !!__rqWriter.passive, overlay: !do
 ok('A opens passive (overlay)', a0.passive && a0.overlay, a0);
 let bNav = false; B.once('framenavigated', f => { if (f === B.mainFrame()) bNav = true; });
 await Promise.all([A.waitForNavigation({ timeout: 10000 }).catch(e => console.log('A nav', e.message)), A.click('#rqTestReset')]);
-await ready(A); await sleep(1500);
+await ready(A, 8000); await sleep(1500);
 const log = await A.evaluate(() => JSON.parse(sessionStorage.getItem('__rqResetLog') || '[]').map(x => x.s));
 ok('reset waited for deleteDatabase success (no timeout, no reload on blocked)', log.includes('idb-ok') && !log.includes('idb-timeout'), log);
 ok('writer B reloaded by the reset (BroadcastChannel / versionchange)', bNav);
 const a1 = await st(A);
-ok('A after reset: writer, streak 0, no books', !a1.passive && a1.streak === 0 && a1.books === 0, a1);
+ok('A after reset: writer, streak 0, no books', a1.ready && !a1.passive && a1.streak === 0 && a1.books === 0, a1);
 const ls1 = await lsv(A);
 ok('rqt_v1 right after reset: streak 0 (B did not write its old state back)', !ls1 || (ls1.streak === 0 && ls1.books === 0), ls1);
 
+// the old writer B does what it did on the phone: its next save() (any page turn / close) writes its in-memory state
+/* (as in the 2100 repro: a 1.1-min session in B right after the reset) — fixed: B already reloaded/passive, nothing to write */
+await B.bringToFront();
+await B.evaluate(async (id) => { try { if (window.R && (S.userBooks || []).some(b => b.id === id)) { await openBook(id); window.__rqAdv(66000); await closeReader(); } else if (window.S) save(); } catch (e) {} }, bid).catch(() => {}); await sleep(1500);
+const lsW = await lsv(A);
+ok('old writer B save() after the reset does not resurrect streak/books', !lsW || (lsW.streak === 0 && lsW.books === 0), lsW);
 // reload B. A (the window that reset) is the writer now → B shows «открыт в другом окне»; «Открыть здесь» = takeover.
 console.log('reloading B');await B.bringToFront();await B.reload({timeout:15000}).catch(e=>console.log('B reload',e.message)); await sleep(2000);console.log('B reloaded');
 const bOv = await B.evaluate(() => !document.getElementById('rqOther').classList.contains('hidden'));
 console.log('B overlay',bOv);if (bOv) { await B.evaluate(() => document.getElementById('rqOtherBtn').click()); }
-await ready(B); await sleep(800);
+await ready(B, 8000); await sleep(800);
 const b2 = await st(B), ls2 = await lsv(B);
-ok('reload B → streak 0, lastDay null, no books', !b2.passive && b2.streak === 0 && b2.lastDay == null && b2.books === 0 && b2.sess === 0, { b2, overlayFirst: bOv });
+ok('reload B → streak 0, lastDay null, no books', b2.ready && !b2.passive && b2.streak === 0 && b2.lastDay == null && b2.books === 0 && b2.sess === 0, { b2, overlayFirst: bOv });
 ok('rqt_v1 streak 0', ls2 && ls2.streak === 0 && ls2.lastDay == null && ls2.books === 0, ls2);
 
+if (!b2.ready) { console.log('SUMMARY streak-reset.test ' + checks.filter(c => c.p).length + '/' + (checks.length + 4) + ' (B never became writer)'); await browser.close(); process.exit(1); }
 // 1.1 min after reset → «1 / 10», streak stays 0 (2-min threshold)
 const bid2 = await addBook(B);
 await sess(B, bid2, 66000);

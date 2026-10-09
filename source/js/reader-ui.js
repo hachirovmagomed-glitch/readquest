@@ -55,7 +55,9 @@ let IMM=false; /* legacy name kept for old callers: true ⇔ fullscreen wanted *
 function goFullscreen(){FSW=true;IMM=true;fsRequest('open');}
 function enterImmersive(){FSW=true;IMM=true;concealChrome('open');}
 function exitImmersive(){FSW=false;IMM=false;revealChrome();}
-document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});if(R.mode==='pdf')pdfOnResize();});
+document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});if(R.mode==='pdf')pdfOnResize();
+  /* 1б: the SYSTEM left fullscreen (Android back / swipe) while we want it → show our panels (no separate «back» step) */
+  const r=el('reader');if(!fsActive()&&FSW&&r&&!r.classList.contains('hidden')&&r.classList.contains('barsoff'))revealChrome();});
 el('btnFull').onclick=()=>{enterImmersive();flashMsg('⛶ Полный экран · тап по центру — панели');};
 function isLightBg(bg){
   const c=String(bg).replace('#','');
@@ -161,7 +163,7 @@ document.addEventListener('keydown',e=>{
   if(el('reader').classList.contains('hidden'))return;
   if(e.key==='ArrowRight'||e.key===' ')goPage(R.page+1,true);
   if(e.key==='ArrowLeft')goPage(R.page-1,true);
-  if(e.key==='Escape')closeReader();
+  if(e.key==='Escape')readerBack();
 });
 /* --- жесты: свайп, щипок-зум, панорамирование --- */
 let tx0=null,pinch0=null,zoom0=1,panStart=null,suppressClick=false,mdrag=null,bright=null;
@@ -238,7 +240,7 @@ el('viewer').addEventListener('wheel',e=>{
   goPage(R.page+(e.deltaY>0?1:-1),true);
 },{passive:false});
 window.addEventListener('resize',relayout);
-el('btnBack').onclick=closeReader;
+el('btnBack').onclick=function(){readerBack();}; /* ← = one history step; popstate closes the book */
 
 /* --- панель: оглавление / закладки / цитаты --- */
 let panelTab='toc';
@@ -378,18 +380,24 @@ el('btnTts').onclick=()=>{
 };
 
 /* ================= СЕССИЯ И НАГРАДЫ ================= */
-let __closingReader=false;
-async function closeReader(){
-  if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive/stolen window: no summary, no payout, no write */
-  if(__closingReader)return; /* double tap on ← must not end the session twice */
-  __closingReader=true;
-  try{await closeReaderImpl();}finally{__closingReader=false;}
+/* Idempotent close (Архитектор, 1б): header ←, popstate and the pwa-lock handover may fire almost together →
+   ONE tracker.end (one sessions[] row, one id), one payout, one summary. Concurrent callers get the same promise;
+   a caller after the close finished (reader already hidden, no book) is a no-op — it must not repaint summary → library. */
+let __closingReader=null;
+function closeReader(opts){
+  if(window.__rqWriter&&!__rqWriter.mayWrite())return Promise.resolve(); /* passive/stolen window: no summary, no payout, no write */
+  if(__closingReader)return __closingReader;
+  const r=el('reader');
+  if(!R.book&&r&&r.classList.contains('hidden'))return Promise.resolve();
+  __closingReader=(async function(){try{await closeReaderImpl(opts);}finally{__closingReader=null;}})();
+  return __closingReader;
 }
-async function closeReaderImpl(){
+async function closeReaderImpl(opts){
+  const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
-  const b=R.book;if(!b){show('library');return;}
+  const b=R.book;if(!b){show('library');navAfterClose(false);return;}
   R.book=null;
   S.progress[b.id]={ratio:R.maxRatio};
   const a=antiCfg();
@@ -402,7 +410,7 @@ async function closeReaderImpl(){
   if(__tracker){
     try{row=await __tracker.end();}catch(e){console.warn('[rq] session end',e);} /* row.date = LOCAL day the session started */
   }
-  if(!row){save();renderLibrary();show('library');return;} /* empty session (or write failed → draft recovered on next boot) */
+  if(!row){save();if(!o.quiet){renderLibrary();show('library');navAfterClose(false);}return;} /* empty session (or write failed → draft recovered on next boot) */
   SESS.push(row);
   const sd=String(row.date||today()).slice(0,10); /* session day: 23:50–00:15 belongs entirely to the first day */
   const min=row.minutes;        // время сверх лимита на странице не идёт в опыт
@@ -471,8 +479,10 @@ async function closeReaderImpl(){
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
   const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid};
+  if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
+  if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);return;}
   renderSummary(_sumArgs);
-  show('summary');
+  show('summary');navAfterClose(true);
   if(isMvp())confettiSummary();
   else if(_sumArgs.newB.length||(_sumArgs.newAch&&_sumArgs.newAch.length)||level(S.xp)>_sumArgs.lvBefore||_sumArgs.justFinished||_sumArgs.mult>1)confetti();
 }
@@ -544,5 +554,50 @@ function confetti(opts){
 function confettiSummary(){confetti({count:10,avoidTop:true});}
 function confettiReward(){confetti({count:14});}
 function maybeConfetti(){if(isMvp())return;confetti();}
-el('btnDone').onclick=()=>{renderLibrary();show('library');};
+/* «В библиотеку» = the same as «назад» on the summary: show the library now, then drop the summary history entry
+   (its popstate finds nothing open → no-op), so back from the library leaves the app. */
+el('btnDone').onclick=()=>{renderLibrary();show('library');if(navState()==='summary'){try{history.back();}catch(e){}}};
+
+/* ===== «Назад» через историю браузера (1б; порядок — Интерфейс, контракт — Архитектор) =====
+   Адрес не меняется: pushState({rq:…},'',location.href), без '#', так что SW/scope видят тот же URL.
+   Открыта книга: [ … , {rq:'reader'}]. Back → popstate (state уже НЕ reader):
+     1) открыта шторка (Aa / оглавление) → закрыть её, вернуть {rq:'reader'};
+     2) панели на экране → спрятать их, вернуть {rq:'reader'};
+     3) иначе closeReader() → итог; запись reader заменяется на {rq:'summary'}.
+   На итоге back → библиотека (как «В библиотеку»). Из библиотеки back уходит из приложения.
+   Кнопка ← в шапке и Escape: сразу шаг 3, запись reader заменяется на summary (см. readerBack).
+   popstate при закрытой читалке и без итога (после F5 и т. п.) ничего не делает. */
+function navState(){try{return (history.state&&history.state.rq)||null;}catch(e){return null;}}
+function navPush(tag){try{if(navState()!==tag)history.pushState({rq:tag},'',location.href);}catch(e){}}
+function readerIsOpen(){const r=el('reader');return !!(r&&!r.classList.contains('hidden')&&R.book);}
+function summaryIsOpen(){const s=el('summary');return !!(s&&!s.classList.contains('hidden'));}
+/** ONE place that decides whether a closed session gets the summary screen (1б: always; team decision pending). */
+function summaryWanted(r){return true;}
+/** after closeReader: summary → this entry becomes {rq:'summary'}; no summary → drop a still-current reader entry */
+function navAfterClose(summary){
+  try{
+    if(summary){if(navState()==='reader')history.replaceState({rq:'summary'},'',location.href);else navPush('summary');}
+    else if(navState()==='reader')history.back(); /* its popstate: nothing open → no-op */
+  }catch(e){}
+}
+/* header ← / Escape. Deviation from «← = history.back()» (Архитектор): history.back() is async, and a system back
+   right after it (double back) went back TWO entries and left the app (back.test). Closing directly and REPLACING the
+   reader entry with {rq:'summary'} (navAfterClose) leaves no stale entry either, and a back that lands mid-close finds
+   nothing open (R.book already null) → no-op, then navAfterClose pushes the summary entry. */
+function readerBack(){return closeReader();}
+window.addEventListener('popstate',function(e){
+  const st=(e.state&&e.state.rq)||null;
+  if(window.__rqWriter&&__rqWriter.passive)return;
+  if(readerIsOpen()){
+    if(st==='reader')return;
+    const sh=el('sheet'),pn=el('panel');
+    if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}
+    if(!el('reader').classList.contains('barsoff')){concealChrome('back');navPush('reader');return;}
+    closeReader();
+    return;
+  }
+  if(summaryIsOpen()&&st!=='summary'){renderLibrary();show('library');}
+});
+/* boot (F5 inside the reader / on the summary): the entry still says reader/summary, nothing is open → neutral entry */
+if(navState())try{history.replaceState(null,'',location.href);}catch(e){}
 

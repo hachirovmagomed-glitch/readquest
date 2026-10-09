@@ -121,7 +121,7 @@ async function openBook(id){
   c.classList.toggle('hidden',R.mode==='pdf');
   el('reader').classList.toggle('pdfmode',R.mode==='pdf');
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
-  show('reader');applySet();reqWake();resetTimer();armChromeHide();
+  show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}

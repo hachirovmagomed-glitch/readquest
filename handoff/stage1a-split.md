@@ -111,7 +111,7 @@ window: `RQ_NS`, `RQ_K`, `__rqDiag`, `__rqWriter`, `__rqGame`, `__rq`, `__rqStar
 ## 3. Порядок коммитов и риски (каждый: android-verify 71, pdf-verify строгий 39, pwa-verify 117, cap.test 15, savetext 6, names-тест шага 0)
 0. Только тест (`source/test/names.test.mjs`, см. раздел 0): имена из inline-обработчиков и `innerHTML` находятся после загрузки; ноль pageerror/ReferenceError при запуске; время до библиотеки.
 1. build-dist.sh + sw: копирование `js/`, `?v=BUILD` для `<script src>` (см. п. 4); пустой `js/` → без изменений поведения. **Сделано 09.10:** `sw.js` без изменений, сторож в сборке, проверка `test/scriptv.test.mjs` с красными прогонами `nov` и `swold`.
-2. `pwa-lock.js` (уже отдельный блок).
+2. `pwa-lock.js` (уже отдельный блок). **Сделано 09.10:** вынос побайтный (проверка «split» в `scriptv`). Правила Архитектора: `src` первым в `<script>`; общий sed модулей не заходит в `js/` (проба путей, `SCRIPTV_BREAK=sedjs`).
 3. С конца к началу по одному-двум файлам: start, v6-extras, settings, content, rpg, session-summary, reader-ui, pdf (**отдельный коммит**, строгий pdf-verify до/после), reader, library, core.
 4. После разбиения (в рамках 1а): `flashMsg` с `kind`, токены `--rq-*` + `data-theme`, `SET.skin` / `data-skin` + `check_tokens.py` (см. раздел 0).
 

@@ -1,9 +1,14 @@
 // Stage 1a step 1: after a BUILD change the new HTML gets the NEW js/ scripts, never an old one from the SW cache or HTTP cache.
 // Self-contained: copies source/ to a temp root, adds two probe scripts to js/ + <script src> tags into app.html,
 // builds A then B with build-dist.sh (rq and rqt), serves the temp dist with Cache-Control: max-age=600 (like GitHub Pages).
+// Part «split» (static, no browser): the 1a cut is behaviour-neutral. js/*.js re-inlined into the built HTML must give the
+// build of SPLIT_BASE (default 1c5b7b9 = last commit before any cut) byte for byte; every other dist file identical, sw.js
+// differs only by the js/ precache entries. A path probe './probe-x.js' is appended to each js/ file (and to the same
+// inline script of the base) → any ?v= rewrite inside js/ by build-dist turns this red.
 // Red runs (dist post-processed after the build, as if step 1 were missing / the SW were wrong):
 //   SCRIPTV_BREAK=nov    — no ?v= on <script src="js/…"> and in the SW precache  → the new HTML must get an old script
 //   SCRIPTV_BREAK=swold  — the SW matches the cache with ignoreSearch               → ?v=B is answered with the ?v=A file
+//   SCRIPTV_BREAK=sedjs  — build-dist applies the module sed ('./x.js' → ?v=) to js/ too → split check red
 import puppeteer from 'puppeteer-core';
 import { execSync } from 'child_process';
 import http from 'http';
@@ -17,9 +22,58 @@ const TMP = fs.mkdtempSync('/tmp/scriptv-');
 const ROOT = path.join(TMP, 'src');
 const A = '20990202-0001', B = '20990202-0002';
 const PROBES = ['js/probe-a.js', 'js/probe-b.js'];
+const REAL = fs.existsSync(path.join(SRC, 'js')) ? fs.readdirSync(path.join(SRC, 'js'), { recursive: true }).filter(f => f.endsWith('.js')).map(f => 'js/' + f).sort() : [];
+const ALLJS = [...REAL, ...PROBES].sort();
+const SPLIT_BASE = process.env.SPLIT_BASE || '1c5b7b9';
 const checks = [];
 const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// ---------- split: re-inlined build == base build ----------
+{
+  const BS = path.join(TMP, 'base'), CU = path.join(TMP, 'cur'), SB = '20990303-0001';
+  const repo = execSync('git rev-parse --show-toplevel', { cwd: SRC }).toString().trim();
+  fs.mkdirSync(BS);
+  execSync(`git -C '${repo}' archive ${SPLIT_BASE} source | tar -x -C '${BS}'`);
+  const baseSrc = path.join(BS, 'source');
+  fs.cpSync(SRC, CU, { recursive: true, filter: (s) => !/\/(dist|test|node_modules)(\/|$)/.test(path.relative(SRC, s) ? '/' + path.relative(SRC, s) : '') });
+  const PROBE = "var __rqPathProbe = './probe-x.js';\n";
+  let bh = fs.readFileSync(path.join(baseSrc, 'app.html'), 'utf8');
+  const notCut = [];
+  for (const f of REAL) {
+    const body = fs.readFileSync(path.join(CU, f), 'utf8');
+    const inl = '<script>\n' + body + '</script>';
+    if (!bh.includes(inl)) notCut.push(f); else bh = bh.replace(inl, '<script>\n' + body + PROBE + '</script>');
+    fs.writeFileSync(path.join(CU, f), body + PROBE);
+  }
+  fs.writeFileSync(path.join(baseSrc, 'app.html'), bh);
+  ok(`(split) every js/*.js is a verbatim cut of an inline <script> of ${SPLIT_BASE} app.html (${REAL.join(', ') || 'none'})`, notCut.length === 0, notCut);
+  if (BREAK === 'sedjs') { const bd = path.join(CU, 'build-dist.sh'); fs.writeFileSync(bd, fs.readFileSync(bd, 'utf8').replace(`! -path "$DIST/js/*" `, '')); }
+  for (const dir of [baseSrc, CU]) execSync(`RQ_BUILD=${SB} ./build-dist.sh && RQ_NS=rqt RQ_BUILD=${SB}t ./build-dist.sh`, { cwd: dir, stdio: 'pipe' });
+  const walk = (d, r = '') => fs.readdirSync(path.join(d, r), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(d, path.join(r, e.name)) : [path.join(r, e.name)]);
+  for (const [label, sub, bb] of [['rq', 'dist', SB], ['rqt', 'dist/test', SB + 't']]) {
+    const db = path.join(baseSrc, sub), dc = path.join(CU, sub);
+    const skipSub = (f) => sub === 'dist' && f.startsWith('test/');
+    const htmlBad = [];
+    for (const f of ['index.html', 'app.html']) {
+      let h = fs.readFileSync(path.join(dc, f), 'utf8');
+      h = h.replace(/<script src="(js\/[^"?]+\.js)\?v=([^"]+)"><\/script>/g, (m, s, v) => v === bb ? '<script>\n' + fs.readFileSync(path.join(dc, s), 'utf8') + '</script>' : m);
+      if (h !== fs.readFileSync(path.join(db, f), 'utf8')) htmlBad.push(f);
+    }
+    ok(`(split ${label}) built HTML with js/ re-inlined == build of ${SPLIT_BASE} (index.html, app.html)`, htmlBad.length === 0, htmlBad);
+    const probeBad = REAL.filter(f => !fs.readFileSync(path.join(dc, f), 'utf8').endsWith(PROBE));
+    ok(`(split ${label}) path strings inside js/ untouched by the build ('./probe-x.js' verbatim)`, REAL.length > 0 && probeBad.length === 0, probeBad.map(f => [f, fs.readFileSync(path.join(dc, f), 'utf8').slice(-60)]));
+    const fb = walk(db).filter(f => !skipSub(f)).sort(), fc = walk(dc).filter(f => !skipSub(f) && !f.startsWith('js/')).sort();
+    const diffF = [...new Set([...fb, ...fc])].filter(f => {
+      if (!fb.includes(f) || !fc.includes(f)) return true;
+      if (f === 'index.html' || f === 'app.html') return false;
+      let a = fs.readFileSync(path.join(db, f)), c = fs.readFileSync(path.join(dc, f));
+      if (f === 'sw.js') { c = Buffer.from(c.toString().replace(/"js\/[^"]+",/g, '')); }
+      return !a.equals(c);
+    });
+    ok(`(split ${label}) every other dist file identical; sw.js differs only by js/ precache entries`, diffF.length === 0, diffF);
+  }
+}
 
 // ---------- temp source with probes ----------
 fs.cpSync(SRC, ROOT, { recursive: true, filter: (s) => !/\/(dist|test|node_modules)(\/|$)/.test(path.relative(SRC, s) ? '/' + path.relative(SRC, s) : '') });
@@ -76,7 +130,7 @@ const ready = (p) => p.waitForFunction(() => window.__rqReady, { timeout: 20000,
 const state = (p) => p.evaluate(() => ({
   build: RQ_BUILD, probe: window.__rqProbe || null,
   scripts: [...document.querySelectorAll('script[src]')].map(s => s.getAttribute('src')),
-  res: performance.getEntriesByType('resource').filter(e => /\/js\/probe-/.test(e.name)).map(e => ({ u: new URL(e.name).pathname.replace(/^.*\/js\//, 'js/') + new URL(e.name).search, sw: e.workerStart > 0 })),
+  res: performance.getEntriesByType('resource').filter(e => /\/js\/[^?]+\.js/.test(e.name)).map(e => ({ u: new URL(e.name).pathname.replace(/^.*\/js\//, 'js/') + new URL(e.name).search, sw: e.workerStart > 0 })),
   ctl: !!navigator.serviceWorker.controller,
 }));
 const want = (b) => PROBES.map(p => path.basename(p, '.js') + ':' + b);
@@ -92,17 +146,17 @@ for (const [label, base, ns, a, b, pa, pb] of [['rq', '/readquest/', 'rq', A, B,
   await p.reload({ waitUntil: 'load' }); await ready(p);
   let s = await state(p);
   ok(`(${label}) build ${a}: page controlled by SW, runs both js/ scripts of build ${a}`, s.ctl && s.build === a && same(s.probe, want(pa)), s);
-  ok(`(${label}) build ${a}: every <script src="js/…"> carries ?v=${a}`, s.scripts.filter(x => x.startsWith('js/')).length === PROBES.length && s.scripts.filter(x => x.startsWith('js/')).every(x => x.endsWith('?v=' + a)), s.scripts);
+  ok(`(${label}) build ${a}: every <script src="js/…"> carries ?v=${a} (${ALLJS.join(', ')})`, s.scripts.filter(x => x.startsWith('js/')).length === ALLJS.length && s.scripts.filter(x => x.startsWith('js/')).every(x => x.endsWith('?v=' + a)), s.scripts);
   const pre = await p.evaluate(async (c) => (await (await caches.open(c)).keys()).map(r => new URL(r.url).pathname.replace(/^.*\/js\//, 'js/') + new URL(r.url).search).filter(u => u.startsWith('js/')), ns + '-' + a);
-  ok(`(${label}) SW precache ${ns}-${a} holds js/ scripts with ?v=${a}`, same(pre.sort(), PROBES.map(x => x + '?v=' + a).sort()), pre);
-  ok(`(${label}) build ${a}: js/ scripts came from the SW`, s.res.length === PROBES.length && s.res.every(r => r.sw), s.res);
+  ok(`(${label}) SW precache ${ns}-${a} holds js/ scripts with ?v=${a}`, same(pre.sort(), ALLJS.map(x => x + '?v=' + a).sort()), pre);
+  ok(`(${label}) build ${a}: js/ scripts came from the SW`, s.res.length === ALLJS.length && s.res.every(r => r.sw && r.u.endsWith('?v=' + a)), s.res);
   // ---------- deploy B, all windows of A closed, NO manual SW update: the next open ----------
   build(B);
   await p.close();
   p = await mk();
   await p.goto(ORIGIN + base, { waitUntil: 'load' }); await ready(p);
   s = await state(p);
-  ok(`(${label}) after BUILD change: new HTML ${b} gets NEW js/ scripts (no old file from SW/HTTP cache)`, s.build === b && same(s.probe, want(pb)), { build: s.build, probe: s.probe, res: s.res });
+  ok(`(${label}) after BUILD change: new HTML ${b} gets NEW js/ scripts (no old file from SW/HTTP cache)`, s.build === b && same(s.probe, want(pb)) && s.res.length === ALLJS.length && s.res.every(r => r.u.endsWith('?v=' + b)), { build: s.build, probe: s.probe, res: s.res });
   // ---------- next open after this window closed: SW of build B controls, scripts from its own cache ----------
   await p.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update().catch(() => {}); });
   await p.waitForFunction(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting), { polling: 100, timeout: 15000 }).catch(() => {});
@@ -111,7 +165,7 @@ for (const [label, base, ns, a, b, pa, pb] of [['rq', '/readquest/', 'rq', A, B,
   await p.goto(ORIGIN + base, { waitUntil: 'load' }); await ready(p);
   const swB = await p.evaluate(() => new Promise((res) => { const c = navigator.serviceWorker.controller; if (!c) return res(null); const ch = new MessageChannel(); ch.port1.onmessage = (e) => res(e.data.build); c.postMessage({ t: 'build' }, [ch.port2]); setTimeout(() => res(null), 3000); }));
   s = await state(p);
-  ok(`(${label}) next open on build ${b}: SW ${b} controls, ${b} scripts from its cache`, swB === b && s.build === b && same(s.probe, want(pb)) && s.res.length === PROBES.length && s.res.every(r => r.sw), { swB, build: s.build, probe: s.probe, res: s.res });
+  ok(`(${label}) next open on build ${b}: SW ${b} controls, ${b} scripts from its cache`, swB === b && s.build === b && same(s.probe, want(pb)) && s.res.length === ALLJS.length && s.res.every(r => r.sw && r.u.endsWith('?v=' + b)), { swB, build: s.build, probe: s.probe, res: s.res });
   await p.close();
 }
 ok('zero pageerror', errs.length === 0, errs);

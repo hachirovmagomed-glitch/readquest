@@ -4,7 +4,9 @@
 // fails on click — this test fails at load instead. Also: zero pageerror / ReferenceError during boot, and the time
 // until the library is ready (≤ 3 s).
 // Run: RQ_URL=http://127.0.0.1:8766/readquest/ node names.test.mjs
-// Red proof: NAMES_BREAK=<functionName> serves app.html with that function renamed away → must FAIL.
+// Red proof: NAMES_BREAK=<functionName> serves app.html / js/*.js with that function renamed away → must FAIL.
+// Stage 1a: handlers are also collected from js/**/*.js (cut-out classic scripts), and every global a js/ file declares
+// (top-level function/var/let/const at column 0, window.X = …) must resolve after boot.
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 
@@ -16,7 +18,18 @@ const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' :
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // ---- 1. collect handler code from the SOURCE app.html (markup + JS strings) ----
-const html = fs.readFileSync(SRC, 'utf8');
+const JSDIR = new URL('../js/', import.meta.url).pathname;
+const jsFiles = fs.existsSync(JSDIR) ? fs.readdirSync(JSDIR, { recursive: true }).filter(f => f.endsWith('.js')).sort() : [];
+const jsSrc = Object.fromEntries(jsFiles.map(f => [f, fs.readFileSync(JSDIR + f, 'utf8')]));
+const html = fs.readFileSync(SRC, 'utf8') + '\n' + Object.values(jsSrc).join('\n');
+/* globals declared by js/ files */
+const jsGlobals = [];
+for (const [f, s] of Object.entries(jsSrc)) {
+  const g = new Set();
+  for (const m of s.matchAll(/^(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)|^(?:var|let|const)\s+([A-Za-z_$][\w$]*)/gm)) g.add(m[1] || m[2]);
+  for (const m of s.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=(?!=)/g)) g.add(m[1]);
+  for (const n of g) jsGlobals.push([f, n]);
+}
 const handlers = [];
 const reAttr = /(?:^|[\s"'\\])on(?:click|change|input|submit|keydown|keyup|contextmenu|dblclick|touchstart|touchend|pointerdown|pointerup|load|error|blur|focus)\s*=\s*(\\?["'])([\s\S]*?)\1/g;
 for (let m; (m = reAttr.exec(html));) handlers.push(m[2]);
@@ -29,7 +42,8 @@ for (const h of handlers) {
   for (const m of code.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(/g)) if (!KW.has(m[1])) calls.add(m[1]);
   for (const m of code.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*\./g)) if (!KW.has(m[1])) roots.add(m[1]);
 }
-const markupOnclick = (html.match(/<[a-z][^>]*\sonclick="/gi) || []).length;
+const markupOnclick = (fs.readFileSync(SRC, 'utf8').match(/<[a-z][^>]*\sonclick="/gi) || []).length;
+console.log(`js/ files: ${jsFiles.join(', ') || 'none'}; globals they declare: ${jsGlobals.map(x => x[1]).join(', ') || 'none'}`);
 console.log(`handlers: ${handlers.length} (markup onclick=: ${markupOnclick}); called names: ${calls.size}; object roots: ${roots.size}`);
 
 // ---- 2. boot and resolve every name in the page's global scope (incl. top-level const/let of classic scripts) ----
@@ -42,41 +56,46 @@ page.on('console', m => { if (m.type() === 'error' && /ReferenceError|is not def
 if (BREAK) {
   await page.setRequestInterception(true);
   page.on('request', async (req) => {
-    if (/\/app\.html(\?|$)|\/readquest\/(\?|$)|\/$/.test(new URL(req.url()).pathname + (new URL(req.url()).search ? '?' : '')) && req.resourceType() === 'document') {
+    const isJs = /\/js\/[^?]+\.js$/.test(new URL(req.url()).pathname) && req.resourceType() === 'script';
+    if (isJs || (/\/app\.html(\?|$)|\/readquest\/(\?|$)|\/$/.test(new URL(req.url()).pathname + (new URL(req.url()).search ? '?' : '')) && req.resourceType() === 'document')) {
       const r = await fetch(req.url()); let body = await r.text();
-      const n0 = body.length; body = body.replace(new RegExp('function ' + BREAK + '\\s*\\('), 'function ' + BREAK + '__removed_by_test(');
-      console.log(`NAMES_BREAK: renamed function ${BREAK} (${body.length !== n0 || body.includes(BREAK + '__removed_by_test') ? 'done' : 'NOT FOUND'})`);
-      return req.respond({ status: 200, contentType: 'text/html; charset=utf-8', body });
+      body = body.replace(new RegExp('function ' + BREAK + '\\s*\\('), 'function ' + BREAK + '__removed_by_test(');
+      if (isJs) body = body.replace(new RegExp('window\\.' + BREAK + '\\s*=(?!=)'), 'window.' + BREAK + '__removed_by_test=');
+      console.log(`NAMES_BREAK: ${BREAK} in ${new URL(req.url()).pathname} — ${body.includes(BREAK + '__removed_by_test') ? 'renamed' : 'not here'}`);
+      return req.respond({ status: 200, contentType: isJs ? 'text/javascript' : 'text/html; charset=utf-8', body });
     }
     req.continue();
   });
 }
-const readyAt = async () => { await page.waitForFunction(() => window.__rqReady, { timeout: 20000, polling: 'raf' }); return page.evaluate(() => Math.round(performance.now())); };
+/* null = the app never got ready (e.g. a cut-out file missing) → the timing check FAILs, the name checks still run */
+const readyAt = async () => { try { await page.waitForFunction(() => window.__rqReady, { timeout: 20000, polling: 'raf' }); } catch (e) { console.log('NOT READY in 20 s'); return null; } return page.evaluate(() => Math.round(performance.now())); };
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 const cold = await readyAt();
 await sleep(800); // late boot work (persist, awards) — errors there count too
-const res = await page.evaluate((calls, roots) => {
+const res = await page.evaluate((calls, roots, globs) => {
   const ty = (n) => { try { return (0, eval)('typeof ' + n); } catch (e) { return 'ERR ' + e.message; } };
-  return { calls: calls.map(n => [n, ty(n)]), roots: roots.map(n => [n, ty(n)]) };
-}, [...calls], [...roots]);
+  return { calls: calls.map(n => [n, ty(n)]), roots: roots.map(n => [n, ty(n)]), globs: globs.map(([f, n]) => [f, n, ty(n)]) };
+}, [...calls], [...roots], jsGlobals);
 const badCalls = res.calls.filter(([, t]) => t !== 'function');
 const badRoots = res.roots.filter(([, t]) => t === 'undefined' || t.startsWith('ERR'));
 ok(`every function called by name from inline handlers resolves after boot (${res.calls.length} names, ${handlers.length} handlers, ${markupOnclick} onclick= in markup)`, badCalls.length === 0 && res.calls.length > 50, { missing: badCalls });
 ok(`every object root used by inline handlers is defined after boot (${res.roots.length} names)`, badRoots.length === 0, { undefined: badRoots, roots: res.roots.map(r => r[0]) });
+const badGlobs = res.globs.filter(([, , t]) => t === 'undefined' || t.startsWith('ERR'));
+ok(`every global declared by js/ files resolves after boot (${res.globs.length} names in ${jsFiles.length} files)`, badGlobs.length === 0, { undefined: badGlobs, names: res.globs.map(g => g[0] + ':' + g[1]) });
 ok('zero pageerror / ReferenceError during boot', errors.length === 0, errors);
 
 // ---- 3. library ready ≤ 3 s: cold (first load) + 10 warm reloads (SW cache) at CPU ×1, 5 warm at CPU ×4 ----
 const warm = [];
-for (let i = 0; i < 10; i++) { await page.reload({ waitUntil: 'domcontentloaded' }); warm.push(await readyAt()); }
+if (cold !== null) for (let i = 0; i < 10; i++) { await page.reload({ waitUntil: 'domcontentloaded' }); warm.push(await readyAt()); }
 const cdp = await page.target().createCDPSession();
 await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 const warm4 = [];
-for (let i = 0; i < 5; i++) { await page.reload({ waitUntil: 'domcontentloaded' }); warm4.push(await readyAt()); }
+if (cold !== null) for (let i = 0; i < 5; i++) { await page.reload({ waitUntil: 'domcontentloaded' }); warm4.push(await readyAt()); }
 await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
 const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
 const lib = await page.evaluate(() => ({ visible: !document.getElementById('library').classList.contains('hidden'), build: RQ_BUILD }));
 ok('library ready ≤ 3 s (navigation → __rqReady, library shown): cold, median/max of 10 warm reloads (CPU ×1), median of 5 (CPU ×4)',
-  lib.visible && cold <= 3000 && Math.max(...warm) <= 3000 && med(warm4) <= 3000,
+  lib.visible && cold !== null && warm.length === 10 && warm4.length === 5 && !warm.includes(null) && !warm4.includes(null) && cold <= 3000 && Math.max(...warm) <= 3000 && med(warm4) <= 3000,
   { coldMs: cold, warmMedianMs: med(warm), warmMaxMs: Math.max(...warm), cpu4MedianMs: med(warm4), cpu4MaxMs: Math.max(...warm4), build: lib.build });
 ok('zero pageerror / ReferenceError across all reloads', errors.length === 0, errors);
 

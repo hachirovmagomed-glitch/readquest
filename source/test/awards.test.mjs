@@ -55,5 +55,14 @@ const game = () => ({ xp: 0, gold: 0, awardedSessionIds: [] });
   const wk = G.weekStartOf(D); const days = [0, 1, 2, 3].map(i => G.addLocalDays(wk, i));
   const wr = days.map((d, i) => row(i === 3 ? 9.99 : 10, i * 1440, d));
   ok('week counts days by dayMinutes: 10, 10, 10, 9.99 → 3 days at goal (9.99 is 9)', G.daysAtGoalInWeek(wr, wk, 10).length === 3, G.daysAtGoalInWeek(wr, wk, 10)); }
+// Fix B (Architect): update day — old row WITHOUT startedAt (already awarded alone: 0.9 → 0) + new row WITH startedAt.
+// IndexedDB returns rows in UUID order (random) → test both positions in sessions[]: day total must be exactly 10 XP.
+for (const newFirst of [false, true]) {
+  const g = game(), old = row(0.9, 0); delete old.startedAt; const neu = row(0.9, 30);
+  G.applySessionAwards(g, [old]);
+  const rows = newFirst ? [neu, old] : [old, neu]; G.applySessionAwards(g, rows);
+  ok('old 0.9 (no startedAt) + new 0.9 (startedAt), ' + (newFirst ? 'new first' : 'old first') + ' in sessions[] → exactly 10 XP total', g.xp === 10 && old.xp + neu.xp === 10, { xp: g.xp, old: old.xp, neu: neu.xp });
+  ok('… startOrder: row without startedAt before row with it (' + (newFirst ? 'new first' : 'old first') + ')', G.startOrder(old, neu, rows) < 0 && G.startOrder(neu, old, rows) > 0);
+}
 console.log(`\nSUMMARY awards.test ${pass}/${pass + fail}`);
 process.exit(fail ? 1 : 0);

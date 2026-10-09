@@ -33,12 +33,14 @@ export function startMs(r) {
   return Number.isFinite(t) && t > 0 ? t : NaN;
 }
 /**
- * Start order inside a day (Architect): both rows have startedAt → by startedAt; otherwise (old rows without it) →
+ * Start order inside a day (Architect): a row without startedAt is always before a row with it; both rows have startedAt → by startedAt; otherwise (old rows without it) →
  * by their position in sessions[] (`rows`). Ties → position. Deterministic for a given sessions[].
  */
 export function startOrder(a, b, rows) {
   const sa = startMs(a), sb = startMs(b);
-  if (Number.isFinite(sa) && Number.isFinite(sb) && sa !== sb) return sa < sb ? -1 : 1;
+  const fa = Number.isFinite(sa), fb = Number.isFinite(sb);
+  if (fa !== fb) return fa ? 1 : -1; // fix B: a row without startedAt predates the fix → always earlier
+  if (fa && fb && sa !== sb) return sa < sb ? -1 : 1;
   const list = rows || [];
   const ia = list.indexOf(a), ib = list.indexOf(b);
   if (ia !== ib) return ia < ib ? -1 : 1;

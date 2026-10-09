@@ -5,6 +5,7 @@
 - `js/reader.js` 1716–1872 (157 строк): 0 узлов; `pwa-lock.js:30 typeof stopDayBar` → `js/reader.js` (выше).
 - `js/library.js` 1488–1715 (228 строк): 0 узлов. Красные: `NAMES_SWAP=library.js` 4/10 (`js/library.js:23:1 ReferenceError: el`), `NAMES_THROW=library.js` 4/10 (дальше `__rqStart`: `Cannot access '__bootGold' before initialization` — полусломанный режим).
 - `js/core-b.js` 1295–1487 (193 строк): 0 узлов.
+- `js/books-builtin.js` 1282–1294 (13 строк): три `const`-текста и `BOOKS`, 0 узлов.
 
 ## 2026-10-09 (вечер) — Фронт: 1а, шаг 3, `js/pdf.js` (поверх `adeebf2`, локально, НЕ запушено)
 - Вынос 1873–2358 из `stash@{0}`, применился чисто. Сверено: тело побайтно = строки `adeebf2`, первая строка `'use strict';`, `app.html` = старый минус кусок + тег.

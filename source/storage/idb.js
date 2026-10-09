@@ -34,6 +34,24 @@ function ensureStores(db) {
   }
 }
 
+/**
+ * Another context wants to delete/upgrade this DB (test reset: deleteDatabase; a newer build: higher IDB_VERSION).
+ * Close at once so it is not blocked, stop writing (passive) and reload into a consistent state. Both namespaces
+ * (rq main, rqt test): the main app has no reset, but a new build in another tab may upgrade — without the close its
+ * open() would sit in onblocked. The window that runs the reset itself (gate.resetting) only closes.
+ */
+function onVersionChange(db) {
+  try { db.close(); } catch (e) { /* ignore */ }
+  if (typeof window === 'undefined') return;
+  const g = window.__rqWriter;
+  if (!g || g.resetting) return; /* not the app page (storage/test.html harness) or the resetting window itself */
+  g.passive = true;
+  if (window.__rqDiag) window.__rqDiag.mark('idb-versionchange');
+  if (g.vcReload) return;
+  g.vcReload = true;
+  try { location.reload(); } catch (e) { /* ignore */ }
+}
+
 function openDb() {
   return new Promise(function (res, rej) {
     const dg = (typeof window !== 'undefined' && window.__rqDiag && !window.__rqReady) ? window.__rqDiag : null; /* boot journal only */
@@ -48,7 +66,9 @@ function openDb() {
     };
     r.onsuccess = function () {
       if (dg) dg.mark('idb-success');
-      res(r.result);
+      const db = r.result;
+      db.onversionchange = onVersionChange.bind(null, db);
+      res(db);
     };
     r.onerror = function () {
       if (dg) dg.mark('idb-error', String(r.error && r.error.name));

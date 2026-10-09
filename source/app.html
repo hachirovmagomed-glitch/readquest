@@ -617,15 +617,43 @@ body.mvp #sumDailyBox{display:block}
 (function(){
   var ns=window.RQ_NS;
   /* also callable from the console; refuses in the main build (NS 'rq') — never touches main data */
+  /* Race fix (1б, stream 2100): a reset pressed in a PASSIVE window used to delete storage while the writer window
+     kept its old state in memory and wrote it straight back (streak and all). Now, in this order:
+     1) owner key + navigator.locks.request(lock,{steal:true}) → the old writer demotes (passive, writes nothing);
+     2) BroadcastChannel {t:'reset'} → every other window goes passive and reloads (onversionchange does the same);
+     3) deleteDatabase and WAIT for onsuccess (onblocked = keep waiting; 3 s timeout), not reload on onblocked;
+     4) rqt* keys removed after the DB is gone and once more right before reload (late pagehide/diag writes). */
   window.__rqTestReset=async function(opts){
     if(ns==='rq'||ns.indexOf('rq')!==0||ns.length<3){console.warn('[rq] test reset refused in main build');return false;}
     if(!(opts&&opts.noConfirm)&&!confirm('Удалить все данные тестовой версии? Основное приложение не затронется.'))return false;
     var pre=ns; /* 'rqt' — never matches 'rq_' */
-    try{if(window.__rqWriter&&__rqWriter.release){__rqWriter.passive=true;__rqWriter.release();}}catch(e){}
-    [localStorage,sessionStorage].forEach(function(st){for(var i=st.length-1;i>=0;i--){var k=st.key(i);if(k&&k.indexOf(pre)===0)__rqWriter.rawRemove(st,k);}});
-    await new Promise(function(r){var q=indexedDB.deleteDatabase(RQ_K.idb);q.onsuccess=q.onerror=q.onblocked=function(){r();};});
+    var gate=window.__rqWriter||{},log=window.__rqResetLog=[];
+    var mark=function(s){log.push({s:s,t:Math.round(performance.now())});};
+    gate.resetting=true;gate.passive=true; /* this window writes nothing from now on (its own steal below must not show the overlay) */
+    try{gate.setOwner&&gate.setOwner();}catch(e){} /* sync guard: the writer's next mayWrite() sees another owner → demotes */
+    if(navigator.locks&&navigator.locks.request){
+      await new Promise(function(res){
+        var t=setTimeout(function(){mark('lock-timeout');res();},1500);
+        navigator.locks.request(RQ_K.lock,{steal:true},function(){clearTimeout(t);mark('lock');res();return new Promise(function(){});}) /* held until reload */
+          .catch(function(){clearTimeout(t);res();});
+      });
+    }
+    try{var bc=new BroadcastChannel(RQ_K.bc);bc.postMessage({t:'reset',from:gate.id});mark('bc');}catch(e){}
+    var wipe=function(){[localStorage,sessionStorage].forEach(function(st){for(var i=st.length-1;i>=0;i--){var k=st.key(i);if(k&&k.indexOf(pre)===0)gate.rawRemove(st,k);}});};
+    var del=await new Promise(function(r){
+      var t=setTimeout(function(){r('timeout');},3000);
+      try{var q=indexedDB.deleteDatabase(RQ_K.idb);
+        q.onsuccess=function(){clearTimeout(t);r('ok');};
+        q.onerror=function(){clearTimeout(t);r('error');};
+        q.onblocked=function(){mark('blocked');}; /* other connections are closing (onversionchange) → keep waiting */
+      }catch(e){clearTimeout(t);r('throw');}
+    });
+    mark('idb-'+del);
+    wipe();
     try{var rg=await navigator.serviceWorker.getRegistration('./');if(rg&&rg.scope.indexOf('/test/')>0)await rg.unregister();}catch(e){} /* own test SW only */
     try{var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf(pre+'-')===0;}).map(function(k){return caches.delete(k);}));}catch(e){}
+    wipe();mark('reload');
+    try{sessionStorage.setItem('__rqResetLog',JSON.stringify(log));}catch(e){} /* diagnostics (tests); not an rqt* key */
     location.reload();
     return true;
   };

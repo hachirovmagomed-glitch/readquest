@@ -14,7 +14,8 @@ const OUT = process.env.RQ_OUT || ('/workspace/readquest/shots/pdf-fix' + (OLD ?
 const PDFDIR = process.env.RQ_PDFDIR || '/workspace/rqtest/pdf/';
 const TXT = '/workspace/rqtest/Длинная книга.txt';
 fs.mkdirSync(OUT, { recursive: true });
-const results = { mode: MODE, checks: [], runs: {}, old: {} };
+const SKIP_TOL = Math.max(0, +(process.env.RQ_SKIP_TOL || 0)); // 0 = strict (default); >0 only for diagnostics
+const results = { mode: MODE, skipTol: SKIP_TOL, brk: process.env.RQ_BREAK || null, checks: [], runs: {}, old: {} };
 const ok = (name, pass, info) => { results.checks.push({ name, pass: !!pass, info }); console.log((pass ? 'PASS ' : 'FAIL ') + name + (info !== undefined ? ' — ' + JSON.stringify(info).slice(0, 900) : '')); };
 const note = (k, v) => { results.old[k] = v; console.log('OLD ' + k + ' — ' + JSON.stringify(v).slice(0, 1200)); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -126,6 +127,17 @@ async function probeStart() {
       } else {
         const st = document.getElementById('pdfStage'), sh = document.getElementById('pdfSheet'), cv = __rqPdf.front, tl = document.getElementById('pdfText');
         const m = new DOMMatrix(getComputedStyle(st).transform === 'none' ? '' : getComputedStyle(st).transform);
+        /* in-page pixel check of the VISIBLE canvas bitmap every rAF: downsample to 48×64 and count dark (glyph, RGB sum < 540) opaque
+           pixels in the body (rows 15–85 %, between the header band and the footer mark). Cleared / unpainted → 0. */
+        let ink = -1, paper = -1; /* paper: light opaque samples — a canvas cleared to black (opaque context) or transparent has none */
+        if (cv && cv.width > 0 && cv.height > 0) {
+          const pc = window.__pc || (window.__pc = document.createElement('canvas')); pc.width = 48; pc.height = 64;
+          const x = window.__pcx || (window.__pcx = pc.getContext('2d', { willReadFrequently: true }));
+          x.clearRect(0, 0, 48, 64); x.drawImage(cv, 0, 0, 48, 64);
+          const dd = x.getImageData(0, 10, 48, 44).data; ink = 0; paper = 0;
+          for (let i = 0; i < dd.length; i += 4) { if (dd[i + 3] <= 200) continue; const L = dd[i] + dd[i + 1] + dd[i + 2]; if (L < 540) ink++; else if (L > 600) paper++; }
+        }
+        s.ink = ink; s.paper = paper; s.rz = !!window.__rz;
         Object.assign(s, { a: m.a, b: m.b, c: m.c, d: m.d, cvW: cv ? cv.width : 0, cvH: cv ? cv.height : 0, cv: cv ? R4(cv.getBoundingClientRect()) : null, sheet: R4(sh.getBoundingClientRect()), tl: R4(tl.getBoundingClientRect()), vis: getComputedStyle(st).visibility,
           shown: __rqPdf.shown, target: __rqPdf.target, z: __rqPdf.z, k: __rqPdf.k, sliding: __rqPdf.sliding, label: (__rqPdf.labels && __rqPdf.labels[__rqPdf.shown]) || String(__rqPdf.shown + 1), count: R.pageCount, inDom: cv ? cv.isConnected : false });
       }
@@ -136,9 +148,21 @@ async function probeStart() {
 }
 const probeStop = () => page.evaluate(() => { window.__ppOn = false; return window.__pp; });
 const near = (a, b, e = 1.01) => a && b && a.every((x, i) => Math.abs(x - b[i]) <= e);
+const CANVAS_PAPER_MIN = 634; // ≥30 % of the 2112 body samples are paper (cleared-to-black / transparent canvas → 0)
+const CANVAS_INK_MIN = 4; // dark (glyph) samples in the 48×44 body grid: cleared / white canvas = 0, sparsest page (chapter title) = 12
+function frameBad(s) { // zero-tolerance per-rAF verdict (new build)
+  return !(s.a > 0.05 && s.d > 0.05) || Math.abs(s.b) > 1e-3 || Math.abs(s.c) > 1e-3 || s.a < 0 || s.d < 0 ||
+    !s.cv || !s.inDom || s.cvW === 0 || s.cvH === 0 || !near(s.cv, s.sheet) || !near(s.tl, s.sheet) || s.vis === 'hidden' || !(s.ink >= CANVAS_INK_MIN) || !(s.paper >= CANVAS_PAPER_MIN);
+}
 function probeBad(pp) {
-  const bad = { scale0: 0, rotated: 0, bboxDiff: 0, numBad: 0, vv: 0, hidden: 0, n: pp.length };
+  const bad = { scale0: 0, rotated: 0, bboxDiff: 0, numBad: 0, vv: 0, hidden: 0, inkBad: 0, n: pp.length, rzFrames: 0, rzBad: 0, minInk: null };
   for (const s of pp) {
+    if (!OLD) {
+      if (!(s.ink >= CANVAS_INK_MIN) || !(s.paper >= CANVAS_PAPER_MIN)) bad.inkBad++;
+      if (s.paper >= 0) bad.minPaper = bad.minPaper === undefined ? s.paper : Math.min(bad.minPaper, s.paper);
+      if (s.ink >= 0) bad.minInk = bad.minInk === null ? s.ink : Math.min(bad.minInk, s.ink);
+      if (s.rz) { bad.rzFrames++; if (frameBad(s)) bad.rzBad++; }
+    }
     if (!(s.a > 0.05 && s.d > 0.05)) bad.scale0++;
     if (Math.abs(s.b) > 1e-3 || Math.abs(s.c) > 1e-3 || s.a < 0 || s.d < 0) bad.rotated++;
     if (OLD) { if (!near(s.cv, s.sheet) || s.cvW === 0) bad.bboxDiff++; }
@@ -160,13 +184,47 @@ async function viewerRect() {
   vrect = v; return vrect;
 }
 let bursting = false, bursts = [];
+/* Capture/resize serialization (09.10). A Page.captureScreenshot that overlaps Emulation.setDeviceMetricsOverride
+   (page.setViewport) can return a composite of stale compositor tiles (app header repeated in a grid, no page) —
+   a harness artifact, not an app frame (the rAF probe in the same step shows canvas in DOM, canvas = backing bbox).
+   So a viewport change waits for the in-flight screenshot, runs alone, and bursts resume after the app finished the
+   resize + 2 frames (see setVP). The resize window itself is covered by the in-page rAF check (frameBad: canvas in
+   DOM, not 0×0, glyph pixels, no flip / scale≈0, canvas = backing bbox), zero tolerance. No skipping anywhere. */
+let vpBusy = false, shotInFlight = null, vpLog = [], holdShots = 0;
+/* resize steps: no screenshot from just before the tap (fullscreen exit/enter) until the app has finished the redraw.
+   Observed 09.10 (3/5 strict runs): a screenshot overlapping the BROWSER's fullscreen exit (before setViewport) returns
+   stale tiles (ink 0); the in-page rAF check at the same time was clean. The window is covered by that check. */
+const appSettledAfterResize = () => OLD ? sleep(300) : page.waitForFunction(() => !__rqPdf.rsRaf && !__rqPdf.task && __rqPdf.k === 1 && __rqPdf.target === __rqPdf.shown, { timeout: 4000, polling: 'raf' }).catch(() => {});
+async function holdScreenshots(fn) {
+  holdShots++; try { if (shotInFlight) await shotInFlight.catch(() => {}); await fn(); await appSettledAfterResize();
+    await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))); } finally { holdShots--; }
+}
+async function setVP(vp) {
+  vpBusy = true;
+  try {
+    const a0 = Date.now(); if (shotInFlight) await shotInFlight.catch(() => {});
+    const a1 = Date.now(); await page.setViewport(vp); const a2 = Date.now();
+    /* the first readback right after the metrics override can still be the stale tile set (observed 09.10: the app
+       header repeated 2×5 at the old tile size, 1 frame, only in the step right after setViewport — never in the rAF
+       DOM probe). Resume bursts once the page has produced 2 frames at the new size. The rAF DOM probe keeps running
+       through these frames (canvas in DOM, canvas = backing bbox, visibility, scale), and a real blank canvas lasts a
+       whole render (≫ 2 frames), so it is still caught (RQ_BREAK=swap red run). */
+    /* screenshots resume only after the app has finished the resize (debounce done, no render task, interim CSS
+       scale back to 1); the in-page rAF probe checks every frame of this window with zero tolerance (frameBad). */
+    if (!OLD) await page.waitForFunction(() => !__rqPdf.rsRaf && !__rqPdf.task && __rqPdf.k === 1 && __rqPdf.target === __rqPdf.shown, { timeout: 4000, polling: 'raf' }).catch(() => {});
+    await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    vpLog.push({ a0, a1, a2, a3: Date.now(), h: vp.height });
+  } finally { vpBusy = false; }
+}
 async function burstLoop() {
   while (bursting) {
+    if (vpBusy || holdShots) { await sleep(1); continue; }
     try {
-      const r = vrect;
-      const data = await page.screenshot({ type: 'png', encoding: 'base64', optimizeForSpeed: true, captureBeyondViewport: false, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 0.5 } });
-      bursts.push({ data, t: Date.now() });
-    } catch (e) { await sleep(5); }
+      const r = vrect; const ts = Date.now();
+      shotInFlight = page.screenshot({ type: 'png', encoding: 'base64', optimizeForSpeed: true, captureBeyondViewport: false, clip: { x: r.x, y: r.y, width: r.w, height: r.h, scale: 0.5 } });
+      const data = await shotInFlight; shotInFlight = null;
+      bursts.push({ data, t: Date.now(), ts });
+    } catch (e) { shotInFlight = null; await sleep(5); }
   }
 }
 // blank threshold (body ink between the header band and the footer mark, @0.5 scale); calibrated on settled frames
@@ -175,19 +233,25 @@ async function capture(label, action, settleMs = 700, keepStrip = false) {
   await viewerRect();
   bursts = []; bursting = true; await probeStart();
   const bl = burstLoop(); await sleep(40);
-  await action();
+  const t0 = Date.now(); vpLog = []; tapDone = 0;
+  const isRz = /(?:^|-)(?:fs-exit|fs-enter|resize)(?:-|$)/.test(label);
+  await page.evaluate((rz) => { window.__rz = rz; window.__rqFsLog = window.__rqFsLog || []; window.__fsMark = window.__rqFsLog.length; }, isRz);
+  if (isRz) await holdScreenshots(action); else await action();
   await sleep(settleMs);
   bursting = false; await bl;
   const pp = await probeStop();
+  await page.evaluate(() => { window.__rz = false; });
+  const fsTimes = await page.evaluate(() => (window.__rqFsLog || []).slice(window.__fsMark || 0));
   const pngs = bursts.map(b => decode(b.data));
   const an = pngs.map(analyze);
-  /* Harness-artifact skip (≤2 / step): (1) visibly tiled frames (page/chrome repeated at ~viewport height),
-     (2) on resize steps only — a fully empty capture (ink=0, no band/mark) taken mid-setViewport.
-     Blank-on-empty-canvas stays for non-resize steps and for empties beyond the cap. ≥3 checked frames
-     required after each resize; too few checked or >2 skippable → resizeShort / skipOverflow (FAIL). */
+  /* STRICT by default (team decision 09.10: zero blank / tiled frames). Every capture is checked.
+     RQ_SKIP_TOL=N (diagnostics only, never for acceptance) restores the 481e067 tolerance: up to N per step of
+     (1) visibly tiled frames, (2) on resize steps a fully empty capture (ink=0, no band/mark) taken mid-setViewport.
+     Frames that WOULD be skippable are always counted (`skippable`) and saved as PNG for inspection.
+     ≥3 checked frames required after each resize; too few checked → resizeShort (FAIL). */
   const isResize = /(?:^|-)(?:fs-exit|fs-enter|resize)(?:-|$)/.test(label);
   let skipped = 0, skipOverflow = 0;
-  const checked = [];
+  const checked = [], skippableSeen = [];
   let blank = 0, headerOnly = 0;
   for (const a of an) {
     const isBlank = a.body < BODY_MIN && a.ink < BODY_MIN * 3;
@@ -195,8 +259,9 @@ async function capture(label, action, settleMs = 700, keepStrip = false) {
     const emptyCapture = a.ink === 0 && !a.blue && !a.red;
     const skippable = (a.tiled && (isBlank || isHO)) || (isResize && emptyCapture && (isBlank || isHO));
     if (skippable) {
-      if (skipped < 2) { skipped++; continue; }
-      skipOverflow++;
+      skippableSeen.push(an.indexOf(a));
+      if (skipped < SKIP_TOL) { skipped++; continue; }
+      if (SKIP_TOL > 0) skipOverflow++;
     }
     checked.push(a);
     if (isBlank) blank++;
@@ -204,10 +269,16 @@ async function capture(label, action, settleMs = 700, keepStrip = false) {
   }
   const resizeShort = isResize && checked.length < 3;
   const rec = { label, bursts: an.length, raf: pp.length, blank, headerOnly, flipped: an.filter(a => a.flipped).length, tiled: an.filter(a => a.tiled).length,
-    tiledSkipped: skipped, skipOverflow, checked: checked.length, resizeShort,
+    tiledSkipped: skipped, skipOverflow, checked: checked.length, resizeShort, skippable: skippableSeen.length,
     minBody: checked.length ? Math.min(...checked.map(a => a.body)) : (an.length ? Math.min(...an.map(a => a.body)) : null),
     idxSeen: [...new Set(an.map(a => a.idx))], dom: probeBad(pp), last: pp[pp.length - 1], lastAn: an[an.length - 1] };
   const worst = an.map((a, i) => [a.flipped ? -1 : a.body, i]).sort((x, y) => x[0] - y[0]).slice(0, 3).map(x => x[1]);
+  if (skippableSeen.length) {
+    rec.skippableFrames = skippableSeen.map(i => { const f = `${OUT}/skippable-${label.replace(/[^\w-]+/g, '_')}-${i}.png`; fs.writeFileSync(f, Buffer.from(bursts[i].data, 'base64'));
+      const a = an[i]; return { i, of: an.length, dtMs: bursts[i].t - t0, startMs: bursts[i].ts - t0, prevEnd: i ? bursts[i - 1].t - t0 : null,
+        vp: vpLog.filter(v => v.a3 >= t0).map(v => ({ wait: v.a0 - t0, set: v.a1 - t0, setDone: v.a2 - t0, raf2: v.a3 - t0 })),
+        fs: fsTimes.map(x => ({ how: x.how, ok: x.ok, at: x.t - t0 })), tap: tapDone - t0, file: f, tiled: a.tiled, ink: a.ink, body: a.body, blue: a.blue, red: a.red }; });
+  }
   if (keepStrip || rec.blank || rec.flipped || rec.headerOnly || rec.resizeShort || rec.skipOverflow) {
     const pick = [...new Set([...pngs.slice(0, 10).map((_, i) => i), ...worst])].sort((a, b) => a - b).slice(0, 16);
     strip(pick.map(i => pngs[i]), `${OUT}/strip-${label.replace(/[^\w-]+/g, '_')}.png`, 1);
@@ -225,7 +296,8 @@ const settled = async (ms = 8000) => { if (OLD) { await sleep(1200); return; } t
 const shot = async (name) => { await viewerRect(); return analyze(decode(await page.screenshot({ encoding: 'base64', clip: { x: vrect.x, y: vrect.y, width: vrect.w, height: vrect.h, scale: 0.5 } }))); };
 // ---------- gestures (CDP touch = trusted) ----------
 const X = (f) => vrect.x + vrect.w * f, Y = (f) => vrect.y + vrect.h * f;
-const tapAt = async (fx, fy = 0.5) => { await page.touchscreen.tap(X(fx), Y(fy)); };
+let tapDone = 0;
+const tapAt = async (fx, fy = 0.5) => { await page.touchscreen.tap(X(fx), Y(fy)); tapDone = Date.now(); };
 async function drag(x0, y0, x1, y1, steps = 8, dt = 16) {
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: y0 }] });
   for (let i = 1; i <= steps; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x0 + (x1 - x0) * i / steps, y: y0 + (y1 - y0) * i / steps }] }); if (dt) await sleep(dt); }
@@ -243,6 +315,17 @@ async function openPdfBook(id) {
   await page.evaluate((id) => openBook(id), id);
   if (OLD) { await page.waitForFunction(() => R.pdf && document.getElementById('pdfCanvas').width > 0, { timeout: 20000 }); }
   else await page.waitForFunction(() => R.pdf && __rqPdf.swaps > 0, { timeout: 20000 });
+  /* RQ_BREAK=swap (red-run proof only): reintroduce the 1306 bug-1 class — the VISIBLE canvas is cleared before every
+     async render (flip) and on every resize, so blank frames reach the screen. A strict run must go red. */
+  /* RQ_BREAK=resize: only the resize path (fullscreen change / viewport change) clears the visible canvas. */
+  if (!OLD && (process.env.RQ_BREAK === 'swap' || process.env.RQ_BREAK === 'resize')) await page.evaluate((mode) => {
+    if (window.__rqBroken) return; window.__rqBroken = true;
+    /* paint the visible canvas plain white (= what a cleared canvas over the white sheet looks like in 1306) */
+    const clr = () => { const c = __rqPdf.front; if (c) { const x = c.getContext('2d'); x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.restore(); } };
+    const r0 = window.pdfRender, o0 = window.pdfOnResize;
+    if (mode === 'swap') window.pdfRender = function () { clr(); return r0.apply(this, arguments); };
+    window.pdfOnResize = function () { clr(); return o0.apply(this, arguments); };
+  }, process.env.RQ_BREAK);
   await sleep(3800); // bars auto-hide (reading state)
   await viewerRect();
 }
@@ -278,8 +361,8 @@ async function scenarioA(tag, cpu) {
   const sOut = await st();
   // two fullscreen entries + a viewport height change (system bars): centre tap (bars + exit fs), height change, centre tap (enter fs)
   for (let k = 0; k < 2; k++) {
-    recs.push(await capture(`${tag}-fs-exit-${k}`, async () => { await tapAt(0.5, 0.5); await sleep(OLD ? 30 : 290); await page.setViewport({ ...PHONE, height: 851 }); }, cpu > 1 ? 1800 : 900, k === 0));
-    recs.push(await capture(`${tag}-fs-enter-${k}`, async () => { await tapAt(0.5, 0.5); await sleep(OLD ? 30 : 290); await page.setViewport(PHONE); }, cpu > 1 ? 1800 : 900, k === 0));
+    recs.push(await capture(`${tag}-fs-exit-${k}`, async () => { await tapAt(0.5, 0.5); await sleep(OLD ? 30 : 290); await setVP({ ...PHONE, height: 851 }); }, cpu > 1 ? 1800 : 900, k === 0));
+    recs.push(await capture(`${tag}-fs-enter-${k}`, async () => { await tapAt(0.5, 0.5); await sleep(OLD ? 30 : 290); await setVP(PHONE); }, cpu > 1 ? 1800 : 900, k === 0));
   }
   const sEnd = await st();
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
@@ -288,15 +371,18 @@ async function scenarioA(tag, cpu) {
 }
 function sumA(run) {
   const R = run.recs; const t = (f) => R.reduce((a, r) => a + f(r), 0);
-  return { bursts: t(r => r.bursts), raf: t(r => r.raf), blank: t(r => r.blank), headerOnly: t(r => r.headerOnly), flipped: t(r => r.flipped), scale0: t(r => r.dom.scale0), rotated: t(r => r.dom.rotated), bboxDiff: t(r => r.dom.bboxDiff), numBad: t(r => r.dom.numBad || 0), vv: t(r => r.dom.vv), hidden: t(r => r.dom.hidden || 0), tiledCaptures: t(r => r.tiled || 0),
-    tiledSkipped: t(r => r.tiledSkipped || 0), skipOverflow: t(r => r.skipOverflow || 0), resizeShort: t(r => r.resizeShort ? 1 : 0),
-    minBody: Math.min(...R.map(r => r.minBody ?? 1e9)), perStep: R.map(r => `${r.label.split('-').slice(1).join('-')}:${r.bursts}b/${r.raf}f bl${r.blank} ho${r.headerOnly} fl${r.flipped} s0${r.dom.scale0} bb${r.dom.bboxDiff} nb${r.dom.numBad || 0} min${r.minBody} sk${r.tiledSkipped || 0}`) };
+  return { rzFrames: t(r => r.dom.rzFrames || 0), rzBad: t(r => r.dom.rzBad || 0), inkBad: t(r => r.dom.inkBad || 0), minInk: Math.min(...R.map(r => r.dom.minInk ?? 1e9)), minPaper: Math.min(...R.map(r => r.dom.minPaper ?? 1e9)), bursts: t(r => r.bursts), raf: t(r => r.raf), blank: t(r => r.blank), headerOnly: t(r => r.headerOnly), flipped: t(r => r.flipped), scale0: t(r => r.dom.scale0), rotated: t(r => r.dom.rotated), bboxDiff: t(r => r.dom.bboxDiff), numBad: t(r => r.dom.numBad || 0), vv: t(r => r.dom.vv), hidden: t(r => r.dom.hidden || 0), tiledCaptures: t(r => r.tiled || 0),
+    skippable: t(r => r.skippable || 0), tiledSkipped: t(r => r.tiledSkipped || 0), skipOverflow: t(r => r.skipOverflow || 0), resizeShort: t(r => r.resizeShort ? 1 : 0),
+    minBody: Math.min(...R.map(r => r.minBody ?? 1e9)), perStep: R.map(r => `${r.label.split('-').slice(1).join('-')}:${r.bursts}b/${r.raf}f bl${r.blank} ho${r.headerOnly} fl${r.flipped} s0${r.dom.scale0} bb${r.dom.bboxDiff} nb${r.dom.numBad || 0} min${r.minBody} sk${r.tiledSkipped || 0} sx${r.skippable || 0}`), skippableFrames: R.flatMap(r => (r.skippableFrames || []).map(f => ({ step: r.label, ...f }))) };
 }
 
 // calibrate: settled body ink on a text page and on a chapter title page
 {
   await openPdfBook(ids.a);
-  await goTo(20); const title = await shot(); await goTo(21); const body = await shot(); await goTo(3); const front = await shot();
+  const cvInk = () => page.evaluate(() => { const cv = __rqPdf.front; const pc = document.createElement('canvas'); pc.width = 48; pc.height = 64; const x = pc.getContext('2d', { willReadFrequently: true });
+    x.drawImage(cv, 0, 0, 48, 64); const dd = x.getImageData(0, 10, 48, 44).data; let n = 0, pa = 0; for (let i = 0; i < dd.length; i += 4) { if (dd[i + 3] <= 200) continue; const L = dd[i] + dd[i + 1] + dd[i + 2]; if (L < 540) n++; else if (L > 600) pa++; } return [n, pa]; });
+  await goTo(20); const title = await shot(); const inkT = await cvInk(); await goTo(21); const body = await shot(); const inkB = await cvInk(); await goTo(3); const front = await shot(); const inkF = await cvInk();
+  if (!OLD) { results.calibCanvas = { inkPaperTitle: inkT, inkPaperBody: inkB, inkPaperRoman: inkF, CANVAS_INK_MIN, CANVAS_PAPER_MIN }; console.log('canvas ink calibration', results.calibCanvas); }
   results.calib = { title: title.body, body: body.body, roman: front.body, idxTitle: title.idx, idxBody: body.idx };
   BODY_MIN = Math.max(60, Math.round(Math.min(title.body, body.body) * 0.35));
   console.log('calibration', results.calib, 'BODY_MIN', BODY_MIN);
@@ -310,8 +396,11 @@ results.runs.a6 = { ...sumA(runA6), flips: runA6.recs.slice(0, 10).map(r => r.af
 for (const [k, s] of [['×1', results.runs.a1], ['×6', results.runs.a6]]) {
   if (OLD) note(`(а) CPU ${k} frames`, s);
   else ok(`(а) CPU ${k}: 10 flips + chapter page + pinch in/out + zoomed pan + 2 fullscreen entries + height change — no frame without glyphs, no flipped frame, canvas = backing bbox every rAF, no scale≈0, visualViewport.scale = 1`,
-    s.blank === 0 && s.headerOnly === 0 && s.flipped === 0 && s.scale0 === 0 && s.rotated === 0 && s.bboxDiff === 0 && s.vv === 0 && s.hidden === 0 && !s.resizeShort && !s.skipOverflow && s.bursts > 100 && s.raf > 300, s);
+    s.blank === 0 && s.headerOnly === 0 && s.flipped === 0 && s.scale0 === 0 && s.rotated === 0 && s.bboxDiff === 0 && s.vv === 0 && s.hidden === 0 && s.inkBad === 0 && !s.resizeShort && !s.skipOverflow && s.bursts > 100 && s.raf > 300, s);
 }
+if (!OLD) for (const [k, s] of [['×1', results.runs.a1], ['×6', results.runs.a6]])
+  ok(`(а) CPU ${k}: resize window (2× fullscreen exit/enter + height change, from before the tap/setViewport to the end of the redraw) — in-page check EVERY rAF, zero tolerance: visible canvas in DOM, not 0×0, glyph pixels in the canvas body, no flip / scale≈0, canvas = backing = text layer bbox`,
+    s.rzFrames >= 200 && s.rzBad === 0, { rzFrames: s.rzFrames, rzBad: s.rzBad, inkBad: s.inkBad, minInk: s.minInk, minPaper: s.minPaper, inkMin: CANVAS_INK_MIN, paperMin: CANVAS_PAPER_MIN });
 for (const [k, run] of [['×1', runA1], ['×6', runA6]]) {
   const fl = run.recs.slice(0, 10).map(r => r.after);
   const advanced = run.s1.page === run.s0.page + 10;
@@ -478,13 +567,13 @@ if (!OLD) {
   await openPdfBook(ids.a); await goTo(60);
   const recs = [];
   for (let k = 0; k < 5; k++) recs.push(await capture(`race-dblflip-${k}`, async () => { await tapAt(0.85); await sleep(60); await tapAt(0.85); }, 2500, k === 0));
-  for (let k = 0; k < 4; k++) recs.push(await capture(`race-resize-${k}`, async () => { await tapAt(0.85); await sleep(80); await page.setViewport({ ...PHONE, height: k % 2 ? 915 : 851 }); }, 2500, k === 0));
+  for (let k = 0; k < 4; k++) recs.push(await capture(`race-resize-${k}`, async () => { await tapAt(0.85); await sleep(80); await setVP({ ...PHONE, height: k % 2 ? 915 : 851 }); }, 2500, k === 0));
   await page.setViewport(PHONE);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const sm = sumA({ recs });
   results.runs.race = sm;
   if (OLD) note('bug-2 race (double flip / flip+resize, CPU ×6)', sm);
-  else ok('race: double flip and flip during a viewport change at CPU ×6 — no blank, no flipped, no scale≈0, canvas = backing', sm.blank === 0 && sm.headerOnly === 0 && sm.flipped === 0 && sm.scale0 === 0 && sm.bboxDiff === 0 && !sm.resizeShort && !sm.skipOverflow, sm);
+  else ok('race: double flip and flip during a viewport change at CPU ×6 — no blank, no flipped, no scale≈0, canvas = backing', sm.blank === 0 && sm.headerOnly === 0 && sm.flipped === 0 && sm.scale0 === 0 && sm.bboxDiff === 0 && sm.inkBad === 0 && sm.rzBad === 0 && sm.rzFrames > 0 && !sm.resizeShort && !sm.skipOverflow, sm);
   await closeViaBack();
 }
 

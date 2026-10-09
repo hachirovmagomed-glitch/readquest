@@ -20,18 +20,27 @@ await page.emulate({
   userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36',
   viewport: { width: 412, height: 915, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true },
 });
-await page.evaluateOnNewDocument(() => {
+// RQ_FAKE_NOW=<ISO or ms> (optional, diagnostics): start the main page's wall clock at that instant (e.g. to prove the
+// weekday-dependent checks on a Tuesday / Friday / Sunday). Date.now and `new Date()` are shifted; performance.now is not.
+const FAKE_NOW = process.env.RQ_FAKE_NOW ? (isNaN(+process.env.RQ_FAKE_NOW) ? Date.parse(process.env.RQ_FAKE_NOW) : +process.env.RQ_FAKE_NOW) : null;
+if (FAKE_NOW !== null && isNaN(FAKE_NOW)) throw new Error('bad RQ_FAKE_NOW');
+const WALL_OFF = FAKE_NOW === null ? null : FAKE_NOW - Date.now(); // constant for the whole run → consistent across reloads
+await page.evaluateOnNewDocument((wallOff) => {
   // controllable clock for anti-cheat tests (performance.now + Date.now shift together)
   window.__rqTimeOffset = 0;
   const pn = performance.now.bind(performance); performance.now = () => pn() + window.__rqTimeOffset;
-  const dn = Date.now; Date.now = () => dn() + window.__rqTimeOffset;
+  const dn = Date.now;
+  if (wallOff != null) { const RD = Date;
+    class FakeDate extends RD { constructor(...a) { if (a.length === 0) super(dn() + wallOff + window.__rqTimeOffset); else super(...a); } }
+    FakeDate.now = () => dn() + wallOff + window.__rqTimeOffset; window.Date = FakeDate; }
+  else Date.now = () => dn() + window.__rqTimeOffset;
   const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = (cb) => raf((t) => cb(t + window.__rqTimeOffset));
   // toast observer: any .rq-toast / visible #timerHint while the reader is open
   window.__toasts = [];
   new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
     if (n.classList && n.classList.contains('rq-toast')) window.__toasts.push({ t: n.textContent, reader: !document.getElementById('reader').classList.contains('hidden') });
   }))).observe(document, { childList: true, subtree: true });
-});
+}, WALL_OFF);
 const cdp = await page.target().createCDPSession();
 page.on('pageerror', e => console.log('PAGEERROR', e.message));
 page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('console.' + m.type(), m.text()); });
@@ -476,11 +485,16 @@ await page.evaluate(async () => {
   const wk = weekKey(today());
   for (let i = 0; i < 4; i++) { const d = addLocalDays(wk, i); const r = await __rq.logSession({ id: crypto.randomUUID(), date: d, bookId: 'b1', minutes: 10.2, pageTurns: 5 }); SESS.push(r); }
 });
-const wkBefore = await page.evaluate(() => ({ prog: mvpWeeklyProg(), gold: S.gold, xp: S.xp }));
+// Expected new dailies depend on the weekday: the 4 seeded days are Mon–Thu of the current week. If today is one of them
+// (Mon–Thu) its daily was already paid earlier in this run → 3 new days; Fri–Sun → today is outside → 4 new days.
+const wkBefore = await page.evaluate(() => { const wk = weekKey(today()); const days = [0, 1, 2, 3].map(i => addLocalDays(wk, i));
+  const paid = days.filter(d => (S.dailyPaidDays || []).indexOf(d) >= 0);
+  return { prog: mvpWeeklyProg(), gold: S.gold, xp: S.xp, today: today(), weekday: new Date(Date.now()).getDay(), days, paidBefore: paid, todayInDays: days.indexOf(today()) >= 0, todayPaid: dailyPaid(today()) }; });
+const wkNewDays = 4 - (wkBefore.todayInDays && wkBefore.todayPaid ? 1 : 0);
 const wkRes = await page.evaluate(() => { const a = awardPendingSessions(); const b = awardPendingSessions(); return { a: { gold: a.gold, daily: a.daily, weekly: a.weekly }, b: { gold: b.gold } }; });
 const wkAfter = await page.evaluate(() => ({ gold: S.gold, xp: S.xp }));
-// today's daily already paid; Mon/Wed/Thu dailies (+90) + weekly (+120) — each once
-ok('weekly auto from sessions[] (4 days ≥10 min) → +120 once (+30 per newly reached day); XP +400', wkBefore.prog === 1 && wkRes.a.weekly.length === 1 && wkRes.a.daily.length === 3 && wkAfter.gold - wkBefore.gold === 210 && wkRes.b.gold === 0 && wkAfter.xp - wkBefore.xp === 400, { wkBefore, wkRes, wkAfter });
+// N new dailies (+30 each) + weekly (+120), each once; the only day that may be pre-paid is today; repeat call pays +0
+ok('weekly auto from sessions[] (4 days ≥10 min) → +120 once (+30 per newly reached day); XP +400', wkBefore.prog === 1 && wkRes.a.weekly.length === 1 && wkBefore.paidBefore.length === 4 - wkNewDays && wkBefore.paidBefore.every(d => d === wkBefore.today) && wkRes.a.daily.length === wkNewDays && wkAfter.gold - wkBefore.gold === 30 * wkNewDays + 120 && wkRes.a.gold === 30 * wkNewDays + 120 && wkRes.b.gold === 0 && wkAfter.xp - wkBefore.xp === 400, { wkNewDays, expectGold: 30 * wkNewDays + 120, wkBefore, wkRes, wkAfter });
 
 // MVP screens
 await page.evaluate(() => { renderLibrary(); show('library'); }); await sleep(300);

@@ -148,6 +148,53 @@ export function createSessionTracker(api) {
     window.addEventListener('pagehide', function () { if (running) { dwellPause(); persistDraft(); } });
   }
 
+  /** Remove the crash draft only if it still belongs to `id` (a newer session may own the slot by now). */
+  function delDraftOf(id) {
+    let d = null;
+    try { d = JSON.parse(lsGet(DRAFT_KEY) || 'null'); } catch (e) { d = null; }
+    if (!d || d.id === id) lsDel(DRAFT_KEY);
+  }
+
+  /**
+   * Close the running session SYNCHRONOUSLY (the counters are final the moment this returns):
+   * close the last page (capped), start the pageVisibleMs flush, build the row, reset.
+   * @returns {{row: object|null, ev: Promise|null}}
+   */
+  function closeRunning(options) {
+    creditPage();
+    clearInterval(flushTimer); flushTimer = null;
+    const ev = flushEvent(); /* args captured synchronously, before reset() */
+    const row = {
+      id: sessionId,
+      date: options.date || sessionDay(),   // day the session STARTED (local)
+      bookId: bookId,
+      minutes: creditedMs / 60000,
+      pageTurns: pagesRead,
+    };
+    if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return { row: null, ev: ev }; }
+    /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
+    reset(true);
+    return { row: row, ev: ev };
+  }
+
+  async function writeRow(row) {
+    if (!row) return null;
+    try {
+      const stored = await api.logSession(row);
+      delDraftOf(row.id);
+      return stored;
+    } catch (e) {
+      console.warn('[rq] logSession failed — draft kept for recovery', e);
+      const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
+        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, updatedAt: Date.now() });
+      /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
+      if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
+      return null;
+    }
+  }
+
+  let staleHandler = null;
+
   function reset(keepDraft) {
     clearInterval(flushTimer); flushTimer = null;
     running = false; bookId = null; sessionId = null; startDay = null;
@@ -166,6 +213,14 @@ export function createSessionTracker(api) {
      */
     begin(id, startPage, opts) {
       const o = opts || {};
+      /* 1б: a session that is still running is NEVER overwritten. It is closed exactly like end() — one row,
+         its minutes kept — before the new one starts. The app normally closes it first (closeReader quiet path,
+         with payout); this is the safety net. The row write is async; the app hears about it via setStaleHandler. */
+      if (running) {
+        const c = closeRunning({});
+        const p = Promise.resolve(c.ev).then(function () { return writeRow(c.row); });
+        if (staleHandler) { try { staleHandler(p); } catch (e) { console.warn('[rq] stale handler', e); } }
+      }
       flushEvent();
       bookId = id != null ? String(id) : null;
       sessionId = newSessionId();
@@ -275,31 +330,13 @@ export function createSessionTracker(api) {
     async end(opts) {
       const options = opts || {};
       if (!running) return null;
-      creditPage();
-      clearInterval(flushTimer); flushTimer = null;
-      await flushEvent();
-      const minutes = creditedMs / 60000;
-      const row = {
-        id: sessionId,
-        date: options.date || sessionDay(),   // day the session STARTED (local)
-        bookId: bookId,
-        minutes: minutes,
-        pageTurns: pagesRead,
-      };
-      if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return null; }
-      /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
-      reset(true);
-      try {
-        const stored = await api.logSession(row);
-        lsDel(DRAFT_KEY);
-        return stored;
-      } catch (e) {
-        console.warn('[rq] logSession failed — draft kept for recovery', e);
-        lsSet(DRAFT_KEY, JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
-          countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, updatedAt: Date.now() }));
-        return null;
-      }
+      const c = closeRunning(options);
+      await c.ev;
+      return writeRow(c.row);
     },
+
+    /** fn(promise of the stored row | null) — called when begin() had to close a still-running session. */
+    setStaleHandler(fn) { staleHandler = typeof fn === 'function' ? fn : null; },
 
     /** Abort without logging a session (still flush visibility crumbs) */
     async cancel() {
@@ -316,9 +353,16 @@ export function createSessionTracker(api) {
  * (checked against existing rows; IDB key uniqueness is the second guard).
  */
 export async function recoverDraft(api) {
+  /* spare slot first: a session closed by begin() whose row write failed while the next session owned DRAFT_KEY */
+  const prev = lsGet(DRAFT_KEY + '_prev');
+  if (prev) { lsDel(DRAFT_KEY + '_prev'); await recoverRaw(api, prev); }
   const raw = lsGet(DRAFT_KEY);
   if (!raw) return null;
   lsDel(DRAFT_KEY);
+  return recoverRaw(api, raw);
+}
+
+async function recoverRaw(api, raw) {
   let d;
   try { d = JSON.parse(raw); } catch (e) { return null; }
   if (!d || !d.bookId || typeof d.id !== 'string') return null;

@@ -113,6 +113,9 @@ async function openBook(id){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
   if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+  /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
+     one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
+  if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
   R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
   el('rTitle').textContent=b.title+' — '+b.author;

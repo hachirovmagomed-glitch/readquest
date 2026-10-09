@@ -388,7 +388,8 @@ function closeReader(opts){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return Promise.resolve(); /* passive/stolen window: no summary, no payout, no write */
   if(__closingReader)return __closingReader;
   const r=el('reader');
-  if(!R.book&&r&&r.classList.contains('hidden'))return Promise.resolve();
+  const quietRun=opts&&opts.quiet&&__tracker&&__tracker.isRunning&&__tracker.isRunning();
+  if(!R.book&&r&&r.classList.contains('hidden')&&!quietRun)return Promise.resolve();
   __closingReader=(async function(){try{await closeReaderImpl(opts);}finally{__closingReader=null;}})();
   return __closingReader;
 }
@@ -397,7 +398,7 @@ async function closeReaderImpl(opts){
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
-  const b=R.book;if(!b){show('library');navAfterClose(false);return;}
+  const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   R.book=null;
   S.progress[b.id]={ratio:R.maxRatio};
   const a=antiCfg();
@@ -557,6 +558,14 @@ function maybeConfetti(){if(isMvp())return;confetti();}
 /* «В библиотеку» = the same as «назад» on the summary: show the library now, then drop the summary history entry
    (its popstate finds nothing open → no-op), so back from the library leaves the app. */
 el('btnDone').onclick=()=>{renderLibrary();show('library');if(navState()==='summary'){try{history.back();}catch(e){}}};
+
+/** A session row written outside closeReader (tracker.begin safety net / quiet close without a book): into SESS + paid. */
+async function stalePaid(p){
+  const row=await p;if(!row)return null;
+  if(!SESS.some(function(x){return x.id===row.id;}))SESS.push(row);
+  if(isMvp())awardPendingSessions();
+  save();return row;
+}
 
 /* ===== «Назад» через историю браузера (1б; порядок — Интерфейс, контракт — Архитектор) =====
    Адрес не меняется: pushState({rq:…},'',location.href), без '#', так что SW/scope видят тот же URL.

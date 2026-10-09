@@ -26,6 +26,7 @@
 window.__rqStart=async function(api, tracker){
   __rq=api; window.__rq=api; window.__tracker=tracker;
   __tracker=tracker;
+  if(tracker.setStaleHandler)tracker.setStaleHandler(function(p){stalePaid(p).catch(function(e){console.warn('[rq] stale session',e);});});
   /* single writer: every tracker call that counts/writes is gated synchronously (a thawed, stolen-from
      window demotes itself on its first call instead of counting minutes B already finished) */
   ['begin','setCounting','pageTurned','pageShown','userActive','onPageChange','end'].forEach(function(m){

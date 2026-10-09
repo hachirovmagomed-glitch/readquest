@@ -57,13 +57,41 @@ if (!OLD) ids.t = await upload(TXT);
 
 // ---------- pixel analysis ----------
 const decode = (b64) => PNG.sync.read(Buffer.from(b64, 'base64'));
+/* Pixels are sampled ONLY where the page canvas is the topmost thing on screen: rows covered by anything stacked over
+   the page (the red «ТЕСТ» banner of the /test/ build, the reader bars) are skipped. Found in the page with
+   elementFromPoint (3 columns, every CSS px row of #viewer); `cover` = [[y0, y1), …] in CSS px from the viewer top.
+   The banner is NOT hidden — the test just never reads its pixels (else its red row reads as a footer mark →
+   «flipped», zoom-edge «red»). Coordinates are kept (masked rows are neutral), so firstRow/lastRow stay comparable. */
+let cover = [];
+async function coverRows() {
+  /* fixed/sticky elements over #viewer that are not its ancestors (banner, toasts, overlays). elementFromPoint is no
+     use here: the banner is pointer-events:none. */
+  cover = await page.evaluate(() => {
+    const v = document.getElementById('viewer'); if (!v) return [];
+    const r = v.getBoundingClientRect(), out = [];
+    for (const e of document.body.querySelectorAll('*')) {
+      if (e.contains(v) || v.contains(e)) continue;
+      const cs = getComputedStyle(e);
+      if ((cs.position !== 'fixed' && cs.position !== 'sticky') || cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) continue;
+      const b = e.getBoundingClientRect();
+      if (b.width < 1 || b.height < 1 || b.bottom <= r.top || b.top >= r.bottom || b.right <= r.left || b.left >= r.right) continue;
+      if (b.width < r.width * 0.5) continue; /* small floating chips/icons are tolerated as before */
+      out.push([Math.max(0, b.top - r.top), Math.min(r.height, b.bottom - r.top), e.id || e.className || e.tagName]);
+    }
+    return out;
+  }).catch(() => []);
+  return cover;
+}
 function analyze(png) {
   // Page features only (the reader bars' small blue/red icons are ignored): the header band = rows with ≥25 % blue
   // pixels, the footer mark = rows with ≥ max(12 px, 5 %) red pixels; body ink is counted strictly between them.
   const d = png.data, W = png.width, H = png.height;
   let ink = 0; const green = [];
   const inkRows = new Int32Array(H), inkCols = new Int32Array(W), bRow = new Int32Array(H), rRow = new Int32Array(H), bMin = new Int32Array(H).fill(1e9), bMax = new Int32Array(H).fill(-1);
+  const skipRow = new Uint8Array(H);
+  if (cover.length && vrect && vrect.h) { const k = H / vrect.h; for (const [a, b] of cover) for (let y = Math.floor(a * k); y < Math.min(H, Math.ceil(b * k)); y++) skipRow[y] = 1; }
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (skipRow[y]) continue;
     const i = (y * W + x) * 4, r = d[i], g = d[i + 1], b = d[i + 2];
     const L = 0.299 * r + 0.587 * g + 0.114 * b;
     if (r > 150 && g < 110 && b < 110 && r > g + 70) rRow[y]++;
@@ -181,7 +209,7 @@ let vrect = null;
 async function viewerRect() {
   const v = await page.evaluate(() => { const e = document.getElementById('viewer'); if (!e) return { err: location.href + ' | ' + document.title + ' | ' + (document.body ? document.body.innerText.slice(0, 200) : '') }; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
   if (v.err) { await page.screenshot({ path: OUT + '/ERR-no-viewer.png' }); throw new Error('no #viewer: ' + v.err); }
-  vrect = v; return vrect;
+  vrect = v; await coverRows(); return vrect;
 }
 let bursting = false, bursts = [];
 /* Capture/resize serialization (09.10). A Page.captureScreenshot that overlaps Emulation.setDeviceMetricsOverride

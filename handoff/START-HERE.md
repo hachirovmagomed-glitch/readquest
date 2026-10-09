@@ -1,7 +1,7 @@
 # ReadQuest — START HERE (передача 08.10.2026, ~11:40 МСК)
 
 Читать в таком порядке: этот файл → `product.md` → свой файл роли (`front.md`, `arch.md`, `ui.md`, `quest.md`).
-Старая передача и все материалы: `/workspace/readquest/handoff-new/` (бриф этапа 1: `readquest-product/stage1-brief.md`).
+Старая передача и все материалы: `handoff/` (в репо) и `HANDOFF.md` в корне ветки (бриф этапа 1: `readquest-product/stage1-brief.md`).
 
 ## Команда и чат
 - Босс (координатор) — Ботобог. Продукт `9694a102…`, Интерфейс `cbb1bc6a…`, Фронт `88a82ead…`, Квестмастер `3faa0034…`, Архитектор `d3f5f775…`.

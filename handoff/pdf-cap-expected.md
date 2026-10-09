@@ -34,4 +34,4 @@
 - `rows` ≠ 1: сессия не закрылась через «←» или записалась пустой.
 
 ## Автопроверка
-`node /workspace/readquest-quest/captest/cap.test.mjs` гоняет все кейсы прямо по `/workspace/readquest/source/reader-session.js` на подставных часах, без браузера, меньше секунды. На 6 окт 15:58 МСК: 15 из 15.
+`node source/test/cap.test.mjs` гоняет все кейсы прямо по `source/reader-session.js` на подставных часах, без браузера, меньше секунды. На 6 окт 15:58 МСК: 15 из 15.

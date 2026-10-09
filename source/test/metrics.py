@@ -3,7 +3,7 @@
 
 Usage: python3 metrics.py --start 2026-10-12 exports/*.json
 Each file = one tester's export (sessions[] rows may carry an `id` — ignored here). Sessions under ~10 s with 0 pages are never logged
-by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Week 1 = start..start+6, week 2 = start+7..start+13.
+by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Week 1 = start..start+6, week 2 = start+7..start+13.
 """
 import argparse, json, statistics, sys
 from collections import defaultdict
@@ -15,6 +15,11 @@ def d(s): return date.fromisoformat(s[:10])
 
 def tester(path, start):
     data = json.load(open(path, encoding="utf-8"))
+    ns = data.get("ns")
+    if ns != "rq":
+        why = "test build (ns=rqt)" if ns == "rqt" else f"no/unknown ns ({ns!r}), export predates ns/build fields"
+        print(f"! skipped {path}: {why}", file=sys.stderr)
+        return None
     if data.get("schemaVersion") != 1:
         print(f"! {path}: schemaVersion={data.get('schemaVersion')}", file=sys.stderr)
     per_day = defaultdict(float)
@@ -34,17 +39,22 @@ def tester(path, start):
     stalls = sum(1 for e in data.get("events", []) if e.get("type") == "pdf_stall_recovered")
     buys = len((data.get("game") or {}).get("rewardPurchases") or [])
     return {"buys": buys, "file": path, "w1_days10": w1_ok, "w2_days10": w2_ok, "w2_any": w2_any,
-            "sessions": len(sessions), "fake": fake, "hero_taps": hero, "pdf_stalls": stalls}
+            "sessions": len(sessions), "fake": fake, "hero_taps": hero, "build": data.get("build", "?"), "pdf_stalls": stalls}
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", required=True, help="test day 1, YYYY-MM-DD")
     ap.add_argument("files", nargs="+")
     a = ap.parse_args()
-    rows = [tester(f, d(a.start)) for f in a.files]
-    print("file | w1 days>=10 | w2 days>=10 | w2 active days | sessions | fake | hero taps | reward buys")
+    start = d(a.start)
+    if start.weekday() != 0:
+        print(f"! --start {start} is not a Monday: test weeks won't match the Mon–Sun weekly quest", file=sys.stderr)
+    rows = [r for r in (tester(f, start) for f in a.files) if r]
+    if not rows:
+        sys.exit("no main-build (ns=rq) exports to count")
+    print("file | build | w1 days>=10 | w2 days>=10 | w2 active days | sessions | fake | hero taps | reward buys")
     for r in rows:
-        print(f"{r['file']} | {r['w1_days10']} | {r['w2_days10']} | {r['w2_any']} | {r['sessions']} | {r['fake']} | {r['hero_taps']} | {r['buys']}")
+        print(f"{r['file']} | {r['build']} | {r['w1_days10']} | {r['w2_days10']} | {r['w2_any']} | {r['sessions']} | {r['fake']} | {r['hero_taps']} | {r['buys']}")
     n = len(rows); tot = sum(r["sessions"] for r in rows) or 1
     med = statistics.median(r["w2_days10"] for r in rows)
     ret = sum(1 for r in rows if r["w2_any"] > 0) / n

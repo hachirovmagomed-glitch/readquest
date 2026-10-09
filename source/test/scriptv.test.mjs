@@ -17,12 +17,10 @@
 //   SCRIPTV_BREAK=swold  — the SW matches the cache with ignoreSearch               → ?v=B is answered with the ?v=A file
 //   SCRIPTV_BREAK=sedjs  — build-dist applies the module sed ('./x.js' → ?v=) to js/ too → split check red
 import puppeteer from 'puppeteer-core';
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { createRequire } from 'module';
-const esprima = createRequire(import.meta.url)('esprima');
 
 const SRC = new URL('..', import.meta.url).pathname;
 const BREAK = process.env.SCRIPTV_BREAK || '';
@@ -64,34 +62,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   }
   fs.writeFileSync(path.join(baseSrc, 'app.html'), bh);
   ok(`(split) every js/*.js is a verbatim, line-aligned cut of one inline <script> of ${SPLIT_BASE} app.html; 'use strict'; first iff its block is strict (${REAL.join(', ') || 'none'})`, notCut.length === 0, notCut);
-  /* ---- hoisting across files ---- */
-  const loadOrder = (srcDir) => {
-    const h = fs.readFileSync(path.join(srcDir, 'app.html'), 'utf8'), out = [];
-    for (const m of h.matchAll(/<script( src="(js\/[^"?]+\.js)")?>([\s\S]*?)<\/script>/g)) out.push(m[2] ? { n: m[2], code: fs.readFileSync(path.join(srcDir, m[2]), 'utf8') } : { n: 'inline@' + (h.slice(0, m.index).split('\n').length), code: m[3] });
-    return out;
-  };
-  const hoistBad = (srcDir) => {
-    const sc = loadOrder(srcDir).map(s => ({ ...s, ast: esprima.parseScript(s.code) }));
-    const declAt = new Map();
-    sc.forEach((s, i) => s.ast.body.forEach(st => { if (st.type === 'FunctionDeclaration' && !declAt.has(st.id.name)) declAt.set(st.id.name, i); }));
-    const bad = [];
-    sc.forEach((s, i) => {
-      const refs = new Set();
-      const walk = (n, parent, key) => {
-        if (!n || typeof n.type !== 'string') return;
-        if (n.type === 'FunctionDeclaration') return;
-        if ((n.type === 'FunctionExpression' || n.type === 'ArrowFunctionExpression') && !(parent && parent.type === 'CallExpression' && key === 'callee')) return;
-        if (n.type === 'Identifier') { if (!(parent && ((parent.type === 'MemberExpression' && key === 'property' && !parent.computed) || (parent.type === 'Property' && key === 'key' && !parent.computed)))) refs.add(n.name); return; }
-        for (const k of Object.keys(n)) { const v = n[k]; if (Array.isArray(v)) v.forEach(x => walk(x, n, k)); else if (v && typeof v === 'object') walk(v, n, k); }
-      };
-      s.ast.body.forEach(st => walk(st, null, null));
-      for (const r of refs) if (declAt.has(r) && declAt.get(r) > i) bad.push(`${s.n} → ${r} (${sc[declAt.get(r)].n})`);
-    });
-    return { bad, n: sc.length };
-  };
-  const hb = hoistBad(baseSrc), hc = hoistBad(CU);
-  const newBad = hc.bad.filter(x => !hb.bad.some(y => y.split(' (')[0].replace(/^inline@\d+/, 'I') === x.split(' (')[0].replace(/^inline@\d+/, 'I')));
-  ok(`(split) no load-time call/use of a function declared only in a LATER script (hoisting across files; ${hc.n} classic scripts, every branch)`, newBad.length === 0, { new: newBad, alreadyInBase: hb.bad.length });
+  /* ---- hoisting across files: test/hoist-map.mjs (transitive: calls at load + sync callbacks, any branch) ---- */
+  const hm = (dir) => { const r = spawnSync(process.execPath, [path.join(SRC, 'test', 'hoist-map.mjs'), '--json'], { env: { ...process.env, HOIST_SRC: dir }, encoding: 'utf8' }); return JSON.parse(r.stdout); };
+  const hb = hm(baseSrc), hc = hm(CU);
+  const key = (x) => x.fn + '@' + x.unit.replace(/^inline app\.html:\d+/, 'inline');
+  const newBad = hc.nodes.filter(x => !hb.nodes.some(y => key(y) === key(x))).map(x => `[${x.unit}] ${x.ref} → ${x.fn} (${x.decl}) via ${x.chain}`);
+  ok(`(split) no load-time use of a function declared only in a LATER script (hoist-map, transitive; ${hc.units.length} classic scripts, every branch)`, newBad.length === 0, { new: newBad, alreadyInBase: hb.nodes.length });
   if (BREAK === 'sedjs') { const bd = path.join(CU, 'build-dist.sh'); fs.writeFileSync(bd, fs.readFileSync(bd, 'utf8').replace(`! -path "$DIST/js/*" `, '')); }
   for (const dir of [baseSrc, CU]) execSync(`RQ_BUILD=${SB} ./build-dist.sh && RQ_NS=rqt RQ_BUILD=${SB}t ./build-dist.sh`, { cwd: dir, stdio: 'pipe' });
   const walk = (d, r = '') => fs.readdirSync(path.join(d, r), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(d, path.join(r, e.name)) : [path.join(r, e.name)]);

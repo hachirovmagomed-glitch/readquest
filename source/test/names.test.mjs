@@ -20,6 +20,9 @@ const BASE = process.env.RQ_URL || 'http://127.0.0.1:8766/readquest/';
 const SRC = new URL('../app.html', import.meta.url).pathname;
 const BREAK = process.env.NAMES_BREAK || '';
 const SWAP = process.env.NAMES_SWAP || '';
+/* NAMES_THROW=<file.js>: that js/ file throws on its first line (after its 'use strict';). After the split an error in one
+   file no longer stops the whole block 1085 — the NEXT files still run, the app may boot half-broken → must FAIL here. */
+const THROW = process.env.NAMES_THROW || '';
 const checks = [];
 const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -77,7 +80,7 @@ await page.evaluateOnNewDocument(() => {
   window.addEventListener('error', (e) => { try { window.__rqNamesErr({ m: String(e.message), f: String(e.filename || '').replace(/^.*\/readquest\//, ''), l: e.lineno, c: e.colno }); } catch (x) {} }, true);
 });
 page.on('console', m => { if (m.type() === 'error' && /ReferenceError|is not defined|TypeError/.test(m.text())) errors.push('console: ' + m.text()); });
-if (BREAK || SWAP) {
+if (BREAK || SWAP || THROW) {
   await page.setRequestInterception(true);
   page.on('request', async (req) => {
     const isJs = /\/js\/[^?]+\.js$/.test(new URL(req.url()).pathname) && req.resourceType() === 'script';
@@ -87,6 +90,10 @@ if (BREAK || SWAP) {
         const m = body.match(new RegExp('<script src="js/' + SWAP.replace('.', '\\.') + '[^"]*"></script>\\n'));
         if (m) { const i = body.indexOf(m[0]), prev = body.lastIndexOf('\n<script', i - 2) + 1; /* real tags are at line starts */ body = body.slice(0, i) + body.slice(i + m[0].length); body = body.slice(0, prev) + m[0] + body.slice(prev); }
         console.log(`NAMES_SWAP: ${SWAP} ${m ? 'moved before the preceding <script>' : 'NOT FOUND'} in ${new URL(req.url()).pathname}`);
+      }
+      if (THROW && isJs && new URL(req.url()).pathname.endsWith('/js/' + THROW)) {
+        body = body.startsWith("'use strict';\n") ? "'use strict';\nthrow new Error('NAMES_THROW " + THROW + "');\n" + body.slice(14) : "throw new Error('NAMES_THROW " + THROW + "');\n" + body;
+        console.log(`NAMES_THROW: ${THROW} throws on load`);
       }
       if (BREAK) body = body.replace(new RegExp('function ' + BREAK + '\\s*\\('), 'function ' + BREAK + '__removed_by_test(');
       if (BREAK && isJs) body = body.replace(new RegExp('window\\.' + BREAK + '\\s*=(?!=)'), 'window.' + BREAK + '__removed_by_test=');

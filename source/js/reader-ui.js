@@ -32,7 +32,7 @@ function exitFullscreenSafe(){
   const fn=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
   if(fn&&fsActive()){try{const pr=fn.call(document);if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
 }
-function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;concealChrome('timer');},3200);}
+function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(window.__rqWriter&&__rqWriter.passive)return; /* passive window under the overlay: no relayout / fullscreen */if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;concealChrome('timer');},3200);}
 /** reading state: hide our bars + (re)enter fullscreen */
 function concealChrome(how){
   const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
@@ -57,7 +57,8 @@ function enterImmersive(){FSW=true;IMM=true;concealChrome('open');}
 function exitImmersive(){FSW=false;IMM=false;revealChrome();}
 document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({how:'change',ok:fsActive(),t:Date.now()});if(R.mode==='pdf')pdfOnResize();
   /* 1б: the SYSTEM left fullscreen (Android back / swipe) while we want it → show our panels (no separate «back» step) */
-  const r=el('reader');if(!fsActive()&&FSW&&r&&!r.classList.contains('hidden')&&r.classList.contains('barsoff'))revealChrome();});
+  /* not in a window that lost the writer role (thawed / background tab: mayWrite() demotes it first) — no relayout under the overlay */
+  const r=el('reader');if(!fsActive()&&FSW&&r&&!r.classList.contains('hidden')&&r.classList.contains('barsoff')&&document.visibilityState!=='hidden'&&!(window.__rqWriter&&!__rqWriter.mayWrite()))revealChrome();});
 el('btnFull').onclick=()=>{enterImmersive();flashMsg('⛶ Полный экран · тап по центру — панели');};
 function isLightBg(bg){
   const c=String(bg).replace('#','');

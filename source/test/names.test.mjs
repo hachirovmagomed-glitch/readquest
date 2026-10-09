@@ -13,6 +13,8 @@
 // <script> element (e.g. start.js before the big block → its top-level code runs before the globals it uses exist).
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
+import { createRequire } from 'module';
+const esprima = createRequire(import.meta.url)('esprima');
 
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8766/readquest/';
 const SRC = new URL('../app.html', import.meta.url).pathname;
@@ -29,10 +31,22 @@ const jsSrc = Object.fromEntries(jsFiles.map(f => [f, fs.readFileSync(JSDIR + f,
 const html = fs.readFileSync(SRC, 'utf8') + '\n' + Object.values(jsSrc).join('\n');
 /* globals declared by js/ files */
 const jsGlobals = [];
+/* declared AT LOAD (esprima): top-level function / var / let / const, and `window.X = …` in code that runs at load
+   (top level + IIFE bodies, not inside other functions — e.g. window.__rqReady is set later by __rqStart) */
 for (const [f, s] of Object.entries(jsSrc)) {
   const g = new Set();
-  for (const m of s.matchAll(/^(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)|^(?:var|let|const)\s+([A-Za-z_$][\w$]*)/gm)) g.add(m[1] || m[2]);
-  for (const m of s.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=(?!=)/g)) g.add(m[1]);
+  const walk = (n, p, k) => {
+    if (!n || typeof n.type !== 'string') return;
+    if (n.type === 'FunctionDeclaration') return;
+    if ((n.type === 'FunctionExpression' || n.type === 'ArrowFunctionExpression') && !(p && p.type === 'CallExpression' && k === 'callee')) return;
+    if (n.type === 'AssignmentExpression' && n.left.type === 'MemberExpression' && !n.left.computed && n.left.object.type === 'Identifier' && n.left.object.name === 'window') g.add(n.left.property.name);
+    for (const kk of Object.keys(n)) { const v = n[kk]; if (Array.isArray(v)) v.forEach(x => walk(x, n, kk)); else if (v && typeof v === 'object') walk(v, n, kk); }
+  };
+  for (const st of esprima.parseScript(s).body) {
+    if (st.type === 'FunctionDeclaration') g.add(st.id.name);
+    else if (st.type === 'VariableDeclaration') st.declarations.forEach(d => d.id.type === 'Identifier' && g.add(d.id.name));
+    walk(st, null, null);
+  }
   for (const n of g) jsGlobals.push([f, n]);
 }
 const handlers = [];
@@ -71,7 +85,7 @@ if (BREAK || SWAP) {
       const r = await fetch(req.url()); let body = await r.text();
       if (SWAP && !isJs) {
         const m = body.match(new RegExp('<script src="js/' + SWAP.replace('.', '\\.') + '[^"]*"></script>\\n'));
-        if (m) { const i = body.indexOf(m[0]), prev = body.lastIndexOf('<script', i - 1); body = body.slice(0, i) + body.slice(i + m[0].length); body = body.slice(0, prev) + m[0] + body.slice(prev); }
+        if (m) { const i = body.indexOf(m[0]), prev = body.lastIndexOf('\n<script', i - 2) + 1; /* real tags are at line starts */ body = body.slice(0, i) + body.slice(i + m[0].length); body = body.slice(0, prev) + m[0] + body.slice(prev); }
         console.log(`NAMES_SWAP: ${SWAP} ${m ? 'moved before the preceding <script>' : 'NOT FOUND'} in ${new URL(req.url()).pathname}`);
       }
       if (BREAK) body = body.replace(new RegExp('function ' + BREAK + '\\s*\\('), 'function ' + BREAK + '__removed_by_test(');

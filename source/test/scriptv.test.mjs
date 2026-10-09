@@ -54,9 +54,10 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const strict = body.startsWith(STRICT), core = strict ? body.slice(STRICT.length) : body;
     const idx = bh.indexOf(core);
     if (idx < 0 || bh.indexOf(core, idx + 1) >= 0 || bh[idx - 1] !== '\n') { notCut.push([f, idx < 0 ? 'not found' : 'not unique / not at a line start']); continue; }
-    const k = bh.lastIndexOf('<script', idx), end = bh.indexOf('</script>', k);
+    /* real block boundaries are at line starts (the code itself contains '<script' / '<\\/script>' in strings and regexes) */
+    const k = bh.lastIndexOf('\n<script', idx) + 1, end = bh.indexOf('\n</script>', k);
     const blockStrict = bh.startsWith('<script>\n' + STRICT, k);
-    if (!bh.startsWith('<script>\n', k) || end < idx + core.length) { notCut.push([f, 'not inside one inline <script>']); continue; }
+    if (!bh.startsWith('<script>\n', k) || end < 0 || end + 1 < idx + core.length) { notCut.push([f, 'not inside one inline <script>']); continue; }
     if (strict !== blockStrict) { notCut.push([f, `mode: file strict=${strict}, block strict=${blockStrict}`]); continue; }
     bh = bh.slice(0, idx + core.length) + PROBE + bh.slice(idx + core.length);
     fs.writeFileSync(path.join(CU, f), body + PROBE);

@@ -1,6 +1,7 @@
 # Stage 1a step 3: cut lines A..B (1-based, inclusive) of source/app.html = the current TAIL of the strict block 1085
 # (the line after B must be that block's </script>) into source/js/<name>, first line 'use strict'; (the block's own mode),
 # and put <script src="js/<name>"></script> right after the block's </script> (before the tags of earlier cut pieces).
+# The last piece empties the block: the '<script>'/'use strict';/'</script>' shell is removed and the tag stands in its place.
 # usage (from repo root): python3 source/test/cut-tail.py A B name.js   — then: scriptv (split), names, full run
 import sys
 a,b,name=int(sys.argv[1]),int(sys.argv[2]),sys.argv[3]
@@ -17,5 +18,9 @@ open(os.path.join(SRC,'js',name),'w',encoding='utf-8').write(body)
 tag=f'<script src="js/{name}"></script>'
 # remove A..B, keep the block's </script>, put the tag right after it (before the tags of later pieces)
 L=L[:a-1]+[L[b]]+[tag]+L[b+1:]
+# last piece (core-a): the block is left as just '<script>' + "'use strict';" + '</script>' → remove the empty block entirely;
+# the piece already carries the directive as its first line; the tag takes the block's place (scriptv merges adjacent pieces)
+emptied = L[1084:1088]==['<script>',"'use strict';",'</script>',tag]
+if emptied: L=L[:1084]+L[1087:]
 open(p,'w',encoding='utf-8').write('\n'.join(L))
-print(f'cut {a}-{b} ({len(piece)} lines) -> js/{name}; first: {piece[0][:60]!r}; last: {piece[-1][:60]!r}')
+print(f'cut {a}-{b} ({len(piece)} lines) -> js/{name}; first: {piece[0][:60]!r}; last: {piece[-1][:60]!r}'+('; block 1085 now empty → removed, tag in its place' if emptied else ''))

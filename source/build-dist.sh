@@ -59,12 +59,17 @@ for f in "$DIST/index.html" "$DIST/app.html"; do
   if [ -n "$bad" ]; then echo "build-dist: bad <script src> in $(basename "$f"): $bad (rule: write src FIRST — <script src=\"js/x.js\" defer>; the ?v= rewrite only matches '<script src=\"js/')" >&2; exit 1; fi
 done
 # ES modules (storage/, reader-session, game-awards): every quoted relative './x.js' gets ?v=BUILD.
-# NOT js/: classic scripts cut out of app.html get exactly the rule their inline code had in the HTML (only `from './x.js'`),
-# so a string like './x.js' inside them stays byte-identical (test/scriptv.test.mjs «split» re-inlines js/ and diffs against the base build).
+# NOT js/: classic scripts cut out of app.html get exactly the rules their inline code had in the HTML — the SAME sed as the
+# pages above: markers __RQ_NS__/__RQ_BUILD__ (js/core-a.js: const RQ_BUILD='__RQ_BUILD__'), `from './x.js'` and
+# `<script src="js/…">` → ?v=; NOT the module rule, so a string like './x.js' inside them stays byte-identical
+# (test/scriptv.test.mjs «split» re-inlines js/ and diffs against the base build).
 find "$DIST" -name '*.js' ! -path "$DIST/js/*" -print0 | xargs -0 sed -i -E "s#'(\.{1,2}/[^'?]+\.js)'#'\1?v=$BUILD'#g"
 if [ -d "$DIST/js" ]; then
-  find "$DIST/js" -name '*.js' -print0 | xargs -0 -r sed -i -E "s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g"
+  find "$DIST/js" -name '*.js' -print0 | xargs -0 -r sed -i -E "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g; s#(<script src=\")(js/[^\"?]+\.js)\"#\1\2?v=$BUILD\"#g"
 fi
+# Guard: no build marker left anywhere in the pages or in js/ (a marker in a cut-out file would show «__RQ_BUILD__» as the build).
+left=$(grep -lE '__RQ_(NS|BUILD)__' "$DIST/index.html" "$DIST/app.html" $( [ -d "$DIST/js" ] && find "$DIST/js" -name '*.js' ) 2>/dev/null || true)
+if [ -n "$left" ]; then echo "build-dist: build marker left in: $left" >&2; exit 1; fi
 echo "Build marker: $BUILD (NS=$NS)"
 
 # Vendored pdf.js (3.11.174, Apache-2.0) + its worker — copied AFTER the ?v= rewrite so the library is byte-identical.

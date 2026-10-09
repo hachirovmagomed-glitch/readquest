@@ -140,7 +140,7 @@ ok(`typeof/window guards: every guarded function (${guardFns.length}: ${guardFns
   gBad.length === 0 && !HM.guards.some(g => g.where === 'LATER' && g.atLoad), { bad: gBad, later: HM.guards.filter(g => g.where === 'LATER').map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl}${g.atLoad ? ' AT LOAD' : ''}`) });
 const ava = await page.evaluate(() => { const a = document.getElementById('streakAva'); const want = (typeof isMvp === 'function' && isMvp()) && S.useChar !== false;
   return { mvp: isMvp(), useChar: S.useChar !== false, svg: !!a && a.innerHTML.startsWith('<svg'), same: !!a && typeof avatarSvg === 'function' && (() => { const d = document.createElement('span'); d.innerHTML = avatarSvg(); return a.innerHTML === d.innerHTML; })(), /* both serialized by the browser */ want, txt: a ? a.textContent.slice(0, 4) : null }; });
-ok('streak avatar drawn by avatarSvg() after boot (guard app.html:1133 `typeof avatarSvg` → js/rpg.js took the function branch)', ava.want ? (ava.svg && ava.same) : !ava.svg, ava);
+ok('streak avatar drawn by avatarSvg() after boot (guard `typeof avatarSvg` in applyMvpChrome → js/rpg.js took the function branch)', ava.want ? (ava.svg && ava.same) : !ava.svg, ava);
 /* pdf.js loader (js/content.js loadPdfJs) + worker after the split: paths resolve against the PAGE (not js/), a real Web Worker runs
    (the worker's own request is not a page 'response' → Resource Timing + an in-page fetch of the resolved URLs) */
 { const pl = await page.evaluate(async () => { try {
@@ -167,7 +167,7 @@ const warm4 = [];
 if (cold !== null) for (let i = 0; i < 5; i++) { await page.reload({ waitUntil: 'domcontentloaded' }); warm4.push(await readyAt()); }
 await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
 const med = (a) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
-const lib = await page.evaluate(() => ({ visible: !document.getElementById('library').classList.contains('hidden'), build: RQ_BUILD }));
+const lib = await page.evaluate(() => ({ visible: !document.getElementById('library').classList.contains('hidden'), build: (() => { try { return RQ_BUILD; } catch (e) { return 'ERR ' + e.message; } })() }));
 ok('library ready ≤ 3 s (navigation → __rqReady, library shown): cold, median/max of 10 warm reloads (CPU ×1), median of 5 (CPU ×4)',
   lib.visible && cold !== null && warm.length === 10 && warm4.length === 5 && !warm.includes(null) && !warm4.includes(null) && cold <= 3000 && Math.max(...warm) <= 3000 && med(warm4) <= 3000,
   { coldMs: cold, warmMedianMs: med(warm), warmMaxMs: Math.max(...warm), cpu4MedianMs: med(warm4), cpu4MaxMs: Math.max(...warm4), build: lib.build });

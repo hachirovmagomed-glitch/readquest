@@ -49,6 +49,9 @@
      - (б) перенести одну строку 2598 в `session-summary` — это уже правка кода, не перенос.
    - **Решение Архитектора (09.10, Босс согласен): вариант (а)** — `js/reader-ui.js` = 2359–2905 (`reader-ui` + `session-summary`) одним файлом, побайтно.
    - **На 1б:** чтобы резать `reader-ui` и `session-summary` порознь, перенести привязку `el('btnBack').onclick=closeReader;` (стр. 2598 @ `ca8aa1b`) ниже объявления `closeReader` или повесить её из `start.js`. Это правка кода, в 1а не делаем.
+   - **На 1б, вместе с разрезом `reader-ui`:** выделить `js/paginator.js` из `js/pdf.js`. В кусок `pdf` (1873–2358 @ `5935044`) по плану вошёл и текстовый пагинатор: `layoutKey`, `layout`, `captureAnchor`, `pageOfAnchor`, `relayout`, `readingAnchor`, `setFontSizeKeepPos`, `persistPage`, `goPage`, `touchTapAt`, `viewerTap` (хвост `js/pdf.js` после `pdfWheel`).
+     - Это не PDF: им пользуются `js/reader.js` (`openBook`, `navTurn`, кнопки размера/интервала) и жесты `reader-ui`.
+     - В 1б — отдельным файлом, до или после `pdf.js` по карте `hoist-map`. Каждое перемещение — правка порядка, а не побайтный перенос: прогнать `hoist-map` с охранами и `names`.
 7. **Карта узлов подъёма** (`node source/test/hoist-map.mjs --plan`, 09.10, @ `7dcc866`):
    - Анализ транзитивный: код верхнего уровня, тела IIFE, синхронные колбэки (`forEach`, `new Promise`…), тела функций, которые при загрузке вызываются, и их колбэки — во всех ветках. Отложенные колбэки (`addEventListener`, `setTimeout`, `then`…) не считаются. Проверки `typeof X` / `window.X` идут отдельным списком «охран» (ниже).
    - Узел — имя, вычисляемое при загрузке, для функции, объявленной в куске ПОЗЖЕ.

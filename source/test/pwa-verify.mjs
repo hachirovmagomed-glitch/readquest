@@ -615,12 +615,13 @@ await pt.close();
 // ---------- (g2) captive portal: network ANSWERS, but not with our app (302 → foreign host / 200 foreign HTML) → our cached build opens ----------
 {
   const within = (pr, ms, fb) => Promise.race([pr, new Promise(r => setTimeout(() => r(fb), ms))]);
-  const swRespond = async (kind, html) => {
+  const swRespond = async (kind, html, extra = {}) => {
     const swT = browser.targets().find(t => t.type() === 'service_worker' && t.url() === BASE + 'sw.js');
     if (!swT) return { err: 'no SW target' };
     const sws = await swT.createCDPSession(); const seen = [];
     const h = (e) => {
       const u = e.request.url; seen.push(u);
+      if (extra[u] !== undefined) return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'text/javascript' }], body: Buffer.from(extra[u]).toString('base64') }).catch(() => {});
       if (u !== BASE && u !== BASE + 'index.html') return sws.send('Fetch.continueRequest', { requestId: e.requestId }).catch(() => {});
       if (kind === 'html') return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }], body: Buffer.from(html).toString('base64') }).catch(() => {});
       if (kind === '302') return sws.send('Fetch.fulfillRequest', { requestId: e.requestId, responseCode: 302, responseHeaders: [{ name: 'Location', value: 'http://captive.invalid/login' }], body: '' }).catch(() => {});
@@ -643,13 +644,17 @@ await pt.close();
   ok('(g2) captive 200 with foreign HTML: our cached build opens, not the portal page', r200.seen > 0 && r200.url === BASE && r200.ready && r200.title === 'ReadQuest', r200);
   /* positive path: network alive + fast, answers OUR page (meta rq-app) with a DIFFERENT build id → the network version is shown, not the cache.
      G2_STRIP=1 strips the meta from that answer → the same assertion must go red (proves the check can fail). */
-  const cached = fs.readFileSync(SRC + 'dist/index.html', 'utf8'); const cb = (cached.match(/const RQ_BUILD='([^']+)'/) || [])[1]; const NB = '20990101-7777';
-  let netHtml = cached.replace(`const RQ_BUILD='${cb}'`, `const RQ_BUILD='${NB}'`).replace(`build:'${cb}'`, `build:'${NB}'`);
+  /* since 1a (core-a cut) `const RQ_BUILD` lives in js/core-a.js, not in the HTML: a real new build then also has
+     <script src="js/core-a.js?v=NB"> → the SW misses its cache and fetches it → that request is answered with core-a of build NB */
+  const cached = fs.readFileSync(SRC + 'dist/index.html', 'utf8'); const coreA = fs.existsSync(SRC + 'dist/js/core-a.js') ? fs.readFileSync(SRC + 'dist/js/core-a.js', 'utf8') : '';
+  const cb = (cached.match(/const RQ_BUILD='([^']+)'/) || coreA.match(/const RQ_BUILD='([^']+)'/) || [])[1]; const NB = '20990101-7777';
+  let netHtml = cached.replace(`const RQ_BUILD='${cb}'`, `const RQ_BUILD='${NB}'`).replace(`build:'${cb}'`, `build:'${NB}'`).replace(`js/core-a.js?v=${cb}"`, `js/core-a.js?v=${NB}"`);
+  const netExtra = coreA ? { [BASE + `js/core-a.js?v=${NB}`]: coreA.replace(`const RQ_BUILD='${cb}'`, `const RQ_BUILD='${NB}'`) } : {};
   const META = '<meta name="rq-app" content="readquest">';
   if (process.env.G2_STRIP) netHtml = netHtml.replace(META, '');
-  const rNet = await swRespond('html', netHtml);
+  const rNet = await swRespond('html', netHtml, netExtra);
   ok(`(g2) network alive, our page (meta rq-app) with another build → network version shown (build ${NB}, cached ${cb})${process.env.G2_STRIP ? ' [G2_STRIP: meta removed]' : ''}`, cb && cb !== NB && rNet.seen > 0 && rNet.ready && rNet.build === NB && rNet.diagBuild === NB, { cachedBuild: cb, ...rNet });
-  const rNoMeta = await swRespond('html', netHtml.replace(META, ''));
+  const rNoMeta = await swRespond('html', netHtml.replace(META, ''), netExtra);
   ok('(g2) same answer WITHOUT the meta → treated as foreign: cached build shown', rNoMeta.seen > 0 && rNoMeta.ready && rNoMeta.build === cb, { cachedBuild: cb, ...rNoMeta });
 }
 

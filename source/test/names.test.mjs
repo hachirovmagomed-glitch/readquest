@@ -103,14 +103,16 @@ const cold = await readyAt();
 await sleep(800); // late boot work (persist, awards) — errors there count too
 const res = await page.evaluate((calls, roots, globs) => {
   const ty = (n) => { try { return (0, eval)('typeof ' + n); } catch (e) { return 'ERR ' + e.message; } };
-  return { calls: calls.map(n => [n, ty(n)]), roots: roots.map(n => [n, ty(n)]), globs: globs.map(([f, n]) => [f, n, ty(n)]) };
+  /* declared ≠ defined: `let calY;` is declared but undefined → resolve the reference itself (ReferenceError = missing / TDZ) */
+  const rs = (n) => { try { (0, eval)(n); return 'ok'; } catch (e) { return 'ERR ' + e.name + ': ' + e.message; } };
+  return { calls: calls.map(n => [n, ty(n)]), roots: roots.map(n => [n, ty(n)]), globs: globs.map(([f, n]) => [f, n, rs(n)]) };
 }, [...calls], [...roots], jsGlobals);
 const badCalls = res.calls.filter(([, t]) => t !== 'function');
 const badRoots = res.roots.filter(([, t]) => t === 'undefined' || t.startsWith('ERR'));
 ok(`every function called by name from inline handlers resolves after boot (${res.calls.length} names, ${handlers.length} handlers, ${markupOnclick} onclick= in markup)`, badCalls.length === 0 && res.calls.length > 50, { missing: badCalls });
 ok(`every object root used by inline handlers is defined after boot (${res.roots.length} names)`, badRoots.length === 0, { undefined: badRoots, roots: res.roots.map(r => r[0]) });
-const badGlobs = res.globs.filter(([, , t]) => t === 'undefined' || t.startsWith('ERR'));
-ok(`every global declared by js/ files resolves after boot (${res.globs.length} names in ${jsFiles.length} files)`, badGlobs.length === 0, { undefined: badGlobs, names: res.globs.map(g => g[0] + ':' + g[1]) });
+const badGlobs = res.globs.filter(([, , t]) => t !== 'ok');
+ok(`every global declared by js/ files resolves after boot (no ReferenceError/TDZ) (${res.globs.length} names in ${jsFiles.length} files)`, badGlobs.length === 0, { undefined: badGlobs, names: res.globs.map(g => g[0] + ':' + g[1]) });
 ok('zero pageerror / ReferenceError during boot', errors.length === 0, errors);
 
 // ---- 3. library ready ≤ 3 s: cold (first load) + 10 warm reloads (SW cache) at CPU ×1, 5 warm at CPU ×4 ----

@@ -1087,13 +1087,13 @@ body.mvp #sumDailyBox{display:block}
 <!-- ИТОГ СЕССИИ -->
 <div id="summary" class="screen hidden">
   <div class="sumbox pop">
-    <div style="font-size:15px;color:var(--muted)">Сессия завершена</div>
+    <div id="sumHead" style="font-size:15px;color:var(--muted)">Сессия завершена</div>
     <div class="bigxp" id="sumXp">+0 XP</div>
     <div class="lvlup hidden" id="lvlUp"></div>
     <div class="lvlup hidden" id="luckLbl" style="color:var(--accent2)"></div>
     <div class="sumgrid">
       <div class="sumcell"><b id="sumPages">0</b><span>страниц</span></div>
-      <div class="sumcell"><b id="sumMin">0</b><span>минут</span></div>
+      <div class="sumcell"><b id="sumMin">0</b><span id="sumMinLbl">минут</span></div>
       <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">🪙 золота</span></div>
       <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
     </div>

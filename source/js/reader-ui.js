@@ -496,7 +496,12 @@ function countUp(elm,to,fmt){
 function renderSummary(r){
   countUp(el('sumXp'),r.xp,n=>'+'+n+' XP');
   countUp(el('sumPages'),r.pages,n=>n);
-  el('sumMin').textContent=r.min<1?'<1':Math.floor(r.min); /* floor: never «10» while library shows «9 / 10» without payout */
+  /* whole minutes (floor, the dayMinutes rule); under one minute → «меньше минуты» (decision D) */
+  const wm=Math.floor((Number(r.min)||0)+1e-9);
+  el('sumMin').textContent=wm<1?'меньше минуты':wm;el('sumMin').style.fontSize=wm<1?'15px':'';
+  if(el('sumMinLbl'))el('sumMinLbl').classList.toggle('hidden',wm<1);
+  const hl=summaryHeadline(r.quest),hd=el('sumHead');
+  if(hd){hd.textContent=hl||'Сессия завершена';hd.style.color=hl?'var(--accent2)':'';hd.style.fontWeight=hl?'600':'';}
   countUp(el('sumGold'),r.gold,n=>'+'+n);
   el('sumGoldLbl').textContent=curI()+' '+S.cur.name;
   el('sumStat').textContent='+'+r.statGain;
@@ -581,8 +586,22 @@ function navState(){try{return (history.state&&history.state.rq)||null;}catch(e)
 function navPush(tag){try{if(navState()!==tag)history.pushState({rq:tag},'',location.href);}catch(e){}}
 function readerIsOpen(){const r=el('reader');return !!(r&&!r.classList.contains('hidden')&&R.book);}
 function summaryIsOpen(){const s=el('summary');return !!(s&&!s.classList.contains('hidden'));}
-/** ONE place that decides whether a closed session gets the summary screen (1б: always; team decision pending). */
-function summaryWanted(r){return true;}
+/** ONE place that decides whether a closed session gets the summary screen (1б, team decision D):
+    shown iff the session has ≥ 1 whole minute OR it awarded something (XP > 0, daily +30, weekly +120).
+    Otherwise «назад»/«закрыть» go straight to the library (the row is in sessions[] as usual). */
+function summaryWanted(r){
+  if(Math.floor((Number(r.min)||0)+1e-9)>=1)return true;
+  if((Number(r.xp)||0)>0)return true;
+  const q=r.quest||{};
+  return !!((q.daily&&q.daily.length)||(q.weekly&&q.weekly.length));
+}
+/** headline: the coin reward of THIS session if any (decision D), else «Сессия завершена» */
+function summaryHeadline(q){
+  q=q||{};const d=(q.daily||[]).length,w=(q.weekly||[]).length;
+  if(!d&&!w)return '';
+  const coins=30*d+120*w;
+  return (d&&w?'Цель дня и недели выполнены':d?'Цель дня выполнена':'Цель недели выполнена')+' · +'+coins+' '+plural(coins,'монета','монеты','монет');
+}
 /** after closeReader: summary → this entry becomes {rq:'summary'}; no summary → drop a still-current reader entry */
 function navAfterClose(summary){
   try{

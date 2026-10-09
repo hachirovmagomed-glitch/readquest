@@ -126,26 +126,16 @@ export function loadFlat() {
 
 /**
  * Save from a flat S-like object (adapter for gradual cut).
- * Strips book bodies into IDB when present.
+ * Writes ONLY the rq_v1 envelope (progress / game / library meta). Book bodies are NOT written here
+ * (Architect 09.10): a text body goes to IDB exactly once — when the book is added (upsertUserBook),
+ * imported (importBackup) or migrated from v6 (migrateFromV6). Calling save() 10× writes 0 bodies.
  */
 export async function saveFlat(flat, opts) {
   const options = opts || {};
   const src = flat || {};
-  const progress = {};
-  const game = {};
-  const library = {};
 
-  // Re-split using migrate/split path
+  // Re-split using migrate/split path (book .text is stripped from library meta here; never persisted)
   const split = splitLegacyState(src);
-
-  // If caller left text on books, move to IDB
-  const books = Array.isArray(src.userBooks) ? src.userBooks : [];
-  for (let i = 0; i < books.length; i++) {
-    const b = books[i];
-    if (b && b.text && b.type !== 'pdf') {
-      await idb.putText(b.id, b.text);
-    }
-  }
 
   const envelope = {
     schemaVersion: SCHEMA_VERSION,

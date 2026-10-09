@@ -48,7 +48,7 @@ export async function createAdapter(opts) {
   }
 
   async function save() {
-    // Persist via saveFlat which strips bodies
+    // Persist via saveFlat: envelope only (bodies are written once by addBook → upsertUserBook)
     const { saveFlat } = await import('./state.js');
     const r = await saveFlat(S);
     envelope = loadEnvelope();

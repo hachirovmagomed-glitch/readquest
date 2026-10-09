@@ -21,7 +21,7 @@ Entry point for testers: **`app.html`** (not `v6.html`).
 1. Module script imports `storage/index.js` + `reader-session.js`.
 2. `await bootStorage()` — migrates legacy `readquest` → `rq_v1` once (texts → IDB `files`).
 3. `window.__rqStart(api, tracker)` hydrates flat state from `loadFlat()`, loads book texts from IDB, then shows library.
-4. `save()` → **`saveFlat(S)` only** (envelope `rq_v1`). Bodies stripped to IDB. **Never** `localStorage.setItem('readquest', …)`.
+4. `save()` → **`saveFlat(S)` only** (envelope `rq_v1`). It writes NO book bodies (09.10, Architect): a text body is written to IDB once — on add (`fileInp` → `upsertUserBook`), import (`importBackup`) or v6 migration; `save()` ×10 → 0 `putText` (`test/savetext.test.mjs`). **Never** `localStorage.setItem('readquest', …)`.
 
 ## Files
 

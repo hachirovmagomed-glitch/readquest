@@ -1397,7 +1397,7 @@ function hydrateS(raw){
 }
 hydrateS({});
 let saveWarned=false;
-/** Single writer → rq_v1 via saveFlat (strips book bodies to IDB). Never touches legacy `readquest`. */
+/** Single writer → rq_v1 via saveFlat (envelope only; book bodies are written once on add/import/migration). Never touches legacy `readquest`. */
 function save(){
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return; /* passive window: never write */
   if(!__rq||!__rq.saveFlat){
@@ -1700,6 +1700,12 @@ el('fileInp').onchange=async e=>{
       b={id:'u'+Date.now(),title:f.name.replace(/\.txt$/i,''),author:'Моя книга',genre:'Своя книга',stat:'Воля',cover:'📜',text:txt,fname:f.name,size:f.size};
     }
     if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
+    /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
+    if(b.type!=='pdf'){
+      if(window.__rqWriter&&!window.__rqWriter.mayWrite())throw new Error('книга открыта в другом окне');
+      if(!__rq||!__rq.upsertUserBook)throw new Error('хранилище ещё не готово — обновите страницу');
+      await __rq.upsertUserBook(null,b,{text:b.text});
+    }
     S.userBooks.push(b);
     if(!S.badges.includes('collector'))S.badges.push('collector');
     save();renderLibrary();
@@ -4867,7 +4873,7 @@ import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
-  loadEnvelope, saveEnvelope
+  loadEnvelope, saveEnvelope, upsertUserBook
 } from './storage/index.js';
 import { createSessionTracker, recoverDraft } from './reader-session.js';
 import * as game from './game-awards.js';
@@ -4895,7 +4901,7 @@ await window.__rqStart({
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
   importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings,
-  loadEnvelope, saveEnvelope
+  loadEnvelope, saveEnvelope, upsertUserBook
 }, tracker);
 window.__rqAfterBoot(window.__rq);
 </script>

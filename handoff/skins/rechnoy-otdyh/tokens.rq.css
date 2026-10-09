@@ -1,0 +1,159 @@
+/* ReadQuest skin «Речной отдых» → канонические токены stage1-final (stage1-2026-10-08). Сгенерировано src/tokens-rq/build_rq.py.
+   Подключать ПОСЛЕ stage1 tokens.css. День: <html data-skin="rechnoy-otdyh">, ночь: <html data-skin="rechnoy-otdyh" data-theme="night">.
+   Legacy-селекторы макетов data-theme="rechnoy-otdyh-day|rechnoy-otdyh-night" тоже работают. Все цветовые токены stage1 определены; размеры/тайминги наследуются, кроме overrides ниже. */
+[data-skin="rechnoy-otdyh"],
+[data-theme="rechnoy-otdyh-day"]{
+  --rq-bg:#fff4e2;
+  --rq-surface:#fffcf6;
+  --rq-surface-2:#fde3bd;
+  --rq-sheet:#fffcf6;
+  --rq-line:#f0d6b3;
+  --rq-border-strong:#9a6a4e;
+  --rq-text:#3b1d12;
+  --rq-text-2:#6b4231;
+  --rq-text-disabled:#a68978;
+  --rq-accent:#c2372a;
+  --rq-accent-pressed:#9f2d22;
+  --rq-accent-text:#ba3528;
+  --rq-on-accent:#ffffff;
+  --rq-control-on:#fffcf6;
+  --rq-accent-tint:#f8e4de;
+  --rq-accent-border:#e4a39a;
+  --rq-coin:#7d4a00;
+  --rq-coin-tint:#ede3d4;
+  --rq-success:#2f6e2c;
+  --rq-success-tint:#e2e8da;
+  --rq-danger:#a8261c;
+  --rq-danger-tint:#f3ded7;
+  --rq-focus:#c2372a;
+  --rq-scrim:rgba(59,29,18,.45);
+  --rq-badge-bg:#3b1d12;
+  --rq-badge-text:#fff4e2;
+  --rq-toast-game-bg:#c2372a;
+  --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fffcf6;
+  --rq-toast-info-fg:#3b1d12;
+  --rq-toast-info-icon:#c2372a;
+  --rq-toast-info-border:#f0d6b3;
+  --rq-toast-error-bg:#a8261c;
+  --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.10);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.08);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.28);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-bg-top:#ffe2a0;
+  --rq-skin-border:#f0d6b3;
+  --rq-skin-rule:#f0d6b3;
+  --rq-skin-stripe-a:#e8553f;
+  --rq-skin-stripe-b:#fffaf0;
+  --rq-skin-stripe-c:#ffc83d;
+  --rq-skin-sun:#ffc83d;
+  --rq-skin-melon:#3f9b5a;
+  --rq-skin-melon-flesh:#f0645a;
+  --rq-skin-seed:#3b1d12;
+  --rq-skin-wood:#c27a45;
+  --rq-skin-wood-dark:#8f5530;
+  --rq-skin-ring:#ff7a5c;
+  --rq-skin-hat:#f2c46b;
+  --rq-skin-sand:#f7d9a8;
+  --rq-skin-glow:rgba(255,214,120,.55);
+  --rq-skin-daybar:#c2372a;
+  --rq-skin-daybar-track:#f3dcc0;
+  --rq-skin-cover-ink:#ffffff;
+  --rq-skin-cover-1:#c73a2b;
+  --rq-skin-cover-2:#2f7a4f;
+  --rq-skin-cover-3:#b0561d;
+  --rq-skin-cover-4:#7a3b6b;
+  --rq-skin-cover-5:#8a6100;
+  --rq-skin-cover-6:#a33a5a;
+  color-scheme:light;
+}
+[data-skin="rechnoy-otdyh"][data-theme="night"],
+[data-theme="rechnoy-otdyh-night"]{
+  --rq-bg:#2b1611;
+  --rq-surface:#3a2018;
+  --rq-surface-2:#4b2a1e;
+  --rq-sheet:#3a2018;
+  --rq-line:#5a3626;
+  --rq-border-strong:#b0806a;
+  --rq-text:#fff1e2;
+  --rq-text-2:#e3c2a8;
+  --rq-text-disabled:#997d6c;
+  --rq-accent:#ffa577;
+  --rq-accent-pressed:#ffb792;
+  --rq-accent-text:#ffa577;
+  --rq-on-accent:#2b1208;
+  --rq-control-on:#5d3829;
+  --rq-accent-tint:#5d3829;
+  --rq-accent-border:#935c43;
+  --rq-coin:#ffd27a;
+  --rq-coin-tint:#563926;
+  --rq-success:#a6e39a;
+  --rq-success-tint:#493b2a;
+  --rq-danger:#ff9a8a;
+  --rq-danger-tint:#563128;
+  --rq-focus:#ffa577;
+  --rq-scrim:rgba(15,6,3,.62);
+  --rq-badge-bg:#fff1e2;
+  --rq-badge-text:#2b1611;
+  --rq-toast-game-bg:#ffa577;
+  --rq-toast-game-fg:#2b1208;
+  --rq-toast-info-bg:#4a3128;
+  --rq-toast-info-fg:#fff1e2;
+  --rq-toast-info-icon:#ffa577;
+  --rq-toast-info-border:#5d463c;
+  --rq-toast-error-bg:#ff9a8a;
+  --rq-toast-error-fg:#2a0d0a;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.40);
+  --rq-shadow-2:0 2px 8px rgba(0,0,0,.45);
+  --rq-shadow-3:0 10px 40px rgba(0,0,0,.60);
+  /* --- skin extras (--rq-skin-*) --- */
+  --rq-skin-bg-top:#5c2436;
+  --rq-skin-border:#5a3626;
+  --rq-skin-rule:#5a3626;
+  --rq-skin-stripe-a:#c8503e;
+  --rq-skin-stripe-b:#f1d6bb;
+  --rq-skin-stripe-c:#e8a93a;
+  --rq-skin-sun:#ff9f43;
+  --rq-skin-melon:#4f9b5e;
+  --rq-skin-melon-flesh:#e8665a;
+  --rq-skin-seed:#2b1611;
+  --rq-skin-wood:#a86a3e;
+  --rq-skin-wood-dark:#7a4826;
+  --rq-skin-ring:#e86a4f;
+  --rq-skin-hat:#d8aa58;
+  --rq-skin-sand:#6a4430;
+  --rq-skin-glow:rgba(255,150,70,.16);
+  --rq-skin-daybar:#ffa577;
+  --rq-skin-daybar-track:#3d2a22;
+  --rq-skin-cover-ink:#ffffff;
+  --rq-skin-cover-1:#c73a2b;
+  --rq-skin-cover-2:#2f7a4f;
+  --rq-skin-cover-3:#b0561d;
+  --rq-skin-cover-4:#7a3b6b;
+  --rq-skin-cover-5:#8a6100;
+  --rq-skin-cover-6:#a33a5a;
+  color-scheme:dark;
+}
+/* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
+[data-skin="rechnoy-otdyh"],
+[data-theme="rechnoy-otdyh-day"],
+[data-theme="rechnoy-otdyh-night"]{
+  --rq-radius-xs:8px;
+  --rq-radius-sm:14px;
+  --rq-radius-md:18px;
+  --rq-radius-lg:24px;
+  --rq-toast-radius:18px;
+  --rq-font-ui:"Rubik",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --rq-skin-font-heading:"Unbounded","Rubik",system-ui,sans-serif;
+}
+/* страница читалки: структура как в stage1 (--r-bg/--r-txt/--r-txt-2/--r-dim); сепия — канон */
+[data-skin="rechnoy-otdyh"] [data-page="sepia"],
+[data-theme="rechnoy-otdyh-day"] [data-page="sepia"],
+[data-theme="rechnoy-otdyh-night"] [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
+[data-skin="rechnoy-otdyh"] [data-page="day"],
+[data-theme="rechnoy-otdyh-day"] [data-page="day"],
+[data-theme="rechnoy-otdyh-night"] [data-page="day"]{--r-bg:#fffaf2;--r-txt:#2a1d16;--r-txt-2:#6b5a4e;--r-dim:0;}
+[data-skin="rechnoy-otdyh"] [data-page="night"],
+[data-theme="rechnoy-otdyh-day"] [data-page="night"],
+[data-theme="rechnoy-otdyh-night"] [data-page="night"]{--r-bg:#1d1512;--r-txt:#efe2d6;--r-txt-2:#a8968a;--r-dim:.35;}

@@ -1,0 +1,189 @@
+method	theme	screen	element	fg	bg	ratio	need	result
+tokens	day	all	text на skin-bg-top (верх градиента фона)	#10303a	#f9f7ef	13.00	4.5	OK
+tokens	day	all	text-2 на skin-bg-top (верх градиента фона)	#435c64	#f9f7ef	6.63	4.5	OK
+tokens	day	all	accent-text на skin-bg-top (верх градиента фона)	#1c5d78	#f9f7ef	6.78	4.5	OK
+tokens	day	all	coin на skin-bg-top (верх градиента фона)	#7a5216	#f9f7ef	6.43	4.5	OK
+tokens	day	all	border-strong (поиск, фильтры) на skin-bg-top	#6c8389	#f9f7ef	3.73	3	OK
+tokens	day	all	text-2 на surface-2 (мокрый песок: KPI, подписи)	#435c64	#e9e3d6	5.56	4.5	OK
+tokens	day	all	coin на coin-tint (чип монет, «+30»)	#7a5216	#e9e4db	5.44	4.5	OK
+tokens	day	all	accent (прогресс, кольцо) на surface-2 (дорожка)	#1c5d78	#e9e3d6	5.69	3	OK
+tokens	day	nav	accent-text (активная вкладка) на accent-tint (пилюля)	#1c5d78	#e0e9eb	5.90	4.5	OK
+tokens	day	reader	daybar на daybar-track	#1c5d78	#d7e2e0	5.49	3	OK
+tokens	day	reader	daybar на странице (--r-bg)	#1c5d78	#f7f7f3	6.77	3	OK
+tokens	day	reader	текст книги --r-txt на --r-bg	#1c2427	#f7f7f3	14.69	4.5	OK
+tokens	day	reader	номер «98 / 185» --r-txt-2 на --r-bg	#5a6568	#f7f7f3	5.59	4.5	OK
+tokens	day	library	cover-1: буква на обложке (40px)	#ffffff	#1f5a6e	7.65	3	OK
+tokens	day	library	cover-1: ярлык формата 10px на чёрном 28%	#ffffff	#16414f	11.03	4.5	OK
+tokens	day	library	cover-2: буква на обложке (40px)	#ffffff	#3b5878	7.36	3	OK
+tokens	day	library	cover-2: ярлык формата 10px на чёрном 28%	#ffffff	#2a3f56	10.80	4.5	OK
+tokens	day	library	cover-3: буква на обложке (40px)	#ffffff	#46664a	6.44	3	OK
+tokens	day	library	cover-3: ярлык формата 10px на чёрном 28%	#ffffff	#324935	9.81	4.5	OK
+tokens	day	library	cover-4: буква на обложке (40px)	#ffffff	#75553a	6.74	3	OK
+tokens	day	library	cover-4: ярлык формата 10px на чёрном 28%	#ffffff	#543d2a	10.11	4.5	OK
+tokens	day	library	cover-5: буква на обложке (40px)	#ffffff	#4b4c70	8.18	3	OK
+tokens	day	library	cover-5: ярлык формата 10px на чёрном 28%	#ffffff	#363751	11.52	4.5	OK
+tokens	day	library	cover-6: буква на обложке (40px)	#ffffff	#4f6469	6.25	3	OK
+tokens	day	library	cover-6: ярлык формата 10px на чёрном 28%	#ffffff	#39484c	9.52	4.5	OK
+tokens	night	all	text на skin-bg-top (верх градиента фона)	#e2edf0	#1b2340	12.94	4.5	OK
+tokens	night	all	text-2 на skin-bg-top (верх градиента фона)	#a0b7bd	#1b2340	7.35	4.5	OK
+tokens	night	all	accent-text на skin-bg-top (верх градиента фона)	#7fc3d6	#1b2340	7.85	4.5	OK
+tokens	night	all	coin на skin-bg-top (верх градиента фона)	#e6c27a	#1b2340	9.08	4.5	OK
+tokens	night	all	border-strong (поиск, фильтры) на skin-bg-top	#6f909a	#1b2340	4.51	3	OK
+tokens	night	all	text-2 на surface-2 (мокрый песок: KPI, подписи)	#a0b7bd	#1d3742	5.96	4.5	OK
+tokens	night	all	coin на coin-tint (чип монет, «+30»)	#e6c27a	#313e3d	6.55	4.5	OK
+tokens	night	all	accent (прогресс, кольцо) на surface-2 (дорожка)	#7fc3d6	#1d3742	6.37	3	OK
+tokens	night	nav	accent-text (активная вкладка) на accent-tint (пилюля)	#7fc3d6	#274450	5.26	4.5	OK
+tokens	night	reader	daybar на daybar-track	#7fc3d6	#24363d	6.39	3	OK
+tokens	night	reader	daybar на странице (--r-bg)	#7fc3d6	#11191d	9.05	3	OK
+tokens	night	reader	текст книги --r-txt на --r-bg	#dde3e2	#11191d	13.69	4.5	OK
+tokens	night	reader	номер «98 / 185» --r-txt-2 на --r-bg	#97a3a5	#11191d	6.86	4.5	OK
+tokens	night	library	cover-1: буква на обложке (40px)	#ffffff	#1f5a6e	7.65	3	OK
+tokens	night	library	cover-1: ярлык формата 10px на чёрном 28%	#ffffff	#16414f	11.03	4.5	OK
+tokens	night	library	cover-2: буква на обложке (40px)	#ffffff	#3b5878	7.36	3	OK
+tokens	night	library	cover-2: ярлык формата 10px на чёрном 28%	#ffffff	#2a3f56	10.80	4.5	OK
+tokens	night	library	cover-3: буква на обложке (40px)	#ffffff	#46664a	6.44	3	OK
+tokens	night	library	cover-3: ярлык формата 10px на чёрном 28%	#ffffff	#324935	9.81	4.5	OK
+tokens	night	library	cover-4: буква на обложке (40px)	#ffffff	#75553a	6.74	3	OK
+tokens	night	library	cover-4: ярлык формата 10px на чёрном 28%	#ffffff	#543d2a	10.11	4.5	OK
+tokens	night	library	cover-5: буква на обложке (40px)	#ffffff	#4b4c70	8.18	3	OK
+tokens	night	library	cover-5: ярлык формата 10px на чёрном 28%	#ffffff	#363751	11.52	4.5	OK
+tokens	night	library	cover-6: буква на обложке (40px)	#ffffff	#4f6469	6.25	3	OK
+tokens	night	library	cover-6: ярлык формата 10px на чёрном 28%	#ffffff	#39484c	9.52	4.5	OK
+dom	day	library	«Библиотека» 30px/600	#10303a	#f6f6f0	12.86	3	OK
+dom	day	library	«390 монет» 14px/700	#7a5216	#e9e4db	5.44	4.5	OK
+dom	day	library	«6» 20px/800	#10303a	#fbfcfb	13.56	3	OK
+dom	day	library	«из 10» 11px/400	#435c64	#fbfcfb	6.91	4.5	OK
+dom	day	library	«Цель 10 мин» 17px/800	#10303a	#fbfcfb	13.56	4.5	OK
+dom	day	library	«3 дня подряд» 13px/700	#7a5216	#fbfcfb	6.70	4.5	OK
+dom	day	library	«Уровень 4» 13px/700	#1c5d78	#fbfcfb	7.07	4.5	OK
+dom	day	library	«Все» 14px/800	#ffffff	#1c5d78	7.28	4.5	OK
+dom	day	library	«Читаю» 14px/600	#10303a	#edf4f3	12.51	4.5	OK
+dom	day	library	«FB2» 10px/800	#ffffff	#16414f	11.03	4.5	OK
+dom	day	library	«М» 40px/600	#ffffff	#1f5a6e	7.65	3	OK
+dom	day	library	«М. Булгаков» 12px/400	#435c64	#edf4f3	6.38	4.5	OK
+dom	day	library	«FB2» 10px/800	#ffffff	#2a3f56	10.80	4.5	OK
+dom	day	library	«П» 40px/600	#ffffff	#3b5878	7.36	3	OK
+dom	day	library	«TXT» 10px/800	#ffffff	#324935	9.81	4.5	OK
+dom	day	library	«Х» 40px/600	#ffffff	#46664a	6.44	3	OK
+dom	day	library	«PDF» 10px/800	#ffffff	#543d2a	10.11	4.5	OK
+dom	day	library	«А» 40px/600	#ffffff	#75553a	6.74	3	OK
+dom	day	library	«EPUB» 10px/800	#ffffff	#363751	11.52	4.5	OK
+dom	day	library	«В» 40px/600	#ffffff	#4b4c70	8.18	3	OK
+dom	day	library	«PDF» 10px/800	#ffffff	#39484c	9.52	4.5	OK
+dom	day	library	«S» 40px/600	#ffffff	#4f6469	6.25	3	OK
+dom	day	library	иконка (390 монет)	#7a5216	#e9e4db	5.44	3	OK
+dom	day	library	иконка (3 дня подряд)	#7a5216	#fbfcfb	6.70	3	OK
+dom	day	library	иконка (Уровень 4)	#1c5d78	#fbfcfb	7.07	3	OK
+dom	day	library	иконка (Поиск по названию и автору)	#435c64	#fbfcfb	6.91	3	OK
+dom	day	library	иконка (add)	#ffffff	#1c5d78	7.28	3	OK
+dom	day	library	иконка (icon)	#1c5d78	#e0e9eb	5.90	3	OK
+dom	day	reader	«Он дол­го стоял у окна, гля­дя, как над » 19px/400	#1c2427	#f7f7f3	14.69	4.5	OK
+dom	day	reader	«98 / 185» 11px/400	#5a6568	#f7f7f3	5.59	4.5	OK
+dom	day	session-summary	«Мастер и Маргарита» 13px/400	#435c64	#fbfcfb	6.91	4.5	OK
+dom	day	session-summary	«Сессия завершена» 26px/600	#10303a	#fbfcfb	13.56	3	OK
+dom	day	session-summary	«Цель дня» 15px/800	#7a5216	#e9e4db	5.44	4.5	OK
+dom	day	session-summary	«Время чтения» 15px/400	#10303a	#fbfcfb	13.56	4.5	OK
+dom	day	session-summary	«+120 XP» 16px/700	#1c5d78	#fbfcfb	7.07	4.5	OK
+dom	day	session-summary	«В библиотеку» 16px/700	#ffffff	#1c5d78	7.28	4.5	OK
+dom	day	session-summary	иконка (Цель дня+30 монет)	#7a5216	#e9e4db	5.44	3	OK
+dom	day	session-summary	иконка (Время чтения12 минут)	#435c64	#fbfcfb	6.91	3	OK
+dom	day	session-summary	иконка (rt)	#1c5d78	#fbfcfb	7.07	3	OK
+dom	day	rewards	«Награды» 30px/600	#10303a	#f6f6f0	12.86	3	OK
+dom	day	rewards	«390 монет» 14px/700	#7a5216	#e9e4db	5.44	4.5	OK
+dom	day	rewards	«6» 17px/800	#10303a	#fbfcfb	13.56	4.5	OK
+dom	day	rewards	«Читать 10 мин · 6 из 10 мин» 13px/400	#435c64	#fbfcfb	6.91	4.5	OK
+dom	day	rewards	«Награды из жизни» 12px/800	#435c64	#edf4f3	6.38	4.5	OK
+dom	day	rewards	«100 монет» 13px/700	#7a5216	#fbfcfb	6.70	4.5	OK
+dom	day	rewards	«Обменять» 14px/700	#1c5d78	#fbfcfb	7.07	4.5	OK
+dom	day	rewards	«Добавить награду» 16px/700	#1c5d78	#edf4f3	6.53	4.5	OK
+dom	day	rewards	иконка (390 монет)	#7a5216	#e9e4db	5.44	3	OK
+dom	day	rewards	иконка (mut)	#435c64	#fbfcfb	6.91	3	OK
+dom	day	rewards	иконка (100 монет)	#7a5216	#fbfcfb	6.70	3	OK
+dom	day	rewards	иконка (Добавить награду)	#1c5d78	#edf4f3	6.53	3	OK
+dom	day	rewards	иконка (icon)	#1c5d78	#e0e9eb	5.90	3	OK
+dom	day	profile	«Профиль» 30px/600	#10303a	#f6f6f0	12.86	3	OK
+dom	day	profile	«Ч» 26px/600	#1c5d78	#e0e9eb	5.90	3	OK
+dom	day	profile	«Читатель» 18px/700	#10303a	#fbfcfb	13.56	4.5	OK
+dom	day	profile	«Уровень 4» 14px/700	#1c5d78	#fbfcfb	7.07	4.5	OK
+dom	day	profile	«Опыт» 13px/400	#435c64	#fbfcfb	6.91	4.5	OK
+dom	day	profile	«390» 24px/800	#10303a	#e9e3d6	10.91	3	OK
+dom	day	profile	«монет» 12px/600	#435c64	#e9e3d6	5.56	4.5	OK
+dom	day	profile	«Всего прочитано 124 мин · дочитано книг:» 13px/400	#435c64	#edf4f3	6.38	4.5	OK
+dom	day	profile	иконка (ib)	#10303a	#fdf8e5	13.10	3	OK
+dom	day	profile	иконка (icon)	#7a5216	#e9e3d6	5.39	3	OK
+dom	day	profile	иконка (icon)	#1c5d78	#e9e3d6	5.69	3	OK
+dom	day	profile	иконка (ib)	#435c64	#fbfcfb	6.91	3	OK
+dom	day	reader-panels	«Чай­ник на пли­те дав­но ос­тыл. На сто­» 19px/400	#1c2427	#f7f7f3	14.69	4.5	OK
+dom	day	reader-panels	«Мастер и Маргарита» 17px/700	#10303a	#fbfcfb	13.56	4.5	OK
+dom	day	reader-panels	«Михаил Булгаков · FB2» 13px/400	#435c64	#fbfcfb	6.91	4.5	OK
+dom	day	reader-panels	«98 из 185» 14px/700	#edf4f3	#10303a	12.51	4.5	OK
+dom	day	reader-panels	иконка (ib)	#10303a	#fbfcfb	13.56	3	OK
+dom	night	library	«Библиотека» 30px/600	#e2edf0	#172139	13.41	3	OK
+dom	night	library	«390 монет» 14px/700	#e6c27a	#313e3d	6.55	4.5	OK
+dom	night	library	«6» 20px/800	#e2edf0	#142833	12.75	3	OK
+dom	night	library	«из 10» 11px/400	#a0b7bd	#142833	7.24	4.5	OK
+dom	night	library	«Цель 10 мин» 17px/800	#e2edf0	#142833	12.75	4.5	OK
+dom	night	library	«3 дня подряд» 13px/700	#e6c27a	#142833	8.95	4.5	OK
+dom	night	library	«Уровень 4» 13px/700	#7fc3d6	#142833	7.73	4.5	OK
+dom	night	library	«Все» 14px/800	#08202a	#7fc3d6	8.54	4.5	OK
+dom	night	library	«Читаю» 14px/600	#e2edf0	#0d1c25	14.55	4.5	OK
+dom	night	library	«FB2» 10px/800	#ffffff	#16414f	11.03	4.5	OK
+dom	night	library	«М» 40px/600	#ffffff	#1f5a6e	7.65	3	OK
+dom	night	library	«М. Булгаков» 12px/400	#a0b7bd	#0d1c25	8.27	4.5	OK
+dom	night	library	«FB2» 10px/800	#ffffff	#2a3f56	10.80	4.5	OK
+dom	night	library	«П» 40px/600	#ffffff	#3b5878	7.36	3	OK
+dom	night	library	«TXT» 10px/800	#ffffff	#324935	9.81	4.5	OK
+dom	night	library	«Х» 40px/600	#ffffff	#46664a	6.44	3	OK
+dom	night	library	«PDF» 10px/800	#ffffff	#543d2a	10.11	4.5	OK
+dom	night	library	«А» 40px/600	#ffffff	#75553a	6.74	3	OK
+dom	night	library	«EPUB» 10px/800	#ffffff	#363751	11.52	4.5	OK
+dom	night	library	«В» 40px/600	#ffffff	#4b4c70	8.18	3	OK
+dom	night	library	«PDF» 10px/800	#ffffff	#39484c	9.52	4.5	OK
+dom	night	library	«S» 40px/600	#ffffff	#4f6469	6.25	3	OK
+dom	night	library	иконка (390 монет)	#e6c27a	#313e3d	6.55	3	OK
+dom	night	library	иконка (3 дня подряд)	#e6c27a	#142833	8.95	3	OK
+dom	night	library	иконка (Уровень 4)	#7fc3d6	#142833	7.73	3	OK
+dom	night	library	иконка (Поиск по названию и автору)	#a0b7bd	#142833	7.24	3	OK
+dom	night	library	иконка (add)	#08202a	#7fc3d6	8.54	3	OK
+dom	night	library	иконка (icon)	#7fc3d6	#274450	5.26	3	OK
+dom	night	reader	«Он дол­го стоял у окна, гля­дя, как над » 19px/400	#dde3e2	#11191d	13.69	4.5	OK
+dom	night	reader	«98 / 185» 11px/400	#97a3a5	#11191d	6.86	4.5	OK
+dom	night	session-summary	«Мастер и Маргарита» 13px/400	#a0b7bd	#142833	7.24	4.5	OK
+dom	night	session-summary	«Сессия завершена» 26px/600	#e2edf0	#142833	12.75	3	OK
+dom	night	session-summary	«Цель дня» 15px/800	#e6c27a	#313e3d	6.55	4.5	OK
+dom	night	session-summary	«Время чтения» 15px/400	#e2edf0	#142833	12.75	4.5	OK
+dom	night	session-summary	«+120 XP» 16px/700	#7fc3d6	#142833	7.73	4.5	OK
+dom	night	session-summary	«В библиотеку» 16px/700	#08202a	#7fc3d6	8.54	4.5	OK
+dom	night	session-summary	иконка (Цель дня+30 монет)	#e6c27a	#313e3d	6.55	3	OK
+dom	night	session-summary	иконка (Время чтения12 минут)	#a0b7bd	#142833	7.24	3	OK
+dom	night	session-summary	иконка (rt)	#7fc3d6	#142833	7.73	3	OK
+dom	night	rewards	«Награды» 30px/600	#e2edf0	#172139	13.41	3	OK
+dom	night	rewards	«390 монет» 14px/700	#e6c27a	#313e3d	6.55	4.5	OK
+dom	night	rewards	«6» 17px/800	#e2edf0	#142833	12.75	4.5	OK
+dom	night	rewards	«Читать 10 мин · 6 из 10 мин» 13px/400	#a0b7bd	#142833	7.24	4.5	OK
+dom	night	rewards	«Награды из жизни» 12px/800	#a0b7bd	#0d1c25	8.27	4.5	OK
+dom	night	rewards	«100 монет» 13px/700	#e6c27a	#142833	8.95	4.5	OK
+dom	night	rewards	«Обменять» 14px/700	#7fc3d6	#142833	7.73	4.5	OK
+dom	night	rewards	«Добавить награду» 16px/700	#7fc3d6	#0d1c25	8.83	4.5	OK
+dom	night	rewards	иконка (390 монет)	#e6c27a	#313e3d	6.55	3	OK
+dom	night	rewards	иконка (mut)	#a0b7bd	#142833	7.24	3	OK
+dom	night	rewards	иконка (100 монет)	#e6c27a	#142833	8.95	3	OK
+dom	night	rewards	иконка (Добавить награду)	#7fc3d6	#0d1c25	8.83	3	OK
+dom	night	rewards	иконка (icon)	#7fc3d6	#274450	5.26	3	OK
+dom	night	profile	«Профиль» 30px/600	#e2edf0	#172139	13.41	3	OK
+dom	night	profile	«Ч» 26px/600	#7fc3d6	#274450	5.26	3	OK
+dom	night	profile	«Читатель» 18px/700	#e2edf0	#142833	12.75	4.5	OK
+dom	night	profile	«Уровень 4» 14px/700	#7fc3d6	#142833	7.73	4.5	OK
+dom	night	profile	«Опыт» 13px/400	#a0b7bd	#142833	7.24	4.5	OK
+dom	night	profile	«390» 24px/800	#e2edf0	#1d3742	10.50	3	OK
+dom	night	profile	«монет» 12px/600	#a0b7bd	#1d3742	5.96	4.5	OK
+dom	night	profile	«Всего прочитано 124 мин · дочитано книг:» 13px/400	#a0b7bd	#0d1c25	8.27	4.5	OK
+dom	night	profile	иконка (ib)	#e2edf0	#2a2d3b	11.45	3	OK
+dom	night	profile	иконка (icon)	#e6c27a	#1d3742	7.37	3	OK
+dom	night	profile	иконка (icon)	#7fc3d6	#1d3742	6.37	3	OK
+dom	night	profile	иконка (ib)	#a0b7bd	#142833	7.24	3	OK
+dom	night	reader-panels	«Чай­ник на пли­те дав­но ос­тыл. На сто­» 19px/400	#dde3e2	#11191d	13.69	4.5	OK
+dom	night	reader-panels	«Мастер и Маргарита» 17px/700	#e2edf0	#142833	12.75	4.5	OK
+dom	night	reader-panels	«Михаил Булгаков · FB2» 13px/400	#a0b7bd	#142833	7.24	4.5	OK
+dom	night	reader-panels	«98 из 185» 14px/700	#0d1c25	#e2edf0	14.55	4.5	OK
+dom	night	reader-panels	иконка (ib)	#e2edf0	#142833	12.75	3	OK

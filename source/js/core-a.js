@@ -73,13 +73,14 @@ function daysInWeekAtGoal(minNeed,wk){
   return {count:days.length,days:days,need:need,week:wk};
 }
 /** Award every sessions[] row not yet in game.awardedSessionIds (idempotent):
-    XP = Math.round(min)*10 per row, and AUTO daily +30 / weekly +120 for the (local) days of exactly
+    XP = 10 × (dayMinutes after − before) per row (game-awards xpForSession, stored as row.xp), and AUTO daily +30 / weekly +120 for the (local) days of exactly
     these rows (game.dailyPaidDays / game.weeklyPaidWeeks). No claim button. */
 function awardPendingSessions(){
   if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[]};
   const G=window.__rqGame;
-  const res=G.applySessionAwards(S,SESS);
+  const res=G.applySessionAwards(S,SESS); /* XP per row = 10 × whole-minute step of its day (xpForSession), stored as row.xp */
   const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
+  if(__rq&&__rq.setSessionXp)fresh.forEach(function(r){__rq.setSessionXp(r.id,r.xp).catch(function(e){console.warn('[rq] setSessionXp',e);});});
   const q=G.applyQuestAwards(S,SESS,fresh,{goal:goalMin()});
   res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
   if(res.ids.length||q.gold)save();

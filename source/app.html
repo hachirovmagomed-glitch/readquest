@@ -1135,7 +1135,7 @@ import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
-  loadEnvelope, saveEnvelope, upsertUserBook
+  loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
 } from './storage/index.js';
 import { createSessionTracker, recoverDraft } from './reader-session.js';
 import * as game from './game-awards.js';
@@ -1163,7 +1163,7 @@ await window.__rqStart({
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
   importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings,
-  loadEnvelope, saveEnvelope, upsertUserBook
+  loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
 }, tracker);
 window.__rqAfterBoot(window.__rq);
 </script>

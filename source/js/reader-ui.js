@@ -432,7 +432,7 @@ async function closeReaderImpl(opts){
     /* MVP: XP only from reading — +10 per counted minute, derived by game from sessions[]
        and awarded once per sessionId (game.awardedSessionIds). */
     const res=awardPendingSessions();
-    xp=res.byId[row.id]||0;
+    xp=Number(row.xp)||0; /* the paid value stored in the row (decision B) — the summary never recomputes it */
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
     questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[]};
   }else{

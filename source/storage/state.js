@@ -292,6 +292,8 @@ export async function importBackup(data) {
         bookId: s.bookId,
         minutes: s.minutes,
         pageTurns: s.pageTurns != null ? s.pageTurns : s.pages,
+        startedAt: s.startedAt,
+        xp: s.xp,
       });
     } catch (e) {
       /* skip bad rows */

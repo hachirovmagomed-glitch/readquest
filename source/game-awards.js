@@ -1,7 +1,8 @@
 /**
  * Game side of the session contract — derives rewards ONLY from sessions[] rows.
  *
- *   XP      = Math.round(row.minutes) * 10 per row, once per sessions[].id
+ *   XP      = 10 × (dayMinutes with the row − dayMinutes without it), «before» = the same day's rows that STARTED
+ *             earlier (startedAt, then id) — deterministic, import-order independent; stored as row.xp; once per id
  *   daily   = +30 gold when dayMinutes(day) ≥ goal (auto, once per day)
  *   weekly  = +120 gold when ≥ 4 days of the week have dayMinutes ≥ goal (auto, once per week)
  *   dayMinutes(day) = Math.floor(sum of the day's sessions[].minutes) — the ONLY day-minutes formula
@@ -18,8 +19,31 @@ export { localDay, addLocalDays };
 
 export const XP_PER_MIN = 10;
 
+/** Legacy per-row formula (kept for callers that pass it explicitly as opts.xpFn; not the default any more). */
 export function xpForRow(row) {
   return Math.round(Number(row && row.minutes) || 0) * XP_PER_MIN;
+}
+
+function rowDay(r) { return r && r.date ? String(r.date).slice(0, 10) : null; }
+/** start order inside a day: startedAt (ms; missing = 0 → old rows first), then id */
+export function startOrder(a, b) {
+  const sa = Number(a && a.startedAt) || 0, sb = Number(b && b.startedAt) || 0;
+  if (sa !== sb) return sa < sb ? -1 : 1;
+  const ia = String(a && a.id), ib = String(b && b.id);
+  return ia < ib ? -1 : ia > ib ? 1 : 0;
+}
+
+/**
+ * XP of one session (1б, team decision B): 10 × (floor(dayMin after) − floor(dayMin before)), «before» = sum of the
+ * same day's sessions that STARTED earlier (startOrder). 0.9 + 0.9 + 0.9 → 0, 10, 10. Never depends on what was paid.
+ */
+export function xpForSession(rows, row) {
+  const day = rowDay(row);
+  if (!day) return 0;
+  const before = (rows || []).filter(function (r) {
+    return r && r !== row && r.id !== row.id && rowDay(r) === day && startOrder(r, row) < 0;
+  });
+  return (dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN;
 }
 
 /** New-style row: string id that is not a legacy (already paid) id. */
@@ -33,13 +57,14 @@ export function isAwardable(row) {
  */
 export function applySessionAwards(game, rows, opts) {
   const o = opts || {};
-  const xpFn = o.xpFn || xpForRow;
+  const xpFn = o.xpFn || function (r) { return xpForSession(rows, r); };
   if (!Array.isArray(game.awardedSessionIds)) game.awardedSessionIds = [];
   const seen = new Set(game.awardedSessionIds);
   const out = { xp: 0, byId: {}, ids: [] };
   (rows || []).forEach(function (r) {
     if (!isAwardable(r) || seen.has(r.id)) return;
     const xp = xpFn(r);
+    r.xp = xp; /* the paid value lives in the row (summary shows it, never recomputes); caller persists it */
     seen.add(r.id);
     game.awardedSessionIds.push(r.id);
     game.xp = (Number(game.xp) || 0) + xp;

@@ -170,6 +170,7 @@ export function createSessionTracker(api) {
       bookId: bookId,
       minutes: creditedMs / 60000,
       pageTurns: pagesRead,
+      startedAt: startedAt,                 // ms; orders XP inside a day (game-awards xpForSession)
     };
     if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return { row: null, ev: ev }; }
     /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
@@ -186,7 +187,7 @@ export function createSessionTracker(api) {
     } catch (e) {
       console.warn('[rq] logSession failed — draft kept for recovery', e);
       const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
-        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, updatedAt: Date.now() });
+        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, updatedAt: Date.now() });
       /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
       if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
       return null;
@@ -375,7 +376,7 @@ async function recoverRaw(api, raw) {
       if (rows.some(function (r) { return r.id === d.id; })) return null;
     }
     return await api.logSession({
-      id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns,
+      id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt,
     });
   } catch (e) {
     console.warn('[rq] recoverDraft failed', e);

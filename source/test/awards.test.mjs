@@ -1,0 +1,47 @@
+// 1б decisions A+B (node, no browser): dayMinutes = floor(day sum) is the one day rule; XP per session =
+// 10 × (dayMinutes after − before), «before» = same-day rows that STARTED earlier (startedAt, then id); stored in row.xp.
+// Run: node source/test/awards.test.mjs
+const G = await import(new URL('../game-awards.js', import.meta.url).href);
+let pass = 0, fail = 0;
+const ok = (n, p, i) => { (p ? pass++ : fail++); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
+const D = '2026-10-09', T0 = Date.parse('2026-10-09T09:00:00+03:00');
+let n = 0;
+const row = (min, startMin, day) => ({ id: 'id-' + String(++n).padStart(3, '0') + '-' + Math.random().toString(36).slice(2, 6), date: day || D, bookId: 'b', minutes: min, pageTurns: 1, startedAt: T0 + startMin * 60000 });
+const game = () => ({ xp: 0, gold: 0, awardedSessionIds: [] });
+
+// 0.9 + 0.9 + 0.9, each paid when it ends (summary flow: SESS grows by one row, then award)
+{ const g = game(), rows = [], xs = [];
+  for (const r of [row(0.9, 0), row(0.9, 5), row(0.9, 10)]) { rows.push(r); const a = G.applySessionAwards(g, rows); xs.push(a.byId[r.id]); }
+  ok('0.9+0.9+0.9 → per session 0, 10, 10; total +20 XP; stored in row.xp', JSON.stringify(xs) === '[0,10,10]' && g.xp === 20 && rows.every((r, i) => r.xp === xs[i]), { xs, xp: g.xp });
+  ok('… dayMinutes = 2 («2 / 10», streak threshold 2 reached)', G.dayMinutes(rows, D) === 2, G.dayMinutes(rows, D));
+  const again = G.applySessionAwards(g, rows);
+  ok('… second award pass pays nothing (once per sessionId)', again.xp === 0 && g.xp === 20, again);
+}
+// single 0.71
+{ const g = game(), r = row(0.71, 0); const a = G.applySessionAwards(g, [r]);
+  ok('single 0.71 → +0 XP', a.byId[r.id] === 0 && r.xp === 0 && g.xp === 0, a.byId); }
+// 9.5 + 0.6 → second session: +10 XP and the daily +30
+{ const g = game(), r1 = row(9.5, 0), r2 = row(0.6, 20), rows = [r1];
+  G.applySessionAwards(g, rows); const q1 = G.applyQuestAwards(g, rows, [r1], { goal: 10 });
+  rows.push(r2); const a2 = G.applySessionAwards(g, rows); const q2 = G.applyQuestAwards(g, rows, [r2], { goal: 10 });
+  ok('9.5 → +90 XP, no daily; +0.6 → +10 XP and daily +30', r1.xp === 90 && q1.gold === 0 && a2.byId[r2.id] === 10 && q2.gold === 30 && q2.daily[0] === D, { r1: r1.xp, q1: q1.gold, r2: a2.byId[r2.id], q2 });
+}
+// 1.4 and 0.7: forward vs reverse import order → same per-session XP
+{ const a = row(1.4, 0), b = row(0.7, 30);
+  const fwd = [{ ...a }, { ...b }], rev = [{ ...b }, { ...a }];
+  const gf = game(), gr = game(); G.applySessionAwards(gf, fwd); G.applySessionAwards(gr, rev);
+  const xf = Object.fromEntries(fwd.map(r => [r.id, r.xp])), xr = Object.fromEntries(rev.map(r => [r.id, r.xp]));
+  ok('1.4 + 0.7 imported in reverse order → same per-session xp as forward (10, 10)', xf[a.id] === 10 && xf[b.id] === 10 && xr[a.id] === xf[a.id] && xr[b.id] === xf[b.id] && gf.xp === gr.xp, { xf, xr });
+  // late row that STARTED first (e.g. a recovered draft): «before» is by start, not by what was paid
+  const g = game(), rows = [{ ...b }]; G.applySessionAwards(g, rows); const late = { ...a }; rows.push(late); G.applySessionAwards(g, rows);
+  ok('order by startedAt, not by award time (0.7 paid first: 0; then 1.4 that started earlier: 10)', rows[0].xp === 0 && late.xp === 10, rows.map(r => r.xp)); }
+// one formula: streak/daily/week/gold use dayMinutes (floor)
+{ const rows = [row(1.4, 0), row(0.6, 10)];
+  ok('1.4 + 0.6 (float sum 1.9999999999999998) → dayMinutes 2', G.dayMinutes(rows, D) === 2);
+  const rows2 = [row(1.4, 0), row(0.5, 10)];
+  ok('1.4 + 0.5 → dayMinutes 1 (no streak)', G.dayMinutes(rows2, D) === 1);
+  const wk = G.weekStartOf(D); const days = [0, 1, 2, 3].map(i => G.addLocalDays(wk, i));
+  const wr = days.map((d, i) => row(i === 3 ? 9.99 : 10, i * 1440, d));
+  ok('week counts days by dayMinutes: 10, 10, 10, 9.99 → 3 days at goal (9.99 is 9)', G.daysAtGoalInWeek(wr, wk, 10).length === 3, G.daysAtGoalInWeek(wr, wk, 10)); }
+console.log(`\nSUMMARY awards.test ${pass}/${pass + fail}`);
+process.exit(fail ? 1 : 0);

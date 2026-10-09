@@ -60,6 +60,7 @@ export {
   legacySessionId,
   withLegacyIds,
   ensureSessionIds,
+  setSessionXp,
 } from './sessions.js';
 
 export {

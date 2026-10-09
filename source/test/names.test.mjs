@@ -23,6 +23,12 @@ const SWAP = process.env.NAMES_SWAP || '';
 /* NAMES_THROW=<file.js>: that js/ file throws on its first line (after its 'use strict';). After the split an error in one
    file no longer stops the whole block 1085 — the NEXT files still run, the app may boot half-broken → must FAIL here. */
 const THROW = process.env.NAMES_THROW || '';
+/* guards (Architect, 09.10): `typeof X==='function'&&X()` / window.X on a function from a LATER file silently become false if
+   they run before that file. hoist-map lists every guard (--all-guards); here: at the end of the classic scripts
+   (readyState → interactive, BEFORE the module boot / __rqStart / any handler) every guarded function must already exist. */
+import { spawnSync } from 'child_process';
+const HM = JSON.parse(spawnSync(process.execPath, [new URL('./hoist-map.mjs', import.meta.url).pathname, '--json', '--all-guards'], { encoding: 'utf8' }).stdout);
+const guardFns = [...new Set(HM.guards.map(g => g.fn))].sort();
 const checks = [];
 const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -79,6 +85,13 @@ await page.exposeFunction('__rqNamesErr', (e) => { loadErrs.push(e); });
 await page.evaluateOnNewDocument(() => {
   window.addEventListener('error', (e) => { try { window.__rqNamesErr({ m: String(e.message), f: String(e.filename || '').replace(/^.*\/readquest\//, ''), l: e.lineno, c: e.colno }); } catch (x) {} }, true);
 });
+await page.evaluateOnNewDocument((fns) => {
+  document.addEventListener('readystatechange', () => {
+    if (document.readyState !== 'interactive' || window.__rqGuardAtEnd) return;
+    const o = {}; for (const f of fns) { try { o[f] = (0, eval)('typeof ' + f); } catch (e) { o[f] = 'ERR ' + e.message; } }
+    window.__rqGuardAtEnd = o;
+  });
+}, guardFns);
 page.on('console', m => { if (m.type() === 'error' && /ReferenceError|is not defined|TypeError/.test(m.text())) errors.push('console: ' + m.text()); });
 if (BREAK || SWAP || THROW) {
   await page.setRequestInterception(true);
@@ -121,6 +134,13 @@ ok(`every object root used by inline handlers is defined after boot (${res.roots
 const badGlobs = res.globs.filter(([, , t]) => t !== 'ok');
 ok(`every global declared by js/ files resolves after boot (no ReferenceError/TDZ) (${res.globs.length} names in ${jsFiles.length} files)`, badGlobs.length === 0, { undefined: badGlobs, names: res.globs.map(g => g[0] + ':' + g[1]) });
 ok('zero pageerror / ReferenceError during boot', errors.length === 0, errors);
+const gEnd = await page.evaluate(() => window.__rqGuardAtEnd || null);
+const gBad = gEnd ? Object.entries(gEnd).filter(([, t]) => t !== 'function') : [['(no snapshot)', '']];
+ok(`typeof/window guards: every guarded function (${guardFns.length}: ${guardFns.join(', ')}) is defined when the classic scripts end (readyState interactive, before module boot); ${HM.guards.filter(g => g.where === 'LATER').length} guard(s) on a LATER file, ${HM.guards.filter(g => g.where === 'LATER' && g.atLoad).length} at load`,
+  gBad.length === 0 && !HM.guards.some(g => g.where === 'LATER' && g.atLoad), { bad: gBad, later: HM.guards.filter(g => g.where === 'LATER').map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl}${g.atLoad ? ' AT LOAD' : ''}`) });
+const ava = await page.evaluate(() => { const a = document.getElementById('streakAva'); const want = (typeof isMvp === 'function' && isMvp()) && S.useChar !== false;
+  return { mvp: isMvp(), useChar: S.useChar !== false, svg: !!a && a.innerHTML.startsWith('<svg'), same: !!a && typeof avatarSvg === 'function' && (() => { const d = document.createElement('span'); d.innerHTML = avatarSvg(); return a.innerHTML === d.innerHTML; })(), /* both serialized by the browser */ want, txt: a ? a.textContent.slice(0, 4) : null }; });
+ok('streak avatar drawn by avatarSvg() after boot (guard app.html:1133 `typeof avatarSvg` → js/rpg.js took the function branch)', ava.want ? (ava.svg && ava.same) : !ava.svg, ava);
 
 // ---- 3. library ready ≤ 3 s: cold (first load) + 10 warm reloads (SW cache) at CPU ×1, 5 warm at CPU ×4 ----
 const warm = [];

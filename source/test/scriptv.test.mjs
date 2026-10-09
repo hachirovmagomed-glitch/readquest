@@ -67,7 +67,12 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const hb = hm(baseSrc), hc = hm(CU);
   const key = (x) => x.fn + '@' + x.unit.replace(/^inline app\.html:\d+/, 'inline');
   const newBad = hc.nodes.filter(x => !hb.nodes.some(y => key(y) === key(x))).map(x => `[${x.unit}] ${x.ref} → ${x.fn} (${x.decl}) via ${x.chain}`);
-  ok(`(split) no load-time use of a function declared only in a LATER script (hoist-map, transitive; ${hc.units.length} classic scripts, every branch)`, newBad.length === 0, { new: newBad, alreadyInBase: hb.nodes.length });
+  /* guards (typeof X / window.X) on a LATER file that run AT LOAD: silently false after the split (were true inside one block) */
+  const gKey = (g) => g.fn + '@' + g.unit.replace(/^inline app\.html:\d+/, 'inline');
+  const newGuards = hc.guards.filter(g => g.atLoad && !hb.guards.some(y => y.atLoad && gKey(y) === gKey(g))).map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl} via ${g.chain}`);
+  ok(`(split) no load-time use of a function declared only in a LATER script, and no typeof/window guard on one at load (hoist-map, transitive; ${hc.units.length} classic scripts, every branch; guards on later files that run only after load: ${hc.guards.length})`, newBad.length === 0 && newGuards.length === 0, { new: newBad, newGuardsAtLoad: newGuards, laterOnly: hc.guards.filter(g => !g.atLoad).map(g => `${g.ref} ${g.kind} ${g.fn} → ${g.decl}`), alreadyInBase: hb.nodes.length });
+  { const r = spawnSync(process.execPath, [path.join(SRC, 'test', 'hoist-map.mjs'), '--selftest'], { encoding: 'utf8' });
+    ok('(split) hoist-map self-test on a synthetic page (node via a() → b(); deferred setTimeout ignored; typeof guard at load; window.X guard in a handler = later; x && x() = node)', r.status === 0, r.stdout.trim()); }
   if (BREAK === 'sedjs') { const bd = path.join(CU, 'build-dist.sh'); fs.writeFileSync(bd, fs.readFileSync(bd, 'utf8').replace(`! -path "$DIST/js/*" `, '')); }
   for (const dir of [baseSrc, CU]) execSync(`RQ_BUILD=${SB} ./build-dist.sh && RQ_NS=rqt RQ_BUILD=${SB}t ./build-dist.sh`, { cwd: dir, stdio: 'pipe' });
   const walk = (d, r = '') => fs.readdirSync(path.join(d, r), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(d, path.join(r, e.name)) : [path.join(r, e.name)]);

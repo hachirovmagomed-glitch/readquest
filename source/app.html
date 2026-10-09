@@ -649,6 +649,12 @@ body.mvp #sumDailyBox{display:block}
       }catch(e){clearTimeout(t);r('throw');}
     });
     mark('idb-'+del);
+    if(del==='timeout'){ /* DB still open in another window: not a success — no wipe, no reload (window stays passive) */
+      gate.resetting=false;
+      try{sessionStorage.setItem('__rqResetLog',JSON.stringify(log));}catch(e){}
+      try{if(typeof flashMsg==='function')flashMsg('Не удалось сбросить, закройте другие окна',4000);}catch(e){}
+      return false;
+    }
     wipe();
     try{var rg=await navigator.serviceWorker.getRegistration('./');if(rg&&rg.scope.indexOf('/test/')>0)await rg.unregister();}catch(e){} /* own test SW only */
     try{var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf(pre+'-')===0;}).map(function(k){return caches.delete(k);}));}catch(e){}

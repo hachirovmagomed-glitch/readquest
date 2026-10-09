@@ -117,7 +117,13 @@ const sA = await state(); await openLib(); const uiA = await libUi();
 const profA = await page.evaluate(() => { renderMvpProfile(); return { min: (document.getElementById('mvpMinToday') || {}).textContent, info: mvpDailyInfo() }; });
 ok('1 import A (goal 5, 30 s, 7 min, devMoney true): goal 10 / 12 s / 3 min / devMoney false after import', sA.goal === 10 && sA.minSec === 12 && sA.maxMin === 3 && sA.devMoney === false && sA.capMs === 180000 && sA.minSecMs === 12000, sA);
 ok('1 import A: 9.8 min today < fixed 10 → no daily payout (imported goal 5 ignored)', !sA.paid.includes(day), { paid: sA.paid, gold: sA.gold });
-ok('3 floor: 9.8 min → «9 / 10 мин», «Сегодня: 9 мин», mvpMinToday 9, ring 98%', profA.info === '9 / 10 мин' && uiA.sub === 'Сегодня: 9 мин' && profA.min === '9' && uiA.ring === '98%', { profA, uiA });
+ok('3 floor: 9.8 min → «9 / 10 мин», «Сегодня: 9 мин», mvpMinToday 9, ring 90%', profA.info === '9 / 10 мин' && uiA.sub === 'Сегодня: 9 мин' && profA.min === '9' && uiA.ring === '90%', { profA, uiA });
+// ring % = min(1, floor(dayMinutes)/goal)·100 — the same value as the «N / 10 мин» text (product decision 10.10)
+const ringPct = (min, goal) => Math.min(1, Math.floor(min) / goal) * 100;
+ok('3 ring = min(1, floor(dayMinutes)/goal): 9.8 min → 90% (same as «9 / 10 мин»)', uiA.ring === ringPct(9.8, 10) + '%' && uiA.ring === Math.round(parseInt(profA.info, 10) / 10 * 100) + '%', { ring: uiA.ring, want: ringPct(9.8, 10) + '%', info: profA.info });
+{ const C = mk([{ id: '33333333-3333-4333-8333-333333333333', date: day, bookId: 'demo1', minutes: 14, pageTurns: 30 }]);
+  await imp(C); await openLib(); const uiC = await libUi();
+  ok('3 ring cap: 14 min → 100% (not 140%)', uiC.ring === ringPct(14, 10) + '%' && uiC.ring === '100%', { ring: uiC.ring }); }
 await imp(B);
 const sB1 = await state();
 await imp(B);

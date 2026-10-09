@@ -10,6 +10,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 MIN_MINUTES = 10
+FAKE_MIN_MINUTES = 1  # sessions shorter than 1 min (peek, quick flip-through) are not "fake reading"
 
 def d(s): return date.fromisoformat(s[:10])
 
@@ -27,7 +28,7 @@ def tester(path, start):
     fake = 0
     for s in sessions:
         per_day[d(s["date"])] += s.get("minutes", 0) or 0
-        if (s.get("minutes", 0) or 0) > 0 and (s.get("pageTurns", 0) or 0) == 0:
+        if (s.get("minutes", 0) or 0) >= FAKE_MIN_MINUTES and (s.get("pageTurns", 0) or 0) == 0:
             fake += 1
     def week(n):
         lo = start + timedelta(days=7 * n); hi = lo + timedelta(days=6)
@@ -67,7 +68,7 @@ def main():
     print()
     print(f"North star, week 2 median days >=10 min: {med}  (target >= 4)  {'OK' if med >= 4 else 'MISS'}")
     print(f"Returned in week 2: {ret:.0%}  (alarm < 50%)")
-    print(f"Fake sessions (minutes, 0 page turns): {fake:.0%}  (alarm > 10%)")
+    print(f"Fake sessions (>=1 min, 0 page turns): {fake:.0%}  (alarm > 10%)")
     print(f"Tapped 'Создать героя': {hero:.0%}  (build AI hero if > 33%)")
     print(f"Bought at least one real reward: {buy:.0%}")
     th_ch = sum(1 for r in rows if r["theme_changed"]) / n

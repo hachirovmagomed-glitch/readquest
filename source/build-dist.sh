@@ -33,6 +33,14 @@ EOP
 fi
 cp "$ROOT/sw.js" "$DIST/sw.js"
 
+# Stage 1a: classic scripts cut out of app.html live in js/ (copied for both rq and rqt; only *.js, no notes/dotfiles).
+# Each gets ?v=BUILD in the HTML (below) and in the SW precache, so a new HTML never gets an old file from SW/HTTP cache.
+if [ -d "$ROOT/js" ]; then
+  (cd "$ROOT" && find js -type f -name '*.js' -print0) | while IFS= read -r -d '' f; do
+    mkdir -p "$DIST/$(dirname "$f")"; cp "$ROOT/$f" "$DIST/$f"
+  done
+fi
+
 # Storage modules only (no harness)
 for f in schema.js idb.js state.js sessions.js events.js migrate-v6.js adapter.js index.js; do
   cp "$ROOT/storage/$f" "$DIST/storage/$f"
@@ -42,7 +50,13 @@ done
 # Every relative ES-module specifier gets the SAME ?v=BUILD, so module identity stays consistent.
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 for f in "$DIST/index.html" "$DIST/app.html"; do
-  sed -i -E "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g" "$f"
+  sed -i -E "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g; s#(<script src=\")(js/[^\"?]+\.js)\"#\1\2?v=$BUILD\"#g" "$f"
+done
+# Guard: every local <script src> in the pages carries ?v=<this build> and points to a file in dist (else: mixed builds / 404 → watchdog).
+for f in "$DIST/index.html" "$DIST/app.html"; do
+  bad=$(grep -oE '<script[^>]* src="[^"]*"' "$f" | sed -E 's/.* src="([^"]*)"/\1/' | grep -vE '^(https?:)?//' | while read -r s; do
+    case "$s" in *"?v=$BUILD") [ -f "$DIST/${s%%\?*}" ] || echo "missing:$s";; *) echo "no-v:$s";; esac; done || true)
+  if [ -n "$bad" ]; then echo "build-dist: bad <script src> in $(basename "$f"): $bad" >&2; exit 1; fi
 done
 find "$DIST" -name '*.js' -print0 | xargs -0 sed -i -E "s#'(\.{1,2}/[^'?]+\.js)'#'\1?v=$BUILD'#g"
 echo "Build marker: $BUILD (NS=$NS)"

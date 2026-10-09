@@ -67,8 +67,10 @@ ok('(a) SW scope = /readquest/', scope === new URL(BASE).href, scope);
 let k = await keys(p1);
 ok('(a) cache rq-' + A + ' exists', k.includes('rq-' + A), k);
 const pre0 = await p1.evaluate(async (c) => (await (await caches.open(c)).keys()).map(r => new URL(r.url).pathname + new URL(r.url).search), 'rq-' + A);
-ok('(a) precache has html, storage/, reader-session, pdf.js + worker, manifest, icons',
-  ['/readquest/', '/readquest/index.html', '/readquest/app.html', '/readquest/manifest.webmanifest', '/readquest/vendor/pdfjs/pdf.min.js', '/readquest/vendor/pdfjs/pdf.worker.min.js', '/readquest/icons/icon-maskable-512.png', `/readquest/storage/state.js?v=${A}`, `/readquest/reader-session.js?v=${A}`].every(x => pre0.includes(x)), pre0.length);
+/* stage 1a: every js/*.js of this build is precached with ?v=A (empty js/ → nothing to add) */
+const jsA = fs.existsSync(SRC + 'dist/js') ? fs.readdirSync(SRC + 'dist/js', { recursive: true }).filter(f => f.endsWith('.js')).map(f => `/readquest/js/${f}?v=${A}`) : [];
+ok('(a) precache has html, storage/, reader-session, pdf.js + worker, manifest, icons, js/*',
+  [...jsA, '/readquest/', '/readquest/index.html', '/readquest/app.html', '/readquest/manifest.webmanifest', '/readquest/vendor/pdfjs/pdf.min.js', '/readquest/vendor/pdfjs/pdf.worker.min.js', '/readquest/icons/icon-maskable-512.png', `/readquest/storage/state.js?v=${A}`, `/readquest/reader-session.js?v=${A}`].every(x => pre0.includes(x)), pre0.length);
 
 // ---------- (f) manifest ----------
 const man = await p1.evaluate(async () => (await fetch('manifest.webmanifest')).json());

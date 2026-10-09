@@ -3,7 +3,7 @@
 
 Usage: python3 metrics.py --start 2026-10-12 exports/*.json
 Each file = one tester's export (sessions[] rows may carry an `id` — ignored here). Sessions under ~10 s with 0 pages are never logged
-by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Week 1 = start..start+6, week 2 = start+7..start+13.
+by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Skins: theme_changed events (from, to); "kept" = last `to` differs from first `from`. Week 1 = start..start+6, week 2 = start+7..start+13.
 """
 import argparse, json, statistics, sys
 from collections import defaultdict
@@ -37,9 +37,12 @@ def tester(path, start):
     hero = sum(1 for e in data.get("events", []) if e.get("type") == "hero_create_tapped")
     # PDF watchdog recoveries: events[] {type, date, at, bookId, page, label, stalledMs, reason} (STORAGE.md)
     stalls = sum(1 for e in data.get("events", []) if e.get("type") == "pdf_stall_recovered")
+    # Free 2nd theme: events[] {type:"theme_changed", from, to}. "kept" = ended on a theme other than the starting one.
+    th = [e for e in data.get("events", []) if e.get("type") == "theme_changed"]
+    theme_kept = bool(th) and th[-1].get("to") != th[0].get("from")
     buys = len((data.get("game") or {}).get("rewardPurchases") or [])
     return {"buys": buys, "file": path, "w1_days10": w1_ok, "w2_days10": w2_ok, "w2_any": w2_any,
-            "sessions": len(sessions), "fake": fake, "hero_taps": hero, "build": data.get("build", "?"), "pdf_stalls": stalls}
+            "sessions": len(sessions), "fake": fake, "hero_taps": hero, "build": data.get("build", "?"), "pdf_stalls": stalls, "theme_changed": len(th) > 0, "theme_kept": theme_kept}
 
 def main():
     ap = argparse.ArgumentParser()
@@ -67,6 +70,9 @@ def main():
     print(f"Fake sessions (minutes, 0 page turns): {fake:.0%}  (alarm > 10%)")
     print(f"Tapped 'Создать героя': {hero:.0%}  (build AI hero if > 33%)")
     print(f"Bought at least one real reward: {buy:.0%}")
+    th_ch = sum(1 for r in rows if r["theme_changed"]) / n
+    th_kept = sum(1 for r in rows if r["theme_kept"]) / n
+    print(f"Changed theme: {th_ch:.0%}; kept a non-starting theme: {th_kept:.0%}  (sell skins for coins if kept > 33%)")
     stall_tot = sum(r["pdf_stalls"] for r in rows)
     stall_testers = sum(1 for r in rows if r["pdf_stalls"] > 0)
     print(f"PDF stalls recovered by watchdog (pdf_stall_recovered): {stall_tot} total, {stall_testers}/{n} testers with >= 1")

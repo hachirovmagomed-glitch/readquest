@@ -1,0 +1,39 @@
+/* ReadQuest skin «Карандашный». Apply with <html data-theme="pencil-day|pencil-night"> */
+[data-theme="pencil-day"]{
+  --rq-bg:#f3f0e7;
+  --rq-surface:#fbfaf5;
+  --rq-text:#2a2a28;
+  --rq-text-muted:#595853;
+  --rq-accent:#1d6464;
+  --rq-on-accent:#fbfaf5;
+  --rq-border:#3d3d3a;
+  --rq-tab:#595853;
+  --rq-tab-active:#1d6464;
+  --rq-page-bg:#fbfaf6;
+  --rq-page-text:#24231f;
+  --rq-page-number:#6b6a64;
+  --rq-daybar:#1d6464;
+  --rq-daybar-track:#dedbd1;
+  --rq-hatch:#8f8c84;
+  --rq-scrim:rgba(42,42,40,.45);
+  color-scheme:light
+}
+[data-theme="pencil-night"]{
+  --rq-bg:#2b3038;
+  --rq-surface:#353b45;
+  --rq-text:#e8e6df;
+  --rq-text-muted:#b9b7ae;
+  --rq-accent:#86cbc2;
+  --rq-on-accent:#1f2329;
+  --rq-border:#cfccc3;
+  --rq-tab:#b9b7ae;
+  --rq-tab-active:#86cbc2;
+  --rq-page-bg:#262a31;
+  --rq-page-text:#e3e0d8;
+  --rq-page-number:#a7a59d;
+  --rq-daybar:#86cbc2;
+  --rq-daybar-track:#454c57;
+  --rq-hatch:#7c828c;
+  --rq-scrim:rgba(12,14,18,.68);
+  color-scheme:dark
+}

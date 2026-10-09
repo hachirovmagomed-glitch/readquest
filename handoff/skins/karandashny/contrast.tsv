@@ -1,0 +1,97 @@
+theme	screen	element	fg	bg	ratio	need	result
+day	reader	body text PT Serif 17px	page-text #24231f	page-bg #fbfaf6	15.06	4.5	OK
+day	reader	page number 11px «34 / 210»	page-number #6b6a64	page-bg #fbfaf6	5.19	4.5	OK
+day	reader	top bar title 17px bold	text #2a2a28	bg #f3f0e7	12.62	4.5	OK
+day	reader	top bar icons (back, toc, Aa, bookmark)	text #2a2a28	bg #f3f0e7	12.62	3	OK
+day	reader	day-goal bar fill vs track (3px)	daybar #1d6464	daybar-track #dedbd1	4.96	3	OK
+day	reader	day-goal bar fill vs page	daybar #1d6464	page-bg #fbfaf6	6.57	3	OK
+day	all	heading Caveat 38px (Библиотека/Профиль)	text #2a2a28	bg #f3f0e7	12.62	3	OK
+day	all	heading Caveat 26–40px also checked as normal text	text #2a2a28	bg #f3f0e7	12.62	4.5	OK
+day	all	sketch outlines of cards/chips (UI boundary)	border #3d3d3a	bg #f3f0e7	9.56	3	OK
+day	all	sketch outlines on surface	border #3d3d3a	surface #fbfaf5	10.43	3	OK
+day	nav	tab label inactive 13px + icon	tab #595853	bg #f3f0e7	6.26	4.5	OK
+day	nav	tab label active 13px + icon + underline	tab-active #1d6464	bg #f3f0e7	6.02	4.5	OK
+day	library	balance «504 монеты» 15px on chip	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	library	search icon	text #2a2a28	bg #f3f0e7	12.62	3	OK
+day	library	chip inactive 14px	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	library	chip active «Все» 14px	on-accent #fbfaf5	accent #1d6464	6.57	4.5	OK
+day	library	book title 13px	text #2a2a28	bg #f3f0e7	12.62	4.5	OK
+day	library	author / progress 12px	text-muted #595853	bg #f3f0e7	6.26	4.5	OK
+day	library	format label 10.5px on cover label	text-muted #595853	surface #fbfaf5	6.82	4.5	OK
+day	library	cover doodle lines	border #3d3d3a	surface #fbfaf5	10.43	3	OK
+day	library	progress fill vs bg	accent #1d6464	bg #f3f0e7	6.02	3	OK
+day	summary	title Caveat 40px	text #2a2a28	bg #f3f0e7	12.62	3	OK
+day	summary	book/pages 14px muted	text-muted #595853	bg #f3f0e7	6.26	4.5	OK
+day	summary	stat number 30px	text #2a2a28	surface #fbfaf5	13.76	3	OK
+day	summary	stat caption 13px muted	text-muted #595853	surface #fbfaf5	6.82	4.5	OK
+day	summary	«+30 🪙 ежедневка выполнена» 16px	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	summary	check icon accent	accent #1d6464	surface #fbfaf5	6.57	3	OK
+day	summary	week «Неделя: 2 / 4 дня» 15px	text #2a2a28	bg #f3f0e7	12.62	4.5	OK
+day	summary	week circles / checks	accent #1d6464	bg #f3f0e7	6.02	3	OK
+day	summary	button «Продолжить» 17px bold	on-accent #fbfaf5	accent #1d6464	6.57	4.5	OK
+day	profile	name 22px / row text 16px	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	profile	muted 14px on card	text-muted #595853	surface #fbfaf5	6.82	4.5	OK
+day	profile	«✓ выполнено сегодня» 14px accent	accent #1d6464	surface #fbfaf5	6.57	4.5	OK
+day	profile	«2 / 4 дня» 15px	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	profile	chevron icons muted	text-muted #595853	surface #fbfaf5	6.82	3	OK
+day	profile	gift icon accent	accent #1d6464	surface #fbfaf5	6.57	3	OK
+day	profile	tile caption 12.5px muted	text-muted #595853	surface #fbfaf5	6.82	4.5	OK
+day	profile	«Задания» Caveat 26px	text #2a2a28	bg #f3f0e7	12.62	4.5	OK
+day	sheet	sheet title Caveat 30px on sheet	text #2a2a28	bg #f3f0e7	12.62	4.5	OK
+day	sheet	close icon	text #2a2a28	bg #f3f0e7	12.62	3	OK
+day	sheet	grabber	text-muted #595853	bg #f3f0e7	6.26	3	OK
+day	sheet	slot name 16px	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	sheet	buy button «100 монет» 15px	on-accent #fbfaf5	accent #1d6464	6.57	4.5	OK
+day	sheet	buy disabled «500 монет» 15px	text-muted #595853	surface #fbfaf5	6.82	4.5	OK
+day	sheet	tier segment inactive 14px	text #2a2a28	surface #fbfaf5	13.76	4.5	OK
+day	sheet	tier segment active 14px accent	accent #1d6464	surface #fbfaf5	6.57	4.5	OK
+day	sheet	«получено: N» 13.5px	text-muted #595853	surface #fbfaf5	6.82	4.5	OK
+day	sheet	hint 13.5px	text-muted #595853	bg #f3f0e7	6.26	4.5	OK
+night	reader	body text PT Serif 17px	page-text #e3e0d8	page-bg #262a31	10.92	4.5	OK
+night	reader	page number 11px «34 / 210»	page-number #a7a59d	page-bg #262a31	5.84	4.5	OK
+night	reader	top bar title 17px bold	text #e8e6df	bg #2b3038	10.63	4.5	OK
+night	reader	top bar icons (back, toc, Aa, bookmark)	text #e8e6df	bg #2b3038	10.63	3	OK
+night	reader	day-goal bar fill vs track (3px)	daybar #86cbc2	daybar-track #454c57	4.68	3	OK
+night	reader	day-goal bar fill vs page	daybar #86cbc2	page-bg #262a31	7.77	3	OK
+night	all	heading Caveat 38px (Библиотека/Профиль)	text #e8e6df	bg #2b3038	10.63	3	OK
+night	all	heading Caveat 26–40px also checked as normal text	text #e8e6df	bg #2b3038	10.63	4.5	OK
+night	all	sketch outlines of cards/chips (UI boundary)	border #cfccc3	bg #2b3038	8.26	3	OK
+night	all	sketch outlines on surface	border #cfccc3	surface #353b45	7.02	3	OK
+night	nav	tab label inactive 13px + icon	tab #b9b7ae	bg #2b3038	6.60	4.5	OK
+night	nav	tab label active 13px + icon + underline	tab-active #86cbc2	bg #2b3038	7.16	4.5	OK
+night	library	balance «504 монеты» 15px on chip	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	library	search icon	text #e8e6df	bg #2b3038	10.63	3	OK
+night	library	chip inactive 14px	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	library	chip active «Все» 14px	on-accent #1f2329	accent #86cbc2	8.52	4.5	OK
+night	library	book title 13px	text #e8e6df	bg #2b3038	10.63	4.5	OK
+night	library	author / progress 12px	text-muted #b9b7ae	bg #2b3038	6.60	4.5	OK
+night	library	format label 10.5px on cover label	text-muted #b9b7ae	surface #353b45	5.61	4.5	OK
+night	library	cover doodle lines	border #cfccc3	surface #353b45	7.02	3	OK
+night	library	progress fill vs bg	accent #86cbc2	bg #2b3038	7.16	3	OK
+night	summary	title Caveat 40px	text #e8e6df	bg #2b3038	10.63	3	OK
+night	summary	book/pages 14px muted	text-muted #b9b7ae	bg #2b3038	6.60	4.5	OK
+night	summary	stat number 30px	text #e8e6df	surface #353b45	9.03	3	OK
+night	summary	stat caption 13px muted	text-muted #b9b7ae	surface #353b45	5.61	4.5	OK
+night	summary	«+30 🪙 ежедневка выполнена» 16px	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	summary	check icon accent	accent #86cbc2	surface #353b45	6.08	3	OK
+night	summary	week «Неделя: 2 / 4 дня» 15px	text #e8e6df	bg #2b3038	10.63	4.5	OK
+night	summary	week circles / checks	accent #86cbc2	bg #2b3038	7.16	3	OK
+night	summary	button «Продолжить» 17px bold	on-accent #1f2329	accent #86cbc2	8.52	4.5	OK
+night	profile	name 22px / row text 16px	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	profile	muted 14px on card	text-muted #b9b7ae	surface #353b45	5.61	4.5	OK
+night	profile	«✓ выполнено сегодня» 14px accent	accent #86cbc2	surface #353b45	6.08	4.5	OK
+night	profile	«2 / 4 дня» 15px	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	profile	chevron icons muted	text-muted #b9b7ae	surface #353b45	5.61	3	OK
+night	profile	gift icon accent	accent #86cbc2	surface #353b45	6.08	3	OK
+night	profile	tile caption 12.5px muted	text-muted #b9b7ae	surface #353b45	5.61	4.5	OK
+night	profile	«Задания» Caveat 26px	text #e8e6df	bg #2b3038	10.63	4.5	OK
+night	sheet	sheet title Caveat 30px on sheet	text #e8e6df	bg #2b3038	10.63	4.5	OK
+night	sheet	close icon	text #e8e6df	bg #2b3038	10.63	3	OK
+night	sheet	grabber	text-muted #b9b7ae	bg #2b3038	6.60	3	OK
+night	sheet	slot name 16px	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	sheet	buy button «100 монет» 15px	on-accent #1f2329	accent #86cbc2	8.52	4.5	OK
+night	sheet	buy disabled «500 монет» 15px	text-muted #b9b7ae	surface #353b45	5.61	4.5	OK
+night	sheet	tier segment inactive 14px	text #e8e6df	surface #353b45	9.03	4.5	OK
+night	sheet	tier segment active 14px accent	accent #86cbc2	surface #353b45	6.08	4.5	OK
+night	sheet	«получено: N» 13.5px	text-muted #b9b7ae	surface #353b45	5.61	4.5	OK
+night	sheet	hint 13.5px	text-muted #b9b7ae	bg #2b3038	6.60	4.5	OK

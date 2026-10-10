@@ -313,11 +313,12 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #pgSlider{box-sizing:border-box;height:44px;margin:-14px 12px} /* 1б-fix #6: 44 px hit area, the bar keeps its 16 px layout height */
 /* 1б-144 (Продукт+Интерфейс): thumb-only slider. The range never takes pointer input (a track tap does nothing);
    .rfoot catches a press only within the 44 px thumb hit area, never in the bottom gesture strip (env(safe-area-inset-bottom)). */
+#pgSlider{--rq-thumb-ring:#5fb8ae} /* 1в: → tokens.css (--accent-on-dark): the footer bar is dark in both themes */
 #pgSlider{pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent}
 #pgSlider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:rgba(255,255,255,.35)} /* 1в: → tokens.css */
-#pgSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent);box-sizing:border-box} /* 1в: → tokens.css */
+#pgSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box} /* 1в: → tokens.css */
 #pgSlider::-moz-range-track{height:4px;border-radius:2px;background:rgba(255,255,255,.35)} /* 1в: → tokens.css */
-#pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent);box-sizing:border-box} /* 1в: → tokens.css */
+#pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box} /* 1в: → tokens.css */
 #reader .rfoot{touch-action:none}
 #pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:8px;background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #pgTip.hidden{display:none}

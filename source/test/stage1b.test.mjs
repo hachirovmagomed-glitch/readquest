@@ -452,10 +452,10 @@ if (want('thumb')) {
     await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(400);
     const chrome = async () => { await q.evaluate(() => { revealChrome(); stopChrome && 0; }); await sleep(250); };
     const geo = () => q.evaluate(() => { const g = pgThumbGeom(), f = document.querySelector('#reader .rfoot').getBoundingClientRect(), th = getComputedStyle(document.getElementById('pgSlider'), '::-webkit-slider-thumb');
-      return { cx: g.cx, cy: g.cy, l: g.r.left, w: g.r.width, ft: f.top, fb: f.bottom, H: innerHeight, shown: P.shown, val: +document.getElementById('pgSlider').value, thW: (() => { for (const ss of document.styleSheets) { let rs; try { rs = ss.cssRules; } catch (e) { continue; } for (const r of rs) if (r.selectorText === '#pgSlider::-webkit-slider-thumb') return r.style.width + '|' + r.style.cssText; } return null; })(), acc: getComputedStyle(document.getElementById('reader')).getPropertyValue('--rq-accent').trim() }; });
+      return { cx: g.cx, cy: g.cy, l: g.r.left, w: g.r.width, ft: f.top, fb: f.bottom, H: innerHeight, shown: P.shown, val: +document.getElementById('pgSlider').value, thW: (() => { for (const ss of document.styleSheets) { let rs; try { rs = ss.cssRules; } catch (e) { continue; } for (const r of rs) if (r.selectorText === '#pgSlider::-webkit-slider-thumb') return r.style.width + '|' + r.style.cssText; } return null; })(), acc: getComputedStyle(document.getElementById('reader')).getPropertyValue('--rq-accent').trim(), ring: getComputedStyle(document.getElementById('pgSlider')).getPropertyValue('--rq-thumb-ring').trim() }; });
     const pv = () => q.evaluate(async (id) => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id && e.via === 'jump').length, q.__bid);
     await chrome(); let g = await geo();
-    ok('thumb: 20 px thumb with --rq-accent outline', /^20px\|.*var\(--rq-accent\)/.test(g.thW || '') && g.acc !== '', { thW: g.thW, acc: g.acc });
+    ok('thumb: 20 px light thumb, 2px #5fb8ae ring (accent-on-dark) in day', /^20px\|.*2px solid var\(--rq-thumb-ring\)/.test(g.thW || '') && /background: rgb\(255, 255, 255\)/.test(g.thW || '') && g.ring === '#5fb8ae', { thW: g.thW, ring: g.ring });
     /* 20 random taps / swipes in the footer strip (panels open) */
     let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const p0 = g.shown, moves = [];
     for (let i = 0; i < 20; i++) {
@@ -488,9 +488,9 @@ if (want('thumb')) {
     /* night screenshot */
     await q.evaluate(() => { SET.theme = 'dark'; saveSet(); applySet(); }); await chrome(); g = await geo();
     await q.touchscreen.touchStart(g.cx, g.cy); for (let k = 1; k <= 4; k++) { await q.touchscreen.touchMove(g.cx + 8 * k, g.cy); await sleep(30); } await sleep(600);
-    const accN = await q.evaluate(() => getComputedStyle(document.getElementById('reader')).getPropertyValue('--rq-accent').trim());
+    const accN = await q.evaluate(() => getComputedStyle(document.getElementById('pgSlider')).getPropertyValue('--rq-thumb-ring').trim());
     await q.screenshot({ path: SH + '/thumb-tooltip-night.png' }); await q.touchscreen.touchEnd(); await sleep(600);
-    ok('thumb: night accent outline (--rq-accent ' + accN + ')', !!accN, accN);
+    ok('thumb: night ring #5fb8ae (' + accN + ')', accN === '#5fb8ae', accN);
     await q.evaluate(() => { closeReader(); SET.theme = 'sepia'; saveSet(); }); await sleep(600);
     await q.__ctx.close();
   }

@@ -656,7 +656,9 @@ body.mvp #sumDailyBox{display:block}
 </div>
 <style>/* 1б-fix #4: in the reader the test banner is never hittable — its top-centre is the focus-exit / centre tap zone */
 body:has(#reader:not(.hidden)) #rqTestBanner,body:has(#reader:not(.hidden)) #rqTestReset{pointer-events:none!important}
-body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}</style>
+body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}
+/* 1б-fix #2: the 24 px banner lay OVER the first text line in the reader (review: «half a line on top»). In the reader only a 3 px stripe stays as the test marker */
+body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!important;overflow:hidden}</style>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:24px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>
 /* Test build only (NS!=='rq'): banner + reset that deletes ONLY this namespace (rqt* keys, readquest-test DB, rqt-* caches). */

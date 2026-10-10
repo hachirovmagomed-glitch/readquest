@@ -280,6 +280,10 @@ if (want('banner')) {
   const rd = await p.evaluate(() => { const b = document.getElementById('rqTestReset'), r = b.getBoundingClientRect(); const pts = [[r.left + r.width / 2, r.top + r.height / 2], [innerWidth / 2, innerHeight * 0.05], [innerWidth / 2, 10]];
     return { vis: getComputedStyle(b).visibility, pe: getComputedStyle(b).pointerEvents, hits: pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? (e.id || e.tagName) : null; }) }; });
   ok('banner: in the reader the reset button is hidden and not hittable (no element under the centre-top points is the banner)', rd.vis === 'hidden' && rd.pe === 'none' && !rd.hits.some(h => /rqTest/.test(h || '')), rd);
+  const cov = await p.evaluate(() => { const bn = document.getElementById('rqTestBanner').getBoundingClientRect(), v = document.getElementById('viewer').getBoundingClientRect(); let first = null;
+    const w = document.createTreeWalker(document.getElementById('content'), NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.left >= v.left - 1 && q.right <= v.right + 1 && q.height > 4 && (!first || q.top < first.top)) first = q; }
+    return { bannerBottom: bn.bottom, firstTop: first && first.top }; });
+  ok('banner: in the reader the banner does not cover the first text line (stripe ≤ 3 px above it)', cov.bannerBottom <= 3 + 0.5 && cov.firstTop != null && cov.bannerBottom <= cov.firstTop, cov);
   await p.touchscreen.tap(915 / 2, 412 * 0.05); await sleep(500);
   const r1 = await p.evaluate(() => ({ focus: document.getElementById('reader').classList.contains('focus'), books: (S.userBooks || []).length, reader: !document.getElementById('reader').classList.contains('hidden') }));
   await p.screenshot({ path: SHOTS + '/banner-reader-915x412.png' });

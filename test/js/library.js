@@ -100,7 +100,7 @@ function renderLibrary(){
   // карточка «Продолжить чтение»
   const cc=el('continueCard');
   if(cc){const lid=S.lastRead,lb=lid&&allBooks().find(x=>x.id===lid);
-    if(lb&&!S.finished.includes(lid)){const pr=Math.round(((S.progress[lid]||{}).ratio||0)*100);
+    if(lb&&!S.finished.includes(lid)){const pr=Math.round(rqPos(lid)*100);
       cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">▶ ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
     else cc.innerHTML='';}
   const dc=el('dailyCard');
@@ -112,11 +112,11 @@ function renderLibrary(){
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   if(LIB.sort==='title')list.sort((a,b)=>a.title.localeCompare(b.title));
-  else if(LIB.sort==='progress')list.sort((a,b)=>(((S.progress[b.id]||{}).ratio)||0)-(((S.progress[a.id]||{}).ratio)||0));
+  else if(LIB.sort==='progress')list.sort((a,b)=>rqPos(b.id)-rqPos(a.id)); /* 1б-144: by current position */
   else{const lo=S.lastOpen||{};list.sort((a,b)=>(lo[b.id]||0)-(lo[a.id]||0));}
   if(!list.length)shelf.innerHTML='<div class="pempty" style="grid-column:1/-1">Ничего не найдено</div>';
   list.forEach(b=>{
-    const p=S.progress[b.id]||{ratio:0};
+    const p={ratio:rqPos(b.id)}; /* card % = current position (farthest stays for finish / stats) */
     const done=S.finished.includes(b.id);
     const card=document.createElement('button');card.className='bookcard';
     card.innerHTML='<div class="cover">'+coverHtml(b)+'</div><div class="bmeta">'+

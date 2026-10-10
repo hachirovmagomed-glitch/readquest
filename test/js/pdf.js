@@ -29,7 +29,7 @@ async function openPdf(b){
     if(R.book!==b){try{doc.destroy();}catch(e){}return;} /* closed while loading */
     R.pdf=doc;R.pageCount=doc.numPages;
     try{const L=await doc.getPageLabels();P.labels=(Array.isArray(L)&&L.length===R.pageCount)?L:null;}catch(e){P.labels=null;}
-    const p=Math.max(0,Math.min(R.pageCount-1,Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1))));
+    const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
     pdfNumbers(p);pdfBackdrop(pdfLabel(p)+' / '+R.pageCount);
@@ -124,16 +124,16 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   pdfBackdrop(null);
   if(isNew){
     P.shown=n;R.page=n;
-    const ratio=R.pageCount>1?n/(R.pageCount-1):1;
-    R.maxRatio=Math.max(R.maxRatio,ratio);
+    if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
     pdfNumbers(P.sliding?P.target:n);
     if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
     else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
-    updDayBar();persistPage();
+    updDayBar();
   }
   if(P.stall)pdfStallLog(n);
 }
 /** Corner number + bar number + slider: printed label / total (same frame as the swap). */
+function pdfReach(n){const r=R.pageCount>1?n/(R.pageCount-1):1;R.maxRatio=Math.max(R.maxRatio,r);R.pos=r;persistPage();}
 function pdfNumbers(n,fromSlider){
   const t=pdfLabel(n)+' / '+R.pageCount;
   if(el('rPage').textContent!==t)el('rPage').textContent=t;
@@ -222,7 +222,7 @@ function pdfGo(np,why){
   if(why==='slider')pdfNumbers(np,true); /* slider shows the TARGET label while dragging */
   pdfRender(why||'flip');
 }
-function pdfFlip(d){pdfGo(P.target+d,'flip');}
+function pdfFlip(d){hideJumpBack();pdfGo(P.target+d,'flip');}
 /** Re-render the shown page at the current zoom when the bitmap would be visibly soft (after pinch / double tap). */
 function pdfHiRes(){
   if(!R.pdf||P.target!==P.shown||!P.front)return;
@@ -434,10 +434,11 @@ function setFontSizeKeepPos(size){
 function persistPage(){
   const b=R.book;if(!b||!__rq||!__rq.loadEnvelope||!__rq.saveEnvelope)return;
   if(window.__rqWriter&&!__rqWriter.mayWrite())return;
-  const cur=(S.progress[b.id]||{}).ratio||0;if(!(R.maxRatio>cur))return;
-  S.progress[b.id]={ratio:R.maxRatio};
-  try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});
-    if(!((pr[b.id]||{}).ratio>=R.maxRatio)){pr[b.id]=Object.assign({},pr[b.id],{ratio:R.maxRatio});__rq.saveEnvelope(e);}}catch(err){console.warn('[rq] persistPage',err);}
+  const c=S.progress[b.id]||{},cur=c.ratio||0,pos=typeof R.pos==='number'?R.pos:rqPos(b.id);
+  if(!(R.maxRatio>cur)&&c.pos===pos)return; /* farthest only grows; pos = current settled position (may go back) */
+  S.progress[b.id]=Object.assign({},c,{ratio:Math.max(cur,R.maxRatio),pos:pos});
+  try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});const o=pr[b.id]||{};
+    pr[b.id]=Object.assign({},o,{ratio:Math.max(o.ratio||0,R.maxRatio),pos:pos});__rq.saveEnvelope(e);}catch(err){console.warn('[rq] persistPage',err);}
 }
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
@@ -454,11 +455,12 @@ function goPage(p,turn){
     if(!isMvp()&&!R.timerOn)timerNudge();
     R.lastTurn=Date.now();
   }
+  if(turn&&np!==prev)hideJumpBack(); /* 1б-fix #1: first normal flip hides «< на стр. N» */
   if(np!==prev)R.anc=null;
   R.page=np;
   el('content').style.transform='translateX('+(-np*R.step)+'px)';
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  R.maxRatio=Math.max(R.maxRatio,ratio);
+  if(!R.sliding){R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached» */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
@@ -470,14 +472,56 @@ function goPage(p,turn){
     if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
     else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
   }
-  if(np!==prev){updDayBar();persistPage();}
+  if(np!==prev)updDayBar();
+  if(!R.sliding)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page */
 }
-el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null)R.slideFrom=R.mode==='pdf'?P.shown:R.page;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
 el('pgSlider').onchange=e=>{
   const v=parseInt(e.target.value,10)||0;
-  if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
+  if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);pdfReach(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
+  const from=R.slideFrom;R.slideFrom=null;
+  if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
+/* 1б-144: thumb-only drag. Hit = 44 px around the 20 px thumb, cut off above the bottom gesture strip; a press elsewhere
+   on the footer / track does nothing. While held: tooltip «стр. N» (printed label) above the thumb. Release → the usual onchange. */
+const PG_TH=20,PG_HIT=44;
+function pgThumbGeom(){const sl=el('pgSlider'),r=sl.getBoundingClientRect(),mn=+sl.min||0,mx=+sl.max||0,f=mx>mn?(+sl.value-mn)/(mx-mn):0;
+  return {r:r,mn:mn,mx:mx,cx:r.left+PG_TH/2+f*(r.width-PG_TH),cy:r.top+r.height/2};}
+function pgSafeBottom(){const s=el('pgSafe');return s?s.getBoundingClientRect().height:0;}
+function pgHit(x,y){const g=pgThumbGeom();if(!(g.r.width>0))return null;const yMax=Math.min(g.cy+PG_HIT/2,window.innerHeight-pgSafeBottom());
+  return (Math.abs(x-g.cx)<=PG_HIT/2&&y>=g.cy-PG_HIT/2&&y<=yMax)?g:null;}
+function pgValAt(x,g){const w=Math.max(1,g.r.width-PG_TH);const f=Math.max(0,Math.min(1,(x-g.r.left-PG_TH/2)/w));return Math.round(g.mn+f*(g.mx-g.mn));}
+function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value;t.textContent='стр. '+(R.mode==='pdf'?pdfLabel(v):(v+1));
+  t.style.left=g.cx+'px';t.style.top=(g.cy-PG_TH/2-8)+'px';t.classList.remove('hidden');}
+const PG={id:null,off:0,g:null};
+(function(){const ft=el('pgSlider').closest('footer');if(!ft)return;
+  ft.addEventListener('pointerdown',function(e){if(PG.id!=null)return;const g=pgHit(e.clientX,e.clientY);if(!g)return;
+    e.preventDefault();e.stopPropagation();PG.id=e.pointerId;PG.g=g;PG.off=e.clientX-g.cx;try{ft.setPointerCapture(e.pointerId);}catch(_){}pgTipShow();},true);
+  ft.addEventListener('pointermove',function(e){if(e.pointerId!==PG.id)return;e.preventDefault();const sl=el('pgSlider'),v=pgValAt(e.clientX-PG.off,PG.g);
+    if(v!==+sl.value){sl.value=v;sl.dispatchEvent(new Event('input',{bubbles:true}));}pgTipShow();},true);
+  const up=function(e){if(e.pointerId!==PG.id)return;PG.id=null;el('pgTip').classList.add('hidden');try{ft.releasePointerCapture(e.pointerId);}catch(_){}
+    if(R.slideFrom!=null)el('pgSlider').dispatchEvent(new Event('change',{bubbles:true}));};
+  ft.addEventListener('pointerup',up,true);ft.addEventListener('pointercancel',up,true);})();
+/* 1б-fix #1: return plaque. The old page lives ONLY in R (memory of the open book): never in S, backup or export;
+   openBook resets R → gone on close. Hidden after the first normal flip or a tap on it (the return is a jump too). */
+function showJumpBack(from){
+  R.jumpFrom=from;
+  el('jumpBackN').textContent='на стр. '+(R.mode==='pdf'?pdfLabel(from):(from+1));
+  el('jumpBack').setAttribute('aria-label','Вернуться на страницу '+el('jumpBackN').textContent.slice(7));
+  el('jumpBack').classList.remove('hidden');el('jumpMark').classList.remove('hidden');placeJumpBack();
+}
+function hideJumpBack(){if(R)R.jumpFrom=null;const b=el('jumpBack');if(b&&!b.classList.contains('hidden')){b.classList.add('hidden');el('jumpMark').classList.add('hidden');}}
+function placeJumpBack(){
+  if(!R||R.jumpFrom==null)return;
+  const pl=el('pgLine').getBoundingClientRect(),b=el('jumpBack');
+  b.style.left=(pl.left+parseFloat(getComputedStyle(el('pgLine')).paddingLeft||0)-6)+'px';
+  b.style.bottom=Math.max(0,innerHeight-pl.top)+'px';
+  const s=el('pgSlider').getBoundingClientRect(),mx=Math.max(1,+el('pgSlider').max||1),th=16,m=el('jumpMark');
+  m.style.left=(s.left+th/2+(s.width-th)*(R.jumpFrom/mx)-1)+'px';m.style.top=(s.top+s.height/2-6)+'px';
+}
+el('jumpBack').onclick=function(e){e.stopPropagation();const f=R.jumpFrom;hideJumpBack();if(f!=null)jumpTo(f);};
+window.addEventListener('resize',function(){placeJumpBack();});
 /** 1б: jump (slider release, TOC, bookmark, search) — not a page flip. */
 function jumpTo(p){
   if(R.mode==='pdf'){pdfGo(p,'nav');return;}

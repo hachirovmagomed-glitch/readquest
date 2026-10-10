@@ -23,8 +23,8 @@ import {
   mergeFlat,
   splitLegacyState,
   NS,
-} from './schema.js?v=20261010-1150';
-import * as idb from './idb.js?v=20261010-1150';
+} from './schema.js?v=20261010-144h';
+import * as idb from './idb.js?v=20261010-144h';
 
 let saveWarned = false;
 
@@ -204,8 +204,8 @@ export async function exportBackup(envelope, settings, opts) {
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261010-1150');
-  const { listReadingEvents } = await import('./events.js?v=20261010-1150');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261010-144h');
+  const { listReadingEvents } = await import('./events.js?v=20261010-144h');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
@@ -244,6 +244,18 @@ export async function exportBackup(envelope, settings, opts) {
  *   { schemaVersion, progress, game, library, sessions, events [, settings] }
  * or legacy { readquest, settings }. Replace mode for sessions/events.
  */
+function sanitizeBookProgress(map) {
+  if (!map || typeof map !== 'object') return;
+  Object.keys(map).forEach((id) => {
+    const e = map[id];
+    if (!e || typeof e !== 'object') return;
+    if ('pos' in e) {
+      const ok = typeof e.pos === 'number' && isFinite(e.pos) && e.pos >= 0 && e.pos <= 1;
+      if (!ok) delete e.pos;
+      else if (!(typeof e.ratio === 'number' && e.ratio >= e.pos)) e.ratio = e.pos;
+    }
+  });
+}
 export async function importBackup(data) {
   if (!data) throw new Error('пустой бэкап');
   let envelope;
@@ -270,6 +282,10 @@ export async function importBackup(data) {
     throw new Error('это не резервная копия ReadQuest');
   }
 
+  /* 1б-144 (Архитектор): per-book {ratio, pos}. pos accepted only as a number in [0,1] (else dropped → reopen at ratio);
+     pos > ratio raises ratio to pos, ratio is never lowered. Additive, schemaVersion stays 1. */
+  sanitizeBookProgress(envelope && envelope.progress && envelope.progress.progress);
+
   if (data.textBodies && typeof data.textBodies === 'object') {
     const ids = Object.keys(data.textBodies);
     for (let i = 0; i < ids.length; i++) {
@@ -280,9 +296,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261010-1150');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261010-144h');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261010-1150'
+    './events.js?v=20261010-144h'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */

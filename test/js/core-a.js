@@ -3,7 +3,7 @@
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261010-1150'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261010-144h'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};

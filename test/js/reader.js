@@ -116,6 +116,9 @@ el('navSwipe').onclick=()=>{SET.nav.swipe=!(SET.nav.swipe!==false);saveSet();app
 
 /* ================= ЧИТАЛКА ================= */
 let R={book:null,page:0,pageCount:1,step:0,start:0,turned:0,maxRatio:0,mode:'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0};
+/** 1б-144: progress entry = {ratio: farthest SETTLED page (monotonic; finish / stats), pos: current settled position (reopen, card %)}.
+    Old entries without pos (schemaVersion 1, no repair) reopen at ratio as before. */
+function rqPos(id){const p=S.progress[id]||{};return typeof p.pos==='number'&&isFinite(p.pos)?p.pos:(p.ratio||0);}
 async function openBook(id){
   const b0=allBooks().find(x=>x.id===id);if(!b0)return;
   /* Hydrate text body from IDB (single-writer: bodies not in rq_v1 / LS) */
@@ -128,13 +131,14 @@ async function openBook(id){
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
   if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
-  R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
+  R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,pos:rqPos(id),mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
   el('rTitle').textContent=b.title+' — '+b.author;
   const c=el('content');
   el('pdfWrap').classList.toggle('hidden',R.mode!=='pdf');
   c.classList.toggle('hidden',R.mode==='pdf');
   el('reader').classList.toggle('pdfmode',R.mode==='pdf');
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
+  hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
   startDayBar();
@@ -144,7 +148,7 @@ async function openBook(id){
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
   layout();
-  const p=Math.round(((S.progress[id]||{}).ratio||0)*(R.pageCount-1));
+  const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */
   if(__tracker)__tracker.begin(id,p,trackerOpts());
   goPage(p,false);
 }
@@ -168,6 +172,7 @@ function updDayBar(){
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
   updFocusCount(day,live); /* same 15 s tick + page change as the day bar */
+  placeJumpBack();
 }
 function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
 function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}

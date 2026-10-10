@@ -371,6 +371,77 @@ if (want('pdfpage')) {
   }
 }
 
+/* ---------- 1б-144: slider preview pages are not «reached» (progress = farthest SETTLED page) ---------- */
+if (want('slidemax')) {
+  const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
+  for (const file of [LBL, BOOK].filter(x => fs.existsSync(x))) {
+    const q = await fresh(file); const nm = file.split('/').pop();
+    const res = await q.evaluate(async (id) => {
+      const pdf = allBooks().find(b => b.id === id).type === 'pdf';
+      const settle = async () => { const t0 = performance.now(); while (pdf && !(P.front && P.shown === P.target) && performance.now() - t0 < 8000) await new Promise(z => setTimeout(z, 16)); await new Promise(z => setTimeout(z, 50)); };
+      const ls = () => { const e = JSON.parse(localStorage.getItem(RQ_K.v1) || 'null'); return ((((e || {}).progress || {}).progress || {})[id] || {}).ratio || 0; };
+      openBook(id); const t0 = performance.now(); while (!(R.pageCount > 1) && performance.now() - t0 < 15000) await new Promise(z => setTimeout(z, 16)); await settle();
+      const N = R.pageCount, start = Math.round(0.28 * (N - 1)); goPage(start, false); await settle();
+      const sl = document.getElementById('pgSlider'), inp = v => { sl.value = v; sl.dispatchEvent(new Event('input')); };
+      for (const v of [Math.round(N * 0.6), N - 1]) { inp(v); await settle(); }
+      const atEnd = { shown: pdf ? P.shown : R.page, S: (S.progress[id] || {}).ratio || 0, ls: ls(), max: R.maxRatio };
+      const mid = Math.round(0.5 * (N - 1)); inp(mid); await settle(); sl.dispatchEvent(new Event('change')); await settle();
+      const rel = { S: (S.progress[id] || {}).ratio || 0, ls: ls(), max: R.maxRatio };
+      document.getElementById('jumpBack').click(); await settle(); goPage((pdf ? P.target : R.page) + 1, true); await settle();
+      await closeReader({ quiet: true }); const closed = { S: (S.progress[id] || {}).ratio, ls: ls() };
+      openBook(id); const t1 = performance.now(); while (!(R.pageCount > 1) && performance.now() - t1 < 15000) await new Promise(z => setTimeout(z, 16)); await settle();
+      const re = pdf ? P.shown : R.page, reN = R.pageCount; await closeReader({ quiet: true });
+      return { N, start, mid, atEnd, rel, closed, re, reN, midR: mid / (N - 1) };
+    }, q.__bid);
+    const e = 1e-9;
+    ok('slidemax ' + nm + ': drag to the last page (no release) writes nothing past the start page', res.atEnd.ls <= res.start / (res.N - 1) + e && res.atEnd.max <= res.start / (res.N - 1) + e, res.atEnd);
+    ok('slidemax ' + nm + ': release at the middle → progress = middle (the settled page), not 1', Math.abs(res.rel.ls - res.midR) < e && Math.abs(res.rel.max - res.midR) < e, res.rel);
+    ok('slidemax ' + nm + ': plaque back + flip + close → farthest stays the middle, reopens at the current page (start+1), never at the end', Math.abs(res.closed.ls - res.midR) < e && Math.abs(res.re - Math.round((res.start + 1) / (res.N - 1) * (res.reN - 1))) <= (/\.pdf$/.test(nm) ? 0 : 1) && res.re < res.reN - 1, { closed: res.closed, re: res.re, reN: res.reN, mid: res.mid } /* text repaginates on reopen: same ratio */);
+    await q.__ctx.close();
+  }
+}
+
+/* ---------- 1б-144 (Босс): drag 41 → 144 → 71, release → saved = page 71, reopen at 71 (PDF + text) ---------- */
+if (want('slide71')) {
+  const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
+  for (const file of [LBL, BOOK].filter(x => fs.existsSync(x))) {
+    const q = await fresh(file); const nm = file.split('/').pop();
+    const res = await q.evaluate(async (id) => {
+      const pdf = allBooks().find(b => b.id === id).type === 'pdf';
+      const settle = async () => { const t0 = performance.now(); while (pdf && !(P.front && P.shown === P.target) && performance.now() - t0 < 8000) await new Promise(z => setTimeout(z, 16)); await new Promise(z => setTimeout(z, 50)); };
+      const ls = () => { const e = JSON.parse(localStorage.getItem(RQ_K.v1) || 'null'); return ((((e || {}).progress || {}).progress || {})[id] || {}).ratio || 0; };
+      const waitOpen = async () => { const t0 = performance.now(); while (!(R.pageCount > 1) && performance.now() - t0 < 15000) await new Promise(z => setTimeout(z, 16)); await settle(); };
+      openBook(id); await waitOpen(); const N = R.pageCount;
+      const pg = k => Math.round((k - 1) / 143 * (N - 1)); /* page k of 144 → this book */
+      goPage(pg(41), false); await settle();
+      const sl = document.getElementById('pgSlider'), inp = v => { sl.value = v; sl.dispatchEvent(new Event('input')); };
+      const pv = async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id);
+      const ev0 = (await pv()).length, trk = [];
+      for (const v of [pg(90), pg(144), pg(110), pg(71)]) { inp(v); window.__rqTimeOffset += 30000; await settle(); trk.push(__tracker.snapshot().page); }
+      sl.dispatchEvent(new Event('change')); await settle();
+      const evs = (await pv()).slice(ev0), trkAfter = __tracker.snapshot().page;
+      const want = pg(71) / (N - 1), saved = ls();
+      await closeReader({ quiet: true });
+      const all = await pv(); const on144 = all.filter(e => e.page === pg(144));
+      openBook(id); await waitOpen();
+      const re = pdf ? P.shown : R.page, reN = R.pageCount;
+      /* (b) current position ≠ farthest: flip back 3 pages, close → reopen at the current page, farthest stays 71; (c) card % = current */
+      for (let k = 0; k < 3; k++) { goPage((pdf ? P.target : R.page) - 1, true); await settle(); }
+      const back = pdf ? P.shown : R.page, backR = back / (reN - 1); await closeReader({ quiet: true });
+      const e2 = JSON.parse(localStorage.getItem(RQ_K.v1)).progress.progress[id];
+      renderLibrary(); const card = [...document.querySelectorAll('.bookcard')].find(c => c.textContent.includes(allBooks().find(b => b.id === id).title));
+      const cardPct = card ? card.querySelector('.bpct').textContent : null;
+      openBook(id); await waitOpen(); const re2 = pdf ? P.shown : R.page, reN2 = R.pageCount; await closeReader({ quiet: true });
+      return { N, want, saved, re, reN, p71: pg(71), evs: evs.map(e => ({ page: e.page, via: e.via })), trk, trkAfter, on144: on144.length, back, backR, e2, cardPct, re2, reN2 };
+    }, q.__bid);
+    ok('slide71 ' + nm + ': drag 41→144→71 + release → saved = page 71, reopens at 71', Math.abs(res.saved - res.want) < 1e-9 && Math.abs(res.re - Math.round(res.want * (res.reN - 1))) <= (/\.pdf$/.test(nm) ? 0 : 1), res) /* text repaginates on reopen (bars→fullscreen): ±1 page */;
+    ok('slide71 ' + nm + ": journal: exactly one page_visible {via:'jump'} (leaving 41), tracker on 71 after release, never on a preview page, 0 events / minutes on 144", res.evs.length === 1 && res.evs[0].via === 'jump' && res.evs[0].page === Math.round(40 / 143 * (res.N - 1)) && res.trk.every(t => t === Math.round(40 / 143 * (res.N - 1))) && res.trkAfter === res.p71 && res.on144 === 0, { evs: res.evs, trk: res.trk, trkAfter: res.trkAfter, on144: res.on144 });
+    ok('slide71 ' + nm + ': current position stored apart from farthest — back 3 pages + close → pos = current, ratio stays 71, reopens at current', Math.abs(res.e2.pos - res.backR) < 1e-9 && res.e2.ratio >= res.want - 1e-9 && Math.abs(res.re2 - Math.round(res.backR * (res.reN2 - 1))) <= (/\.pdf$/.test(nm) ? 0 : 1), { e2: res.e2, back: res.back, re2: res.re2 });
+    ok('slide71 ' + nm + ': library card % = current position', res.cardPct != null && res.cardPct.startsWith(Math.round(res.backR * 100) + '%'), { cardPct: res.cardPct, want: Math.round(res.backR * 100) });
+    await q.__ctx.close();
+  }
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

@@ -18,7 +18,7 @@
   }
   /* page label of what is SAVED for the open book (= where it reopens: NS_v1 progress ratio, farthest page) */
   function savedPage(){
-    try{if(typeof R==='undefined'||!R.book)return null;var pc=R.pageCount||1,ratio=((S.progress||{})[R.book.id]||{}).ratio||0;
+    try{if(typeof R==='undefined'||!R.book)return null;var pc=R.pageCount||1,ratio=typeof rqPos==='function'?rqPos(R.book.id):(((S.progress||{})[R.book.id]||{}).ratio||0); /* where it reopens = current position */
       var n=Math.max(0,Math.min(pc-1,Math.round(ratio*(pc-1))));return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(n):String(n+1);}catch(e){return null;}
   }
   /* lose writer role: from here on this window writes nothing; re-read storage for display, show the old-window screen.

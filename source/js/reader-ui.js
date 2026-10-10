@@ -471,7 +471,7 @@ async function closeReaderImpl(opts){
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   R.book=null;
-  S.progress[b.id]={ratio:R.maxRatio};
+  S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();
   rollDay();

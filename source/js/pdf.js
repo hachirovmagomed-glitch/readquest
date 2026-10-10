@@ -29,7 +29,7 @@ async function openPdf(b){
     if(R.book!==b){try{doc.destroy();}catch(e){}return;} /* closed while loading */
     R.pdf=doc;R.pageCount=doc.numPages;
     try{const L=await doc.getPageLabels();P.labels=(Array.isArray(L)&&L.length===R.pageCount)?L:null;}catch(e){P.labels=null;}
-    const p=Math.max(0,Math.min(R.pageCount-1,Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1))));
+    const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
     pdfNumbers(p);pdfBackdrop(pdfLabel(p)+' / '+R.pageCount);
@@ -124,16 +124,16 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   pdfBackdrop(null);
   if(isNew){
     P.shown=n;R.page=n;
-    const ratio=R.pageCount>1?n/(R.pageCount-1):1;
-    R.maxRatio=Math.max(R.maxRatio,ratio);
+    if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
     pdfNumbers(P.sliding?P.target:n);
     if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
     else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
-    updDayBar();persistPage();
+    updDayBar();
   }
   if(P.stall)pdfStallLog(n);
 }
 /** Corner number + bar number + slider: printed label / total (same frame as the swap). */
+function pdfReach(n){const r=R.pageCount>1?n/(R.pageCount-1):1;R.maxRatio=Math.max(R.maxRatio,r);R.pos=r;persistPage();}
 function pdfNumbers(n,fromSlider){
   const t=pdfLabel(n)+' / '+R.pageCount;
   if(el('rPage').textContent!==t)el('rPage').textContent=t;
@@ -434,10 +434,11 @@ function setFontSizeKeepPos(size){
 function persistPage(){
   const b=R.book;if(!b||!__rq||!__rq.loadEnvelope||!__rq.saveEnvelope)return;
   if(window.__rqWriter&&!__rqWriter.mayWrite())return;
-  const cur=(S.progress[b.id]||{}).ratio||0;if(!(R.maxRatio>cur))return;
-  S.progress[b.id]={ratio:R.maxRatio};
-  try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});
-    if(!((pr[b.id]||{}).ratio>=R.maxRatio)){pr[b.id]=Object.assign({},pr[b.id],{ratio:R.maxRatio});__rq.saveEnvelope(e);}}catch(err){console.warn('[rq] persistPage',err);}
+  const c=S.progress[b.id]||{},cur=c.ratio||0,pos=typeof R.pos==='number'?R.pos:rqPos(b.id);
+  if(!(R.maxRatio>cur)&&c.pos===pos)return; /* farthest only grows; pos = current settled position (may go back) */
+  S.progress[b.id]=Object.assign({},c,{ratio:Math.max(cur,R.maxRatio),pos:pos});
+  try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});const o=pr[b.id]||{};
+    pr[b.id]=Object.assign({},o,{ratio:Math.max(o.ratio||0,R.maxRatio),pos:pos});__rq.saveEnvelope(e);}catch(err){console.warn('[rq] persistPage',err);}
 }
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
@@ -459,7 +460,7 @@ function goPage(p,turn){
   R.page=np;
   el('content').style.transform='translateX('+(-np*R.step)+'px)';
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  R.maxRatio=Math.max(R.maxRatio,ratio);
+  if(!R.sliding){R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached» */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
@@ -471,12 +472,13 @@ function goPage(p,turn){
     if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
     else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
   }
-  if(np!==prev){updDayBar();persistPage();}
+  if(np!==prev)updDayBar();
+  if(!R.sliding)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page */
 }
 el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null)R.slideFrom=R.mode==='pdf'?P.shown:R.page;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
 el('pgSlider').onchange=e=>{
   const v=parseInt(e.target.value,10)||0;
-  if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
+  if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);pdfReach(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
   const from=R.slideFrom;R.slideFrom=null;
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);

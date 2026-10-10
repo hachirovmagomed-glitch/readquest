@@ -483,6 +483,26 @@ el('pgSlider').onchange=e=>{
   const from=R.slideFrom;R.slideFrom=null;
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
+/* 1б-144: thumb-only drag. Hit = 44 px around the 20 px thumb, cut off above the bottom gesture strip; a press elsewhere
+   on the footer / track does nothing. While held: tooltip «стр. N» (printed label) above the thumb. Release → the usual onchange. */
+const PG_TH=20,PG_HIT=44;
+function pgThumbGeom(){const sl=el('pgSlider'),r=sl.getBoundingClientRect(),mn=+sl.min||0,mx=+sl.max||0,f=mx>mn?(+sl.value-mn)/(mx-mn):0;
+  return {r:r,mn:mn,mx:mx,cx:r.left+PG_TH/2+f*(r.width-PG_TH),cy:r.top+r.height/2};}
+function pgSafeBottom(){const s=el('pgSafe');return s?s.getBoundingClientRect().height:0;}
+function pgHit(x,y){const g=pgThumbGeom();if(!(g.r.width>0))return null;const yMax=Math.min(g.cy+PG_HIT/2,window.innerHeight-pgSafeBottom());
+  return (Math.abs(x-g.cx)<=PG_HIT/2&&y>=g.cy-PG_HIT/2&&y<=yMax)?g:null;}
+function pgValAt(x,g){const w=Math.max(1,g.r.width-PG_TH);const f=Math.max(0,Math.min(1,(x-g.r.left-PG_TH/2)/w));return Math.round(g.mn+f*(g.mx-g.mn));}
+function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value;t.textContent='стр. '+(R.mode==='pdf'?pdfLabel(v):(v+1));
+  t.style.left=g.cx+'px';t.style.top=(g.cy-PG_TH/2-8)+'px';t.classList.remove('hidden');}
+const PG={id:null,off:0,g:null};
+(function(){const ft=el('pgSlider').closest('footer');if(!ft)return;
+  ft.addEventListener('pointerdown',function(e){if(PG.id!=null)return;const g=pgHit(e.clientX,e.clientY);if(!g)return;
+    e.preventDefault();e.stopPropagation();PG.id=e.pointerId;PG.g=g;PG.off=e.clientX-g.cx;try{ft.setPointerCapture(e.pointerId);}catch(_){}pgTipShow();},true);
+  ft.addEventListener('pointermove',function(e){if(e.pointerId!==PG.id)return;e.preventDefault();const sl=el('pgSlider'),v=pgValAt(e.clientX-PG.off,PG.g);
+    if(v!==+sl.value){sl.value=v;sl.dispatchEvent(new Event('input',{bubbles:true}));}pgTipShow();},true);
+  const up=function(e){if(e.pointerId!==PG.id)return;PG.id=null;el('pgTip').classList.add('hidden');try{ft.releasePointerCapture(e.pointerId);}catch(_){}
+    if(R.slideFrom!=null)el('pgSlider').dispatchEvent(new Event('change',{bubbles:true}));};
+  ft.addEventListener('pointerup',up,true);ft.addEventListener('pointercancel',up,true);})();
 /* 1б-fix #1: return plaque. The old page lives ONLY in R (memory of the open book): never in S, backup or export;
    openBook resets R → gone on close. Hidden after the first normal flip or a tap on it (the return is a jump too). */
 function showJumpBack(from){

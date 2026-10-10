@@ -311,6 +311,17 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* ===== PDF, панель, слайдер ===== */
 .rfoot input[type=range]{flex:1;margin:0 12px;accent-color:var(--accent2)}
 #pgSlider{box-sizing:border-box;height:44px;margin:-14px 12px} /* 1б-fix #6: 44 px hit area, the bar keeps its 16 px layout height */
+/* 1б-144 (Продукт+Интерфейс): thumb-only slider. The range never takes pointer input (a track tap does nothing);
+   .rfoot catches a press only within the 44 px thumb hit area, never in the bottom gesture strip (env(safe-area-inset-bottom)). */
+#pgSlider{pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent}
+#pgSlider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:rgba(255,255,255,.35)} /* 1в: → tokens.css */
+#pgSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent);box-sizing:border-box} /* 1в: → tokens.css */
+#pgSlider::-moz-range-track{height:4px;border-radius:2px;background:rgba(255,255,255,.35)} /* 1в: → tokens.css */
+#pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent);box-sizing:border-box} /* 1в: → tokens.css */
+#reader .rfoot{touch-action:none}
+#pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:8px;background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#pgTip.hidden{display:none}
+#pgSafe{position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none}
 .ptabs{display:flex;gap:6px;margin-bottom:12px}
 .ptabs button{flex:1;background:var(--card2);border-radius:10px;padding:9px;font-size:13px;color:var(--muted)}
 .ptabs button.on{background:var(--accent);color:#fff}
@@ -1083,7 +1094,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
-  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span><button id="btnFocus" class="rfbtn" aria-label="Фокус" title="Фокус"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button></footer>
+  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="pgTip" class="hidden" aria-hidden="true"></span><span id="pgSafe" aria-hidden="true"></span><span id="rPct"></span><button id="btnFocus" class="rfbtn" aria-label="Фокус" title="Фокус"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button></footer>
   <div class="sheet hidden" id="panel">
     <button class="closes" id="panelClose">✕</button>
     <div class="ptabs">

@@ -442,6 +442,60 @@ if (want('slide71')) {
   }
 }
 
+/* ---------- 1б-144 (Продукт+Интерфейс): thumb-only slider, no track jumps, no gesture-strip hits, tooltip «стр. N» ---------- */
+if (want('thumb')) {
+  const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
+  const SH = process.env.RQ_SLIDER_SHOTS || '/workspace/readquest/1b-slider-shots';
+  if (fs.existsSync(LBL)) {
+    const q = await fresh(LBL);
+    await q.evaluate(id => { S.progress[id] = { ratio: 40 / 143, pos: 40 / 143 }; openBook(id); }, q.__bid);
+    await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(400);
+    const chrome = async () => { await q.evaluate(() => { revealChrome(); stopChrome && 0; }); await sleep(250); };
+    const geo = () => q.evaluate(() => { const g = pgThumbGeom(), f = document.querySelector('#reader .rfoot').getBoundingClientRect(), th = getComputedStyle(document.getElementById('pgSlider'), '::-webkit-slider-thumb');
+      return { cx: g.cx, cy: g.cy, l: g.r.left, w: g.r.width, ft: f.top, fb: f.bottom, H: innerHeight, shown: P.shown, val: +document.getElementById('pgSlider').value, thW: (() => { for (const ss of document.styleSheets) { let rs; try { rs = ss.cssRules; } catch (e) { continue; } for (const r of rs) if (r.selectorText === '#pgSlider::-webkit-slider-thumb') return r.style.width + '|' + r.style.cssText; } return null; })(), acc: getComputedStyle(document.getElementById('reader')).getPropertyValue('--rq-accent').trim() }; });
+    const pv = () => q.evaluate(async (id) => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id && e.via === 'jump').length, q.__bid);
+    await chrome(); let g = await geo();
+    ok('thumb: 20 px thumb with --rq-accent outline', /^20px\|.*var\(--rq-accent\)/.test(g.thW || '') && g.acc !== '', { thW: g.thW, acc: g.acc });
+    /* 20 random taps / swipes in the footer strip (panels open) */
+    let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const p0 = g.shown, moves = [];
+    for (let i = 0; i < 20; i++) {
+      await chrome(); g = await geo();
+      let x = g.l + rnd() * g.w; if (Math.abs(x - g.cx) <= 26) x = g.cx + (x < g.cx ? -40 : 40); x = Math.max(g.l + 2, Math.min(g.l + g.w - 2, x));
+      const y = g.ft + rnd() * (g.fb - g.ft - 1);
+      if (rnd() < 0.5) { await q.touchscreen.tap(x, y); moves.push('tap'); }
+      else { const dx = (rnd() < 0.5 ? -1 : 1) * (60 + rnd() * 120); await q.touchscreen.touchStart(x, y); for (let k = 1; k <= 5; k++) await q.touchscreen.touchMove(x + dx * k / 5, y); await q.touchscreen.touchEnd(); moves.push('swipe'); }
+      await sleep(250);
+    }
+    await sleep(600); g = await geo();
+    ok('thumb: 20 random taps/swipes on the footer strip (panels open, off the thumb) → 0 page changes', g.shown === p0 && g.val === p0, { p0, shown: g.shown, val: g.val, moves: moves.join(',') });
+    /* track tap = no change */
+    await chrome(); g = await geo(); await q.touchscreen.tap(g.l + g.w * 0.9, g.cy); await sleep(800); let g2 = await geo();
+    ok('thumb: tap on the track (90 %) → no jump', g2.shown === p0, { p0, shown: g2.shown });
+    /* gesture strip: emulate a 34 px bottom inset, a press at the thumb x in that strip does not grab the thumb */
+    const strip = await q.evaluate(() => { const s = document.getElementById('pgSafe'); s.style.height = '34px'; const g = pgThumbGeom(); const r = { inStrip: !!pgHit(g.cx, innerHeight - 5), onThumb: !!pgHit(g.cx, Math.min(g.cy, innerHeight - 40)) }; s.style.height = ''; return r; });
+    ok('thumb: hit zone excludes the bottom gesture strip (safe-area-inset-bottom)', !strip.inStrip && strip.onThumb, strip);
+    /* drag the thumb → one jump, tooltip «стр. N» while held */
+    const ev0 = await pv(); await chrome(); g = await geo();
+    await q.touchscreen.touchStart(g.cx, g.cy); const tx = g.l + 10 + (g.w - 20) * 0.5;
+    for (let k = 1; k <= 8; k++) { await q.touchscreen.touchMove(g.cx + (tx - g.cx) * k / 8, g.cy); await sleep(30); }
+    await sleep(700);
+    const tip = await q.evaluate(() => { const t = document.getElementById('pgTip'); return { vis: !t.classList.contains('hidden'), txt: t.textContent, want: 'стр. ' + pdfLabel(+document.getElementById('pgSlider').value) }; });
+    await q.screenshot({ path: SH + '/thumb-tooltip-day.png' });
+    await q.touchscreen.touchEnd(); await sleep(900);
+    const g3 = await geo(), ev1 = await pv(), tipOff = await q.evaluate(() => document.getElementById('pgTip').classList.contains('hidden'));
+    ok('thumb: tooltip «стр. N» (printed label) above the thumb while held, hidden after release', tip.vis && tip.txt === tip.want && tipOff, tip);
+    ok("thumb: drag on the thumb jumps (≈ middle) and writes exactly one page_visible via:'jump'", Math.abs(g3.shown - 71) <= 3 && ev1 - ev0 === 1, { shown: g3.shown, jumps: ev1 - ev0 });
+    /* night screenshot */
+    await q.evaluate(() => { SET.theme = 'dark'; saveSet(); applySet(); }); await chrome(); g = await geo();
+    await q.touchscreen.touchStart(g.cx, g.cy); for (let k = 1; k <= 4; k++) { await q.touchscreen.touchMove(g.cx + 8 * k, g.cy); await sleep(30); } await sleep(600);
+    const accN = await q.evaluate(() => getComputedStyle(document.getElementById('reader')).getPropertyValue('--rq-accent').trim());
+    await q.screenshot({ path: SH + '/thumb-tooltip-night.png' }); await q.touchscreen.touchEnd(); await sleep(600);
+    ok('thumb: night accent outline (--rq-accent ' + accN + ')', !!accN, accN);
+    await q.evaluate(() => { closeReader(); SET.theme = 'sepia'; saveSet(); }); await sleep(600);
+    await q.__ctx.close();
+  }
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

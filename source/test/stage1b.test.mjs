@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8811/readquest/';
+const PDF = process.env.RQ_PDF || '/workspace/rqtest/pdf/b-nolabels-40.pdf';
 const BOOK = process.env.RQ_BOOK || fileURLToPath(new URL('./fixtures/Длинная книга.txt', import.meta.url));
 const SHOTS = process.env.RQ_SHOTS || '/tmp/1b-shots';
 fs.mkdirSync(SHOTS, { recursive: true });
@@ -138,6 +139,47 @@ if (want('risk')) {
   const src = fs.readFileSync(new URL('../js/v6-extras.js', import.meta.url), 'utf8');
   ok('risk: hint text says 2 minutes', src.includes('от 2 минут') && /A streak counts for 2\+ minutes/.test(src));
   await p.__ctx.close();
+}
+
+/* ---------- 4. tap zones ---------- */
+if (want('zones')) {
+  const p = await fresh();
+  await open(p);
+  await p.evaluate(() => revealChrome()); await sleep(500);
+  await p.evaluate(() => setFocus(true)); await sleep(300);
+  const pg0 = await p.evaluate(() => R.page);
+  await tap(p, 0.85, 0.5); await tap(p, 0.85, 0.5); await tap(p, 0.15, 0.5);
+  let s = await st(p);
+  ok('zones: side 30 % flips, focus kept', s.focus && s.page === pg0 + 1, s);
+  await tap(p, 0.05, 0.05); s = await st(p);
+  const dn = await p.evaluate(() => document.getElementById('reader').dataset.page);
+  ok('zones: top-left 12 % = day/night, focus kept', s.focus && dn === 'night', { s, dn });
+  await tap(p, 0.5, 0.05); s = await st(p);
+  ok('zones: top-middle = centre (leaves focus)', !s.focus && !s.barsoff, s);
+  await p.evaluate(() => { SET.nav.tap = false; applySet(); }); await sleep(500);
+  await p.evaluate(() => setFocus(true)); await sleep(300);
+  const m0 = await p.evaluate(() => (S.marks[R.book.id] || []).length), pg1 = await p.evaluate(() => R.page);
+  await tap(p, 0.9, 0.05); s = await st(p);
+  const m1 = await p.evaluate(() => (S.marks[R.book.id] || []).length);
+  ok('zones: SET.nav.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
+  await p.evaluate(() => setFocus(true)); await sleep(300);
+  await tap(p, 0.9, 0.5); s = await st(p);
+  ok('zones: SET.nav.tap=false → side tap is centre (no flip, focus off)', !s.focus && s.page === pg1, s);
+  await p.evaluate(() => { SET.nav.tap = true; SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
+  await p.__ctx.close();
+  if (fs.existsSync(PDF)) {
+    const q = await fresh(PDF);
+    await q.evaluate(id => openBook(id), q.__bid); await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(600);
+    await q.evaluate(() => revealChrome()); await sleep(500);
+    await q.evaluate(() => setFocus(true)); await sleep(300);
+    await q.evaluate(() => { P.z = 2; pdfApply(); }); await sleep(200);
+    const m0 = await q.evaluate(() => (S.marks[R.book.id] || []).length), th0 = await q.evaluate(() => SET.theme);
+    await tap(q, 0.9, 0.05); await sleep(350); await tap(q, 0.05, 0.05); await sleep(350); await tap(q, 0.5, 0.5); await sleep(400);
+    const r = await q.evaluate(() => ({ marks: (S.marks[R.book.id] || []).length, theme: SET.theme, focus: document.getElementById('reader').classList.contains('focus') }));
+    ok('zones: zoomed PDF — top corners off, centre does not leave focus', r.marks === m0 && r.theme === th0 && r.focus, { r, m0, th0 });
+    await q.evaluate(() => closeReader()); await sleep(800);
+    await q.__ctx.close();
+  } else ok('zones: PDF fixture missing ' + PDF, false);
 }
 
 const pass = checks.filter(c => c.p).length;

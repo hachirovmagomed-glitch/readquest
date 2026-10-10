@@ -253,13 +253,14 @@ function pdfTap(cx,cy){
 }
 function pdfSingleTap(x,y){
   if(el('reader').classList.contains('hidden'))return;
-  if(y<0.12&&x<0.3){toggleDayNight();return;}
-  if(y<0.12&&x>0.7){addBookmark();return;}
-  const tapOn=!SET.nav||SET.nav.tap!==false;
+  const z=tapZone(x,y);
+  const zoomed=P.z>1.01; /* contract 1б: zoomed PDF — no top corners, the centre does not leave focus */
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
-  if(tapOn&&x<0.3){fsResume();pdfFlip(-inv);}
-  else if(tapOn&&x>0.7){fsResume();pdfFlip(inv);}
-  else toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen */
+  if(z==='tl'){if(zoomed)return;toggleDayNight();return;}
+  if(z==='tr'){if(zoomed)return;addBookmark();return;}
+  if(z==='l'){fsResume();pdfFlip(-inv);}
+  else if(z==='r'){fsResume();pdfFlip(inv);}
+  else if(!(zoomed&&isFocusOn()))toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen (+ focus) */
 }
 function pdfDoubleTap(cx,cy){
   if(P.z>1.01){P.z=1;P.k=P.k||1;pdfApply();}   /* back to width */
@@ -495,11 +496,21 @@ function viewerTap(cx,cy){
   const r=el('viewer').getBoundingClientRect();
   const x=(cx-r.left)/r.width;
   const y=(cy-r.top)/r.height;
-  if(y<0.12&&x<0.3){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra)
-  if(y<0.12&&x>0.7){addBookmark();return;}       // угол: закладка
-  const tapOn=!SET.nav||SET.nav.tap!==false;
+  const z=tapZone(x,y);
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
-  if(tapOn&&x<0.3){fsResume();goPage(R.page-1*inv,true);}
-  else if(tapOn&&x>0.7){fsResume();goPage(R.page+1*inv,true);}
-  else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen; next centre tap hides both
+  if(z==='tl'){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra); фокус не трогает
+  if(z==='tr'){addBookmark();return;}      // угол: закладка; фокус не трогает
+  if(z==='l'){fsResume();goPage(R.page-1*inv,true);}
+  else if(z==='r'){fsResume();goPage(R.page+1*inv,true);}
+  else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen (and focus); next centre tap hides both
+}
+/** 1б tap zones (reader-focus-zones): top 12 % — corners 30 % (tl day/night, tr bookmark); below 30 / 40 / 30.
+ *  SET.nav.tap === false → the whole screen is the centre (no corners, no flips by tap). */
+function tapZone(x,y){
+  if(SET.nav&&SET.nav.tap===false)return 'c';
+  if(y<0.12&&x<0.3)return 'tl';
+  if(y<0.12&&x>0.7)return 'tr';
+  if(y>=0.12&&x<0.3)return 'l';
+  if(y>=0.12&&x>0.7)return 'r';
+  return 'c';
 }

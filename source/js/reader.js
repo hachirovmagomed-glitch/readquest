@@ -135,6 +135,7 @@ async function openBook(id){
   c.classList.toggle('hidden',R.mode==='pdf');
   el('reader').classList.toggle('pdfmode',R.mode==='pdf');
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
+  hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
   startDayBar();
@@ -168,6 +169,7 @@ function updDayBar(){
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
   updFocusCount(day,live); /* same 15 s tick + page change as the day bar */
+  placeJumpBack();
 }
 function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
 function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}

@@ -222,7 +222,7 @@ function pdfGo(np,why){
   if(why==='slider')pdfNumbers(np,true); /* slider shows the TARGET label while dragging */
   pdfRender(why||'flip');
 }
-function pdfFlip(d){pdfGo(P.target+d,'flip');}
+function pdfFlip(d){hideJumpBack();pdfGo(P.target+d,'flip');}
 /** Re-render the shown page at the current zoom when the bitmap would be visibly soft (after pinch / double tap). */
 function pdfHiRes(){
   if(!R.pdf||P.target!==P.shown||!P.front)return;
@@ -454,6 +454,7 @@ function goPage(p,turn){
     if(!isMvp()&&!R.timerOn)timerNudge();
     R.lastTurn=Date.now();
   }
+  if(turn&&np!==prev)hideJumpBack(); /* 1б-fix #1: first normal flip hides «< на стр. N» */
   if(np!==prev)R.anc=null;
   R.page=np;
   el('content').style.transform='translateX('+(-np*R.step)+'px)';
@@ -472,12 +473,33 @@ function goPage(p,turn){
   }
   if(np!==prev){updDayBar();persistPage();}
 }
-el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null)R.slideFrom=R.mode==='pdf'?P.shown:R.page;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
 el('pgSlider').onchange=e=>{
   const v=parseInt(e.target.value,10)||0;
   if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
+  const from=R.slideFrom;R.slideFrom=null;
+  if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
+/* 1б-fix #1: return plaque. The old page lives ONLY in R (memory of the open book): never in S, backup or export;
+   openBook resets R → gone on close. Hidden after the first normal flip or a tap on it (the return is a jump too). */
+function showJumpBack(from){
+  R.jumpFrom=from;
+  el('jumpBackN').textContent='на стр. '+(R.mode==='pdf'?pdfLabel(from):(from+1));
+  el('jumpBack').setAttribute('aria-label','Вернуться на страницу '+el('jumpBackN').textContent.slice(7));
+  el('jumpBack').classList.remove('hidden');el('jumpMark').classList.remove('hidden');placeJumpBack();
+}
+function hideJumpBack(){if(R)R.jumpFrom=null;const b=el('jumpBack');if(b&&!b.classList.contains('hidden')){b.classList.add('hidden');el('jumpMark').classList.add('hidden');}}
+function placeJumpBack(){
+  if(!R||R.jumpFrom==null)return;
+  const pl=el('pgLine').getBoundingClientRect(),b=el('jumpBack');
+  b.style.left=(pl.left+parseFloat(getComputedStyle(el('pgLine')).paddingLeft||0)-6)+'px';
+  b.style.bottom=Math.max(0,innerHeight-pl.top)+'px';
+  const s=el('pgSlider').getBoundingClientRect(),mx=Math.max(1,+el('pgSlider').max||1),th=16,m=el('jumpMark');
+  m.style.left=(s.left+th/2+(s.width-th)*(R.jumpFrom/mx)-1)+'px';m.style.top=(s.top+s.height/2-6)+'px';
+}
+el('jumpBack').onclick=function(e){e.stopPropagation();const f=R.jumpFrom;hideJumpBack();if(f!=null)jumpTo(f);};
+window.addEventListener('resize',function(){placeJumpBack();});
 /** 1б: jump (slider release, TOC, bookmark, search) — not a page flip. */
 function jumpTo(p){
   if(R.mode==='pdf'){pdfGo(p,'nav');return;}

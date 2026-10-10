@@ -288,6 +288,41 @@ if (want('banner')) {
   await p.__ctx.close();
 }
 
+/* ---------- 1б-fix #1: «< на стр. N» after a slider jump ---------- */
+if (want('jumpback')) {
+  const p = await fresh();
+  await open(p); await p.evaluate(() => revealChrome()); await sleep(500);
+  const evs = () => p.evaluate(async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible'));
+  const drag = (to) => p.evaluate(async (to) => { const s = document.getElementById('pgSlider'); for (let v = 2; v <= to; v += 9) { s.value = v; s.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(r => setTimeout(r, 20)); } s.value = to; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); }, to);
+  const t0 = await p.evaluate(() => ({ turned: R.turned, snap: __tracker.snapshot() })), n0 = (await evs()).length;
+  await drag(75); await sleep(400);
+  const pl = await p.evaluate(() => { const b = document.getElementById('jumpBack'), r = b.getBoundingClientRect(), pg = document.getElementById('pgLine').getBoundingClientRect(), m = document.getElementById('jumpMark'), mr = m.getBoundingClientRect(), s = document.getElementById('pgSlider').getBoundingClientRect();
+    return { vis: getComputedStyle(b).display !== 'none', txt: b.textContent.trim(), h: r.height, w: r.width, left: r.left, bottom: r.bottom, pgTop: pg.top, vw: innerWidth, mark: getComputedStyle(m).display !== 'none', markX: mr.left, sl: s.left, sw: s.width, emoji: /\p{Extended_Pictographic}/u.test(b.textContent), svg: !!b.querySelector('svg') }; });
+  ok('jumpback: after slider 1→76 plaque «на стр. 1» left, just above the page-number line, hit area ≥44 px, Lucide chevron, no emoji', pl.vis && pl.txt === 'на стр. 1' && pl.h >= 44 && pl.left < pl.vw * 0.3 && Math.abs(pl.bottom - pl.pgTop) <= 1 && pl.svg && !pl.emoji, pl);
+  ok('jumpback: old-page marker on the slider at page 1 (left end)', pl.mark && pl.markX >= pl.sl && pl.markX < pl.sl + 16, pl);
+  await p.screenshot({ path: SHOTS + '/jumpback-day.png' });
+  await p.evaluate(() => { SET.theme = 'dark'; applySet(); }); await sleep(150); await p.screenshot({ path: SHOTS + '/jumpback-night.png' }); await p.evaluate(() => { SET.theme = 'sepia'; applySet(); }); await sleep(150);
+  const st0 = await p.evaluate(() => ({ S: JSON.stringify(S).includes('jumpFrom'), ls: Object.keys(localStorage).some(k => (localStorage.getItem(k) || '').includes('jumpFrom')) }));
+  const exp = await p.evaluate(async () => JSON.stringify(await __rq.exportBackup(null, SET, {})).includes('jumpFrom'));
+  ok('jumpback: old page only in memory (not in S, localStorage, export)', !st0.S && !st0.ls && !exp, { st0, exp });
+  await p.evaluate(() => document.getElementById('jumpBack').click()); await sleep(400);
+  const nw = (await evs()).slice(n0), t1 = await p.evaluate(() => ({ page: R.page, turned: R.turned, snap: __tracker.snapshot(), vis: !document.getElementById('jumpBack').classList.contains('hidden'), mark: !document.getElementById('jumpMark').classList.contains('hidden') }));
+  ok("jumpback: tap → back on page 1, plaque + marker gone; jump+return = two page_visible {via:'jump'}, fast-flip 0", t1.page === 0 && !t1.vis && !t1.mark && nw.length === 2 && nw.every(e => e.via === 'jump') && t1.turned === t0.turned && t1.snap.turns === t0.snap.turns && t1.snap.pageTurns === t0.snap.pageTurns, { t1, nw, t0 });
+  await drag(40); await sleep(300); await p.evaluate(() => concealChrome('tap')); await sleep(400);
+  const vis1 = await p.evaluate(() => !document.getElementById('jumpBack').classList.contains('hidden'));
+  await tap(p, 0.85, 0.5);
+  const vis2 = await p.evaluate(() => ({ b: !document.getElementById('jumpBack').classList.contains('hidden'), m: !document.getElementById('jumpMark').classList.contains('hidden') }));
+  ok('jumpback: first normal flip hides plaque and marker', vis1 && !vis2.b && !vis2.m, { vis1, vis2 });
+  await drag(60); await sleep(300);
+  await p.evaluate(() => closeReader()); await sleep(1300);
+  await p.evaluate(() => { const b = document.getElementById('btnDone'); if (!document.getElementById('summary').classList.contains('hidden')) b.click(); }); await sleep(200);
+  await open(p);
+  const vis3 = await p.evaluate(() => ({ b: !document.getElementById('jumpBack').classList.contains('hidden'), from: R.jumpFrom }));
+  ok('jumpback: gone after closing and reopening the book', !vis3.b && vis3.from == null, vis3);
+  await p.evaluate(() => closeReader()); await sleep(800);
+  await p.__ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

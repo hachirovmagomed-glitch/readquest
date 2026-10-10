@@ -38,6 +38,7 @@ function concealChrome(how){
   const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
   if(!r.classList.contains('barsoff')){r.classList.add('barsoff');if(how!=='open')relayout();} /* open: the book is laid out right after */
   fsRequest(how||'tap');
+  placeJumpBack();
   armFocusAuto();
 }
 /** chrome state: show our bars + leave fullscreen — same handler, same frame */
@@ -47,12 +48,13 @@ function revealChrome(){
   exitFullscreenSafe();
   if(r.classList.contains('focus'))setFocus(false); /* panels visible ⇒ never focus */
   if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}
+  placeJumpBack();
   armChromeHide();
 }
 function showChrome(){revealChrome();}
 function hideChrome(){concealChrome('tap');}
 function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}
-function stopChrome(){clearTimeout(chromeTimer);clearTimeout(focusAutoT);FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff','focus');exitFullscreenSafe();}
+function stopChrome(){clearTimeout(chromeTimer);clearTimeout(focusAutoT);hideJumpBack();FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff','focus');exitFullscreenSafe();}
 /* ===== 1б: focus mode (README «Режим фокуса»). Class .focus on #reader on top of .barsoff: no panels, no corner
    number, no day bar, no game counters; only the text and (SET.readCounter) «7 / 10 мин». Accounting is untouched.
    Enter: «Фокус» button (SET.focus 'button') or 10 s of reading without touching the panels ('auto').

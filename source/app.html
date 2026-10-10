@@ -216,6 +216,8 @@ body.rq-nolocks #rqNoXp{display:block}
 /* 1б: page tokens (tokens.css rows 173–176) until 1а inlines tokens.css; data-page is set by applySet */
 #reader{--r-txt-2:#725f4a} /* 1в: → tokens.css */
 #reader{--rq-accent-text:#1f6f6b} /* 1в: → tokens.css */
+#reader{--rq-accent:#1f6f6b} /* 1в: → tokens.css */
+#reader[data-page="night"]{--rq-accent:#5fb8ae} /* 1в: → tokens.css */
 #reader{--rq-pdf-night-dim:.35} /* 1в: → tokens.css */
 #reader[data-page="day"]{--r-txt-2:#6b6658} /* 1в: → tokens.css */
 #reader[data-page="night"]{--r-txt-2:#7f938f} /* 1в: → tokens.css */
@@ -227,6 +229,12 @@ body.rq-nolocks #rqNoXp{display:block}
 #reader.focus #pgNum{display:none}
 #reader.focus.rcnt #focusCount{display:flex}
 #reader.focus #dayBar,#reader.focus #timerHint,#reader.focus #rqNoXp,#reader.focus .navbtn{visibility:hidden}
+/* 1б-fix #1: «< на стр. N» after a slider jump (reader-jump-*): above the page-number line, left; pill 32 px, hit area 44 px */
+#jumpBack{position:fixed;z-index:40;min-height:44px;padding:0;display:flex;align-items:center;background:none;border:0;color:var(--rq-accent-text)}
+#jumpBack .jb{display:flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 8px;border-radius:999px;border:1px solid var(--rq-accent);background:var(--r-bg);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+#jumpMark{position:fixed;z-index:39;width:2px;height:12px;border-radius:1px;background:var(--rq-accent);pointer-events:none}
+#jumpBack.hidden,#jumpMark.hidden,#reader.focus #jumpBack,#reader.focus #jumpMark{display:none}
+#reader.barsoff #jumpMark{display:none}
 .rfbtn{flex:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:inherit;margin:-10px -6px -10px 4px}
 #reader.nofocusbtn #btnFocus{display:none}
 /* toasts (flashMsg kinds); in the reader: centred 12 px above the page-number strip */
@@ -1066,6 +1074,8 @@ body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}</style>
   <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
+  <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
+  <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span><button id="btnFocus" class="rfbtn" aria-label="Фокус" title="Фокус"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button></footer>
   <div class="sheet hidden" id="panel">

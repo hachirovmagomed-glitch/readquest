@@ -14,12 +14,12 @@ const ok = (n, p, i) => { checks.push({ n, p: !!p }); console.log((p ? 'PASS ' :
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
-async function fresh(book) {
+async function fresh(book, url, vp) {
   const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
-  await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  await p.setViewport(vp || { width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await p.evaluateOnNewDocument(() => { window.__rqTimeOffset = 0; const pn = performance.now.bind(performance); performance.now = () => pn() + window.__rqTimeOffset; const dn = Date.now; Date.now = () => dn() + window.__rqTimeOffset; });
   p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
-  await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
+  await p.goto(url || BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
   await (await p.$('#fileInp')).uploadFile(book || BOOK); await p.waitForFunction(() => (S.userBooks || []).length > 0, { timeout: 15000 });
   p.__bid = await p.evaluate(() => S.userBooks[0].id); p.__ctx = ctx; return p;
 }
@@ -265,6 +265,26 @@ if (want('pay')) {
   await p.evaluate(() => { awardPendingSessions(); awardPendingSessions(); }); await sleep(300);
   const g3 = await g();
   ok('pay: repeated award pass → still +30 once', g3.gold === g2.gold && g3.paid === 1, g3);
+  await p.__ctx.close();
+}
+
+/* ---------- 1б-fix #4: test banner «Сбросить тест» is not hittable from the reader (landscape 915×412) ---------- */
+if (want('banner')) {
+  const TBASE = /\/test\/$/.test(BASE) ? BASE : BASE + 'test/';
+  const p = await fresh(null, TBASE, { width: 915, height: 412, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  let dialogs = 0; p.on('dialog', () => { dialogs++; });
+  const lib = await p.evaluate(() => { const b = document.getElementById('rqTestReset'), r = b.getBoundingClientRect(); return { ns: RQ_NS, vis: getComputedStyle(b).visibility, pe: getComputedStyle(b).pointerEvents, hit: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === b }; });
+  ok('banner: on the library the reset button is visible and clickable (test build)', lib.ns === 'rqt' && lib.vis === 'visible' && lib.hit, lib);
+  await open(p); await p.evaluate(() => revealChrome()); await sleep(500); await p.evaluate(() => setFocus(true)); await sleep(300);
+  const books0 = await p.evaluate(() => (S.userBooks || []).length);
+  const rd = await p.evaluate(() => { const b = document.getElementById('rqTestReset'), r = b.getBoundingClientRect(); const pts = [[r.left + r.width / 2, r.top + r.height / 2], [innerWidth / 2, innerHeight * 0.05], [innerWidth / 2, 10]];
+    return { vis: getComputedStyle(b).visibility, pe: getComputedStyle(b).pointerEvents, hits: pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? (e.id || e.tagName) : null; }) }; });
+  ok('banner: in the reader the reset button is hidden and not hittable (no element under the centre-top points is the banner)', rd.vis === 'hidden' && rd.pe === 'none' && !rd.hits.some(h => /rqTest/.test(h || '')), rd);
+  await p.touchscreen.tap(915 / 2, 412 * 0.05); await sleep(500);
+  const r1 = await p.evaluate(() => ({ focus: document.getElementById('reader').classList.contains('focus'), books: (S.userBooks || []).length, reader: !document.getElementById('reader').classList.contains('hidden') }));
+  await p.screenshot({ path: SHOTS + '/banner-reader-915x412.png' });
+  ok('banner: tap at top-centre (50 %, 5 %) in landscape → focus exit, no reset confirm, data intact', dialogs === 0 && !r1.focus && r1.reader && r1.books === books0, { dialogs, r1 });
+  await p.evaluate(() => closeReader()); await sleep(800);
   await p.__ctx.close();
 }
 

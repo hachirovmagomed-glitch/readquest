@@ -646,6 +646,9 @@ body.mvp #sumDailyBox{display:block}
   <button id="rqFailRetry" type="button" onclick="location.reload()" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600">Попробовать ещё раз</button>
   <button id="rqFailCopy" type="button" onclick="window.__rqDiag&&__rqDiag.copy(this)" style="margin-top:16px;min-height:44px;padding:13px 12px;line-height:18px;border:0;background:none;color:var(--muted,#8fb0b5);font-size:13px">Скопировать журнал запуска</button>
 </div>
+<style>/* 1б-fix #4: in the reader the test banner is never hittable — its top-centre is the focus-exit / centre tap zone */
+body:has(#reader:not(.hidden)) #rqTestBanner,body:has(#reader:not(.hidden)) #rqTestReset{pointer-events:none!important}
+body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}</style>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:24px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>
 /* Test build only (NS!=='rq'): banner + reset that deletes ONLY this namespace (rqt* keys, readquest-test DB, rqt-* caches). */

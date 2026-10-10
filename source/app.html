@@ -210,12 +210,16 @@ body.rq-nolocks #rqNoXp{display:block}
 #sumQuestGold{margin-top:8px;font-size:14px;font-weight:700;color:#ffc107;line-height:1.5}
 /* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
 #pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
-#pinchHint b{color:#5fb8ae;font-weight:700;margin-right:6px} /* 1б: --rq-accent (night value: the plaque is dark in both themes) instead of #2bb3c0 */
+#pinchHint{--rq-accent:#5fb8ae} /* 1в: → tokens.css */ /* 1б: night value of the accent token, the plaque is dark in both themes */
+#pinchHint b{color:var(--rq-accent);font-weight:700;margin-right:6px}
 #pinchHintN{display:inline-block;min-width:2ch;text-align:right}
 /* 1б: page tokens (tokens.css rows 173–176) until 1а inlines tokens.css; data-page is set by applySet */
-#reader{--r-txt-2:#725f4a;--rq-accent-text:#1f6f6b}
-#reader[data-page="day"]{--r-txt-2:#6b6658}
-#reader[data-page="night"]{--r-txt-2:#7f938f;--rq-accent-text:#5fb8ae}
+#reader{--r-txt-2:#725f4a} /* 1в: → tokens.css */
+#reader{--rq-accent-text:#1f6f6b} /* 1в: → tokens.css */
+#reader{--rq-pdf-night-dim:.35} /* 1в: → tokens.css */
+#reader[data-page="day"]{--r-txt-2:#6b6658} /* 1в: → tokens.css */
+#reader[data-page="night"]{--r-txt-2:#7f938f} /* 1в: → tokens.css */
+#reader[data-page="night"]{--rq-accent-text:#5fb8ae} /* 1в: → tokens.css */
 /* 1б focus mode: only the text (+ optional counter). Bars are .barsoff already; layout of #viewer does not change */
 #focusCount{display:none;align-items:center;gap:6px;font:500 12px/1 system-ui,-apple-system,sans-serif;color:var(--r-txt-2);font-variant-numeric:tabular-nums}
 #focusCount svg{flex:none}
@@ -229,9 +233,10 @@ body.rq-nolocks #rqNoXp{display:block}
 .rq-toast{display:flex;align-items:center;gap:10px}
 .rq-toast svg{flex:none}
 .rq-toast.rd{top:auto!important;bottom:calc(18px + 3px + 12px + env(safe-area-inset-bottom))!important;border-radius:14px!important;padding:12px 16px!important;font:600 14px/20px system-ui,-apple-system,sans-serif!important;max-width:358px;white-space:nowrap}
-.rq-toast.rd.n{background:#1f363d!important;color:#d6e2e0!important;border:1px solid #2f4a50}
-.rq-toast.rd.d{background:#ffffff!important;color:#3b3226!important;border:1px solid #e3d8bf}
-.rq-toast.rd.d svg{color:#1f6f6b}.rq-toast.rd.n svg{color:#5fb8ae}
+.rq-toast.rd.d{--rq-toast-info-bg:#ffffff;--rq-toast-info-fg:#3b3226;--rq-toast-info-icon:#1f6f6b;--rq-toast-info-border:#e3d8bf} /* 1в: → tokens.css */
+.rq-toast.rd.n{--rq-toast-info-bg:#1f363d;--rq-toast-info-fg:#d6e2e0;--rq-toast-info-icon:#5fb8ae;--rq-toast-info-border:#2f4a50} /* 1в: → tokens.css */
+.rq-toast.rd{background:var(--rq-toast-info-bg)!important;color:var(--rq-toast-info-fg)!important;border:1px solid var(--rq-toast-info-border)}
+.rq-toast.rd svg{color:var(--rq-toast-info-icon)}
 /* page number / book progress flip in the SAME frame as the text: no transitions */
 .rfoot span,.rfoot input[type=range]{transition:none!important}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
@@ -357,10 +362,10 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #pdfWrap{position:absolute;inset:0;overflow:hidden;background:var(--r-bg,#f4ecd8);touch-action:none;contain:strict}
 #pdfWrap.hidden{display:none!important}
 /* 1б: while a PDF loads — backdrop in the PAGE colour with «N / M», never a white sheet / the previous book */
-#pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg,#f4ecd8);color:var(--r-txt-2,#725f4a);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
+#pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg);color:var(--r-txt-2);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
 #pdfBack.hidden{display:none}
 /* 1б night PDF (variant B): canvas → this layer (no pointer events) → text layer; no inversion. Value = SET.pdfDim → --rq-pdf-dim */
-#pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,.35));display:none}
+#pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim)));display:none}
 #reader[data-page="night"] #pdfDim{display:block}
 #pdfDimRange{flex:1;min-height:44px;accent-color:var(--accent2)}
 #pdfDimVal{font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}

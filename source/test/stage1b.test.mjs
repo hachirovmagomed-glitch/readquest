@@ -245,6 +245,29 @@ if (want('dim') && fs.existsSync(PDF)) {
   await q.__ctx.close();
 }
 
+/* ---------- 1. counter vs daily payout: 9.8 min → «9 / 10», no +30; 10.0 → «10 / 10», +30 once ---------- */
+if (want('pay')) {
+  const p = await fresh();
+  const read = async (chunks) => { await open(p); await p.evaluate(() => { revealChrome(); }); await sleep(500); await p.evaluate(() => setFocus(true)); await sleep(200);
+    for (let i = 0; i < chunks.length; i++) { await p.evaluate((ms, more) => { window.__rqTimeOffset += ms; if (more) goPage(R.page + 1, true); updDayBar(); }, chunks[i], i < chunks.length - 1); await sleep(60); }
+    const c = await p.evaluate(() => document.getElementById('focusCount').textContent);
+    await p.evaluate(() => closeReader()); await sleep(1300);
+    await p.evaluate(() => { const b = document.getElementById('btnDone'); if (!document.getElementById('summary').classList.contains('hidden')) b.click(); }); await sleep(200);
+    return c; };
+  const g = () => p.evaluate(() => ({ gold: S.gold, paid: (S.dailyPaidDays || []).filter(d => d === today()).length, day: dayMin(today()), raw: SESS.filter(r => r.date === today()).reduce((a, r) => a + r.minutes, 0) }));
+  const g0 = await g();
+  const c1 = await read([174000, 174000, 174000, 66000]); /* 9.8 counted min */
+  const g1 = await g();
+  ok('pay: 9.8 min → counter «9 / 10 мин», no +30 (balance unchanged, no daily row)', c1 === '9 / 10 мин' && g1.raw >= 9.8 && g1.raw < 9.9 && g1.day === 9 && g1.gold === g0.gold && g1.paid === 0, { c1, g0, g1 });
+  const c2 = await read([12000]); /* +0.2 → 10.0 */
+  const g2 = await g();
+  ok('pay: 10.0 min → counter «10 / 10 мин», +30 paid once', c2 === '10 / 10 мин' && g2.raw >= 10 && g2.raw < 10.1 && g2.day === 10 && g2.gold === g0.gold + 30 && g2.paid === 1, { c2, g2 });
+  await p.evaluate(() => { awardPendingSessions(); awardPendingSessions(); }); await sleep(300);
+  const g3 = await g();
+  ok('pay: repeated award pass → still +30 once', g3.gold === g2.gold && g3.paid === 1, g3);
+  await p.__ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

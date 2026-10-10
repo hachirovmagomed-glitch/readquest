@@ -496,6 +496,26 @@ if (want('thumb')) {
   }
 }
 
+/* ---------- 1б-144: % on card / info / share and «by progress» sort = current position (finish/stats = farthest) ---------- */
+if (want('pospct')) {
+  const ctx = await browser.createBrowserContext(); const q = await ctx.newPage(); await q.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  q.on('dialog', d => d.accept()); await q.goto(BASE, { waitUntil: 'load' }); await q.waitForFunction(() => window.__rqReady, { timeout: 20000 });
+  const r = await q.evaluate(async () => {
+    const A = BOOKS[0], B = BOOKS[1]; S.finished = S.finished.filter(x => x !== A.id && x !== B.id);
+    S.progress[A.id] = { ratio: 1, pos: 0.3 }; S.progress[B.id] = { ratio: 0.5, pos: 0.5 }; save();
+    show('library'); LIB.sort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
+    const cards = [...document.querySelectorAll('#shelf .bookcard')]; const ci = t => cards.findIndex(c => c.querySelector('.btitle').textContent.includes(t));
+    const cardA = cards[ci(A.title)].querySelector('.bpct').textContent;
+    bookInfo(A.id); const info = (document.getElementById('bookSheetBody').textContent.match(/Прогресс:\s*([^·]+)/) || [])[1];
+    let shared = null; const ns = navigator.share; navigator.share = (o) => { shared = o.text; return Promise.resolve(); }; shareBook(A.id); navigator.share = ns;
+    LIB.sort = 'recent'; renderLibrary();
+    return { cardA, info: info && info.trim(), shared, iA: ci(A.title), iB: ci(B.title), finished: S.finished.includes(A.id) };
+  });
+  ok('pospct: pos 30 % / farthest 100 % → card «30%», info «30%», share «30%», not finished', /^30%/.test(r.cardA) && r.info === '30%' && /прогресс 30%/.test(r.shared || '') && !r.finished, r);
+  ok('pospct: sort «по прогрессу» uses pos (B 50 % before A 30 %)', r.iB >= 0 && r.iA > r.iB, r);
+  await ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

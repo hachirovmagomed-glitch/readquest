@@ -347,7 +347,7 @@ function fmtSize(n){
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
-  const p=Math.round((((S.progress[id]||{}).ratio)||0)*100);
+  const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
   const size=fmtSize(b.size!=null?b.size:(b.text?b.text.length*2:null));
   const words=b.text?b.text.split(/\s+/).length:null;
   const place=builtin
@@ -479,7 +479,7 @@ async function aiAsk(promptTxt){
 el('aiSheetClose').onclick=()=>el('aiSheet').classList.add('hidden');
 function shareBook(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
-  const p=Math.round((((S.progress[id]||{}).ratio)||0)*100);
+  const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
   const txt='Читаю «'+b.title+'» ('+b.author+') в ReadQuest — прогресс '+p+'% 📚🔥';
   if(navigator.share){navigator.share({title:b.title,text:txt}).catch(function(){});}
   else{copyText(txt);alert('Текст для шаринга скопирован в буфер');}

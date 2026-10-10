@@ -112,7 +112,7 @@ function renderLibrary(){
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   if(LIB.sort==='title')list.sort((a,b)=>a.title.localeCompare(b.title));
-  else if(LIB.sort==='progress')list.sort((a,b)=>(((S.progress[b.id]||{}).ratio)||0)-(((S.progress[a.id]||{}).ratio)||0));
+  else if(LIB.sort==='progress')list.sort((a,b)=>rqPos(b.id)-rqPos(a.id)); /* 1б-144: by current position */
   else{const lo=S.lastOpen||{};list.sort((a,b)=>(lo[b.id]||0)-(lo[a.id]||0));}
   if(!list.length)shelf.innerHTML='<div class="pempty" style="grid-column:1/-1">Ничего не найдено</div>';
   list.forEach(b=>{

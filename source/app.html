@@ -375,7 +375,9 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* 1б night PDF (variant B): canvas → this layer (no pointer events) → text layer; no inversion. Value = SET.pdfDim → --rq-pdf-dim */
 #pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim)));display:none}
 #reader[data-page="night"] #pdfDim{display:block}
-#pdfDimRange{flex:1;min-height:44px;accent-color:var(--accent2)}
+#pdfDimRow{--rq-accent:#5fb8ae} /* 1в: → tokens.css */
+#pdfDimRow label{width:auto;flex:0 1 auto;white-space:nowrap} /* 1б-fix #5: label on one line */
+#pdfDimRange{flex:1;min-width:0;min-height:44px;accent-color:var(--rq-accent)}
 #pdfDimVal{font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
 .pdfdimhint{font-size:12px;opacity:.75;margin:-6px 0 8px;text-align:center}
 #reader[data-page="night"] .pdfdimhint{display:none}

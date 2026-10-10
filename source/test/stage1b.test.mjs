@@ -240,6 +240,12 @@ if (want('dim') && fs.existsSync(PDF)) {
   ok('dim: slider 50 % → layer .5, saved SET.pdfDim=0.5', a.bg === 'rgba(0, 0, 0, 0.5)' && a.val === '50 %' && saved === 0.5, { a, saved });
   const rng = await q.evaluate(() => { const s = document.getElementById('pdfDimRange'); return { min: s.min, max: s.max, step: s.step }; });
   ok('dim: range 0–50, step 5', rng.min === '0' && rng.max === '50' && rng.step === '5', rng);
+  await q.evaluate(() => { revealChrome(); document.getElementById('sheet').classList.remove('hidden'); }); await sleep(400);
+  const row = await q.evaluate(() => { const l = document.querySelector('#pdfDimRow label'), r = document.getElementById('pdfDimRange'), lr = l.getBoundingClientRect(); return { oneLine: l.scrollWidth <= l.clientWidth + 1 && lr.height < 24, h: lr.height, accent: getComputedStyle(r).accentColor, rh: r.getBoundingClientRect().height }; });
+  ok('dim(#5): label «Затемнение PDF ночью» on one line, thumb #5fb8ae, range hit ≥44 px', row.oneLine && row.accent === 'rgb(95, 184, 174)' && row.rh >= 44, row);
+  await q.screenshot({ path: SHOTS + '/aa-sheet-dim-night.png' });
+  await q.evaluate(() => { SET.theme = 'sepia'; applySet(); }); await sleep(150); await q.screenshot({ path: SHOTS + '/aa-sheet-dim-day.png' });
+  await q.evaluate(() => { document.getElementById('sheet').classList.add('hidden'); SET.theme = 'dark'; applySet(); }); await sleep(150);
   await q.screenshot({ path: SHOTS + '/pdf-night-dim50.png' });
   await q.evaluate(() => { SET.theme = 'sepia'; SET.pdfDim = 0.35; saveSet(); closeReader(); }); await sleep(800);
   await q.__ctx.close();

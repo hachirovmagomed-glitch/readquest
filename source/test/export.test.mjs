@@ -25,11 +25,39 @@ const check = (j, tag) => {
   ok(tag + ': build is not the raw marker __RQ_BUILD__', j && j.build !== '__RQ_BUILD__' && !/__RQ_/.test(String(j.build)) && !/__RQ_/.test(String(shown)), j && j.build);
   ok(tag + ': schemaVersion stays 1', j && j.schemaVersion === 1, j && j.schemaVersion);
 };
+// 1б-144: current position `pos` next to farthest `ratio` (built-in book: no file needed)
+const PB = await page.evaluate(() => { const id = BOOKS[0].id; S.finished = S.finished.filter(x => x !== id); S.progress[id] = { ratio: 1, pos: 0.3 }; save(); return id; });
 const main = JSON.parse(await clickExport(false)); check(main, 'exportBackup');
 const fb = JSON.parse(await clickExport(true)); check(fb, 'fallback');
 // import of the export (extra fields) still works
 const imp = await page.evaluate(async (s) => { try { await __rq.importBackup(JSON.parse(s)); return 'ok'; } catch (e) { return String(e); } }, JSON.stringify(main));
 ok('importBackup accepts export with ns/build', imp === 'ok', imp);
+ok('pos: exportBackup carries progress[id] = {ratio:1, pos:0.3}', ((main.progress || {}).progress || {})[PB] && main.progress.progress[PB].pos === 0.3 && main.progress.progress[PB].ratio === 1, ((main.progress || {}).progress || {})[PB]);
+ok('pos: fallback flat export carries pos', ((fb.readquest || {}).progress || {})[PB] && fb.readquest.progress[PB].pos === 0.3, ((fb.readquest || {}).progress || {})[PB]);
+const progOf = (j) => (j.progress ? j.progress.progress : j.readquest.progress);
+const roundTrip = async (j, entry) => {
+  const jj = JSON.parse(JSON.stringify(j)); if (entry !== undefined) progOf(jj)[PB] = entry;
+  await page.evaluate(async (s, id) => { S.progress[id] = { ratio: 0 }; save(); await __rq.importBackup(JSON.parse(s)); }, JSON.stringify(jj), PB); /* reset, then import */
+  await page.reload({ waitUntil: 'load' }); await page.waitForFunction(() => window.__rqReady, { timeout: 20000, polling: 100 });
+  return page.evaluate(async (id) => {
+    const p = Object.assign({}, S.progress[id]); show('library'); LIB.sort = 'recent'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
+    const card = [...document.querySelectorAll('#shelf .bookcard')].find(c => c.querySelector('.btitle').textContent.includes(BOOKS[0].title));
+    const pct = card && card.querySelector('.bpct').textContent;
+    await openBook(id); await new Promise(z => setTimeout(z, 800)); const o = { p, pct, page: R.page, pc: R.pageCount }; R.maxRatio = 0; await closeReader({ quiet: true }); return o; }, PB);
+};
+const near = (re, r) => Math.abs(re.page - Math.round(r * (re.pc - 1))) <= 1; /* text repaginates: ±1 page */
+for (const [tag, j] of [['exportBackup', main], ['fallback', fb]]) {
+  let re = await roundTrip(j);
+  ok('pos: ' + tag + ' export pos 30 % / farthest 100 % → reset → import → opens at 30 %, card «30%»', re.p.pos === 0.3 && re.p.ratio === 1 && near(re, 0.3) && /^30%/.test(re.pct || ''), re);
+  re = await roundTrip(j, { ratio: 0.6 });
+  ok('pos: ' + tag + ' old backup without pos → opens at ratio 60 %', re.p.pos === undefined && re.p.ratio === 0.6 && near(re, 0.6), re);
+  for (const bad of [1.5, -0.1, '0.3', null]) {
+    re = await roundTrip(j, { ratio: 0.6, pos: bad });
+    ok('pos: ' + tag + ' invalid pos ' + JSON.stringify(bad) + ' → dropped, opens at ratio', re.p.pos === undefined && re.p.ratio === 0.6 && near(re, 0.6), re);
+  }
+  re = await roundTrip(j, { ratio: 0.2, pos: 0.5 });
+  ok('pos: ' + tag + ' pos 0.5 > ratio 0.2 → ratio raised to 0.5, opens at 50 %', re.p.pos === 0.5 && re.p.ratio === 0.5 && near(re, 0.5), re);
+}
 await browser.close();
 // metrics.py on the generated export
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rq-export-')); fs.writeFileSync(path.join(dir, 'tester1.json'), JSON.stringify(main));

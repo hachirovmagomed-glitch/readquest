@@ -351,8 +351,8 @@ async function pinch(d0, d1, label) {
   ok(`(д) pinch ${label}: «Aa N» visible during the gesture, N follows the fingers, gone after touchend`,
     !!hintAtStart && !!hintMid && distinct.length >= 2 && hintVals.every(h => h.vis) && hintMid === 'Aa ' + after.size && hintAfter === 'none' && hintAfter500 === 'none',
     { hintAtStart, hintMid, values: distinct, hintAfterTouchend: hintAfter, newSize: after.size, shot: `${OUT}/pinch-hint-${label}.png` });
-  ok(`(д) pinch ${label}: hint style (fixed, centered, pointer-events:none, #0c2127 .9 / #e6f1f2 / #2bb3c0, r=12, 18–20px, outside columns)`,
-    hintStyle.pos === 'fixed' && hintStyle.pe === 'none' && hintStyle.bg === 'rgba(12, 33, 39, 0.9)' && hintStyle.color === 'rgb(230, 241, 242)' && hintStyle.aa === 'rgb(43, 179, 192)' && hintStyle.radius === '12px' && parseFloat(hintStyle.font) >= 18 && parseFloat(hintStyle.font) <= 20 && Math.abs(hintStyle.cx - hintStyle.vw / 2) <= 2 && Math.abs(hintStyle.cy - hintStyle.vh / 2) <= 2 && !hintStyle.inViewer, hintStyle);
+  ok(`(д) pinch ${label}: hint style (fixed, centered, pointer-events:none, #0c2127 .9 / #e6f1f2 / Aa #5fb8ae (1б accent), r=12, 18–20px, outside columns)`,
+    hintStyle.pos === 'fixed' && hintStyle.pe === 'none' && hintStyle.bg === 'rgba(12, 33, 39, 0.9)' && hintStyle.color === 'rgb(230, 241, 242)' && hintStyle.aa === 'rgb(95, 184, 174)' && hintStyle.radius === '12px' && parseFloat(hintStyle.font) >= 18 && parseFloat(hintStyle.font) <= 20 && Math.abs(hintStyle.cx - hintStyle.vw / 2) <= 2 && Math.abs(hintStyle.cy - hintStyle.vh / 2) <= 2 && !hintStyle.inViewer, hintStyle);
   ok(`pinch ${label}: reading position kept (anchor text on current page)`, posKept.anchorPage === posKept.page, posKept);
   ok(`pinch ${label}: no line box cut by the page edge`, clip.clipped === 0 && clip.visibleLineRects > 5, clip);
 }

@@ -182,6 +182,26 @@ if (want('zones')) {
   } else ok('zones: PDF fixture missing ' + PDF, false);
 }
 
+/* ---------- 5. pinch = font size, plaque «Aa N» ---------- */
+if (want('pinch')) {
+  const p = await fresh();
+  await open(p);
+  const cdp = await p.target().createCDPSession();
+  const size0 = await p.evaluate(() => SET.size);
+  const pt = (d) => [{ x: 195 - d, y: 420, id: 1 }, { x: 195 + d, y: 420, id: 2 }];
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pt(60) });
+  for (let d = 70; d <= 100; d += 10) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pt(d) }); await sleep(30); }
+  const mid = await p.evaluate(() => { const h = document.getElementById('pinchHint'); return { vis: !h.classList.contains('hidden'), txt: h.textContent.replace(/\s+/g, ' ').trim(), color: getComputedStyle(h.querySelector('b')).color, size: SET.size }; });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await sleep(500);
+  const end = await p.evaluate(() => ({ vis: !document.getElementById('pinchHint').classList.contains('hidden'), size: SET.size, toasts: document.querySelectorAll('.rq-toast').length }));
+  const want = Math.max(14, Math.min(30, Math.round(size0 * 100 / 60)));
+  ok('pinch: plaque «Aa N» follows the fingers, no reflow during the gesture', mid.vis && mid.txt === 'Aa ' + want && mid.size === size0, { mid, want });
+  ok('pinch: plaque accent colour (no old #2bb3c0)', mid.color === 'rgb(95, 184, 174)', mid.color);
+  ok('pinch: finger up → one reflow to N, plaque hidden, no toast', !end.vis && end.size === want && end.toasts === 0, end);
+  await p.evaluate(() => closeReader()); await sleep(800);
+  await p.__ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

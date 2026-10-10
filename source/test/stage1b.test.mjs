@@ -327,6 +327,14 @@ if (want('jumpback')) {
   await p.__ctx.close();
 }
 
+/* ---------- 1б-fix #3: #pgLine respects the safe area ---------- */
+if (want('safe')) {
+  const p = await fresh();
+  const r = await p.evaluate(() => { for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch (e) { continue; } for (const ru of rules) if (ru.selectorText === '#pgLine') return { pad: ru.style.padding || [ru.style.paddingTop, ru.style.paddingRight, ru.style.paddingBottom, ru.style.paddingLeft].join(' '), box: ru.style.boxSizing, h: ru.style.height }; } return null; });
+  ok('safe: #pgLine padding uses env(safe-area-inset-bottom) and left/right max(margin, inset), 18 px content height', r && /env\(safe-area-inset-bottom/.test(r.pad) && /safe-area-inset-left/.test(r.pad) && /safe-area-inset-right/.test(r.pad) && r.box === 'content-box' && r.h === '18px', r);
+  await p.__ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

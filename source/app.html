@@ -202,7 +202,7 @@ body.rq-nolocks #rqNoXp{display:block}
 /* Always-on page number «34 / 210» (Интерфейс, build 3): own 18px strip between the text and the day bar →
    outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
    running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
-#pgLine{flex:none;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 var(--r-margin,24px);pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
+#pgLine{flex:none;box-sizing:content-box;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 max(var(--r-margin,24px),env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(var(--r-margin,24px),env(safe-area-inset-left,0px)); /* 1б-fix #3: counter/number above the gesture bar */pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
 #pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:inherit;opacity:.45;letter-spacing:.2px}
 #reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
 #mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}

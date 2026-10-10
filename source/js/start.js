@@ -17,10 +17,8 @@
     if(isMvp()){renderLibrary();show('library');}else{renderLibrary();show('library');}
     flashMsg(isMvp()?'MVP включён (4 экрана)':'Полный UI v6');
   };
-  if(el('focusTgl'))el('focusTgl').onclick=function(){
-    SET.focusMode=!(SET.focusMode!==false);saveSet();renderSettings();
-    flashMsg(isFocus()?'Фокус: RPG скрыт в читалке':'Фокус выключен');
-  };
+  document.querySelectorAll('#focusSeg button').forEach(function(b){b.onclick=function(){SET.focus=b.dataset.f;saveSet();renderSettings();applyFocusSet();};});
+  if(el('readCntTgl'))el('readCntTgl').onclick=function(){SET.readCounter=!SET.readCounter;saveSet();renderSettings();updFocusCount();};
 })();
 
 window.__rqStart=async function(api, tracker){

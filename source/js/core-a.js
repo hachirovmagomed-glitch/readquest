@@ -29,7 +29,6 @@ function mvpEnforce(){
 /* ?dev=1 shows the MVP switch and «Тест-режим» (body.dev; .dev-only is hidden otherwise) */
 const RQ_DEV=/[?&]dev=1(?:&|$)/.test(location.search);
 document.body.classList.toggle('dev',RQ_DEV);
-function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
   document.body.classList.toggle('mvp', isMvp());
   const bn=el('botnav');
@@ -89,7 +88,9 @@ function awardPendingSessions(){
 function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}
 function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today()))>=0;}
 function mvpDailyProg(day){const g=goalMin();return Math.min(1,dayMin(day||today())/g);}
-function mvpDailyInfo(day){return Math.floor(dayMin(day||today()))+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
+/** ONE function for whole counted minutes of a day (summary, quests, reader counter «7 / 10 мин»). */
+function dayMinFloor(day,live){return Math.floor(dayMin(day||today(),live));}
+function mvpDailyInfo(day,live){return dayMinFloor(day,live)+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
 function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(1,w.count/4);}
 function mvpWeeklyInfo(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(4,w.count)+' / 4 дня';}
 function renderMvpQuests(){

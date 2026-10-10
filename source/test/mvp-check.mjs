@@ -54,7 +54,7 @@ await page.screenshot({ path: OUT + '/library-mvp.png' });
 await openSettings();
 const setv = {}; for (const id of ['goalMinus2', 'goalPlus2', 'antiMinMinus', 'antiMinPlus', 'antiMaxMinus', 'antiMaxPlus']) setv[id] = await vis(id);
 const setTxt = await page.evaluate(() => ({ min: antiMinVal.textContent, max: antiMaxVal.textContent, goal: goalVal2.textContent }));
-const rows1 = { mvpTgl: await rowVis('mvpTgl'), devMoneyTgl: await rowVis('devMoneyTgl'), focusTgl: await rowVis('focusTgl') };
+const rows1 = { mvpTgl: await rowVis('mvpTgl'), devMoneyTgl: await rowVis('devMoneyTgl'), focusTgl: (await rowVis('readCntTgl')) && (await vis('focusSeg')) }; /* 1б: «Режим фокуса» = #focusSeg + «Показывать счётчик чтения» */
 const testH2 = await page.evaluate(() => [...document.querySelectorAll('#settings h2')].filter(h => /Тест-режим/.test(h.textContent)).map(h => getComputedStyle(h).display));
 ok('2 settings: all goal/anti steppers hidden; read-only values 12 с / 3 мин / 10 мин', Object.values(setv).every(v => !v) && setTxt.min === '12 с' && setTxt.max === '3 мин' && setTxt.goal === '10 мин', { setv, setTxt });
 ok('4 settings without ?dev=1: «Режим MVP» row and «🧪 Тест-режим» (∞ валюта) hidden; «Режим фокуса» stays', !rows1.mvpTgl && !rows1.devMoneyTgl && rows1.focusTgl && testH2.every(d => d === 'none'), { rows1, testH2 });

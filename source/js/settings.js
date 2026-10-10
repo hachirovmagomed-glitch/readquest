@@ -34,7 +34,8 @@ function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
 /* ================= НАСТРОЙКИ ================= */
 function renderSettings(){
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
-  if(el('focusTgl'))el('focusTgl').textContent=isFocus()?'Вкл':'Выкл';
+  document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
+  if(el('readCntTgl'))el('readCntTgl').textContent=SET.readCounter?'Вкл':'Выкл';
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
   el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */
   const ls=el('langSeg');ls.innerHTML='';

@@ -1,9 +1,14 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focusMode:true};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 if(!SET.nav)SET.nav={btns:false,tap:true,invert:false,swipe:true};
+/* 1б settings contract (same rules as storage/schema.js hydrateSettings) */
+function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
+  s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
+  if(typeof s.readCounter!=='boolean')s.readCounter=true;return s;}
+normSet(SET);
 function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
 function applySet(){
   const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
@@ -14,6 +19,8 @@ function applySet(){
   r.style.setProperty('--r-margin',SET.margin+'px');
   el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
   el('dimmer').style.opacity=SET.dim||0;
+  r.dataset.page=!isLightBg(bg)?'night':(SET.theme==='sepia'&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
+  applyFocusSet();
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
   c.style.fontSize=SET.size+'px';
@@ -156,6 +163,7 @@ function updDayBar(){
   const pct=Math.max(0,Math.min(1,dayMin(day,live)/goalMin())); /* same whole-minute rule as «N / 10» */
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
+  updFocusCount(day,live); /* same 15 s tick + page change as the day bar */
 }
 function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
 function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}

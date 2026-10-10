@@ -315,7 +315,7 @@ function pdfTouchEnd(e){
   if(e.touches.length)return;
   P.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
-  if(g.bright&&g.moved){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');return;}
+  if(g.bright&&g.moved){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});return;}
   const swipeOn=!SET.nav||SET.nav.swipe!==false;
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;

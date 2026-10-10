@@ -167,8 +167,17 @@ export const SET_DEF = {
   dim: 0,
   nav: null,
   mvp: true,
-  focusMode: true,
+  focus: 'button',   // 1б: 'off' | 'button' | 'auto'
+  pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
+  readCounter: true, // 1б: «7 / 10 мин» in focus
 };
+
+export const FOCUS_MODES = ['off', 'button', 'auto'];
+/** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
+export function normPdfDim(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 0.35;
+  return Math.round(Math.max(0, Math.min(0.5, v)) * 20) / 20;
+}
 
 const DEFAULT_SKILLS = ['Концентрация', 'Дисциплина', 'Аналитика', 'Скорочтение'];
 const DEFAULT_SKILL_LINKS = {
@@ -337,6 +346,10 @@ export function hydrateLibrary(lib) {
 export function hydrateSettings(s) {
   const out = Object.assign({}, SET_DEF, s || {});
   if (!out.nav) out.nav = { btns: false, tap: true, invert: false, swipe: true };
+  delete out.focusMode; /* 1б: old bool is ignored, never mapped onto focus */
+  if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
+  out.pdfDim = normPdfDim(out.pdfDim);
+  if (typeof out.readCounter !== 'boolean') out.readCounter = true;
   return out;
 }
 

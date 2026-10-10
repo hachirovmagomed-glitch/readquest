@@ -38,19 +38,68 @@ function concealChrome(how){
   const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
   if(!r.classList.contains('barsoff')){r.classList.add('barsoff');if(how!=='open')relayout();} /* open: the book is laid out right after */
   fsRequest(how||'tap');
+  armFocusAuto();
 }
 /** chrome state: show our bars + leave fullscreen — same handler, same frame */
 function revealChrome(){
   const r=el('reader');if(!r||r.classList.contains('hidden'))return;
   fsPending=false;
   exitFullscreenSafe();
+  if(r.classList.contains('focus'))setFocus(false); /* panels visible ⇒ never focus */
   if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}
   armChromeHide();
 }
 function showChrome(){revealChrome();}
 function hideChrome(){concealChrome('tap');}
 function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}
-function stopChrome(){clearTimeout(chromeTimer);FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff');exitFullscreenSafe();}
+function stopChrome(){clearTimeout(chromeTimer);clearTimeout(focusAutoT);FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff','focus');exitFullscreenSafe();}
+/* ===== 1б: focus mode (README «Режим фокуса»). Class .focus on #reader on top of .barsoff: no panels, no corner
+   number, no day bar, no game counters; only the text and (SET.readCounter) «7 / 10 мин». Accounting is untouched.
+   Enter: «Фокус» button (SET.focus 'button') or 10 s of reading without touching the panels ('auto').
+   Leave: ONLY a centre tap (it shows the panels); side taps / swipes / corners keep focus. ===== */
+let focusAutoT=null;
+const FOCUS_AUTO_MS=10000; /* --rq-focus-auto-delay */
+function isFocusOn(){const r=el('reader');return !!(r&&r.classList.contains('focus'));}
+function setFocus(on){
+  const r=el('reader');if(!r)return;
+  if(on&&(SET.focus==='off'||r.classList.contains('hidden')))return;
+  r.classList.toggle('focus',!!on);
+  if(on){clearTimeout(focusAutoT);updFocusCount();concealChrome('tap');}
+}
+function armFocusAuto(){
+  clearTimeout(focusAutoT);
+  if(SET.focus!=='auto')return;
+  focusAutoT=setTimeout(function(){
+    const r=el('reader');if(!r||r.classList.contains('hidden')||!r.classList.contains('barsoff')||r.classList.contains('focus'))return;
+    if(window.__rqWriter&&__rqWriter.passive)return;
+    if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden')||(selText&&selText()))return armFocusAuto();
+    setFocus(true);
+  },FOCUS_AUTO_MS);
+}
+/** SET.focus / SET.readCounter → reader classes (called by applySet and the settings screen). */
+function applyFocusSet(){
+  const r=el('reader');if(!r)return;
+  r.classList.toggle('nofocusbtn',SET.focus==='off');
+  r.classList.toggle('rcnt',SET.readCounter!==false);
+  if(SET.focus==='off'&&r.classList.contains('focus'))r.classList.remove('focus');
+  if(SET.focus==='auto')armFocusAuto();else clearTimeout(focusAutoT);
+}
+/** Reader counter «7 / 10 мин»: the SAME whole minutes as the daily payout (dayMinFloor ← mvpDailyInfo).
+ *  Ring = min(1, floor(dayMinutes)/goal). At the goal: check icon, accent text, no toast, no animation. */
+function updFocusCount(day,live){
+  const c=el('focusCount');if(!c)return;
+  if(day==null){const run=!!(__tracker&&__tracker.isRunning&&__tracker.isRunning());live=run?__tracker.snapshot().minutes:0;day=(run&&__tracker.getSessionDay&&__tracker.getSessionDay())||today();}
+  const g=goalMin(),m=dayMinFloor(day,live),done=m>=g,p=Math.min(1,m/g);
+  const key=m+'/'+g;if(c.dataset.k===key)return;c.dataset.k=key;
+  c.classList.toggle('done',done);
+  c.setAttribute('aria-label',done?('Цель дня выполнена: '+m+' из '+g+' минут'):('Чтение засчитывается: '+m+' из '+g+' минут'));
+  const C=40.84; /* 2π·6.5 */
+  const icon=done?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+    :'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.2"/><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-p)).toFixed(2)+'" transform="rotate(-90 8 8)"/></svg>';
+  c.innerHTML=icon+'<span>'+mvpDailyInfo(day,live)+'</span>';
+}
+el('btnFocus').onclick=function(e){e.stopPropagation();setFocus(true);};
+['.rhead','.rfoot'].forEach(function(s){const n=document.querySelector('#reader '+s);if(n)n.addEventListener('pointerdown',function(){armFocusAuto();},{passive:true});});
 let IMM=false; /* legacy name kept for old callers: true ⇔ fullscreen wanted */
 function goFullscreen(){FSW=true;IMM=true;fsRequest('open');}
 function enterImmersive(){FSW=true;IMM=true;concealChrome('open');}
@@ -59,7 +108,7 @@ document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({h
   /* 1б: the SYSTEM left fullscreen (Android back / swipe) while we want it → show our panels (no separate «back» step) */
   /* not in a window that lost the writer role (thawed / background tab: mayWrite() demotes it first) — no relayout under the overlay */
   const r=el('reader');if(!fsActive()&&FSW&&r&&!r.classList.contains('hidden')&&r.classList.contains('barsoff')&&document.visibilityState!=='hidden'&&!(window.__rqWriter&&!__rqWriter.mayWrite()))revealChrome();});
-el('btnFull').onclick=()=>{enterImmersive();flashMsg('⛶ Полный экран · тап по центру — панели');};
+el('btnFull').onclick=()=>{enterImmersive();flashMsg('Весь экран · тап по центру — панели',{kind:'info',icon:'maximize'});};
 function isLightBg(bg){
   const c=String(bg).replace('#','');
   const n=parseInt(c.length===3?c.split('').map(ch=>ch+ch).join(''):c,16);
@@ -69,7 +118,7 @@ function toggleDayNight(){
   const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
   SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
   SET.cBg=null;SET.cTxt=null;saveSet();applySet();
-  flashMsg(isLightBg((THEMES[SET.theme]||{}).bg||'#000')?'☀️ Дневной режим':'🌙 Ночной режим');
+  {const lt=isLightBg((THEMES[SET.theme]||{}).bg||'#000');flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}
 }
 function addBookmark(){
   if(!R.book)return;
@@ -77,19 +126,38 @@ function addBookmark(){
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   arr.push({ratio:ratio,page:R.page+1,date:today()});
   save();
-  flashMsg('🔖 Закладка: стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)));
+  flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
-function flashMsg(t,ms){
-  if(isFocus()&&isMvp()&&el('reader')&&!el('reader').classList.contains('hidden')){
-    /* focus mode: allow only reading chrome hints, skip RPG */
-    if(/XP|🪙|босс|Босс|квест|талант|золото|награда|Удача|питом/i.test(String(t||'')))return;
-  }
+/* Lucide icons (lucide-static, ISC) for toasts */
+const RQ_ICO={
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  'circle-alert':'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+  bookmark:'<path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon:'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
+  maximize:'<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>'
+};
+function rqIcon(n,sz){return '<svg width="'+(sz||20)+'" height="'+(sz||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(RQ_ICO[n]||'')+'</svg>';}
+/* legacy calls without {kind}: game wording ⇒ game */
+const RQ_GAME_RE=/XP|🪙|монет|босс|квест|талант|золот|награда|Удача|питом|опыт/i;
+/** flashMsg(text, ms) or flashMsg(text, {kind:'game'|'info'|'error', icon, ms}).
+ *  In the reader `game` toasts are NEVER shown (focus or not); `info`/`error` are allowed. */
+function flashMsg(t,o){
+  const opt=(o&&typeof o==='object')?o:{ms:o};
+  const kind=opt.kind||(RQ_GAME_RE.test(String(t||''))?'game':'info');
+  const inReader=!!(el('reader')&&!el('reader').classList.contains('hidden'));
+  if(inReader&&kind==='game')return;
+  const ms=opt.ms;
+  document.querySelectorAll('.rq-toast').forEach(function(x){x.remove();}); /* one toast at a time */
   const d=document.createElement('div');
   d.className='rq-toast';
-  d.textContent=t;
+  d.setAttribute('role',kind==='error'?'alert':'status');
+  if(opt.icon){d.innerHTML=rqIcon(opt.icon,20)+'<span></span>';d.lastChild.textContent=t;}else d.textContent=t;
   d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:#fff;padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
+  if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');}
+  d.onclick=function(){d.remove();};
   document.body.appendChild(d);
-  const dur=ms!=null?ms:1600;
+  const dur=ms!=null?ms:(inReader?3000:1600);
   setTimeout(function(){try{d.remove();}catch(e){}},dur);
 }
 
@@ -214,7 +282,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
-  if(bright){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');bright=null;return;}
+  if(bright){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});bright=null;return;}
   if(pinch0){
     pinch0=null;tx0=null;
     endTextPinch(); // текст: щипок = размер шрифта, один рефлоу после жеста

@@ -225,6 +225,26 @@ if (want('pdfback') && fs.existsSync(PDF)) {
   await q.__ctx.close();
 }
 
+/* ---------- 7. night PDF dim slider ---------- */
+if (want('dim') && fs.existsSync(PDF)) {
+  const q = await fresh(PDF);
+  await q.evaluate(id => openBook(id), q.__bid); await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(500);
+  const L = () => q.evaluate(() => { const d = document.getElementById('pdfDim'), sh = document.getElementById('pdfSheet'), kids = [...sh.children].map(c => c.id || c.tagName); const cs = getComputedStyle(d);
+    return { disp: cs.display, bg: cs.backgroundColor, pe: cs.pointerEvents, order: kids, val: document.getElementById('pdfDimVal').textContent, hint: getComputedStyle(document.getElementById('pdfDimHint')).display }; });
+  let a = await L();
+  ok('dim: day — layer off, slider hint «работает в ночной теме» visible', a.disp === 'none' && a.hint !== 'none' && a.val === '35 %', a);
+  await q.evaluate(() => { SET.theme = 'dark'; applySet(); }); await sleep(150); a = await L();
+  ok('dim: night default 35 %, layer between canvas and text layer, pointer-events none', a.disp === 'block' && a.bg === 'rgba(0, 0, 0, 0.35)' && a.pe === 'none' && a.order.indexOf('CANVAS') < a.order.indexOf('pdfDim') && a.order.indexOf('pdfDim') < a.order.indexOf('pdfText'), a);
+  await q.evaluate(() => { const s = document.getElementById('pdfDimRange'); s.value = 50; s.dispatchEvent(new Event('input')); s.dispatchEvent(new Event('change')); }); await sleep(100); a = await L();
+  const saved = await q.evaluate(() => JSON.parse(localStorage.getItem(RQ_K.set)).pdfDim);
+  ok('dim: slider 50 % → layer .5, saved SET.pdfDim=0.5', a.bg === 'rgba(0, 0, 0, 0.5)' && a.val === '50 %' && saved === 0.5, { a, saved });
+  const rng = await q.evaluate(() => { const s = document.getElementById('pdfDimRange'); return { min: s.min, max: s.max, step: s.step }; });
+  ok('dim: range 0–50, step 5', rng.min === '0' && rng.max === '50' && rng.step === '5', rng);
+  await q.screenshot({ path: SHOTS + '/pdf-night-dim50.png' });
+  await q.evaluate(() => { SET.theme = 'sepia'; SET.pdfDim = 0.35; saveSet(); closeReader(); }); await sleep(800);
+  await q.__ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

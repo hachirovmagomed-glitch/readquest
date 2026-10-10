@@ -359,6 +359,13 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* 1б: while a PDF loads — backdrop in the PAGE colour with «N / M», never a white sheet / the previous book */
 #pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg,#f4ecd8);color:var(--r-txt-2,#725f4a);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
 #pdfBack.hidden{display:none}
+/* 1б night PDF (variant B): canvas → this layer (no pointer events) → text layer; no inversion. Value = SET.pdfDim → --rq-pdf-dim */
+#pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,.35));display:none}
+#reader[data-page="night"] #pdfDim{display:block}
+#pdfDimRange{flex:1;min-height:44px;accent-color:var(--accent2)}
+#pdfDimVal{font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+.pdfdimhint{font-size:12px;opacity:.75;margin:-6px 0 8px;text-align:center}
+#reader[data-page="night"] .pdfdimhint{display:none}
 /* ONE transform parent: backing (#pdfSheet), bitmap and text layer zoom/pan together */
 #pdfStage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 #pdfSheet{position:relative;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.18)}
@@ -1034,7 +1041,7 @@ body.mvp #sumDailyBox{display:block}
   </header>
   <div id="viewer">
     <div id="content"></div>
-    <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
+    <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfDim" aria-hidden="true"></div><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>
@@ -1075,6 +1082,8 @@ body.mvp #sumDailyBox{display:block}
       <button data-g="grpColor">🌈 Цвета</button>
       <button data-g="grpNav">🧭 Навигация</button>
     </div>
+    <div class="srow" id="pdfDimRow"><label for="pdfDimRange">Затемнение PDF ночью</label><input type="range" id="pdfDimRange" min="0" max="50" step="5" value="35" aria-describedby="pdfDimHint"><span class="segval" id="pdfDimVal">35 %</span></div>
+    <div class="pdfdimhint" id="pdfDimHint">работает в ночной теме</div>
     <div class="setgrp on" id="grpFont">
       <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
     </div>

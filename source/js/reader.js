@@ -21,6 +21,8 @@ function applySet(){
   el('dimmer').style.opacity=SET.dim||0;
   r.dataset.page=!isLightBg(bg)?'night':(SET.theme==='sepia'&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
   applyFocusSet();
+  r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
+  if(el('pdfDimRange')){const pc=Math.round(SET.pdfDim*100);el('pdfDimRange').value=pc;el('pdfDimVal').textContent=pc+' %';}
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
   c.style.fontSize=SET.size+'px';
@@ -52,6 +54,8 @@ function applySet(){
   el('navPrev').classList.toggle('hidden',!nv.btns);
   el('navNext').classList.toggle('hidden',!nv.btns);
 }
+el('pdfDimRange').oninput=e=>{const v=Math.round((parseInt(e.target.value,10)||0)/5)*5/100;SET.pdfDim=Math.max(0,Math.min(0.5,v));applySet();};
+el('pdfDimRange').onchange=()=>saveSet();
 FONTS.forEach((f,i)=>{
   const b=document.createElement('button');b.textContent=f.label;b.style.fontFamily=f.v;
   b.onclick=()=>{SET.font=i;saveSet();applySet();relayout();};

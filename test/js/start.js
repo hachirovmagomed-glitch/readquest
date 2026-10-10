@@ -17,15 +17,14 @@
     if(isMvp()){renderLibrary();show('library');}else{renderLibrary();show('library');}
     flashMsg(isMvp()?'MVP включён (4 экрана)':'Полный UI v6');
   };
-  if(el('focusTgl'))el('focusTgl').onclick=function(){
-    SET.focusMode=!(SET.focusMode!==false);saveSet();renderSettings();
-    flashMsg(isFocus()?'Фокус: RPG скрыт в читалке':'Фокус выключен');
-  };
+  document.querySelectorAll('#focusSeg button').forEach(function(b){b.onclick=function(){SET.focus=b.dataset.f;saveSet();renderSettings();applyFocusSet();};});
+  if(el('readCntTgl'))el('readCntTgl').onclick=function(){SET.readCounter=!SET.readCounter;saveSet();renderSettings();updFocusCount();};
 })();
 
 window.__rqStart=async function(api, tracker){
   __rq=api; window.__rq=api; window.__tracker=tracker;
   __tracker=tracker;
+  if(tracker.setStaleHandler)tracker.setStaleHandler(function(p){stalePaid(p).catch(function(e){console.warn('[rq] stale session',e);});});
   /* single writer: every tracker call that counts/writes is gated synchronously (a thawed, stolen-from
      window demotes itself on its first call instead of counting minutes B already finished) */
   ['begin','setCounting','pageTurned','pageShown','userActive','onPageChange','end'].forEach(function(m){

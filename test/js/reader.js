@@ -1,9 +1,14 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focusMode:true};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 if(!SET.nav)SET.nav={btns:false,tap:true,invert:false,swipe:true};
+/* 1б settings contract (same rules as storage/schema.js hydrateSettings) */
+function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
+  s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
+  if(typeof s.readCounter!=='boolean')s.readCounter=true;return s;}
+normSet(SET);
 function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
 function applySet(){
   const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
@@ -14,6 +19,10 @@ function applySet(){
   r.style.setProperty('--r-margin',SET.margin+'px');
   el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
   el('dimmer').style.opacity=SET.dim||0;
+  r.dataset.page=!isLightBg(bg)?'night':(SET.theme==='sepia'&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
+  applyFocusSet();
+  r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
+  if(el('pdfDimRange')){const pc=Math.round(SET.pdfDim*100);el('pdfDimRange').value=pc;el('pdfDimVal').textContent=pc+' %';}
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
   c.style.fontSize=SET.size+'px';
@@ -45,6 +54,8 @@ function applySet(){
   el('navPrev').classList.toggle('hidden',!nv.btns);
   el('navNext').classList.toggle('hidden',!nv.btns);
 }
+el('pdfDimRange').oninput=e=>{const v=Math.round((parseInt(e.target.value,10)||0)/5)*5/100;SET.pdfDim=Math.max(0,Math.min(0.5,v));applySet();};
+el('pdfDimRange').onchange=()=>saveSet();
 FONTS.forEach((f,i)=>{
   const b=document.createElement('button');b.textContent=f.label;b.style.fontFamily=f.v;
   b.onclick=()=>{SET.font=i;saveSet();applySet();relayout();};
@@ -113,6 +124,9 @@ async function openBook(id){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
   if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+  /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
+     one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
+  if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
   R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
   el('rTitle').textContent=b.title+' — '+b.author;
@@ -121,7 +135,7 @@ async function openBook(id){
   c.classList.toggle('hidden',R.mode==='pdf');
   el('reader').classList.toggle('pdfmode',R.mode==='pdf');
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
-  show('reader');applySet();reqWake();resetTimer();armChromeHide();
+  show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
@@ -150,9 +164,10 @@ function updDayBar(){
   const run=!!(__tracker&&__tracker.isRunning&&__tracker.isRunning());
   const live=run?__tracker.snapshot().minutes:0;
   const day=(run&&__tracker.getSessionDay&&__tracker.getSessionDay())||today(); /* session day = day it started */
-  const pct=Math.max(0,Math.min(1,(dayMin(day)+live)/goalMin()));
+  const pct=Math.max(0,Math.min(1,dayMin(day,live)/goalMin())); /* same whole-minute rule as «N / 10» */
   const w=Math.round(pct*1000)/10+'%';
   const i=bar.firstElementChild;if(i&&i.style.width!==w)i.style.width=w;
+  updFocusCount(day,live); /* same 15 s tick + page change as the day bar */
 }
 function startDayBar(){clearInterval(dayBarIv);updDayBar();dayBarIv=setInterval(updDayBar,15000);}
 function stopDayBar(){clearInterval(dayBarIv);dayBarIv=null;}

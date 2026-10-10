@@ -11,8 +11,8 @@
  *
  * North-star: days/week with ≥10 minutes → daysMeetingThreshold({ minMinutes: 10 }).
  */
-import { IDB_STORE_SESSIONS } from './schema.js?v=20261009-2100';
-import { openDb } from './idb.js?v=20261009-2100';
+import { IDB_STORE_SESSIONS } from './schema.js?v=20261010-1150';
+import { openDb } from './idb.js?v=20261010-1150';
 
 /** Session UUID (reader-generated). crypto.randomUUID with a random v4 fallback. */
 export function newSessionId() {
@@ -127,6 +127,12 @@ export async function logSession(entry) {
     minutes: minutes,
     pageTurns: pageTurns,
   };
+  /* optional (1б, additive, schemaVersion stays 1): session start (ISO, orders XP inside a day) and the paid XP */
+  const sv = entry.startedAt;
+  const st = typeof sv === 'number' ? sv : (sv ? Date.parse(String(sv)) : NaN);
+  if (Number.isFinite(st) && st > 0) rec.startedAt = new Date(st).toISOString(); /* stored as ISO */
+  const xp = Number(entry.xp);
+  if (entry.xp != null && Number.isFinite(xp) && xp >= 0) rec.xp = xp;
 
   const db = await openDb();
   return new Promise(function (res, rej) {
@@ -225,6 +231,23 @@ export async function ensureSessionIds() {
       });
     };
     tx.oncomplete = function () { res({ changed: changed }); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
+
+/** Store the paid XP in its sessions[] row (game awarded it; the row is otherwise never changed). */
+export async function setSessionXp(id, xp) {
+  const db = await openDb();
+  return new Promise(function (res, rej) {
+    const tx = db.transaction(IDB_STORE_SESSIONS, 'readwrite');
+    const store = tx.objectStore(IDB_STORE_SESSIONS);
+    const g = store.get(id);
+    let done = false;
+    g.onsuccess = function () {
+      const r = g.result;
+      if (r && r.xp !== xp) { r.xp = xp; store.put(r); done = true; }
+    };
+    tx.oncomplete = function () { res(done); };
     tx.onerror = function () { rej(tx.error); };
   });
 }

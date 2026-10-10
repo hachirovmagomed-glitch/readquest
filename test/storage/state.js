@@ -22,8 +22,9 @@ import {
   stripBookBody,
   mergeFlat,
   splitLegacyState,
-} from './schema.js?v=20261009-2100';
-import * as idb from './idb.js?v=20261009-2100';
+  NS,
+} from './schema.js?v=20261010-1150';
+import * as idb from './idb.js?v=20261010-1150';
 
 let saveWarned = false;
 
@@ -193,19 +194,27 @@ export async function removeUserBook(envelope, bookId, wipeFile) {
  * Optional: settings, textBodies (when includeTextBodies), note.
  * No format/readquest flat mirror required — domains + IDB arrays are the contract.
  */
+function buildNo(b) {
+  // eslint-disable-next-line no-undef
+  const v = b || (typeof RQ_BUILD !== 'undefined' ? RQ_BUILD : null);
+  return typeof v === 'string' && v && v.indexOf('__') !== 0 ? v : null;
+}
 export async function exportBackup(envelope, settings, opts) {
   const options = opts || {};
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261009-2100');
-  const { listReadingEvents } = await import('./events.js?v=20261009-2100');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261010-1150');
+  const { listReadingEvents } = await import('./events.js?v=20261010-1150');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
 
   const payload = {
     schemaVersion: SCHEMA_VERSION,
+    ns: NS, // 'rq' main / 'rqt' test build (metrics.py counts only ns 'rq'); additive, schemaVersion stays 1
+    // real build number (core-a.js RQ_BUILD, substituted by build-dist.sh); null if unknown — never the raw marker
+    build: buildNo(options.build),
     progress: e.progress,
     game: e.game,
     library: e.library,
@@ -271,9 +280,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261009-2100');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261010-1150');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261009-2100'
+    './events.js?v=20261010-1150'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */
@@ -292,6 +301,8 @@ export async function importBackup(data) {
         bookId: s.bookId,
         minutes: s.minutes,
         pageTurns: s.pageTurns != null ? s.pageTurns : s.pages,
+        startedAt: s.startedAt,
+        xp: s.xp,
       });
     } catch (e) {
       /* skip bad rows */
@@ -313,6 +324,7 @@ export async function importBackup(data) {
           date: ev.date,
           at: ev.at,
           page: ev.page,
+          via: ev.via,
           type: ev.type || 'page_visible',
         });
       } else if (ev.type) {

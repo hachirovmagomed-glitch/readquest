@@ -17,8 +17,10 @@ function pdfViewSize(){const v=el('viewer'),s={w:v.clientWidth,h:v.clientHeight}
 /* gestures: during a transient 0/1-px viewport (fullscreen / resize in progress) use the last real size */
 function pdfVR(){const r=el('viewer').getBoundingClientRect();if(r.width>8&&r.height>8){P.lastVR=r;return r;}return P.lastVR||r;}
 function pdfAct(kind,info){if(__tracker&&__tracker.userActive)__tracker.userActive(kind,info||{});}
+function pdfBackdrop(txt){const d=el('pdfBack');if(!d)return;if(txt==null){d.classList.add('hidden');return;}el('pdfBackN').textContent=txt;d.classList.remove('hidden');}
 async function openPdf(b){
   try{
+    pdfReset();pdfBackdrop(''); /* before any await: the previous book's canvas is gone, the page colour shows at once */
     await loadPdfJs();
     const buf=await idbGet('pdf:'+b.id);
     if(!buf)throw new Error('файл не найден на этом устройстве');
@@ -30,9 +32,9 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
-    pdfNumbers(p);
+    pdfNumbers(p);pdfBackdrop(pdfLabel(p)+' / '+R.pageCount);
     pdfRender('open');pdfWatch();
-  }catch(e2){alert('Не удалось открыть PDF: '+e2.message);show('library');}
+  }catch(e2){pdfBackdrop(null);alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
 function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
 function pdfReset(){
@@ -44,7 +46,7 @@ function pdfReset(){
   clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;
   const st=el('pdfStage');st.style.transform='';st.style.visibility='hidden';
 }
-function pdfClose(){pdfReset();if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
+function pdfClose(){pdfReset();pdfBackdrop(null);if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
 /** Render P.target into a back canvas; swap in the next frame. */
 async function pdfRender(why){
   if(!R.pdf)return;
@@ -119,12 +121,14 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
   pdfApply();
   el('pdfStage').style.visibility='';
+  pdfBackdrop(null);
   if(isNew){
     P.shown=n;R.page=n;
     const ratio=R.pageCount>1?n/(R.pageCount-1):1;
     R.maxRatio=Math.max(R.maxRatio,ratio);
     pdfNumbers(P.sliding?P.target:n);
-    if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
+    if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
+    else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
     updDayBar();persistPage();
   }
   if(P.stall)pdfStallLog(n);
@@ -208,8 +212,12 @@ function pdfGo(np,why){
   np=Math.max(0,Math.min(R.pageCount-1,np));
   if(np===P.target){if(why==='slider')pdfNumbers(np,true);return;}
   const fwd=np>P.target;
-  if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
-  if(fwd){R.turned++;R.lastTurn=Date.now();if(!isMvp()&&!R.timerOn)timerNudge();}
+  if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
+  else{
+    P.jump=false;
+    if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
+    if(fwd){R.turned++;R.lastTurn=Date.now();if(!isMvp()&&!R.timerOn)timerNudge();}
+  }
   P.target=np;
   if(why==='slider')pdfNumbers(np,true); /* slider shows the TARGET label while dragging */
   pdfRender(why||'flip');
@@ -248,13 +256,14 @@ function pdfTap(cx,cy){
 }
 function pdfSingleTap(x,y){
   if(el('reader').classList.contains('hidden'))return;
-  if(y<0.12&&x<0.3){toggleDayNight();return;}
-  if(y<0.12&&x>0.7){addBookmark();return;}
-  const tapOn=!SET.nav||SET.nav.tap!==false;
+  const z=tapZone(x,y);
+  const zoomed=P.z>1.01; /* contract 1б: zoomed PDF — no top corners, the centre does not leave focus */
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
-  if(tapOn&&x<0.3){fsResume();pdfFlip(-inv);}
-  else if(tapOn&&x>0.7){fsResume();pdfFlip(inv);}
-  else toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen */
+  if(z==='tl'){if(zoomed)return;toggleDayNight();return;}
+  if(z==='tr'){if(zoomed)return;addBookmark();return;}
+  if(z==='l'){fsResume();pdfFlip(-inv);}
+  else if(z==='r'){fsResume();pdfFlip(inv);}
+  else if(!(zoomed&&isFocusOn()))toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen (+ focus) */
 }
 function pdfDoubleTap(cx,cy){
   if(P.z>1.01){P.z=1;P.k=P.k||1;pdfApply();}   /* back to width */
@@ -315,7 +324,7 @@ function pdfTouchEnd(e){
   if(e.touches.length)return;
   P.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
-  if(g.bright&&g.moved){saveSet();flashMsg('💡 Яркость '+Math.round((1-SET.dim)*100)+'%');return;}
+  if(g.bright&&g.moved){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});return;}
   const swipeOn=!SET.nav||SET.nav.swipe!==false;
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
@@ -457,11 +466,24 @@ function goPage(p,turn){
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
   /* Architect: reader writes pageVisibleMs on page change */
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
-  if(__tracker&&(np!==prev||forwardTurn)){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
+  if(__tracker&&(np!==prev||forwardTurn)){
+    if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
+    else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
+  }
   if(np!==prev){updDayBar();persistPage();}
 }
-el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else goPage(v,false);};
-el('pgSlider').onchange=e=>{if(R.mode==='pdf'){P.sliding=false;pdfGo(parseInt(e.target.value,10)||0,'slider');if(P.target===P.shown)pdfNumbers(P.shown);}};
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
+el('pgSlider').onchange=e=>{
+  const v=parseInt(e.target.value,10)||0;
+  if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
+  else{R.sliding=false;jumpTo(v);}
+};
+/** 1б: jump (slider release, TOC, bookmark, search) — not a page flip. */
+function jumpTo(p){
+  if(R.mode==='pdf'){pdfGo(p,'nav');return;}
+  R.jumping=true;try{goPage(p,false);}finally{R.jumping=false;}
+  if(__tracker&&__tracker.isRunning&&__tracker.isRunning()&&__tracker.snapshot().page!==R.page)__tracker.jumped(R.page); /* slider: page already moved while dragging */
+}
 let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;return;}
@@ -477,11 +499,21 @@ function viewerTap(cx,cy){
   const r=el('viewer').getBoundingClientRect();
   const x=(cx-r.left)/r.width;
   const y=(cy-r.top)/r.height;
-  if(y<0.12&&x<0.3){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra)
-  if(y<0.12&&x>0.7){addBookmark();return;}       // угол: закладка
-  const tapOn=!SET.nav||SET.nav.tap!==false;
+  const z=tapZone(x,y);
   const inv=(SET.nav&&SET.nav.invert)?-1:1;
-  if(tapOn&&x<0.3){fsResume();goPage(R.page-1*inv,true);}
-  else if(tapOn&&x>0.7){fsResume();goPage(R.page+1*inv,true);}
-  else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen; next centre tap hides both
+  if(z==='tl'){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra); фокус не трогает
+  if(z==='tr'){addBookmark();return;}      // угол: закладка; фокус не трогает
+  if(z==='l'){fsResume();goPage(R.page-1*inv,true);}
+  else if(z==='r'){fsResume();goPage(R.page+1*inv,true);}
+  else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen (and focus); next centre tap hides both
+}
+/** 1б tap zones (reader-focus-zones): top 12 % — corners 30 % (tl day/night, tr bookmark); below 30 / 40 / 30.
+ *  SET.nav.tap === false → the whole screen is the centre (no corners, no flips by tap). */
+function tapZone(x,y){
+  if(SET.nav&&SET.nav.tap===false)return 'c';
+  if(y<0.12&&x<0.3)return 'tl';
+  if(y<0.12&&x>0.7)return 'tr';
+  if(y>=0.12&&x<0.3)return 'l';
+  if(y>=0.12&&x>0.7)return 'r';
+  return 'c';
 }

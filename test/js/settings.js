@@ -34,7 +34,8 @@ function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
 /* ================= НАСТРОЙКИ ================= */
 function renderSettings(){
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
-  if(el('focusTgl'))el('focusTgl').textContent=isFocus()?'Вкл':'Выкл';
+  document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
+  if(el('readCntTgl'))el('readCntTgl').textContent=SET.readCounter?'Вкл':'Выкл';
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
   el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */
   const ls=el('langSeg');ls.innerHTML='';
@@ -101,7 +102,7 @@ el('btnExport').onclick=async ()=>{
   if(__rq&&__rq.exportBackup){
     payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,readquest:S,settings:SET};
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:S,settings:SET};
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');

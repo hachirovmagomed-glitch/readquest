@@ -83,7 +83,7 @@ function renderLibrary(){
   if(!renderLibrary._bk){renderLibrary._bk=true;
     const ub=(S.userBooks||[]).length;
     const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
-    if(ub>0&&stale)setTimeout(()=>flashMsg('💾 Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)'),1400);
+    if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
   }
   el('goldChip').textContent=curI()+' '+goldDisp();
   el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');

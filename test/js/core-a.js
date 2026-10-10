@@ -3,7 +3,7 @@
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261009-2100'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261010-1150'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -29,7 +29,6 @@ function mvpEnforce(){
 /* ?dev=1 shows the MVP switch and «Тест-режим» (body.dev; .dev-only is hidden otherwise) */
 const RQ_DEV=/[?&]dev=1(?:&|$)/.test(location.search);
 document.body.classList.toggle('dev',RQ_DEV);
-function isFocus(){return SET.focusMode!==false;}
 function applyMvpChrome(){
   document.body.classList.toggle('mvp', isMvp());
   const bn=el('botnav');
@@ -62,7 +61,9 @@ function weekKey(d){
 /* ===== sessions[] = single source of truth for minutes / XP / daily / weekly =====
    SESS mirrors IDB sessions[] (loaded at boot, appended by closeReader). */
 let SESS=[];
-function dayMin(key){let m=0;for(let i=0;i<SESS.length;i++){const r=SESS[i];if(r&&String(r.date).slice(0,10)===key)m+=Number(r.minutes)||0;}return m;}
+/* whole minutes of a local day — game-awards dayMinutes (Math.floor of the sum), the ONE rule for streak, «N / 10»,
+   week, gold, quests. `live` = counted minutes of the running session (day bar), counted as one more row. */
+function dayMin(key,live){const G=window.__rqGame;if(!G||!G.dayMinutes)return 0;return G.dayMinutes(live?SESS.concat([{date:key,minutes:live}]):SESS,key);}
 function minTodaySess(){return dayMin(today());}
 function daysInWeekAtGoal(minNeed,wk){
   const need=minNeed!=null?minNeed:goalMin();
@@ -71,13 +72,14 @@ function daysInWeekAtGoal(minNeed,wk){
   return {count:days.length,days:days,need:need,week:wk};
 }
 /** Award every sessions[] row not yet in game.awardedSessionIds (idempotent):
-    XP = Math.round(min)*10 per row, and AUTO daily +30 / weekly +120 for the (local) days of exactly
+    XP = 10 × (dayMinutes after − before) per row (game-awards xpForSession, stored as row.xp), and AUTO daily +30 / weekly +120 for the (local) days of exactly
     these rows (game.dailyPaidDays / game.weeklyPaidWeeks). No claim button. */
 function awardPendingSessions(){
   if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[]};
   const G=window.__rqGame;
-  const res=G.applySessionAwards(S,SESS);
+  const res=G.applySessionAwards(S,SESS); /* XP per row = 10 × whole-minute step of its day (xpForSession), stored as row.xp */
   const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
+  if(__rq&&__rq.setSessionXp)fresh.forEach(function(r){__rq.setSessionXp(r.id,r.xp).catch(function(e){console.warn('[rq] setSessionXp',e);});});
   const q=G.applyQuestAwards(S,SESS,fresh,{goal:goalMin()});
   res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
   if(res.ids.length||q.gold)save();
@@ -86,7 +88,12 @@ function awardPendingSessions(){
 function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}
 function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today()))>=0;}
 function mvpDailyProg(day){const g=goalMin();return Math.min(1,dayMin(day||today())/g);}
-function mvpDailyInfo(day){return Math.floor(dayMin(day||today()))+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
+/** ONE function for whole counted minutes of a day (summary, quests, reader counter «7 / 10 мин»). */
+function dayMinFloor(day,live){return Math.floor(dayMin(day||today(),live));}
+/** Streak threshold (Boss/Product): a day keeps the streak at ≥ 2 counted minutes. atRisk + hint use the same number. */
+const STREAK_MIN=2;
+function streakAtRisk(day){const k=day||today();const m=isMvp()?dayMin(k):(((S.hist||{})[k]||{}).min||0);return S.streak>0&&m<STREAK_MIN;}
+function mvpDailyInfo(day,live){return dayMinFloor(day,live)+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
 function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(1,w.count/4);}
 function mvpWeeklyInfo(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(4,w.count)+' / 4 дня';}
 function renderMvpQuests(){

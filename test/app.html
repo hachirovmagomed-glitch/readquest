@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261009-2100',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261010-1150',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -210,8 +210,33 @@ body.rq-nolocks #rqNoXp{display:block}
 #sumQuestGold{margin-top:8px;font-size:14px;font-weight:700;color:#ffc107;line-height:1.5}
 /* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
 #pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
-#pinchHint b{color:#2bb3c0;font-weight:700;margin-right:6px}
+#pinchHint{--rq-accent:#5fb8ae} /* 1в: → tokens.css */ /* 1б: night value of the accent token, the plaque is dark in both themes */
+#pinchHint b{color:var(--rq-accent);font-weight:700;margin-right:6px}
 #pinchHintN{display:inline-block;min-width:2ch;text-align:right}
+/* 1б: page tokens (tokens.css rows 173–176) until 1а inlines tokens.css; data-page is set by applySet */
+#reader{--r-txt-2:#725f4a} /* 1в: → tokens.css */
+#reader{--rq-accent-text:#1f6f6b} /* 1в: → tokens.css */
+#reader{--rq-pdf-night-dim:.35} /* 1в: → tokens.css */
+#reader[data-page="day"]{--r-txt-2:#6b6658} /* 1в: → tokens.css */
+#reader[data-page="night"]{--r-txt-2:#7f938f} /* 1в: → tokens.css */
+#reader[data-page="night"]{--rq-accent-text:#5fb8ae} /* 1в: → tokens.css */
+/* 1б focus mode: only the text (+ optional counter). Bars are .barsoff already; layout of #viewer does not change */
+#focusCount{display:none;align-items:center;gap:6px;font:500 12px/1 system-ui,-apple-system,sans-serif;color:var(--r-txt-2);font-variant-numeric:tabular-nums}
+#focusCount svg{flex:none}
+#focusCount.done{color:var(--rq-accent-text);font-weight:600}
+#reader.focus #pgNum{display:none}
+#reader.focus.rcnt #focusCount{display:flex}
+#reader.focus #dayBar,#reader.focus #timerHint,#reader.focus #rqNoXp,#reader.focus .navbtn{visibility:hidden}
+.rfbtn{flex:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:inherit;margin:-10px -6px -10px 4px}
+#reader.nofocusbtn #btnFocus{display:none}
+/* toasts (flashMsg kinds); in the reader: centred 12 px above the page-number strip */
+.rq-toast{display:flex;align-items:center;gap:10px}
+.rq-toast svg{flex:none}
+.rq-toast.rd{top:auto!important;bottom:calc(18px + 3px + 12px + env(safe-area-inset-bottom))!important;border-radius:14px!important;padding:12px 16px!important;font:600 14px/20px system-ui,-apple-system,sans-serif!important;max-width:358px;white-space:nowrap}
+.rq-toast.rd.d{--rq-toast-info-bg:#ffffff;--rq-toast-info-fg:#3b3226;--rq-toast-info-icon:#1f6f6b;--rq-toast-info-border:#e3d8bf} /* 1в: → tokens.css */
+.rq-toast.rd.n{--rq-toast-info-bg:#1f363d;--rq-toast-info-fg:#d6e2e0;--rq-toast-info-icon:#5fb8ae;--rq-toast-info-border:#2f4a50} /* 1в: → tokens.css */
+.rq-toast.rd{background:var(--rq-toast-info-bg)!important;color:var(--rq-toast-info-fg)!important;border:1px solid var(--rq-toast-info-border)}
+.rq-toast.rd svg{color:var(--rq-toast-info-icon)}
 /* page number / book progress flip in the SAME frame as the text: no transitions */
 .rfoot span,.rfoot input[type=range]{transition:none!important}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
@@ -336,6 +361,16 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* ===== PDF: полноэкранный скролл + текстовый слой для выделения ===== */
 #pdfWrap{position:absolute;inset:0;overflow:hidden;background:var(--r-bg,#f4ecd8);touch-action:none;contain:strict}
 #pdfWrap.hidden{display:none!important}
+/* 1б: while a PDF loads — backdrop in the PAGE colour with «N / M», never a white sheet / the previous book */
+#pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg);color:var(--r-txt-2);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
+#pdfBack.hidden{display:none}
+/* 1б night PDF (variant B): canvas → this layer (no pointer events) → text layer; no inversion. Value = SET.pdfDim → --rq-pdf-dim */
+#pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim)));display:none}
+#reader[data-page="night"] #pdfDim{display:block}
+#pdfDimRange{flex:1;min-height:44px;accent-color:var(--accent2)}
+#pdfDimVal{font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+.pdfdimhint{font-size:12px;opacity:.75;margin:-6px 0 8px;text-align:center}
+#reader[data-page="night"] .pdfdimhint{display:none}
 /* ONE transform parent: backing (#pdfSheet), bitmap and text layer zoom/pan together */
 #pdfStage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 #pdfSheet{position:relative;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.18)}
@@ -617,15 +652,49 @@ body.mvp #sumDailyBox{display:block}
 (function(){
   var ns=window.RQ_NS;
   /* also callable from the console; refuses in the main build (NS 'rq') — never touches main data */
+  /* Race fix (1б, stream 2100): a reset pressed in a PASSIVE window used to delete storage while the writer window
+     kept its old state in memory and wrote it straight back (streak and all). Now, in this order:
+     1) owner key + navigator.locks.request(lock,{steal:true}) → the old writer demotes (passive, writes nothing);
+     2) BroadcastChannel {t:'reset'} → every other window goes passive and reloads (onversionchange does the same);
+     3) deleteDatabase and WAIT for onsuccess (onblocked = keep waiting; 3 s timeout), not reload on onblocked;
+     4) rqt* keys removed after the DB is gone and once more right before reload (late pagehide/diag writes). */
   window.__rqTestReset=async function(opts){
     if(ns==='rq'||ns.indexOf('rq')!==0||ns.length<3){console.warn('[rq] test reset refused in main build');return false;}
     if(!(opts&&opts.noConfirm)&&!confirm('Удалить все данные тестовой версии? Основное приложение не затронется.'))return false;
     var pre=ns; /* 'rqt' — never matches 'rq_' */
-    try{if(window.__rqWriter&&__rqWriter.release){__rqWriter.passive=true;__rqWriter.release();}}catch(e){}
-    [localStorage,sessionStorage].forEach(function(st){for(var i=st.length-1;i>=0;i--){var k=st.key(i);if(k&&k.indexOf(pre)===0)__rqWriter.rawRemove(st,k);}});
-    await new Promise(function(r){var q=indexedDB.deleteDatabase(RQ_K.idb);q.onsuccess=q.onerror=q.onblocked=function(){r();};});
+    var gate=window.__rqWriter||{},log=window.__rqResetLog=[];
+    var mark=function(s){log.push({s:s,t:Math.round(performance.now())});};
+    gate.resetting=true;gate.passive=true; /* this window writes nothing from now on (its own steal below must not show the overlay) */
+    try{gate.setOwner&&gate.setOwner();}catch(e){} /* sync guard: the writer's next mayWrite() sees another owner → demotes */
+    if(navigator.locks&&navigator.locks.request){
+      await new Promise(function(res){
+        var t=setTimeout(function(){mark('lock-timeout');res();},1500);
+        navigator.locks.request(RQ_K.lock,{steal:true},function(){clearTimeout(t);mark('lock');res();return new Promise(function(){});}) /* held until reload */
+          .catch(function(){clearTimeout(t);res();});
+      });
+    }
+    try{var bc=new BroadcastChannel(RQ_K.bc);bc.postMessage({t:'reset',from:gate.id});mark('bc');}catch(e){}
+    var wipe=function(){[localStorage,sessionStorage].forEach(function(st){for(var i=st.length-1;i>=0;i--){var k=st.key(i);if(k&&k.indexOf(pre)===0)gate.rawRemove(st,k);}});};
+    var del=await new Promise(function(r){
+      var t=setTimeout(function(){r('timeout');},3000);
+      try{var q=indexedDB.deleteDatabase(RQ_K.idb);
+        q.onsuccess=function(){clearTimeout(t);r('ok');};
+        q.onerror=function(){clearTimeout(t);r('error');};
+        q.onblocked=function(){mark('blocked');}; /* other connections are closing (onversionchange) → keep waiting */
+      }catch(e){clearTimeout(t);r('throw');}
+    });
+    mark('idb-'+del);
+    if(del==='timeout'){ /* DB still open in another window: not a success — no wipe, no reload (window stays passive) */
+      gate.resetting=false;
+      try{sessionStorage.setItem('__rqResetLog',JSON.stringify(log));}catch(e){}
+      try{if(typeof flashMsg==='function')flashMsg('Не удалось сбросить, закройте другие окна',4000);}catch(e){}
+      return false;
+    }
+    wipe();
     try{var rg=await navigator.serviceWorker.getRegistration('./');if(rg&&rg.scope.indexOf('/test/')>0)await rg.unregister();}catch(e){} /* own test SW only */
     try{var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf(pre+'-')===0;}).map(function(k){return caches.delete(k);}));}catch(e){}
+    wipe();mark('reload');
+    try{sessionStorage.setItem('__rqResetLog',JSON.stringify(log));}catch(e){} /* diagnostics (tests); not an rqt* key */
     location.reload();
     return true;
   };
@@ -759,7 +828,9 @@ body.mvp #sumDailyBox{display:block}
         <h2>MVP</h2>
     <div class="pcard">
       <div class="setrow dev-only"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
-      <div class="setrow"><div class="lab">Режим фокуса в читалке<div class="sub">Без RPG-тостов во время сессии; награда только на итоге</div></div><button class="ghostbtn" id="focusTgl">Вкл</button></div>
+      <div class="setrow"><div class="lab">Режим фокуса<div class="sub">Остаётся только текст. Выход — тап в центр</div></div></div>
+      <div class="seg" id="focusSeg"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div>
+      <div class="setrow"><div class="lab">Показывать счётчик чтения<div class="sub">«7 / 10 мин» в углу в режиме фокуса</div></div><button class="ghostbtn" id="readCntTgl">Вкл</button></div>
     </div>
     <h2>Язык · Language</h2>
     <div class="pcard"><div class="seg" id="langSeg"></div></div>
@@ -975,7 +1046,7 @@ body.mvp #sumDailyBox{display:block}
   </header>
   <div id="viewer">
     <div id="content"></div>
-    <div id="pdfWrap" class="hidden"><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
+    <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfDim" aria-hidden="true"></div><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>
@@ -989,11 +1060,11 @@ body.mvp #sumDailyBox{display:block}
       <button id="spCopy">📋</button>
     </div>
   </div>
-  <div id="pgLine" aria-hidden="true"><span id="pgNum"></span></div>
+  <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
-  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span></footer>
+  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="rPct"></span><button id="btnFocus" class="rfbtn" aria-label="Фокус" title="Фокус"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button></footer>
   <div class="sheet hidden" id="panel">
     <button class="closes" id="panelClose">✕</button>
     <div class="ptabs">
@@ -1016,6 +1087,8 @@ body.mvp #sumDailyBox{display:block}
       <button data-g="grpColor">🌈 Цвета</button>
       <button data-g="grpNav">🧭 Навигация</button>
     </div>
+    <div class="srow" id="pdfDimRow"><label for="pdfDimRange">Затемнение PDF ночью</label><input type="range" id="pdfDimRange" min="0" max="50" step="5" value="35" aria-describedby="pdfDimHint"><span class="segval" id="pdfDimVal">35 %</span></div>
+    <div class="pdfdimhint" id="pdfDimHint">работает в ночной теме</div>
     <div class="setgrp on" id="grpFont">
       <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
     </div>
@@ -1059,13 +1132,13 @@ body.mvp #sumDailyBox{display:block}
 <!-- ИТОГ СЕССИИ -->
 <div id="summary" class="screen hidden">
   <div class="sumbox pop">
-    <div style="font-size:15px;color:var(--muted)">Сессия завершена</div>
+    <div id="sumHead" style="font-size:15px;color:var(--muted)">Сессия завершена</div>
     <div class="bigxp" id="sumXp">+0 XP</div>
     <div class="lvlup hidden" id="lvlUp"></div>
     <div class="lvlup hidden" id="luckLbl" style="color:var(--accent2)"></div>
     <div class="sumgrid">
       <div class="sumcell"><b id="sumPages">0</b><span>страниц</span></div>
-      <div class="sumcell"><b id="sumMin">0</b><span>минут</span></div>
+      <div class="sumcell"><b id="sumMin">0</b><span id="sumMinLbl">минут</span></div>
       <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">🪙 золота</span></div>
       <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
     </div>
@@ -1082,35 +1155,35 @@ body.mvp #sumDailyBox{display:block}
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261009-2100"></script>
-<script src="js/books-builtin.js?v=20261009-2100"></script>
-<script src="js/core-b.js?v=20261009-2100"></script>
-<script src="js/library.js?v=20261009-2100"></script>
-<script src="js/reader.js?v=20261009-2100"></script>
-<script src="js/pdf.js?v=20261009-2100"></script>
-<script src="js/reader-ui.js?v=20261009-2100"></script>
-<script src="js/rpg.js?v=20261009-2100"></script>
-<script src="js/content.js?v=20261009-2100"></script>
-<script src="js/settings.js?v=20261009-2100"></script>
-<script src="js/v6-extras.js?v=20261009-2100"></script>
-<script src="js/start.js?v=20261009-2100"></script>
+<script src="js/core-a.js?v=20261010-1150"></script>
+<script src="js/books-builtin.js?v=20261010-1150"></script>
+<script src="js/core-b.js?v=20261010-1150"></script>
+<script src="js/library.js?v=20261010-1150"></script>
+<script src="js/reader.js?v=20261010-1150"></script>
+<script src="js/pdf.js?v=20261010-1150"></script>
+<script src="js/reader-ui.js?v=20261010-1150"></script>
+<script src="js/rpg.js?v=20261010-1150"></script>
+<script src="js/content.js?v=20261010-1150"></script>
+<script src="js/settings.js?v=20261010-1150"></script>
+<script src="js/v6-extras.js?v=20261010-1150"></script>
+<script src="js/start.js?v=20261010-1150"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261009-2100"></script>
+<script src="js/pwa-lock.js?v=20261010-1150"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
   bootStorage, loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
-  loadEnvelope, saveEnvelope, upsertUserBook
-} from './storage/index.js?v=20261009-2100';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261009-2100';
-import * as game from './game-awards.js?v=20261009-2100';
+  loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
+} from './storage/index.js?v=20261010-1150';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261010-1150';
+import * as game from './game-awards.js?v=20261010-1150';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };
@@ -1135,7 +1208,7 @@ await window.__rqStart({
   loadFlat, saveFlat, logSession, logReadingEvent, logAnalyticsEvent,
   listSessions, listReadingEvents, idb, recoverDraft, ensureSessionIds,
   importBackup, exportBackup, clearAllLocal, loadSettings, saveSettings,
-  loadEnvelope, saveEnvelope, upsertUserBook
+  loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
 }, tracker);
 window.__rqAfterBoot(window.__rq);
 </script>

@@ -93,6 +93,13 @@
   document.addEventListener('visibilitychange',function(){gate.mayWrite();},true);
   if(bc)bc.onmessage=async function(ev){
     var d=ev.data||{};
+    /* test build «Сбросить тест» in another window: go passive at once (no write may resurrect the old state), reload */
+    if(d.t==='reset'&&d.from!==gate.id){
+      gate.passive=true;
+      try{if(typeof __tracker!=='undefined'&&__tracker&&__tracker.cancel)__tracker.cancel();}catch(e){}
+      if(!gate.vcReload){gate.vcReload=true;location.reload();}
+      return;
+    }
     if(d.t!=='takeover'||d.from===gate.id||gate.passive||!gate.release)return;
     if(!gate.mayWrite())return; /* already stolen (queued message seen after thaw): mayWrite() demoted us — do NOT close the reader / write */
     try{if(typeof R!=='undefined'&&R.book){persistPage();gate.handoverPage=savedPage();}else gate.handoverPage=null;}catch(e){}

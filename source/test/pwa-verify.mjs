@@ -46,8 +46,10 @@ const rq = (p) => p.evaluate(() => localStorage.getItem('rq_v1') + '\u0000' + lo
 async function oldScreen(pOld, pNew, id) {
   const o = await pOld.evaluate(() => ({ h: document.getElementById('rqOtherH').textContent, p: document.getElementById('rqOtherP').textContent, b: document.getElementById('rqOtherL').textContent, pc: R.pageCount, max: R.maxRatio, close: /Закрыть/.test(document.getElementById('rqOther').textContent) }));
   const ratio = await pNew.evaluate((id) => (S.progress[id] || {}).ratio || 0, id);
-  const n = Math.round(ratio * (o.pc - 1)) + 1;
-  return { ...o, ratio, n, ok: o.h === 'Книга открыта в другом окне' && o.p === 'Прогресс сохранён на странице ' + n && o.b === 'Вернуться сюда' && !o.close && Math.abs(ratio - o.max) < 1e-9 && n > 1 };
+  /* 1б-144: the screen shows where the book REOPENS = current position `pos` (farthest `ratio` is checked against A's max below) */
+  const pos = await pNew.evaluate((id) => rqPos(id), id);
+  const n = Math.round(pos * (o.pc - 1)) + 1;
+  return { ...o, ratio, pos, n, ok: o.h === 'Книга открыта в другом окне' && o.p === 'Прогресс сохранён на странице ' + n && o.b === 'Вернуться сюда' && !o.close && Math.abs(ratio - o.max) < 1e-9 && n > 1 };
 }
 async function readSession(p, id, steps) {
   await p.bringToFront();

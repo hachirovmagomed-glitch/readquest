@@ -310,6 +310,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 
 /* ===== PDF, панель, слайдер ===== */
 .rfoot input[type=range]{flex:1;margin:0 12px;accent-color:var(--accent2)}
+#pgSlider{box-sizing:border-box;height:44px;margin:-14px 12px} /* 1б-fix #6: 44 px hit area, the bar keeps its 16 px layout height */
 .ptabs{display:flex;gap:6px;margin-bottom:12px}
 .ptabs button{flex:1;background:var(--card2);border-radius:10px;padding:9px;font-size:13px;color:var(--muted)}
 .ptabs button.on{background:var(--accent);color:#fff}

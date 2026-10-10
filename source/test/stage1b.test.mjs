@@ -348,6 +348,29 @@ if (want('safe')) {
   await p.__ctx.close();
 }
 
+/* ---------- 1б «144 / 144»: backdrop number = the page that renders (fresh, 0, r, 1; with and without /PageLabels) ---------- */
+if (want('pdfpage')) {
+  const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
+  for (const file of [PDF, LBL].filter(x => fs.existsSync(x))) {
+    const q = await fresh(file); const nm = file.split('/').pop();
+    for (const r of [undefined, 0, 0.28, 1]) {
+      const res = await q.evaluate(async (id, r) => {
+        if (r === undefined) delete S.progress[id]; else S.progress[id] = { ratio: r };
+        const seen = []; let go = true; const b = document.getElementById('pdfBack');
+        const tick = () => { if (!go) return; if (!b.classList.contains('hidden') && b.textContent) seen.push(b.textContent); requestAnimationFrame(tick); };
+        requestAnimationFrame(tick); openBook(id);
+        const t0 = performance.now(); while (!(R.pdf && P.front && P.shown === P.target) && performance.now() - t0 < 15000) await new Promise(z => setTimeout(z, 16));
+        go = false; const shown = P.shown, out = { seen: [...new Set(seen)], shown, want: pdfLabel(shown) + ' / ' + R.pageCount, pg: document.getElementById('pgNum').textContent, pc: R.pageCount };
+        R.maxRatio = 0; await closeReader({ quiet: true }); delete S.progress[id]; return out;
+      }, q.__bid, r);
+      const exp = r === undefined ? 0 : Math.round(r * (res.pc - 1));
+      ok('pdfpage ' + nm + ' ratio=' + r + ': backdrop «' + (res.seen[0] || '') + '» = rendered page ' + (exp + 1) + ' = corner number', res.seen.length === 1 && res.seen[0] === res.want && res.pg === res.want && res.shown === exp && (r === undefined || r === 0 ? /^(1|i) \//.test(res.want) : true), res);
+      await sleep(300);
+    }
+    await q.__ctx.close();
+  }
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

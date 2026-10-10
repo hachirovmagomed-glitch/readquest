@@ -290,6 +290,11 @@ if (want('banner')) {
     const w = document.createTreeWalker(document.getElementById('content'), NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.left >= v.left - 1 && q.right <= v.right + 1 && q.height > 4 && (!first || q.top < first.top)) first = q; }
     return { bannerBottom: bn.bottom, firstTop: first && first.top }; });
   ok('banner: in the reader the banner does not cover the first text line (stripe ≤ 3 px above it)', cov.bannerBottom <= 3 + 0.5 && cov.firstTop != null && cov.bannerBottom <= cov.firstTop, cov);
+  const strip = [];
+  for (const th of ['sepia', 'dark']) { await p.evaluate((th) => { SET.theme = th; applySet(); }, th); await sleep(150);
+    strip.push(await p.evaluate((th) => { const b = document.getElementById('rqTestBanner'); return { th, h: b.getBoundingClientRect().height, bg: getComputedStyle(b).backgroundColor, vis: getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' }; }, th)); }
+  await p.evaluate(() => { SET.theme = 'sepia'; applySet(); }); await sleep(150);
+  ok('banner: on /test/ in the reader the stripe is 3 px, background rgb(194, 65, 12) (--rq-test-strip), day and night', strip.every(x => x.vis && Math.abs(x.h - 3) < 0.5 && x.bg === 'rgb(194, 65, 12)'), strip);
   await p.touchscreen.tap(915 / 2, 412 * 0.05); await sleep(500);
   const r1 = await p.evaluate(() => ({ focus: document.getElementById('reader').classList.contains('focus'), books: (S.userBooks || []).length, reader: !document.getElementById('reader').classList.contains('hidden') }));
   await p.screenshot({ path: SHOTS + '/banner-reader-915x412.png' });

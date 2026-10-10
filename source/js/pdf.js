@@ -124,7 +124,8 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
     const ratio=R.pageCount>1?n/(R.pageCount-1):1;
     R.maxRatio=Math.max(R.maxRatio,ratio);
     pdfNumbers(P.sliding?P.target:n);
-    if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
+    if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
+    else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
     updDayBar();persistPage();
   }
   if(P.stall)pdfStallLog(n);
@@ -208,8 +209,12 @@ function pdfGo(np,why){
   np=Math.max(0,Math.min(R.pageCount-1,np));
   if(np===P.target){if(why==='slider')pdfNumbers(np,true);return;}
   const fwd=np>P.target;
-  if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
-  if(fwd){R.turned++;R.lastTurn=Date.now();if(!isMvp()&&!R.timerOn)timerNudge();}
+  if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
+  else{
+    P.jump=false;
+    if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
+    if(fwd){R.turned++;R.lastTurn=Date.now();if(!isMvp()&&!R.timerOn)timerNudge();}
+  }
   P.target=np;
   if(why==='slider')pdfNumbers(np,true); /* slider shows the TARGET label while dragging */
   pdfRender(why||'flip');
@@ -457,11 +462,24 @@ function goPage(p,turn){
   const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
   /* Architect: reader writes pageVisibleMs on page change */
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
-  if(__tracker&&(np!==prev||forwardTurn)){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
+  if(__tracker&&(np!==prev||forwardTurn)){
+    if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
+    else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
+  }
   if(np!==prev){updDayBar();persistPage();}
 }
-el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else goPage(v,false);};
-el('pgSlider').onchange=e=>{if(R.mode==='pdf'){P.sliding=false;pdfGo(parseInt(e.target.value,10)||0,'slider');if(P.target===P.shown)pdfNumbers(P.shown);}};
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
+el('pgSlider').onchange=e=>{
+  const v=parseInt(e.target.value,10)||0;
+  if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
+  else{R.sliding=false;jumpTo(v);}
+};
+/** 1б: jump (slider release, TOC, bookmark, search) — not a page flip. */
+function jumpTo(p){
+  if(R.mode==='pdf'){pdfGo(p,'nav');return;}
+  R.jumping=true;try{goPage(p,false);}finally{R.jumping=false;}
+  if(__tracker&&__tracker.isRunning&&__tracker.isRunning()&&__tracker.snapshot().page!==R.page)__tracker.jumped(R.page); /* slider: page already moved while dragging */
+}
 let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;return;}

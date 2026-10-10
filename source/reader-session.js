@@ -20,6 +20,7 @@
  *   pageShown(page)          that page is now actually on screen → closes the previous page
  *                            (min(dwell, pageCap) credited; a forward turn after ≥ minSec = pageTurns+1)
  *   userActive(kind, info)   'pan' {fraction} | 'zoom' | … → may extend the current page's cap
+ *   jumped(page)             slider / TOC / bookmark jump, once on release: one page_visible {via:'jump'}, no turn
  *   onPageChange(page, fwd)  legacy shorthand = pageTurned(fwd) + pageShown(page)
  *   end() / cancel() / snapshot() / setCounting(on)
  *
@@ -116,15 +117,17 @@ export function createSessionTracker(api) {
     }));
   }
 
-  async function flushEvent() {
+  async function flushEvent(via) {
     if (!running || !bookId) return null;
     pauseClock();
     const ms = Math.round(visibleAccum);
     visibleAccum = 0;
     if (docVisible()) startClock();
-    if (ms <= 0) return null;
+    if (ms <= 0 && via !== 'jump') return null; /* a jump is always ONE event (tests / metrics count them) */
     try {
-      return await api.logReadingEvent({ bookId: bookId, pageVisibleMs: ms, page: page });
+      const ev = { bookId: bookId, pageVisibleMs: Math.max(0, ms), page: page };
+      if (via) ev.via = via;
+      return await api.logReadingEvent(ev);
     } catch (e) {
       console.warn('[rq] logReadingEvent failed', e);
       return null;
@@ -268,7 +271,7 @@ export function createSessionTracker(api) {
     pageShown(newPage) {
       if (!running) return;
       if (newPage === page && !pendingTurn) return;
-      flushEvent();
+      flushEvent('turn');
       const raw = creditPage();
       if (pendingTurn > 0) {
         turns += 1;
@@ -301,6 +304,24 @@ export function createSessionTracker(api) {
       extCount += 1;
       persistDraft();
       return true;
+    },
+
+    /**
+     * 1б: jump by slider / TOC / bookmark / search (called ONCE, when the finger is released).
+     * Closes the previous page (capped dwell credited) with one `page_visible` {via:'jump'};
+     * never a page turn: pageTurns and the fast-flip count stay as they are; new page = fresh cap.
+     */
+    jumped(newPage) {
+      if (!running) return;
+      pendingTurn = 0;
+      if (newPage === page) return;
+      flushEvent('jump');
+      creditPage();
+      page = newPage;
+      newPageCap();
+      startClock();
+      dwellStart();
+      persistDraft();
     },
 
     /** Legacy shorthand: pageTurned(fwd) + pageShown(page). */

@@ -324,6 +324,7 @@ export async function importBackup(data) {
           date: ev.date,
           at: ev.at,
           page: ev.page,
+          via: ev.via,
           type: ev.type || 'page_visible',
         });
       } else if (ev.type) {

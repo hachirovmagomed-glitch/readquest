@@ -93,6 +93,38 @@ if (want('focus')) {
   await p.__ctx.close();
 }
 
+/* ---------- 2. jumps are not page flips ---------- */
+if (want('jump')) {
+  const p = await fresh();
+  await open(p);
+  await p.evaluate(() => revealChrome()); await sleep(500);
+  const evs = () => p.evaluate(async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible'));
+  await p.evaluate(() => { window.__rqTimeOffset += 20000; }); await tap(p, 0.85, 0.5); /* one real flip after 20 s */
+  const n0 = (await evs()).length, s0 = await p.evaluate(() => ({ turned: R.turned, snap: __tracker.snapshot() }));
+  // drag the slider 1→76 (0-based 75) with intermediate input events, then release
+  await p.evaluate(async () => { const s = document.getElementById('pgSlider'); for (let v = 2; v <= 75; v += 7) { s.value = v; s.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(r => setTimeout(r, 20)); } s.value = 75; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); });
+  await sleep(600);
+  const all = await evs(), nw = all.slice(n0), s1 = await p.evaluate(() => ({ page: R.page, turned: R.turned, snap: __tracker.snapshot() }));
+  ok("jump: slider 1→76 → exactly one page_visible {via:'jump'}, no mid-drag pages", nw.length === 1 && nw[0].via === 'jump' && s1.page === 75, nw);
+  ok('jump: no page turn, no fast-flip count (R.turned, pageTurns, turns unchanged)', s1.turned === s0.turned && s1.snap.pageTurns === s0.snap.pageTurns && s1.snap.turns === s0.snap.turns && s1.snap.page === 75, { s0, s1 });
+  ok("jump: earlier flip event tagged via:'turn'", all.some(e => e.via === 'turn'), all.map(e => e.via));
+  // TOC / bookmark → jumpRatio
+  await p.evaluate(() => jumpRatio(0.1)); await sleep(300);
+  const nw2 = (await evs()).slice(n0 + 1), s2 = await p.evaluate(() => ({ turned: R.turned, snap: __tracker.snapshot() }));
+  ok("jump: TOC/bookmark jumpRatio → one {via:'jump'}, no turn", nw2.length === 1 && nw2[0].via === 'jump' && s2.turned === s0.turned && s2.snap.turns === s0.snap.turns, nw2);
+  await p.evaluate(() => closeReader()); await sleep(800);
+  await p.__ctx.close();
+}
+if (want('jumpunit')) {
+  const { createSessionTracker } = await import(new URL('../reader-session.js', import.meta.url).href);
+  let T = 1e6; const ev = [];
+  const t = createSessionTracker({ now: () => T, logSession: async r => r, logReadingEvent: async e => { ev.push(e); return e; } });
+  t.begin('b', 0, { capMs: 180000, minSecMs: 12000, counting: true });
+  T += 30000; t.jumped(75); T += 30000; t.pageTurned(true); t.pageShown(76);
+  const sn = t.snapshot();
+  ok('jump(unit): jumped() credits dwell, no pageTurn; next flip counts', ev.length === 2 && ev[0].via === 'jump' && ev[0].page === 0 && ev[1].via === 'turn' && sn.pageTurns === 1 && sn.turns === 1 && Math.abs(sn.minutes - 1) < 1e-9, { ev, sn });
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

@@ -49,6 +49,7 @@ export async function logReadingEvent(entry) {
     at: entry.at || new Date().toISOString(),
   };
   if (entry.page != null) rec.page = Number(entry.page);
+  if (entry.via === 'turn' || entry.via === 'jump') rec.via = entry.via; /* 1б, optional */
   return addEvent(rec);
 }
 

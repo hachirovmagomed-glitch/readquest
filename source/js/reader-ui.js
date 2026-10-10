@@ -320,7 +320,7 @@ el('tabMarks').onclick=()=>renderPanel('marks');
 el('tabQts').onclick=()=>renderPanel('qts');
 el('tabFind').onclick=()=>renderPanel('find');
 el('tabGrid').onclick=()=>renderPanel('grid');
-function jumpRatio(fr){goPage(Math.round(fr*(R.pageCount-1)),false);el('panel').classList.add('hidden');}
+function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
 function jumpToc(i){
   const b=R.book;if(!b||!b.toc||!b.toc[i])return;
   jumpRatio(b.text&&b.text.length?b.toc[i].off/b.text.length:0);
@@ -368,7 +368,7 @@ async function pdfFind(q,res){
   }
   if(token===FINDTOKEN)res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';
 }
-function findGo(n){goPage(n,false);el('panel').classList.add('hidden');}
+function findGo(n){jumpTo(n);el('panel').classList.add('hidden');}
 function renderPanel(tab){
   panelTab=tab;
   [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabFind','find'],['tabGrid','grid']]

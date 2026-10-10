@@ -356,6 +356,9 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* ===== PDF: полноэкранный скролл + текстовый слой для выделения ===== */
 #pdfWrap{position:absolute;inset:0;overflow:hidden;background:var(--r-bg,#f4ecd8);touch-action:none;contain:strict}
 #pdfWrap.hidden{display:none!important}
+/* 1б: while a PDF loads — backdrop in the PAGE colour with «N / M», never a white sheet / the previous book */
+#pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg,#f4ecd8);color:var(--r-txt-2,#725f4a);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
+#pdfBack.hidden{display:none}
 /* ONE transform parent: backing (#pdfSheet), bitmap and text layer zoom/pan together */
 #pdfStage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 #pdfSheet{position:relative;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.18)}
@@ -1031,7 +1034,7 @@ body.mvp #sumDailyBox{display:block}
   </header>
   <div id="viewer">
     <div id="content"></div>
-    <div id="pdfWrap" class="hidden"><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
+    <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>

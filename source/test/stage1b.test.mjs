@@ -202,6 +202,29 @@ if (want('pinch')) {
   await p.__ctx.close();
 }
 
+/* ---------- 6. PDF backdrop instead of a white flash ---------- */
+if (want('pdfback') && fs.existsSync(PDF)) {
+  const q = await fresh(PDF);
+  await q.evaluate(() => { SET.theme = 'dark'; saveSet(); });
+  // slow the first render: sample every frame from openBook until the page is on screen
+  const frames = await q.evaluate(async (id) => {
+    const out = []; let go = true;
+    const tick = () => { if (!go) return; const b = document.getElementById('pdfBack'), st = document.getElementById('pdfStage'), w = document.getElementById('pdfWrap');
+      out.push({ back: !b.classList.contains('hidden'), txt: b.textContent, bg: getComputedStyle(b).backgroundColor, stage: st.style.visibility, wrap: !w.classList.contains('hidden') }); requestAnimationFrame(tick); };
+    requestAnimationFrame(tick); openBook(id);
+    const t0 = performance.now(); while (!(P.front && P.shown === P.target) && performance.now() - t0 < 15000) await new Promise(r => setTimeout(r, 16));
+    await new Promise(r => setTimeout(r, 100)); go = false; return out;
+  }, q.__bid);
+  const wrapFrames = frames.filter(f => f.wrap);
+  const bad = wrapFrames.filter(f => !f.back && f.stage === 'hidden'); /* wrap visible, no backdrop, no page = flash */
+  const bgNight = await q.evaluate(() => getComputedStyle(document.getElementById('reader')).getPropertyValue('--r-bg').trim());
+  ok('pdfback: every frame while loading shows backdrop or the page (no empty/white frame)', wrapFrames.length > 0 && bad.length === 0, { n: wrapFrames.length, bad: bad.length });
+  ok('pdfback: backdrop in the page colour with «N / M»', frames.some(f => f.back && /^\d+ \/ \d+$/.test(f.txt)) && frames.filter(f => f.back).every(f => f.bg !== 'rgb(255, 255, 255)'), { first: frames.find(f => f.back), bgNight });
+  ok('pdfback: hidden once the page is on screen', !frames[frames.length - 1].back && frames[frames.length - 1].stage === '', frames[frames.length - 1]);
+  await q.evaluate(() => { closeReader(); SET.theme = 'sepia'; saveSet(); }); await sleep(800);
+  await q.__ctx.close();
+}
+
 const pass = checks.filter(c => c.p).length;
 ok('no pageerror', !errs.length, errs);
 console.log('SUMMARY stage1b.test ' + checks.filter(c => c.p).length + '/' + checks.length);

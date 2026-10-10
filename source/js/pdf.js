@@ -17,8 +17,10 @@ function pdfViewSize(){const v=el('viewer'),s={w:v.clientWidth,h:v.clientHeight}
 /* gestures: during a transient 0/1-px viewport (fullscreen / resize in progress) use the last real size */
 function pdfVR(){const r=el('viewer').getBoundingClientRect();if(r.width>8&&r.height>8){P.lastVR=r;return r;}return P.lastVR||r;}
 function pdfAct(kind,info){if(__tracker&&__tracker.userActive)__tracker.userActive(kind,info||{});}
+function pdfBackdrop(txt){const d=el('pdfBack');if(!d)return;if(txt==null){d.classList.add('hidden');return;}el('pdfBackN').textContent=txt;d.classList.remove('hidden');}
 async function openPdf(b){
   try{
+    pdfReset();pdfBackdrop(''); /* before any await: the previous book's canvas is gone, the page colour shows at once */
     await loadPdfJs();
     const buf=await idbGet('pdf:'+b.id);
     if(!buf)throw new Error('файл не найден на этом устройстве');
@@ -30,9 +32,9 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round((((S.progress[b.id]||{}).ratio)||0)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
-    pdfNumbers(p);
+    pdfNumbers(p);pdfBackdrop(pdfLabel(p)+' / '+R.pageCount);
     pdfRender('open');pdfWatch();
-  }catch(e2){alert('Не удалось открыть PDF: '+e2.message);show('library');}
+  }catch(e2){pdfBackdrop(null);alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
 function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
 function pdfReset(){
@@ -44,7 +46,7 @@ function pdfReset(){
   clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;
   const st=el('pdfStage');st.style.transform='';st.style.visibility='hidden';
 }
-function pdfClose(){pdfReset();if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
+function pdfClose(){pdfReset();pdfBackdrop(null);if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
 /** Render P.target into a back canvas; swap in the next frame. */
 async function pdfRender(why){
   if(!R.pdf)return;
@@ -119,6 +121,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
   pdfApply();
   el('pdfStage').style.visibility='';
+  pdfBackdrop(null);
   if(isNew){
     P.shown=n;R.page=n;
     const ratio=R.pageCount>1?n/(R.pageCount-1):1;

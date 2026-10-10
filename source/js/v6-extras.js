@@ -32,7 +32,7 @@ function renderCalendar(){
   el('calGrid').innerHTML=cells;
   el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';
   el('calNotifTime').textContent=S.notif.time;
-  const atRisk=S.streak>0&&!(S.hist[tk]&&((S.hist[tk].min||0)>=1||(S.hist[tk].pages||0)>=1));
+  const atRisk=streakAtRisk(tk); /* 1б: 2 min, same as the streak */
   const sm=monthSummary(calY,calM);
   el('calTop').innerHTML='<div class="pcard" style="margin-bottom:10px"><div class="row"><b style="font-size:16px">🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней')+' подряд</b>'+
     (atRisk?'<div class="spacer"></div><span class="chip" style="background:rgba(255,184,76,.18);color:var(--accent2)">⚠️ серия под угрозой</span>':'')+'</div>'+
@@ -532,7 +532,7 @@ const I18N={
  'Ничего не найдено':'Nothing found','Скопировать все':'Copy all',
  '🧙 Персонаж':'🧙 Character',
  'Читатель':'Reader','✏️ Профиль':'✏️ Profile','Тап по аватару — сменить':'Tap avatar to change',
- 'Цель дня':'Daily goal','Стрик засчитывается за любую сессию от 1 минуты.':'A streak counts for any session of 1+ minute.',
+ 'Цель дня':'Daily goal','Стрик засчитывается за любую сессию от 1 минуты.':'A streak counts for 2+ minutes of reading a day.','Стрик засчитывается, если за день прочитано от 2 минут.':'A streak counts for 2+ minutes of reading a day.',
  'Характеристики':'Characteristics','Навыки':'Skills','Трофейный зал':'Trophy hall','Бейджи':'Badges',
  'Сбросить весь прогресс':'Reset all progress','＋ Добавить характеристику':'＋ Add characteristic','＋ Добавить навык':'＋ Add skill',
  'минут всего':'minutes total','🔥 стрик':'🔥 streak','🪙 золото':'🪙 gold','золото':'gold',

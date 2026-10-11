@@ -1,0 +1,62 @@
+/* ReadQuest · скин «Золотой век» (Интерфейс, 10.10.2026). Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="zolotoy-vek"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Prata&family=Bad+Script&family=IBM+Plex+Sans:wght@400;500;600;700&family=Vollkorn:wght@400;600&display=swap&subset=cyrillic");
+[data-skin="zolotoy-vek"]{
+  --rq-font-ui:"IBM Plex Sans",system-ui,sans-serif;
+  --rq-font-display:"Prata",Georgia,serif;          /* заголовки, кнопки, названия книг */
+  --rq-font-hand:"Bad Script",cursive;              /* только короткие рукописные приписки и цитаты, ≥15px, 1 строка */
+  --rq-font-read:"Vollkorn",Georgia,serif;
+  --rq-radius-xs:2px; --rq-radius-sm:3px; --rq-radius-md:3px; --rq-radius-lg:4px;
+  --rq-icon-stroke:1.6;
+  --rq-bg:#f3ead6; --rq-surface:#faf5e8; --rq-surface-2:#e8dcc0; --rq-sheet:#faf5e8;
+  --rq-line:#cdbb94; --rq-border-strong:#8a7550;
+  --rq-text:#2a1d14; --rq-text-2:#5a4632; --rq-text-disabled:#a8946e;
+  --rq-accent:#7a1f2b; --rq-accent-pressed:#5c1720; --rq-accent-text:#7a1f2b;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#f1dcd6; --rq-accent-border:#c48a8f;
+  --rq-coin:#6b4f14; --rq-coin-tint:#f1e3bd;
+  --rq-success:#2c4a35; --rq-success-tint:#dfe8dd;
+  --rq-danger:#7a1f2b; --rq-danger-tint:#f1dcd6;
+  --rq-focus:#2c4a35;
+  --rq-scrim:rgba(42,29,20,.38);
+  --rq-badge-bg:#2a1d14; --rq-badge-text:#faf5e8;
+  --rq-toast-game-bg:#2c4a35; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#faf5e8; --rq-toast-info-fg:#2a1d14; --rq-toast-info-icon:#7a1f2b; --rq-toast-info-border:#cdbb94;
+  --rq-toast-error-bg:#7a1f2b; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 0 #fff inset,1px 2px 0 rgba(42,29,20,.08);
+  --rq-shadow-2:0 1px 0 #fff inset,2px 3px 0 rgba(42,29,20,.08),0 8px 18px rgba(80,50,20,.10); /* лист бумаги */
+  --rq-shadow-3:0 12px 40px rgba(42,29,20,.30);
+  /* фирменное */
+  --zv-gilt:#b8923f;                 /* позолоченные двойные линейки — только декор */
+  --zv-gilt-text:#6b4f14; --zv-green:#2c4a35; --zv-wax:#7a1f2b;
+  --zv-rule:0 2px 0 #faf5e8,0 3px 0 #b8923f;   /* двойная золотая линейка под шапкой */
+  --zv-sketch-opacity:.3;            /* наброски профилей, кляксы, зачёркивания на полях; НЕ на странице книги */
+  --zv-flicker-dur:3200ms; --zv-ink-dur:900ms;
+}
+[data-skin="zolotoy-vek"][data-theme="night"]{
+  --rq-bg:#140d08; --rq-surface:#20160e; --rq-surface-2:#2b1e13; --rq-sheet:#20160e;
+  --rq-line:#3e2d1d; --rq-border-strong:#6b5428;
+  --rq-text:#f0e2c6; --rq-text-2:#c9b28a; --rq-text-disabled:#6f5c40;
+  --rq-accent:#e8c27a; --rq-accent-pressed:#f3d79c; --rq-accent-text:#e8c27a;   /* ночью главный — свет свечи */
+  --rq-on-accent:#1f1408; --rq-control-on:#3a2a14;
+  --rq-accent-tint:#3a2a14; --rq-accent-border:#6b5428;
+  --rq-coin:#e8c27a; --rq-coin-tint:#2e2212;
+  --rq-success:#9ccaa4; --rq-success-tint:#18261c;
+  --rq-danger:#f08a92; --rq-danger-tint:#3a1418;
+  --rq-focus:#e8c27a;
+  --rq-scrim:rgba(5,3,1,.65);
+  --rq-badge-bg:#f0e2c6; --rq-badge-text:#140d08;
+  --rq-toast-game-bg:#2b1e13; --rq-toast-game-fg:#e8c27a;
+  --rq-toast-info-bg:#2b1e13; --rq-toast-info-fg:#f0e2c6; --rq-toast-info-icon:#e8c27a; --rq-toast-info-border:#3e2d1d;
+  --rq-toast-error-bg:#f08a92; --rq-toast-error-fg:#2a0a0e;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #3e2d1d,0 8px 24px rgba(0,0,0,.5); --rq-shadow-3:0 12px 40px rgba(0,0,0,.7);
+  --zv-gilt:#6b5428; --zv-glow:radial-gradient(60% 140% at 50% 120%,rgba(232,170,80,.16),transparent 70%); /* тёплый отсвет свечи на панелях */
+}
+/* Страница книги: чистая — без набросков, клякс, свечей и печатей. */
+[data-skin="zolotoy-vek"] [data-page="day"]{--r-bg:#f7f0e0;--r-txt:#2a1d14;--r-txt-2:#5a4632;--r-dim:0;}
+[data-skin="zolotoy-vek"] [data-page="night"]{--r-bg:#15100b;--r-txt:#e8dcc4;--r-txt-2:#a8957a;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes zv-flicker{0%,100%{transform:scaleY(1);opacity:1}30%{transform:scaleY(.94) skewX(2deg);opacity:.92}60%{transform:scaleY(1.04) skewX(-1deg)}}
+@keyframes zv-ink{from{stroke-dashoffset:var(--zv-len,200)}to{stroke-dashoffset:0}}
+@keyframes zv-seal{0%{transform:scale(1.3);opacity:0}70%{transform:scale(.96);opacity:1}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){[data-skin="zolotoy-vek"] *{animation:none!important;transition:none!important}}

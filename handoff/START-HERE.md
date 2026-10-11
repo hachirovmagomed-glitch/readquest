@@ -1,5 +1,7 @@
 # ReadQuest — START HERE (передача 08.10.2026, ~11:40 МСК)
 
+> Новый аккаунт? Начни с [`NEW-ACCOUNT.md`](NEW-ACCOUNT.md): чем занимаемся, что сделано, что осталось, каких ботов создать.
+
 Читать в таком порядке: этот файл → `product.md` → свой файл роли (`front.md`, `arch.md`, `ui.md`, `quest.md`).
 Старая передача и все материалы: `handoff/` (в репо) и `HANDOFF.md` в корне ветки (бриф этапа 1: `readquest-product/stage1-brief.md`).
 Идеи после теста: `handoff/notes/quest.md` (раздел «Идеи после теста»)

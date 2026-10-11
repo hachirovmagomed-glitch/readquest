@@ -1,0 +1,66 @@
+/* ReadQuest · скин «Мармеладный» (Интерфейс, 10.10.2026). Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="marmeladny"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=Nunito:wght@600;700;800;900&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap&subset=cyrillic");
+[data-skin="marmeladny"]{
+  --rq-font-ui:"Nunito",system-ui,sans-serif;
+  --rq-font-display:"Rubik","Nunito",system-ui,sans-serif; /* новый токен: заголовки и кнопки */
+  --rq-font-read:"Literata",Georgia,"Noto Serif",serif;
+  --rq-fw-semibold:700; --rq-fw-bold:800;
+  --rq-radius-xs:10px; --rq-radius-sm:16px; --rq-radius-md:20px; --rq-radius-lg:26px;
+  --rq-icon-stroke:2.1;
+  --rq-bg:#fff4ec; --rq-surface:#ffffff; --rq-surface-2:#ffe7dd; --rq-sheet:#fff4ec;
+  --rq-line:#ffd3dc; --rq-border-strong:#b0607e;
+  --rq-text:#4a1f36; --rq-text-2:#7a4560; --rq-text-disabled:#c09aab;
+  --rq-accent:#d81b60; --rq-accent-pressed:#a3134a; --rq-accent-text:#a3134a;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#ffe3ea; --rq-accent-border:#ff9cbc;
+  --rq-coin:#8a3b00; --rq-coin-tint:#ffe9cf;
+  --rq-success:#3f7a0c; --rq-success-tint:#eef8e0;
+  --rq-danger:#b3262f; --rq-danger-tint:#ffe0e0;
+  --rq-focus:#8e44c9;
+  --rq-scrim:rgba(74,31,54,.40);
+  --rq-badge-bg:#4a1f36; --rq-badge-text:#ffffff;
+  --rq-toast-game-bg:#a3134a; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#4a1f36; --rq-toast-info-icon:#a3134a; --rq-toast-info-border:#ffd3dc;
+  --rq-toast-error-bg:#b3262f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:inset 0 2px 0 #fff,0 2px 4px rgba(216,27,96,.12);
+  --rq-shadow-2:inset 0 3px 0 #fff,inset 0 -4px 0 rgba(216,27,96,.07),0 8px 18px rgba(216,27,96,.16);
+  --rq-shadow-3:0 14px 40px rgba(74,31,54,.30);
+  /* фирменные «фрукты» (декор, обложки, монеты) */
+  --mq-rasp:#d81b60; --mq-orange:#ff8a1f; --mq-lime:#7cc61e; --mq-grape:#8e44c9; --mq-lemon:#ffd23f;
+  --mq-gloss:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0)); /* блик сверху у кнопок и карточек */
+  --mq-btn-bg:linear-gradient(180deg,#ef3f7f,#a3134a);
+  --mq-btn-shadow:inset 0 -5px 0 rgba(90,0,30,.25),0 8px 18px rgba(216,27,96,.40);
+  --mq-progress:linear-gradient(90deg,#ff5c93,#ff8a1f 50%,#ffd23f);
+  --mq-sugar-opacity:.8; /* сахарная посыпка: SVG-шум, только на панелях и фоне, НИКОГДА в тексте книги */
+}
+[data-skin="marmeladny"][data-theme="night"]{
+  --rq-bg:#1d0e1e; --rq-surface:#2e1533; --rq-surface-2:#3a1d40; --rq-sheet:#2e1533;
+  --rq-line:#4f2c55; --rq-border-strong:#9a6a90;
+  --rq-text:#f6e3ec; --rq-text-2:#c9a6bb; --rq-text-disabled:#7a5a72;
+  --rq-accent:#ff8fb6; --rq-accent-pressed:#ffb3cd; --rq-accent-text:#ff8fb6;
+  --rq-on-accent:#2a0c1c; --rq-control-on:#4a1f3c;
+  --rq-accent-tint:#4a1f3c; --rq-accent-border:#8a3c66;
+  --rq-coin:#ffb35c; --rq-coin-tint:#3a2216;
+  --rq-success:#a6e36a; --rq-success-tint:#1f3318;
+  --rq-danger:#ff8a8a; --rq-danger-tint:#3d1a1e;
+  --rq-focus:#c79bff;
+  --rq-scrim:rgba(0,0,0,.58);
+  --rq-badge-bg:#f6e3ec; --rq-badge-text:#1d0e1e;
+  --rq-toast-game-bg:#ff8fb6; --rq-toast-game-fg:#2a0c1c;
+  --rq-toast-info-bg:#3a1d40; --rq-toast-info-fg:#f6e3ec; --rq-toast-info-icon:#ff8fb6; --rq-toast-info-border:#4f2c55;
+  --rq-toast-error-bg:#ff8a8a; --rq-toast-error-fg:#2a0a0e;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.45);
+  --rq-shadow-2:inset 0 0 0 1px rgba(255,143,182,.18),0 4px 12px rgba(0,0,0,.5);
+  --rq-shadow-3:0 14px 40px rgba(0,0,0,.65);
+  --mq-btn-bg:linear-gradient(180deg,#ff9cc0,#e8578e);
+  --mq-btn-shadow:inset 0 -4px 0 rgba(60,0,25,.25),0 0 14px rgba(255,122,168,.35); /* мягкое свечение, не неон */
+  --mq-sugar-opacity:.35;
+}
+/* Страница книги: без текстур и декора. Сепия базового скина остаётся доступной. */
+[data-skin="marmeladny"] [data-page="day"]{--r-bg:#fff9f3;--r-txt:#2e1c24;--r-txt-2:#6e4a5a;--r-dim:0;}
+[data-skin="marmeladny"] [data-page="night"]{--r-bg:#1a0d1b;--r-txt:#ead7df;--r-txt-2:#a88a99;--r-dim:.35;}
+/* Анимации наград (описание в README): уважают prefers-reduced-motion через базовые --rq-dur-*. */
+@keyframes mq-wobble{0%{transform:scale(1)}30%{transform:scale(1.12,.9)}55%{transform:scale(.94,1.06)}80%{transform:scale(1.03,.98)}100%{transform:scale(1)}}
+@keyframes mq-drop{0%{transform:translateY(-24px) scale(.6);opacity:0}60%{transform:translateY(2px) scale(1.1,.88);opacity:1}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){[data-skin="marmeladny"] *{animation:none!important}}

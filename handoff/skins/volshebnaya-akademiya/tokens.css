@@ -1,0 +1,68 @@
+/* ReadQuest · скин «Волшебная академия» (Интерфейс, 10.10.2026). Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="volshebnaya-akademiya"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Marck+Script&family=Nunito+Sans:wght@600;700;800;900&family=Alegreya:wght@400;700&display=swap&subset=cyrillic");
+[data-skin="volshebnaya-akademiya"]{
+  --rq-font-ui:"Nunito Sans",system-ui,sans-serif;
+  --rq-font-display:"Comfortaa","Nunito Sans",sans-serif;   /* заголовки, кнопки */
+  --rq-font-accent:"Marck Script",cursive;                   /* только 1–2 слова («Чудесно!»), ≥20px, не для информации */
+  --rq-font-read:"Alegreya",Georgia,serif;
+  --rq-fw-semibold:700; --rq-fw-bold:800;
+  --rq-radius-xs:10px; --rq-radius-sm:14px; --rq-radius-md:18px; --rq-radius-lg:22px;
+  --rq-bg:#fbf0fb; --rq-surface:#ffffff; --rq-surface-2:#f3e6fb; --rq-sheet:#fbf0fb;
+  --rq-line:#e2c4f3; --rq-border-strong:#9a6ab8;
+  --rq-text:#3d1f4f; --rq-text-2:#6b4a80; --rq-text-disabled:#b9a2c8;
+  --rq-accent:#b3349d; --rq-accent-pressed:#7c1d6e; --rq-accent-text:#7c1d6e;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#fbe0f4; --rq-accent-border:#e8a6dc;
+  --rq-coin:#4a1f7a; --rq-coin-tint:#efe3ff;
+  --rq-success:#1f6a4a; --rq-success-tint:#ddf5ea;
+  --rq-danger:#b3263f; --rq-danger-tint:#ffe0e6;
+  --rq-focus:#1f6a7a;
+  --rq-scrim:rgba(61,31,79,.36);
+  --rq-badge-bg:#6a2fb0; --rq-badge-text:#ffffff;
+  --rq-toast-game-bg:#6a2fb0; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#3d1f4f; --rq-toast-info-icon:#b3349d; --rq-toast-info-border:#e2c4f3;
+  --rq-toast-error-bg:#b3263f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 3px rgba(140,60,170,.14);
+  --rq-shadow-2:0 0 0 1.5px #e2c4f3,0 10px 24px rgba(140,60,170,.16);
+  --rq-shadow-3:0 14px 40px rgba(61,31,79,.30);
+  /* фирменное */
+  --va-holo:linear-gradient(115deg,#ffd1f0 0%,#e2ccff 30%,#c7f3ff 55%,#fff2c2 75%,#ffd1f0 100%); /* голографическая рамка (border-box) */
+  --va-jewel:linear-gradient(160deg,#b3349d,#6a2fb0);           /* кнопка-самоцвет */
+  --va-jewel-shine:linear-gradient(180deg,rgba(255,255,255,.44),rgba(255,255,255,0));
+  --va-progress:linear-gradient(90deg,#ff7fcf,#b98cff 50%,#5fe0d8);
+  --va-glass:linear-gradient(160deg,rgba(255,255,255,.92),rgba(250,240,255,.86));
+  --va-pink:#ff8fd0; --va-lilac:#b98cff; --va-turq:#5fe0d8; --va-turq-text:#1f6a7a;
+  --va-glitter-opacity:1;  /* блёстки: только фон/панели/обложки, НЕ страница книги */
+  --va-sparkle-dur:700ms; --va-wing-dur:2400ms;
+}
+[data-skin="volshebnaya-akademiya"][data-theme="night"]{
+  --rq-bg:#140b2a; --rq-surface:#231446; --rq-surface-2:#2e1b5a; --rq-sheet:#231446;
+  --rq-line:#3a2668; --rq-border-strong:#7a62b0;
+  --rq-text:#f1e6ff; --rq-text-2:#c7b2ea; --rq-text-disabled:#6a5a8f;
+  --rq-accent:#ff9be0; --rq-accent-pressed:#ffbdea; --rq-accent-text:#ffa8e4;
+  --rq-on-accent:#2a0a24; --rq-control-on:#3a1f5a;
+  --rq-accent-tint:#3a1f5a; --rq-accent-border:#8a4a9a;
+  --rq-coin:#9ff3ec; --rq-coin-tint:#1a2a4a;
+  --rq-success:#9fe6b8; --rq-success-tint:#163028;
+  --rq-danger:#ff9aa8; --rq-danger-tint:#3a1424;
+  --rq-focus:#9ff3ec;
+  --rq-scrim:rgba(5,2,15,.62);
+  --rq-badge-bg:#f1e6ff; --rq-badge-text:#140b2a;
+  --rq-toast-game-bg:#ff9be0; --rq-toast-game-fg:#2a0a24;
+  --rq-toast-info-bg:#2e1b5a; --rq-toast-info-fg:#f1e6ff; --rq-toast-info-icon:#ffa8e4; --rq-toast-info-border:#3a2668;
+  --rq-toast-error-bg:#ff9aa8; --rq-toast-error-fg:#2a0a14;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.45); --rq-shadow-2:inset 0 0 0 1px rgba(200,170,255,.22),0 6px 18px rgba(0,0,0,.5); --rq-shadow-3:0 14px 40px rgba(0,0,0,.65);
+  --va-jewel:linear-gradient(160deg,#ffb3e6,#d77ad8);
+  --va-glass:linear-gradient(160deg,rgba(42,20,80,.92),rgba(31,18,66,.9));
+  --va-glitter-opacity:.55; /* мягкое мерцание, не неон */
+}
+/* Страница книги: без блёсток, голограммы и игровых элементов. */
+[data-skin="volshebnaya-akademiya"] [data-page="day"]{--r-bg:#fdf9fc;--r-txt:#2a1a33;--r-txt-2:#6b4a80;--r-dim:0;}
+[data-skin="volshebnaya-akademiya"] [data-page="night"]{--r-bg:#120a24;--r-txt:#e6dcf0;--r-txt-2:#a898bf;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes va-sparkle{0%{transform:scale(0) rotate(0);opacity:0}40%{transform:scale(1.2) rotate(45deg);opacity:1}100%{transform:scale(0) rotate(90deg);opacity:0}}
+@keyframes va-wing{0%,100%{filter:hue-rotate(0deg);transform:scaleX(1)}50%{filter:hue-rotate(25deg);transform:scaleX(.96)}}
+@keyframes va-holo{from{background-position:0% 50%}to{background-position:200% 50%}}
+@keyframes va-charge{from{stroke-dashoffset:var(--va-ring-from,138)}to{stroke-dashoffset:var(--va-ring-to,0)}}
+@media (prefers-reduced-motion:reduce){[data-skin="volshebnaya-akademiya"] *{animation:none!important;transition:none!important}}

@@ -1,0 +1,63 @@
+/* ReadQuest · скин «Страна чудес» (Интерфейс, 10.10.2026). Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="strana-chudes"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700&family=Old+Standard+TT:ital@0;1&family=Fira+Sans:wght@400;500;600;700&family=EB+Garamond:wght@400;600&display=swap&subset=cyrillic");
+[data-skin="strana-chudes"]{
+  --rq-font-ui:"Fira Sans",system-ui,sans-serif;
+  --rq-font-display:"Playfair Display SC",Georgia,serif;   /* заголовки, кнопки — викторианская капитель */
+  --rq-font-quote:"Old Standard TT",Georgia,serif;          /* курсив-цитаты, 1 строка, ≥16px */
+  --rq-font-read:"EB Garamond",Georgia,serif;
+  --rq-fs-read:1.125rem;                                   /* Garamond мельче на глаз — +1px к базе */
+  --rq-radius-xs:2px; --rq-radius-sm:4px; --rq-radius-md:6px; --rq-radius-lg:8px;
+  --rq-icon-stroke:1.6;
+  --rq-bg:#f4ecd9; --rq-surface:#fbf6ea; --rq-surface-2:#e9dcbe; --rq-sheet:#fbf6ea;
+  --rq-line:#c9b994; --rq-border-strong:#1c1a17;
+  --rq-text:#1c1a17; --rq-text-2:#4d4536; --rq-text-disabled:#9a8d72;
+  --rq-accent:#a3202a; --rq-accent-pressed:#7e1820; --rq-accent-text:#a3202a;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#f4d8c8; --rq-accent-border:#c96a6a;
+  --rq-coin:#6e5418; --rq-coin-tint:#efe0b8;
+  --rq-success:#1f5a4e; --rq-success-tint:#dce9e4;
+  --rq-danger:#7e1820; --rq-danger-tint:#f4d8c8;
+  --rq-focus:#1f5a4e;
+  --rq-scrim:rgba(28,26,23,.40);
+  --rq-badge-bg:#1c1a17; --rq-badge-text:#fbf6ea;
+  --rq-toast-game-bg:#1c1a17; --rq-toast-game-fg:#fbf6ea;
+  --rq-toast-info-bg:#fbf6ea; --rq-toast-info-fg:#1c1a17; --rq-toast-info-icon:#a3202a; --rq-toast-info-border:#1c1a17;
+  --rq-toast-error-bg:#7e1820; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 0 0 1px #1c1a17;
+  --rq-shadow-2:0 0 0 3px #fbf6ea,0 0 0 4px #1c1a17,0 8px 18px rgba(60,40,10,.12); /* двойная рамка экслибриса */
+  --rq-shadow-3:0 12px 40px rgba(28,26,23,.30);
+  /* фирменное */
+  --sc-ink:#1c1a17; --sc-red:#a3202a; --sc-garden:#1f5a4e; --sc-gold:#c9a24e; /* золото — только заливки ключей/часов, не текст */
+  --sc-hatch:repeating-linear-gradient(45deg,rgba(28,26,23,.035) 0 .7px,transparent .7px 3px); /* гравюрная штриховка фона; НЕ на странице книги */
+  --sc-checks:conic-gradient(#1c1a17 25%,#fbf6ea 0 50%,#1c1a17 0 75%,#fbf6ea 0) 0 0/20px 20px;
+  --sc-cloth:conic-gradient(#a3202a 25%,#fbf6ea 0 50%,#a3202a 0 75%,#fbf6ea 0) 0 0/16px 16px;
+  --sc-tick-dur:1000ms; --sc-flip-dur:500ms; --sc-fall-dur:14000ms;
+}
+[data-skin="strana-chudes"][data-theme="night"]{
+  --rq-bg:#0d0f1c; --rq-surface:#161a2e; --rq-surface-2:#1f2440; --rq-sheet:#161a2e;
+  --rq-line:#2f3658; --rq-border-strong:#3a4270;
+  --rq-text:#ece4d2; --rq-text-2:#b9b0c8; --rq-text-disabled:#5c6080;
+  --rq-accent:#ff6b6b; --rq-accent-pressed:#ff8f8f; --rq-accent-text:#ff6b6b;
+  --rq-on-accent:#1c0608; --rq-control-on:#2a1418;
+  --rq-accent-tint:#2a1418; --rq-accent-border:#7a2a30;
+  --rq-coin:#d9b86a; --rq-coin-tint:#2a2414;
+  --rq-success:#8fd6c0; --rq-success-tint:#13302a;
+  --rq-danger:#ff8f8f; --rq-danger-tint:#2a1418;
+  --rq-focus:#a9bcff;
+  --rq-scrim:rgba(3,4,10,.65);
+  --rq-badge-bg:#ece4d2; --rq-badge-text:#0d0f1c;
+  --rq-toast-game-bg:#1f2440; --rq-toast-game-fg:#ece4d2;
+  --rq-toast-info-bg:#1f2440; --rq-toast-info-fg:#ece4d2; --rq-toast-info-icon:#a9bcff; --rq-toast-info-border:#3a4270;
+  --rq-toast-error-bg:#ff6b6b; --rq-toast-error-fg:#1c0608;
+  --rq-shadow-1:0 0 0 1px #3a4270; --rq-shadow-2:0 0 0 1px #3a4270,0 8px 24px rgba(0,0,0,.5); --rq-shadow-3:0 12px 40px rgba(0,0,0,.65);
+  --sc-ink:#ece4d2; --sc-blue:#a9bcff; --sc-hatch:repeating-linear-gradient(45deg,rgba(169,188,255,.05) 0 .7px,transparent .7px 3px);
+}
+/* Страница книги: чистая — без штриховки, рамок, карт и падающих предметов. */
+[data-skin="strana-chudes"] [data-page="day"]{--r-bg:#f8f3e6;--r-txt:#1c1a17;--r-txt-2:#4d4536;--r-dim:0;}
+[data-skin="strana-chudes"] [data-page="night"]{--r-bg:#0f1120;--r-txt:#e2dccb;--r-txt-2:#9a94a8;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes sc-tick{0%{transform:rotate(var(--a0,0deg))}90%{transform:rotate(calc(var(--a1,36deg) + 2deg))}100%{transform:rotate(var(--a1,36deg))}}
+@keyframes sc-flip{0%{transform:perspective(400px) rotateY(0)}50%{transform:perspective(400px) rotateY(90deg)}100%{transform:perspective(400px) rotateY(0)}}
+@keyframes sc-fall{from{transform:translateY(-40px) rotate(0)}to{transform:translateY(900px) rotate(220deg)}}
+@media (prefers-reduced-motion:reduce){[data-skin="strana-chudes"] *{animation:none!important;transition:none!important}}

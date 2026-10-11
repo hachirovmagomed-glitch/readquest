@@ -1,0 +1,69 @@
+/* ReadQuest · скин «Кристальный берег» (Интерфейс, 10.10.2026). Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="kristalnyi-bereg"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Forum&family=Tenor+Sans&family=Jost:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap&subset=cyrillic");
+[data-skin="kristalnyi-bereg"]{
+  --rq-font-ui:"Jost",system-ui,sans-serif;
+  --rq-font-display:"Forum",Georgia,serif;              /* заголовки: лёгкая антиква-капитель */
+  --rq-font-label:"Tenor Sans","Jost",sans-serif;       /* метки и кнопки, UPPERCASE, разрядка 2px */
+  --rq-font-read:"Source Serif Pro","Source Serif 4",Georgia,serif;
+  --rq-fw-semibold:500; --rq-fw-bold:600;
+  --rq-radius-xs:2px; --rq-radius-sm:2px; --rq-radius-md:4px; --rq-radius-lg:4px; --rq-radius-pill:2px; /* грани, не капсулы */
+  --rq-icon-stroke:1.5;
+  --rq-bg:#f7f9f8; --rq-surface:#ffffff; --rq-surface-2:#eaf3f1; --rq-sheet:#f7f9f8;
+  --rq-line:#d3e3e0; --rq-border-strong:#6f8a88;
+  --rq-text:#1f3a3d; --rq-text-2:#4a6466; --rq-text-disabled:#9fb3b1;
+  --rq-accent:#383d78; --rq-accent-pressed:#2a2e5e; --rq-accent-text:#383d78;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#ecedfa; --rq-accent-border:#b8bcff;
+  --rq-coin:#2a6f62; --rq-coin-tint:#e3f6f0;
+  --rq-success:#2a6f4a; --rq-success-tint:#e3f3ea;
+  --rq-danger:#a3333f; --rq-danger-tint:#fbe6e8;
+  --rq-focus:#383d78;
+  --rq-scrim:rgba(31,58,61,.30);
+  --rq-badge-bg:#1f3a3d; --rq-badge-text:#ffffff;
+  --rq-toast-game-bg:#ffffff; --rq-toast-game-fg:#1f3a3d;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1f3a3d; --rq-toast-info-icon:#383d78; --rq-toast-info-border:#d3e3e0;
+  --rq-toast-error-bg:#a3333f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 1px 2px rgba(31,58,61,.06);
+  --rq-shadow-2:0 10px 30px rgba(31,58,61,.07);
+  --rq-shadow-3:0 14px 40px rgba(31,58,61,.20);
+  /* фирменное */
+  --kb-gold:#c8a24a;          /* шов кинцуги — только декор, 1–1.6px, в углу панели, никогда не поверх текста */
+  --kb-gold-text:#7a5a12;     /* золотой текст (метки) */
+  --kb-aqua:#8fdcc4; --kb-mint:#d9f7ee; --kb-lavender:#b8bcff; --kb-sky:#eaf3f6; --kb-sand:#f3ece0;
+  --kb-pearl:linear-gradient(135deg,#ffffff 0%,#fbfdfc 45%,#f6f3fb 70%,#f1faf7 100%);  /* перламутровые панели */
+  --kb-prism:linear-gradient(135deg,#f6b8c8,#f3e3a0 30%,#a8ecd0 55%,#a9c4f5 80%,#cdb5f0); /* дисперсия: только тонкие кромки граней */
+  --kb-btn-bg:linear-gradient(135deg,#565ca6,#383d78);
+  --kb-facet-clip:polygon(12% 0,88% 0,100% 9%,100% 91%,88% 100%,12% 100%,0 91%,0 9%); /* обложки-«камни» */
+  --kb-glint-dur:1200ms; --kb-wave-dur:9000ms;
+}
+[data-skin="kristalnyi-bereg"][data-theme="night"]{
+  --rq-bg:#081a22; --rq-surface:#0f2731; --rq-surface-2:#153340; --rq-sheet:#0f2731;
+  --rq-line:#234652; --rq-border-strong:#4f7a82;
+  --rq-text:#e3f1ef; --rq-text-2:#9fc4c0; --rq-text-disabled:#4f6f72;
+  --rq-accent:#b8bcff; --rq-accent-pressed:#d4d6ff; --rq-accent-text:#b8bcff;
+  --rq-on-accent:#141633; --rq-control-on:#232a55;
+  --rq-accent-tint:#1d2448; --rq-accent-border:#4a5096;
+  --rq-coin:#8fe3cf; --rq-coin-tint:#12333a;
+  --rq-success:#9fe0b8; --rq-success-tint:#123028;
+  --rq-danger:#ff9aa4; --rq-danger-tint:#3a1a20;
+  --rq-focus:#8fe3cf;
+  --rq-scrim:rgba(2,8,12,.62);
+  --rq-badge-bg:#e3f1ef; --rq-badge-text:#081a22;
+  --rq-toast-game-bg:#153340; --rq-toast-game-fg:#8fe3cf;
+  --rq-toast-info-bg:#153340; --rq-toast-info-fg:#e3f1ef; --rq-toast-info-icon:#b8bcff; --rq-toast-info-border:#234652;
+  --rq-toast-error-bg:#ff9aa4; --rq-toast-error-fg:#2a0a10;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.45); --rq-shadow-2:0 0 0 1px #234652,0 8px 24px rgba(0,0,0,.45); --rq-shadow-3:0 14px 40px rgba(0,0,0,.6);
+  --kb-gold:#e0c27a; --kb-gold-text:#e0c27a;
+  --kb-pearl:linear-gradient(135deg,#12303b,#0f2731 50%,#141f3a);
+  --kb-btn-bg:linear-gradient(135deg,#c9ccff,#9aa0f0);
+  /* камни ночью мягко светятся: box-shadow 0 0 8px rgba(143,227,207,.45) — без неона */
+}
+/* Страница книги: чистая, без текстур, швов, граней и игровых элементов. */
+[data-skin="kristalnyi-bereg"] [data-page="day"]{--r-bg:#fbfcfb;--r-txt:#1e2a2b;--r-txt-2:#4a6466;--r-dim:0;}
+[data-skin="kristalnyi-bereg"] [data-page="night"]{--r-bg:#0a171d;--r-txt:#dce8e6;--r-txt-2:#8fa8a6;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes kb-glint{from{transform:skewX(-20deg) translateX(-120%)}to{transform:skewX(-20deg) translateX(420%)}}
+@keyframes kb-wave{0%,100%{transform:translateX(0)}50%{transform:translateX(-14px)}}
+@keyframes kb-facet{from{opacity:0;filter:brightness(1.4)}to{opacity:1;filter:none}}
+@media (prefers-reduced-motion:reduce){[data-skin="kristalnyi-bereg"] *{animation:none!important;transition:none!important}}

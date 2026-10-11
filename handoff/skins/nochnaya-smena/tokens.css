@@ -1,0 +1,66 @@
+/* ReadQuest · скин «Ночная смена» (Интерфейс, 10.10.2026). Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="nochnaya-smena"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Press+Start+2P&family=PT+Sans:wght@400;700&family=IBM+Plex+Mono:wght@500;700&family=PT+Serif:wght@400;700&display=swap&subset=cyrillic");
+[data-skin="nochnaya-smena"]{
+  --rq-font-ui:"PT Sans",system-ui,sans-serif;
+  --rq-font-display:"Oswald","PT Sans",sans-serif;       /* вывески, кнопки, заголовки — UPPERCASE */
+  --rq-font-crt:"Press Start 2P",monospace;              /* только короткие метки: CAM 03, 12:00 AM; ≥8px, не для фраз */
+  --rq-font-num:"IBM Plex Mono",monospace;               /* баланс, счётчики, номера страниц */
+  --rq-font-read:"PT Serif",Georgia,serif;
+  --rq-radius-xs:3px; --rq-radius-sm:4px; --rq-radius-md:6px; --rq-radius-lg:10px;
+  --rq-icon-stroke:2;
+  --rq-bg:#e9dcc4; --rq-surface:#f5ecda; --rq-surface-2:#d6c5a4; --rq-sheet:#f5ecda;
+  --rq-line:#c4b08c; --rq-border-strong:#2b2118;
+  --rq-text:#2b2118; --rq-text-2:#5e4b36; --rq-text-disabled:#9c8a6c;
+  --rq-accent:#b0262a; --rq-accent-pressed:#8a1d20; --rq-accent-text:#8a1d20;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#f2d6cf; --rq-accent-border:#c9625f;
+  --rq-coin:#7a5410; --rq-coin-tint:#f3e2b4;
+  --rq-success:#2f6a2a; --rq-success-tint:#dde8cf;
+  --rq-danger:#8a1d20; --rq-danger-tint:#f2d6cf;
+  --rq-focus:#2f6a6a;
+  --rq-scrim:rgba(20,14,8,.45);
+  --rq-badge-bg:#2b2118; --rq-badge-text:#f3e6c8;
+  --rq-toast-game-bg:#2b2118; --rq-toast-game-fg:#e8b84a;
+  --rq-toast-info-bg:#f5ecda; --rq-toast-info-fg:#2b2118; --rq-toast-info-icon:#b0262a; --rq-toast-info-border:#2b2118;
+  --rq-toast-error-bg:#8a1d20; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:2px 2px 0 rgba(43,33,24,.85);              /* жёсткие «наклеенные» тени */
+  --rq-shadow-2:4px 4px 0 rgba(43,33,24,.85);
+  --rq-shadow-3:0 12px 40px rgba(20,14,8,.45);
+  /* фирменное */
+  --ns-brass:#e8b84a; --ns-teal:#2f6a6a; --ns-plum:#6a3d7a;
+  --ns-crt-bg:#0e1410; --ns-crt-fg:#bff0c8; --ns-crt-dim:#9fe0ac; --ns-crt-amber:#ffb000; --ns-rec:#ff4a3d;
+  --ns-scanlines:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px); /* только .crt и панели ночью, НЕ страница книги */
+  --ns-hazard:repeating-linear-gradient(-45deg,#2b2118 0 6px,#e8b84a 6px 12px);
+  --ns-tile:conic-gradient(#2b2118 25%,#efe4cc 0 50%,#2b2118 0 75%,#efe4cc 0) 0 0/36px 36px;
+  --ns-battery-on:#7ee696;
+  --ns-flicker-dur:180ms; --ns-static-dur:220ms;
+}
+[data-skin="nochnaya-smena"][data-theme="night"]{
+  --rq-bg:#0b0e0c; --rq-surface:#141a16; --rq-surface-2:#1c241f; --rq-sheet:#141a16;
+  --rq-line:#2b3a30; --rq-border-strong:#3a4a40;
+  --rq-text:#d8e6d4; --rq-text-2:#9fe0ac; --rq-text-disabled:#4f6a58;
+  --rq-accent:#ff5a4e; --rq-accent-pressed:#ff7a70; --rq-accent-text:#ff7a70;
+  --rq-on-accent:#1a0605; --rq-control-on:#2a1210;
+  --rq-accent-tint:#2a1210; --rq-accent-border:#7a2a24;
+  --rq-coin:#ffb000; --rq-coin-tint:#2a2210;
+  --rq-success:#7ee696; --rq-success-tint:#132a1a;
+  --rq-danger:#ff7a70; --rq-danger-tint:#2a1210;
+  --rq-focus:#ffb000;
+  --rq-scrim:rgba(0,0,0,.62);
+  --rq-badge-bg:#d8e6d4; --rq-badge-text:#0b0e0c;
+  --rq-toast-game-bg:#0e1410; --rq-toast-game-fg:#ffb000;
+  --rq-toast-info-bg:#1c241f; --rq-toast-info-fg:#d8e6d4; --rq-toast-info-icon:#9fe0ac; --rq-toast-info-border:#2b3a30;
+  --rq-toast-error-bg:#ff5a4e; --rq-toast-error-fg:#1a0605;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:inset 0 0 24px rgba(126,230,150,.10),0 4px 12px rgba(0,0,0,.55); --rq-shadow-3:0 12px 40px rgba(0,0,0,.7);
+  --ns-hazard:repeating-linear-gradient(-45deg,#2a1210 0 6px,#a8332a 6px 12px);
+}
+/* Страница книги: спокойная, без сканлайнов/шума/свечения. Ночь — тёплый серый текст, не «зелёный экран». */
+[data-skin="nochnaya-smena"] [data-page="day"]{--r-bg:#f3ead8;--r-txt:#261d15;--r-txt-2:#5e4b36;--r-dim:0;}
+[data-skin="nochnaya-smena"] [data-page="night"]{--r-bg:#101311;--r-txt:#d9d4c4;--r-txt-2:#8f8a7c;--r-dim:.35;}
+/* Анимации (описание — README). Всё выключается при reduced-motion. */
+@keyframes ns-flicker{0%,100%{opacity:1}18%{opacity:.82}22%{opacity:1}54%{opacity:.9}58%{opacity:1}}
+@keyframes ns-static{0%{opacity:.0}20%{opacity:.35}100%{opacity:0}}
+@keyframes ns-peek{0%{transform:translateX(40px)}60%{transform:translateX(-4px)}100%{transform:none}}
+@keyframes ns-charge{from{opacity:.3}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){[data-skin="nochnaya-smena"] *{animation:none!important;transition:none!important}}

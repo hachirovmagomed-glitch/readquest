@@ -1,0 +1,71 @@
+/* ReadQuest · скин «Свет облаков» (море облаков на закате). Интерфейс, 10.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="svet-oblakov"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Philosopher:wght@700&family=Montserrat+Alternates:wght@600&family=Raleway:wght@500;600;700&family=Noto+Serif:wght@400;700&display=swap&subset=cyrillic");
+[data-skin="svet-oblakov"]{
+  --rq-font-ui:"Raleway",system-ui,sans-serif;
+  --rq-font-display:"Philosopher",Georgia,serif;          /* заголовки, кнопка, названия на обложках */
+  --rq-font-num:"Montserrat Alternates","Raleway",sans-serif; /* баланс, минуты, XP */
+  --rq-font-read:"Noto Serif",Georgia,serif;
+  --rq-radius-xs:8px; --rq-radius-sm:14px; --rq-radius-md:22px; --rq-radius-lg:28px; /* всё мягкое, «облачное» */
+  --rq-icon-stroke:1.8;
+  --rq-bg:#f8e6dc; --rq-surface:#fffaf5; --rq-surface-2:#f3e4ec; --rq-sheet:#fffaf5;
+  --rq-line:#eadff0; --rq-border-strong:#c9b6dc;
+  --rq-text:#2b2340; --rq-text-2:#5c4f6e; --rq-text-disabled:#a397b3;
+  --rq-accent:#5b3f99; --rq-accent-pressed:#46307a; --rq-accent-text:#5b3f99;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#ece4f7; --rq-accent-border:#a996cf;
+  --rq-coin:#8a4a0c; --rq-coin-tint:#fdebc8;
+  --rq-success:#23676e; --rq-success-tint:#dcefee;
+  --rq-danger:#a0312b; --rq-danger-tint:#f8dedb;
+  --rq-focus:#5b3f99;
+  --rq-scrim:rgba(43,35,64,.36);
+  --rq-badge-bg:#2b2340; --rq-badge-text:#fffaf5;
+  --rq-toast-game-bg:#5b3f99; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fffaf5; --rq-toast-info-fg:#2b2340; --rq-toast-info-icon:#5b3f99; --rq-toast-info-border:#c9b6dc;
+  --rq-toast-error-bg:#a0312b; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(91,63,153,.10);
+  --rq-shadow-2:0 0 0 1px rgba(201,182,220,.55),0 6px 22px rgba(91,63,153,.12); /* карточка-облако */
+  --rq-shadow-3:0 14px 40px rgba(43,35,64,.28);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --so-glow:#f5b955;       /* сияние, ореолы, пламя огоньков — 1.7 на облаке, не для текста */
+  --so-peach:#f4a98a;      /* шарф Пёрышка, облака заката — не для текста */
+  --so-lilac:#c9b6dc;      /* обводки, пустые огоньки — не для текста */
+  --so-sky:linear-gradient(180deg,#e7dcf3 0,#f3dfe8 30%,#fbe3d3 58%,#fde9d6 100%);
+  --so-glow-shadow:0 0 14px rgba(245,185,85,.55); /* мягкий золотой ореол у активного элемента */
+  --so-cloud-opacity:1;    /* облака и искры внизу фона; НЕ в читалке */
+  --so-flame-dur:2400ms; --so-spark-dur:1600ms; --so-light-dur:700ms; --so-drift-dur:60s;
+}
+[data-skin="svet-oblakov"][data-theme="night"]{
+  --rq-bg:#0d1230; --rq-surface:#1a2050; --rq-surface-2:#242a5e; --rq-sheet:#1a2050;
+  --rq-line:#2e3570; --rq-border-strong:#4b4f8f;
+  --rq-text:#f1ecff; --rq-text-2:#c4bde0; --rq-text-disabled:#6d6aa0;
+  --rq-accent:#ffc46b; --rq-accent-pressed:#ffd590; --rq-accent-text:#ffc46b;   /* ночью главный — свеча */
+  --rq-on-accent:#2a1a05; --rq-control-on:#3a2608;
+  --rq-accent-tint:#2c2a4a; --rq-accent-border:#7a6a50;
+  --rq-coin:#ffc46b; --rq-coin-tint:#2a2742;
+  --rq-success:#8fd8d0; --rq-success-tint:#15304a;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a2a;
+  --rq-focus:#ffc46b;
+  --rq-scrim:rgba(5,7,20,.66);
+  --rq-badge-bg:#f1ecff; --rq-badge-text:#0d1230;
+  --rq-toast-game-bg:#242a5e; --rq-toast-game-fg:#ffc46b;
+  --rq-toast-info-bg:#242a5e; --rq-toast-info-fg:#f1ecff; --rq-toast-info-icon:#ffc46b; --rq-toast-info-border:#2e3570;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #2e3570,0 8px 24px rgba(0,0,0,.55); --rq-shadow-3:0 12px 40px rgba(0,0,0,.7);
+  --so-lilac:#6d6aa0;
+  --so-sky:linear-gradient(180deg,#0d1230 0,#141a46 60%,#2a2560 100%); /* звёздное небо над облаками */
+  --so-stars:.8;           /* мелкие звёзды только в верхней панели читалки и на фоне вне неё */
+}
+/* Страница книги: чистая — без облаков, искр, ореолов и маскота. */
+[data-skin="svet-oblakov"] [data-page="day"]{--r-bg:#fdf8f2;--r-txt:#2b2340;--r-txt-2:#5c4f6e;--r-dim:0;}
+[data-skin="svet-oblakov"] [data-page="night"]{--r-bg:#0f1330;--r-txt:#e8e4f4;--r-txt-2:#a9a3c8;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes so-flame{0%,100%{transform:scale(1) rotate(0)}30%{transform:scale(1.04,.97) rotate(-2deg)}65%{transform:scale(.97,1.04) rotate(2deg)}}
+@keyframes so-light{0%{opacity:.2;transform:scale(.6)}60%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes so-spark{0%{opacity:0;transform:translateY(6px) scale(.6)}40%{opacity:1}100%{opacity:0;transform:translateY(-22px) scale(1)}}
+@keyframes so-drift{to{transform:translateX(-40px)}}
+@keyframes so-cape{0%,100%{transform:skewX(0)}50%{transform:skewX(-6deg)}}
+@keyframes so-coin{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}100%{transform:translateY(0) scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  [data-skin="svet-oblakov"] *,[data-skin="svet-oblakov"] *::before,[data-skin="svet-oblakov"] *::after{animation:none!important;transition:none!important}
+}

@@ -1,0 +1,72 @@
+/* ReadQuest · скин «Бархатная ночь» (элегантная вампирская готика). Интерфейс, 10.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="barkhatnaya-noch"] на <html>. Ночь = [data-theme="night"]. */
+@import url("https://fonts.googleapis.com/css2?family=Ruslan+Display&family=Oranienbaum&family=Cormorant+SC:wght@700&family=Manrope:wght@500;600;700;800&family=Ledger&display=swap&subset=cyrillic");
+[data-skin="barkhatnaya-noch"]{
+  --rq-font-ui:"Manrope",system-ui,sans-serif;
+  --rq-font-display:"Ruslan Display","Oranienbaum",serif; /* заголовки экранов (до ~11 букв) */
+  --bn-font-title:"Oranienbaum",Georgia,serif;          /* подзаголовки, кнопка, обложки */
+  --rq-font-num:"Cormorant SC","Oranienbaum",serif;     /* баланс, минуты, XP — от 15 px */
+  --rq-font-read:"Ledger",Georgia,serif;
+  --rq-radius-xs:4px; --rq-radius-sm:6px; --rq-radius-md:8px; --rq-radius-lg:12px; --bn-card-pad-top:22px; /* место под крышку и воск */ /* строгие формы; обложки — стрельчатая арка */
+  --rq-icon-stroke:1.7;
+  --rq-bg:#ece8ef; --rq-surface:#fbf9fc; --rq-surface-2:#efe9f1; --rq-sheet:#fbf9fc;
+  --rq-line:#d3d0da; --rq-border-strong:#8d94a2;
+  --rq-text:#1c1420; --rq-text-2:#574a5c; --rq-text-disabled:#a49aae;
+  --rq-accent:#6e1630; --rq-accent-pressed:#520f23; --rq-accent-text:#6e1630;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#f3e3e8; --rq-accent-border:#b88a98;
+  --rq-coin:#454d5c; --rq-coin-tint:#e8ebf0;           /* суммы лунаров — тёмное серебро */
+  --rq-success:#4f3a86; --rq-success-tint:#ebe5f6;     /* неделя, успех — аметист */
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#4f3a86;
+  --rq-scrim:rgba(28,20,32,.42);
+  --rq-badge-bg:#1c1420; --rq-badge-text:#fbf9fc;
+  --rq-toast-game-bg:#6e1630; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fbf9fc; --rq-toast-info-fg:#1c1420; --rq-toast-info-icon:#6e1630; --rq-toast-info-border:#8d94a2;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(28,20,32,.12);
+  --rq-shadow-2:0 0 0 1px #a7abb6,0 0 0 4px rgba(251,249,252,.95),0 0 0 5px #c6c9d1,0 8px 22px rgba(28,20,32,.18); /* двойная серебряная окантовка */
+  --rq-shadow-3:0 14px 40px rgba(28,20,32,.32);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --bn-silver:#b8bcc6;     /* старое серебро: окантовки, подсвечник, монета — 1.8 на льне */
+  --bn-moon:#9fb6d8;       /* лунный голубой: свет из окон, витраж — 2.0 */
+  --bn-rose:#b4455e;       /* розы — 5.1, но текстом не используем, чтобы не спорить с акцентом */
+  --bn-glass:#8e6cc8;      /* аметистовый витраж — 3.9 */
+  --bn-velvet:linear-gradient(90deg,#4a0c1e,#7a1a36,#4a0c1e); /* ламбрекен сверху, ≤34 px, вне контента; боковых портьер нет */
+  --bn-wall:linear-gradient(180deg,#e4dfe9 0,#d8d1de 55%,#cbc3d2 100%); /* лунный камень + кладка */
+  --bn-decor-opacity:1;    /* окна, мышки, розы фона; НЕ в читалке */
+  --bn-flicker-dur:2800ms; --bn-phase-dur:800ms; --bn-flutter-dur:900ms; --bn-moonbeam-dur:12s;
+}
+[data-skin="barkhatnaya-noch"][data-theme="night"]{
+  --rq-bg:#0c0a12; --rq-surface:#1a1520; --rq-surface-2:#241c2b; --rq-sheet:#1a1520;
+  --rq-line:#3a3044; --rq-border-strong:#5d5468;
+  --rq-text:#efeaf2; --rq-text-2:#bfb4c6; --rq-text-disabled:#6f6478;
+  --rq-accent:#a9c4ec; --rq-accent-pressed:#c4d7f3; --rq-accent-text:#a9c4ec;   /* ночью главный — лунный свет */
+  --rq-on-accent:#0c0a12; --rq-control-on:#0c0a12;
+  --rq-accent-tint:#1e2232; --rq-accent-border:#56688a;
+  --rq-coin:#d4d8e0; --rq-coin-tint:#262230;
+  --rq-success:#c5a8f0; --rq-success-tint:#2a2140;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
+  --rq-focus:#a9c4ec;
+  --rq-scrim:rgba(4,3,8,.7);
+  --rq-badge-bg:#efeaf2; --rq-badge-text:#0c0a12;
+  --rq-toast-game-bg:#241c2b; --rq-toast-game-fg:#a9c4ec;
+  --rq-toast-info-bg:#241c2b; --rq-toast-info-fg:#efeaf2; --rq-toast-info-icon:#a9c4ec; --rq-toast-info-border:#3a3044;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #3a3044,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+  --bn-wall:linear-gradient(180deg,#0c0a12 0,#16111d 60%,#221a2c 100%);
+  --bn-moonbeam:.22;       /* лунный луч из стрельчатого окна: в читалке только в шапке */
+}
+/* Страница книги: чистая — без окон, мышек, роз, ореолов и маскота. */
+[data-skin="barkhatnaya-noch"] [data-page="day"]{--r-bg:#faf8f5;--r-txt:#1c1420;--r-txt-2:#574a5c;--r-dim:0;}
+[data-skin="barkhatnaya-noch"] [data-page="night"]{--r-bg:#0e0c12;--r-txt:#e6e1ea;--r-txt-2:#a99fb0;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes bn-flicker{0%,100%{transform:scale(1);opacity:1}40%{transform:scale(.96,1.04);opacity:.92}70%{transform:scale(1.03,.97)}}
+@keyframes bn-phase{0%{opacity:.2;transform:scale(.7)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes bn-flutter{0%,100%{transform:scaleY(1)}25%{transform:scaleY(.82)}50%{transform:scaleY(1.05)}75%{transform:scaleY(.9)}}
+@keyframes bn-glass{0%{filter:brightness(1)}50%{filter:brightness(1.25)}100%{filter:brightness(1)}}
+@keyframes bn-moonbeam{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes bn-coin{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+@media (prefers-reduced-motion:reduce){
+  [data-skin="barkhatnaya-noch"] *,[data-skin="barkhatnaya-noch"] *::before,[data-skin="barkhatnaya-noch"] *::after{animation:none!important;transition:none!important}
+}

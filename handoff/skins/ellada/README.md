@@ -78,3 +78,5 @@
 - `tokens.css` — базовые имена плюс `--el-*`, keyframes и правило `prefers-reduced-motion`.
 - `contrast.tsv` — замеры контраста.
 - `src/gen_ellada.py` (генератор, `python3 gen_ellada.py`), `src/measure_contrast.py` (контраст и зазоры терракоты), `src/*.html` — исходники экранов, `src/fonts/` — шрифты.
+
+Полные макеты по запросу у Интерфейса.

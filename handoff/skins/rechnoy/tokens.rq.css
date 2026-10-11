@@ -142,4 +142,4 @@
 /* 1в (Интерфейс, 11.10.2026): новые канонические токены stage1-final */
 [data-skin="rechnoy"],[data-theme="rechnoy-day"]{--rq-accent-on-dark:#7fc3d6;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
 [data-skin="rechnoy"][data-theme="night"],[data-theme="rechnoy-night"]{--rq-accent-on-dark:#7fc3d6;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
-[data-skin="rechnoy"] [data-page="night"],[data-theme="rechnoy-day"] [data-page="night"],[data-theme="rechnoy-night"] [data-page="night"]{--rq-accent:#7fc3d6;--rq-accent-text:#7fc3d6;}
+[data-skin="rechnoy"] [data-page="night"],[data-theme="rechnoy-day"] [data-page="night"],[data-theme="rechnoy-night"] [data-page="night"]{--rq-accent:#5fb8ae;--rq-accent-text:#5fb8ae;} /* читалка в скинах чистая: канонический акцент */

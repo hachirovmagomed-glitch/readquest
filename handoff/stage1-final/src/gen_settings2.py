@@ -16,7 +16,7 @@ def search(night):
     return (f'<div class="scr">{hdr("Поиск по настройкам")}{sb}<div class="setwrap">'
             + cap('Найдено 3') + card(res('Не гасить экран','Общие → Во время чтения','smartphone')
                                     + res('Размер интерфейса (весь экран)','Общие → Внешний вид','zoom-in')
-                                    + row(hl('Кнопка «Весь экран»','экран'),'Настройка интерфейса → Нижняя панель',chev,'maximize',last=True))
+                                    + row(hl('Затемнение страницы (ночной экран)','экран'),'Чтение → Страница',chev,'moon',last=True))
             + '<div class="mut" style="margin:14px 20px;font-size:13px">Ищет по названию и по описанию. Тап по результату открывает раздел и подсвечивает пункт.</div></div></div>')
 
 def control(night):
@@ -39,9 +39,10 @@ def control(night):
 def visibility(night):
     t = lambda on: '<div class="tg"></div>' if on else '<div class="tg off"></div>'
     return (f'<div class="scr">{hdr("Настройка интерфейса")}<div class="setwrap">'
-            + cap('Верхняя панель · список по коду уточнит Фронт') + card(row('Поиск по книге',None,t(1),'search') + row('Закладки',None,t(1),'bookmark') + row('Название книги',None,t(0),'file-text',last=True))
+            + cap('Верхняя панель') + card(row('Назад',None,lock,'arrow-left') + row('Название книги',None,lock,'file-text') + row('Таймер сессии','Пауза и запуск чтения',lock,'clock')
+                                        + row('Озвучка',None,t(1),'play') + row('Оглавление, закладки, цитаты',None,t(1),'bookmark') + row('Aa · настройки чтения',None,t(1),'type',last=True))
             + cap('Нижняя панель') + card(row('Оглавление',None,t(1),'list') + row('День / ночь',None,t(1),'sun-moon') + row('Фокус',None,t(1),'focus')
-                                        + row('Весь экран',None,t(0),'maximize') + row('Номер страницы «98 из 185»',None,t(1),'file-text',last=True))
+                                        + row('Номер страницы «98 из 185»',None,t(1),'file-text',last=True))
             + cap('Чтение и прогресс') + card(row('Кольцо дня','Нужно для награды',lock,'target') + row('Счётчик «N / 10 мин»',None,lock,'clock')
                                             + row('Монеты в итоге сессии',None,lock,'coins',last=True))
             + f'<div class="mut" style="margin:10px 20px 4px;font-size:13px">Скрытая кнопка только пропадает с панели, функция и её данные остаются.</div>'

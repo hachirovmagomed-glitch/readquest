@@ -51,7 +51,7 @@
 - **«Ночная смена»** — единственный скин с «местом действия из реального мира» (пиццерия, каморка охраны), ЭЛТ-монитором, кафелем и жёсткими наклеенными тенями. Пиксельный шрифт здесь только акцентом на метках, весь UI не пиксельный.
 
 ## Файлы
-- Экраны 390×844, 1x и @2x: `nochnaya-smena-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка в `nochnaya-smena-overview.png`.
+- Экраны 390×844, 1x и @2x: `nochnaya-smena-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка в `nochnaya-smena-overview.jpg`.
 - `tokens.css` — базовые имена под `[data-skin="nochnaya-smena"]`, плюс `--ns-*`, `--rq-font-display/-crt/-num`.
 - `contrast.tsv` — 145 замеров по пикселям @2x (худший 5-й перцентиль фона) и 14 номинальных пар токенов. **Провалов 0.**
 - `src/gen_nochnaya.py`, `src/measure_contrast.py`.

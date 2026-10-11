@@ -44,7 +44,7 @@
 - **Пиксельный / «Подземелье»** — острые пиксели, тёмная гамма, 8-бит. Здесь максимальная мягкость и скругления.
 
 ## Файлы
-- Экраны (360 px, 1x и @2x): `marmeladny-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `marmeladny-palette`. Всё сведено в `marmeladny-overview.png`.
+- Экраны (360 px, 1x и @2x): `marmeladny-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `marmeladny-palette`. Всё сведено в `marmeladny-overview.jpg`.
 - `tokens.css` — те же имена, что в базовом `tokens.css`, под `[data-skin="marmeladny"]`. Есть доп. токены `--mq-*` и `--rq-font-display`.
 - `contrast.tsv` — контраст по пикселям @2x (типичный и худший 5-й перцентиль фона под надписью) и номинальные пары токенов. 153 строки, провалов 0.
 - `src/gen_marmeladny.py` — генератор (Chrome headless, рендер 4x → уменьшение). `src/measure_contrast.py` — замер.

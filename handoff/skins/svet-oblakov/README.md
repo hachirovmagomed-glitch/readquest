@@ -51,7 +51,7 @@
 - **Золотой век** (свеча, бумага), **Паровая библиотека** (металл), **Ночная смена** (неон), **Кристальный берег**, **Мармеладный**, **Страна чудес** — другие материалы. Сочетание «сиреневое небо + персиковый закат + облачные карточки» не встречается ни в одном из них.
 
 ## Файлы
-- Экраны 1x и @2x: `svet-oblakov-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `svet-oblakov-overview.png` собирается из финальных экранов в конце того же прогона и проверена глазами.
+- Экраны 1x и @2x: `svet-oblakov-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `svet-oblakov-overview.jpg` собирается из финальных экранов в конце того же прогона и проверена глазами.
 - `tokens.css` — базовые имена плюс `--so-*`, `--rq-font-display`, `--rq-font-num`. Там же keyframes и правило `prefers-reduced-motion`.
 - `contrast.tsv` — 139 замеров по пикселям @2x и 18 номинальных пар. **Провалов 0.**
 - `src/gen_svet.py` (генератор, `python3 gen_svet.py`), `src/measure_contrast.py` (замер контраста), `src/*.html` — исходники экранов.

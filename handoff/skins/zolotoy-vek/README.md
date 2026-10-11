@@ -50,7 +50,7 @@
 - **Небесный** — синее и золото со звёздами. **Карандашный** — карандаш. **Ночная смена** — пиццерия. **Мармеладный, Волшебная академия, Кристальный берег, Пиксельный, Базовый** — совсем другие материалы.
 
 ## Файлы
-- Экраны 1x и @2x: `zolotoy-vek-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `zolotoy-vek-overview.png` собрана из финальных экранов в последнем прогоне и проверена глазами.
+- Экраны 1x и @2x: `zolotoy-vek-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `zolotoy-vek-overview.jpg` собрана из финальных экранов в последнем прогоне и проверена глазами.
 - `tokens.css` — базовые имена плюс `--zv-*`, `--rq-font-display`, `--rq-font-hand`.
 - `contrast.tsv` — 139 замеров по пикселям @2x и 14 номинальных пар. **Провалов 0.**
 - `src/gen_zolotoy.py`, `src/measure_contrast.py`.

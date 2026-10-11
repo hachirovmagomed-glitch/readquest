@@ -56,7 +56,7 @@
 - **Карандашный, Пиксельный, Ночная смена** — другие миры: бумага, 8 бит, пиццерия.
 
 ## Файлы
-- Экраны: `kristalnyi-bereg-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`, каждый в `.png` и `@2x.png`. Сводка в `kristalnyi-bereg-overview.png`.
+- Экраны: `kristalnyi-bereg-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`, каждый в `.png` и `@2x.png`. Сводка в `kristalnyi-bereg-overview.jpg`.
 - `tokens.css` — базовые имена плюс `--kb-*`, `--rq-font-display`, `--rq-font-label`.
 - `contrast.tsv` — 142 замера по пикселям @2x и 14 номинальных пар. **Провалов 0.**
 - `src/gen_bereg.py`, `src/measure_contrast.py`.

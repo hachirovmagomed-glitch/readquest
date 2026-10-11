@@ -74,7 +74,7 @@
 6. **Полоска тестовой сборки** — по-прежнему рекомендую общий цвет для всех скинов.
 
 ## Файлы
-- Экраны 1x и @2x: `ellada-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `ellada-overview.png` собирается из финальных экранов в конце того же прогона.
+- Экраны 1x и @2x: `ellada-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `ellada-overview.jpg` собирается из финальных экранов в конце того же прогона.
 - `tokens.css` — базовые имена плюс `--el-*`, keyframes и правило `prefers-reduced-motion`.
 - `contrast.tsv` — замеры контраста.
 - `src/gen_ellada.py` (генератор, `python3 gen_ellada.py`), `src/measure_contrast.py` (контраст и зазоры терракоты), `src/*.html` — исходники экранов, `src/fonts/` — шрифты.

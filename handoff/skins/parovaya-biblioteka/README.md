@@ -50,7 +50,7 @@
 - **Страна чудес, Небесный, Карандашный, Мармеладный, Волшебная академия, Кристальный берег, Пиксельный, Базовый** — другие материалы и цвета. Сочетания меди и патины нет ни в одном из них.
 
 ## Файлы
-- Экраны 1x и @2x: `parovaya-biblioteka-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `parovaya-biblioteka-overview.png` собирается из финальных экранов в конце того же прогона и проверена глазами.
+- Экраны 1x и @2x: `parovaya-biblioteka-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `parovaya-biblioteka-overview.jpg` собирается из финальных экранов в конце того же прогона и проверена глазами.
 - `tokens.css` — базовые имена плюс `--pb-*`, `--rq-font-display`, `--rq-font-num`. Там же keyframes и правило `prefers-reduced-motion`.
 - `contrast.tsv` — 142 замера по пикселям @2x и 18 номинальных пар. **Провалов 0.**
 - `src/gen_parovaya.py` (генератор, `python3 gen_parovaya.py`), `src/measure_contrast.py` (замер контраста), `src/*.html` — исходники экранов.

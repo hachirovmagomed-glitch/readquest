@@ -53,7 +53,7 @@
 - **Базовый, Карандашный, Пиксельный, Ночная смена** — совсем другие миры: плоская бирюза, бумага, 8 бит, пиццерия.
 
 ## Файлы
-- Экраны 1x и @2x: `volshebnaya-akademiya-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка в `volshebnaya-akademiya-overview.png`.
+- Экраны 1x и @2x: `volshebnaya-akademiya-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка в `volshebnaya-akademiya-overview.jpg`.
 - `tokens.css` — базовые имена плюс `--va-*`, `--rq-font-display`, `--rq-font-accent`.
 - `contrast.tsv` — 139 замеров по пикселям @2x и 14 номинальных пар. **Провалов 0.**
 - `src/gen_akademiya.py`, `src/measure_contrast.py`.

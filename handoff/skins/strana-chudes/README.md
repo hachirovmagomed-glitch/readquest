@@ -57,7 +57,7 @@
 - **Мармеладный, Волшебная академия, Кристальный берег, Пиксельный, Базовый** — совсем другие материалы и цвета.
 
 ## Файлы
-- Экраны 1x и @2x: `strana-chudes-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `strana-chudes-overview.png` собрана из финальных экранов в том же прогоне.
+- Экраны 1x и @2x: `strana-chudes-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `strana-chudes-overview.jpg` собрана из финальных экранов в том же прогоне.
 - `tokens.css` — базовые имена плюс `--sc-*`, `--rq-font-display`, `--rq-font-quote`.
 - `contrast.tsv` — 138 замеров по пикселям @2x и 14 номинальных пар. **Провалов 0.**
 - `src/gen_chudes.py`, `src/measure_contrast.py`.

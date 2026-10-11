@@ -72,7 +72,7 @@
 - Нужен ли бархатный шум и туман в панелях ночной читалки (сейчас панели однотонные, как требует «чистая читалка»)?
 
 ## Файлы
-- Экраны 1x и @2x: `barkhatnaya-noch-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `barkhatnaya-noch-overview.png` собирается из финальных экранов в конце того же прогона и проверена глазами.
+- Экраны 1x и @2x: `barkhatnaya-noch-reader-day`, `-reader-night`, `-library`, `-rewards`, `-session-summary`, плюс `-palette`. Сводка `barkhatnaya-noch-overview.jpg` собирается из финальных экранов в конце того же прогона и проверена глазами.
 - `tokens.css` — базовые имена плюс `--bn-*`, `--rq-font-display`, `--rq-font-num`. Там же keyframes и правило `prefers-reduced-motion`.
 - `contrast.tsv` — 139 замеров по пикселям @2x и 20 номинальных пар. **Провалов 0.**
 - `src/gen_barkhat.py` (генератор, `python3 gen_barkhat.py`), `src/measure_contrast.py` (замер контраста), `src/*.html` — исходники экранов.

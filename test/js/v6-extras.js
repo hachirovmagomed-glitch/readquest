@@ -590,7 +590,8 @@ const I18N_RE=[
  [/осталось /g,'left '],
  [/Прочитано (\d+)/g,'Read $1'],
  [/(\d+) (?:дней|дня|день) подряд/g,'$1 days in a row'],
- [/За (\d+) дн/g,'In $1 d']
+ [/За (\d+) дн/g,'In $1 d'],
+ [/Открываем страницу (\S+)/g,'Opening page $1']
 ];
 function tStr(s){
   const k=s.trim();

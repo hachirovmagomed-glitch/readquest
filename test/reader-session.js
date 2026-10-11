@@ -31,7 +31,7 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261010-144h';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261011-2321';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -69,6 +69,7 @@ export function createSessionTracker(api) {
   let startedAt = 0;
   let startDay = null;    // local YYYY-MM-DD of begin() — the session's day
   let flushTimer = null;
+  let held = false;       // 1в-black: clock held while the page is re-drawn after return from background
   const FLUSH_EVERY_MS = 15000;
 
   function docVisible() {
@@ -88,7 +89,7 @@ export function createSessionTracker(api) {
   }
 
   /* --- counted dwell on the current page --- */
-  function dwellStart() { dwellClock = running && counting && docVisible() ? now() : 0; }
+  function dwellStart() { dwellClock = running && counting && !held && docVisible() ? now() : 0; }
   function dwellPause() {
     if (dwellClock) { dwellAcc += now() - dwellClock; dwellClock = 0; }
   }
@@ -201,7 +202,7 @@ export function createSessionTracker(api) {
 
   function reset(keepDraft) {
     clearInterval(flushTimer); flushTimer = null;
-    running = false; bookId = null; sessionId = null; startDay = null;
+    running = false; held = false; bookId = null; sessionId = null; startDay = null;
     pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
     creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; newPageCap();
     if (!keepDraft) lsDel(DRAFT_KEY);
@@ -242,12 +243,18 @@ export function createSessionTracker(api) {
       pendingTurn = 0; newPageCap();
       startedAt = Date.now();
       startDay = today();
-      running = !!bookId;
+      running = !!bookId; held = false;
       startClock();
       dwellStart();
       armFlush();
       persistDraft();
     },
+
+    /** 1в-black: hold the counted clock until the page is back on screen (pdf resume re-render). */
+    holdResume() { held = true; dwellPause(); },
+    /** Release the hold (after the swap, or on failure/cancel) — idempotent. */
+    releaseResume() { if (!held) return; held = false; dwellStart(); },
+    isHeld() { return held; },
 
     /** Full UI only (timer ▶/⏸). MVP keeps counting on. */
     setCounting(on) {

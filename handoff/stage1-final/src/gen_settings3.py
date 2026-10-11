@@ -25,7 +25,7 @@ TABS = {
         + lab('Свои цвета', '<div style="display:flex;gap:10px">' + ''.join(f'<div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--rq-surface-2);font-size:13px"><i style="width:22px;height:22px;border-radius:50%;background:{c};border:1px solid var(--rq-border-strong)"></i>{t}</div>' for t,c in (('Текст','#5b4636'),('Фон','#f4ecd8'))) + '</div>')
         + sl('Поля страницы','24 px',40) + sl('Притушить экран','0 %',0,'','ярче системы нельзя') + sl('Затемнение PDF ночью','35 %',70,'0 %','50 %'),
  'nav': lambda n: tg('Листать касанием', 'Тап по краю — следующая или предыдущая страница') + tg('Листать свайпом')
-        + tg('Кнопки громкости листают', 'Только в установленном приложении', False) + tg('Поменять стороны местами', 'Левый край — вперёд', False)
+        + tg('Поменять стороны местами', 'Левый край — вперёд', False)
         + f'<div class="sec srow"><div class="tx">Зоны касания и жесты<small>Отдельный экран «Управление»</small></div><span class="mut">{ic("chevron-right",20)}</span></div>',
  'focus': lambda n: lab('Режим фокуса', seg(['Выкл','Кнопкой','Авто'],1)) + '<div class="mut" style="font-size:13px;margin:-4px 0 8px">«Авто» — включается сам через 10 с чтения</div>'
         + tg('Счётчик «N / 10 мин»', 'В углу во время фокуса'),

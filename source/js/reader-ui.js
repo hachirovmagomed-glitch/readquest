@@ -589,9 +589,9 @@ function renderSummary(r){
   if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo(weekKey(sday))+(weeklyPaid(weekKey(sday))?' · ✓ неделя выполнена':'');
   /* gold lines ONLY for what was paid by THIS session (re-render with no `quest` → no lines) */
   const qp=r.quest||{daily:[],weekly:[]},ql=[];
-  if(qp.daily&&qp.daily.length)ql.push('+'+(30*qp.daily.length)+' 🪙 ежедневка выполнена');
-  if(qp.weekly&&qp.weekly.length)ql.push('+'+(120*qp.weekly.length)+' 🪙 неделя выполнена');
-  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+t+'</div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
+  if(qp.daily&&qp.daily.length)ql.push('+'+coinsP(30*qp.daily.length)+' — ежедневка выполнена');
+  if(qp.weekly&&qp.weekly.length)ql.push('+'+coinsP(120*qp.weekly.length)+' — неделя выполнена');
+  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
   applyMvpChrome();
 }
@@ -600,7 +600,7 @@ function confetti(opts){
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
-  const em=['🎉','✨','⭐','🪙','📖'];
+  const em=['🎉','✨','⭐','📖'];
   for(let i=0;i<count;i++){
     const s=document.createElement('div');s.className='confetti';
     s.textContent=em[i%em.length];

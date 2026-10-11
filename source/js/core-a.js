@@ -110,16 +110,16 @@ function renderMvpQuests(){
   const dDone=dailyPaid(), dP=dDone?1:mvpDailyProg();
   const wDone=weeklyPaid(), wP=wDone?1:mvpWeeklyProg();
   box.innerHTML=
-    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px">Ежедневка +30 🪙</span><div class="spacer"></div>'+
+    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px">'+rqIcon('coins',14)+'<span>Ежедневка +'+coinsP(30)+'</span></span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+(dDone?'✓ выполнено сегодня':mvpDailyInfo())+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(dP*100)+'%"></i></div></div>'+
-    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">Неделя +120 🪙</span><div class="spacer"></div>'+
+    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">'+rqIcon('coins',14)+'<span>Неделя +'+coinsP(120)+'</span></span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+mvpWeeklyInfo()+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div>'+
       '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+goalMin()+' мин за пн–вс'))+'</div></div>';
 }
 function renderMvpProfile(){
-  if(el('mvpGold'))el('mvpGold').textContent=goldDisp();
+  if(el('mvpGold')){el('mvpGold').textContent=goldDisp();const gl=el('mvpGoldLbl');if(gl)gl.textContent=coinsP(goldDisp()).replace(/^\S+ /,'');}
   if(el('mvpStreak'))el('mvpStreak').textContent=S.streak||0;
   if(el('mvpMinToday'))el('mvpMinToday').textContent=Math.floor(minTodaySess());
   renderMvpQuests();
@@ -156,7 +156,7 @@ function ensureMvpRewards(){
 }
 function renderRewardsSheet(){
   ensureMvpRewards();
-  if(el('rewGoldChip')){el('rewGoldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('rewGoldChip').lastChild.textContent=goldDisp();}
+  if(el('rewGoldChip')){el('rewGoldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('rewGoldChip').lastChild.textContent=coinsP(goldDisp());}
   const box=el('rewSlots');if(!box)return;
   box.innerHTML=S.rewards.map(function(r,i){
     const label=r.name&&r.name.trim()?esc(r.name):(r.placeholder?'Назови награду…':'Без названия');
@@ -166,7 +166,7 @@ function renderRewardsSheet(){
     return '<div class="pcard" style="margin-bottom:10px">'+
       '<div class="row" style="gap:8px;align-items:center">'+
         '<input class="searchinp" style="flex:1;margin:0" value="'+esc(r.name||'')+'" placeholder="Название" onchange="renameRewardSlot('+i+',this.value)">'+
-        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+r.cost+' 🪙</button>'+
+        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+rqIcon('coins',14)+'<span>'+coinsP(r.cost)+'</span></button>'+
       '</div>'+
       '<div class="tierseg">'+tiers+'</div>'+
       '<div class="row" style="font-size:12px;color:var(--muted)"><span>получено: '+(r.bought||0)+'</span><div class="spacer"></div>'+
@@ -178,8 +178,8 @@ function renderRewardsSheet(){
     const rows=(S.rewardPurchases||[]).slice().reverse().slice(0,12);
     hist.innerHTML=rows.length?rows.map(function(h){
       const when=h.at?localDay(h.at):''; /* stored ISO stamp, shown as the local day */
-      return '<li>'+esc(when)+' · '+esc(h.title||'')+' −'+(h.price||0)+' 🪙</li>';
-    }).join(''):'<li>Пока пусто — купите награду за золото с квестов</li>';
+      return '<li>'+esc(when)+' · '+esc(h.title||'')+' −'+coinsP(h.price||0)+'</li>';
+    }).join(''):'<li>Пока пусто — купите награду за монеты с квестов</li>';
   }
 }
 function setRewardTier(i,t){

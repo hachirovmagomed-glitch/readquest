@@ -89,7 +89,7 @@ function renderLibrary(){
   el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
   const _mt=isMvp()?minTodaySess():S.minToday;
   el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
-  const gl=el('libGoldLine');if(gl){gl.textContent=__bootGold?('+'+__bootGold+' 🪙 за прошлую сессию'):'';gl.classList.toggle('hidden',!__bootGold);}
+  const gl=el('libGoldLine');if(gl){gl.innerHTML=__bootGold?(rqIcon('coins',14)+'<span></span>'):'';if(__bootGold)gl.lastChild.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
   el('streakTxt').innerHTML=rqIcon('flame',16)+'<span></span>';el('streakTxt').lastChild.textContent=S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/goalMin());
@@ -134,6 +134,8 @@ function renderLibrary(){
   }
   applyMvpChrome();
 }
+/* 1в: «N монет» — число и слово из одного n; '∞' (devMoney) → «монет» */
+function coinsP(n){return n+' '+(typeof n==='number'?plural(n,'монета','монеты','монет'):'монет');}
 function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)return a;if(m>=2&&m<=4)return b;return c;}
 /* --- поиск и фильтры библиотеки --- */
 let LIB={q:'',f:'all',author:null,sort:'recent'};
@@ -204,7 +206,7 @@ el('fileInp').onchange=async e=>{
     }else if(/\.fb2$/i.test(f.name)){
       btn.textContent='⏳ Разбираю FB2...';
       const r=await parseFb2(f);
-      b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,fname:f.name,size:f.size};
+      b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
     }else if(/\.epub$/i.test(f.name)){
       btn.textContent='⏳ Распаковываю EPUB...';
       const r=await parseEpub(f);

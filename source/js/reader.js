@@ -10,6 +10,8 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.readCounter!=='boolean')s.readCounter=true;return s;}
 normSet(SET);
 function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
+/* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
+function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 function applySet(){
   const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
@@ -157,6 +159,7 @@ async function openBook(id){
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
+  c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
   layout();
   const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */

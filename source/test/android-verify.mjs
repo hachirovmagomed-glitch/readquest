@@ -404,7 +404,7 @@ ok('render summary twice + award pass twice → XP unchanged', (await page.evalu
 // daily AUTO-paid on the summary of the session that took today to ≥10 min
 const daily = await page.evaluate(() => ({ prog: mvpDailyProg(), gold: S.gold, paid: S.dailyPaidDays.slice() })); daily.line = sumLine.text; daily.lineVisible = sumLine.visible; daily.gold = sumLine.gold;
 const goldAfterDaily = daily.gold;
-ok('(а) session that brings the day to ≥10 min → +30 auto once + summary line «+30 🪙 ежедневка выполнена»', daily.prog === 1 && daily.gold - goldS0 === 30 && daily.paid.includes(await page.evaluate(() => today())) && daily.line === '+30 🪙 ежедневка выполнена' && daily.lineVisible, { daily, gained: daily.gold - goldS0 });
+ok('(а) session that brings the day to ≥10 min → +30 auto once + summary line «+30 монет — ежедневка выполнена»', daily.prog === 1 && daily.gold - goldS0 === 30 && daily.paid.includes(await page.evaluate(() => today())) && daily.line === '+30 монет — ежедневка выполнена' && daily.lineVisible, { daily, gained: daily.gold - goldS0 });
 ok('render summary twice + award pass twice → gold unchanged', (await page.evaluate(() => S.gold)) === goldAfterDaily);
 await page.reload({ waitUntil: 'load' }); await boot();
 ok('reload → XP/gold unchanged', (await page.evaluate(() => S.xp)) === xp1 && (await page.evaluate(() => S.gold)) === goldAfterDaily, await page.evaluate(() => ({ xp: S.xp, gold: S.gold })));
@@ -569,7 +569,7 @@ ok('MVP bottom nav still shown on settings/library', navOk === 'flex' || navOk =
     { row: rB[0], endClock, dayTot, dayAfterMidnight });
   // (б) daily for the START day auto-paid on that session's summary
   const sumB = await p2.evaluate(() => ({ line: document.getElementById('sumQuestGold').textContent, gold: S.gold, paid: S.dailyPaidDays.slice() }));
-  ok('(б) 23:50–00:15 → daily +30 auto-paid for the start day 2026-10-07 on that summary', sumB.gold - gold0 === 30 && JSON.stringify(sumB.paid) === JSON.stringify(['2026-10-07']) && sumB.line === '+30 🪙 ежедневка выполнена', { sumB, gained: sumB.gold - gold0 });
+  ok('(б) 23:50–00:15 → daily +30 auto-paid for the start day 2026-10-07 on that summary', sumB.gold - gold0 === 30 && JSON.stringify(sumB.paid) === JSON.stringify(['2026-10-07']) && sumB.line === '+30 монет — ежедневка выполнена', { sumB, gained: sumB.gold - gold0 });
   ok('(а) session that leaves the day < 10 min (01:00, 2.3 min) → no daily, no summary line', rA[0].minutes < 10 && sumA.gold === goldPreA && !sumA.line && sumA.paid.length === 0, { minutes: rA[0].minutes, sumA, goldPreA });
   await p2.evaluate(() => document.getElementById('btnDone').click()); await sleep(200);
   // helper: one real session of `n` pages × 150 s at absolute clock `t` (ms); returns summary info
@@ -590,7 +590,7 @@ ok('MVP bottom nav still shown on settings/library', navOk === 'flex' || navOk =
   const c1 = await readAt(null, 5);        // 00:15 → 00:27, 12.5 min on 2026-10-08
   const c2s = await readAt(null, 2);       // another short session the same day → nothing more
   ok('(в) yesterday and today paid independently: 2026-10-08 reaches 10 min → +30 (10-07 stays paid); 2nd session same day → +0',
-    c1.gained === 30 && c1.rows[0].date === '2026-10-08' && JSON.stringify(c1.days) === JSON.stringify(['2026-10-07', '2026-10-08']) && c1.line === '+30 🪙 ежедневка выполнена' && c2s.gained === 0 && !c2s.lineVisible, { c1: { gained: c1.gained, days: c1.days, line: c1.line }, c2: { gained: c2s.gained, line: c2s.line } });
+    c1.gained === 30 && c1.rows[0].date === '2026-10-08' && JSON.stringify(c1.days) === JSON.stringify(['2026-10-07', '2026-10-08']) && c1.line === '+30 монет — ежедневка выполнена' && c2s.gained === 0 && !c2s.lineVisible, { c1: { gained: c1.gained, days: c1.days, line: c1.line }, c2: { gained: c2s.gained, line: c2s.line } });
   // (г) weekly: history rows (already awarded, no trigger): Sun 10-04 (prev week) + Mon 10-05 → week 10-05 has 3 days
   await p2.evaluate(async () => {
     for (const [d, m] of [['2026-10-04', 12], ['2026-10-05', 10.4]]) { const r = await __rq.logSession({ id: crypto.randomUUID(), date: d, bookId: 'b1', minutes: m, pageTurns: 5 }); SESS.push(r); S.awardedSessionIds.push(r.id); S.dailyPaidDays.push(d); }
@@ -601,8 +601,8 @@ ok('MVP bottom nav still shown on settings/library', navOk === 'flex' || navOk =
   const c5 = await readAt(Date.parse('2026-10-10T07:00:00Z'), 5);   // Sat → 5th day
   ok('(г) 4th day of the local week (Fri 10-09) → +30 daily +120 weekly with both summary lines; 5th day (Sat) → +30 only',
     wk3.wk === '2026-10-05' && JSON.stringify(wk3.days) === JSON.stringify(['2026-10-05', '2026-10-07', '2026-10-08']) && wk3.weeks.length === 0 &&
-    c4.gained === 150 && c4.line === '+30 🪙 ежедневка выполнена+120 🪙 неделя выполнена' && JSON.stringify(c4.weeks) === JSON.stringify(['2026-10-05']) &&
-    c5.gained === 30 && c5.line === '+30 🪙 ежедневка выполнена' && JSON.stringify(c5.weeks) === JSON.stringify(['2026-10-05']), { wk3, c4: { gained: c4.gained, line: c4.line, weeks: c4.weeks }, c5: { gained: c5.gained, line: c5.line } });
+    c4.gained === 150 && c4.line === '+30 монет — ежедневка выполнена+120 монет — неделя выполнена' && JSON.stringify(c4.weeks) === JSON.stringify(['2026-10-05']) &&
+    c5.gained === 30 && c5.line === '+30 монет — ежедневка выполнена' && JSON.stringify(c5.weeks) === JSON.stringify(['2026-10-05']), { wk3, c4: { gained: c4.gained, line: c4.line, weeks: c4.weeks }, c5: { gained: c5.gained, line: c5.line } });
   // profile status
   await p2.evaluate(() => { show('profile'); if (typeof renderProfile === 'function') renderProfile(); renderMvpProfile(); }); await sleep(300);
   const prof = await p2.evaluate(() => ({ daily: document.querySelector('#mvpDailyCard .chip').textContent, weekly: document.querySelector('#mvpWeeklyCard .chip').textContent + ' · ' + document.querySelector('#mvpWeeklyCard .mvp-qsub').textContent, buttons: document.querySelectorAll('#mvpQuestBox button').length, gold: document.getElementById('mvpGold').textContent, sGold: S.gold }));
@@ -654,8 +654,8 @@ ok('MVP bottom nav still shown on settings/library', navOk === 'flex' || navOk =
   const kAfterNav = await p2.evaluate(() => getComputedStyle(document.getElementById('libGoldLine')).display);
   await p2.reload({ waitUntil: 'load' }); await boot2();
   const kAfterReload = await p2.evaluate(() => ({ disp: getComputedStyle(document.getElementById('libGoldLine')).display, gold: S.gold }));
-  ok('(ж) killed session recovered at boot → daily +30 paid at that start (no summary, no toast), library line «+30 🪙 за прошлую сессию» in #ffc107 once; gone after screen change and after reload',
-    kb.n === nK + 1 && kb.gold - kStart.goldBefore === 30 && kb.days.includes('2026-10-12') && kb.screen && !kb.summary && kb.toasts === 0 && kb.line === '+30 🪙 за прошлую сессию' && kb.lineColor === 'rgb(255, 193, 7)' &&
+  ok('(ж) killed session recovered at boot → daily +30 paid at that start (no summary, no toast), library line «+30 монет за прошлую сессию» in #ffc107 once; gone after screen change and after reload',
+    kb.n === nK + 1 && kb.gold - kStart.goldBefore === 30 && kb.days.includes('2026-10-12') && kb.screen && !kb.summary && kb.toasts === 0 && kb.line === '+30 монет за прошлую сессию' && kb.lineColor === 'rgb(255, 193, 7)' &&
     kReader.reader && !kReader.lineShown && !kReader.goldTextInReader && kAfterNav === 'none' && kAfterReload.disp === 'none' && kAfterReload.gold === kb.gold, { kb, kReader, kAfterNav, kAfterReload, goldBefore: kStart.goldBefore });
   // «Aa N» is removed on screen change, even mid-gesture
   await p2.evaluate((id) => openBook(id), bid); await p2.waitForFunction(() => R.pageCount > 1); await sleep(400);

@@ -325,7 +325,8 @@ async function parseEpub(file){
     }
   }
   if(!text.trim())throw new Error('не удалось извлечь текст');
-  return {title:title,author:author,text:text.trim(),toc:toc};
+  const lang=((xml.match(/<title-info>[\s\S]*?<lang>\s*([A-Za-z-]{2,})/)||[])[1]||'').toLowerCase();
+  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang};
 }
 
 async function idbDel(k){

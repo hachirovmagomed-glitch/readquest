@@ -217,7 +217,7 @@ function dealBossDamage(min,pages,finished){
 }
 /* ===== Ежедневный бонус ===== */
 function dailyReward(){return Math.round((20+Math.min(10,S.streak||0)*10)*talVal('daily'));}
-function claimDaily(){if(isMvp()){flashMsg('В MVP золото начисляется само: ежедневка +30 и неделя +120');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
+function claimDaily(){if(isMvp()){flashMsg('Монеты начисляются сами: ежедневка +30 монет, неделя +120 монет');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
 /* ===== Стадии питомца ===== */
 const PET_STAGES=[['Малыш',0],['Подросток',60],['Взрослый',180],['Легендарный',420]];
 function petStage(){const px=S.petXp||0;let st=0;for(let i=0;i<PET_STAGES.length;i++)if(px>=PET_STAGES[i][1])st=i;return st;}

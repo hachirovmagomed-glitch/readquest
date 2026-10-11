@@ -581,7 +581,13 @@ await pt.close();
   ok('(h) open book + late IDB (late-recover): reopens exactly at the saved middle page (≠ first, ≠ last), saved progress unchanged' + (H_BREAK ? ` [H_BREAK=${H_BREAK}]` : ''),
     bk1.late && bk1.mem === bk0.saved && bk1.saved === bk0.saved && bk2.pages === bk0.pages && bk2.page === bk0.savedPage && bk2.page !== 0 && bk2.page !== bk2.pages - 1 && bk2.savedAfter === bk0.saved,
     { before: { page: bk0.page, savedPage: bk0.savedPage, of: bk0.pages, saved: bk0.saved }, afterLateBoot: bk1, reopened: bk2 });
-  await pr.close(); await sleep(800); /* let SW-target re-attach/detach churn settle: puppeteer's detachFromTarget on the closed page's session can reuse the id of the next root Target.createTarget and steal its error ("Session with given id not found") */
+  await pr.close();
+  /* Cause: puppeteer request-id collision, NOT the app. Closing pr detaches its session while the SW target is
+     re-attaching; puppeteer sends Target.detachFromTarget on the dead session with the same id as the next root
+     Target.createTarget (mk() below), and the "Session with given id not found" error is routed to createTarget.
+     TODO(front): replace this fixed pause with waiting for a concrete condition (pr's target gone from
+     browser.targets() and no pending detach on its session) — see handoff/notes/front.md. */
+  await sleep(800);
 }
 
 // ---------- (g) Wi-Fi without internet: SW network fetch hangs (never answered) → cached app within the race window ----------

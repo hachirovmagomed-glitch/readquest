@@ -89,6 +89,7 @@
   --rq-accent:#1f6f6b;
   --rq-accent-pressed:#17524f;
   --rq-accent-text:#1f6f6b;
+  --rq-accent-on-dark:#5fb8ae;
   --rq-on-accent:#ffffff;
   --rq-control-on:#ffffff;
   --rq-accent-tint:#dcebe7;
@@ -101,6 +102,8 @@
   --rq-danger-tint:#fbe3dd;
   --rq-focus:#1f6f6b;
   --rq-scrim:rgba(28,22,12,.42);
+  --rq-slider-track:rgba(255,255,255,.35);
+  --rq-test-strip:#c2410c;
   --rq-badge-bg:#3b3226;
   --rq-badge-text:#ffffff;
   --rq-toast-game-bg:#1f6f6b;
@@ -142,6 +145,7 @@
   --rq-accent:#5fb8ae;
   --rq-accent-pressed:#7fcac1;
   --rq-accent-text:#5fb8ae;
+  --rq-accent-on-dark:#5fb8ae;
   --rq-on-accent:#0c1719;
   --rq-control-on:#17363a;
   --rq-accent-tint:#17363a;
@@ -154,6 +158,8 @@
   --rq-danger-tint:#3d1d1a;
   --rq-focus:#7fcac1;
   --rq-scrim:rgba(0,0,0,.58);
+  --rq-slider-track:rgba(255,255,255,.35);
+  --rq-test-strip:#c2410c;
   --rq-badge-bg:#d6e2e0;
   --rq-badge-text:#0c1719;
   --rq-toast-game-bg:#5fb8ae;
@@ -173,7 +179,7 @@
 :where(#reader){--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
 [data-page="sepia"]{--r-bg:#f4ecd8;--r-txt:#5b4636;--r-txt-2:#725f4a;--r-dim:0;}
 [data-page="day"]{--r-bg:#fbfaf6;--r-txt:#26241f;--r-txt-2:#6b6658;--r-dim:0;}
-[data-page="night"]{--r-bg:#0f1c1f;--r-txt:#c2d0cd;--r-txt-2:#7f938f;--r-dim:.35;}
+[data-page="night"]{--r-bg:#0f1c1f;--r-txt:#c2d0cd;--r-txt-2:#7f938f;--r-dim:.35;--rq-accent:#5fb8ae;--rq-accent-text:#5fb8ae;}
 /* PDF ночью: слой выше холста, но НИЖЕ текстового слоя pdf.js (z-index ≥ 2), чтобы выделение и «Цитата» работали. Холст не трогаем (вариант B, без инверсии) */
 [data-page="night"] .rq-pdf-page::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim)));pointer-events:none;z-index:1}
 @media (prefers-reduced-motion:reduce){:root{--rq-dur-base:0ms;--rq-dur-sheet:0ms;--rq-dur-fast:0ms}}

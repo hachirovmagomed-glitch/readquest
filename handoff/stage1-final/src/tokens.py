@@ -16,6 +16,7 @@ COLORS = [
  ('accent',         '#1f6f6b', '#5fb8ae', 'Акцент: заливка главной кнопки, слайдер, активная вкладка, кольцо цели'),
  ('accent-pressed', '#17524f', '#7fcac1', 'Акцент в нажатом состоянии'),
  ('accent-text',    '#1f6f6b', '#5fb8ae', 'Акцентный текст на bg/surface/surface-2/accent-tint'),
+ ('accent-on-dark', '#5fb8ae', '#5fb8ae', 'Акцент на тёмных плашках в обеих темах: кольцо бегунка #pgSlider, #pinchHint, #pdfDimRow'),
  ('on-accent',      '#ffffff', '#0c1719', 'Текст и иконки на заливке accent'),
  ('control-on',     '#ffffff', '#17363a', 'Выбранный сегмент (seg .on), под accent-text'),
  ('accent-tint',    '#dcebe7', '#17363a', 'Фон выбранного: текущая глава, активный пункт меню, аватар'),
@@ -28,6 +29,8 @@ COLORS = [
  ('danger-tint',    '#fbe3dd', '#3d1d1a', 'Фон плашки ошибки'),
  ('focus',          '#1f6f6b', '#7fcac1', 'Кольцо фокуса клавиатуры (outline 2px, offset 2px)'),
  ('scrim',          'rgba(28,22,12,.42)', 'rgba(0,0,0,.58)', 'Затемнение под шторкой/модалкой'),
+ ('slider-track',   'rgba(255,255,255,.35)', 'rgba(255,255,255,.35)', 'Дорожка ползунка страниц на тёмной нижней панели (обе темы)'),
+ ('test-strip',     '#c2410c', '#c2410c', 'Полоска тестовой сборки (/test/), одинаковая в обеих темах'),
  ('badge-bg',       '#3b3226', '#d6e2e0', 'Плашка «N из M» над слайдером'),
  ('badge-text',     '#ffffff', '#0c1719', 'Текст плашки «N из M»'),
  # тосты flashMsg(text,{kind})
@@ -44,7 +47,7 @@ COLORS = [
 PAGE = {
  'sepia': {'r-bg':'#f4ecd8','r-txt':'#5b4636','r-txt-2':'#725f4a','r-dim':'0'},
  'day':   {'r-bg':'#fbfaf6','r-txt':'#26241f','r-txt-2':'#6b6658','r-dim':'0'},
- 'night': {'r-bg':'#0f1c1f','r-txt':'#c2d0cd','r-txt-2':'#7f938f','r-dim':'.35'},
+ 'night': {'r-bg':'#0f1c1f','r-txt':'#c2d0cd','r-txt-2':'#7f938f','r-dim':'.35','rq-accent':'#5fb8ae','rq-accent-text':'#5fb8ae'},
 }
 SCALAR = [
  # типографика

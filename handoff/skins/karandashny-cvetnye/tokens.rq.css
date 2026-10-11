@@ -126,3 +126,8 @@
 [data-skin="pencil-c"] [data-page="night"],
 [data-theme="pencil-c-day"] [data-page="night"],
 [data-theme="pencil-c-night"] [data-page="night"]{--r-bg:#212226;--r-txt:#e6e4de;--r-txt-2:#a6a59f;--r-dim:.35;}
+
+/* 1в (Интерфейс, 11.10.2026): новые канонические токены stage1-final */
+[data-skin="karandashny-cvetnye"],[data-theme="karandashny-cvetnye-day"]{--rq-accent-on-dark:#8fb8ff;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny-cvetnye"][data-theme="night"],[data-theme="karandashny-cvetnye-night"]{--rq-accent-on-dark:#8fb8ff;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny-cvetnye"] [data-page="night"],[data-theme="karandashny-cvetnye-day"] [data-page="night"],[data-theme="karandashny-cvetnye-night"] [data-page="night"]{--rq-accent:#8fb8ff;--rq-accent-text:#8fb8ff;}

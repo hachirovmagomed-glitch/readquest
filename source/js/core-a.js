@@ -1,4 +1,12 @@
 'use strict';
+/* 1в: ONE icon set — Lucide sprite <svg id="rqSprite"> in app.html (tools/gen-icons.py). Stroke = currentColor (CSS .ic). */
+function rqIcon(n,sz){sz=sz||22;return '<svg class="ic" width="'+sz+'" height="'+sz+'" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
+/* 1в: elements that can never be hidden by rq_set.uiHidden (stage 2). Settings screen and import check read THIS list. */
+/* keys: btnBack, rTitle, btnTimer = element ids; dayRing = кольцо дня (#dayBar в читалке, #ringFg в библиотеке);
+   readCounter = счётчик «N / 10 мин» (#focusCount); coinToasts = тосты монет (flashMsg kind:'game'). */
+const UI_LOCKED=Object.freeze(['btnBack','rTitle','btnTimer','dayRing','readCounter','coinToasts']);
+/** stage 1г (rq_set.uiHidden, default []): drop locked ids on load and import — one rule for the settings screen and the import check. */
+function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return typeof k==='string'&&UI_LOCKED.indexOf(k)<0&&h.indexOf(k)===i;}):[];}
 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
@@ -148,7 +156,7 @@ function ensureMvpRewards(){
 }
 function renderRewardsSheet(){
   ensureMvpRewards();
-  if(el('rewGoldChip'))el('rewGoldChip').textContent=curI()+' '+goldDisp();
+  if(el('rewGoldChip')){el('rewGoldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('rewGoldChip').lastChild.textContent=goldDisp();}
   const box=el('rewSlots');if(!box)return;
   box.innerHTML=S.rewards.map(function(r,i){
     const label=r.name&&r.name.trim()?esc(r.name):(r.placeholder?'Назови награду…':'Без названия');

@@ -99,17 +99,17 @@ el('calNotifTgl').onclick=async()=>{
     let perm=Notification.permission;
     if(perm!=='granted')perm=await Notification.requestPermission();
     if(perm!=='granted'){alert('Уведомления запрещены в настройках браузера');return;}
-    S.notif.on=true;save();renderCalendar();
+    S.notif.on=true;save();renderCalendar();renderSettings();
     try{new Notification('ReadQuest',{body:'Напоминания включены — позовём читать в '+notifTime()});}catch(e){}
     return;
   }
-  S.notif.on=false;save();renderCalendar();
+  S.notif.on=false;save();renderCalendar();renderSettings();
 };
 function adjNotif(delta){
   const p=notifTime().split(':');const h=+p[0],m=+p[1];
   const t=((h*60+m)+delta+1440)%1440;
   S.notif.time=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
-  save();renderCalendar();
+  save();renderCalendar();renderSettings();
 }
 el('calNotifMinus').onclick=()=>adjNotif(-30);
 el('calNotifPlus').onclick=()=>adjNotif(30);
@@ -571,7 +571,9 @@ const I18N={
  'Сессия завершена':'Session complete','страниц':'pages','минут':'minutes','характеристика':'characteristic','Продолжить':'Continue','золота':'gold',
  'страниц всего':'pages total','стр/час':'pg/hour','По книгам':'By book',
  'сессий выполнено':'sessions done','книг добавлено':'books added','книг дочитано':'books finished',
- 'валюты за всё время':'currency all-time','XP за всё время':'XP all-time','XP по навыкам':'skills XP','достижений':'achievements','множитель XP':'XP multiplier'
+ 'валюты за всё время':'currency all-time','XP за всё время':'XP all-time','XP по навыкам':'skills XP','достижений':'achievements','множитель XP':'XP multiplier',
+ /* 1в: reader bar, «Настройки чтения», «Общие настройки», library/profile without emoji */
+ 'Настройки чтения':'Reading settings','Текст':'Text','Страница':'Page','Листание':'Page turning','Фокус':'Focus','Оглавление':'Contents','Ночь':'Night','День':'Day','Шрифт':'Font','Вид':'View','Общие настройки':'General settings','Тема приложения, язык, экран, данные':'App theme, language, screen, data','Размер текста':'Text size','Интервал':'Spacing','Буквы':'Letters','Насыщенность':'Weight','Выравнивание':'Alignment','По ширине':'Justify','Влево':'Left','Переносы':'Hyphens','Отступ':'Indent','Тонкий':'Light','Обычный':'Regular','Жирный':'Bold','Тема':'Theme','Цвета':'Colours','текст':'text','фон':'background','Сбросить':'Reset','Поля':'Margins','Затемнение':'Dimming','Кнопки':'Buttons','Кнопки ‹ › на экране':'On-screen ‹ › buttons','Тап':'Tap','Тап по краям':'Tap the edges','Инверсия':'Invert','Свайп':'Swipe','Листать свайпом':'Swipe to turn','Тап по центру — панели; тап у верхних углов — день/ночь и закладка.':'Tap the centre for panels; top corners: day/night and bookmark.','Режим фокуса':'Focus mode','Выкл':'Off','Вкл':'On','Кнопкой':'Button','Авто':'Auto','Остаётся только текст. Выход — тап в центр':'Only the text stays. Tap the centre to exit','Счётчик':'Counter','«7 / 10 мин» в углу в режиме фокуса':'«7 / 10 min» in the corner in focus mode','Затемнение PDF ночью':'PDF dimming at night','работает в ночной теме':'works with the night page','Внешний вид':'Appearance','Тема приложения':'App theme','Авто: день с 7:00 до 21:00':'Auto: day from 7:00 to 21:00','Размер интерфейса':'Interface size','Анимации':'Animations','Во время чтения':'While reading','Не гасить экран':'Keep screen on','Если поддерживается браузером':'If the browser supports it','Вибрация':'Vibration','При наградах и отметках':'On rewards and marks','Язык и напоминание':'Language and reminder','Язык интерфейса':'Interface language','Напоминание почитать':'Reading reminder','Уведомление от браузера, пока приложение открыто':'Browser notification while the app is open','Время напоминания':'Reminder time','Данные':'Data','Экспорт и импорт':'Export and import','Резервная копия в файл (JSON)':'Backup to a file (JSON)','Сохранить':'Save','Загрузить':'Load','Журнал запуска':'Startup log','Пришлите его, если приложение долго открывалось':'Send it if the app was slow to open','Скопировать журнал запуска':'Copy startup log','О приложении':'About','Если тут старая дата — обновите страницу':'If the date is old, reload the page','Режим':'Mode','Профиль':'Profile','Профиль ':'Profile ','монеты':'coins','стрик':'streak','Награды из жизни':'Real-life rewards','Читаю':'Reading','Хочу':'Want','Прочитано':'Read','Избранное':'Favorites','Поиск по названию и автору':'Search by title and author','Цитата':'Quote','Заметка':'Note','Вернуть удалённые демо-книги':'Restore removed demo books','Вернуть':'Restore','Сбросить весь прогресс':'Reset all progress','Сброс':'Reset'
 };
 const I18N_RE=[
  [/Цель дня: (\d+) мин/g,'Daily goal: $1 min'],

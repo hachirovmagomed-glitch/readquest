@@ -22,6 +22,9 @@ function applySet(){
   r.dataset.page=!isLightBg(bg)?'night':(SET.theme==='sepia'&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
   applyFocusSet();
   r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
+  {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
+  {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
+   el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   if(el('pdfDimRange')){const pc=Math.round(SET.pdfDim*100);el('pdfDimRange').value=pc;el('pdfDimVal').textContent=pc+' %';}
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
@@ -67,7 +70,7 @@ function renderThemeSeg(){
     const b=document.createElement('button');
     b.className='swatch';b.dataset.t=key;b.title=name;
     b.style.background=bg;b.style.boxShadow='inset 0 0 0 1px rgba(255,255,255,.15)';
-    if(locked){b.style.opacity=.35;b.textContent='🔒';b.style.fontSize='12px';}
+    if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+S.cur.name+' '+curI());return;}
       SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
@@ -95,16 +98,24 @@ el('wBold').onclick=()=>{SET.weight=600;saveSet();applySet();relayout();};
 el('cTxt').oninput=e=>{SET.cTxt=e.target.value;saveSet();applySet();};
 el('cBg').oninput=e=>{SET.cBg=e.target.value;saveSet();applySet();};
 el('cReset').onclick=()=>{SET.cTxt=null;SET.cBg=null;saveSet();applySet();};
-el('btnAa').onclick=()=>{renderThemeSeg();el('sheet').classList.toggle('hidden');};
+/* 1в: «Настройки чтения» — Aa opens «Текст» (PDF: «Страница»), the gear opens the last tab; «Общие настройки» = the settings screen over the reader */
+let setTab='grpText';
+function openSetTab(g){setTab=g;Array.from(el('setCats').children).forEach(b=>{const on=b.dataset.g===g;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
+  ['grpText','grpPage','grpNav','grpFocus'].forEach(id=>el(id).classList.toggle('on',id===g));}
+function openReaderSettings(g){
+  const sh=el('sheet');
+  if(!sh.classList.contains('hidden')&&(!g||g===setTab)){sh.classList.add('hidden');return;}
+  renderThemeSeg();renderSettings();openSetTab(g||setTab);el('panel').classList.add('hidden');sh.classList.remove('hidden');
+}
+el('btnAa').onclick=()=>openReaderSettings(R.mode==='pdf'?'grpPage':'grpText');
+el('btnSet').onclick=()=>openReaderSettings(null);
+el('btnDayNight').onclick=()=>toggleDayNight();
+el('btnGeneral').onclick=()=>{el('sheet').classList.add('hidden');openGeneralSettings(true);};
+el('dimRange').oninput=e=>{SET.dim=Math.max(0,Math.min(0.7,(parseInt(e.target.value,10)||0)/100));applySet();};
+el('dimRange').onchange=()=>saveSet();
 el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
-Array.from(el('setCats').children).forEach(btn=>{
-  btn.onclick=()=>{
-    const g=btn.dataset.g;
-    Array.from(el('setCats').children).forEach(b=>b.classList.toggle('on',b===btn));
-    ['grpFont','grpSize','grpText','grpTheme','grpColor','grpNav'].forEach(id=>el(id).classList.toggle('on',id===g));
-  };
-});
+Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
 /* навигация при чтении */
 function navTurn(d){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+d*inv,true);}
 el('navPrev').onclick=()=>navTurn(-1);

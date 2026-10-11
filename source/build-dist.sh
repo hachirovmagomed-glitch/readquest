@@ -32,6 +32,10 @@ json.dump(m,open(sys.argv[3],'w'),ensure_ascii=False,indent=2)
 EOP
 fi
 cp "$ROOT/sw.js" "$DIST/sw.js"
+# 1в: design tokens — the ONE source is handoff/stage1-final/tokens.css (Интерфейс); app.html links it before its own styles
+TOK="${RQ_TOKENS:-$ROOT/../handoff/stage1-final/tokens.css}"
+[ -f "$TOK" ] || { echo "build-dist: tokens.css not found at $TOK" >&2; exit 1; }
+cp "$TOK" "$DIST/tokens.css"
 
 # Stage 1a: classic scripts cut out of app.html live in js/ (copied for both rq and rqt; only *.js, no notes/dotfiles).
 # Each gets ?v=BUILD in the HTML (below) and in the SW precache, so a new HTML never gets an old file from SW/HTTP cache.

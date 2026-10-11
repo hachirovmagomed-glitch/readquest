@@ -8,7 +8,7 @@
    re-enters fullscreen inside its own handler before the flip. Viewport resizes → relayout() with the kept
    reading anchor (no jump, page number recomputed in the same goPage). */
 let chromeTimer=null;
-let FSW=false;          // fullscreen wanted while reading (phone / ⛶ button)
+let FSW=false;          // fullscreen wanted while reading (phone); 1в: the ⛶ button is gone, pinch zoom stays
 let fsPending=false;    // timer re-entry was refused → retry on the next reading gesture
 window.__rqFsLog=[];    // diagnostics (tests): {how, ok, t}
 function fsActive(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
@@ -110,7 +110,6 @@ document.addEventListener('fullscreenchange',function(){window.__rqFsLog.push({h
   /* 1б: the SYSTEM left fullscreen (Android back / swipe) while we want it → show our panels (no separate «back» step) */
   /* not in a window that lost the writer role (thawed / background tab: mayWrite() demotes it first) — no relayout under the overlay */
   const r=el('reader');if(!fsActive()&&FSW&&r&&!r.classList.contains('hidden')&&r.classList.contains('barsoff')&&document.visibilityState!=='hidden'&&!(window.__rqWriter&&!__rqWriter.mayWrite()))revealChrome();});
-el('btnFull').onclick=()=>{enterImmersive();flashMsg('Весь экран · тап по центру — панели',{kind:'info',icon:'maximize'});};
 function isLightBg(bg){
   const c=String(bg).replace('#','');
   const n=parseInt(c.length===3?c.split('').map(ch=>ch+ch).join(''):c,16);
@@ -130,16 +129,7 @@ function addBookmark(){
   save();
   flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
-/* Lucide icons (lucide-static, ISC) for toasts */
-const RQ_ICO={
-  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
-  'circle-alert':'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
-  bookmark:'<path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/>',
-  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
-  moon:'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
-  maximize:'<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>'
-};
-function rqIcon(n,sz){return '<svg width="'+(sz||20)+'" height="'+(sz||20)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(RQ_ICO[n]||'')+'</svg>';}
+/* toast icons: rqIcon() (js/core-a.js, one Lucide sprite in app.html) */
 /* legacy calls without {kind}: game wording ⇒ game */
 const RQ_GAME_RE=/XP|🪙|монет|босс|квест|талант|золот|награда|Удача|питом|опыт/i;
 /** flashMsg(text, ms) or flashMsg(text, {kind:'game'|'info'|'error', icon, ms}).
@@ -156,7 +146,7 @@ function flashMsg(t,o){
   d.setAttribute('role',kind==='error'?'alert':'status');
   if(opt.icon){d.innerHTML=rqIcon(opt.icon,20)+'<span></span>';d.lastChild.textContent=t;}else d.textContent=t;
   d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:#fff;padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
-  if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');}
+  if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');if(pg==='night')d.dataset.theme='night';} /* night page → night toast tokens */
   d.onclick=function(){d.remove();};
   document.body.appendChild(d);
   const dur=ms!=null?ms:(inReader?3000:1600);
@@ -414,7 +404,7 @@ function renderPanel(tab){
 
 /* --- озвучка (TTS): непрерывная, с авто-переходом по страницам --- */
 let speaking=false,ttsOn=false;
-function ttsStop(){ttsOn=false;speaking=false;try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}var b=el('btnTts');if(b)b.textContent='🔊';}
+function ttsStop(){ttsOn=false;speaking=false;try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}var b=el('btnTts');if(b)b.innerHTML=rqIcon('volume-2');}
 function ttsSay(t,onend){
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
   u.onend=function(){if(ttsOn&&onend)onend();};
@@ -445,7 +435,7 @@ el('btnTts').onclick=()=>{
   if(ttsOn||speaking){ttsStop();return;}
   if(!R.book)return;
   if(!window.speechSynthesis){alert('Озвучка не поддерживается этим браузером');return;}
-  ttsOn=true;el('btnTts').textContent='⏹';
+  ttsOn=true;el('btnTts').innerHTML=rqIcon('square');
   if(R.mode==='pdf'){ttsPdfNext();}
   else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
 };
@@ -468,7 +458,7 @@ async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
-  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').textContent='🔊';}
+  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').innerHTML=rqIcon('volume-2');}
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   R.book=null;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
@@ -688,6 +678,7 @@ window.addEventListener('popstate',function(e){
   const st=(e.state&&e.state.rq)||null;
   if(window.__rqWriter&&__rqWriter.passive)return;
   if(readerIsOpen()){
+    if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
     const sh=el('sheet'),pn=el('panel');
     if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}

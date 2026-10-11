@@ -106,6 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="tokens.css"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -210,18 +211,10 @@ body.rq-nolocks #rqNoXp{display:block}
 #sumQuestGold{margin-top:8px;font-size:14px;font-weight:700;color:#ffc107;line-height:1.5}
 /* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
 #pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
-#pinchHint{--rq-accent:#5fb8ae} /* 1в: → tokens.css */ /* 1б: night value of the accent token, the plaque is dark in both themes */
+#pinchHint{--rq-accent:var(--rq-accent-on-dark)} /* the plaque is dark in both themes */
 #pinchHint b{color:var(--rq-accent);font-weight:700;margin-right:6px}
 #pinchHintN{display:inline-block;min-width:2ch;text-align:right}
-/* 1б: page tokens (tokens.css rows 173–176) until 1а inlines tokens.css; data-page is set by applySet */
-#reader{--r-txt-2:#725f4a} /* 1в: → tokens.css */
-#reader{--rq-accent-text:#1f6f6b} /* 1в: → tokens.css */
-#reader{--rq-accent:#1f6f6b} /* 1в: → tokens.css */
-#reader[data-page="night"]{--rq-accent:#5fb8ae} /* 1в: → tokens.css */
-#reader{--rq-pdf-night-dim:.35} /* 1в: → tokens.css */
-#reader[data-page="day"]{--r-txt-2:#6b6658} /* 1в: → tokens.css */
-#reader[data-page="night"]{--r-txt-2:#7f938f} /* 1в: → tokens.css */
-#reader[data-page="night"]{--rq-accent-text:#5fb8ae} /* 1в: → tokens.css */
+/* page tokens --r-txt-2 / --rq-accent / --rq-pdf-night-dim: tokens.css ([data-page] on #reader, set by applySet) */
 /* 1б focus mode: only the text (+ optional counter). Bars are .barsoff already; layout of #viewer does not change */
 #focusCount{display:none;align-items:center;gap:6px;font:500 12px/1 system-ui,-apple-system,sans-serif;color:var(--r-txt-2);font-variant-numeric:tabular-nums}
 #focusCount svg{flex:none}
@@ -241,8 +234,7 @@ body.rq-nolocks #rqNoXp{display:block}
 .rq-toast{display:flex;align-items:center;gap:10px}
 .rq-toast svg{flex:none}
 .rq-toast.rd{top:auto!important;bottom:calc(18px + 3px + 12px + env(safe-area-inset-bottom))!important;border-radius:14px!important;padding:12px 16px!important;font:600 14px/20px system-ui,-apple-system,sans-serif!important;max-width:358px;white-space:nowrap}
-.rq-toast.rd.d{--rq-toast-info-bg:#ffffff;--rq-toast-info-fg:#3b3226;--rq-toast-info-icon:#1f6f6b;--rq-toast-info-border:#e3d8bf} /* 1в: → tokens.css */
-.rq-toast.rd.n{--rq-toast-info-bg:#1f363d;--rq-toast-info-fg:#d6e2e0;--rq-toast-info-icon:#5fb8ae;--rq-toast-info-border:#2f4a50} /* 1в: → tokens.css */
+/* reader toasts: day page = :root tokens, night page = data-theme="night" on the toast (tokens.css) */
 .rq-toast.rd{background:var(--rq-toast-info-bg)!important;color:var(--rq-toast-info-fg)!important;border:1px solid var(--rq-toast-info-border)}
 .rq-toast.rd svg{color:var(--rq-toast-info-icon)}
 /* page number / book progress flip in the SAME frame as the text: no transitions */
@@ -313,12 +305,12 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #pgSlider{box-sizing:border-box;height:44px;margin:-14px 12px} /* 1б-fix #6: 44 px hit area, the bar keeps its 16 px layout height */
 /* 1б-144 (Продукт+Интерфейс): thumb-only slider. The range never takes pointer input (a track tap does nothing);
    .rfoot catches a press only within the 44 px thumb hit area, never in the bottom gesture strip (env(safe-area-inset-bottom)). */
-#pgSlider{--rq-thumb-ring:#5fb8ae} /* 1в: → tokens.css (--accent-on-dark): the footer bar is dark in both themes */
+#pgSlider{--rq-thumb-ring:var(--rq-accent-on-dark)} /* the footer bar is dark in both themes */
 #pgSlider{pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent}
-#pgSlider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:rgba(255,255,255,.35)} /* 1в: → tokens.css */
-#pgSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box} /* 1в: → tokens.css */
-#pgSlider::-moz-range-track{height:4px;border-radius:2px;background:rgba(255,255,255,.35)} /* 1в: → tokens.css */
-#pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box} /* 1в: → tokens.css */
+#pgSlider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--rq-slider-track)}
+#pgSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
+#pgSlider::-moz-range-track{height:4px;border-radius:2px;background:var(--rq-slider-track)}
+#pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
 #reader .rfoot{touch-action:none}
 #pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:8px;background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #pgTip.hidden{display:none}
@@ -389,7 +381,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* 1б night PDF (variant B): canvas → this layer (no pointer events) → text layer; no inversion. Value = SET.pdfDim → --rq-pdf-dim */
 #pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim)));display:none}
 #reader[data-page="night"] #pdfDim{display:block}
-#pdfDimRow{--rq-accent:#5fb8ae} /* 1в: → tokens.css */
+#pdfDimRow,#dimRange{--rq-accent:var(--rq-accent-on-dark)} /* the sheet is dark (app colours) */
 #pdfDimRow label{width:auto;flex:0 1 auto;white-space:nowrap} /* 1б-fix #5: label on one line */
 #pdfDimRange{flex:1;min-width:0;min-height:44px;accent-color:var(--rq-accent)}
 #pdfDimVal{font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
@@ -653,9 +645,52 @@ body.mvp #mvpProfileBlock{display:block}
 body.mvp #sumDailyBox{display:block}
 .tinyava{width:22px;height:22px;border-radius:50%;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-size:12px;margin-right:4px;vertical-align:middle;overflow:hidden}
 .tinyava svg{width:100%;height:100%}
+
+/* ===== 1в: Lucide icons (one sprite, stroke currentColor) ===== */
+.mvp-only-i{display:none}body.mvp .mvp-only-i{display:inline}
+#goldChip,#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
+.ic{flex:none;fill:none;stroke:currentColor;stroke-width:var(--rq-icon-stroke,1.8);stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.rhead button{display:inline-flex;align-items:center;justify-content:center;min-width:var(--rq-tap,44px);min-height:var(--rq-tap,44px);padding:0}
+#selpop button{display:inline-flex;align-items:center;gap:4px}
+.closes{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;top:4px;right:6px}
+/* ===== 1в: reader bottom bar — 5 buttons (Оглавление · Ночь/День · Aa · Фокус · Настройки), icon 22 + label 11 ===== */
+.rfoot{padding-bottom:6px}
+.rbar{display:flex;justify-content:space-around;align-items:stretch;flex:none;background:var(--bar);color:#fff;padding:0 6px calc(4px + env(safe-area-inset-bottom));touch-action:manipulation}
+.rbar button{flex:1;max-width:96px;min-width:var(--rq-tap,44px);min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:rgba(255,255,255,.86);font:500 11px/1.1 var(--rq-font-ui,system-ui)}
+.rbar button:active{color:#fff}
+.rbar .aa{font:700 19px/22px Georgia,serif;height:22px}
+.barsoff .rbar,.imm .rbar{display:none}
+#reader.nofocusbtn #btnFocus{display:none}
+/* ===== 1в: «Настройки чтения» sheet ===== */
+#sheet{padding-top:8px}
+#sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--muted);opacity:.5;margin:0 auto 10px}
+#sheet h3{font-size:20px;font-weight:700;margin:2px 0 12px}
+.settabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 0 10px}
+.settabs button{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding:8px 2px;border-radius:var(--rq-radius-md,14px);color:var(--muted);font-size:12px}
+.settabs button.on{background:var(--card2);color:var(--txt);font-weight:700}
+.settabs button.on .ic{color:var(--accent)}
+#sheet .srow label{width:96px}
+#sheet input[type=range]{flex:1;accent-color:var(--rq-accent)}
+.gsetrow{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:14px 4px 4px;border-top:1px solid rgba(127,127,127,.25);text-align:left;color:var(--txt)}
+.gsetrow span{flex:1;display:flex;flex-direction:column;gap:2px}
+.gsetrow b{font-size:15px}.gsetrow small{font-size:12px;color:var(--muted)}
+/* ===== 1в: «Общие настройки» ===== */
+#settings.over{z-index:95;background:var(--bg)}
+.gset .setrow>.ic{color:var(--muted)}
+.gset h2{font-size:13px;margin:18px 0 8px}
+.gset .pcard{padding:4px 14px}
+.btnpair{display:flex;gap:6px}
+.ghostbtn.sw{position:relative;width:52px;height:30px;min-width:52px;padding:0;border-radius:999px;border:2px solid var(--muted);background:transparent;font-size:0;color:transparent;flex:none}
+.ghostbtn.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform var(--rq-dur-fast,150ms)}
+.ghostbtn.sw[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
+.ghostbtn.sw[aria-checked="true"]::after{transform:translateX(22px);background:#fff}
+.appsw .ic{display:block;margin:auto}
+/* ===== 1в: one tone under the page — strip, container and PDF underlay all = page colour in every mode ===== */
+#reader,#pgLine,#pdfWrap{background:var(--r-bg,#f4ecd8)}
 </style>
 </head>
 <body>
+<!--RQ-ICONS--><svg id="rqSprite" xmlns="http://www.w3.org/2000/svg" style="display:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48"/><path d="M15 6h1v4"/><path d="m6.134 14.768.866-.5 2 3.464"/><circle cx="16" cy="8" r="6"/></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol><symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></symbol><symbol id="i-type" viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/></symbol><symbol id="i-a-large-small" viewBox="0 0 24 24"><path d="m15 16 2.536-7.328a1.02 1.02 1 0 1 1.928 0L22 16"/><path d="M15.697 14h5.606"/><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16"/><path d="M3.304 13h6.392"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></symbol><symbol id="i-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/><path d="M16 12a4 4 0 0 0-4-4"/><path d="m19 5-1.256 1.256"/><path d="M20 12h2"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol><symbol id="i-square" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol><symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/></symbol><symbol id="i-medal" viewBox="0 0 24 24"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"/><rect x="3" y="7" width="18" height="4" rx="1"/></symbol><symbol id="i-shopping-bag" viewBox="0 0 24 24"><path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.103 6.034h17.794"/><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/></symbol><symbol id="i-chart-column" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></symbol><symbol id="i-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol><symbol id="i-clipboard" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="i-rotate-cw" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol><symbol id="i-languages" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol><symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol><symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol><symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></symbol><symbol id="i-vibrate" viewBox="0 0 24 24"><path d="m2 8 2 2-2 2 2 2-2 2"/><path d="m22 8-2 2 2 2-2 2 2 2"/><rect width="8" height="14" x="8" y="5" rx="1"/></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-user-round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-align-justify" viewBox="0 0 24 24"><path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/></symbol><symbol id="i-book-marked" viewBox="0 0 24 24"><path d="M10 2v7.751a.25.25 0 00.407.195l2.28-1.834a.5.5 0 01.627 0l2.28 1.834A.25.25 0 0016 9.751V2"/><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H19a1 1 0 011 1v18a1 1 0 01-1 1H6.5a1 1 0 010-5H20"/></symbol></svg><!--/RQ-ICONS-->
 <div id="rqBoot" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:2147482900;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:system-ui,sans-serif">
   <img src="icons/icon-192.png" alt="" width="72" height="72" style="border-radius:16px">
   <div style="font-size:16px">Открываем библиотеку…</div>
@@ -674,7 +709,6 @@ body.mvp #sumDailyBox{display:block}
 body:has(#reader:not(.hidden)) #rqTestBanner,body:has(#reader:not(.hidden)) #rqTestReset{pointer-events:none!important}
 body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}
 /* 1б-fix #2: the 24 px banner lay OVER the first text line in the reader (review: «half a line on top»). In the reader only a 3 px stripe stays as the test marker */
-:root{--rq-test-strip:#c2410c} /* 1в: → tokens.css */
 body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!important;overflow:hidden;background:var(--rq-test-strip)!important}</style>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:24px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>
@@ -737,7 +771,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- БИБЛИОТЕКА -->
 <div id="library" class="screen">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuLib">☰</button><h1>📚 ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip">🪙 0</span></div>
+    <div class="row" style="margin-bottom:14px"><button class="menubtn mvp-hide" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg><span>0</span></span></div>
     <div class="goalcard">
       <svg class="ring" viewBox="0 0 80 80">
         <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
@@ -747,11 +781,11 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div>
         <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
         <div class="sub" id="goalSub">Сегодня: 0 мин</div>
-        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt">🔥 0 дней</span><span id="lvlTxt">⭐ Ур. 1</span></div>
+        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg><span>0 дней</span></span><span id="lvlTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span>Ур. 1</span></span></div>
       </div>
     </div>
     <div id="libGoldLine" class="hidden" role="status"></div>
-    <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="🔍 Поиск по названию и автору"></div>
+    <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="Поиск по названию и автору"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
@@ -765,7 +799,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- ПРОФИЛЬ -->
 <div id="profile" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuProf">☰</button><h1>🧙 Персонаж</h1><div class="spacer"></div><button class="ghostbtn" id="btnProfSetup">✏️ Профиль</button></div>
+    <div class="row" style="margin-bottom:14px"><button class="menubtn mvp-hide" id="menuProf" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><span class="mvp-hide">Персонаж</span><span class="mvp-only-i">Профиль</span></h1><div class="spacer"></div><button class="ghostbtn" id="btnProfSetup"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg> Профиль</button></div>
     <div class="herocard">
       <div class="herotop">
         <div class="avatarframe" id="avatarFrame"><div class="avatar" id="avatar">📖</div><div class="gearlayer" id="gearLayer"></div></div>
@@ -773,27 +807,27 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
           <b id="pName">Читатель</b>
           <div class="lvl" id="pLvl">Уровень 1</div>
           <div class="barline mvp-full"><span class="barlbl" title="Здоровье">❤️</span><div class="statbar hp"><i id="hpFill"></i></div><span class="barnum" id="hpTxt">50 / 50</span></div>
-          <div class="barline"><span class="barlbl" title="Опыт">✨</span><div class="statbar xp"><i id="xpFill"></i></div><span class="barnum" id="xpTxt2">0%</span></div>
+          <div class="barline"><span class="barlbl" title="Опыт"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg></span><div class="statbar xp"><i id="xpFill"></i></div><span class="barnum" id="xpTxt2">0%</span></div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px" id="xpTxt"></div>
         </div>
       </div>
       <div class="hphint mvp-full" id="hpHint"></div>
       <div class="mvp-full" style="font-size:11px;color:var(--muted);margin-top:8px">Тап по аватару — сменить облик</div>
       <div id="avaPal" class="emojigrid hidden mvp-full"></div>
-      <button class="ghostbtn" id="btnHeroCreate" style="margin-top:12px;width:100%">✨ Создать героя</button>
+      <button class="ghostbtn mvp-hide" id="btnHeroCreate" style="margin-top:12px;width:100%"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Создать героя</button>
     </div>
 
     <div id="mvpProfileBlock">
       <div class="kpis" style="margin-top:12px">
-        <div class="kpi"><b id="mvpGold">0</b><span>🪙 золото</span></div>
-        <div class="kpi"><b id="mvpStreak">0</b><span>🔥 стрик</span></div>
+        <div class="kpi"><b id="mvpGold">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg> монеты</span></div>
+        <div class="kpi"><b id="mvpStreak">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg> стрик</span></div>
         <div class="kpi"><b id="mvpMinToday">0</b><span>мин сегодня</span></div>
       </div>
-      <h2>🎯 Квесты</h2>
+      <h2>Квесты</h2>
       <div id="mvpQuestBox"></div>
-      <button class="addbtn" id="btnOpenRewards" style="margin-top:8px">🎁 Награды из жизни</button>
+      <button class="addbtn" id="btnOpenRewards" style="margin-top:8px"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg> Награды из жизни</button>
       <div style="height:8px"></div>
-      <button class="ghostbtn" id="btnMvpSettings" style="width:100%">⚙️ Настройки</button>
+      <button class="ghostbtn" id="btnMvpSettings" style="width:100%"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg> Настройки</button>
     </div>
 
     <div class="kpis mvp-full">
@@ -853,17 +887,44 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
 <!-- НАСТРОЙКИ -->
 <div id="settings" class="screen hidden">
-  <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuSet">☰</button><h1>⚙️ Настройки</h1></div>
-        <h2>MVP</h2>
+  <div class="scroll"><div class="wrap gset">
+    <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet">☰</button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
+    <h2>Внешний вид</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun-moon"/></svg><div class="lab">Тема приложения<div class="sub">Авто: день с 7:00 до 21:00</div></div></div>
+      <div class="seg" id="appThemeBox"></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-zoom-in"/></svg><div class="lab">Размер интерфейса</div><button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
+      <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
+    </div>
+    <h2>Во время чтения</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-smartphone"/></svg><div class="lab">Не гасить экран<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn sw" id="uxWake" role="switch">Выкл</button></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-vibrate"/></svg><div class="lab">Вибрация<div class="sub">При наградах и отметках</div></div><button class="ghostbtn sw" id="uxVibe" role="switch">Вкл</button></div>
+    </div>
+    <h2>Язык и напоминание</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
+      <div class="setrow"><div class="lab" style="padding-left:34px">Время напоминания</div>
+        <button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></div>
+    </div>
+    <h2>Данные</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><div class="lab">Экспорт и импорт<div class="sub">Резервная копия в файл (JSON)</div></div><span class="btnpair"><button class="ghostbtn" id="btnExport">Сохранить</button><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></span></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><div class="lab">Журнал запуска<div class="sub">Пришлите его, если приложение долго открывалось</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
+      <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
+      <div class="setrow"><div class="lab" style="color:#ff8a80">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+    </div>
+    <h2>О приложении</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
+    </div>
+    <div class="mvp-hide">
+    <h2>Режим</h2>
     <div class="pcard">
       <div class="setrow dev-only"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
-      <div class="setrow"><div class="lab">Режим фокуса<div class="sub">Остаётся только текст. Выход — тап в центр</div></div></div>
-      <div class="seg" id="focusSeg"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div>
-      <div class="setrow"><div class="lab">Показывать счётчик чтения<div class="sub">«7 / 10 мин» в углу в режиме фокуса</div></div><button class="ghostbtn" id="readCntTgl">Вкл</button></div>
     </div>
-    <h2>Язык · Language</h2>
-    <div class="pcard"><div class="seg" id="langSeg"></div></div>
     <h2>Честное чтение</h2>
     <div class="pcard">
       <div class="setrow"><div class="lab">Мин. время на страницу<div class="sub">Быстрее — страница не идёт в прогресс.<span class="mvp-hide"> Настройте под свою скорость чтения.</span></div></div>
@@ -872,20 +933,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
         <button class="stepbtn mvp-hide" id="antiMaxMinus">−</button><b id="antiMaxVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMaxPlus">＋</button></div>
       <div class="setrow"><div class="lab">Цель дня</div>
         <button class="stepbtn mvp-hide" id="goalMinus2">−</button><b id="goalVal2" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="goalPlus2">＋</button></div>
-    </div>
-    <h2>Оформление приложения</h2>
-    <div class="pcard">
-      <div class="seg" id="appThemeBox"></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:10px">🌗 Авто — светлая тема днём (7:00–21:00), тёмная ночью</div>
-      <div class="setrow" style="margin-top:6px"><div class="lab">🧙 Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
-    </div>
-    <h2>Удобство</h2>
-    <div class="pcard">
-      <div class="setrow"><div class="lab">Анимация перелистывания</div><button class="ghostbtn" id="uxAnim">Вкл</button></div>
-      <div class="setrow"><div class="lab">Не гасить экран при чтении<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn" id="uxWake">Выкл</button></div>
-      <div class="setrow"><div class="lab">Вибрация при наградах</div><button class="ghostbtn" id="uxVibe">Вкл</button></div>
-      <div class="setrow"><div class="lab">Масштаб интерфейса</div>
-        <button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
     </div>
     <h2 class="dev-only">🧪 Тест-режим</h2>
     <div class="pcard dev-only">
@@ -901,21 +948,21 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <input class="searchinp" id="aiKey" type="password" placeholder="API-ключ (sk-...)" style="margin-bottom:8px">
       <input class="searchinp" id="aiModel" placeholder="Модель (gpt-4o-mini)">
     </div>
-    <h2>Данные</h2>
-    <div class="pcard">
-      <div class="setrow"><div class="lab">Экспорт прогресса<div class="sub">Резервная копия в файл (JSON)</div></div><button class="ghostbtn" id="btnExport">Сохранить</button></div>
-      <div class="setrow"><div class="lab">Импорт прогресса</div><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></div>
-      <div class="setrow"><div class="lab">Версия сборки<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
-      <div class="setrow"><div class="lab">Журнал запуска<div class="sub">Пришлите его, если приложение долго открывалось</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
-      <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
-      <div class="setrow"><div class="lab" style="color:#ff8a80">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+    <h2 class="mvp-hide">Сложность книг</h2>
+    <div class="pcard mvp-hide">
+      <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги ⓘ. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
     </div>
-    <h2>О приложении</h2>
-    <div class="pcard" style="font-size:13px;color:var(--muted)">ReadQuest · прототип v6<br>Читалка с геймификацией: XP, стрики, квесты, магазин наград, RPG-персонаж.</div>
+    <h2 class="mvp-hide">ИИ-помощник (экспериментально)</h2>
+    <div class="pcard mvp-hide">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Вставьте API-ключ OpenAI-совместимого сервиса — кнопка ✨ при выделении текста будет объяснять фрагменты. Ключ хранится только на этом устройстве.</div>
+      <input class="searchinp" id="aiKey" type="password" placeholder="API-ключ (sk-...)" style="margin-bottom:8px">
+      <input class="searchinp" id="aiModel" placeholder="Модель (gpt-4o-mini)">
+    </div>
+    </div>
   </div></div>
 </div>
 
-<!-- СТАТИСТИКА -->
+
 <div id="stats" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuStats">☰</button><h1>📊 Прогресс</h1><div class="spacer"></div>
@@ -953,12 +1000,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="calleg"><i>🟩 читал(а)</i><i>⬜ запланировано</i><i>🔵 цель дня выполнена</i></div>
     <div id="calYear"></div>
     <div id="calDay" style="margin-top:14px"></div>
-    <h2>Напоминания</h2>
-    <div class="pcard">
-      <div class="setrow"><div class="lab">Напоминание о чтении<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn" id="calNotifTgl">Выкл</button></div>
-      <div class="setrow"><div class="lab">Время напоминания</div>
-        <button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></div>
-    </div>
   </div></div>
 </div>
 
@@ -1004,14 +1045,14 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
 <!-- НАСТРОЙКА ПРОФИЛЯ -->
 <div class="sheet hidden" id="profSetup" style="position:fixed;z-index:84">
-  <button class="closes" id="profSetupClose">✕</button>
+  <button class="closes" id="profSetupClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <h3>Настройка профиля</h3>
   <div id="profSetupBox"></div>
 </div>
 
 <!-- 3D-ЗНАЧОК ДОСТИЖЕНИЯ -->
 <div id="badgeModal" class="hidden">
-  <button class="closes" id="badgeClose" style="top:calc(14px + env(safe-area-inset-top));right:18px;font-size:24px;color:#fff;z-index:2">✕</button>
+  <button class="closes" id="badgeClose" style="top:calc(14px + env(safe-area-inset-top));right:18px;font-size:24px;color:#fff;z-index:2" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <div class="badge3d"><div class="coin" id="badgeCoin">
     <div class="face front" id="badgeFace">🏅</div>
     <div class="face back" id="badgeBack">⭐</div>
@@ -1028,10 +1069,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 </nav>
 <div id="rewardsScrim" class="hidden"></div>
 <div id="rewardsSheet" role="dialog" aria-label="Награды из жизни">
-  <button class="closes" id="rewardsClose" type="button">✕</button>
-  <h3 style="margin:0 0 6px">🎁 Награды из жизни</h3>
+  <button class="closes" id="rewardsClose" type="button" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+  <h3 style="margin:0 0 6px">Награды из жизни</h3>
   <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Цена только по ступени. Золото — из квестов за чтение.</div>
-  <div class="row" style="margin-bottom:10px"><span class="chip" id="rewGoldChip">🪙 0</span><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
+  <div class="row" style="margin-bottom:10px"><span class="chip" id="rewGoldChip"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg><span>0</span></span><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
   <div id="rewSlots"></div>
   <h2 style="font-size:14px;margin-top:16px">История</h2>
   <ul class="mvp-hist" id="rewHist"></ul>
@@ -1052,13 +1093,13 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
 <!-- О КНИГЕ -->
 <div class="sheet hidden" id="bookSheet" style="position:fixed;z-index:82">
-  <button class="closes" id="bookSheetClose">✕</button>
+  <button class="closes" id="bookSheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <div id="bookSheetBody"></div>
 </div>
 
 <!-- ИИ -->
 <div class="sheet hidden" id="aiSheet" style="position:fixed;z-index:83">
-  <button class="closes" id="aiSheetClose">✕</button>
+  <button class="closes" id="aiSheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <h3>✨ ИИ-помощник</h3>
   <div id="aiBody" style="font-size:14px;line-height:1.65;max-height:50vh;overflow-y:auto"></div>
 </div>
@@ -1066,13 +1107,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- ЧИТАЛКА -->
 <div id="reader" class="screen hidden">
   <header class="rhead">
-    <button id="btnBack">←</button>
+    <button id="btnBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button>
     <button id="btnTimer" title="Таймер чтения — опыт начисляется только при включённом таймере">▶</button>
     <div class="rtitle" id="rTitle"></div>
-    <button id="btnFull" title="Полный экран">⛶</button>
-    <button id="btnTts" title="Озвучка">🔊</button>
-    <button id="btnPanel" title="Оглавление, закладки, цитаты">📑</button>
-    <button id="btnAa" style="font-size:16px;font-weight:700">Aa</button>
+    <button id="btnTts" title="Озвучка" aria-label="Озвучка"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
   </header>
   <div id="viewer">
     <div id="content"></div>
@@ -1082,12 +1120,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <button id="navPrev" class="navbtn hidden">‹</button>
     <button id="navNext" class="navbtn hidden">›</button>
     <div id="selpop" class="hidden">
-      <button id="spHl">🖍 Цитата</button>
-      <button id="spNote">📝 +заметка</button>
-      <button id="spWord" title="В словарь">📖</button>
-      <button id="spDict">🌐</button>
-      <button id="spAI" class="mvp-hide">✨</button>
-      <button id="spCopy">📋</button>
+      <button id="spHl"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg> Цитата</button>
+      <button id="spNote"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg> Заметка</button>
+      <button id="spWord" title="В словарь" aria-label="В словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></button>
+      <button id="spDict" aria-label="Словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
+      <button id="spAI" class="mvp-hide"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg></button>
+      <button id="spCopy" aria-label="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
     </div>
   </div>
   <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
@@ -1096,9 +1134,16 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
-  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="pgTip" class="hidden" aria-hidden="true"></span><span id="pgSafe" aria-hidden="true"></span><span id="rPct"></span><button id="btnFocus" class="rfbtn" aria-label="Фокус" title="Фокус"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg></button></footer>
+  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><span id="pgTip" class="hidden" aria-hidden="true"></span><span id="pgSafe" aria-hidden="true"></span><span id="rPct"></span></footer>
+  <nav class="rbar" id="rBar" aria-label="Панель читалки">
+    <button id="btnPanel"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span>Оглавление</span></button>
+    <button id="btnDayNight"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><span id="btnDayNightL">Ночь</span></button>
+    <button id="btnAa"><b class="aa" aria-hidden="true">Aa</b><span id="btnAaL">Шрифт</span></button>
+    <button id="btnFocus"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-focus"/></svg><span>Фокус</span></button>
+    <button id="btnSet"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span>Настройки</span></button>
+  </nav>
   <div class="sheet hidden" id="panel">
-    <button class="closes" id="panelClose">✕</button>
+    <button class="closes" id="panelClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
     <div class="ptabs">
       <button id="tabToc" class="on">Главы</button>
       <button id="tabMarks">Закладки</button>
@@ -1108,56 +1153,45 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     </div>
     <div id="panelBody"></div>
   </div>
-  <div class="sheet hidden" id="sheet">
-    <button class="closes" id="sheetClose">✕</button>
-    <h3>Оформление</h3>
-    <div class="setcats" id="setCats">
-      <button class="on" data-g="grpFont">🔤 Шрифт</button>
-      <button data-g="grpSize">📏 Размер</button>
-      <button data-g="grpText">📝 Текст</button>
-      <button data-g="grpTheme">🎨 Тема</button>
-      <button data-g="grpColor">🌈 Цвета</button>
-      <button data-g="grpNav">🧭 Навигация</button>
+  <div class="sheet hidden" id="sheet" role="dialog" aria-labelledby="sheetH">
+    <div class="grab" aria-hidden="true"></div>
+    <button class="closes" id="sheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+    <h3 id="sheetH">Настройки чтения</h3>
+    <div class="settabs" id="setCats" role="tablist">
+      <button class="on" data-g="grpText" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-type"/></svg><span>Текст</span></button>
+      <button data-g="grpPage" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Страница</span></button>
+      <button data-g="grpNav" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><span>Листание</span></button>
+      <button data-g="grpFocus" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-focus"/></svg><span>Фокус</span></button>
     </div>
+    <div class="setgrp on" id="grpText">
+      <div class="srow"><label>Размер текста</label><div class="seg"><button id="szMinus" aria-label="Меньше">A−</button><span class="segval" id="szVal"></span><button id="szPlus" aria-label="Больше">A+</button></div></div>
+      <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
+      <div class="srow"><label>Интервал</label><div class="seg"><button id="lhMinus" aria-label="Плотнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="segval" id="lhVal"></span><button id="lhPlus" aria-label="Свободнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
+      <div class="srow"><label>Буквы</label><div class="seg"><button id="lsMinus">a−</button><span class="segval" id="lsVal"></span><button id="lsPlus">a+</button></div></div>
+      <div class="srow"><label>Насыщенность</label><div class="seg"><button id="wLight">Тонкий</button><button id="wNorm">Обычный</button><button id="wBold">Жирный</button></div></div>
+      <div class="srow"><label>Выравнивание</label><div class="seg"><button id="alignJ">По ширине</button><button id="alignL">Влево</button></div></div>
+      <div class="srow"><label>Текст</label><div class="seg"><button id="hyphTgl">Переносы</button><button id="indTgl">Отступ</button></div></div>
+    </div>
+    <div class="setgrp" id="grpPage">
+      <div class="srow"><label>Тема</label><div class="seg" id="themeSeg"></div></div>
+      <div class="srow"><label>Цвета</label><div class="seg"><span class="segval">текст</span><input type="color" id="cTxt" value="#5b4636"><span class="segval">фон</span><input type="color" id="cBg" value="#f4ecd8"><button id="cReset">Сбросить</button></div></div>
+      <div class="srow"><label>Поля</label><div class="seg"><button id="mgMinus" aria-label="Уже"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><button id="mgPlus" aria-label="Шире"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
+      <div class="srow"><label for="dimRange">Затемнение</label><input type="range" id="dimRange" min="0" max="70" step="5" value="0"><span class="segval" id="dimVal">0 %</span></div>
     <div class="srow" id="pdfDimRow"><label for="pdfDimRange">Затемнение PDF ночью</label><input type="range" id="pdfDimRange" min="0" max="50" step="5" value="35" aria-describedby="pdfDimHint"><span class="segval" id="pdfDimVal">35 %</span></div>
     <div class="pdfdimhint" id="pdfDimHint">работает в ночной теме</div>
-    <div class="setgrp on" id="grpFont">
-      <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
-    </div>
-    <div class="setgrp" id="grpSize">
-      <div class="srow"><label>Размер</label><div class="seg">
-        <button id="szMinus">A−</button><button id="szPlus">A+</button><span class="segval" id="szVal"></span></div></div>
-      <div class="srow"><label>Интервал</label><div class="seg">
-        <button id="lhMinus">▁</button><button id="lhPlus">☰</button><span class="segval" id="lhVal"></span></div></div>
-      <div class="srow"><label>Поля</label><div class="seg">
-        <button id="mgMinus">⊞</button><button id="mgPlus">⊡</button>
-        <label style="width:auto">Буквы</label>
-        <button id="lsMinus">a−</button><button id="lsPlus">a＋</button><span class="segval" id="lsVal"></span></div></div>
-    </div>
-    <div class="setgrp" id="grpText">
-      <div class="srow"><label>Выравн.</label><div class="seg">
-        <button id="alignJ">По ширине</button><button id="alignL">Влево</button>
-        <button id="hyphTgl">Переносы</button><button id="indTgl">Отступ</button></div></div>
-      <div class="srow"><label>Насыщ.</label><div class="seg">
-        <button id="wLight">Тонкий</button><button id="wNorm">Обычный</button><button id="wBold">Жирный</button></div></div>
-    </div>
-    <div class="setgrp" id="grpTheme">
-      <div class="srow"><label>Тема</label><div class="seg" id="themeSeg"></div></div>
-    </div>
-    <div class="setgrp" id="grpColor">
-      <div class="srow"><label>Цвета</label>
-        <div class="seg">
-          <span class="segval">текст</span><input type="color" id="cTxt" value="#5b4636">
-          <span class="segval">фон</span><input type="color" id="cBg" value="#f4ecd8">
-          <button id="cReset" style="font-size:12px;color:var(--muted);text-decoration:underline">сброс</button>
-        </div></div>
     </div>
     <div class="setgrp" id="grpNav">
-      <div class="srow"><label>Стрелки</label><div class="seg"><button id="navBtns">Кнопки ‹ ›</button><span class="segval">показывать кнопки перелистывания</span></div></div>
+      <div class="srow"><label>Кнопки</label><div class="seg"><button id="navBtns">Кнопки ‹ › на экране</button></div></div>
       <div class="srow"><label>Тап</label><div class="seg"><button id="navTap">Тап по краям</button><button id="navInvert">Инверсия</button></div></div>
       <div class="srow"><label>Свайп</label><div class="seg"><button id="navSwipe">Листать свайпом</button></div></div>
-      <div class="srow"><div class="segval">Тап по центру — открыть это меню; тап у верхних углов — день/ночь и закладка.</div></div>
+      <div class="srow"><div class="segval">Тап по центру — панели; тап у верхних углов — день/ночь и закладка.</div></div>
     </div>
+    <div class="setgrp" id="grpFocus">
+      <div class="srow"><label>Режим фокуса</label><div class="seg" id="focusSeg"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div></div>
+      <div class="srow"><div class="segval">Остаётся только текст. Выход — тап в центр</div></div>
+      <div class="srow"><label>Счётчик</label><div class="seg"><span class="segval" style="flex:1">«7 / 10 мин» в углу в режиме фокуса</span><button class="ghostbtn sw" id="readCntTgl" role="switch">Вкл</button></div></div>
+    </div>
+    <button class="gsetrow" id="btnGeneral"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span><b>Общие настройки</b><small>Тема приложения, язык, экран, данные</small></span><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
   </div>
 </div>
 

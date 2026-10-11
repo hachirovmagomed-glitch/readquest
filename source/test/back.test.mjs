@@ -108,7 +108,8 @@ ok('F5 in reader → back: no pageerror, no summary, library, URL same', !errs.l
 // 6) fullscreen: system exits fullscreen while reading → panels visible
 await open();
 await page.evaluate(() => revealChrome()); await sleep(200);
-await page.click('#btnFull'); await sleep(600);
+/* 1в: the ⛶ button is gone — fullscreen is entered by the centre tap that hides the panels (the real path now) */
+{ const v = await page.evaluate(() => { const r = document.getElementById('viewer').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }); await page.touchscreen.tap(v.x, v.y); } await sleep(600);
 const fsIn = await page.evaluate(() => ({ fs: !!document.fullscreenElement, barsoff: document.getElementById('reader').classList.contains('barsoff'), FSW }));
 await page.evaluate(() => document.exitFullscreen()); await sleep(600);
 const fsOut = await page.evaluate(() => ({ fs: !!document.fullscreenElement, barsoff: document.getElementById('reader').classList.contains('barsoff') }));

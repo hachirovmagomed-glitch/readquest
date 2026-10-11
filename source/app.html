@@ -385,6 +385,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* 1б: while a PDF loads — backdrop in the PAGE colour with «N / M», never a white sheet / the previous book */
 #pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg);color:var(--r-txt-2);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
 #pdfBack.hidden{display:none}
+#pdfBack{flex-direction:column;gap:12px}.pdfSpin{width:22px;height:22px;border-radius:50%;border:2px solid currentColor;border-color:var(--rq-accent,currentColor);border-top-color:transparent;animation:pdfSpin .9s linear infinite}@keyframes pdfSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.pdfSpin{animation:none}}
 /* 1б night PDF (variant B): canvas → this layer (no pointer events) → text layer; no inversion. Value = SET.pdfDim → --rq-pdf-dim */
 #pdfDim{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim)));display:none}
 #reader[data-page="night"] #pdfDim{display:block}
@@ -1075,7 +1076,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   </header>
   <div id="viewer">
     <div id="content"></div>
-    <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfDim" aria-hidden="true"></div><div id="pdfText" class="textLayer"></div></div></div></div>
+    <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span class="pdfSpin" aria-hidden="true"></span><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfDim" aria-hidden="true"></div><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>

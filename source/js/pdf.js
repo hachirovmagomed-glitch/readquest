@@ -32,7 +32,7 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
-    pdfNumbers(p);pdfBackdrop(pdfLabel(p)+' / '+R.pageCount);
+    pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
     pdfRender('open');pdfWatch();
   }catch(e2){pdfBackdrop(null);alert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
@@ -43,7 +43,7 @@ function pdfReset(){
   sh.querySelectorAll('canvas').forEach(c=>{c.remove();c.width=0;c.height=0;});
   el('pdfText').textContent='';
   P.front=null;P.frontSc=0;P.shown=-1;P.target=0;P.z=1;P.k=1;P.tx=0;P.ty=0;P.baseW=0;P.baseH=0;P.bw=0;P.labels=null;P.g=null;P.sliding=false;P.redo=false;P.stall=null;
-  clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;
+  clearTimeout(P.tapT);P.tapT=null;clearInterval(P.watch);P.watch=0;P.retry=0;pdfResumeDone();
   const st=el('pdfStage');st.style.transform='';st.style.visibility='hidden';
 }
 function pdfClose(){pdfReset();pdfBackdrop(null);if(R.pdf){try{R.pdf.destroy();}catch(e){}}R.pdf=null;}
@@ -89,6 +89,7 @@ function pdfRenderFailed(seq,e){
   if(seq!==P.seq||!R.pdf)return;
   P.retry=(P.retry||0)+1;
   if(P.retry<=3)setTimeout(function(){if(seq===P.seq&&R.pdf)pdfRender('retry');},120*P.retry);
+  else pdfResumeDone(); /* 1в-black: giving up → never keep the session held */
 }
 /** Watchdog recovery → one analytics event in the `events` store (never sessions[]). */
 function pdfStallLog(n){
@@ -131,6 +132,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
     updDayBar();
   }
   if(P.stall)pdfStallLog(n);
+  pdfResumeDone(); /* 1в-black: the page is on screen → release the held clock */
 }
 /** Corner number + bar number + slider: printed label / total (same frame as the swap). */
 function pdfReach(n){const r=R.pageCount>1?n/(R.pageCount-1):1;R.maxRatio=Math.max(R.maxRatio,r);R.pos=r;persistPage();}
@@ -561,3 +563,26 @@ function tapZone(x,y){
   if(y>=0.12&&x>0.7)return 'r';
   return 'c';
 }
+/* 1в-black: Android may drop canvas bitmaps while the app is in the background → a black page on return.
+   On return re-render the SAME page (n===P.shown → isNew=false in pdfSwap): no pdfReach, no tracker page call,
+   nothing is written to pos/ratio. The counted clock is HELD (__tracker.holdResume) until the page is on screen
+   (pdfSwap → pdfResumeDone) so no minute is counted on a blank canvas. visibilitychange + pageshow(persisted)
+   may both fire → one resume render only (P.resuming). */
+function pdfResumeDone(){
+  if(!P.resuming)return;
+  P.resuming=false;clearTimeout(P.resumeT);P.resumeT=0;
+  if(__tracker&&__tracker.releaseResume)__tracker.releaseResume();
+}
+function pdfResume(src){
+  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding)return;
+  if(P.resuming){P.resumeDup=(P.resumeDup||0)+1;return;} /* second event of the same return */
+  P.resuming=true;P.resumes=(P.resumes||0)+1;
+  if(__tracker&&__tracker.holdResume)__tracker.holdResume();
+  clearTimeout(P.resumeT);P.resumeT=setTimeout(pdfResumeDone,8000); /* safety: never stay held forever */
+  pdfRender('resume');
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden'){pdfResumeDone();return;}
+  pdfResume('vis');
+});
+window.addEventListener('pageshow',function(e){if(e.persisted)pdfResume('pageshow');});

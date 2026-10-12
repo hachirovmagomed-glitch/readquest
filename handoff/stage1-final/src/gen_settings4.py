@@ -22,9 +22,12 @@ FONTS = [('Georgia','Georgia, serif'),('Times','"Times New Roman", Times, serif'
          ('Garamond','Garamond,"Times New Roman",serif'),('Sans','system-ui,"Segoe UI",Roboto,sans-serif'),('Verdana','Verdana,Geneva,sans-serif'),
          ('Trebuchet','"Trebuchet MS",sans-serif'),('Tahoma','Tahoma,sans-serif'),('Comic','"Comic Sans MS","Segoe UI",cursive'),('Mono','"Courier New",monospace')]
 # В макете к стеку из FONTS дописаны похожие открытые шрифты бокса — только чтобы на картинке было видно разницу. В app.html стек FONTS не меняем.
-MOCK = {'Georgia':'Gelasio','Times':'Tinos','Palatino':'"PT Serif"','Garamond':'"EB Garamond"','Sans':'Roboto','Verdana':'"DejaVu Sans"',
-        'Trebuchet':'"Source Sans Pro"','Tahoma':'"PT Sans"','Comic':'"Comic Neue"','Mono':'"Courier Prime"'}
-def fstack(l, v): return (v.rsplit(',',1)[0] + ',' + MOCK[l] + ',' + v.rsplit(',',1)[1]).replace('"', "'")
+MOCK = {'Georgia':'Gelasio','Times':'Tinos','Palatino':'PTSerif','Garamond':'EBGaramond','Sans':'Roboto','Verdana':'DejaVuSans',
+        'Trebuchet':'FiraSans','Tahoma':'PTSans','Comic':'PatrickHand','Mono':'JetBrainsMono'}
+# Файлы лежат в src/fonts (OFL/Apache/свободная лицензия DejaVu), подключены @font-face под именами rqm-*; в стеке идут ПЕРВЫМИ, чтобы рендер не зависел от шрифтов бокса.
+FACES = '<style>' + ''.join(f"@font-face{{font-family:'rqm-{f}';src:url('fonts/{f}.ttf');font-display:block}}" for f in MOCK.values()) + '</style>'
+PRELOAD = '<div aria-hidden="true" style="position:absolute;left:-9999px">' + ''.join(f"<span style=\"font-family:'rqm-{f}'\">Aa</span>" for f in MOCK.values()) + '</div>' + '<script>document.documentElement.style.visibility="hidden";document.fonts.ready.then(()=>Promise.all([...document.fonts].map(f=>f.load()))).then(()=>{document.documentElement.style.visibility=""})</script>'
+def fstack(l, v): return (f"'rqm-{MOCK[l]}'," + v).replace('"', "'")
 # Темы: (id в rq_set.theme, подпись, фон, текст)
 THEMES = [('light','Белая','#f7f5f0','#26241f'),('sepia','Сепия','#f4ecd8','#5b4636'),('dark','Тёмная','#1e1e24','#cfcfd8'),
           ('black','Чёрная (AMOLED)','#000000','#9a9aa3'),('pencil','Карандашный','#f3f0e7','#2a2a28')]
@@ -54,7 +57,7 @@ def wrap(inner, mh=780, pdf=False):
 
 def text_tab(n):
     return ('<style>.sheet .sec{padding:6px 0}.sheet .seg div{min-height:36px;font-size:.8125rem}</style>' + head('Настройки чтения') + tabs('text')
-        + vrow('Шрифт', '<span style="font-family:Georgia,Gelasio,serif;color:var(--rq-text)">Georgia</span>')
+        + vrow('Шрифт', '<span style="font-family:\'rqm-Gelasio\',Georgia,serif;color:var(--rq-text)">Georgia</span>')
         + sl('Размер текста','19',42,'<span style="font:600 13px Georgia,serif">A</span>','<span style="font:600 20px Georgia,serif">A</span>')
         + lab('Расстояние между буквами', seg(['уже','обычное','шире'],1))
         + lab('Толщина шрифта', seg(['тоньше','обычная','жирнее'],1))
@@ -88,7 +91,7 @@ from PIL import Image
 ims = []
 for th in ('day','night'):
     for k, fn in S:
-        f = f'{D}/sf-{k}-{th}.html'; open(f,'w').write(doc(wrap(fn(th=='night')), th, 'night' if th=='night' else 'sepia', k))
+        f = f'{D}/sf-{k}-{th}.html'; open(f,'w').write(doc(FACES + PRELOAD + wrap(fn(th=='night')), th, 'night' if th=='night' else 'sepia', k))
         p = f'{O}/{k}-{th}.png'; shot(f, p, 1); shot(f, f'{O}/{k}-{th}@2x.png', 2); ims.append(Image.open(p))
 W, H = ims[0].width, ims[0].height; c = Image.new('RGB', (W*6+50, H*2+20), '#e9e4da')
 for n,i in enumerate(ims): c.paste(i, ((n%6)*(W+10), (n//6)*(H+20)))

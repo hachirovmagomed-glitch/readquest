@@ -44,6 +44,8 @@ ok('Карандашный day: SET/rq_set = pencil, #reader data-skin=pencil, f
 ok('pencil icons load: no runtime SVG filter on the Lucide strokes (it blanked icons on phones)', s.icFilter === 'none', s.icFilter);
 { const ic = await p.evaluate(() => { const vis = [...document.querySelectorAll('.ic')].filter(e => e.getClientRects().length); return { n: vis.length, drawn: vis.filter(e => { const r = e.getBoundingClientRect(); return r.width >= 12 && r.height >= 12 && getComputedStyle(e).visibility !== 'hidden' && getComputedStyle(e).opacity !== '0'; }).length }; });
   ok('pencil: every visible Lucide icon is drawn (≥12 px, visible)', ic.n >= 5 && ic.drawn === ic.n, ic); }
+{ const d = await p.evaluate(() => getComputedStyle(document.querySelector('#reader .rbar'), '::before').content);
+  ok('pencil: no wobbly divider above the bottom toolbar (.rbar::before none)', d === 'none' || d === 'normal', d); }
 ok('reader page stays clean (no background image / filter on the page)', !/url|gradient/.test(s.bgImg) && (s.filter === 'none' || !s.filter), { bgImg: s.bgImg, filter: s.filter });
 ok('skin tokens active on #reader (--rq-accent = pencil #1d6464)', s.acc === '#1d6464', s.acc);
 ok('app-wide skin day: html[data-skin=pencil]; settings sheet #fbfaf5, header + bottom bar #f3f0e7, body #f3f0e7, wobbly header line', s.hskin === 'pencil' && !s.htheme && s.sheetBg === 'rgb(251, 250, 245)' && s.headBg === 'rgb(243, 240, 231)' && s.barBg === 'rgb(243, 240, 231)' && s.bodyBg === 'rgb(243, 240, 231)' && /svg/.test(s.headLine), { hskin: s.hskin, sheet: s.sheetBg, head: s.headBg, bar: s.barBg, body: s.bodyBg, line: !!s.headLine });

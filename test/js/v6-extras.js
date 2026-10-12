@@ -522,7 +522,7 @@ el('pixelTgl').onclick=togglePixel;
 
 /* ============ ЯЗЫК / LANGUAGE (RU→EN) ============ */
 const I18N={
- 'Библиотека':'Library','Цитаты':'Quotes','Магазин':'Shop','Персонаж':'Character','Квесты':'Quests','Дневник':'Journal',
+ 'Библиотека':'Library','Цитаты':'Quotes','Магазин':'Shop','Персонаж':'Character','Квесты':'Quests','Задания':'Tasks','Дневник':'Journal',
  'Статистика':'Statistics','Календарь':'Calendar','Достижения':'Achievements','Настройки':'Settings',
  'Свайп от левого края или ☰':'Swipe from left edge or ☰','прототип v6':'prototype v6',
  '🧙 Персонаж':'🧙 Character','📝 Цитаты':'📝 Quotes','🛍 Магазин':'🛍 Shop','⚙️ Настройки':'⚙️ Settings',

@@ -21,6 +21,7 @@
  *                            (min(dwell, pageCap) credited; a forward turn after ≥ minSec = pageTurns+1)
  *   userActive(kind, info)   'pan' {fraction} | 'zoom' | … → may extend the current page's cap
  *   jumped(page)             slider / TOC / bookmark jump, once on release: one page_visible {via:'jump'}, no turn
+ *   relaid(page)             same text re-paginated (panels / rotation): index only — no event, no credit, cap kept
  *   onPageChange(page, fwd)  legacy shorthand = pageTurned(fwd) + pageShown(page)
  *   end() / cancel() / snapshot() / setCounting(on)
  *
@@ -31,7 +32,7 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261012-1457';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261012-1621';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -330,6 +331,16 @@ export function createSessionTracker(api) {
       startClock();
       dwellStart();
       persistDraft();
+    },
+
+    /**
+     * The SAME text was re-paginated (panels shown/hidden, rotation, font metrics): only the page INDEX changed.
+     * Not a page change: no page_visible event, nothing credited, the page cap / dwell / pending turn are kept.
+     * @param {number} newPage index of the same text in the new layout
+     */
+    relaid(newPage) {
+      if (!running) return;
+      page = newPage; /* memory only: the draft has no page field, so nothing is written to storage */
     },
 
     /** Legacy shorthand: pageTurned(fwd) + pageShown(page). */

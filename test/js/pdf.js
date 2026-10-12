@@ -491,11 +491,13 @@ function goPage(p,turn){
   /* Architect: reader writes pageVisibleMs on page change */
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
   if(__tracker&&(np!==prev||forwardTurn)){
-    if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
+    if(R.relay){if(np!==prev&&__tracker.relaid)__tracker.relaid(np);} /* re-pagination of the SAME text: not a page change (no event, cap kept) */
+    else if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
     else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np,R.ttsAdv?'tts':undefined);}
   }
   if(np!==prev)updDayBar();
-  if(!R.sliding)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page */
+  if(!R.sliding&&!R.relay)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page.
+     Not on a re-pagination (R.relay): same text, only the layout fraction differs → R.pos stays in memory until the next real move / close */
 }
 el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null)R.slideFrom=R.mode==='pdf'?P.shown:R.page;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
 el('pgSlider').onchange=e=>{

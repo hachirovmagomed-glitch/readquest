@@ -10,7 +10,7 @@
    stable non-zero size (2 equal rAF samples + 120 ms). Labels: pdf.getPageLabels(), else the 1-based file number. */
 const PDF_MAX_PX=16e6, PDF_ZMAX=4, PDF_DBL_MS=250, PDF_SWIPE=50;
 const P={seq:0,task:null,front:null,frontSc:0,shown:-1,target:0,baseW:0,baseH:0,bw:0,k:1,z:1,tx:0,ty:0,labels:null,
-  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,redo:false,lastVS:null,lastVR:null,stall:null,reqWhy:'',tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,log:[]};
+  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,redo:false,lastVS:null,lastVR:null,stall:null,reqWhy:'',tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,chk:0,log:[]};
 window.__rqPdf=P; /* diagnostics for tests (read-only) */
 function pdfLabel(n){const l=P.labels&&P.labels[n];return (l!=null&&String(l).trim()!=='')?String(l):String(n+1);}
 function pdfViewSize(){const v=el('viewer'),s={w:v.clientWidth,h:v.clientHeight};if(s.w>8&&s.h>8)P.lastVS=s;return s;}
@@ -79,6 +79,17 @@ async function pdfRender(why){
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   requestAnimationFrame(function(){
     if(seq!==P.seq){cv.width=0;cv.height=0;return;}
+    /* 1в-black-2: right after a return the GPU/backing may not be back yet → the fresh bitmap can itself be lost/black.
+       Re-render after a frame (≤ 3 tries; a genuinely black page is shown after that). */
+    if(pdfCtxLost(cv)){ /* backing not back yet: never swap it in; page colour + spinner stay, clock stays held */
+      cv.width=0;cv.height=0;P.badTry=(P.badTry||0)+1;pdfLog({ev:'ctx-lost-after-render',why:why,try:P.badTry});
+      if(P.shown>=0){el('pdfStage').style.visibility='hidden';pdfBackdrop('');pdfHold();}
+      setTimeout(function(){requestAnimationFrame(function(){if(seq===P.seq&&R.pdf&&document.visibilityState!=='hidden')pdfRender(why);});},Math.min(1000,150*P.badTry));return;
+    }
+    if(/^(resume|restored|check)/.test(why||'')&&pdfCanvasBad(cv)&&(P.badTry=(P.badTry||0)+1)<=3){
+      pdfLog({ev:'canvas-bad-after-render',why:why,try:P.badTry});cv.width=0;cv.height=0;
+      setTimeout(function(){requestAnimationFrame(function(){if(seq===P.seq&&R.pdf)pdfRender(why);});},80*P.badTry);return;
+    }
     pdfSwap(n,cv,sc,baseW,baseH,tl,sz);
   });
 }
@@ -103,6 +114,7 @@ function pdfWatch(){
   clearInterval(P.watch);
   P.watch=setInterval(function(){
     if(!R.pdf||R.mode!=='pdf'){clearInterval(P.watch);P.watch=0;return;}
+    if(P.target===P.shown&&!P.task&&!P.rsRaf&&++P.chk%3===0)pdfCheck('watch'); /* ~2 s: a dropped backing with no event at all */
     if(P.target!==P.shown&&!P.task&&!P.rsRaf&&performance.now()-(P.reqAt||0)>1500){
       pdfLog({ev:'watchdog',target:P.target,shown:P.shown});
       if(!P.stall)P.stall={t0:P.reqAt||performance.now(),why:P.reqWhy||'',page:P.target}; /* logged as pdf_stall_recovered once the page is on screen */
@@ -114,6 +126,10 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   const sh=el('pdfSheet'),old=P.front,isNew=(n!==P.shown);
   sh.style.width=baseW+'px';sh.style.height=baseH+'px';
   cv.className='pdfc';sh.insertBefore(cv,sh.firstChild);
+  /* 1в-black-2: Chrome (Android) drops 2D canvas backings in the background and fires contextlost / contextrestored */
+  cv.addEventListener('contextlost',function(e){if(P.front===cv)pdfLost('contextlost');});
+  cv.addEventListener('contextrestored',function(){if(P.front===cv)pdfResume('restored');});
+  P.badTry=0;pdfRemember(cv);
   if(old&&old!==cv){old.remove();old.width=0;old.height=0;}
   P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
@@ -577,16 +593,66 @@ function pdfResumeDone(){
   P.resuming=false;clearTimeout(P.resumeT);P.resumeT=0;
   if(__tracker&&__tracker.releaseResume)__tracker.releaseResume();
 }
-function pdfResume(src){
-  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding)return;
-  if(P.resuming){P.resumeDup=(P.resumeDup||0)+1;return;} /* second event of the same return */
+function pdfCtxLost(cv){try{const c=cv.getContext('2d',{alpha:false});return !!((c.isContextLost&&c.isContextLost())||(window.__rqLoseCanvas&&window.__rqLoseCanvas(cv)));}catch(e){return false;}}
+const PDF_PTS=[[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8],[.03,.03],[.97,.97]];
+function pdfSample(cv,cheap){
+  const c=cv.getContext('2d',{alpha:false}),w=cv.width,h=cv.height,out=[];
+  const pts=cheap?[PDF_PTS[0],PDF_PTS[1],PDF_PTS[4]]:PDF_PTS;
+  for(let i=0;i<pts.length;i++){const d=c.getImageData(Math.floor(pts[i][0]*(w-1)),Math.floor(pts[i][1]*(h-1)),1,1).data;out.push([d[0],d[1],d[2],d[3]]);}
+  return out;
+}
+/** remember what the page really looks like right after a good render (dark / blank pages included) */
+function pdfRemember(cv){setTimeout(function(){if(P.front!==cv||!cv.width)return;try{P.ref=pdfSample(cv);P.refCv=cv;}catch(e){P.ref=null;}},0);}
+/** bitmap gone: context lost, 0-size, all sampled pixels alpha 0, or all pure black while the same page sampled right
+    after its render was NOT all black. Blank white and genuinely dark pages are normal (night/dim are CSS layers, not pixels). */
+function pdfCanvasBad(cv,cheap){
+  if(!cv||!cv.width||!cv.height)return true;
+  if(pdfCtxLost(cv))return true;
+  try{
+    const px=pdfSample(cv,cheap);
+    if(px.every(function(d){return d[3]===0;}))return true;
+    const black=px.every(function(d){return d[0]===0&&d[1]===0&&d[2]===0;});
+    if(!black)return false;
+    const ref=(P.refCv===cv||(cv===P.front&&P.ref))?P.ref:null;
+    return !!(ref&&!ref.every(function(d){return d[0]===0&&d[1]===0&&d[2]===0;}));
+  }catch(e){return false;}
+}
+/** safety net (Интерфейс): a lost/empty bitmap never shows black — page colour (var(--r-bg)) + quiet spinner, then the page is redrawn */
+function pdfLost(src){
+  if(!R.pdf||R.mode!=='pdf'||P.shown<0)return;
+  P.lost=(P.lost||0)+1;pdfLog({ev:'canvas-lost',src:src,page:P.shown});
+  el('pdfStage').style.visibility='hidden';pdfBackdrop('');
+  pdfHold(); /* no minute is counted while the page is not on screen */
+}
+/** hold the counted clock until the page is on screen again (pdfSwap → pdfResumeDone). The 8 s safety releases it
+    ONLY with the placeholder showing (never over a black bitmap). Holding writes nothing. */
+function pdfHold(){
+  if(P.resuming)return false;
   P.resuming=true;P.resumes=(P.resumes||0)+1;
   if(__tracker&&__tracker.holdResume)__tracker.holdResume();
-  clearTimeout(P.resumeT);P.resumeT=setTimeout(pdfResumeDone,8000); /* safety: never stay held forever */
-  pdfRender('resume');
+  clearTimeout(P.resumeT);P.resumeT=setTimeout(function(){
+    if(pdfCanvasBad(P.front)){el('pdfStage').style.visibility='hidden';pdfBackdrop('');P.lostGiveUp=(P.lostGiveUp||0)+1;}
+    pdfResumeDone();
+  },8000);
+  return true;
+}
+/** cheap check on every way back (focus / resume / periodic): redraw only if the bitmap is really gone */
+function pdfCheck(src){
+  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding||P.resuming||P.task)return;
+  if(pdfCanvasBad(P.front,src==='watch')){pdfLost(src);pdfResume('check-'+src);}
+}
+function pdfResume(src){
+  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding)return;
+  if(P.resuming&&!/^(restored|check)/.test(src)){P.resumeDup=(P.resumeDup||0)+1;return;} /* second event of the same return */
+  pdfHold();
+  if(pdfCanvasBad(P.front))pdfLost(src); /* black/empty already → page colour + spinner instead of black until the swap */
+  pdfRender(/^(restored|check)/.test(src)?src:'resume');
 }
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'){pdfResumeDone();return;}
   pdfResume('vis');
 });
-window.addEventListener('pageshow',function(e){if(e.persisted)pdfResume('pageshow');});
+window.addEventListener('pageshow',function(e){if(e.persisted)pdfResume('pageshow');else pdfCheck('pageshow');});
+document.addEventListener('resume',function(){pdfCheck('resume');}); /* Page Lifecycle: frozen → resumed without a visibility change */
+window.addEventListener('focus',function(){pdfCheck('focus');}); /* unlock: focus comes back */
+window.addEventListener('resize',function(){setTimeout(function(){pdfCheck('resize');},300);});

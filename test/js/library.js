@@ -164,10 +164,19 @@ function diffOf(id){
   if(/юмор|рассказ/i.test(b.genre))lvl--;
   return Math.max(0,Math.min(4,lvl));
 }
+/* «Карандашный»: emoji cover → hatched tile with a Lucide icon and the format on a clean plate (picture covers stay pictures) */
+const PC_COVER_ICONS=['book-open','moon','star','heart','compass','sparkles','flame','gift'];
+function pencilCover(b){
+  const fmt=b.type==='pdf'?'PDF':(/\.fb2$/i.test(b.fname||'')||b.genre==='FB2'?'FB2':(/\.epub$/i.test(b.fname||'')?'EPUB':'TXT'));
+  let ic=fmt==='PDF'?'file-text':fmt==='FB2'?'book-marked':null;
+  if(!ic){let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;ic=PC_COVER_ICONS[h%PC_COVER_ICONS.length];}
+  return '<span class="pc-cover">'+rqIcon(ic,20)+'<i>'+fmt+'</i></span>';
+}
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){
   const cv=S.covers[b.id];
   if(cv&&cv.indexOf('data:')===0)return '<img src="'+cv+'" alt="">';
+  if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
   if(cv)return cv;
   return b.cover;
 }

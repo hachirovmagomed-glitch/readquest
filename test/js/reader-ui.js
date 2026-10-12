@@ -42,7 +42,7 @@ function concealChrome(how){
   armFocusAuto();
 }
 /** chrome state: show our bars + leave fullscreen — same handler, same frame */
-function revealChrome(){
+function revealChrome(){if(typeof pgArtSync==='function')requestAnimationFrame(pgArtSync);
   const r=el('reader');if(!r||r.classList.contains('hidden'))return;
   fsPending=false;
   exitFullscreenSafe();
@@ -557,7 +557,7 @@ async function closeReaderImpl(opts){
   const newAch=checkAchievements();
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid};
+  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);return;}
   renderSummary(_sumArgs);
@@ -610,6 +610,15 @@ function renderSummary(r){
   if(qp.weekly&&qp.weekly.length)ql.push('+'+coinsP(120*qp.weekly.length)+' — неделя выполнена');
   const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
+  /* «Карандашный»: subtitle «книга», «минут чтения», 4 week dots (filled = goal days), emoji stripped from the text lines */
+  const pc=typeof isPencil==='function'&&isPencil();
+  if(el('sumSub'))el('sumSub').textContent=r.title||'';
+  if(el('sumMinLbl'))el('sumMinLbl').textContent=pc?'минут чтения':'минут';
+  if(el('sumWeekDots')){const n=Math.min(4,daysInWeekAtGoal(goalMin(),weekKey(sday)).count);let h='';for(let i=0;i<4;i++)h+=i<n?rqIcon('circle-check',18):rqIcon('circle',18);el('sumWeekDots').innerHTML=h;}
+  if(pc){const de=t=>String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]+\s*/gu,'');
+    ['sumNote','lvlUp','luckLbl'].forEach(function(k){const e=el(k);if(e)e.textContent=de(e.textContent);});
+    bb.querySelectorAll('.newbadge').forEach(function(d){d.textContent=de(d.textContent);});
+    if(el('sumGoldLbl'))el('sumGoldLbl').textContent=S.cur.name;}
   applyMvpChrome();
 }
 
@@ -620,7 +629,8 @@ function confetti(opts){
   const em=['🎉','✨','⭐','📖'];
   for(let i=0;i<count;i++){
     const s=document.createElement('div');s.className='confetti';
-    s.textContent=em[i%em.length];
+    if(typeof isPencil==='function'&&isPencil()){s.innerHTML=rqIcon(['sparkles','star','book-open','check'][i%4],16);} /* «Карандашный»: Lucide, no emoji */
+    else s.textContent=em[i%em.length];
     s.style.left=(8+Math.random()*84)+'vw';
     /* start well below heading when avoidTop */
     s.style.top=avoidTop?((32+Math.random()*40)+'vh'):'-30px';

@@ -30,7 +30,13 @@ function applySkin(){
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
+  const lt=document.getElementById('libTitle');if(lt)lt.textContent=t.skin==='pencil'?'Библиотека':'ReadQuest'; /* «Карандашный»: mockup title */
+  const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
+  applySkin._last=sk;
+  if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }
+/** «Карандашный» active (app-wide skin) — UI only: covers / avatar / summary / confetti draw Lucide instead of emoji */
+function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
 function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&(!window.__rqWriter||__rqWriter.mayWrite()))__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}

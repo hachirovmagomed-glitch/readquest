@@ -528,22 +528,43 @@ if (want('relay')) for (const TH of ['sepia', 'pencil']) {
   const r = await q.evaluate(async (id) => {
     const W = ms => new Promise(z => setTimeout(z, ms));
     const pv = async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id);
+    /* full storage picture: NS_v1 envelope, the session draft, sessions[] (IDB) and the event journal (IDB) */
+    const store = async () => JSON.stringify({ v1: localStorage.getItem(RQ_K.v1), draft: localStorage.getItem((window.RQ_NS || 'rq') + '_session_draft'), draftKeys: Object.keys(localStorage).filter(k => /_session_draft$/.test(k)).join(), sess: await __rq.listSessions({}), ev: await __rq.listReadingEvents({}) });
+    const live = () => __tracker.snapshot().minutes, fm = () => dayMinFloor(today(), live());
+    const g0 = S.gold, paid0 = (S.dailyPaidDays || []).slice();
     concealChrome('tap'); await W(400);
     for (let k = 0; k < 5; k++) { goPage(R.page + 1, true); await W(120); }
     const ev0 = (await pv()).length, s0 = __tracker.snapshot(), max0 = R.maxRatio, saved0 = (S.progress[id] || {}).ratio, n0 = R.pageCount;
+    const before = await store();
+    /* 10 idle minutes on ONE page, the panels toggled 4 times (synchronous relayouts, no real-time wait → no periodic flush in between) */
     const steps = [];
-    for (let k = 0; k < 4; k++) { window.__rqTimeOffset += 150000; if (k % 2 === 0) revealChrome(); else concealChrome('tap'); await W(500);
+    for (let k = 0; k < 4; k++) { window.__rqTimeOffset += 150000; if (k % 2 === 0) revealChrome(); else concealChrome('tap');
       steps.push({ N: R.pageCount, page: R.page, trk: __tracker.snapshot().page }); }
+    window.__rqTimeOffset += 30000; await W(50);
+    const after = await store();
     const s1 = __tracker.snapshot(), ev1 = (await pv()).length;
     const out = { theme: document.documentElement.dataset.skin || 'plain', n0, steps, newEvents: ev1 - ev0, turns: [s0.turns, s1.turns], pageTurns: [s0.pageTurns, s1.pageTurns],
-      max: [max0, R.maxRatio], saved: [saved0, (S.progress[id] || {}).ratio], gainedMin: +((s1.countedMs - s0.countedMs) / 60000).toFixed(2), capMin: s1.pageCapMs / 60000 };
-    goPage(R.page + 1, true); await W(300); const evs = (await pv()).slice(ev1).map(e => e.via);
-    out.afterTurn = evs; return out; }, q.__bid);
+      max: [max0, R.maxRatio], saved: [saved0, (S.progress[id] || {}).ratio], gainedMin: +((s1.countedMs - s0.countedMs) / 60000).toFixed(2), capMin: s1.pageCapMs / 60000,
+      storeSame: before === after, storeLen: [before.length, after.length], storeDiff: (() => { const A = JSON.parse(before), B = JSON.parse(after); return Object.keys(A).filter(k => JSON.stringify(A[k]) !== JSON.stringify(B[k])).map(k => { const a = JSON.stringify(A[k]), b = JSON.stringify(B[k]); let i = 0; while (a[i] === b[i]) i++; return k + ' @' + i + ': ' + a.slice(Math.max(0, i - 60), i + 40) + ' ⇒ ' + b.slice(Math.max(0, i - 60), i + 40); }); })() };
+    out.idle = { floor: fm(), ringClosed: fm() >= goalMin(), goal: goalMin(), paid: (S.dailyPaidDays || []).slice(), gold: [g0, S.gold], paid0 };
+    goPage(R.page + 1, true); await W(300); out.afterTurn = (await pv()).slice(ev1).map(e => e.via);
+    window.__rqTimeOffset += 600000; await W(50);
+    out.second = { live: +live().toFixed(3), floor: fm() };
+    await closeReader({ quiet: true }); await W(300);
+    out.closed = { floor: dayMinFloor(today()), paid: (S.dailyPaidDays || []).slice(), gold: [g0, S.gold] };
+    let blob = null; const oc = URL.createObjectURL; URL.createObjectURL = (b) => { blob = b; return 'blob:x'; };
+    try { await document.getElementById('btnExport').onclick(); } finally { URL.createObjectURL = oc; }
+    const j = blob ? JSON.parse(await blob.text()) : null; out.schemaVersion = j && j.schemaVersion;
+    return out; }, q.__bid);
   const tag = 'relay[' + TH + ']: ';
   ok(tag + 'panels on/off in a text book re-paginate (N changes) but write NO page_visible event', r.steps.some(x => x.N !== r.n0) && r.newEvents === 0, r);
   ok(tag + 'relayout: turns / pageTurns / maxRatio / saved ratio unchanged, tracker page = shown page', r.turns[0] === r.turns[1] && r.pageTurns[0] === r.pageTurns[1] && r.max[0] === r.max[1] && r.saved[0] === r.saved[1] && r.steps.every(x => x.trk === x.page), r);
+  ok(tag + '(a) 4 toggles write nothing: NS_v1, session draft, sessions[] and event journal byte-identical before/after', r.storeSame, { len: r.storeLen, diff: r.storeDiff });
   ok(tag + '10 idle minutes on one page with 4 panel toggles → counted ≤ the 3-min page cap (cap not reset by a relayout)', r.gainedMin <= r.capMin + 0.05, r);
+  ok(tag + '(c) idle phase: floor(dayMinutes) = 3, day ring not closed, +30 not paid, dailyPaidDays empty', r.idle.floor === 3 && !r.idle.ringClosed && r.idle.gold[0] === r.idle.gold[1] && !r.idle.paid.length && !r.idle.paid0.length, r.idle);
   ok(tag + 'the next real turn → exactly one page_visible {via:"turn"}', r.afterTurn.length === 1 && r.afterTurn[0] === 'turn', r.afterTurn);
+  ok(tag + '(b) 10 more idle minutes on the new page → floor(dayMinutes) = 6 exactly (3 + 3), live and after close; still no +30', r.second.floor === 6 && r.closed.floor === 6 && !r.closed.paid.length && r.closed.gold[0] === r.closed.gold[1], { second: r.second, closed: r.closed });
+  ok(tag + '(d) export after all this: schemaVersion 1', r.schemaVersion === 1, r.schemaVersion);
   await q.__ctx.close();
 }
 

@@ -340,8 +340,7 @@ export function createSessionTracker(api) {
      */
     relaid(newPage) {
       if (!running) return;
-      page = newPage;
-      persistDraft();
+      page = newPage; /* memory only: the draft has no page field, so nothing is written to storage */
     },
 
     /** Legacy shorthand: pageTurned(fwd) + pageShown(page). */

@@ -141,6 +141,12 @@ await p1.evaluate(() => closeReader()); await sleep(400);
 // ---------- (b) next open after all old windows closed → build B ----------
 await p1.close();
 p1 = await mk();
+/* 1в flake fix: page.close() returns before the closed tab stops being a client of SW A. Navigating into the scope at that moment
+   makes the NEW page a client of A too, so B (waiting) can never activate while it is open → «old cache kept / controlled by A»
+   (115/117 under load). Precondition of (b) is «all old windows closed»: wait for it from an out-of-scope page of the same origin. */
+await p1.goto(new URL('/', BASE).href, { waitUntil: 'load' });
+const actB = await p1.waitForFunction((sc) => navigator.serviceWorker.getRegistration(sc).then(r => !!r && !r.waiting && !!r.active && !r.installing), { polling: 100, timeout: 15000 }, new URL(BASE).pathname).then(() => true, () => false);
+ok('(b) after the old window is gone, B activates (no waiting worker left)', actB);
 await p1.goto(BASE, { waitUntil: 'load' }); await ready(p1);
 const shownB = await p1.evaluate(() => RQ_BUILD);
 ok('(b) next open shows new build ' + B, shownB === B, shownB);

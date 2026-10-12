@@ -1,0 +1,47 @@
+/* ReadQuest — скин «Крик» (Мунк, пастель). Значения сняты с макетов v3. */
+:root,[data-theme="scream"]{
+  --rq-bg:#e8c48a;            /* мост/фон под карточками */
+  --rq-sky-1:#f2b088; --rq-sky-2:#f0a08a; --rq-sky-3:#f7c548; --rq-sky-4:#9cc8e0;
+  --rq-fjord:#1d4fae; --rq-bridge:#c98f52; --rq-rail:#6b3b17;
+  --rq-page-bg:#f1e4c6;       /* страница читалки */
+  --rq-surface:#f6ead0;       /* карточки, фишки, нижняя панель */
+  --rq-text:#1a2550;          /* 11.7:1 на page-bg */
+  --rq-heading:#1d2a52;
+  --rq-text-muted:#3b3550;    /* 9.7:1 на surface */
+  --rq-accent:#9a3f1c;        /* подписи «ЦЕЛЬ ДНЯ», «ГЛАВА» — 5.7:1 */
+  --rq-accent-strong:#c0562e; /* полоски прогресса */
+  --rq-primary:#1b4fa8;       /* активная фишка, активный пункт nav */
+  --rq-on-primary:#fff8e6;
+  --rq-ring-track:#e8c78a; --rq-ring-fill:#f39a5e;
+  --rq-progress-track:#d9c39a; --rq-progress-fill:#c0562e;
+  --rq-slider-track:#1b4fa8; --rq-slider-fill:#f39a5e;
+  --rq-slider-thumb:#f7c548; --rq-slider-thumb-border:#9a3f1c;
+  --rq-border:#1b4fa8;        /* неровный контур карточек, 2.5px */
+  --rq-nav-bg:#f6ead0; --rq-nav-border:#6b3b17;
+  --rq-nav-fg:#5d5468; --rq-nav-active:#1b4fa8;
+  --rq-toolbar-bg:#1b3f8f; --rq-toolbar-fg:#f6ead0; --rq-toolbar-active:#f7c548;
+  --rq-figure:#14306e;
+  --rq-font-display:"Caveat",cursive; --rq-font-text:"PT Serif",serif; --rq-font-ui:"PT Sans",sans-serif;
+}
+[data-theme="scream-night"]{
+  --rq-bg:#2a2238;
+  --rq-sky-1:#1a1f52; --rq-sky-2:#2b2f7a; --rq-sky-3:#c8783a; --rq-sky-4:#7a2a2a;
+  --rq-fjord:#122a6a; --rq-bridge:#3a2a2a; --rq-rail:#8a5a30;
+  --rq-page-bg:#141a36;
+  --rq-surface:#1e2448;
+  --rq-text:#efe3c4;          /* 13.4:1 */
+  --rq-heading:#f1e4c6;
+  --rq-text-muted:#c9c0d8;    /* 8.6:1 */
+  --rq-accent:#f0a070;
+  --rq-accent-strong:#b8452c;
+  --rq-primary:#16307a; --rq-on-primary:#f6ead0;
+  --rq-ring-track:#3a3458; --rq-ring-fill:#b8452c;
+  --rq-progress-track:#3a3458; --rq-progress-fill:#b8452c;
+  --rq-slider-track:#16307a; --rq-slider-fill:#b8452c;
+  --rq-slider-thumb:#c8783a; --rq-slider-thumb-border:#f0a070;
+  --rq-border:#16307a;
+  --rq-nav-bg:#1e2448; --rq-nav-border:#8a5a30;
+  --rq-nav-fg:#b0a8c0; --rq-nav-active:#f0a070;
+  --rq-toolbar-bg:#0c1230; --rq-toolbar-fg:#efe3c4; --rq-toolbar-active:#f0a070;
+  --rq-figure:#05081c;
+}

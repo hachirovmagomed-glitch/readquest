@@ -125,10 +125,12 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   pdfBackdrop(null);
   if(isNew){
     P.shown=n;R.page=n;
-    if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
+    const tts=P.tts&&n===P.target;if(tts)P.tts=false;
+    if(tts){R.pos=R.pageCount>1?n/(R.pageCount-1):1;persistPage();} /* 1в: a read-aloud page moves the position, never «reached» */
+    else if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
     pdfNumbers(P.sliding?P.target:n);
     if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
-    else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
+    else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n,tts?'tts':undefined); /* the page is on screen now */
     updDayBar();
   }
   if(P.stall)pdfStallLog(n);
@@ -214,7 +216,9 @@ function pdfGo(np,why){
   np=Math.max(0,Math.min(R.pageCount-1,np));
   if(np===P.target){if(why==='slider')pdfNumbers(np,true);return;}
   const fwd=np>P.target;
-  if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
+  P.tts=why==='tts';
+  if(why==='tts'){P.jump=false;} /* 1в: read-aloud auto-advance: no turn, no jump; reported via:'tts' at the swap */
+  else if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
   else{
     P.jump=false;
     if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
@@ -462,7 +466,7 @@ function goPage(p,turn){
   R.page=np;
   el('content').style.transform='translateX('+(-np*R.step)+'px)';
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  if(!R.sliding){R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached» */
+  if(!R.sliding){if(!R.ttsAdv)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
@@ -472,7 +476,7 @@ function goPage(p,turn){
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
   if(__tracker&&(np!==prev||forwardTurn)){
     if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
-    else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
+    else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np,R.ttsAdv?'tts':undefined);}
   }
   if(np!==prev)updDayBar();
   if(!R.sliding)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page */

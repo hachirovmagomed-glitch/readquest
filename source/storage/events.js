@@ -49,7 +49,7 @@ export async function logReadingEvent(entry) {
     at: entry.at || new Date().toISOString(),
   };
   if (entry.page != null) rec.page = Number(entry.page);
-  if (entry.via === 'turn' || entry.via === 'jump') rec.via = entry.via; /* 1б, optional */
+  if (entry.via === 'turn' || entry.via === 'jump' || entry.via === 'tts') rec.via = entry.via; /* 1б, optional; 'tts' = read-aloud auto-advance (1в) */
   return addEvent(rec);
 }
 

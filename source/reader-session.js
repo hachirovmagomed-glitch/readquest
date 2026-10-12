@@ -275,10 +275,11 @@ export function createSessionTracker(api) {
      * min(dwell, pageCap) is credited; a pending FORWARD turn after ≥ minSec counts as pageTurns.
      * @param {number} newPage
      */
-    pageShown(newPage) {
+    pageShown(newPage, via) {
       if (!running) return;
       if (newPage === page && !pendingTurn) return;
-      flushEvent('turn');
+      flushEvent(via === 'tts' ? 'tts' : 'turn'); /* 1в: read-aloud auto-advance is marked, never a reading turn */
+      if (via === 'tts') pendingTurn = 0;
       const raw = creditPage();
       if (pendingTurn > 0) {
         turns += 1;

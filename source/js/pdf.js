@@ -415,7 +415,7 @@ function relayout(opts){
   layout();
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
-  goPage(p,false);
+  R.relay=true;try{goPage(p,false);}finally{R.relay=false;} /* 1в: a re-layout keeps the text in view; it never grows «reached» (e.g. after read-aloud) */
   R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
 }
 /* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
@@ -466,7 +466,7 @@ function goPage(p,turn){
   R.page=np;
   el('content').style.transform='translateX('+(-np*R.step)+'px)';
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  if(!R.sliding){if(!R.ttsAdv)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
+  if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */

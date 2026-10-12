@@ -27,6 +27,7 @@ import path from 'path';
 const SRC = new URL('..', import.meta.url).pathname;
 /* 1в: build-dist copies handoff/stage1-final/tokens.css; the temp copies of source/ have no ../handoff → point at the repo one */
 process.env.RQ_TOKENS = process.env.RQ_TOKENS || path.join(SRC, '..', 'handoff', 'stage1-final', 'tokens.css');
+process.env.RQ_SKIN_TOKENS = process.env.RQ_SKIN_TOKENS || path.join(SRC, '..', 'handoff', 'skins', 'karandashny', 'tokens.rq.css'); /* «Карандашный» skin tokens, same reason */
 const BREAK = process.env.SCRIPTV_BREAK || '';
 const PORT = +(process.env.SCRIPTV_PORT || 8795);
 const TMP = fs.mkdtempSync('/tmp/scriptv-');

@@ -131,10 +131,11 @@ function isLightBg(bg){
   return (((n>>16)&255)+((n>>8)&255)+(n&255))>380;
 }
 function toggleDayNight(){
-  const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
-  SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
+  const t=activeTheme();
+  if(t.skin==='pencil'&&!SET.cBg)SET.theme=t.night?'pencil':'pencil-night'; /* the skin keeps its own night */
+  else SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
   SET.cBg=null;SET.cTxt=null;saveSet();applySet();
-  {const lt=isLightBg((THEMES[SET.theme]||{}).bg||'#000');flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}
+  {const lt=isLightBg(activeTheme().bg);flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}
 }
 function addBookmark(){
   if(!R.book)return;

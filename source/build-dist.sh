@@ -36,6 +36,10 @@ cp "$ROOT/sw.js" "$DIST/sw.js"
 TOK="${RQ_TOKENS:-$ROOT/../handoff/stage1-final/tokens.css}"
 [ -f "$TOK" ] || { echo "build-dist: tokens.css not found at $TOK" >&2; exit 1; }
 cp "$TOK" "$DIST/tokens.css"
+# 1в: free skin «Карандашный» (handoff/skins/karandashny/tokens.rq.css) appended to the same file: no extra request / precache entry
+SKTOK="${RQ_SKIN_TOKENS:-$ROOT/../handoff/skins/karandashny/tokens.rq.css}"
+[ -f "$SKTOK" ] || { echo "build-dist: karandashny tokens.rq.css not found at $SKTOK" >&2; exit 1; }
+{ printf '\n'; cat "$SKTOK"; } >> "$DIST/tokens.css"
 
 # Stage 1a: classic scripts cut out of app.html live in js/ (copied for both rq and rqt; only *.js, no notes/dotfiles).
 # Each gets ?v=BUILD in the HTML (below) and in the SW precache, so a new HTML never gets an old file from SW/HTTP cache.

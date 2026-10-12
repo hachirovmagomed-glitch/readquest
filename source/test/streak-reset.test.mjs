@@ -5,6 +5,10 @@
 import puppeteer from 'puppeteer-core';
 import { fileURLToPath } from 'url';
 
+/* 1в: fixed test clock (RQ_FAKE_NOW, default Tue 2026-10-06 12:00 MSK) shared by ALL windows of the origin: localStorage '__rqFake'
+   {base, real0, adv} (not an rqt* key → survives «Сбросить тест»). Date.now / new Date() / performance.now follow it; __rqAdv(ms) / __rqAt(iso)
+   move it for every window. No real-clock day ever enters the test (no midnight flake). */
+const FAKE_NOW = process.env.RQ_FAKE_NOW || '2026-10-06T12:00:00+03:00';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8766/readquest/test/';
 const BOOK = process.env.RQ_BOOK || fileURLToPath(new URL('./fixtures/Длинная книга.txt', import.meta.url));
 const checks = [];
@@ -15,12 +19,17 @@ const ctx = await browser.createBrowserContext();
 const errs = [];
 async function mk(tag) {
   const p = await ctx.newPage(); await p.setViewport({ width: 412, height: 915, isMobile: true, hasTouch: true });
-  await p.evaluateOnNewDocument(() => {
-    window.__rqTimeOffset = 0;
-    const pn = performance.now.bind(performance); performance.now = () => pn() + window.__rqTimeOffset;
-    const dn = Date.now; Date.now = () => dn() + window.__rqTimeOffset;
-    window.__rqAdv = (ms) => { window.__rqTimeOffset += ms; };
-  });
+  await p.evaluateOnNewDocument((iso) => {
+    const K = '__rqFake', RD = Date, rnow = RD.now.bind(RD);
+    const get = () => { let f = null; try { f = JSON.parse(localStorage.getItem(K) || 'null'); } catch (e) {} if (!f) { f = { base: RD.parse(iso), real0: rnow(), adv: 0 }; localStorage.setItem(K, JSON.stringify(f)); } return f; };
+    const now = () => { const f = get(); return f.base + (rnow() - f.real0) + f.adv; };
+    const adv0 = get().adv; const pn = performance.now.bind(performance);
+    performance.now = () => pn() + (get().adv - adv0);
+    class FakeDate extends RD { constructor(...a) { if (a.length) super(...a); else super(now()); } static now() { return now(); } }
+    window.Date = FakeDate;
+    window.__rqAdv = (ms) => { const f = get(); f.adv += ms; localStorage.setItem(K, JSON.stringify(f)); };
+    window.__rqAt = (t) => { const f = get(); f.adv += RD.parse(t) - now(); localStorage.setItem(K, JSON.stringify(f)); };
+  }, FAKE_NOW);
   p.on('dialog', d => d.accept()); p.on('pageerror', e => { errs.push(tag + ': ' + e.message); console.log('PAGEERROR', tag, e.message); });
   return p;
 }
@@ -34,11 +43,37 @@ async function sess(p, id, ms) {
   await p.evaluate(() => closeReader()); await sleep(1200);
 }
 
-// B: clean test namespace, then 2.5 min → streak 1
+// B: clean test namespace
 const B = await mk('B');
 await B.goto(BASE); await ready(B);
 await Promise.all([B.waitForNavigation(), B.evaluate(() => { window.__rqTestReset({ noConfirm: true }); }) /* not awaited in-page: the reset reloads, the context dies */]); await ready(B); await sleep(400);
-const bid = await addBook(B);
+let bid = await addBook(B);
+
+// --- calendar cases on the fixed clock: 3 goal days Tue–Thu, then a Sunday session across midnight (Sun → Mon) ---
+const cal = () => B.evaluate(() => ({ day: today(), daily: (S.dailyPaidDays || []).slice().sort(), weekly: (S.weeklyPaidWeeks || []).slice().sort(), streak: S.streak, lastDay: S.lastDay, gold: S.gold }));
+const read = async (id, min) => { await B.evaluate(i => openBook(i), id); await B.waitForFunction(() => R.pageCount > 1, { timeout: 10000 }); await sleep(300);
+  for (let i = 0; i < min; i++) { await B.evaluate(() => { window.__rqAdv(60000); goPage(R.page + 1, true); }); await sleep(40); }
+  await B.evaluate(() => closeReader()); await sleep(1200); await B.evaluate(() => { const b = document.getElementById('btnDone'); if (b && !document.getElementById('summary').classList.contains('hidden')) b.click(); }); await sleep(200); };
+for (const d of ['2026-10-06', '2026-10-07', '2026-10-08']) { await B.evaluate((t) => window.__rqAt(t), d + 'T12:00:00+03:00'); await read(bid, 11); }
+let c0 = await cal();
+ok('fixed clock: Tue–Thu 11 min each → daily paid 06/07/08, no weekly yet (3 / 4 days)', c0.daily.join() === '2026-10-06,2026-10-07,2026-10-08' && !c0.weekly.length && c0.day === '2026-10-08', c0);
+await B.evaluate(() => window.__rqAt('2026-10-11T23:53:00+03:00')); /* Sunday */
+await read(bid, 11); /* 23:53 → 00:04 Monday */
+let c1 = await cal();
+ok('midnight: Sun 23:53 → Mon 00:04 session counts for its START day: daily 2026-10-11 paid, 2026-10-12 not', c1.daily.includes('2026-10-11') && !c1.daily.includes('2026-10-12') && c1.day === '2026-10-12', c1);
+ok('Sun → Mon: 4th goal day of week 2026-10-05 → weekly paid for that week only (not 2026-10-12)', c1.weekly.join() === '2026-10-05', c1);
+await B.evaluate(() => window.__rqAt('2026-10-12T00:10:00+03:00'));
+await read(bid, 11);
+let c2 = await cal();
+ok('Monday 00:10 11 min → daily 2026-10-12 paid; new week 2026-10-12 not paid (1 / 4); weekly list unchanged', c2.daily.includes('2026-10-12') && c2.weekly.join() === '2026-10-05', c2);
+// back to a plain weekday for the reset race below; clean namespace again
+await B.evaluate(() => window.__rqAt('2026-10-14T12:00:00+03:00'));
+await Promise.all([B.waitForNavigation(), B.evaluate(() => { window.__rqTestReset({ noConfirm: true }); })]); await ready(B); await sleep(400);
+const c3 = await cal();
+ok('reset clears daily/weekly paid lists (fixed clock kept: Wed 2026-10-14)', !c3.daily.length && !c3.weekly.length && c3.day === '2026-10-14', c3);
+bid = await addBook(B);
+
+// --- reset race (stream 2100): 2.5 min → streak 1 ---
 await sess(B, bid, 150000);
 const b1 = await st(B);
 ok('B reads 2.5 min → streak 1', b1.streak === 1 && !b1.passive, b1);

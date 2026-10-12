@@ -1,0 +1,23 @@
+тема	пара	зачем	порог	контраст	итог
+day	--rq-text на --rq-sheet	названия строк, шрифтов, тем	4.5	11.65	ok
+day	--rq-text-2 на --rq-sheet	значение «Georgia ›», подписи секций	4.5	5.88	ok
+day	--rq-accent-text на --rq-sheet	галочка check (графика)	3.0	5.49	ok
+day	--rq-accent-text на --rq-control-on	выбранная ступень «обычное»	4.5	5.92	ok
+day	--rq-text на --rq-surface-2	ступени «уже/шире», подсказка PDF	4.5	10.40	ok
+day	--rq-text-2 на --rq-surface-2	иконка info в подсказке PDF	3.0	5.25	ok
+day	--rq-accent-text на --rq-accent-tint	активная вкладка	4.5	4.82	ok
+day	--rq-border-strong на --rq-sheet	рамка образца темы	3.0	3.76	ok
+night	--rq-text на --rq-sheet	названия строк, шрифтов, тем	4.5	12.15	ok
+night	--rq-text-2 на --rq-sheet	значение «Georgia ›», подписи секций	4.5	6.57	ok
+night	--rq-accent-text на --rq-sheet	галочка check (графика)	3.0	6.88	ok
+night	--rq-accent-text на --rq-control-on	выбранная ступень «обычное»	4.5	5.51	ok
+night	--rq-text на --rq-surface-2	ступени «уже/шире», подсказка PDF	4.5	10.52	ok
+night	--rq-text-2 на --rq-surface-2	иконка info в подсказке PDF	3.0	5.68	ok
+night	--rq-accent-text на --rq-accent-tint	активная вкладка	4.5	5.51	ok
+night	--rq-border-strong на --rq-sheet	рамка образца темы	3.0	3.44	ok
+образец	Белая: #26241f на #f7f5f0	текст книги в теме	4.5	14.23	ok
+образец	Сепия: #5b4636 на #f4ecd8	текст книги в теме	4.5	7.51	ok
+образец	Тёмная: #cfcfd8 на #1e1e24	текст книги в теме	4.5	10.72	ok
+образец	Чёрная (AMOLED): #9a9aa3 на #000000	текст книги в теме	4.5	7.53	ok
+образец	Карандашный: #2a2a28 на #f3f0e7	текст книги в теме	4.5	12.62	ok
+образец	Ваша тема (пример): #2c3b2f на #e8efe6	текст книги в теме	4.5	10.10	ok

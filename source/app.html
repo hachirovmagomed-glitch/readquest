@@ -748,6 +748,8 @@ html[data-skin="pencil"]{--pc-frame:url("data:image/svg+xml,%3Csvg xmlns='http:/
 html[data-skin="pencil"][data-theme="night"]{--pc-frame:var(--pc-frame-n);--rq-page-bg:#262a31;--rq-slider-track:#7c828c}
 html[data-skin="pencil"] #libTitle,html[data-skin="pencil"] #profile h1,html[data-skin="pencil"] #rewardsSheet h3{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:32px;line-height:1.1;letter-spacing:0}
 html[data-skin="pencil"] #rewardsSheet h3{font-size:28px}
+/* pencil section labels in sentence case («Моя полка», «Задания»), not uppercase; ids/keys unchanged */
+html[data-skin="pencil"] :is(#shelfH,#mvpQuestH){text-transform:none;letter-spacing:0;font-size:18px;font-weight:700;color:var(--rq-text)}
 /* baked hand-drawn outline: 9-slice SVG (two jittered strokes) on a pseudo element — text never filtered */
 html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.fchip,.chip,.badge,.sumcell,.ghostbtn){position:relative;box-shadow:none!important;border-color:transparent}
 html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.fchip,.chip,.badge,.sumcell,.ghostbtn)::after{content:"";position:absolute;inset:-1px;pointer-events:none;border:var(--pc-fw) solid transparent;border-image:var(--pc-frame) 14 / var(--pc-fw) stretch}
@@ -892,7 +894,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
-    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 style="margin:0">Моя полка</h2><div class="spacer"></div><select id="libSort" class="ghostbtn" style="padding:6px 8px;margin-right:8px"><option value="recent">Недавние</option><option value="title">По названию</option><option value="progress">По прогрессу</option></select><button class="addmini" id="btnAdd" title=".txt / .epub / .fb2 / .pdf">＋ Добавить</button></div>
+    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><select id="libSort" class="ghostbtn" style="padding:6px 8px;margin-right:8px"><option value="recent">Недавние</option><option value="title">По названию</option><option value="progress">По прогрессу</option></select><button class="addmini" id="btnAdd" title=".txt / .epub / .fb2 / .pdf">＋ Добавить</button></div>
     <div class="grid" id="shelf"></div>
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
@@ -926,7 +928,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
         <div class="kpi"><b id="mvpStreak">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg> стрик</span></div>
         <div class="kpi"><b id="mvpMinToday">0</b><span>мин сегодня</span></div>
       </div>
-      <h2>Квесты</h2>
+      <h2 id="mvpQuestH"><span class="pc-hide">Квесты</span><span class="pc-only">Задания</span></h2>
       <div id="mvpQuestBox"></div>
       <button class="addbtn" id="btnOpenRewards" style="margin-top:8px"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg> Награды из жизни</button>
       <div style="height:8px"></div>

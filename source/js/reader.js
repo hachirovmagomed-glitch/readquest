@@ -219,7 +219,7 @@ function hyphWaitRun(h,p){
       np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;
       el('content').style.transform='translateX('+(-np*R.step)+'px)';
       el('rPage').textContent=el('pgNum').textContent=(np+1)+' / '+R.pageCount;
-      const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
+      const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;if(typeof pgArtSync==='function')pgArtSync();
       HY.off=off;HY.relayouts++; /* silent: no goPage → R.pos / R.maxRatio / persist / tracker untouched */
     }
     else HY.fallbacks++;

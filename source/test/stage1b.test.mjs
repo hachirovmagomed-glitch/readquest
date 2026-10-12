@@ -448,12 +448,14 @@ if (want('slide71')) {
 }
 
 /* ---------- 1б-144 (Продукт+Интерфейс): thumb-only slider, no track jumps, no gesture-strip hits, tooltip «стр. N» ---------- */
-if (want('thumb')) {
+if (want('thumb')) for (const TH of ['sepia', 'pencil']) {
+  const PC = TH === 'pencil', SUF = PC ? '-pencil' : ''; /* the same thumb-only slider test, plain and in «Карандашный» */
   const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
   const SH = process.env.RQ_SLIDER_SHOTS || '/workspace/readquest/1b-slider-shots';
   fs.mkdirSync(SH, { recursive: true });
   if (fs.existsSync(LBL)) {
     const q = await fresh(LBL);
+    if (PC) { await q.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); }); await sleep(300); }
     await q.evaluate(id => { S.progress[id] = { ratio: 40 / 143, pos: 40 / 143 }; openBook(id); }, q.__bid);
     await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(400);
     const chrome = async () => { await q.evaluate(() => { revealChrome(); stopChrome && 0; }); await sleep(250); };
@@ -461,7 +463,12 @@ if (want('thumb')) {
       return { cx: g.cx, cy: g.cy, l: g.r.left, w: g.r.width, ft: f.top, fb: f.bottom, H: innerHeight, shown: P.shown, val: +document.getElementById('pgSlider').value, thW: (() => { for (const ss of document.styleSheets) { let rs; try { rs = ss.cssRules; } catch (e) { continue; } for (const r of rs) if (r.selectorText === '#pgSlider::-webkit-slider-thumb') return r.style.width + '|' + r.style.cssText; } return null; })(), acc: getComputedStyle(document.getElementById('reader')).getPropertyValue('--rq-accent').trim(), ring: getComputedStyle(document.getElementById('pgSlider')).getPropertyValue('--rq-thumb-ring').trim() }; });
     const pv = () => q.evaluate(async (id) => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id && e.via === 'jump').length, q.__bid);
     await chrome(); let g = await geo();
-    ok('thumb: 20 px light thumb, 2px #5fb8ae ring (accent-on-dark) in day', /^20px\|.*2px solid var\(--rq-thumb-ring\)/.test(g.thW || '') && /background: rgb\(255, 255, 255\)/.test(g.thW || '') && g.ring === '#5fb8ae', { thW: g.thW, ring: g.ring });
+    const art = () => q.evaluate(() => { const a = document.getElementById('pgArt'), sl = document.getElementById('pgSlider'), cs = e => e && getComputedStyle(e), tr = a.querySelector('.pga-track'), fl = a.querySelector('.pga-fill'), kn = a.querySelector('.pga-knob path'), cr = document.getElementById('pgArtFillR'), g = pgThumbGeom(), ar = a.getBoundingClientRect(), kr = kn && kn.getBoundingClientRect(), th = getComputedStyle(sl, '::-webkit-slider-thumb');
+      return { disp: cs(a).display, w: Math.round(ar.width), slw: Math.round(g.r.width), track: tr && cs(tr).stroke, tw: tr && cs(tr).strokeWidth, sameD: !!(tr && fl && tr.getAttribute('d') === fl.getAttribute('d')), fill: fl && cs(fl).stroke, clipW: cr && +cr.getAttribute('width'), cxRel: g.cx - g.r.left, knob: kr && Math.round(kr.width), kfill: kn && cs(kn).fill, kstroke: kn && cs(kn).stroke, kw: kn && cs(kn).strokeWidth, kx: kr && (kr.left + kr.width / 2 - g.r.left), nativeThumb: th.backgroundColor, headD: getComputedStyle(document.querySelector('#reader .rhead'), '::after').webkitMaskImage.includes('0,2.5 12,2.1 24,3.4') }; });
+    if (PC) { const A = await art();
+      ok('thumb(pencil): drawn slider — header wobble (same path for track and fill), 2px track in --rq-slider-track (#dedbd1), fill --rq-accent #1d6464 clipped at the thumb', A.disp === 'block' && A.w === A.slw && A.headD && A.sameD && A.track === 'rgb(222, 219, 209)' && A.tw === '2px' && A.fill === 'rgb(29, 100, 100)' && Math.abs(A.clipW - A.cxRel) < 1.5, A);
+      ok('thumb(pencil): knob 18 px (16 px path + 2px outline) filled --rq-page-bg #fbfaf6, uneven 2px --rq-accent outline, centred on the thumb; native thumb invisible', Math.abs(A.knob + 2 - 18) <= 1 && A.kfill === 'rgb(251, 250, 246)' && A.kstroke === 'rgb(29, 100, 100)' && A.kw === '2px' && Math.abs(A.kx - A.cxRel) < 1.5 && /rgba\(0, 0, 0, 0\)|transparent/.test(A.nativeThumb), A); }
+    else ok('thumb: 20 px light thumb, 2px #5fb8ae ring (accent-on-dark) in day', !(await art()).disp.includes('block') && /^20px\|.*2px solid var\(--rq-thumb-ring\)/.test(g.thW || '') && /background: rgb\(255, 255, 255\)/.test(g.thW || '') && g.ring === '#5fb8ae', { thW: g.thW, ring: g.ring });
     /* 20 random taps / swipes in the footer strip (panels open) */
     let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const p0 = g.shown, moves = [];
     for (let i = 0; i < 20; i++) {
@@ -488,17 +495,19 @@ if (want('thumb')) {
     for (let k = 1; k <= 8; k++) { await q.touchscreen.touchMove(g.cx + (tx - g.cx) * k / 8, g.cy); await sleep(30); }
     await sleep(700);
     const tip = await q.evaluate(() => { const t = document.getElementById('pgTip'); return { vis: !t.classList.contains('hidden'), txt: t.textContent, want: 'стр. ' + pdfLabel(+document.getElementById('pgSlider').value) }; });
-    await q.screenshot({ path: SH + '/thumb-tooltip-day.png' });
+    await q.screenshot({ path: SH + '/thumb-tooltip-day' + SUF + '.png' });
     await q.touchscreen.touchEnd(); await sleep(900);
     const g3 = await geo(), ev1 = await pv(), tipOff = await q.evaluate(() => document.getElementById('pgTip').classList.contains('hidden'));
     ok('thumb: tooltip «стр. N» (printed label) above the thumb while held, hidden after release', tip.vis && tip.txt === tip.want && tipOff, tip);
     ok("thumb: drag on the thumb jumps (≈ middle) and writes exactly one page_visible via:'jump'", Math.abs(g3.shown - 71) <= 3 && ev1 - ev0 === 1, { shown: g3.shown, jumps: ev1 - ev0 });
+    if (PC) { const A = await art(); ok('thumb(pencil): after the drag the drawn fill and knob follow the value', Math.abs(A.clipW - A.cxRel) < 1.5 && Math.abs(A.kx - A.cxRel) < 1.5 && A.cxRel > A.slw * 0.4, A); }
     /* night screenshot */
-    await q.evaluate(() => { SET.theme = 'dark'; saveSet(); applySet(); }); await chrome(); g = await geo();
+    await q.evaluate((pc) => { SET.theme = pc ? 'pencil-night' : 'dark'; saveSet(); applySet(); }, PC); await chrome(); g = await geo();
     await q.touchscreen.touchStart(g.cx, g.cy); for (let k = 1; k <= 4; k++) { await q.touchscreen.touchMove(g.cx + 8 * k, g.cy); await sleep(30); } await sleep(600);
     const accN = await q.evaluate(() => getComputedStyle(document.getElementById('pgSlider')).getPropertyValue('--rq-thumb-ring').trim());
-    await q.screenshot({ path: SH + '/thumb-tooltip-night.png' }); await q.touchscreen.touchEnd(); await sleep(600);
-    ok('thumb: night ring #5fb8ae (' + accN + ')', accN === '#5fb8ae', accN);
+    await q.screenshot({ path: SH + '/thumb-tooltip-night' + SUF + '.png' }); await q.touchscreen.touchEnd(); await sleep(600);
+    if (PC) { const A = await art(); ok('thumb(pencil): night tokens — track #454c57, fill/outline #86cbc2, knob #262a31', A.disp === 'block' && A.track === 'rgb(69, 76, 87)' && A.fill === 'rgb(134, 203, 194)' && A.kstroke === 'rgb(134, 203, 194)' && A.kfill === 'rgb(38, 42, 49)', A); }
+    else ok('thumb: night ring #5fb8ae (' + accN + ')', accN === '#5fb8ae', accN);
     await q.evaluate(() => { closeReader(); SET.theme = 'sepia'; saveSet(); }); await sleep(600);
     await q.__ctx.close();
   }

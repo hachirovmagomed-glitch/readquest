@@ -33,6 +33,7 @@ function applySkin(){
   const lt=document.getElementById('libTitle');if(lt)lt.textContent=t.skin==='pencil'?'Библиотека':'ReadQuest'; /* «Карандашный»: mockup title */
   const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
   applySkin._last=sk;
+  if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }
 /** «Карандашный» active (app-wide skin) — UI only: covers / avatar / summary / confetti draw Lucide instead of emoji */
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}

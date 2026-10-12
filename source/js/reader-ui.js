@@ -42,7 +42,7 @@ function concealChrome(how){
   armFocusAuto();
 }
 /** chrome state: show our bars + leave fullscreen — same handler, same frame */
-function revealChrome(){
+function revealChrome(){if(typeof pgArtSync==='function')requestAnimationFrame(pgArtSync);
   const r=el('reader');if(!r||r.classList.contains('hidden'))return;
   fsPending=false;
   exitFullscreenSafe();

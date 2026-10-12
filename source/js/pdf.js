@@ -160,7 +160,7 @@ function pdfNumbers(n,fromSlider){
   if(el('pgNum').textContent!==t)el('pgNum').textContent=t;
   const ratio=R.pageCount>1?n/(R.pageCount-1):1;
   el('rPct').textContent=Math.round(ratio*100)+'%';
-  const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);if(!fromSlider)sl.value=n;
+  const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);if(!fromSlider)sl.value=n;pgArtSync();
 }
 /** Clamp the pan to the page edges and write the ONE transform. */
 function pdfApply(){
@@ -487,7 +487,7 @@ function goPage(p,turn){
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
   el('rPct').textContent=Math.round(ratio*100)+'%';
-  const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
+  const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;pgArtSync();
   /* Architect: reader writes pageVisibleMs on page change */
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
   if(__tracker&&(np!==prev||forwardTurn)){
@@ -505,6 +505,33 @@ el('pgSlider').onchange=e=>{
   const from=R.slideFrom;R.slideFrom=null;
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
+/* «Карандашный»: hand-drawn page slider. LOOK ONLY — the <input> under it keeps every behaviour (thumb-only drag,
+   44 px hit, via:'jump'); #pgArt is pointer-events:none. Track = the header's wobbly line (same points), 2px --rq-slider-track;
+   fill = the SAME path in --rq-accent clipped to the value; knob 18px --rq-page-bg with an uneven 2px --rq-accent outline.
+   Colours are CSS vars → night tokens apply by themselves. Other themes: #pgArt hidden, plain slider. */
+const PG_WOB=[2.5,2.1,3.4,1.9,3.1,2.7,1.9,3.0,1.8,2.8,1.9,1.9,2.8,3.8,2.0,2.3,3.3,4.2,3.2,2.7,4.2,1.8,3.9,2.5,2.1,2.0,2.5,3.8,2.2,3.2,3.4,2.7,3.1,1.9]; /* = .rhead::after polyline y (viewBox 0..400 × 0..6) */
+const PG_KNOB=[8.3,7.7,8.4,7.9,8.2,7.6,8.1,8.3,7.8,8.2,7.7,8.4]; /* uneven radius → 18 px knob, hand-drawn outline */
+function pgArtSync(){
+  const a=el('pgArt'),sl=el('pgSlider');if(!a||!sl)return;
+  if(!(typeof isPencil==='function'&&isPencil())||!sl.offsetWidth){if(a.childNodes.length)a.textContent='';a._w=0;return;}
+  const W=sl.offsetWidth,H=sl.offsetHeight||44,cy=H/2,x0=PG_TH/2,x1=W-PG_TH/2;
+  a.style.left=sl.offsetLeft+'px';a.style.top=sl.offsetTop+'px';a.setAttribute('width',W);a.setAttribute('height',H);a.setAttribute('viewBox','0 0 '+W+' '+H);
+  if(a._w!==W){a._w=W;
+    const n=PG_WOB.length-1,d='M'+PG_WOB.map(function(y,i){return (x0+(x1-x0)*i/n).toFixed(1)+','+(cy+(y-3)*0.9).toFixed(2);}).join(' L');
+    /* smooth closed pencil loop: quadratic curves through the midpoints of the uneven-radius points, + a short overshoot */
+    const N=PG_KNOB.length,P=[];for(let i=0;i<=N+1;i++){const t=i/N*Math.PI*2-1.2,r=PG_KNOB[i%N]+(i>N?0.6:0);P.push([r*Math.cos(t),r*Math.sin(t)]);}
+    const M=(p,q)=>((p[0]+q[0])/2).toFixed(2)+','+((p[1]+q[1])/2).toFixed(2);
+    let k='M'+M(P[0],P[1]);for(let i=1;i<=N;i++)k+=' Q'+P[i][0].toFixed(2)+','+P[i][1].toFixed(2)+' '+M(P[i],P[i+1]);
+    a.innerHTML='<defs><clipPath id="pgArtClip"><rect id="pgArtFillR" x="0" y="0" width="0" height="'+H+'"/></clipPath></defs>'+
+      '<path class="pga-track" d="'+d+'" fill="none" style="stroke:var(--rq-slider-track)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<path class="pga-fill" d="'+d+'" fill="none" clip-path="url(#pgArtClip)" style="stroke:var(--rq-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<g class="pga-knob"><path d="'+k+'" style="fill:var(--rq-page-bg);stroke:var(--rq-accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g>';}
+  const mn=+sl.min||0,mx=+sl.max||0,f=mx>mn?(+sl.value-mn)/(mx-mn):0,cx=x0+f*(x1-x0);
+  a.querySelector('#pgArtFillR').setAttribute('width',cx.toFixed(1));a.querySelector('.pga-knob').setAttribute('transform','translate('+cx.toFixed(1)+' '+cy+')');
+}
+el('pgSlider').addEventListener('input',pgArtSync);
+if(window.ResizeObserver)new ResizeObserver(function(){const a=el('pgArt');if(a)a._w=0;pgArtSync();}).observe(el('pgSlider')); /* footer shown / rotated / resized */
+else addEventListener('resize',function(){const a=el('pgArt');if(a)a._w=0;pgArtSync();});
 /* 1б-144: thumb-only drag. Hit = 44 px around the 20 px thumb, cut off above the bottom gesture strip; a press elsewhere
    on the footer / track does nothing. While held: tooltip «стр. N» (printed label) above the thumb. Release → the usual onchange. */
 const PG_TH=20,PG_HIT=44;

@@ -223,7 +223,8 @@ if (want('pdfback') && fs.existsSync(PDF)) {
   const bad = wrapFrames.filter(f => !f.back && f.stage === 'hidden'); /* wrap visible, no backdrop, no page = flash */
   const bgNight = await q.evaluate(() => getComputedStyle(document.getElementById('reader')).getPropertyValue('--r-bg').trim());
   ok('pdfback: every frame while loading shows backdrop or the page (no empty/white frame)', wrapFrames.length > 0 && bad.length === 0, { n: wrapFrames.length, bad: bad.length });
-  ok('pdfback: backdrop in the page colour with «N / M»', frames.some(f => f.back && /^\d+ \/ \d+$/.test(f.txt)) && frames.filter(f => f.back).every(f => f.bg !== 'rgb(255, 255, 255)'), { first: frames.find(f => f.back), bgNight });
+  /* 1в-black (Architect): backdrop text is «Открываем страницу N» (печатная метка), was «N / M» */
+  ok('pdfback: backdrop in the page colour with «Открываем страницу N»', frames.some(f => f.back && /^Открываем страницу \S+$/.test(f.txt)) && frames.filter(f => f.back).every(f => f.bg !== 'rgb(255, 255, 255)'), { first: frames.find(f => f.back), bgNight });
   ok('pdfback: hidden once the page is on screen', !frames[frames.length - 1].back && frames[frames.length - 1].stage === '', frames[frames.length - 1]);
   await q.evaluate(() => { closeReader(); SET.theme = 'sepia'; saveSet(); }); await sleep(800);
   await q.__ctx.close();
@@ -364,11 +365,11 @@ if (want('pdfpage')) {
         const tick = () => { if (!go) return; if (!b.classList.contains('hidden') && b.textContent) seen.push(b.textContent); requestAnimationFrame(tick); };
         requestAnimationFrame(tick); openBook(id);
         const t0 = performance.now(); while (!(R.pdf && P.front && P.shown === P.target) && performance.now() - t0 < 15000) await new Promise(z => setTimeout(z, 16));
-        go = false; const shown = P.shown, out = { seen: [...new Set(seen)], shown, want: pdfLabel(shown) + ' / ' + R.pageCount, pg: document.getElementById('pgNum').textContent, pc: R.pageCount };
+        go = false; const shown = P.shown, out = { seen: [...new Set(seen)], shown, want: pdfLabel(shown) + ' / ' + R.pageCount, wantBack: 'Открываем страницу ' + pdfLabel(shown), pg: document.getElementById('pgNum').textContent, pc: R.pageCount };
         R.maxRatio = 0; await closeReader({ quiet: true }); delete S.progress[id]; return out;
       }, q.__bid, r);
       const exp = r === undefined ? 0 : Math.round(r * (res.pc - 1));
-      ok('pdfpage ' + nm + ' ratio=' + r + ': backdrop «' + (res.seen[0] || '') + '» = rendered page ' + (exp + 1) + ' = corner number', res.seen.length === 1 && res.seen[0] === res.want && res.pg === res.want && res.shown === exp && (r === undefined || r === 0 ? /^(1|i) \//.test(res.want) : true), res);
+      ok('pdfpage ' + nm + ' ratio=' + r + ': backdrop «' + (res.seen[0] || '') + '» = rendered page ' + (exp + 1) + ' = corner number', res.seen.length === 1 && res.seen[0] === res.wantBack && res.pg === res.want /* 1в-black: backdrop «Открываем страницу N», corner «N / M» */ && res.shown === exp && (r === undefined || r === 0 ? /^(1|i) \//.test(res.want) : true), res);
       await sleep(300);
     }
     await q.__ctx.close();
@@ -450,6 +451,7 @@ if (want('slide71')) {
 if (want('thumb')) {
   const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
   const SH = process.env.RQ_SLIDER_SHOTS || '/workspace/readquest/1b-slider-shots';
+  fs.mkdirSync(SH, { recursive: true });
   if (fs.existsSync(LBL)) {
     const q = await fresh(LBL);
     await q.evaluate(id => { S.progress[id] = { ratio: 40 / 143, pos: 40 / 143 }; openBook(id); }, q.__bid);
@@ -465,7 +467,9 @@ if (want('thumb')) {
     for (let i = 0; i < 20; i++) {
       await chrome(); g = await geo();
       let x = g.l + rnd() * g.w; if (Math.abs(x - g.cx) <= 26) x = g.cx + (x < g.cx ? -40 : 40); x = Math.max(g.l + 2, Math.min(g.l + g.w - 2, x));
-      const y = g.ft + rnd() * (g.fb - g.ft - 1);
+      /* 1в: the 5-button bar sits right under the slider row; Chrome's touch adjustment retargets a tap within a few px of
+         a button onto it (real phones too). The «footer strip» here = the slider row minus a 12 px band next to the bar. */
+      const y = g.ft + rnd() * (g.fb - g.ft - 12);
       if (rnd() < 0.5) { await q.touchscreen.tap(x, y); moves.push('tap'); }
       else { const dx = (rnd() < 0.5 ? -1 : 1) * (60 + rnd() * 120); await q.touchscreen.touchStart(x, y); for (let k = 1; k <= 5; k++) await q.touchscreen.touchMove(x + dx * k / 5, y); await q.touchscreen.touchEnd(); moves.push('swipe'); }
       await sleep(250);

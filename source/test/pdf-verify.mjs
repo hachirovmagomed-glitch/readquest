@@ -441,7 +441,7 @@ for (const [k, run] of [['×1', runA1], ['×6', runA6]]) {
     ok(`(в) CPU ${k}: number = label of the shown page on EVERY rAF of the 10 flips (same frame as the swap)`, run.recs.slice(0, 10).every(r => r.dom.numBad === 0), run.recs.slice(0, 10).map(r => r.dom.numBad));
   }
 }
-if (process.env.RQ_ONLY === 'a') { fs.writeFileSync(`${OUT}/results-a.json`, JSON.stringify(results, null, 1)); console.log(`only-a: ${results.checks.filter(c => c.pass).length}/${results.checks.length}`); await browser.close(); process.exit(0); }
+if (process.env.RQ_ONLY === 'a') { fs.writeFileSync(`${OUT}/results-a.json`, JSON.stringify(results, null, 1)); console.log(`only-a: ${results.checks.filter(c => c.pass).length}/${results.checks.length}`); await browser.close(); process.exit(results.checks.every(c => c.pass) ? 0 : 1); }
 if (!OLD) ok('(г) zoom resets on flip / after pinch-out back at width', runA1.sz.z > 1.5 && runA1.sOut.z === 1, { zoomed: runA1.sz.z, out: runA1.sOut.z });
 
 // =====================================================================================
@@ -757,3 +757,5 @@ fs.writeFileSync(`${OUT}/results.json`, JSON.stringify(results, null, 1));
 const n = results.checks.length, p = results.checks.filter(c => c.pass).length;
 console.log(`\n${MODE}: ${p}/${n} checks passed`);
 await browser.close();
+/* exit code = result (run-all reads it): any FAIL → 1. RQ_MODE=old documents the old bugs on purpose → always 0. */
+process.exit(!OLD && p !== n ? 1 : 0);

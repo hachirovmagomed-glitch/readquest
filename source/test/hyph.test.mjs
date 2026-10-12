@@ -59,6 +59,9 @@ await sleep(1500); const f1 = await page.evaluate(() => !el('txtBack').classList
 await page.waitForFunction(() => el('txtBack').classList.contains('hidden'), { timeout: 6000, polling: 50 }).catch(() => {});
 const f2 = await page.evaluate((t) => ({ back: !el('txtBack').classList.contains('hidden'), page: R.page, count: R.pageCount, ms: Date.now() - t }), f0.t); const hf = await H();
 ok('fallback: placeholder up at 1.5 s, gone at ~3 s, NO relayout (fallback counted), page/count unchanged', f0.back && f1 && !f2.back && hf.relayouts === hf0.relayouts && hf.fallbacks === hf0.fallbacks + 1 && f2.page === f0.page && f2.count === f0.count && f2.ms >= 2900 && f2.ms < 4500, { f0, f1, f2, hf0, hf });
+/* (3b) dictionary arrives AFTER the fallback (same open): still no relayout */
+await page.evaluate(() => { window.__rqHyphNoDict = false; }); await sleep(1200); const hl = await H();
+ok('dictionary arriving after the fallback → no relayout for this open', hl.relayouts === hf.relayouts && hl.fallbacks === hf.fallbacks, { hf, hl });
 /* (4) warm reopen: no wait */
 await page.evaluate(() => closeReader()); await sleep(700);
 const w0 = await page.evaluate(id => { window.__rqHyphNoDict = false; openBook(id); return !el('txtBack').classList.contains('hidden'); }, bid);

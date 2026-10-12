@@ -407,22 +407,27 @@ if (want('slidemax')) {
 }
 
 /* ---------- 1б-144 (Босс): drag 41 → 144 → 71, release → saved = page 71, reopen at 71 (PDF + text) ---------- */
-if (want('slide71')) {
+if (want('slide71')) for (const TH of ['sepia', 'pencil']) { /* the same preview-vs-pos test, plain and in «Карандашный» (drawn slider) */
   const LBL = process.env.RQ_PDF_LABELS || '/workspace/rqtest/pdf/a-labels-144.pdf';
   for (const file of [LBL, BOOK].filter(x => fs.existsSync(x))) {
-    const q = await fresh(file); const nm = file.split('/').pop();
+    const q = await fresh(file); const nm = (TH === 'pencil' ? '[Карандашный] ' : '') + file.split('/').pop();
+    if (TH === 'pencil') { await q.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); }); await sleep(300); }
     const res = await q.evaluate(async (id) => {
       const pdf = allBooks().find(b => b.id === id).type === 'pdf';
       const settle = async () => { const t0 = performance.now(); while (pdf && !(P.front && P.shown === P.target) && performance.now() - t0 < 8000) await new Promise(z => setTimeout(z, 16)); await new Promise(z => setTimeout(z, 50)); };
       const ls = () => { const e = JSON.parse(localStorage.getItem(RQ_K.v1) || 'null'); return ((((e || {}).progress || {}).progress || {})[id] || {}).ratio || 0; };
       const waitOpen = async () => { const t0 = performance.now(); while (!(R.pageCount > 1) && performance.now() - t0 < 15000) await new Promise(z => setTimeout(z, 16)); await settle(); };
-      openBook(id); await waitOpen(); const N = R.pageCount;
+      openBook(id); await waitOpen();
+      if (document.documentElement.dataset.skin === 'pencil') { revealChrome(); await new Promise(z => setTimeout(z, 600)); await settle(); } /* panels shown BEFORE the page count is read → the drawn slider has a width */
+      const N = R.pageCount;
       const pg = k => Math.round((k - 1) / 143 * (N - 1)); /* page k of 144 → this book */
       goPage(pg(41), false); await settle();
       const sl = document.getElementById('pgSlider'), inp = v => { sl.value = v; sl.dispatchEvent(new Event('input')); };
       const pv = async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id);
       const ev0 = (await pv()).length, trk = [];
-      for (const v of [pg(90), pg(144), pg(110), pg(71)]) { inp(v); window.__rqTimeOffset += 30000; await settle(); trk.push(__tracker.snapshot().page); }
+      const artAt = () => { const a = document.getElementById('pgArt'), k = a && a.querySelector('.pga-knob'); if (!k || getComputedStyle(a).display === 'none') return null; const g = pgThumbGeom(); return Math.abs(parseFloat(k.getAttribute('transform').slice(10)) - (g.cx - g.r.left)) < 1.5; };
+      const skin = document.documentElement.dataset.skin || '', art = [];
+      for (const v of [pg(90), pg(144), pg(110), pg(71)]) { inp(v); window.__rqTimeOffset += 30000; await settle(); trk.push(__tracker.snapshot().page); art.push(artAt()); }
       sl.dispatchEvent(new Event('change')); await settle();
       const evs = (await pv()).slice(ev0), trkAfter = __tracker.snapshot().page;
       const want = pg(71) / (N - 1), saved = ls();
@@ -437,12 +442,13 @@ if (want('slide71')) {
       renderLibrary(); const card = [...document.querySelectorAll('.bookcard')].find(c => c.textContent.includes(allBooks().find(b => b.id === id).title));
       const cardPct = card ? card.querySelector('.bpct').textContent : null;
       openBook(id); await waitOpen(); const re2 = pdf ? P.shown : R.page, reN2 = R.pageCount; await closeReader({ quiet: true });
-      return { N, want, saved, re, reN, p71: pg(71), evs: evs.map(e => ({ page: e.page, via: e.via })), trk, trkAfter, on144: on144.length, back, backR, e2, cardPct, re2, reN2 };
+      return { skin, art, N, want, saved, re, reN, p71: pg(71), evs: evs.map(e => ({ page: e.page, via: e.via })), trk, trkAfter, on144: on144.length, back, backR, e2, cardPct, re2, reN2 };
     }, q.__bid);
     ok('slide71 ' + nm + ': drag 41→144→71 + release → saved = page 71, reopens at 71', Math.abs(res.saved - res.want) < 1e-9 && Math.abs(res.re - Math.round(res.want * (res.reN - 1))) <= (/\.pdf$/.test(nm) ? 0 : 1), res) /* text repaginates on reopen (bars→fullscreen): ±1 page */;
     ok('slide71 ' + nm + ": journal: exactly one page_visible {via:'jump'} (leaving 41), tracker on 71 after release, never on a preview page, 0 events / minutes on 144", res.evs.length === 1 && res.evs[0].via === 'jump' && res.evs[0].page === Math.round(40 / 143 * (res.N - 1)) && res.trk.every(t => t === Math.round(40 / 143 * (res.N - 1))) && res.trkAfter === res.p71 && res.on144 === 0, { evs: res.evs, trk: res.trk, trkAfter: res.trkAfter, on144: res.on144 });
     ok('slide71 ' + nm + ': current position stored apart from farthest — back 3 pages + close → pos = current, ratio stays 71, reopens at current', Math.abs(res.e2.pos - res.backR) < 1e-9 && res.e2.ratio >= res.want - 1e-9 && Math.abs(res.re2 - Math.round(res.backR * (res.reN2 - 1))) <= (/\.pdf$/.test(nm) ? 0 : 1), { e2: res.e2, back: res.back, re2: res.re2 });
     ok('slide71 ' + nm + ': library card % = current position', res.cardPct != null && res.cardPct.startsWith(Math.round(res.backR * 100) + '%'), { cardPct: res.cardPct, want: Math.round(res.backR * 100) });
+    if (TH === 'pencil') ok('slide71 ' + nm + ': ran in «Карандашный» (data-skin=pencil), drawn knob followed every preview value', res.skin === 'pencil' && res.art.length === 4 && res.art.every(x => x === true), { skin: res.skin, art: res.art });
     await q.__ctx.close();
   }
 }

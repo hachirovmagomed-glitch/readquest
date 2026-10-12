@@ -85,6 +85,8 @@ export async function logAnalyticsEvent(entry) {
   if (entry.reason != null) rec.reason = String(entry.reason).slice(0, 32);
   // storage_persist (PWA): navigator.storage.persist() result
   if (typeof entry.granted === 'boolean') rec.granted = entry.granted;
+  // theme_changed (1в): data-skin values, e.g. from 'default' to 'pencil' (metrics.py «kept a non-starting theme»)
+  if (entry.type === 'theme_changed') { rec.from = String(entry.from || '').slice(0, 32); rec.to = String(entry.to || '').slice(0, 32); }
   return addEvent(rec);
 }
 

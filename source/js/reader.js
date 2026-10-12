@@ -16,7 +16,7 @@ function applySet(){
   const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
   const r=el('reader');
-  if(t.skin){r.dataset.skin=t.skin;if(t.night)r.dataset.theme='night';else delete r.dataset.theme;}else{delete r.dataset.skin;delete r.dataset.theme;} /* skin tokens for the reader chrome only */
+  applySkin(); /* app-wide skin on :root */
   r.style.setProperty('--r-bg',bg);r.style.setProperty('--r-txt',tx);
   r.style.background=bg;r.style.color=tx;
   r.style.setProperty('--r-margin',SET.margin+'px');
@@ -77,7 +77,8 @@ function renderThemeSeg(){
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+S.cur.name+' '+curI());return;}
-      SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
+      const from=skinOf(activeTheme());
+      SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);
     };
     if(yours){b.classList.add('yours');b.title='Ваша тема: '+name;const w=document.createElement('span');w.className='yourwrap';w.appendChild(b);
       const c=document.createElement('small');c.textContent='Ваша тема';w.appendChild(c);seg.appendChild(w);return;}

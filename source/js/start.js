@@ -58,7 +58,7 @@ window.__rqStart=async function(api, tracker){
     if(!window.__rqNoLocksLogged&&api.logAnalyticsEvent){window.__rqNoLocksLogged=true;api.logAnalyticsEvent({type:'no_locks'}).catch(function(e){console.warn('[rq] no_locks',e);});}
   }
   if(el('buildVer'))el('buildVer').textContent=RQ_BUILD;
-  applyAppTheme();applyScale();applyPixel();
+  applyAppTheme();applySkin();applyScale();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
   window.__rqReady=true;

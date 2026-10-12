@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', ...(process.env.RQ_PROFILE ? { userDataDir: process.env.RQ_PROFILE } : {}), args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
 /* warm-up: Chrome loads hyphenation dictionaries lazily; lay out ru/en text once so the reader's first pagination is hyphenated */
-{ const w = await b.newPage(); await w.setContent('<p lang="ru" style="width:60px;hyphens:auto">конфискованным</p><p lang="en" style="width:60px;hyphens:auto">representative</p>'); await sleep(1500); await w.close(); }
+if (process.env.RQ_WARM) { const w = await b.newPage(); await w.setContent('<p lang="ru" style="width:60px;hyphens:auto">конфискованным</p><p lang="en" style="width:60px;hyphens:auto">representative</p>'); await sleep(1500); await w.close(); }
 const shot = async (p, n) => { await sleep(350); await p.screenshot({ path: OUT + '/' + n + '.png' }); console.log('shot', n); };
 for (const mode of ['day', 'night']) {
   const p = await (await b.createBrowserContext()).newPage();

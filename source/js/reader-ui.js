@@ -446,6 +446,7 @@ el('btnTts').onclick=()=>{
    a caller after the close finished (reader already hidden, no book) is a no-op — it must not repaint summary → library. */
 let __closingReader=null;
 function closeReader(opts){
+  HY.tok++;if(el('txtBack'))el('txtBack').classList.add('hidden'); /* 1в: drop a pending hyphenation relayout */
   if(window.__rqWriter&&!__rqWriter.mayWrite())return Promise.resolve(); /* passive/stolen window: no summary, no payout, no write */
   if(__closingReader)return __closingReader;
   const r=el('reader');

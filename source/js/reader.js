@@ -80,7 +80,8 @@ function renderThemeSeg(){
     seg.appendChild(b);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
-  SHOP_THEMES.forEach(t=>add(t.id,t.bg,t.name,!S.owned.includes(t.id)));
+  /* 1в: paid themes (SHOP_THEMES) are not shown at all — no lock, no «buy in the Shop» alert. Code kept for later;
+     «Карандашный» (free skin) will be added here when it lands (product.md: after 1в). */
 }
 el('szMinus').onclick=()=>{setFontSizeKeepPos(SET.size-1);};
 el('szPlus').onclick=()=>{setFontSizeKeepPos(SET.size+1);};
@@ -161,10 +162,68 @@ async function openBook(id){
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
+  const hy=hyphWaitStart(c,b);
   layout();
   const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */
   if(__tracker)__tracker.begin(id,p,trackerOpts());
   goPage(p,false);
+  if(hy)hyphWaitRun(hy,p);
+}
+/* 1в: hyphenation dictionaries load lazily — the first layout of a cold start is unhyphenated.
+   A hidden probe (same lang, hyphens:auto, narrow) tells when the dictionary is applied; then ONE silent
+   relayout keeps the same text line. Silent = no goPage: R.pos / R.maxRatio / persistPage / tracker untouched.
+   The page stays under «Открываем страницу N» until then (safety timeout HYPH_MAX_MS). */
+/* HY: survives `R=` on every open; relayouts/fallbacks are cumulative counters (tests, diag) */
+const HY=window.__rqHyph={tok:0,relayouts:0,fallbacks:0,off:-1};
+const HYPH_MAX_MS=3000; /* no dictionary by then → drop the placeholder WITHOUT relayout */
+/* text offset ↔ page: global char offset over the non-blank text nodes of #content (no hit-testing, so it
+   works under the placeholder). Page of an offset is monotonic → binary search for the first char of a page. */
+function txtNodes(){const c=el('content'),w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,{acceptNode:n=>/\S/.test(n.nodeValue)?1:3});const a=[];let n,o=0;while((n=w.nextNode())){a.push({n:n,s:o});o+=n.nodeValue.length;}return {a:a,len:o};}
+function txtAt(T,off){let lo=0,hi=T.a.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(T.a[m].s<=off)lo=m;else hi=m-1;}const x=T.a[lo];return x?{node:x.n,offset:Math.min(off-x.s,x.n.nodeValue.length-1)}:null;}
+function pageOfOffset(T,off){return pageOfAnchor(txtAt(T,off));}
+function firstOffsetOfPage(pg){const T=txtNodes();let lo=0,hi=Math.max(0,T.len-1);while(lo<hi){const m=(lo+hi)>>1;if(pageOfOffset(T,m)>=pg)hi=m;else lo=m+1;}return lo;}
+function hyphProbe(lang,word,mode){const d=document.createElement('div');d.lang=lang;d.setAttribute('aria-hidden','true');
+  d.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;width:3ch;font:16px serif;hyphens:'+mode+';-webkit-hyphens:'+mode;
+  d.textContent=word;document.body.appendChild(d);return d;}
+function hyphWaitStart(c,b){
+  if(SET.hyph===false)return null;
+  const w=((b.text||'').slice(0,4000).match(/[\p{L}]{12,}/u)||[])[0]||(c.lang==='ru'?'конфискованными':'representatives');
+  const on=hyphProbe(c.lang,w,'auto'),off=hyphProbe(c.lang,w,'none');
+  /* test hooks: __rqHyphNoDict = dictionary never arrives; __rqHyphDelay = N ms = dictionary arrives late
+     (the text is laid out unhyphenated until then, as on a cold start without the dictionary) */
+  const t0=Date.now(),late=+window.__rqHyphDelay||0;
+  if(late){c.style.hyphens=c.style.webkitHyphens='none';}
+  const ready=()=>!window.__rqHyphNoDict&&(late?Date.now()-t0>=late:on.offsetHeight>off.offsetHeight);
+  if(ready()){on.remove();off.remove();return null;} /* dictionary already applied → the first layout is final */
+  const t=el('txtBack');if(t){el('txtBackN').textContent='Открываем страницу '+((R.page||0)+1);t.classList.remove('hidden');}
+  return {on:on,off:off,ready:ready,book:b,t0:t0,late:late,done:false,tok:(++HY.tok)};
+}
+function hyphWaitRun(h,p){
+  const t=el('txtBack');if(t)el('txtBackN').textContent='Открываем страницу '+(p+1);
+  const fin=(relay)=>{if(h.done)return;h.done=true;h.on.remove();h.off.remove(); /* once per open, whatever fires first */
+    if(HY.tok!==h.tok)return; /* a newer open owns the placeholder */
+    if(!R.book||R.book.id!==h.book.id||R.mode==='pdf'||el('reader').classList.contains('hidden')){if(t)t.classList.add('hidden');return;}
+    if(relay){
+      const off=firstOffsetOfPage(R.page); /* char offset of the first visible line */
+      if(h.late){const c=el('content');c.style.hyphens=c.style.webkitHyphens='auto';}
+      layout();
+      let np=pageOfOffset(txtNodes(),off);if(np<0)np=R.page;
+      np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;
+      el('content').style.transform='translateX('+(-np*R.step)+'px)';
+      el('rPage').textContent=el('pgNum').textContent=(np+1)+' / '+R.pageCount;
+      const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
+      HY.off=off;HY.relayouts++; /* silent: no goPage → R.pos / R.maxRatio / persist / tracker untouched */
+    }
+    else HY.fallbacks++;
+    if(t)t.classList.add('hidden');
+  };
+  let fontsOk=false;
+  const tick=()=>{if(h.done)return;if(HY.tok!==h.tok){fin(false);return;}
+    if(fontsOk&&h.ready())return fin(true);
+    if(Date.now()-h.t0>=HYPH_MAX_MS)return fin(false);
+    setTimeout(tick,50);};
+  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>{fontsOk=true;});
+  setTimeout(tick,50);
 }
 /** Anti-cheat params for the session tracker (single source of counted minutes). */
 function trackerOpts(){

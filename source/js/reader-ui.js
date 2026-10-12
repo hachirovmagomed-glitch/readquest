@@ -47,10 +47,25 @@ function revealChrome(){
   fsPending=false;
   exitFullscreenSafe();
   if(r.classList.contains('focus'))setFocus(false); /* panels visible ⇒ never focus */
-  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();}
+  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();if(lastUp&&Date.now()-lastUp.t<300){chromeShownAt=Date.now();chromeShownXY={x:lastUp.x,y:lastUp.y};}}
   placeJumpBack();
   armChromeHide();
 }
+/* 1в: the tap that REVEALS the bars must not also click the button that appears under the finger
+   (ghost click: touchend reveals, the synthesized click lands on e.g. «Слушать» in the top-right corner).
+   Only THAT click is swallowed: same point as the revealing touch (±12 px), ≤ 450 ms, once. Any other tap
+   on the bars — including a fast real tap on ← right after — goes through. */
+let chromeShownAt=0,chromeShownXY=null,lastUp=null;
+document.addEventListener('pointerup',function(e){lastUp={x:e.clientX,y:e.clientY,t:Date.now()};},true);
+document.addEventListener('click',function(e){
+  if(!chromeShownAt||!chromeShownXY)return;
+  const fresh=Date.now()-chromeShownAt<=450,near=Math.abs(e.clientX-chromeShownXY.x)<=12&&Math.abs(e.clientY-chromeShownXY.y)<=12;
+  if(!fresh){chromeShownAt=0;chromeShownXY=null;return;}
+  if(!near)return;
+  chromeShownAt=0;chromeShownXY=null; /* once */
+  const tg=e.target&&e.target.closest&&e.target.closest('#reader .rhead, #reader .rfoot');
+  if(tg){e.preventDefault();e.stopPropagation();}
+},true);
 function showChrome(){revealChrome();}
 function hideChrome(){concealChrome('tap');}
 function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}

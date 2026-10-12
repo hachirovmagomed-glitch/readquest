@@ -2,3 +2,8 @@ Caveat — Copyright 2014 The Caveat Project Authors (https://github.com/googlef
 Licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
 This copy (caveat.woff2) is a subset (Latin, Latin-1, Cyrillic, punctuation) of Caveat[wght].ttf from
 handoff/stage1-final/src/fonts/Caveat.ttf (branch ui/1g-settings), made with fontTools pyftsubset.
+
+Nunito — Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
+Licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
+This copy (nunito.woff2) is a subset (Latin, Latin-1, Cyrillic, punctuation, arrows) of Nunito[wght].ttf (Google Fonts),
+made with fontTools pyftsubset; variable weight axis kept.

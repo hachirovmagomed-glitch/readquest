@@ -84,7 +84,7 @@ echo "Build marker: $BUILD (NS=$NS)"
 mkdir -p "$DIST/vendor/pdfjs"
 cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT/vendor/pdfjs/LICENSE" "$DIST/vendor/pdfjs/"
 
-# «Карандашный» heading font: Caveat (SIL OFL 1.1), subset Latin+Cyrillic woff2 — precached like every other file in dist
+# «Карандашный» fonts: Caveat (headings) + Nunito (UI text), SIL OFL 1.1, subset Latin+Cyrillic woff2 — precached like every other file in dist
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 

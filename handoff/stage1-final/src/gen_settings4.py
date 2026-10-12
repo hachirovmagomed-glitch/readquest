@@ -23,7 +23,7 @@ FONTS = [('Georgia','Georgia, serif'),('Times','"Times New Roman", Times, serif'
          ('Trebuchet','"Trebuchet MS",sans-serif'),('Tahoma','Tahoma,sans-serif'),('Comic','"Comic Sans MS","Segoe UI",cursive'),('Mono','"Courier New",monospace')]
 # В макете к стеку из FONTS дописаны похожие открытые шрифты бокса — только чтобы на картинке было видно разницу. В app.html стек FONTS не меняем.
 MOCK = {'Georgia':'Gelasio','Times':'Tinos','Palatino':'PTSerif','Garamond':'EBGaramond','Sans':'Roboto','Verdana':'DejaVuSans',
-        'Trebuchet':'FiraSans','Tahoma':'PTSans','Comic':'PatrickHand','Mono':'JetBrainsMono'}
+        'Trebuchet':'FiraSans','Tahoma':'PTSans','Comic':'Caveat','Mono':'JetBrainsMono'}
 # Файлы лежат в src/fonts (OFL/Apache/свободная лицензия DejaVu), подключены @font-face под именами rqm-*; в стеке идут ПЕРВЫМИ, чтобы рендер не зависел от шрифтов бокса.
 FACES = '<style>' + ''.join(f"@font-face{{font-family:'rqm-{f}';src:url('fonts/{f}.ttf');font-display:block}}" for f in MOCK.values()) + '</style>'
 PRELOAD = '<div aria-hidden="true" style="position:absolute;left:-9999px">' + ''.join(f"<span style=\"font-family:'rqm-{f}'\">Aa</span>" for f in MOCK.values()) + '</div>' + '<script>document.documentElement.style.visibility="hidden";document.fonts.ready.then(()=>Promise.all([...document.fonts].map(f=>f.load()))).then(()=>{document.documentElement.style.visibility=""})</script>'
@@ -66,7 +66,7 @@ def text_tab(n):
         + lab('Выравнивание', seg(['По левому краю','По ширине'],1))
         + tg('Переносы слов') + tg('Красная строка', 'Отступ в начале абзаца') + GEN)
 def fonts(n):
-    rows = ''.join(pickrow(f'<span style="font-size:19px">{l}</span>', i == 0, f'font-family:{fstack(l,v)};color:var(--rq-text)') for i,(l,v) in enumerate(FONTS))
+    rows = ''.join(pickrow(f'<span style="font-size:{24 if l == "Comic" else 19}px">{l}</span>', i == 0, f'font-family:{fstack(l,v)};color:var(--rq-text)') for i,(l,v) in enumerate(FONTS))
     return head('Шрифт', back=True) + f'<div style="margin-top:4px">{rows}</div>'
 def page_tab(n):
     th = THEMES[1]

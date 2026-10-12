@@ -25,7 +25,7 @@
 - Генератор: `handoff/stage1-final/src/gen_settings4.py` (на базе `gen_settings3.py`, импорт из `gen.py`). Картинки: `handoff/stage1-final/settings-frame/1g-*-{day,night}.png` + `@2x`, сводка `overview-1g.png`.
 - Экраны: `1g-tab-text` (строка «Шрифт — Georgia ›», «Размер текста» числом, «Расстояние между буквами» уже/обычное/шире, «Толщина шрифта», подзаголовок «Переносы и абзацы»), `1g-fonts` (10 шрифтов из FONTS, каждый своим шрифтом, галочка Lucide `check`, строки 52px), `1g-tab-page` (строка «Тема — Сепия ›» с мини-образцом), `1g-themes` / `1g-themes-own` (Белая, Сепия, Тёмная, Чёрная (AMOLED), Карандашный; «Ваша тема» только если куплена), `1g-pdf-tabs` (PDF: вкладок три, подсказка «В PDF шрифт и вёрстка заданы самим файлом»).
 - Таблица `ls` для Архитектора: `settings-frame/ls-steps.md` (−0,5 / 0 / 0,5; промежуточное показываем ближайшей ступенью, не переписываем). Контраст: `settings-frame/contrast-1g.tsv`, 0 провалов.
-- Шрифты в макете: открытые аналоги лежат в `src/fonts/` (Gelasio, Tinos, PT Serif, EB Garamond, Roboto, DejaVu Sans, Fira Sans, PT Sans, Patrick Hand, JetBrains Mono), подключены `@font-face` как `rqm-*` первыми в стеке; скриншот ждёт `document.fonts.ready`. Только для картинки — стек FONTS в `app.html` не менять.
+- Шрифты в макете: открытые аналоги лежат в `src/fonts/` (Gelasio, Tinos, PT Serif, EB Garamond, Roboto, DejaVu Sans, Fira Sans, PT Sans, Caveat, JetBrains Mono), подключены `@font-face` как `rqm-*` первыми в стеке; скриншот ждёт `document.fonts.ready`. Только для картинки — стек FONTS в `app.html` не менять.
 - «Карандашный» в списке тем — штатное значение `rq_set.theme` `pencil`/`pencil-night` (одобрено Архитектором, `0b875f3`), не спорно.
 
 # Заметки Интерфейса

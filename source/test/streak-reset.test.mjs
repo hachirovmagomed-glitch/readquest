@@ -62,6 +62,10 @@ await read(bid, 11); /* 23:53 → 00:04 Monday */
 let c1 = await cal();
 ok('midnight: Sun 23:53 → Mon 00:04 session counts for its START day: daily 2026-10-11 paid, 2026-10-12 not', c1.daily.includes('2026-10-11') && !c1.daily.includes('2026-10-12') && c1.day === '2026-10-12', c1);
 ok('Sun → Mon: 4th goal day of week 2026-10-05 → weekly paid for that week only (not 2026-10-12)', c1.weekly.join() === '2026-10-05', c1);
+// Квестмастер: the Sun→Mon session belongs to Sunday, so the Monday ring starts at 0 (library ring + «Сегодня: 0 мин» + dayMinutes(Mon) = 0)
+await B.evaluate(() => { if (typeof renderLibrary === 'function') renderLibrary(); }); await sleep(200);
+const r1 = await B.evaluate(() => ({ day: today(), mon: dayMin(today()), sun: dayMin('2026-10-11'), ring: document.getElementById('ringTxt').textContent, sub: document.getElementById('goalSub').textContent, off: parseFloat(document.getElementById('ringFg').style.strokeDashoffset) }));
+ok('Sun → Mon: Monday ring starts at 0 (dayMinutes Mon 0, Sun ≥ 10, ring 0%, «Сегодня: 0 мин», ring offset full)', r1.day === '2026-10-12' && r1.mon === 0 && r1.sun >= 10 && r1.ring === '0%' && /Сегодня: 0 мин/.test(r1.sub) && Math.abs(r1.off - 207) < 0.5, r1);
 await B.evaluate(() => window.__rqAt('2026-10-12T00:10:00+03:00'));
 await read(bid, 11);
 let c2 = await cal();

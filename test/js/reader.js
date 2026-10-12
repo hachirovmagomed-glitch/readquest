@@ -13,15 +13,16 @@ function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch
 /* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 function applySet(){
-  const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
+  const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
   const r=el('reader');
+  applySkin(); /* app-wide skin on :root */
   r.style.setProperty('--r-bg',bg);r.style.setProperty('--r-txt',tx);
   r.style.background=bg;r.style.color=tx;
   r.style.setProperty('--r-margin',SET.margin+'px');
   el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
   el('dimmer').style.opacity=SET.dim||0;
-  r.dataset.page=!isLightBg(bg)?'night':(SET.theme==='sepia'&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
+  r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
   applyFocusSet();
   r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
   {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
@@ -50,7 +51,7 @@ function applySet(){
   el('wNorm').classList.toggle('on',!SET.weight||SET.weight===400);
   el('wBold').classList.toggle('on',SET.weight===600);
   document.querySelectorAll('#fontSeg button').forEach((b,i)=>b.classList.toggle('on',i===SET.font));
-  document.querySelectorAll('#themeSeg .swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===SET.theme&&!SET.cBg&&!SET.cTxt));
+  document.querySelectorAll('#themeSeg .swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt));
   const nv=SET.nav||{};
   el('navBtns').classList.toggle('on',!!nv.btns);
   el('navTap').classList.toggle('on',nv.tap!==false);
@@ -68,18 +69,25 @@ FONTS.forEach((f,i)=>{
 });
 function renderThemeSeg(){
   const seg=el('themeSeg');seg.innerHTML='';
-  const add=(key,bg,name,locked)=>{
+  const add=(key,bg,name,locked,yours)=>{
     const b=document.createElement('button');
     b.className='swatch';b.dataset.t=key;b.title=name;
     b.style.background=bg;b.style.boxShadow='inset 0 0 0 1px rgba(255,255,255,.15)';
     if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
+    if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+S.cur.name+' '+curI());return;}
-      SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
+      const from=skinOf(activeTheme());
+      SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);
     };
+    if(yours){b.classList.add('yours');b.title='Ваша тема: '+name;const w=document.createElement('span');w.className='yourwrap';w.appendChild(b);
+      const c=document.createElement('small');c.textContent='Ваша тема';w.appendChild(c);seg.appendChild(w);return;}
     seg.appendChild(b);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
+  /* 1в: a bought paid theme that is saved as the current one stays, as a highlighted «Ваша тема» swatch */
+  {const o=ownedShopTheme(SET.theme);if(o)add(o.id,o.bg,o.name,false,true);}
+  seg.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt)); /* rebuilt swatches keep the current mark */
   /* 1в: paid themes (SHOP_THEMES) are not shown at all — no lock, no «buy in the Shop» alert. Code kept for later;
      «Карандашный» (free skin) will be added here when it lands (product.md: after 1в). */
 }

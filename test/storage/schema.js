@@ -350,6 +350,9 @@ export function hydrateSettings(s) {
   if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
   out.pdfDim = normPdfDim(out.pdfDim);
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
+  /* 1в: theme is an id string — the free ones incl. 'pencil' / 'pencil-night' («Карандашный»), paid SHOP ids. Unknown ids are KEPT
+     (forward compat: an older build simply renders sepia, see activeTheme); only a non-string / empty / huge value falls back. */
+  if (typeof out.theme !== 'string' || !out.theme || out.theme.length > 32) out.theme = 'sepia';
   return out;
 }
 

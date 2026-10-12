@@ -10,7 +10,7 @@
    stable non-zero size (2 equal rAF samples + 120 ms). Labels: pdf.getPageLabels(), else the 1-based file number. */
 const PDF_MAX_PX=16e6, PDF_ZMAX=4, PDF_DBL_MS=250, PDF_SWIPE=50;
 const P={seq:0,task:null,front:null,frontSc:0,shown:-1,target:0,baseW:0,baseH:0,bw:0,k:1,z:1,tx:0,ty:0,labels:null,
-  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,redo:false,lastVS:null,lastVR:null,stall:null,reqWhy:'',tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,log:[]};
+  sliding:false,rsRaf:0,rsAt:0,lastSz:'',stableN:0,redo:false,lastVS:null,lastVR:null,stall:null,reqWhy:'',tapT:null,tapAt:0,tapX:0,tapY:0,g:null,applyRaf:0,swaps:0,renders:0,cancels:0,wheelAt:0,chk:0,log:[]};
 window.__rqPdf=P; /* diagnostics for tests (read-only) */
 function pdfLabel(n){const l=P.labels&&P.labels[n];return (l!=null&&String(l).trim()!=='')?String(l):String(n+1);}
 function pdfViewSize(){const v=el('viewer'),s={w:v.clientWidth,h:v.clientHeight};if(s.w>8&&s.h>8)P.lastVS=s;return s;}
@@ -79,6 +79,17 @@ async function pdfRender(why){
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   requestAnimationFrame(function(){
     if(seq!==P.seq){cv.width=0;cv.height=0;return;}
+    /* 1в-black-2: right after a return the GPU/backing may not be back yet → the fresh bitmap can itself be lost/black.
+       Re-render after a frame (≤ 3 tries; a genuinely black page is shown after that). */
+    if(pdfCtxLost(cv)){ /* backing not back yet: never swap it in; page colour + spinner stay, clock stays held */
+      cv.width=0;cv.height=0;P.badTry=(P.badTry||0)+1;pdfLog({ev:'ctx-lost-after-render',why:why,try:P.badTry});
+      if(P.shown>=0){el('pdfStage').style.visibility='hidden';pdfBackdrop('');pdfHold();}
+      setTimeout(function(){requestAnimationFrame(function(){if(seq===P.seq&&R.pdf&&document.visibilityState!=='hidden')pdfRender(why);});},Math.min(1000,150*P.badTry));return;
+    }
+    if(/^(resume|restored|check)/.test(why||'')&&pdfCanvasBad(cv)&&(P.badTry=(P.badTry||0)+1)<=3){
+      pdfLog({ev:'canvas-bad-after-render',why:why,try:P.badTry});cv.width=0;cv.height=0;
+      setTimeout(function(){requestAnimationFrame(function(){if(seq===P.seq&&R.pdf)pdfRender(why);});},80*P.badTry);return;
+    }
     pdfSwap(n,cv,sc,baseW,baseH,tl,sz);
   });
 }
@@ -103,6 +114,7 @@ function pdfWatch(){
   clearInterval(P.watch);
   P.watch=setInterval(function(){
     if(!R.pdf||R.mode!=='pdf'){clearInterval(P.watch);P.watch=0;return;}
+    if(P.target===P.shown&&!P.task&&!P.rsRaf&&++P.chk%3===0)pdfCheck('watch'); /* ~2 s: a dropped backing with no event at all */
     if(P.target!==P.shown&&!P.task&&!P.rsRaf&&performance.now()-(P.reqAt||0)>1500){
       pdfLog({ev:'watchdog',target:P.target,shown:P.shown});
       if(!P.stall)P.stall={t0:P.reqAt||performance.now(),why:P.reqWhy||'',page:P.target}; /* logged as pdf_stall_recovered once the page is on screen */
@@ -114,6 +126,10 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   const sh=el('pdfSheet'),old=P.front,isNew=(n!==P.shown);
   sh.style.width=baseW+'px';sh.style.height=baseH+'px';
   cv.className='pdfc';sh.insertBefore(cv,sh.firstChild);
+  /* 1в-black-2: Chrome (Android) drops 2D canvas backings in the background and fires contextlost / contextrestored */
+  cv.addEventListener('contextlost',function(e){if(P.front===cv)pdfLost('contextlost');});
+  cv.addEventListener('contextrestored',function(){if(P.front===cv)pdfResume('restored');});
+  P.badTry=0;pdfRemember(cv);
   if(old&&old!==cv){old.remove();old.width=0;old.height=0;}
   P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
@@ -125,10 +141,12 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   pdfBackdrop(null);
   if(isNew){
     P.shown=n;R.page=n;
-    if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
+    const tts=P.tts&&n===P.target;if(tts)P.tts=false;
+    if(tts){R.pos=R.pageCount>1?n/(R.pageCount-1):1;persistPage();} /* 1в: a read-aloud page moves the position, never «reached» */
+    else if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
     pdfNumbers(P.sliding?P.target:n);
     if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
-    else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n); /* the page is on screen now */
+    else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n,tts?'tts':undefined); /* the page is on screen now */
     updDayBar();
   }
   if(P.stall)pdfStallLog(n);
@@ -214,7 +232,9 @@ function pdfGo(np,why){
   np=Math.max(0,Math.min(R.pageCount-1,np));
   if(np===P.target){if(why==='slider')pdfNumbers(np,true);return;}
   const fwd=np>P.target;
-  if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
+  P.tts=why==='tts';
+  if(why==='tts'){P.jump=false;} /* 1в: read-aloud auto-advance: no turn, no jump; reported via:'tts' at the swap */
+  else if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
   else{
     P.jump=false;
     if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
@@ -411,7 +431,7 @@ function relayout(opts){
   layout();
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
-  goPage(p,false);
+  R.relay=true;try{goPage(p,false);}finally{R.relay=false;} /* 1в: a re-layout keeps the text in view; it never grows «reached» (e.g. after read-aloud) */
   R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
 }
 /* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
@@ -462,7 +482,7 @@ function goPage(p,turn){
   R.page=np;
   el('content').style.transform='translateX('+(-np*R.step)+'px)';
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  if(!R.sliding){R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached» */
+  if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
@@ -472,7 +492,7 @@ function goPage(p,turn){
   /* the reading mode only REPORTS events; reader-session.js does all the accounting */
   if(__tracker&&(np!==prev||forwardTurn)){
     if(R.jumping){if(np!==prev)__tracker.jumped(np);}       /* 1б: TOC / bookmark / search / slider release */
-    else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np);}
+    else if(!R.sliding){if(forwardTurn)__tracker.pageTurned(true);__tracker.pageShown(np,R.ttsAdv?'tts':undefined);}
   }
   if(np!==prev)updDayBar();
   if(!R.sliding)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page */
@@ -573,16 +593,66 @@ function pdfResumeDone(){
   P.resuming=false;clearTimeout(P.resumeT);P.resumeT=0;
   if(__tracker&&__tracker.releaseResume)__tracker.releaseResume();
 }
-function pdfResume(src){
-  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding)return;
-  if(P.resuming){P.resumeDup=(P.resumeDup||0)+1;return;} /* second event of the same return */
+function pdfCtxLost(cv){try{const c=cv.getContext('2d',{alpha:false});return !!((c.isContextLost&&c.isContextLost())||(window.__rqLoseCanvas&&window.__rqLoseCanvas(cv)));}catch(e){return false;}}
+const PDF_PTS=[[.5,.5],[.2,.2],[.8,.2],[.2,.8],[.8,.8],[.03,.03],[.97,.97]];
+function pdfSample(cv,cheap){
+  const c=cv.getContext('2d',{alpha:false}),w=cv.width,h=cv.height,out=[];
+  const pts=cheap?[PDF_PTS[0],PDF_PTS[1],PDF_PTS[4]]:PDF_PTS;
+  for(let i=0;i<pts.length;i++){const d=c.getImageData(Math.floor(pts[i][0]*(w-1)),Math.floor(pts[i][1]*(h-1)),1,1).data;out.push([d[0],d[1],d[2],d[3]]);}
+  return out;
+}
+/** remember what the page really looks like right after a good render (dark / blank pages included) */
+function pdfRemember(cv){setTimeout(function(){if(P.front!==cv||!cv.width)return;try{P.ref=pdfSample(cv);P.refCv=cv;}catch(e){P.ref=null;}},0);}
+/** bitmap gone: context lost, 0-size, all sampled pixels alpha 0, or all pure black while the same page sampled right
+    after its render was NOT all black. Blank white and genuinely dark pages are normal (night/dim are CSS layers, not pixels). */
+function pdfCanvasBad(cv,cheap){
+  if(!cv||!cv.width||!cv.height)return true;
+  if(pdfCtxLost(cv))return true;
+  try{
+    const px=pdfSample(cv,cheap);
+    if(px.every(function(d){return d[3]===0;}))return true;
+    const black=px.every(function(d){return d[0]===0&&d[1]===0&&d[2]===0;});
+    if(!black)return false;
+    const ref=(P.refCv===cv||(cv===P.front&&P.ref))?P.ref:null;
+    return !!(ref&&!ref.every(function(d){return d[0]===0&&d[1]===0&&d[2]===0;}));
+  }catch(e){return false;}
+}
+/** safety net (Интерфейс): a lost/empty bitmap never shows black — page colour (var(--r-bg)) + quiet spinner, then the page is redrawn */
+function pdfLost(src){
+  if(!R.pdf||R.mode!=='pdf'||P.shown<0)return;
+  P.lost=(P.lost||0)+1;pdfLog({ev:'canvas-lost',src:src,page:P.shown});
+  el('pdfStage').style.visibility='hidden';pdfBackdrop('');
+  pdfHold(); /* no minute is counted while the page is not on screen */
+}
+/** hold the counted clock until the page is on screen again (pdfSwap → pdfResumeDone). The 8 s safety releases it
+    ONLY with the placeholder showing (never over a black bitmap). Holding writes nothing. */
+function pdfHold(){
+  if(P.resuming)return false;
   P.resuming=true;P.resumes=(P.resumes||0)+1;
   if(__tracker&&__tracker.holdResume)__tracker.holdResume();
-  clearTimeout(P.resumeT);P.resumeT=setTimeout(pdfResumeDone,8000); /* safety: never stay held forever */
-  pdfRender('resume');
+  clearTimeout(P.resumeT);P.resumeT=setTimeout(function(){
+    if(pdfCanvasBad(P.front)){el('pdfStage').style.visibility='hidden';pdfBackdrop('');P.lostGiveUp=(P.lostGiveUp||0)+1;}
+    pdfResumeDone();
+  },8000);
+  return true;
+}
+/** cheap check on every way back (focus / resume / periodic): redraw only if the bitmap is really gone */
+function pdfCheck(src){
+  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding||P.resuming||P.task)return;
+  if(pdfCanvasBad(P.front,src==='watch')){pdfLost(src);pdfResume('check-'+src);}
+}
+function pdfResume(src){
+  if(document.visibilityState==='hidden'||!R.pdf||R.mode!=='pdf'||P.shown<0||P.sliding)return;
+  if(P.resuming&&!/^(restored|check)/.test(src)){P.resumeDup=(P.resumeDup||0)+1;return;} /* second event of the same return */
+  pdfHold();
+  if(pdfCanvasBad(P.front))pdfLost(src); /* black/empty already → page colour + spinner instead of black until the swap */
+  pdfRender(/^(restored|check)/.test(src)?src:'resume');
 }
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'){pdfResumeDone();return;}
   pdfResume('vis');
 });
-window.addEventListener('pageshow',function(e){if(e.persisted)pdfResume('pageshow');});
+window.addEventListener('pageshow',function(e){if(e.persisted)pdfResume('pageshow');else pdfCheck('pageshow');});
+document.addEventListener('resume',function(){pdfCheck('resume');}); /* Page Lifecycle: frozen → resumed without a visibility change */
+window.addEventListener('focus',function(){pdfCheck('focus');}); /* unlock: focus comes back */
+window.addEventListener('resize',function(){setTimeout(function(){pdfCheck('resize');},300);});

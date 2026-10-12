@@ -15,8 +15,26 @@ const THEMES={
  light:{name:'Светлая',bg:'#f7f5f0',txt:'#26241f'},
  sepia:{name:'Сепия',bg:'#f4ecd8',txt:'#5b4636'},
  dark:{name:'Тёмная',bg:'#1e1e24',txt:'#cfcfd8'},
- black:{name:'AMOLED',bg:'#000000',txt:'#9a9aa3'}
+ black:{name:'AMOLED',bg:'#000000',txt:'#9a9aa3'},
+ pencil:{name:'Карандашный',bg:'#fbfaf6',txt:'#24231f',skin:'pencil'} /* 1в: 5th free theme, handoff/skins/karandashny (tokens.rq.css); the page stays flat */
 };
+/* day/night variants that have no swatch of their own (toggleDayNight swaps within the skin) */
+const THEME_VARIANTS={'pencil-night':{name:'Карандашный',bg:'#262a31',txt:'#e3e0d8',skin:'pencil',night:true,base:'pencil'}};
+function themeBase(k){const v=THEME_VARIANTS[k];return v?v.base:k;}
+/** paid theme saved in rq_set and bought (game.owned) */
+function ownedShopTheme(k){const s=(typeof SHOP_THEMES!=='undefined')?SHOP_THEMES.find(x=>x.id===k):null;return s&&(S.owned||[]).indexOf(k)>=0?s:null;}
+/** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
+/** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
+    any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
+function applySkin(){
+  const t=activeTheme(),h=document.documentElement;
+  if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
+  else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
+}
+function skinOf(t){return (t&&t.skin)||'default';}
+/** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
+function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&(!window.__rqWriter||__rqWriter.mayWrite()))__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
+function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||ownedShopTheme(SET.theme)||THEMES.sepia;}
 const FONTS=[
  {label:'Georgia',v:'Georgia, serif'},
  {label:'Times',v:'"Times New Roman", Times, serif'},

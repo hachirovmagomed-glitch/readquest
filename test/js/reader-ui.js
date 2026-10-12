@@ -131,10 +131,11 @@ function isLightBg(bg){
   return (((n>>16)&255)+((n>>8)&255)+(n&255))>380;
 }
 function toggleDayNight(){
-  const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
-  SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
+  const t=activeTheme();
+  if(t.skin==='pencil'&&!SET.cBg)SET.theme=t.night?'pencil':'pencil-night'; /* the skin keeps its own night */
+  else SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
   SET.cBg=null;SET.cTxt=null;saveSet();applySet();
-  {const lt=isLightBg((THEMES[SET.theme]||{}).bg||'#000');flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}
+  {const lt=isLightBg(activeTheme().bg);flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}
 }
 function addBookmark(){
   if(!R.book)return;
@@ -434,7 +435,7 @@ function ttsTextNext(){
   const tail=b.text.slice(end,end+220).search(/[.!?…\n]/);
   if(tail>=0)end+=tail+1;
   const chunk=b.text.slice(R.ttsPos||0,end);
-  if(R.pageCount>1)goPage(Math.round((end/b.text.length)*(R.pageCount-1)),false);
+  if(R.pageCount>1){R.ttsAdv=true;try{goPage(Math.round((end/b.text.length)*(R.pageCount-1)),false);}finally{R.ttsAdv=false;}} /* 1в: via:'tts', not «reached» */
   ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);});
 }
 function ttsPdfNext(){
@@ -442,7 +443,7 @@ function ttsPdfNext(){
   R.pdf.getPage(R.page+1).then(p=>p.getTextContent()).then(tc=>{
     if(!ttsOn)return;
     const t=tc.items.map(i=>i.str).join(' ').trim();
-    const advance=function(){if(ttsOn&&R.page<R.pageCount-1){goPage(R.page+1,false);setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('🔊 Конец документа');}};
+    const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('🔊 Конец документа');}};
     if(t)ttsSay(t,advance);else advance();
   }).catch(()=>ttsStop());
 }

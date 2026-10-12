@@ -519,6 +519,34 @@ if (want('thumb')) for (const TH of ['sepia', 'pencil']) {
   }
 }
 
+/* ---------- panels show/hide in a TEXT book re-paginates (bars take space): a relayout is NOT a page change for the tracker.
+   Before the fix every toggle logged page_visible {via:'turn'} and reset the 3-min page cap (idle minutes beyond the cap). ---------- */
+if (want('relay')) for (const TH of ['sepia', 'pencil']) {
+  const q = await fresh(BOOK);
+  await q.evaluate(t => { SET.theme = t; saveSet(); applySet(); }, TH); await open(q);
+  await q.waitForFunction(() => document.getElementById('txtBack').classList.contains('hidden'), { timeout: 20000 }); /* cold-start hyphenation placeholder gone → anchors see the text */
+  const r = await q.evaluate(async (id) => {
+    const W = ms => new Promise(z => setTimeout(z, ms));
+    const pv = async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'page_visible' && e.bookId === id);
+    concealChrome('tap'); await W(400);
+    for (let k = 0; k < 5; k++) { goPage(R.page + 1, true); await W(120); }
+    const ev0 = (await pv()).length, s0 = __tracker.snapshot(), max0 = R.maxRatio, saved0 = (S.progress[id] || {}).ratio, n0 = R.pageCount;
+    const steps = [];
+    for (let k = 0; k < 4; k++) { window.__rqTimeOffset += 150000; if (k % 2 === 0) revealChrome(); else concealChrome('tap'); await W(500);
+      steps.push({ N: R.pageCount, page: R.page, trk: __tracker.snapshot().page }); }
+    const s1 = __tracker.snapshot(), ev1 = (await pv()).length;
+    const out = { theme: document.documentElement.dataset.skin || 'plain', n0, steps, newEvents: ev1 - ev0, turns: [s0.turns, s1.turns], pageTurns: [s0.pageTurns, s1.pageTurns],
+      max: [max0, R.maxRatio], saved: [saved0, (S.progress[id] || {}).ratio], gainedMin: +((s1.countedMs - s0.countedMs) / 60000).toFixed(2), capMin: s1.pageCapMs / 60000 };
+    goPage(R.page + 1, true); await W(300); const evs = (await pv()).slice(ev1).map(e => e.via);
+    out.afterTurn = evs; return out; }, q.__bid);
+  const tag = 'relay[' + TH + ']: ';
+  ok(tag + 'panels on/off in a text book re-paginate (N changes) but write NO page_visible event', r.steps.some(x => x.N !== r.n0) && r.newEvents === 0, r);
+  ok(tag + 'relayout: turns / pageTurns / maxRatio / saved ratio unchanged, tracker page = shown page', r.turns[0] === r.turns[1] && r.pageTurns[0] === r.pageTurns[1] && r.max[0] === r.max[1] && r.saved[0] === r.saved[1] && r.steps.every(x => x.trk === x.page), r);
+  ok(tag + '10 idle minutes on one page with 4 panel toggles → counted ≤ the 3-min page cap (cap not reset by a relayout)', r.gainedMin <= r.capMin + 0.05, r);
+  ok(tag + 'the next real turn → exactly one page_visible {via:"turn"}', r.afterTurn.length === 1 && r.afterTurn[0] === 'turn', r.afterTurn);
+  await q.__ctx.close();
+}
+
 /* ---------- 1б-144: % on card / info / share and «by progress» sort = current position (finish/stats = farthest) ---------- */
 if (want('pospct')) {
   const ctx = await browser.createBrowserContext(); const q = await ctx.newPage(); await q.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });

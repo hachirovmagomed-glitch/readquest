@@ -21,6 +21,7 @@
  *                            (min(dwell, pageCap) credited; a forward turn after ≥ minSec = pageTurns+1)
  *   userActive(kind, info)   'pan' {fraction} | 'zoom' | … → may extend the current page's cap
  *   jumped(page)             slider / TOC / bookmark jump, once on release: one page_visible {via:'jump'}, no turn
+ *   relaid(page)             same text re-paginated (panels / rotation): index only — no event, no credit, cap kept
  *   onPageChange(page, fwd)  legacy shorthand = pageTurned(fwd) + pageShown(page)
  *   end() / cancel() / snapshot() / setCounting(on)
  *
@@ -329,6 +330,17 @@ export function createSessionTracker(api) {
       newPageCap();
       startClock();
       dwellStart();
+      persistDraft();
+    },
+
+    /**
+     * The SAME text was re-paginated (panels shown/hidden, rotation, font metrics): only the page INDEX changed.
+     * Not a page change: no page_visible event, nothing credited, the page cap / dwell / pending turn are kept.
+     * @param {number} newPage index of the same text in the new layout
+     */
+    relaid(newPage) {
+      if (!running) return;
+      page = newPage;
       persistDraft();
     },
 

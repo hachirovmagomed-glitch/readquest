@@ -32,6 +32,14 @@ function applyAppTheme(){
 function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
 
 /* ================= НАСТРОЙКИ ================= */
+/** 1в: «Вкл/Выкл» buttons drawn as switches (.sw) — state mirrored to aria-checked, labels stay for screen readers / tests */
+function rqSyncSwitches(){document.querySelectorAll('.sw').forEach(function(b){const t=(b.textContent||'').trim();b.setAttribute('aria-checked',/^(Вкл|On)/.test(t)?'true':'false');});}
+/** «Общие настройки»: from the profile = a screen; from the reader = the same screen OVER the reader (session keeps running, back closes it) */
+function generalOverReader(){const g=el('settings');return !!(g&&g.classList.contains('over')&&!g.classList.contains('hidden'));}
+function openGeneralSettings(over){renderSettings();const g=el('settings');
+  if(over){g.classList.add('over');g.classList.remove('hidden');navPush('settings');}else{g.classList.remove('over');show('settings');}}
+function closeGeneralSettings(){const g=el('settings');g.classList.add('hidden');g.classList.remove('over');}
+el('setBack').onclick=function(){if(generalOverReader()){closeGeneralSettings();if(navState()==='settings')try{history.back();}catch(e){}return;}show(isMvp()?'profile':'library');};
 function renderSettings(){
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
@@ -58,7 +66,7 @@ function renderSettings(){
   const tb=el('appThemeBox');tb.innerHTML='';
   const auto=document.createElement('button');
   auto.className='appsw'+(S.appTheme==='auto'?' on':'');
-  auto.textContent='🌗';auto.title='Авто: день/ночь';
+  auto.innerHTML=rqIcon('sun-moon',18);auto.title='Авто: день/ночь';auto.setAttribute('aria-label','Авто');
   auto.onclick=()=>{S.appTheme='auto';save();applyAppTheme();renderSettings();};
   tb.appendChild(auto);
   Object.keys(APP_THEMES).forEach(k=>{
@@ -69,6 +77,8 @@ function renderSettings(){
     b.onclick=()=>{S.appTheme=k;save();applyAppTheme();renderSettings();};
     tb.appendChild(b);
   });
+  if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
+  rqSyncSwitches();
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('devMoneyTgl').onclick=()=>{S.devMoney=!S.devMoney;save();renderSettings();renderLibrary();flashMsg(S.devMoney?'∞ Бесконечная валюта включена':'Тест-валюта выключена');};

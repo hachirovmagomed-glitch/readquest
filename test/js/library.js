@@ -85,13 +85,13 @@ function renderLibrary(){
     const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
     if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
   }
-  el('goldChip').textContent=curI()+' '+goldDisp();
+  el('goldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('goldChip').lastChild.textContent=goldDisp(); /* 1в: Lucide coins */
   el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
   const _mt=isMvp()?minTodaySess():S.minToday;
   el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
-  const gl=el('libGoldLine');if(gl){gl.textContent=__bootGold?('+'+__bootGold+' 🪙 за прошлую сессию'):'';gl.classList.toggle('hidden',!__bootGold);}
-  el('streakTxt').textContent='🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней');
-  el('lvlTxt').textContent='⭐ Ур. '+level(S.xp);
+  const gl=el('libGoldLine');if(gl){gl.innerHTML=__bootGold?(rqIcon('coins',14)+'<span></span>'):'';if(__bootGold)gl.lastChild.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
+  el('streakTxt').innerHTML=rqIcon('flame',16)+'<span></span>';el('streakTxt').lastChild.textContent=S.streak+' '+plural(S.streak,'день','дня','дней');
+  el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/goalMin());
   el('ringFg').style.strokeDashoffset=207*(1-pct);
   el('ringFg').style.stroke=pct>=1?'#4cd97b':'#2bb3c0';
@@ -134,6 +134,8 @@ function renderLibrary(){
   }
   applyMvpChrome();
 }
+/* 1в: «N монет» — число и слово из одного n; '∞' (devMoney) → «монет» */
+function coinsP(n){return n+' '+(typeof n==='number'?plural(n,'монета','монеты','монет'):'монет');}
 function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)return a;if(m>=2&&m<=4)return b;return c;}
 /* --- поиск и фильтры библиотеки --- */
 let LIB={q:'',f:'all',author:null,sort:'recent'};
@@ -171,7 +173,7 @@ function coverHtml(b){
 }
 function renderLibChips(){
   const box=el('libChips');box.innerHTML='';
-  [['all','Все'],['reading','📖 Читаю'],['want','📌 Хочу'],['done','✅ Прочитано'],['fav','★ Избранное']].forEach(([k,t])=>{
+  [['all','Все'],['reading','Читаю'],['want','Хочу'],['done','Прочитано'],['fav','Избранное']].forEach(([k,t])=>{
     const b=document.createElement('button');
     b.className='fchip'+(LIB.f===k&&!LIB.author?' on':'');b.textContent=t;
     b.onclick=()=>{LIB.f=k;LIB.author=null;renderLibrary();};
@@ -179,7 +181,7 @@ function renderLibChips(){
   });
   Array.from(new Set(allBooks().map(b=>b.author))).forEach(a=>{
     const b=document.createElement('button');
-    b.className='fchip'+(LIB.author===a?' on':'');b.textContent='👤 '+a;
+    b.className='fchip'+(LIB.author===a?' on':'');b.textContent=a;
     b.onclick=()=>{LIB.author=LIB.author===a?null:a;renderLibrary();};
     box.appendChild(b);
   });
@@ -204,7 +206,7 @@ el('fileInp').onchange=async e=>{
     }else if(/\.fb2$/i.test(f.name)){
       btn.textContent='⏳ Разбираю FB2...';
       const r=await parseFb2(f);
-      b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,fname:f.name,size:f.size};
+      b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
     }else if(/\.epub$/i.test(f.name)){
       btn.textContent='⏳ Распаковываю EPUB...';
       const r=await parseEpub(f);

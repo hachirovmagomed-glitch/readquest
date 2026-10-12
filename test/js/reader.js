@@ -10,6 +10,8 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.readCounter!=='boolean')s.readCounter=true;return s;}
 normSet(SET);
 function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
+/* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
+function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 function applySet(){
   const t=THEMES[SET.theme]||SHOP_THEMES.find(x=>x.id===SET.theme)||THEMES.sepia;
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
@@ -22,6 +24,9 @@ function applySet(){
   r.dataset.page=!isLightBg(bg)?'night':(SET.theme==='sepia'&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
   applyFocusSet();
   r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
+  {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
+  {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
+   el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   if(el('pdfDimRange')){const pc=Math.round(SET.pdfDim*100);el('pdfDimRange').value=pc;el('pdfDimVal').textContent=pc+' %';}
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
@@ -67,7 +72,7 @@ function renderThemeSeg(){
     const b=document.createElement('button');
     b.className='swatch';b.dataset.t=key;b.title=name;
     b.style.background=bg;b.style.boxShadow='inset 0 0 0 1px rgba(255,255,255,.15)';
-    if(locked){b.style.opacity=.35;b.textContent='🔒';b.style.fontSize='12px';}
+    if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+S.cur.name+' '+curI());return;}
       SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
@@ -75,7 +80,8 @@ function renderThemeSeg(){
     seg.appendChild(b);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
-  SHOP_THEMES.forEach(t=>add(t.id,t.bg,t.name,!S.owned.includes(t.id)));
+  /* 1в: paid themes (SHOP_THEMES) are not shown at all — no lock, no «buy in the Shop» alert. Code kept for later;
+     «Карандашный» (free skin) will be added here when it lands (product.md: after 1в). */
 }
 el('szMinus').onclick=()=>{setFontSizeKeepPos(SET.size-1);};
 el('szPlus').onclick=()=>{setFontSizeKeepPos(SET.size+1);};
@@ -95,16 +101,24 @@ el('wBold').onclick=()=>{SET.weight=600;saveSet();applySet();relayout();};
 el('cTxt').oninput=e=>{SET.cTxt=e.target.value;saveSet();applySet();};
 el('cBg').oninput=e=>{SET.cBg=e.target.value;saveSet();applySet();};
 el('cReset').onclick=()=>{SET.cTxt=null;SET.cBg=null;saveSet();applySet();};
-el('btnAa').onclick=()=>{renderThemeSeg();el('sheet').classList.toggle('hidden');};
+/* 1в: «Настройки чтения» — Aa opens «Текст» (PDF: «Страница»), the gear opens the last tab; «Общие настройки» = the settings screen over the reader */
+let setTab='grpText';
+function openSetTab(g){setTab=g;Array.from(el('setCats').children).forEach(b=>{const on=b.dataset.g===g;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
+  ['grpText','grpPage','grpNav','grpFocus'].forEach(id=>el(id).classList.toggle('on',id===g));}
+function openReaderSettings(g){
+  const sh=el('sheet');
+  if(!sh.classList.contains('hidden')&&(!g||g===setTab)){sh.classList.add('hidden');return;}
+  renderThemeSeg();renderSettings();openSetTab(g||setTab);el('panel').classList.add('hidden');sh.classList.remove('hidden');
+}
+el('btnAa').onclick=()=>openReaderSettings(R.mode==='pdf'?'grpPage':'grpText');
+el('btnSet').onclick=()=>openReaderSettings(null);
+el('btnDayNight').onclick=()=>toggleDayNight();
+el('btnGeneral').onclick=()=>{el('sheet').classList.add('hidden');openGeneralSettings(true);};
+el('dimRange').oninput=e=>{SET.dim=Math.max(0,Math.min(0.7,(parseInt(e.target.value,10)||0)/100));applySet();};
+el('dimRange').onchange=()=>saveSet();
 el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
-Array.from(el('setCats').children).forEach(btn=>{
-  btn.onclick=()=>{
-    const g=btn.dataset.g;
-    Array.from(el('setCats').children).forEach(b=>b.classList.toggle('on',b===btn));
-    ['grpFont','grpSize','grpText','grpTheme','grpColor','grpNav'].forEach(id=>el(id).classList.toggle('on',id===g));
-  };
-});
+Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
 /* навигация при чтении */
 function navTurn(d){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+d*inv,true);}
 el('navPrev').onclick=()=>navTurn(-1);
@@ -146,11 +160,70 @@ async function openBook(id){
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
+  c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
+  const hy=hyphWaitStart(c,b);
   layout();
   const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */
   if(__tracker)__tracker.begin(id,p,trackerOpts());
   goPage(p,false);
+  if(hy)hyphWaitRun(hy,p);
+}
+/* 1в: hyphenation dictionaries load lazily — the first layout of a cold start is unhyphenated.
+   A hidden probe (same lang, hyphens:auto, narrow) tells when the dictionary is applied; then ONE silent
+   relayout keeps the same text line. Silent = no goPage: R.pos / R.maxRatio / persistPage / tracker untouched.
+   The page stays under «Открываем страницу N» until then (safety timeout HYPH_MAX_MS). */
+/* HY: survives `R=` on every open; relayouts/fallbacks are cumulative counters (tests, diag) */
+const HY=window.__rqHyph={tok:0,relayouts:0,fallbacks:0,off:-1};
+const HYPH_MAX_MS=3000; /* no dictionary by then → drop the placeholder WITHOUT relayout */
+/* text offset ↔ page: global char offset over the non-blank text nodes of #content (no hit-testing, so it
+   works under the placeholder). Page of an offset is monotonic → binary search for the first char of a page. */
+function txtNodes(){const c=el('content'),w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT,{acceptNode:n=>/\S/.test(n.nodeValue)?1:3});const a=[];let n,o=0;while((n=w.nextNode())){a.push({n:n,s:o});o+=n.nodeValue.length;}return {a:a,len:o};}
+function txtAt(T,off){let lo=0,hi=T.a.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(T.a[m].s<=off)lo=m;else hi=m-1;}const x=T.a[lo];return x?{node:x.n,offset:Math.min(off-x.s,x.n.nodeValue.length-1)}:null;}
+function pageOfOffset(T,off){return pageOfAnchor(txtAt(T,off));}
+function firstOffsetOfPage(pg){const T=txtNodes();let lo=0,hi=Math.max(0,T.len-1);while(lo<hi){const m=(lo+hi)>>1;if(pageOfOffset(T,m)>=pg)hi=m;else lo=m+1;}return lo;}
+function hyphProbe(lang,word,mode){const d=document.createElement('div');d.lang=lang;d.setAttribute('aria-hidden','true');
+  d.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;width:3ch;font:16px serif;hyphens:'+mode+';-webkit-hyphens:'+mode;
+  d.textContent=word;document.body.appendChild(d);return d;}
+function hyphWaitStart(c,b){
+  if(SET.hyph===false)return null;
+  const w=((b.text||'').slice(0,4000).match(/[\p{L}]{12,}/u)||[])[0]||(c.lang==='ru'?'конфискованными':'representatives');
+  const on=hyphProbe(c.lang,w,'auto'),off=hyphProbe(c.lang,w,'none');
+  /* test hooks: __rqHyphNoDict = dictionary never arrives; __rqHyphDelay = N ms = dictionary arrives late
+     (the text is laid out unhyphenated until then, as on a cold start without the dictionary) */
+  const t0=Date.now(),late=+window.__rqHyphDelay||0;
+  if(late){c.style.hyphens=c.style.webkitHyphens='none';}
+  const ready=()=>!window.__rqHyphNoDict&&(late?Date.now()-t0>=late:on.offsetHeight>off.offsetHeight);
+  if(ready()){on.remove();off.remove();return null;} /* dictionary already applied → the first layout is final */
+  const t=el('txtBack');if(t){el('txtBackN').textContent='Открываем страницу '+((R.page||0)+1);t.classList.remove('hidden');}
+  return {on:on,off:off,ready:ready,book:b,t0:t0,late:late,done:false,tok:(++HY.tok)};
+}
+function hyphWaitRun(h,p){
+  const t=el('txtBack');if(t)el('txtBackN').textContent='Открываем страницу '+(p+1);
+  const fin=(relay)=>{if(h.done)return;h.done=true;h.on.remove();h.off.remove(); /* once per open, whatever fires first */
+    if(HY.tok!==h.tok)return; /* a newer open owns the placeholder */
+    if(!R.book||R.book.id!==h.book.id||R.mode==='pdf'||el('reader').classList.contains('hidden')){if(t)t.classList.add('hidden');return;}
+    if(relay){
+      const off=firstOffsetOfPage(R.page); /* char offset of the first visible line */
+      if(h.late){const c=el('content');c.style.hyphens=c.style.webkitHyphens='auto';}
+      layout();
+      let np=pageOfOffset(txtNodes(),off);if(np<0)np=R.page;
+      np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;
+      el('content').style.transform='translateX('+(-np*R.step)+'px)';
+      el('rPage').textContent=el('pgNum').textContent=(np+1)+' / '+R.pageCount;
+      const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;
+      HY.off=off;HY.relayouts++; /* silent: no goPage → R.pos / R.maxRatio / persist / tracker untouched */
+    }
+    else HY.fallbacks++;
+    if(t)t.classList.add('hidden');
+  };
+  let fontsOk=false;
+  const tick=()=>{if(h.done)return;if(HY.tok!==h.tok){fin(false);return;}
+    if(fontsOk&&h.ready())return fin(true);
+    if(Date.now()-h.t0>=HYPH_MAX_MS)return fin(false);
+    setTimeout(tick,50);};
+  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>{fontsOk=true;});
+  setTimeout(tick,50);
 }
 /** Anti-cheat params for the session tracker (single source of counted minutes). */
 function trackerOpts(){

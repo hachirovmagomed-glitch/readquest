@@ -724,6 +724,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
      kept its old state in memory and wrote it straight back (streak and all). Now, in this order:
      1) owner key + navigator.locks.request(lock,{steal:true}) → the old writer demotes (passive, writes nothing);
      2) BroadcastChannel {t:'reset'} → every other window goes passive and reloads (onversionchange does the same);
+     5) the resetting window reloads with the takeover flag → it is the writer after the reset, whichever window booted first;
      3) deleteDatabase and WAIT for onsuccess (onblocked = keep waiting; 3 s timeout), not reload on onblocked;
      4) rqt* keys removed after the DB is gone and once more right before reload (late pagehide/diag writes). */
   window.__rqTestReset=async function(opts){
@@ -762,6 +763,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     try{var rg=await navigator.serviceWorker.getRegistration('./');if(rg&&rg.scope.indexOf('/test/')>0)await rg.unregister();}catch(e){} /* own test SW only */
     try{var ks=await caches.keys();await Promise.all(ks.filter(function(k){return k.indexOf(pre+'-')===0;}).map(function(k){return caches.delete(k);}));}catch(e){}
     wipe();mark('reload');
+    /* 1в race fix: the other windows reload on the BroadcastChannel message, i.e. BEFORE this one — a fast one used to grab the
+       writer lock first and leave the window that pressed reset passive. The resetting window's own reload now takes the lock
+       over deterministically (same flow as «Открыть здесь»: takeover message → the holder hands over → passive). */
+    try{sessionStorage.setItem(RQ_K.takeover,'1');}catch(e){}
     try{sessionStorage.setItem('__rqResetLog',JSON.stringify(log));}catch(e){} /* diagnostics (tests); not an rqt* key */
     location.reload();
     return true;

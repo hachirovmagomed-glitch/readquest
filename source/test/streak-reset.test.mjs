@@ -37,7 +37,7 @@ async function sess(p, id, ms) {
 // B: clean test namespace, then 2.5 min → streak 1
 const B = await mk('B');
 await B.goto(BASE); await ready(B);
-await Promise.all([B.waitForNavigation(), B.evaluate(() => window.__rqTestReset({ noConfirm: true }))]); await ready(B); await sleep(400);
+await Promise.all([B.waitForNavigation(), B.evaluate(() => { window.__rqTestReset({ noConfirm: true }); }) /* not awaited in-page: the reset reloads, the context dies */]); await ready(B); await sleep(400);
 const bid = await addBook(B);
 await sess(B, bid, 150000);
 const b1 = await st(B);

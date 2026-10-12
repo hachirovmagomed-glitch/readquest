@@ -9,7 +9,7 @@ BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
 ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts pdf pdf-test pwa"
 SEL="${*:-$ALL}"
-mkdir -p /tmp/rq-runall; rc=0
+LOG="/tmp/rq-runall/$BUILD"; mkdir -p "$LOG"; rc=0  # per-run log dir: a rerun never overwrites the logs of a failed run
 for t in $SEL; do
   case "$t" in
     export)       cmd="node export.test.mjs";;
@@ -34,8 +34,8 @@ for t in $SEL; do
     pwa)          cmd="node pwa-verify.mjs";;
     *) echo "unknown test $t"; rc=1; continue;;
   esac
-  RQ_URL="${RQ_URL_OVERRIDE:-$HOST/readquest/}" bash -c "$cmd" > "/tmp/rq-runall/$t.log" 2>&1; code=$?
+  RQ_URL="${RQ_URL_OVERRIDE:-$HOST/readquest/}" bash -c "$cmd" > "$LOG/$t.log" 2>&1; code=$?
   [ $code -ne 0 ] && rc=1
-  echo "$t: exit $code — $( (grep -E 'SUMMARY|passed|Итого|^[0-9]+\/[0-9]+' "/tmp/rq-runall/$t.log" || true) | tail -1 | cut -c1-200) (PASS $(grep -c '^PASS' "/tmp/rq-runall/$t.log"), FAIL $(grep -c '^FAIL' "/tmp/rq-runall/$t.log"))"
+  echo "$t: exit $code — $( (grep -E 'SUMMARY|passed|Итого|^[0-9]+\/[0-9]+' "$LOG/$t.log" || true) | tail -1 | cut -c1-200) (PASS $(grep -c '^PASS' "$LOG/$t.log"), FAIL $(grep -c '^FAIL' "$LOG/$t.log"))"
 done
 exit $rc

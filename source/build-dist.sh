@@ -84,6 +84,10 @@ echo "Build marker: $BUILD (NS=$NS)"
 mkdir -p "$DIST/vendor/pdfjs"
 cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT/vendor/pdfjs/LICENSE" "$DIST/vendor/pdfjs/"
 
+# «Карандашный» heading font: Caveat (SIL OFL 1.1), subset Latin+Cyrillic woff2 — precached like every other file in dist
+mkdir -p "$DIST/fonts"
+cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
+
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
 PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE | sed 's#^\./##' | sort | while read -r f; do
   case "$f" in vendor/*) echo "\"$f\"";; *.js) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)

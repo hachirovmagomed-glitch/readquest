@@ -52,7 +52,8 @@ function applyMvpChrome(){
     if(isMvp()){
       ava.style.display='inline-flex';
       try{
-        if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
+        if(typeof isPencil==='function'&&isPencil())ava.innerHTML=rqIcon('user-round',18);
+        else if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
         else ava.textContent=S.avatar||'📖';
       }catch(e){ava.textContent='📖';}
     }else ava.style.display='none';

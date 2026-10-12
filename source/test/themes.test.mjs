@@ -41,7 +41,9 @@ s = await st();
 ok('Карандашный day: SET/rq_set = pencil, #reader data-skin=pencil, flat page #fbfaf6, swatch on', s.theme === 'pencil' && s.ls === 'pencil' && s.hskin === 'pencil' && !s.htheme && s.page === 'day' && s.bg === 'rgb(251, 250, 246)' && s.on.join() === 'pencil', s);
 { const ev = await p.evaluate(async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'theme_changed').map(e => e.from + '>' + e.to));
   ok('switching to Карандашный writes ONE theme_changed default>pencil', ev.join() === 'default>pencil', ev); }
-ok('pencil icons on (hand-drawn filter on the Lucide strokes)', /url/.test(s.icFilter), s.icFilter);
+ok('pencil icons load: no runtime SVG filter on the Lucide strokes (it blanked icons on phones)', s.icFilter === 'none', s.icFilter);
+{ const ic = await p.evaluate(() => { const vis = [...document.querySelectorAll('.ic')].filter(e => e.getClientRects().length); return { n: vis.length, drawn: vis.filter(e => { const r = e.getBoundingClientRect(); return r.width >= 12 && r.height >= 12 && getComputedStyle(e).visibility !== 'hidden' && getComputedStyle(e).opacity !== '0'; }).length }; });
+  ok('pencil: every visible Lucide icon is drawn (≥12 px, visible)', ic.n >= 5 && ic.drawn === ic.n, ic); }
 ok('reader page stays clean (no background image / filter on the page)', !/url|gradient/.test(s.bgImg) && (s.filter === 'none' || !s.filter), { bgImg: s.bgImg, filter: s.filter });
 ok('skin tokens active on #reader (--rq-accent = pencil #1d6464)', s.acc === '#1d6464', s.acc);
 ok('app-wide skin day: html[data-skin=pencil]; settings sheet #fbfaf5, header + bottom bar #f3f0e7, body #f3f0e7, wobbly header line', s.hskin === 'pencil' && !s.htheme && s.sheetBg === 'rgb(251, 250, 245)' && s.headBg === 'rgb(243, 240, 231)' && s.barBg === 'rgb(243, 240, 231)' && s.bodyBg === 'rgb(243, 240, 231)' && /svg/.test(s.headLine), { hskin: s.hskin, sheet: s.sheetBg, head: s.headBg, bar: s.barBg, body: s.bodyBg, line: !!s.headLine });

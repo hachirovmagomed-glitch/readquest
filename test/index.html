@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261014-2002',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261015-0043',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -115,7 +115,7 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-html{background:var(--bg)} /* canvas under the bottom nav / safe area = page colour, never a dark strip */
+html{background:var(--bg)} /* system edge swipe «назад» stays enabled (no overscroll-behavior) */ /* canvas under the bottom nav / safe area = page colour, never a dark strip */
 body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 .hidden{display:none!important}
@@ -752,6 +752,25 @@ html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>.lab{flex:1 1 0;min
 html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>#uxScaleVal~*{margin-left:0}
 #uxScaleMinus,#uxScaleVal,#uxScalePlus{flex:none}
 /* theme tiles with captions (both skins) */
+.xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+#appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
+.xdot{width:22px;height:22px;border-radius:50%;flex:none;box-sizing:border-box;border:2px solid var(--muted);box-shadow:none} /* 2px ring like list samples */
+.xrow .xlab{flex:1 1000 auto;min-width:0;display:flex;flex-direction:column;gap:2px}.xrow .xt{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xsub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xlab~.xv{flex:0 1 auto;min-width:0;max-width:none;font-weight:400}.xrow .xt{flex:none}
+button.xrow#appThemeX{background:none!important;padding-left:0!important;padding-right:0!important;border-radius:0;box-shadow:none} /* Интерфейс: no fill, icon/text aligned with the block's rows */ /* variant A: title never shrinks, value takes the rest, ellipsis only as last resort */
+.xdot.xdot-skin{display:flex;align-items:center;justify-content:center;color:var(--txt)}.xdot.xdot-skin svg{width:14px;height:14px}html[data-skin="pencil"] .xdot.xdot-skin{border-color:var(--rq-skin-border);color:var(--rq-skin-border)}
+.xrow .xs{width:32px;flex:none;font-size:18px;text-align:center}.xrow .xs~.xl{color:var(--txt);font-size:15px}
+/* expanded lists = mockups sf-1g-fonts / sf-1g-themes: 52px rows, sample, label, check on the current one */
+#fontSeg.xlist,#appThemeBox.xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
+#fontSeg.xlist[hidden],#appThemeBox.xlist[hidden]{display:none!important}
+.xopt{display:flex!important;align-items:center;gap:14px;width:100%;min-height:52px;height:52px;padding:0 6px;background:none!important;border:0;border-bottom:1px solid var(--card2);border-radius:0!important;color:var(--txt);text-align:left;font-size:17px}
+.xopt .xs{width:36px;font-size:18px;text-align:center;flex:none}.xopt .xn{flex:1;min-width:0;font-size:17px}.xopt .xm{visibility:hidden;color:var(--accent);display:flex}.xopt.on .xm{visibility:visible}
+#appThemeBox.xlist .apptile{flex-direction:row;gap:14px;min-height:52px;height:52px;padding:0 6px;border-bottom:1px solid var(--card2);cursor:pointer}
+#appThemeBox.xlist .apptile small{flex:1;text-align:left;font-size:16px;color:var(--txt)}
+#appThemeBox.xlist .apptile .appsw{width:36px;height:36px;flex:none}
+#appThemeBox.xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}#appThemeBox.xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}#appThemeBox.xlist .apptile small{white-space:nowrap}
+.srow:has(#fontSegX){flex-wrap:wrap}.srow:has(#fontSegX) > .seg,#fontSeg.xlist{width:100%;flex:1 1 100%}
+#appThemeBox.xlist .apptile .chk{position:static;display:flex;visibility:hidden;background:none;color:var(--accent);width:22px;height:22px}
+#appThemeBox.xlist .apptile.on .chk{visibility:visible}
 #appThemeBox{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
 .apptile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .apptile small{font-size:11px;line-height:1.2;color:var(--muted);text-align:center;white-space:nowrap}
@@ -1026,7 +1045,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <h2 id="mvpQuestH"><span class="pc-hide">Квесты</span><span class="pc-only">Задания</span></h2>
       <div id="mvpQuestBox"></div>
       <div style="height:8px"></div>
-      <button class="ghostbtn" id="btnMvpSettings" style="width:100%"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg> Настройки</button>
     </div>
 
     <div class="kpis mvp-full">
@@ -1090,7 +1108,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet">☰</button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
     <h2>Внешний вид</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun-moon"/></svg><div class="lab">Тема приложения<div class="sub">Авто: день с 7:00 до 21:00</div></div></div>
       <div class="seg" id="appThemeBox"></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-zoom-in"/></svg><div class="lab">Размер интерфейса</div><button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
@@ -1230,7 +1247,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst">☰</button><h1>📓 Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">0 монет</span></div>
     <div class="ptabs"><button class="jtab" data-sub="quotes" onclick="openJournal('quotes')">📝 Цитаты</button><button class="jtab" data-sub="quests" onclick="openJournal('quests')">🎯 Квесты</button><button class="jtab" data-sub="vocab" onclick="openJournal('vocab')">📖 Словарь</button></div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
+    <div id="qstHint" style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
     <div id="questBox"></div>
   </div></div>
 </div>
@@ -1378,7 +1395,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     </div>
     <div class="setgrp on" id="grpText">
       <div class="srow"><label>Размер текста</label><div class="seg"><button id="szMinus" aria-label="Меньше">A−</button><span class="segval" id="szVal"></span><button id="szPlus" aria-label="Больше">A+</button></div></div>
-      <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
+      <div class="srow"><div class="seg" id="fontSeg"></div></div>
       <div class="srow"><label>Интервал</label><div class="seg"><button id="lhMinus" aria-label="Плотнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="segval" id="lhVal"></span><button id="lhPlus" aria-label="Свободнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="srow"><label>Буквы</label><div class="seg"><button id="lsMinus">a−</button><span class="segval" id="lsVal"></span><button id="lsPlus">a+</button></div></div>
       <div class="srow"><label>Насыщенность</label><div class="seg"><button id="wLight">Тонкий</button><button id="wNorm">Обычный</button><button id="wBold">Жирный</button></div></div>
@@ -1404,7 +1421,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div class="srow"><div class="segval">Остаётся только текст. Выход — тап в центр</div></div>
       <div class="srow"><label>Счётчик</label><div class="seg"><span class="segval" style="flex:1">«7 / 10 мин» в углу в режиме фокуса</span><button class="ghostbtn sw" id="readCntTgl" role="switch">Вкл</button></div></div>
     </div>
-    <button class="gsetrow" id="btnGeneral"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span><b>Общие настройки</b><small>Тема приложения, язык, экран, данные</small></span><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
   </div>
 </div>
 
@@ -1434,25 +1450,25 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261014-2002"></script>
-<script src="js/books-builtin.js?v=20261014-2002"></script>
-<script src="js/core-b.js?v=20261014-2002"></script>
-<script src="js/library.js?v=20261014-2002"></script>
-<script src="js/reader.js?v=20261014-2002"></script>
-<script src="js/pdf.js?v=20261014-2002"></script>
-<script src="js/reader-ui.js?v=20261014-2002"></script>
-<script src="js/rpg.js?v=20261014-2002"></script>
-<script src="js/content.js?v=20261014-2002"></script>
-<script src="js/settings.js?v=20261014-2002"></script>
-<script src="js/v6-extras.js?v=20261014-2002"></script>
-<script src="js/start.js?v=20261014-2002"></script>
+<script src="js/core-a.js?v=20261015-0043"></script>
+<script src="js/books-builtin.js?v=20261015-0043"></script>
+<script src="js/core-b.js?v=20261015-0043"></script>
+<script src="js/library.js?v=20261015-0043"></script>
+<script src="js/reader.js?v=20261015-0043"></script>
+<script src="js/pdf.js?v=20261015-0043"></script>
+<script src="js/reader-ui.js?v=20261015-0043"></script>
+<script src="js/rpg.js?v=20261015-0043"></script>
+<script src="js/content.js?v=20261015-0043"></script>
+<script src="js/settings.js?v=20261015-0043"></script>
+<script src="js/v6-extras.js?v=20261015-0043"></script>
+<script src="js/start.js?v=20261015-0043"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261014-2002"></script>
+<script src="js/pwa-lock.js?v=20261015-0043"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1460,9 +1476,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261014-2002';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261014-2002';
-import * as game from './game-awards.js?v=20261014-2002';
+} from './storage/index.js?v=20261015-0043';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261015-0043';
+import * as game from './game-awards.js?v=20261015-0043';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

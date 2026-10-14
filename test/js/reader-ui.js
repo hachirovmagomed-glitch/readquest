@@ -516,7 +516,7 @@ async function closeReaderImpl(opts){
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
     const luck=Math.random();mult=luck<0.02?3:luck<0.08?2:1;
-    xp=Math.round(xp*mult*(S.xpMult||1)*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
+    xp=Math.round(xp*mult*xpMultEff()*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
   }
   const stN=statOf(b);
   const statGain=Math.max(1,Math.round((Math.round(min)+pages)*dmul*talVal('stat')));

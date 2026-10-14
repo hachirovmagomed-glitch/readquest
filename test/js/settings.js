@@ -70,9 +70,9 @@ function renderSettings(){
   const tile=(k,cap,on,draw,pick)=>{
     const w=document.createElement('span');w.className='apptile'+(on?' on':'');
     const b=document.createElement('button');b.className='appsw'+(on?' on':'');b.dataset.k=k;b.title=cap;b.setAttribute('aria-label',cap);b.setAttribute('aria-pressed',on?'true':'false');
-    draw(b);b.onclick=pick;w.appendChild(b);
+    draw(b);b.onclick=pick;w.appendChild(b);w.onclick=function(e){if(!b.contains(e.target))b.click();}; /* whole 52px row is the target */
     const c=document.createElement('small');c.textContent=cap;w.appendChild(c);
-    const ck=document.createElement('span');ck.className='chk';ck.setAttribute('aria-hidden','true');ck.innerHTML=rqIcon('check',12);w.appendChild(ck);
+    const ck=document.createElement('span');ck.className='chk';ck.setAttribute('aria-hidden','true');ck.innerHTML=rqIcon('check',20);w.appendChild(ck);
     tb.appendChild(w);
   };
   const leaveSkin=()=>{if(!activeTheme().skin)return;const from=skinOf(activeTheme());SET.theme='sepia';SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);};
@@ -82,9 +82,10 @@ function renderSettings(){
     tile(k,t.name,!pc&&S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
   tile('pencil',THEMES.pencil.name,pc,b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},
-    ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);renderSettings();});
+    ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
+  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){return activeTheme().skin?'pencil':'';},sub:function(){return activeTheme().skin?'Скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};

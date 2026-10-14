@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261014-2002'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261015-0043'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -227,3 +227,28 @@ function addRewardSlot(){
   S.rewards.push({name:'',tier:'small',cost:100,bought:0,placeholder:true});save();renderRewardsSheet();
 }
 
+/* Collapsible option list (14.10): one 52px row «label · current value ⌄»; tap expands inline; picking an option applies it and collapses.
+   Open state lives in memory only (RQ_EXP), nothing is written. valueFn reads the current value from the list itself. */
+const RQ_EXP={};
+function rqCollapse(boxId,label,valueFn,rowId,opt){
+  const box=el(boxId);if(!box)return;rowId=rowId||(boxId+'X');box.dataset.xrow=rowId;let row=el(rowId);
+  if(!row){row=document.createElement('button');row.type='button';row.id=rowId;row.className='xrow';row.setAttribute('aria-controls',boxId);
+    box.parentNode.insertBefore(row,box);
+    row.onclick=function(){RQ_EXP[boxId]=!RQ_EXP[boxId];rqCollapseSync(boxId);};
+    box.addEventListener('click',function(e){if(e.target.closest('button')&&RQ_EXP[boxId]){RQ_EXP[boxId]=false;setTimeout(function(){rqCollapseSync(boxId);},0);}});
+    row._label=label;row._val=valueFn;row._opt=opt||{};}
+  rqCollapseSync(boxId);
+}
+function rqCollapseSync(boxId){const box=el(boxId),row=box&&el(box.dataset.xrow||boxId+'X');if(!box||!row)return;const open=!!RQ_EXP[boxId];
+  let v='';try{v=row._val()||'';}catch(e){}
+  const o=row._opt||{};let dot='';try{dot=o.dot?o.dot():'';}catch(e){}
+  const ic=o.icon?rqIcon(o.icon,22):'';let sub='';try{sub=o.sub?o.sub():'';}catch(e){}
+  let di='';try{di=o.dotIcon?o.dotIcon():'';}catch(e){}
+  const dotH=dot?'<span class="xdot'+(di?' xdot-skin':'')+'" aria-hidden="true" style="background:'+dot+'">'+(di?rqIcon(di,14):'')+'</span>':'';
+  const head=o.title?'<span class="xlab"><span class="xt">'+esc(o.title)+'</span>'+(sub?'<span class="xsub">'+esc(sub)+'</span>':'')+'</span>':'';
+  const sample=o.sample?'<span class="xs" aria-hidden="true">'+esc(o.sample)+'</span>':'';
+  /* layout (Интерфейс 14.10): [icon | sample] [title+sub | label] … [dot] value ⌄ */
+  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+'<span class="xv">'+esc(v)+'</span>'+(o.title?'':'')+rqIcon(open?'chevron-up':'chevron-down',20);
+  if(o.title&&dot){row.querySelector('.xv').insertAdjacentHTML('beforebegin',dotH);}
+  try{if(o.font){const ff=o.font();row.querySelector('.xv').style.fontFamily=ff;const xs=row.querySelector('.xs');if(xs)xs.style.fontFamily=ff;}}catch(e){}
+  row.setAttribute('aria-expanded',open?'true':'false');box.hidden=!open;box.classList.add('xlist');}

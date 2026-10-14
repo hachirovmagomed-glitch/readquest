@@ -85,11 +85,11 @@ function renderLibrary(){
     const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
     if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
   }
-  el('goldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('goldChip').lastChild.textContent=goldDisp(); /* 1в: Lucide coins */
+  el('goldChip').textContent=coinsP(goldDisp()); /* coins as text, no icon */
   el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
   const _mt=isMvp()?minTodaySess():S.minToday;
   el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
-  const gl=el('libGoldLine');if(gl){gl.innerHTML=__bootGold?(rqIcon('coins',14)+'<span></span>'):'';if(__bootGold)gl.lastChild.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
+  const gl=el('libGoldLine');if(gl){gl.textContent='';if(__bootGold)gl.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
   el('streakTxt').innerHTML=rqIcon('flame',16)+'<span></span>';el('streakTxt').lastChild.textContent=S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/goalMin());

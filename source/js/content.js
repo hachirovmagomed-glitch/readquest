@@ -126,16 +126,21 @@ function renderShopPane(){
   const box=el('shopList');if(!box)return;
   box.innerHTML=SHOP_CATALOG.filter(x=>x.type==='skin').map(function(it){
     const st=shopState(it), sw=(SHOP_CATALOG.find(x=>x.skin===it.id&&x.bundled)||{}).sw||'#ccc';
-    return '<button type="button" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
+    const cta=st.k==='buy'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();shopBuyAsk(\''+it.id+'\')">Купить</button>'
+      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');renderShopPane()">Надеть</button>'
+      :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
+    return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
       '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
-      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span><span class="shopst">'+esc(st.t)+'</span></button>';
+      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
   }).join('');
+  /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
+  if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
   renderShopDetail();
 }
-function openShopDetail(id){shopOpen=id;shopTrying=null;renderShopDetail();const d=el('shopDetail');if(d){d.hidden=false;try{d.scrollIntoView({block:'start'});}catch(e){}}}
-function closeShopDetail(){shopOpen=null;shopTryClear();const d=el('shopDetail');if(d)d.hidden=true;}
+function openShopDetail(id){shopOpen=id;shopTrying=null;renderShopDetail();const d=el('shopDetail');if(d){d.style.bottom=rqNavH()+'px';d.scrollTop=0;d.hidden=false;el('shopDetailScrim').hidden=false;}}
+function closeShopDetail(){shopOpen=null;shopTryClear();const d=el('shopDetail');if(d)d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;try{shopConfirmClose();}catch(e){}}
 function renderShopDetail(){
-  const d=el('shopDetail');if(!d)return;const it=shopItem(shopOpen);if(!it){d.hidden=true;return;}
+  const d=el('shopDetail');if(!d)return;const it=shopItem(shopOpen);if(!it){d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;return;}
   const owned=shopOwns(it.id), worn=shopWorn()===it.id;
   const cols=SHOP_CATALOG.filter(x=>x.type==='color'&&x.skin===it.id);
   const sel=shopTrying&&shopItem(shopTrying)&&shopItem(shopTrying).skin===it.id?shopTrying:(worn&&SET.color)||shopBundled(it.id);
@@ -154,16 +159,31 @@ function renderShopDetail(){
     (it.id!=='skin-pencil'?'<div style="font-size:12px;color:var(--muted);margin:8px 0">Пока виден только в магазине: оформление скина придёт отдельной сборкой.</div>':'')+
     '<button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>';
 }
+let shopPending=null; /* id waiting in the confirm dialog; buy() runs only from «Купить», once */
 function shopBuyAsk(id){
   const it=shopItem(id);if(!it)return;
   if(S.gold<it.price){flashMsg('Не хватает '+coinsP(it.price-S.gold));return;}
   const nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
-  if(!confirm('Купить «'+nm+'» за '+coinsP(it.price)+'? Останется '+coinsP(S.gold-it.price)+'.'+(it.type==='skin'?' Скин можно будет сразу надеть.':'')))return;
+  shopPending=id;
+  el('scTitle').textContent='Купить «'+nm+'» за '+coinsP(it.price)+'?';
+  el('scText').textContent='Останется '+coinsP(S.gold-it.price)+'.'+(it.type==='skin'?' Скин можно будет сразу надеть.':'');
+  el('shopConfirmScrim').hidden=false;el('shopConfirm').hidden=false;
+}
+function shopConfirmClose(){shopPending=null;el('shopConfirm').hidden=true;el('shopConfirmScrim').hidden=true;}
+function shopConfirmOk(){
+  const id=shopPending;if(!id)return;shopConfirmClose();
+  const it=shopItem(id),nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
   const r=buy(id);
   if(r.ok){try{confettiReward();}catch(e){}flashMsg('Куплено: «'+nm+'»');}
   else if(r.reason==='passive')flashMsg('Приложение открыто в другом окне');
   shopTrying=null;renderRewardsSheet();
 }
+function shopTestGold(){
+  if(window.RQ_NS!=='rqt')return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
+  S.gold=(S.gold||0)+1000;save();renderRewardsSheet();
+}
+function rqNavH(){const n=el('botnav');return n&&getComputedStyle(n).display!=='none'?n.offsetHeight:0;}
 let shopLast='game';
 function openShopTab(sub){
   if(sub!=='real')sub='game';

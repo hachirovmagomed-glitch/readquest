@@ -54,16 +54,18 @@ ok('not enough: «Не хватает 160» on 800-coin skins at 640', /Не х�
 ic = await icons(); ok('«Магазин»: no coin icon / emoji', !ic.uses && !ic.emoji, ic);
 await p.screenshot({ path: SHOTS + 'shop-tab-shop-390.png' });
 
-// C. buy flow: open skin → «Купить скин за 500 монет» → confirm «Купить «Гравюра» за 500 монет? Останется 140 монет.» → 140, owned, «Надеть»
+// C. buy flow: open skin → «Купить скин за 500 монет» → dialog (shop2: custom, not window.confirm) «Купить «Гравюра» за 500 монет? Останется 140 монет.» → 140, owned, «Надеть»
 const opened = await safe(() => { const c = document.querySelector('#rewPaneShop .shopcard[data-id="skin-gravyura"]'); if (!c) return false; c.click(); return true; });
 await sleep(300);
 const det = await p.evaluate(() => { const d = document.getElementById('shopDetail'); return d && !d.hidden ? { t: d.textContent.replace(/\s+/g, ' ').trim(), btn: (d.querySelector('.shopbuy') || {}).textContent } : null; });
 ok('skin card opens detail with «Купить скин за 500 монет» and colours', opened === true && det && (det.btn || '').trim() === 'Купить скин за 500 монет' && /Расцветки/.test(det.t), det);
 await p.screenshot({ path: SHOTS + 'shop-buy-detail-390.png' });
 confirmMsg = '';
-if (det) await p.click('#shopDetail .shopbuy'); await sleep(500);
+if (det) await p.click('#shopDetail .shopbuy'); await sleep(300);
+confirmMsg = await p.evaluate(() => { const d = document.getElementById('shopConfirm'); return d && !d.hidden ? d.textContent.replace(/\s+/g, ' ').trim() : ''; });
+await p.evaluate(() => { const b = document.querySelector('#shopConfirm .scOk'); if (b) b.click(); }); await sleep(500);
 const after = await p.evaluate(() => ({ gold: S.gold, owned: (S.owned || []).slice(), bal: (document.getElementById('rewBalance') || {}).textContent, btn: ((document.querySelector('#shopDetail .shopbuy') || {}).textContent || '').trim() }));
-ok('confirm text «Купить «Гравюра» за 500 монет? Останется 140 монет.»', /Купить «Гравюра» за 500 монет\? Останется 140 монет\./.test(confirmMsg), confirmMsg);
+ok('confirm text «Купить «Гравюра» за 500 монет? Останется 140 монет.»', /Купить «Гравюра» за 500 монет\?\s*Останется 140 монет\./.test(confirmMsg), confirmMsg);
 ok('after buy: S.gold 140, owned skin-gravyura, header «140 монет», button «Надеть»', after.gold === 140 && after.owned.includes('skin-gravyura') && (after.bal || '').trim() === '140 монет' && after.btn === 'Надеть', after);
 await p.screenshot({ path: SHOTS + 'shop-buy-done-390.png' });
 await p.evaluate(() => { const b = document.querySelector('#shopDetail .shopbuy'); if (b) b.click(); }); await sleep(300);

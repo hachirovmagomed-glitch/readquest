@@ -410,7 +410,7 @@ el('achTabGot').onclick=()=>{achTab='got';renderAchievements();};
 let b3d={rotY:0,rotX:-8,auto:true,drag:null,raf:0};
 function applyCoin(){const c=el('badgeCoin');if(c)c.style.transform='rotateX('+b3d.rotX+'deg) rotateY('+b3d.rotY+'deg)';}
 function openBadge3D(icon,title,sub){
-  el('badgeFace').textContent=icon||'🏅';el('badgeBack').textContent='⭐';
+  el('badgeFace').textContent=icon||'';el('badgeBack').textContent='⭐';
   el('badgeTitle').textContent=title||'';el('badgeSub').textContent=sub||'';
   el('badgeModal').classList.remove('hidden');
   b3d.rotY=0;b3d.rotX=-8;b3d.auto=true;b3d.drag=null;

@@ -144,6 +144,7 @@ function openRewardsSheet(tab){
   if(tab)rewTab=tab==='shop'?'shop':'life';
   clearConfetti();clearToasts();
   setRewardsTab(rewTab);
+  {const rs=el('rewardsSheet');rs.style.bottom=(typeof rqNavH==='function'?rqNavH():0)+'px';rs.scrollTop=0;}
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
   applyMvpChrome(); /* bottom nav: «Награды» selected */

@@ -115,6 +115,7 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+html{background:var(--bg)} /* canvas under the bottom nav / safe area = page colour, never a dark strip */
 body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 .hidden{display:none!important}
@@ -363,6 +364,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* ===== Поиск, статистика, трофеи, сетка ===== */
 .searchinp{width:100%;background:var(--card);border:1px solid #2a5564;border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+#libChips{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);padding-right:24px}
 .chips::-webkit-scrollbar{display:none}
 .fchip{flex:none;background:var(--card2);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted)}
 .fchip.on{background:var(--accent);color:#fff}
@@ -688,7 +690,7 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 #settings .stepbtn{width:44px;height:44px;min-width:44px}
 #shelfH{white-space:nowrap;flex:none}
 .addmini{white-space:nowrap}
-#libSort{min-width:0;max-width:140px;flex:0 1 auto}
+#libSort{min-width:max-content;flex:0 0 auto;padding-right:28px}
 #rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}

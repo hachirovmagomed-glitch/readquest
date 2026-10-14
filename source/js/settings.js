@@ -18,7 +18,7 @@ function resolveAppTheme(){
   const h2=new Date().getHours();
   return (h2>=7&&h2<21)?'light':'dark';
 }
-function applyAppTheme(){
+function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
   const t=APP_THEMES[resolveAppTheme()]||APP_THEMES.teal;
   const r=document.documentElement;
   r.style.setProperty('--bg',t.bg);r.style.setProperty('--card',t.card);

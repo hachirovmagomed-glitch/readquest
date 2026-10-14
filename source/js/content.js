@@ -304,6 +304,10 @@ function monthDays(){
   const m=today().slice(0,7);
   return Object.keys(S.hist).filter(d=>d.startsWith(m)&&(S.hist[d].min||0)>=1).length;
 }
+/* ONE code constant for quest payouts (separate from RQ_MVP_DRAWER_EXTRAS). MVP economy = 10 XP/min, +30/day, +120/week only:
+   while false, MVP quests pay nothing and cards show no reward line. Never stored in NS_set or exports. Outside MVP quests pay as before. */
+const RQ_MVP_QUEST_PAYOUTS=false;
+function questPays(){return !isMvp()||RQ_MVP_QUEST_PAYOUTS;}
 function renderQuests(){
   if(el('qstGold'))el('qstGold').textContent=goldDisp()+' монет';
   el('questBox').innerHTML=allQuests().map(q=>{
@@ -315,14 +319,14 @@ function renderQuests(){
     return '<div class="pcard quest'+(locked?' locked':'')+'"><div class="row"><span style="font-size:14px">'+q.name+'</span><div class="spacer"></div>'+
       (locked?'<span class="chip">🔒</span>'
         :done?'<span class="chip">✅ получено</span>'
-        :p>=1?'<button class="buy" onclick="claimQuest(\''+q.id+'\')">Забрать +'+q.reward+' монет'+'</button>'
+        :p>=1?(questPays()?'<button class="buy" onclick="claimQuest(\''+q.id+'\')">Забрать +'+q.reward+' монет'+'</button>':'<span class="chip">Выполнено</span>')
         :'<span class="chip">'+q.info()+'</span>')+
       edit+
       '</div><div class="pbar"><i style="width:'+Math.round(p*100)+'%"></i></div></div>';
   }).join('')+'<button class="miniadd" onclick="addCustomQuest()">＋ Добавить свой квест</button>';
 }
 function claimQuest(id){
-  if(isMvp()){flashMsg('В MVP — только дневной/недельный квест в профиле');return;}
+  if(!questPays())return; /* RQ_MVP_QUEST_PAYOUTS off: no payout, nothing written */
   const q=allQuests().find(x=>x.id===id);if(!q)return;
   const key=q.id+':'+q.period();
   if(S.claimed[key]||q.prog()<1)return;

@@ -25,6 +25,7 @@ await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
 const tiles = await p.evaluate(() => [...document.querySelectorAll('#appThemeBox .appsw')].map(b => ({ cap: (b.closest('.apptile') || b).querySelector('small') ? (b.closest('.apptile') || b).querySelector('small').textContent.trim() : '', k: b.dataset.k || '' })));
 ok('every app theme tile has a caption', tiles.length > 5 && tiles.every(t => t.cap), tiles.map(t => t.cap));
 ok('«Карандашный» tile exists', tiles.some(t => t.cap === 'Карандашный'));
+await p.evaluate(() => { const b = document.getElementById('appThemeBox'); if (b && b.hidden && document.getElementById('appThemeX')) document.getElementById('appThemeX').click(); }); await sleep(200); /* theme list is collapsed into one row (14.10) */
 const pt = await p.$('#appThemeBox .appsw[data-k="pencil"]');
 if (pt) { await pt.click(); await sleep(400); }
 else await p.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); renderSettings(); }); /* no tile (red run): still measure the rest in the skin */
@@ -72,7 +73,7 @@ const bt = await p.evaluate(() => {
   const decl = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch (e) { return []; } }).filter(r => r.selectorText && r.selectorText.includes('pencil') && r.style && r.style.borderTopWidth);
   b.forEach((x, i) => { const hit = decl.filter(r => { try { return els[i].matches(r.selectorText); } catch (e) { return false; } }); x.decl = hit.length ? hit[hit.length - 1].style.borderTopWidth : ''; x.graph = x.bc === graph; });
   const acc = getComputedStyle(document.documentElement).getPropertyValue('--rq-accent').trim();
-  const t = [...document.querySelectorAll('#appThemeBox .appsw')].map(e => { const cs = getComputedStyle(e); return { k: e.dataset.k, on: e.classList.contains('on'), bw: cs.borderTopWidth, bc: cs.borderTopColor, chk: !!e.parentElement.querySelector('.chk') && getComputedStyle(e.parentElement.querySelector('.chk')).display !== 'none' }; });
+  const t = [...document.querySelectorAll('#appThemeBox .appsw')].map(e => { const cs = getComputedStyle(e); return { k: e.dataset.k, on: e.classList.contains('on'), bw: cs.borderTopWidth, bc: cs.borderTopColor, chk: !!e.parentElement.querySelector('.chk') && getComputedStyle(e.parentElement.querySelector('.chk')).display !== 'none' && getComputedStyle(e.parentElement.querySelector('.chk')).visibility !== 'hidden' }; });
   const probe = document.createElement('i'); probe.style.color = acc; document.body.appendChild(probe); const accRgb = getComputedStyle(probe).color; probe.remove();
   return { b, t, accRgb };
 });
@@ -105,6 +106,7 @@ await p.evaluate(() => { const h = [...document.querySelectorAll('#settings h2')
 await p.screenshot({ path: SHOTS + 'pencil-data-390.png' });
 
 // 7. another app theme tile leaves the skin (palette would be masked by the skin otherwise)
+await p.evaluate(() => { const b = document.getElementById('appThemeBox'); if (b && b.hidden && document.getElementById('appThemeX')) document.getElementById('appThemeX').click(); }); await sleep(200); /* theme list is collapsed into one row (14.10) */
 const t2 = await p.$('#appThemeBox .appsw[data-k="teal"]'); if (t2) { await t2.click(); await sleep(300); }
 const sk2 = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', app: S.appTheme, theme: SET.theme }));
 ok('picking «Бирюза» leaves the skin (data-skin removed, app theme teal)', sk2.skin === '' && sk2.app === 'teal' && sk2.theme !== 'pencil', sk2);

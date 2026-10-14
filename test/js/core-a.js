@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261014-1407'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261014-1526'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -44,8 +44,9 @@ function applyMvpChrome(){
     const onLib=!el('library').classList.contains('hidden');
     const onProf=!el('profile').classList.contains('hidden');
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
-    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&(onLib||(!onProf&&isMvp())));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&onProf);
+    const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
+    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
+    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
     if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
   }
   /* tiny avatar on library streak */
@@ -113,10 +114,10 @@ function renderMvpQuests(){
   const dDone=dailyPaid(), dP=dDone?1:mvpDailyProg();
   const wDone=weeklyPaid(), wP=wDone?1:mvpWeeklyProg();
   box.innerHTML=
-    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px">'+rqIcon('coins',14)+'<span>Ежедневка +'+coinsP(30)+'</span></span><div class="spacer"></div>'+
+    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px"><span>Ежедневка +'+coinsP(30)+'</span></span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+(dDone?'✓ выполнено сегодня':mvpDailyInfo())+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(dP*100)+'%"></i></div></div>'+
-    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">'+rqIcon('coins',14)+'<span>Неделя +'+coinsP(120)+'</span></span><div class="spacer"></div>'+
+    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px"><span>Неделя +'+coinsP(120)+'</span></span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+mvpWeeklyInfo()+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div>'+
       '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+goalMin()+' мин за пн–вс'))+'</div></div>';

@@ -26,6 +26,10 @@ ok('theme: sample circle has a 2px border', th.border === '2px', th);
 const th2 = await p.evaluate(async () => { document.querySelector('#appThemeX').click(); await new Promise(r => setTimeout(r, 200)); document.querySelector('#appThemeBox .apptile:nth-child(3) .appsw').click(); await new Promise(r => setTimeout(r, 300));
   const row = document.getElementById('appThemeX'); return { sub: (row.querySelector('.xsub') || {}).textContent || '', auto: S.appTheme === 'auto' }; });
 ok('theme: subtitle follows the real mode (manual theme → not the «Авто» text)', !th2.auto && th2.sub.length > 0 && !/^Авто/.test(th2.sub), th2);
+const th3 = await p.evaluate(async () => { const x = document.querySelector('#appThemeX'); if (document.getElementById('appThemeBox').hidden) x.click(); await new Promise(r => setTimeout(r, 200));
+  const t = document.querySelector('#appThemeBox .appsw[data-k="pencil"]'); t.click(); await new Promise(r => setTimeout(r, 400));
+  return { skin: !!activeTheme().skin, sub: (document.querySelector('#appThemeX .xsub') || {}).textContent || '' }; });
+ok('theme: «Карандашный» → subtitle «Всегда этот скин»', th3.skin && th3.sub === 'Всегда этот скин', th3);
 await p.evaluate(async () => { document.querySelector('#appThemeX').click(); await new Promise(r => setTimeout(r, 200)); document.querySelector('#appThemeBox .apptile:nth-child(1) .appsw').click(); });
 // font
 await p.evaluate(async () => { closeGeneralSettings && closeGeneralSettings(); show('library'); openBook(allBooks()[0].id); for (let i = 0; i < 50 && !(R.pageCount > 1); i++) await new Promise(r => setTimeout(r, 200)); el('btnAa').click(); }).catch(() => {});

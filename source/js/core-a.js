@@ -43,8 +43,10 @@ function applyMvpChrome(){
   if(bn){
     const onLib=!el('library').classList.contains('hidden');
     const onProf=!el('profile').classList.contains('hidden');
-    if(el('bnLib'))el('bnLib').classList.toggle('on', onLib||(!onProf&&isMvp()));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', onProf);
+    const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
+    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&(onLib||(!onProf&&isMvp())));
+    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&onProf);
+    if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -136,10 +138,12 @@ function openRewardsSheet(){
   renderRewardsSheet();
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
+  applyMvpChrome(); /* bottom nav: «Награды» selected */
 }
 function closeRewardsSheet(){
   el('rewardsSheet').classList.remove('open');
   el('rewardsScrim').classList.add('hidden');
+  applyMvpChrome();
 }
 function ensureMvpRewards(){
   if(!S.rewards||!S.rewards.length){

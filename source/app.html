@@ -115,7 +115,7 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-html{background:var(--bg);overscroll-behavior-x:none}body{overscroll-behavior-x:none} /* edge swipe opens the drawer, never browser back */ /* canvas under the bottom nav / safe area = page colour, never a dark strip */
+html{background:var(--bg)} /* system edge swipe «назад» stays enabled (no overscroll-behavior) */ /* canvas under the bottom nav / safe area = page colour, never a dark strip */
 body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 .hidden{display:none!important}

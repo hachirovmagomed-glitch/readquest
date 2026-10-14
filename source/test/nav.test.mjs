@@ -9,7 +9,7 @@ const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome
 const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
-const boot = async () => { await p.waitForFunction(() => window.__rqReady && typeof el === 'function' && typeof navGet === 'function', { timeout: 20000, polling: 100 }); await sleep(500); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); }; /* reload flake «el is not defined»: wait for the app globals, then re-check ready */
+const boot = async () => { await p.waitForFunction(() => window.__rqReady === true && typeof el === 'function' && typeof navGet === 'function', { timeout: 20000, polling: 100 }); await sleep(300); }; /* every load/reload: wait for __rqReady before touching the app */
 await p.goto(BASE, { waitUntil: 'load' }); await boot();
 const has = await p.evaluate(() => typeof navRead === 'function' && typeof navSave === 'function');
 const R = (v) => has ? p.evaluate((v) => JSON.stringify(navRead(v)), v) : Promise.resolve('n/a');
@@ -55,13 +55,22 @@ const c = has ? await p.evaluate(async () => { openGeneralSettings(false); const
   pane2.querySelector('[data-nav="profile"] .navup').click(); await new Promise(r => setTimeout(r, 200)); const saved = JSON.parse(localStorage.getItem(RQ_K.set)).nav;
   return { row: true, dis, lock, prev, cnt, max, saved }; }) : {};
 ok('«Нижняя панель»: превью, «В панели · 5 из 5», добавление выключено, замок у Библиотеки, «Выше» меняет порядок и пишет', c.row && c.dis && c.lock && c.prev === 5 && /5 из 5/.test(c.cnt || '') && c.max && c.saved && c.saved[0] === 'library' && c.saved.indexOf('profile') === 1, c);
-// gestures: edge swipe opens, swipe left closes; menu button visible in MVP library
-const sw = async (x0, x1) => { const c = await p.target().createCDPSession(); await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: 400 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: (x0 + x1) / 2, y: 402 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x1, y: 404 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await sleep(400); };
+// gestures (no real touch within 24px of the screen edge — the system «назад» lives there and must stay working):
+// menu button opens; the app's edge-zone handler is fed in-page TouchEvents (no browser gesture); a real swipe left in the middle closes.
+const EDGE = 24, VW = 390;
+const sw = async (x0, x1) => { if (Math.min(x0, x1) < EDGE || Math.max(x0, x1) > VW - EDGE) throw new Error('touch within ' + EDGE + 'px of the edge: ' + x0 + '→' + x1);
+  const c = await p.target().createCDPSession(); await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: 400 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: (x0 + x1) / 2, y: 402 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x1, y: 404 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await c.detach(); await sleep(400); };
+const synthEdge = () => p.evaluate(async () => { const mk = (type, x) => { const t = new Touch({ identifier: 1, target: document.body, clientX: x, clientY: 400 }); return new TouchEvent(type, { bubbles: true, cancelable: true, touches: type === 'touchend' ? [] : [t], changedTouches: [t] }); };
+  document.body.dispatchEvent(mk('touchstart', 8)); document.body.dispatchEvent(mk('touchend', 200)); await new Promise(r => setTimeout(r, 400)); });
 await p.reload({ waitUntil: 'load' }); await boot(); await p.evaluate(() => show('library')); await sleep(300);
-const mb = await p.evaluate(() => !!el('menuLib').offsetParent);
-await sw(8, 200); const o1 = await p.evaluate(() => el('drawer').classList.contains('open'));
+const mbr = await p.evaluate(() => { const b = el('menuLib'); const r = b.getBoundingClientRect(); return { vis: !!b.offsetParent, x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+const mb = mbr.vis && mbr.x >= EDGE;
+if (mb) { await p.touchscreen.tap(mbr.x, mbr.y); await sleep(400); }
+const o0 = await p.evaluate(() => el('drawer').classList.contains('open'));
+await sw(300, 60); const c0 = await p.evaluate(() => el('drawer').classList.contains('open'));
+await synthEdge(); const o1 = await p.evaluate(() => el('drawer').classList.contains('open'));
 await sw(300, 60); const o2 = await p.evaluate(() => el('drawer').classList.contains('open'));
-ok('drawer: кнопка меню в библиотеке; свайп от края открывает, свайп влево закрывает', mb && o1 && !o2, { mb, o1, o2 });
+ok('drawer: кнопка меню открывает, свайп от края (20px, без касаний у края) открывает, свайп влево закрывает', mb && o0 && !c0 && o1 && !o2, { mbr, o0, c0, o1, o2 });
 ok('нет ошибок страницы', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY nav.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

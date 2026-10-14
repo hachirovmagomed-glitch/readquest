@@ -27,7 +27,7 @@ ok('every app theme tile has a caption', tiles.length > 5 && tiles.every(t => t.
 ok('«Карандашный» tile exists', tiles.some(t => t.cap === 'Карандашный'));
 await p.evaluate(() => { const b = document.getElementById('appThemeBox'); if (b && b.hidden && document.getElementById('appThemeX')) document.getElementById('appThemeX').click(); }); await sleep(200); /* theme list is collapsed into one row (14.10) */
 const pt = await p.$('#appThemeBox .appsw[data-k="pencil"]');
-if (pt) { await pt.click(); await sleep(400); }
+if (pt) { await pt.evaluate(e => e.scrollIntoView({ block: 'center' })); await sleep(150); await pt.click(); await sleep(400); } /* centre it: the fixed bottom nav covers a tile scrolled just into view */
 else await p.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); renderSettings(); }); /* no tile (red run): still measure the rest in the skin */
 const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', theme: SET.theme, on: [...document.querySelectorAll('#appThemeBox .appsw.on')].map(b => b.dataset.k) }));
 ok('click «Карандашный» → data-skin=pencil, SET.theme=pencil, tile selected', sk.skin === 'pencil' && sk.theme === 'pencil' && sk.on.join() === 'pencil', sk);
@@ -107,7 +107,7 @@ await p.screenshot({ path: SHOTS + 'pencil-data-390.png' });
 
 // 7. another app theme tile leaves the skin (palette would be masked by the skin otherwise)
 await p.evaluate(() => { const b = document.getElementById('appThemeBox'); if (b && b.hidden && document.getElementById('appThemeX')) document.getElementById('appThemeX').click(); }); await sleep(200); /* theme list is collapsed into one row (14.10) */
-const t2 = await p.$('#appThemeBox .appsw[data-k="teal"]'); if (t2) { await t2.click(); await sleep(300); }
+const t2 = await p.$('#appThemeBox .appsw[data-k="teal"]'); if (t2) { await t2.evaluate(e => e.scrollIntoView({ block: 'center' })); await sleep(150); await t2.click(); await sleep(300); }
 const sk2 = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', app: S.appTheme, theme: SET.theme }));
 ok('picking «Бирюза» leaves the skin (data-skin removed, app theme teal)', sk2.skin === '' && sk2.app === 'teal' && sk2.theme !== 'pencil', sk2);
 ok('no page errors', !errs.length, errs);

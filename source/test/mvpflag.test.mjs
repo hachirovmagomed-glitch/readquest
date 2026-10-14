@@ -11,7 +11,7 @@ const EXTRA = ['quests', 'notes', 'vocab', 'stats'];
 async function run(flag) {
   const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
-  await p.setRequestInterception(true); await p.setBypassServiceWorker(true);
+  await p.setCacheEnabled(false); await p.setRequestInterception(true); await p.setBypassServiceWorker(true);
   let patched = false;
   p.on('request', async r => { if (!flag && /\/js\/library\.js(\?|$)/.test(r.url())) { const res = await fetch(r.url()); let t = await res.text(); const t2 = t.replace(/const RQ_MVP_DRAWER_EXTRAS\s*=\s*true/, 'const RQ_MVP_DRAWER_EXTRAS=false'); patched = t2 !== t; r.respond({ status: 200, contentType: 'application/javascript', body: t2 }); } else r.continue(); });
   await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500);

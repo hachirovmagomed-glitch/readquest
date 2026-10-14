@@ -1,5 +1,5 @@
 // «Карандашный» in «Общие настройки» (Оскар 13.10, правила Интерфейса): captioned skin tile, switches 44×24 / round 20px thumb inside
-// the track, hand-drawn frame only on cards (inside, no offset), buttons/fields 1.5px line, theme tiles 1px / selected 2px + check,
+// the track, hand-drawn frame only on cards (inside, no offset), buttons/fields 2px line (14.10, was 1.5px), theme tiles 1px / selected 2px + check,
 // hyphens:none + no word split in «Данные» / «О приложении», bottom nav = 3 items with Lucide icons.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/ [RQ_SHOTS=/workspace/out] node pencil.test.mjs
 import puppeteer from 'puppeteer-core';
@@ -76,8 +76,8 @@ const bt = await p.evaluate(() => {
   const probe = document.createElement('i'); probe.style.color = acc; document.body.appendChild(probe); const accRgb = getComputedStyle(probe).color; probe.remove();
   return { b, t, accRgb };
 });
-const badB = bt.b.filter(x => !['1px', '1.5px'].includes(x.bw) || x.decl !== '1.5px' || !x.graph || x.bs !== 'solid' || x.bi !== 'none' || x.sh !== 'none');
-ok('buttons/fields/segmented: 1.5px solid graphite line (declared), no border-image, no extra shadow outline', bt.b.length >= 5 && !badB.length, badB.length ? badB : bt.b.length);
+const badB = bt.b.filter(x => x.bw !== '2px' || x.decl !== '2px' || !x.graph || x.bs !== 'solid' || x.bi !== 'none' || x.sh !== 'none');
+ok('buttons/fields/segmented: 2px solid graphite line (declared), no border-image, no extra shadow outline', bt.b.length >= 5 && !badB.length, badB.length ? badB : bt.b.length);
 const badT = bt.t.filter(x => x.on ? (x.bw !== '2px' || x.bc !== bt.accRgb || !x.chk) : (x.bw !== '1px' || x.chk));
 ok('theme tiles: 1px border; selected 2px accent + check', bt.t.length > 5 && !badT.length, badT.length ? badT : 'ok');
 

@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 HOST="${RQ_HOST:-http://127.0.0.1:8767}"
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
-ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil blackcanvas importskin pdf pdf-test pwa"
+ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch blackcanvas importskin pdf pdf-test pwa"
 SEL="${*:-$ALL}"
 LOG="/tmp/rq-runall/$BUILD"; mkdir -p "$LOG"; rc=0  # per-run log dir: a rerun never overwrites the logs of a failed run
 for t in $SEL; do
@@ -32,6 +32,7 @@ for t in $SEL; do
     dayring)      cmd="node dayring.test.mjs";;
     themes)       cmd="node themes.test.mjs";;
     pencil)       cmd="node pencil.test.mjs";;
+    small-batch)  cmd="node small-batch.test.mjs";;
     blackcanvas)  cmd="node blackcanvas.test.mjs";;
     importskin)   cmd="bash serve-old-root.sh && env RQ_OLD_URL=http://127.0.0.1:8770/readquest/ node importskin.test.mjs";;
     pdf)          cmd="node pdf-verify.mjs";;

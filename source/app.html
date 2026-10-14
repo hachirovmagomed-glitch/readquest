@@ -138,7 +138,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .bookcard:active{transform:scale(.985)}
 .cover{width:44px;height:58px;flex:none;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden}
 .cover img{width:100%;height:100%;object-fit:cover}
-.addmini{background:var(--card2);border-radius:99px;padding:7px 16px;font-size:13px;color:var(--accent);font-weight:600}
+.addmini{background:var(--card2);border:1.5px solid var(--accent);border-radius:99px;padding:7px 16px;font-size:13px;color:var(--accent);font-weight:600}
 .trophy img{width:40px;height:52px;object-fit:cover;border-radius:6px}
 .bmeta{flex:1;min-width:0}
 .btitle{font-weight:700;font-size:16px}
@@ -667,10 +667,10 @@ body.mvp #sumDailyBox{display:block}
 .rbar .aa{font:700 19px/22px Georgia,serif;height:22px}
 .barsoff .rbar,.imm .rbar{display:none}
 #reader.nofocusbtn #btnFocus{display:none}
-/* ===== «Карандашный» rules (Интерфейс 13.10): frame only on cards; switches keep their shape; 1.5px graphite line on controls;
+/* ===== «Карандашный» rules (Интерфейс 13.10): frame only on cards; switches keep their shape; 2px graphite line on controls (14.10: 1.5px was too faint);
    theme tiles 1px / selected 2px accent + check; no hyphenation anywhere outside the book page ===== */
-html[data-skin="pencil"] :is(.ghostbtn:not(.sw),.stepbtn,.seg:not(#appThemeBox) button,.fchip,.searchinp,input[type=text],input[type=password],input[type=search],select,textarea){
-  border-style:solid;border-width:1.5px;border-color:var(--rq-skin-border);border-radius:var(--radius);box-shadow:none!important;border-image:none;outline-offset:2px}
+html[data-skin="pencil"] :is(.ghostbtn:not(.sw),.stepbtn,.seg:not(#appThemeBox) button,.fchip,.addmini,.searchinp,input[type=text],input[type=password],input[type=search],select,textarea){
+  border-style:solid;border-width:2px;border-color:var(--rq-skin-border);border-radius:var(--radius);box-shadow:none!important;border-image:none;outline-offset:2px}
 html[data-skin="pencil"] :is(.ghostbtn,.stepbtn,.seg button,.fchip)::after{content:none}
 html[data-skin="pencil"] .ghostbtn.sw{box-sizing:border-box;width:44px;min-width:44px;height:24px;min-height:0;padding:0;border:0;border-radius:999px;box-shadow:none!important;
   background:color-mix(in srgb,var(--rq-line) 30%,transparent)}
@@ -685,6 +685,11 @@ html[data-skin="pencil"] .setrow{border-bottom-color:var(--rq-line)}
 html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}
 html[data-skin="pencil"] #settings .setrow>.lab{flex:1 1 120px}
 html[data-skin="pencil"] #settings .setrow>:is(button,.btnpair,b){margin-left:auto}
+/* «Размер интерфейса» − 100% ＋ never wrap (14.10) */
+html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus){flex-wrap:nowrap}
+html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>.lab{flex:1 1 0;min-width:0}
+html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>#uxScaleVal~*{margin-left:0}
+#uxScaleMinus,#uxScaleVal,#uxScalePlus{flex:none}
 /* theme tiles with captions (both skins) */
 #appThemeBox{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
 .apptile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
@@ -953,7 +958,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
     <div id="mvpProfileBlock">
       <div class="kpis" style="margin-top:12px">
-        <div class="kpi"><b id="mvpGold">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg> <span id="mvpGoldLbl">монет</span></span></div>
+        <div class="kpi"><b id="mvpGold">0</b><span><span id="mvpGoldLbl">монет</span></span></div>
         <div class="kpi"><b id="mvpStreak">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg> стрик</span></div>
         <div class="kpi"><b id="mvpMinToday">0</b><span>мин сегодня</span></div>
       </div>

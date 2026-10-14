@@ -754,7 +754,9 @@ html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>#uxScaleVal~*{margi
 /* theme tiles with captions (both skins) */
 .xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
 #appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
-.xdot{width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(127,127,127,.45)}
+.xdot{width:22px;height:22px;border-radius:50%;flex:none;box-sizing:border-box;border:2px solid var(--muted);box-shadow:none} /* 2px ring like list samples */
+.xrow .xlab{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.xrow .xt{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xsub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xlab~.xv{flex:0 1 auto;max-width:34%}.xrow:has(.xlab){gap:8px}
+.xrow .xs{width:32px;flex:none;font-size:18px;text-align:center}.xrow .xs~.xl{color:var(--txt);font-size:15px}
 /* expanded lists = mockups sf-1g-fonts / sf-1g-themes: 52px rows, sample, label, check on the current one */
 #fontSeg.xlist,#appThemeBox.xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
 #fontSeg.xlist[hidden],#appThemeBox.xlist[hidden]{display:none!important}
@@ -1104,7 +1106,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet">☰</button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
     <h2>Внешний вид</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun-moon"/></svg><div class="lab">Тема приложения<div class="sub">Авто: день с 7:00 до 21:00</div></div></div>
       <div class="seg" id="appThemeBox"></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-zoom-in"/></svg><div class="lab">Размер интерфейса</div><button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
@@ -1392,7 +1393,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     </div>
     <div class="setgrp on" id="grpText">
       <div class="srow"><label>Размер текста</label><div class="seg"><button id="szMinus" aria-label="Меньше">A−</button><span class="segval" id="szVal"></span><button id="szPlus" aria-label="Больше">A+</button></div></div>
-      <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
+      <div class="srow"><div class="seg" id="fontSeg"></div></div>
       <div class="srow"><label>Интервал</label><div class="seg"><button id="lhMinus" aria-label="Плотнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="segval" id="lhVal"></span><button id="lhPlus" aria-label="Свободнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="srow"><label>Буквы</label><div class="seg"><button id="lsMinus">a−</button><span class="segval" id="lsVal"></span><button id="lsPlus">a+</button></div></div>
       <div class="srow"><label>Насыщенность</label><div class="seg"><button id="wLight">Тонкий</button><button id="wNorm">Обычный</button><button id="wBold">Жирный</button></div></div>

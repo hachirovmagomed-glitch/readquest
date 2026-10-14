@@ -71,7 +71,7 @@ FONTS.forEach((f,i)=>{
   b.onclick=()=>{SET.font=i;if(!window.__rqWriter||__rqWriter.mayWrite())saveSet();applySet();relayout();}; /* one saveSet, through the write gate */
   el('fontSeg').appendChild(b);
 });
-rqCollapse('fontSeg','',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{font:function(){return (FONTS[SET.font]||FONTS[0]).v;}});
+rqCollapse('fontSeg','Шрифт',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return (FONTS[SET.font]||FONTS[0]).v;}});
 function renderThemeSeg(){
   const seg=el('themeSeg');seg.innerHTML='';
   const add=(key,bg,name,locked,yours)=>{

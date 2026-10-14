@@ -242,6 +242,12 @@ function rqCollapse(boxId,label,valueFn,rowId,opt){
 function rqCollapseSync(boxId){const box=el(boxId),row=box&&el(box.dataset.xrow||boxId+'X');if(!box||!row)return;const open=!!RQ_EXP[boxId];
   let v='';try{v=row._val()||'';}catch(e){}
   const o=row._opt||{};let dot='';try{dot=o.dot?o.dot():'';}catch(e){}
-  row.innerHTML=(dot?'<span class="xdot" aria-hidden="true" style="background:'+dot+'"></span>':'')+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+'<span class="xv">'+esc(v)+'</span>'+rqIcon(open?'chevron-up':'chevron-down',20);
-  try{if(o.font)row.querySelector('.xv').style.fontFamily=o.font();}catch(e){}
+  const ic=o.icon?rqIcon(o.icon,22):'';let sub='';try{sub=o.sub?o.sub():'';}catch(e){}
+  const dotH=dot?'<span class="xdot" aria-hidden="true" style="background:'+dot+'"></span>':'';
+  const head=o.title?'<span class="xlab"><span class="xt">'+esc(o.title)+'</span>'+(sub?'<span class="xsub">'+esc(sub)+'</span>':'')+'</span>':'';
+  const sample=o.sample?'<span class="xs" aria-hidden="true">'+esc(o.sample)+'</span>':'';
+  /* layout (Интерфейс 14.10): [icon | sample] [title+sub | label] … [dot] value ⌄ */
+  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+'<span class="xv">'+esc(v)+'</span>'+(o.title?'':'')+rqIcon(open?'chevron-up':'chevron-down',20);
+  if(o.title&&dot){row.querySelector('.xv').insertAdjacentHTML('beforebegin',dotH);}
+  try{if(o.font){const ff=o.font();row.querySelector('.xv').style.fontFamily=ff;const xs=row.querySelector('.xs');if(xs)xs.style.fontFamily=ff;}}catch(e){}
   row.setAttribute('aria-expanded',open?'true':'false');box.hidden=!open;box.classList.add('xlist');}

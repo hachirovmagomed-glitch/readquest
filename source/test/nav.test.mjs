@@ -9,7 +9,7 @@ const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome
 const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
-const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };
+const boot = async () => { await p.waitForFunction(() => window.__rqReady && typeof el === 'function' && typeof navGet === 'function', { timeout: 20000, polling: 100 }); await sleep(500); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); }; /* reload flake «el is not defined»: wait for the app globals, then re-check ready */
 await p.goto(BASE, { waitUntil: 'load' }); await boot();
 const has = await p.evaluate(() => typeof navRead === 'function' && typeof navSave === 'function');
 const R = (v) => has ? p.evaluate((v) => JSON.stringify(navRead(v)), v) : Promise.resolve('n/a');

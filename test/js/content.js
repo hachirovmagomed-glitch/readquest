@@ -126,16 +126,28 @@ function renderShopPane(){
   const box=el('shopList');if(!box)return;
   box.innerHTML=SHOP_CATALOG.filter(x=>x.type==='skin').map(function(it){
     const st=shopState(it), sw=(SHOP_CATALOG.find(x=>x.skin===it.id&&x.bundled)||{}).sw||'#ccc';
-    return '<button type="button" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
+    const cta=st.k==='buy'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();shopBuyAsk(\''+it.id+'\')">Купить</button>'
+      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');renderShopPane()">Надеть</button>'
+      :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
+    return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
       '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
-      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span><span class="shopst">'+esc(st.t)+'</span></button>';
+      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
   }).join('');
+  /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
+  if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
   renderShopDetail();
 }
-function openShopDetail(id){shopOpen=id;shopTrying=null;renderShopDetail();const d=el('shopDetail');if(d){d.hidden=false;try{d.scrollIntoView({block:'start'});}catch(e){}}}
-function closeShopDetail(){shopOpen=null;shopTryClear();const d=el('shopDetail');if(d)d.hidden=true;}
+let shopListScroll=0; /* list scroll position: memory only, never stored */
+/* skin page: full screen over the shop; try-on lives in memory; ← / system back / сворачивание reset it and write nothing */
+function openShopDetail(id){const rs=el('rewardsSheet');if(shopOpen===null&&rs)shopListScroll=rs.scrollTop;
+  shopOpen=id;shopTrying=null;renderShopDetail();const d=el('shopDetail');if(d){d.hidden=false;const b=d.querySelector('.spbody');if(b)b.scrollTop=0;}
+  navPush('shopskin');}
+function shopBack(){const was=shopOpen!==null;closeShopDetail();if(was&&navState()==='shopskin')try{history.back();}catch(e){}}
+window.addEventListener('popstate',function(e){const st=(e.state&&e.state.rq)||null;if(shopOpen!==null&&st!=='shopskin')closeShopDetail();});
+function closeShopDetail(){const was=shopOpen!==null;shopOpen=null;shopTryClear();const d=el('shopDetail');if(d)d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;try{shopConfirmClose();}catch(e){}
+  if(was){const rs=el('rewardsSheet');if(rs)rs.scrollTop=shopListScroll;}}
 function renderShopDetail(){
-  const d=el('shopDetail');if(!d)return;const it=shopItem(shopOpen);if(!it){d.hidden=true;return;}
+  const d=el('shopDetail');if(!d)return;const it=shopItem(shopOpen);if(!it){d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;return;}
   const owned=shopOwns(it.id), worn=shopWorn()===it.id;
   const cols=SHOP_CATALOG.filter(x=>x.type==='color'&&x.skin===it.id);
   const sel=shopTrying&&shopItem(shopTrying)&&shopItem(shopTrying).skin===it.id?shopTrying:(worn&&SET.color)||shopBundled(it.id);
@@ -145,25 +157,46 @@ function renderShopDetail(){
   else if(selIt&&!selIt.bundled&&!shopOwns(sel)){btn='Купить расцветку за '+coinsP(selIt.price);act='shopBuyAsk(\''+sel+'\')';}
   else if(worn&&(!selIt||SET.color===sel)){btn='Надето';act='';}
   else {btn='Надеть';act='wear(\''+(selIt?sel:it.id)+'\');renderShopPane()';}
-  d.innerHTML='<div class="row" style="align-items:center"><b class="shopdh">'+esc(it.name)+'</b><div class="spacer"></div>'+
-      '<button type="button" class="closes" onclick="closeShopDetail()" aria-label="Закрыть">'+rqIcon('x',20)+'</button></div>'+
-    '<div class="sub" style="font-size:13px;color:var(--muted);margin:2px 0 10px">'+esc(it.desc||'')+'</div>'+
-    '<div class="shopcols-h">Расцветки скина'+(owned?'':' · сначала купите скин')+'</div><div class="shopcols">'+
+  const state=worn?'<span class="spst on">Надето</span>':owned?'<span class="spst">'+(it.price?'Куплено':'Бесплатно')+'</span>':'<span class="spst">'+coinsP(it.price)+'</span>';
+  const prev=(selIt&&selIt.sw)||'#ccc';
+  d.innerHTML='<div class="sphead"><button type="button" id="shopBack" class="spback" onclick="shopBack()" aria-label="Назад">'+rqIcon('arrow-left',22)+'</button>'+
+      '<b class="shopdh">'+esc(it.name)+'</b><div class="spacer"></div><span class="chip">'+coinsP(S.gold)+'</span></div>'+
+    '<div class="spbody"><div class="spprev"><span class="spphone" style="background:'+prev+'"></span><span class="spphone" style="background:'+prev+'"></span></div>'+
+    '<div class="row sptitle"><b>'+esc(it.name)+'</b><div class="spacer"></div>'+state+'</div>'+
+    '<div class="spdesc">'+esc(it.desc||'')+'</div>'+
+    '<div class="row shopcols-h"><span>Расцветки</span><div class="spacer"></div><small>'+(owned?'первая — со скином':'сначала купите скин')+'</small></div><div class="shopcols">'+
     cols.map(function(c){return '<button type="button" class="shopcol'+(c.id===sel?' on':'')+'" data-id="'+c.id+'" onclick="shopTryOn(\''+c.id+'\')">'+
       '<span class="shopcov" style="background:'+c.sw+'"></span><small>'+esc(c.name)+'</small><small class="shopcp">'+(c.bundled?'Со скином':shopOwns(c.id)?'Куплено':coinsP(c.price))+'</small></button>';}).join('')+'</div>'+
-    (it.id!=='skin-pencil'?'<div style="font-size:12px;color:var(--muted);margin:8px 0">Пока виден только в магазине: оформление скина придёт отдельной сборкой.</div>':'')+
-    '<button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>';
+    '<div class="spdesc" style="font-size:12px">'+(owned?'Нажмите на расцветку, чтобы примерить её на экранах выше.':'Расцветки можно примерить сейчас, купить — после покупки скина.')+
+    (it.id!=='skin-pencil'?' Оформление скина в приложении придёт отдельной сборкой.':'')+'</div></div>'+
+    '<div class="spfoot"><button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>'+
+    '<div class="spcap">'+(worn?'Этот скин сейчас на вас':owned?'Куплено · можно сменить в любой момент':'Монеты дают квесты за чтение')+'</div></div>';
 }
+let shopPending=null; /* id waiting in the confirm dialog; buy() runs only from «Купить», once */
 function shopBuyAsk(id){
   const it=shopItem(id);if(!it)return;
   if(S.gold<it.price){flashMsg('Не хватает '+coinsP(it.price-S.gold));return;}
   const nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
-  if(!confirm('Купить «'+nm+'» за '+coinsP(it.price)+'? Останется '+coinsP(S.gold-it.price)+'.'+(it.type==='skin'?' Скин можно будет сразу надеть.':'')))return;
+  shopPending=id;
+  el('scTitle').textContent='Купить «'+nm+'» за '+coinsP(it.price)+'?';
+  el('scText').textContent='Останется '+coinsP(S.gold-it.price)+'.'+(it.type==='skin'?' Скин можно будет сразу надеть.':'');
+  el('shopConfirmScrim').hidden=false;el('shopConfirm').hidden=false;
+}
+function shopConfirmClose(){shopPending=null;el('shopConfirm').hidden=true;el('shopConfirmScrim').hidden=true;}
+function shopConfirmOk(){
+  const id=shopPending;if(!id)return;shopConfirmClose();
+  const it=shopItem(id),nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
   const r=buy(id);
   if(r.ok){try{confettiReward();}catch(e){}flashMsg('Куплено: «'+nm+'»');}
   else if(r.reason==='passive')flashMsg('Приложение открыто в другом окне');
   shopTrying=null;renderRewardsSheet();
 }
+function shopTestGold(){
+  if(window.RQ_NS!=='rqt')return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
+  S.gold=(S.gold||0)+1000;save();renderRewardsSheet();
+}
+function rqNavH(){const n=el('botnav');return n&&getComputedStyle(n).display!=='none'?n.offsetHeight:0;}
 let shopLast='game';
 function openShopTab(sub){
   if(sub!=='real')sub='game';

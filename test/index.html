@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261014-1621',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261014-1722',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -644,11 +644,33 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .shopcard .shopprice{font-size:13px}
 .shopcard .shopst{font-size:12px;color:var(--muted)}
 .shopcard[data-st=worn] .shopst,.shopcard[data-st=owned] .shopst{color:var(--good)}
-#shopDetail{margin-top:12px}
+#shopDetailScrim,#shopConfirmScrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:88}
+#shopConfirmScrim{z-index:98}
+#shopDetail{position:fixed;inset:0;z-index:96;display:flex;flex-direction:column;background:var(--bg,#0c2127);padding:calc(10px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom))}
+.sphead{display:flex;align-items:center;gap:8px;min-height:48px}
+.spback{width:44px;height:44px;display:flex;align-items:center;justify-content:center;margin-left:-10px}
+.spbody{flex:1;overflow-y:auto;min-height:0}
+.spprev{display:flex;gap:12px;justify-content:center;margin:8px 0 14px}
+.spphone{width:44%;aspect-ratio:9/16;border-radius:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.35)}
+.sptitle{align-items:baseline}.sptitle b{font-size:24px}
+.spst{font-weight:600}.spst.on{color:var(--accent)}
+.spdesc{font-size:14px;color:var(--muted);margin:4px 0 12px}
+.shopcols-h small{color:var(--muted);font-weight:400}
+.spfoot{padding-top:10px}.spcap{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+#shopDetail[hidden],#shopConfirm[hidden],#shopDetailScrim[hidden],#shopConfirmScrim[hidden]{display:none}
+#shopConfirm{position:fixed;left:24px;right:24px;top:50%;transform:translateY(-50%);z-index:99;background:var(--sheet);border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+#scTitle{font-size:19px;font-weight:700;line-height:1.3}
+#scText{font-size:15px;color:var(--muted);margin:8px 0 20px}
+.scRow{display:flex;gap:10px}.scRow button{flex:1;min-height:48px}
+.shopcta{width:100%;min-height:44px;margin-top:6px}
+#btnTestGold{width:100%;min-height:44px;margin-bottom:10px}
+#rewardsSheet .rewtabs button,#rewSlots .buy,#rewSlots .tierseg button,#btnAddRewardSlot,#rewSlots .searchinp{min-height:44px}
+#rewSlots .lnk{min-height:44px;min-width:44px;padding:0 8px}
+.shopcol small{white-space:nowrap}
 .shopdh{font-size:18px}
 .shopcols-h{font-size:13px;font-weight:600;margin-bottom:6px}
 .shopcols{display:flex;gap:8px;flex-wrap:wrap}
-.shopcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:80px;padding:6px;border-radius:10px;border:2px solid transparent}
+.shopcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:96px;padding:6px;border-radius:10px;border:2px solid transparent}
 .shopcol.on{border-color:var(--accent)}
 .shopcol .shopcov{width:56px;height:40px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .shopbuy{width:100%;margin-top:10px;min-height:44px}
@@ -809,12 +831,12 @@ html[data-skin="pencil"] #rewardsSheet h3{font-size:28px}
 /* pencil section labels in sentence case («Моя полка», «Задания»), not uppercase; ids/keys unchanged */
 html[data-skin="pencil"] :is(#shelfH,#mvpQuestH){text-transform:none;letter-spacing:0;font-size:18px;font-weight:700;color:var(--rq-text)}
 /* baked hand-drawn outline: 9-slice SVG (two jittered strokes) on a pseudo element — text never filtered */
-html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.badge,.sumcell){position:relative;box-shadow:none!important;border-color:transparent}
-html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.sumcell){overflow:hidden}
+html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.badge,.sumcell){position:relative;box-shadow:none!important;border-color:transparent}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){overflow:hidden}
 /* card paper sits exactly inside the drawn line (the 9-slice stroke is ~2.5px in from the edge, corner ~10px): no paper strip outside the frame */
-html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.sumcell){isolation:isolate;background:transparent!important;border-radius:12px}
-html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.sumcell)::before{content:"";position:absolute;inset:2.5px;z-index:-1;border-radius:10px;background:var(--rq-surface);pointer-events:none}
-html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.badge,.sumcell)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:var(--pc-fw) solid transparent;border-image:var(--pc-frame) 14 / var(--pc-fw) stretch}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){isolation:isolate;background:transparent!important;border-radius:12px}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell)::before{content:"";position:absolute;inset:2.5px;z-index:-1;border-radius:10px;background:var(--rq-surface);pointer-events:none}
+html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.badge,.sumcell)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:var(--pc-fw) solid transparent;border-image:var(--pc-frame) 14 / var(--pc-fw) stretch}
 html[data-skin="pencil"] .chip{border:1.2px solid var(--rq-skin-border);border-radius:9px 7px 10px 6px/7px 10px 6px 9px}
 html[data-skin="pencil"] .fchip{min-height:44px;padding:7px 14px;background:var(--rq-surface);color:var(--rq-text)}
 html[data-skin="pencil"] .fchip.on{background:var(--rq-accent);color:var(--rq-on-accent)}
@@ -936,7 +958,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- БИБЛИОТЕКА -->
 <div id="library" class="screen">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn mvp-hide" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg><span>0</span></span></div>
+    <div class="row" style="margin-bottom:14px"><button class="menubtn mvp-hide" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip"><span>0</span></span></div>
     <div class="goalcard">
       <svg class="ring" viewBox="0 0 80 80">
         <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
@@ -996,7 +1018,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
     <div class="kpis mvp-full">
       <div class="kpi"><b id="kStreak">0</b><span>🔥 стрик</span></div>
-      <div class="kpi"><b id="kGold">0</b><span id="kGoldLbl">🪙 золото</span></div>
+      <div class="kpi"><b id="kGold">0</b><span id="kGoldLbl">монеты</span></div>
       <div class="kpi"><b id="kMin">0</b><span>минут всего</span></div>
     </div>
     <div class="pcard bosscard mvp-full" id="bossCard"></div>
@@ -1024,7 +1046,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- МАГАЗИН -->
 <div id="shop" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:12px"><button class="menubtn" id="menuShop">☰</button><h1>🛍 Магазин</h1><div class="spacer"></div><span class="chip" id="shopGold">🪙 0</span></div>
+    <div class="row" style="margin-bottom:12px"><button class="menubtn" id="menuShop">☰</button><h1>🛍 Магазин</h1><div class="spacer"></div><span class="chip" id="shopGold">0 монет</span></div>
     <div class="ptabs"><button class="shtab on" data-sub="game" onclick="openShopTab('game')">🎮 Игровое</button><button class="shtab" data-sub="real" onclick="openShopTab('real')">🎁 Награды из жизни</button></div>
     <div id="shopGame">
       <h2>🛡 Броня и аксессуары</h2>
@@ -1140,7 +1162,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="pcard"><b style="font-size:13px">⏱ Минуты чтения</b><div class="chart" id="chMin"></div></div>
     <div class="pcard"><b style="font-size:13px">📄 Страницы</b><div class="chart" id="chPages"></div></div>
     <div class="pcard"><b style="font-size:13px">⭐ XP</b><div class="chart" id="chXp"></div></div>
-    <div class="pcard"><b style="font-size:13px" id="chGoldLbl">🪙 Золото</b><div class="chart" id="chGold"></div></div>
+    <div class="pcard"><b style="font-size:13px" id="chGoldLbl">Монеты</b><div class="chart" id="chGold"></div></div>
     <div class="pcard"><b style="font-size:13px">🕐 Когда я читаю</b><div id="anaHours"></div></div>
     <div class="pcard"><b style="font-size:13px">📚 По жанрам</b><div id="anaGenre"></div></div>
     <div class="pcard"><b style="font-size:13px">📅 Книги по месяцам</b><div id="anaMonths"></div></div>
@@ -1189,7 +1211,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- КВЕСТЫ -->
 <div id="quests" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst">☰</button><h1>📓 Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">🪙 0</span></div>
+    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst">☰</button><h1>📓 Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">0 монет</span></div>
     <div class="ptabs"><button class="jtab" data-sub="quotes" onclick="openJournal('quotes')">📝 Цитаты</button><button class="jtab" data-sub="quests" onclick="openJournal('quests')">🎯 Квесты</button><button class="jtab" data-sub="vocab" onclick="openJournal('vocab')">📖 Словарь</button></div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
     <div id="questBox"></div>
@@ -1217,7 +1239,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <div id="badgeModal" class="hidden">
   <button class="closes" id="badgeClose" style="top:calc(14px + env(safe-area-inset-top));right:18px;font-size:24px;color:#fff;z-index:2" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <div class="badge3d"><div class="coin" id="badgeCoin">
-    <div class="face front" id="badgeFace">🏅</div>
+    <div class="face front" id="badgeFace"></div>
     <div class="face back" id="badgeBack">⭐</div>
   </div></div>
   <div id="badgeTitle" class="b3dtitle"></div>
@@ -1246,10 +1268,14 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <div id="rewPaneShop" role="tabpanel" hidden>
     <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
     <div id="shopList"></div>
-    <div id="shopDetail" class="pcard" hidden></div>
   </div>
 </div>
 
+<div id="shopDetailScrim" hidden onclick="closeShopDetail()"></div>
+<div id="shopDetail" role="dialog" aria-label="Скин" hidden></div>
+<div id="shopConfirmScrim" hidden onclick="shopConfirmClose()"></div>
+<div id="shopConfirm" role="alertdialog" aria-modal="true" hidden><div id="scTitle"></div><div id="scText"></div>
+  <div class="scRow"><button type="button" class="ghostbtn scCancel" onclick="shopConfirmClose()">Отмена</button><button type="button" class="buy scOk" onclick="shopConfirmOk()">Купить</button></div></div>
 <div id="scrim" class="hidden"></div>
 <aside id="drawer">
   <div class="dhead"><div class="logo">📚</div><div><b>ReadQuest</b><div style="font-size:12px;color:var(--muted)">прототип v6</div></div></div>
@@ -1378,7 +1404,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="sumgrid">
       <div class="sumcell"><b id="sumPages">0</b><span>страниц</span></div>
       <div class="sumcell"><b id="sumMin">0</b><span id="sumMinLbl">минут</span></div>
-      <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">🪙 золота</span></div>
+      <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">монет</span></div>
       <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
     </div>
     <div id="sumDailyBox" class="pcard" style="background:rgba(255,255,255,.06)">
@@ -1394,25 +1420,25 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261014-1621"></script>
-<script src="js/books-builtin.js?v=20261014-1621"></script>
-<script src="js/core-b.js?v=20261014-1621"></script>
-<script src="js/library.js?v=20261014-1621"></script>
-<script src="js/reader.js?v=20261014-1621"></script>
-<script src="js/pdf.js?v=20261014-1621"></script>
-<script src="js/reader-ui.js?v=20261014-1621"></script>
-<script src="js/rpg.js?v=20261014-1621"></script>
-<script src="js/content.js?v=20261014-1621"></script>
-<script src="js/settings.js?v=20261014-1621"></script>
-<script src="js/v6-extras.js?v=20261014-1621"></script>
-<script src="js/start.js?v=20261014-1621"></script>
+<script src="js/core-a.js?v=20261014-1722"></script>
+<script src="js/books-builtin.js?v=20261014-1722"></script>
+<script src="js/core-b.js?v=20261014-1722"></script>
+<script src="js/library.js?v=20261014-1722"></script>
+<script src="js/reader.js?v=20261014-1722"></script>
+<script src="js/pdf.js?v=20261014-1722"></script>
+<script src="js/reader-ui.js?v=20261014-1722"></script>
+<script src="js/rpg.js?v=20261014-1722"></script>
+<script src="js/content.js?v=20261014-1722"></script>
+<script src="js/settings.js?v=20261014-1722"></script>
+<script src="js/v6-extras.js?v=20261014-1722"></script>
+<script src="js/start.js?v=20261014-1722"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261014-1621"></script>
+<script src="js/pwa-lock.js?v=20261014-1722"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1420,9 +1446,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261014-1621';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261014-1621';
-import * as game from './game-awards.js?v=20261014-1621';
+} from './storage/index.js?v=20261014-1722';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261014-1722';
+import * as game from './game-awards.js?v=20261014-1722';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

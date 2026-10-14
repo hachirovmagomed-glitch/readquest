@@ -286,7 +286,7 @@ export function hydrateGame(g) {
   if (!out.ai) out.ai = { key: '', model: 'gpt-4o-mini' };
   delete out.cur; /* shop build: currency picker removed */
   delete out.devMoney;
-  out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; });
+  out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; }).filter(function (id, i, a) { return a.indexOf(id) === i; });
   if (!out.rewards || !out.rewards.length)
     out.rewards = [
       { name: 'Кофе', tier: 'small', cost: 100, bought: 0 },

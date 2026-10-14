@@ -85,7 +85,7 @@ function renderSettings(){
     ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;if(!window.__rqWriter||__rqWriter.mayWrite())saveSet();applySet();logSkinChange(from);renderSettings();});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
-  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема приложения',dotIcon:function(){return activeTheme().skin?'pencil':'';},sub:function(){return activeTheme().skin?'Всегда этот скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
+  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){return activeTheme().skin?'pencil':'';},sub:function(){return activeTheme().skin?'Всегда этот скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};

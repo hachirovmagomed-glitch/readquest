@@ -333,6 +333,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #drawer{position:fixed;top:0;bottom:0;left:0;width:280px;max-width:80vw;background:var(--drawer);z-index:81;transform:translateX(-105%);transition:transform .25s ease;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 0 14px;box-shadow:8px 0 30px rgba(0,0,0,.35)}
 #drawer.open{transform:translateX(0)}
 .dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid #1d4250;margin-bottom:8px}
+.dstat{font-size:12px;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:3px;background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
 .dhead .logo{width:42px;height:42px;border-radius:10px;background:var(--bar);display:flex;align-items:center;justify-content:center;font-size:22px}
 .ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:15px;color:var(--txt);width:100%;text-align:left}
 .ditem.on{background:rgba(43,179,192,.12);color:var(--accent);border-right:3px solid var(--accent)}
@@ -1278,7 +1279,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <div class="scRow"><button type="button" class="ghostbtn scCancel" onclick="shopConfirmClose()">Отмена</button><button type="button" class="buy scOk" onclick="shopConfirmOk()">Купить</button></div></div>
 <div id="scrim" class="hidden"></div>
 <aside id="drawer">
-  <div class="dhead"><div class="logo">📚</div><div><b>ReadQuest</b><div style="font-size:12px;color:var(--muted)">прототип v6</div></div></div>
+  <div class="dhead"><div class="logo">📚</div><div style="flex:1;min-width:0"><b>ReadQuest</b><div class="dstat"><span id="dLvl">Ур. 1</span> · <span id="dXp">0 / 100 XP</span></div><div class="dbar"><i id="dXpBar"></i></div><div class="dstat" id="dGold">0 монет</div></div></div>
   <button class="ditem on" id="dLib"><span class="ico">📚</span>Библиотека</button>
   <button class="ditem" id="dProf"><span class="ico">🧙</span>Персонаж</button>
   <button class="ditem" id="dJournal"><span class="ico">📓</span>Дневник</button>

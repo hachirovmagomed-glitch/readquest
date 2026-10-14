@@ -18,7 +18,10 @@ function show(id){
   if(el('botnav'))el('botnav').style.display = (isMvp()&&!hideNav)?'flex':'none';
   applyMvpChrome();
 }
-function openDrawer(){el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
+/* drawer header: read-only view of the SAME sources as «Награды» and toasts — S.gold (coinsP) and S.xp (10 × floor dayMinutes via applySessionAwards), level()/lvlBounds(). No own counter, no save(). */
+function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:S.gold||0};}
+function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;el('dLvl').textContent='Ур. '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);return d;}
+function openDrawer(){try{renderDrawerHead();}catch(e){}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
 ['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});

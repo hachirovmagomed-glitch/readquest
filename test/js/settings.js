@@ -18,7 +18,7 @@ function resolveAppTheme(){
   const h2=new Date().getHours();
   return (h2>=7&&h2<21)?'light':'dark';
 }
-function applyAppTheme(){
+function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
   const t=APP_THEMES[resolveAppTheme()]||APP_THEMES.teal;
   const r=document.documentElement;
   r.style.setProperty('--bg',t.bg);r.style.setProperty('--card',t.card);
@@ -41,6 +41,7 @@ function openGeneralSettings(over){renderSettings();const g=el('settings');
 function closeGeneralSettings(){const g=el('settings');g.classList.add('hidden');g.classList.remove('over');}
 el('setBack').onclick=function(){if(generalOverReader()){closeGeneralSettings();if(navState()==='settings')try{history.back();}catch(e){}return;}show(isMvp()?'profile':'library');};
 function renderSettings(){
+  if(el('navCfgSub')&&typeof navGet==='function'){const k=navShown().length;el('navCfgSub').textContent=k+' '+plural(k,'вкладка','вкладки','вкладок');}
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
   if(el('readCntTgl'))el('readCntTgl').textContent=SET.readCounter?'Вкл':'Выкл';
@@ -183,3 +184,30 @@ function timerNudge(){
 }
 el('btnTimer').onclick=toggleTimer;
 
+
+/* ===== «Нижняя панель» (Общие настройки → Управление): 1..5 вкладок, Библиотека несъёмная и первая; каждое изменение = navSave() (один saveSet через гейт) =====
+   Порядок: кнопки «Выше» / «Ниже» (альтернатива перетаскиванию для тача и экранного диктора). */
+function openNavCfg(){const p=el('navCfg');if(!p)return;renderNavCfg();p.hidden=false;}
+function closeNavCfg(){const p=el('navCfg');if(p)p.hidden=true;try{renderSettings();}catch(e){}}
+function navCfgMove(id,d){const n=navGet(),i=n.indexOf(id),j=i+d;if(i<1||j<1||j>=n.length)return;n[i]=n[j];n[j]=id;navSave(n);renderNavCfg();}
+function navCfgDel(id){if(id==='library')return;const n=navGet().filter(function(x){return x!==id;});navSave(n);renderNavCfg();}
+function navCfgAdd(id){const n=navGet();if(n.length>=NAV_MAX||n.indexOf(id)>=0)return;n.push(id);navSave(n);renderNavCfg();}
+function renderNavCfg(){
+  const p=el('navCfg');if(!p)return;const n=navShown(),full=navGet().length>=NAV_MAX;
+  const ic=function(k,sz){return rqIcon(k,sz||22);};
+  p.innerHTML='<div class="nch"><button type="button" class="menubtn" id="navCfgBack" aria-label="Назад">'+ic('arrow-left')+'</button><div><div class="ncp">Общие настройки · Управление</div><h2>Нижняя панель</h2></div></div>'+
+    '<h4>Так будет выглядеть</h4><div class="navprev">'+n.map(function(id){const it=navItem(id);return '<span data-nav="'+id+'">'+ic(it.ic,20)+esc(it.s||it.t)+'</span>';}).join('')+'</div>'+
+    '<h4 class="navcnt">В панели · '+n.length+' из '+NAV_MAX+'</h4><div class="navlist">'+
+    n.map(function(id,i){const it=navItem(id);
+      if(id==='library')return '<div class="navli" data-nav="library">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>Главный экран</small></div><span class="navlock" aria-label="Нельзя убрать">'+ic('lock',18)+'</span></div>';
+      return '<div class="navli" data-nav="'+id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
+        '<button type="button" class="navup" aria-label="Выше"'+(i<=1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',-1)">'+ic('chevron-up',20)+'</button>'+
+        '<button type="button" class="navdown" aria-label="Ниже"'+(i>=n.length-1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',1)">'+ic('chevron-down',20)+'</button>'+
+        '<button type="button" class="navdel" aria-label="Убрать" onclick="navCfgDel(\''+id+'\')">'+ic('circle-minus')+'</button></div>';}).join('')+'</div>'+
+    (full?'<div class="navmax">'+ic('lock',14)+'Максимум 5 вкладок. Уберите одну, чтобы добавить другую.</div>':'<div class="navmax">Порядок — кнопками «Выше» и «Ниже».</div>')+
+    '<h4>Можно добавить</h4><div class="navlist">'+
+    NAV_CATALOG.filter(function(it){return navAvail(it.id)&&navGet().indexOf(it.id)<0;}).map(function(it){return '<div class="navli" data-nav="'+it.id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
+      '<button type="button" class="navadd" aria-label="Добавить"'+(full?' disabled':'')+' onclick="navCfgAdd(\''+it.id+'\')">'+ic('circle-plus')+'</button></div>';}).join('')+'</div>';
+  el('navCfgBack').onclick=closeNavCfg;
+}
+if(el('btnNavCfg'))el('btnNavCfg').onclick=openNavCfg;

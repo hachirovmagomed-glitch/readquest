@@ -63,6 +63,7 @@ window.__rqStart=async function(api, tracker){
   applyAppTheme();applySkin();applyScale();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
+  try{renderNav();}catch(e){console.warn('[rq] nav',e);}
   window.__rqReady=true;
   {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');
     if(fl&&!fl.classList.contains('hidden')){ /* late boot after the watchdog (e.g. IndexedDB answered at 5 s): continue by itself, fade 200 ms into the library */

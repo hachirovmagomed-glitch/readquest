@@ -26,7 +26,8 @@ function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.f
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
 /** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
     any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
-function applySkin(){
+function syncThemeColor(){try{const c=getComputedStyle(document.body).backgroundColor,m=c.match(/\d+/g),mt=document.querySelector('meta[name=theme-color]');if(mt&&m&&m.length>=3)mt.content='#'+m.slice(0,3).map(function(x){return (+x).toString(16).padStart(2,'0');}).join('');}catch(e){}}
+function applySkin(){setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}

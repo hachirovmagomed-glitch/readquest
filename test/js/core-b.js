@@ -21,8 +21,8 @@ const THEMES={
 /* day/night variants that have no swatch of their own (toggleDayNight swaps within the skin) */
 const THEME_VARIANTS={'pencil-night':{name:'Карандашный',bg:'#262a31',txt:'#e3e0d8',skin:'pencil',night:true,base:'pencil'}};
 function themeBase(k){const v=THEME_VARIANTS[k];return v?v.base:k;}
-/** paid theme saved in rq_set and bought (game.owned) */
-function ownedShopTheme(k){const s=(typeof SHOP_THEMES!=='undefined')?SHOP_THEMES.find(x=>x.id===k):null;return s&&(S.owned||[]).indexOf(k)>=0?s:null;}
+/** old (formerly paid) theme saved in rq_set — free since the shop build */
+function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.find(x=>x.id===k))||null;} /* shop build: the 9 old themes are free */
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
 /** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
     any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
@@ -83,7 +83,7 @@ function hydrateS(raw){
   if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
-  if(!S.cur||!S.cur.icon)S.cur={icon:'🪙',name:'золото'};
+  delete S.cur; /* contract: cur removed on load and import */
   if(!S.rewards||!S.rewards.length)S.rewards=[
     {name:'Кофе',tier:'small',cost:100,bought:0},
     {name:'Серия сериала',tier:'small',cost:100,bought:0},
@@ -119,7 +119,7 @@ function hydrateS(raw){
   if(S.hp===undefined||S.hp===null)S.hp=S.hpMax;
   S.ownedGear=S.ownedGear||[];
   S.equipped=S.equipped||{};
-  if(S.devMoney===undefined)S.devMoney=false;
+  delete S.devMoney; /* shop build: ∞ money removed */
   S.shelfOrder=S.shelfOrder||[];
   if(S.useChar===undefined)S.useChar=true;
   S.char=S.char||{};
@@ -146,9 +146,9 @@ function save(){
 }
 function allStats(){return STATS_BASE.concat((S.customStats||[]).filter(s=>!STATS_BASE.includes(s)));}
 /* === валюта (тест-режим) === */
-function canAfford(c){return !!S.devMoney||S.gold>=c;}
-function spend(c){if(!S.devMoney)S.gold=Math.max(0,S.gold-c);}
-function goldDisp(){return S.devMoney?'∞':S.gold;}
+function canAfford(c){return S.gold>=c;}
+function spend(c){S.gold=Math.max(0,S.gold-c);}
+function goldDisp(){return S.gold;}
 /* === экипировка героя === */
 const GEAR_SLOTS={head:'Головной убор',body:'Костюм',weapon:'Оружие',feet:'Ботинки',pet:'Питомец',aura:'Аура',face:'Аксессуар',bg:'Фон'};
 const GEAR_CATS=[['body','🥋 Костюмы'],['weapon','⚔️ Оружие'],['head','🎩 Головные уборы'],['feet','👢 Ботинки'],['deco','✨ Декорации'],['bg','🏞 Задний план']];
@@ -214,5 +214,5 @@ function rollDay(){if(S.dayKey!==today()){S.dayKey=today();S.minToday=0;
   const gap=daysBetween(S.lastDay,today());
   if(gap>1)S.hp=Math.max(0,(S.hp==null?S.hpMax:S.hp)-Math.round((gap-1)*10*talentDecay()));
   save();}}
-function curI(){return S.cur.icon;}
+function curI(){return '';} /* currency icon removed (coins are text) */
 

@@ -60,7 +60,6 @@ function renderSettings(){
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
   el('uxScaleVal').textContent=(S.ux.scale||100)+'%';
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
-  if(el('devMoneyTgl'))el('devMoneyTgl').textContent=S.devMoney?'Вкл ∞':'Выкл';
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
   /* theme tiles: tile + caption (+ check when selected). «Карандашный» = the app-wide skin (same as reader THEMES.pencil): it masks the app
@@ -87,7 +86,6 @@ function renderSettings(){
   rqSyncSwitches();
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
-el('devMoneyTgl').onclick=()=>{S.devMoney=!S.devMoney;save();renderSettings();renderLibrary();flashMsg(S.devMoney?'∞ Бесконечная валюта включена':'Тест-валюта выключена');};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
 el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
 el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();renderSettings();};

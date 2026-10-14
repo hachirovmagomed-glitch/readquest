@@ -89,7 +89,6 @@ export const GAME_DEF = {
   owned: [],
   claimed: {},
   rewards: null,
-  cur: null,
   customQuests: [],
   customStats: [],
   customAch: [],
@@ -135,7 +134,6 @@ export const GAME_DEF = {
   useChar: true,
   char: {},
   vocab: [],
-  devMoney: false,
 };
 
 /**
@@ -286,7 +284,9 @@ export function hydrateGame(g) {
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
   if (!out.ai) out.ai = { key: '', model: 'gpt-4o-mini' };
-  if (!out.cur || !out.cur.icon) out.cur = { icon: '🪙', name: 'золото' };
+  delete out.cur; /* shop build: currency picker removed */
+  delete out.devMoney;
+  out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; });
   if (!out.rewards || !out.rewards.length)
     out.rewards = [
       { name: 'Кофе', tier: 'small', cost: 100, bought: 0 },

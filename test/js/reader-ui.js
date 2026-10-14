@@ -580,7 +580,7 @@ function renderSummary(r){
   const hl=summaryHeadline(r.quest),hd=el('sumHead');
   if(hd){hd.textContent=hl||'Сессия завершена';hd.style.color=hl?'var(--accent2)':'';hd.style.fontWeight=hl?'600':'';}
   countUp(el('sumGold'),r.gold,n=>'+'+n);
-  el('sumGoldLbl').textContent=curI()+' '+S.cur.name;
+  el('sumGoldLbl').textContent='монет';
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
@@ -618,7 +618,7 @@ function renderSummary(r){
   if(pc){const de=t=>String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]+\s*/gu,'');
     ['sumNote','lvlUp','luckLbl'].forEach(function(k){const e=el(k);if(e)e.textContent=de(e.textContent);});
     bb.querySelectorAll('.newbadge').forEach(function(d){d.textContent=de(d.textContent);});
-    if(el('sumGoldLbl'))el('sumGoldLbl').textContent=S.cur.name;}
+    if(el('sumGoldLbl'))el('sumGoldLbl').textContent='монет';}
   applyMvpChrome();
 }
 

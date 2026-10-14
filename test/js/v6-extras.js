@@ -157,7 +157,7 @@ function addCustomQuest(){if(isMvp()){flashMsg('Кастомные квесты 
   const metric=METRIC_KEYS[mi-1];
   const target=parseInt(prompt('Цель (число '+QUEST_METRICS[metric].unit+'):','30'),10);
   if(!target||target<1)return;
-  const reward=parseInt(prompt('Награда в '+S.cur.name+' '+curI()+':','100'),10);
+  const reward=parseInt(prompt('Награда в '+'монетах'+':','100'),10);
   if(!reward||reward<1)return;
   S.customQuests.push({id:'cq'+Date.now(),name:name.trim().slice(0,60),metric:metric,target:target,reward:reward});
   save();renderQuests();
@@ -168,7 +168,7 @@ function editCustomQuest(id){
   if(name.trim())q.name=name.trim().slice(0,60);
   const target=parseInt(prompt('Цель ('+(QUEST_METRICS[q.metric]||{}).unit+'):',q.target),10);
   if(target&&target>0)q.target=target;
-  const reward=parseInt(prompt('Награда в '+S.cur.name+':',q.reward),10);
+  const reward=parseInt(prompt('Награда в '+'монет'+':',q.reward),10);
   if(reward&&reward>0)q.reward=reward;
   save();renderQuests();
 }
@@ -319,7 +319,7 @@ function checkAchievements(){
       S.achUnlocked.push(a.id);
       if(a.xp){S.xp+=a.xp;}
       if(a.gold){S.gold+=a.gold;S.goldAllTime=(S.goldAllTime||0)+a.gold;}
-      nu.push({title:a.title,prize:[a.xp?'+'+a.xp+' XP':'',a.gold?'+'+a.gold+' '+curI():''].filter(Boolean).join(' · ')||(a.prize||'')});
+      nu.push({title:a.title,prize:[a.xp?'+'+a.xp+' XP':'',a.gold?'+'+a.gold+' монет':''].filter(Boolean).join(' · ')||(a.prize||'')});
     }
   });
   return nu;
@@ -338,7 +338,7 @@ function renderAchievements(){
   const cus=(S.customAch||[]).map(a=>{
     const got=isUnlocked(a.id);
     if(achTab==='got'&&!got)return '';
-    const prize=[a.xp?'+'+a.xp+' XP':'',a.gold?'+'+a.gold+' '+curI():''].filter(Boolean).join(' · ');
+    const prize=[a.xp?'+'+a.xp+' XP':'',a.gold?'+'+a.gold+' монет':''].filter(Boolean).join(' · ');
     const conds=a.conds.map(c=>{const ok=condValue(c)>=c.target;return '<div class="achd">'+(ok?'✅ ':'▫️ ')+esc(condLabel(c))+' ('+condValue(c)+')</div>';}).join('');
     return '<div class="achitem'+(got?' got':'')+'"'+(got?' onclick="badgeFromId(\''+a.id+'\')"':'')+'><div class="row"><b>'+(got?'🏅 ':'🎯 ')+esc(a.title)+'</b><div class="spacer"></div>'+
       (prize?'<span class="chip">'+prize+'</span>':'')+
@@ -377,7 +377,7 @@ function buildCond(){
 function addCustomAch(){
   const title=prompt('Название достижения:');if(!title||!title.trim())return;
   const xp=parseInt(prompt('Приз: сколько XP (0 — без):','0'),10)||0;
-  const gold=parseInt(prompt('Приз: сколько '+S.cur.name+' (0 — без):','0'),10)||0;
+  const gold=parseInt(prompt('Приз: сколько '+'монет'+' (0 — без):','0'),10)||0;
   const c=buildCond();if(!c){alert('Нужно хотя бы одно условие');return;}
   const conds=[c];
   while(confirm('Добавить ещё одно условие? (все условия должны выполниться)')){
@@ -391,7 +391,7 @@ function editCustomAch(id){
   const title=prompt('Название достижения:',a.title);if(title===null)return;
   if(title.trim())a.title=title.trim().slice(0,60);
   const xp=prompt('Приз XP:',a.xp);if(xp!==null)a.xp=parseInt(xp,10)||0;
-  const gold=prompt('Приз '+S.cur.name+':',a.gold);if(gold!==null)a.gold=parseInt(gold,10)||0;
+  const gold=prompt('Приз '+'монет'+':',a.gold);if(gold!==null)a.gold=parseInt(gold,10)||0;
   if(confirm('Пересоздать условия достижения?')){
     const c=buildCond();if(c){const conds=[c];while(confirm('Добавить ещё условие?')){const c2=buildCond();if(c2)conds.push(c2);else break;}a.conds=conds;}
   }
@@ -504,17 +504,17 @@ function pixelShopHtml(){
     '<div style="flex:1;min-width:0"><b>Пиксельный режим</b><div style="font-size:12px;color:var(--muted)">Игровой пиксельный скин «про волшебников» для всего приложения. Включается в Настройках.</div></div>'+
     (S.pixelOwned
       ?'<button class="buy owned" onclick="show(\'settings\');renderSettings();">'+(S.pixelOn?'Активен':'Куплено')+'</button>'
-      :'<button class="buy" '+(canAfford(PIXEL_COST)?'':'disabled')+' onclick="buyPixel()">'+PIXEL_COST+' '+curI()+'</button>')+
+      :'<button class="buy" '+(canAfford(PIXEL_COST)?'':'disabled')+' onclick="buyPixel()">'+PIXEL_COST+' монет'+'</button>')+
     '</div>';
 }
 function buyPixel(){
   if(S.pixelOwned)return;
-  if(!canAfford(PIXEL_COST)){alert('Не хватает '+S.cur.name+' (нужно '+PIXEL_COST+')');return;}
+  if(!canAfford(PIXEL_COST)){alert('Не хватает '+'монет'+' (нужно '+PIXEL_COST+')');return;}
   spend(PIXEL_COST);S.pixelOwned=true;S.pixelOn=true;save();applyPixel();confetti();renderShop();
   alert('🧙 Пиксельный режим куплен и включён! Выключить можно в Настройках.');
 }
 function togglePixel(){
-  if(!S.pixelOwned){if(confirm('Пиксельный режим покупается в Магазине за '+PIXEL_COST+' '+S.cur.name+'. Перейти в Магазин?')){renderShop();show('shop');}return;}
+  if(!S.pixelOwned){if(confirm('Пиксельный режим покупается в Магазине за '+PIXEL_COST+' '+'монет'+'. Перейти в Магазин?')){renderShop();show('shop');}return;}
   S.pixelOn=!S.pixelOn;save();applyPixel();renderSettings();
   flashMsg(S.pixelOn?'🧙 Пиксельный режим включён':'Пиксельный режим выключен');
 }

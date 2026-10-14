@@ -34,14 +34,13 @@ const q = await p.evaluate(async () => { const c = typeof RQ_MVP_QUEST_PAYOUTS !
   return { c, mvp: isMvp(), vis, done, rewardLine: /\+\s*\d+\s*(монет|XP)|Забрать/.test(box), gold: [before.gold, S.gold], xp: [before.xp, S.xp], nsSame: localStorage.getItem(RQ_K.v1) === before.ns }; });
 ok('2 MVP: completed quest visible, pays nothing (S.gold/S.xp unchanged), no reward line; RQ_MVP_QUEST_PAYOUTS=false', q.c === false && q.mvp && q.vis && q.done.length > 0 && !q.rewardLine && q.gold[0] === q.gold[1] && q.xp[0] === q.xp[1] && q.nsSame, q);
 // 3
-const sortFit = () => p.evaluate(async () => { show('library'); await document.fonts.ready; await new Promise(r => setTimeout(r, 200)); const s = el('libSort'), cs = getComputedStyle(s), cv = document.createElement('canvas').getContext('2d'); cv.font = cs.font;
-  return { w: s.clientWidth, need: Math.ceil(cv.measureText(s.options[s.selectedIndex].text).width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24), font: cs.font }; });
+const sortFit = () => p.evaluate(async () => { show('library'); await document.fonts.ready; await new Promise(r => setTimeout(r, 200)); const s = el('libSortBtn'); const l = s && (s.querySelector('.lsl') || s);
+  return s ? { w: l.clientWidth, need: l.scrollWidth, txt: s.textContent.trim() } : { w: 0, need: 1 }; }); /* sort is a button now (15.10): label not truncated */
 const sf0 = await sortFit();
 const v = await p.evaluate(async () => { wear('skin-pencil'); show('library'); await new Promise(r => setTimeout(r, 300)); const cs = e => getComputedStyle(e);
-  const s = el('libSort'), cv = document.createElement('canvas').getContext('2d'); cv.font = cs(s).font; const tw = cv.measureText(s.options[s.selectedIndex].text).width;
-  const pad = parseFloat(cs(s).paddingLeft) + parseFloat(cs(s).paddingRight);
+  const s = el('libSortBtn'), l = s && (s.querySelector('.lsl') || s);
   return { html: cs(document.documentElement).backgroundColor, body: cs(document.body).backgroundColor, meta: (document.querySelector('meta[name=theme-color]') || {}).content,
-    sortW: s.clientWidth, need: Math.ceil(tw + pad + 24), mask: cs(el('libChips')).maskImage || cs(el('libChips')).webkitMaskImage }; });
+    sortW: l ? l.clientWidth : 0, need: l ? l.scrollWidth : 1, mask: cs(el('libChips')).maskImage || cs(el('libChips')).webkitMaskImage }; });
 const rgb = (h) => h && h[0] === '#' ? 'rgb(' + [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(', ') + ')' : h;
 ok('3a «Карандашный»: html и body одного цвета бумаги (без чёрной полосы), theme-color = фон', v.html === v.body && v.html !== 'rgba(0, 0, 0, 0)' && rgb(v.meta) === v.body, v);
 ok('3b «Недавние» не обрезано в обычной теме и в «Карандашном» (ширина ≥ текст + отступы + стрелка)', v.sortW >= v.need && sf0.w >= sf0.need, { sf0, pencil: [v.sortW, v.need] });

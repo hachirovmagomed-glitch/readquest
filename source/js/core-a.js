@@ -243,7 +243,8 @@ function rqCollapseSync(boxId){const box=el(boxId),row=box&&el(box.dataset.xrow|
   let v='';try{v=row._val()||'';}catch(e){}
   const o=row._opt||{};let dot='';try{dot=o.dot?o.dot():'';}catch(e){}
   const ic=o.icon?rqIcon(o.icon,22):'';let sub='';try{sub=o.sub?o.sub():'';}catch(e){}
-  const dotH=dot?'<span class="xdot" aria-hidden="true" style="background:'+dot+'"></span>':'';
+  let di='';try{di=o.dotIcon?o.dotIcon():'';}catch(e){}
+  const dotH=dot?'<span class="xdot'+(di?' xdot-skin':'')+'" aria-hidden="true" style="background:'+dot+'">'+(di?rqIcon(di,14):'')+'</span>':'';
   const head=o.title?'<span class="xlab"><span class="xt">'+esc(o.title)+'</span>'+(sub?'<span class="xsub">'+esc(sub)+'</span>':'')+'</span>':'';
   const sample=o.sample?'<span class="xs" aria-hidden="true">'+esc(o.sample)+'</span>':'';
   /* layout (Интерфейс 14.10): [icon | sample] [title+sub | label] … [dot] value ⌄ */

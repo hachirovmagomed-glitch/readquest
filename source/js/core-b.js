@@ -31,7 +31,7 @@ function applySkin(){setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
-  const lt=document.getElementById('libTitle');if(lt)lt.textContent=t.skin==='pencil'?'Библиотека':'ReadQuest'; /* «Карандашный»: mockup title */
+  const lt=document.getElementById('libTitle');if(lt)lt.textContent='Библиотека'; /* «Карандашный»: mockup title */
   const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
   applySkin._last=sk;
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
@@ -149,7 +149,7 @@ function allStats(){return STATS_BASE.concat((S.customStats||[]).filter(s=>!STAT
 /* === валюта (тест-режим) === */
 function canAfford(c){return S.gold>=c;}
 function spend(c){S.gold=Math.max(0,S.gold-c);}
-function goldDisp(){return S.gold;}
+function goldDisp(g){return Math.floor(Number(g===undefined?S.gold:g)||0);} /* one balance view: library header, drawer, profile — whole coins */
 /* === экипировка героя === */
 const GEAR_SLOTS={head:'Головной убор',body:'Костюм',weapon:'Оружие',feet:'Ботинки',pet:'Питомец',aura:'Аура',face:'Аксессуар',bg:'Фон'};
 const GEAR_CATS=[['body','🥋 Костюмы'],['weapon','⚔️ Оружие'],['head','🎩 Головные уборы'],['feet','👢 Ботинки'],['deco','✨ Декорации'],['bg','🏞 Задний план']];

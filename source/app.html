@@ -690,7 +690,20 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 #settings .stepbtn{width:44px;height:44px;min-width:44px}
 #shelfH{white-space:nowrap;flex:none}
 .addmini{white-space:nowrap}
-#libSort{min-width:max-content;flex:0 0 auto;padding-right:28px}
+/* library header (15.10): ☰ · title · search 44 · balance text; search bar replaces the header; sort menu + add icon in «Моя полка» */
+.libhead,.libsearchbar{margin-bottom:14px;min-height:44px;gap:6px;flex-wrap:nowrap}.libhead h1{white-space:nowrap;min-width:0}
+.iconbtn44{width:44px;height:44px;min-width:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:12px;background:none;color:var(--txt)}
+.libgold{flex:none;white-space:nowrap;font-weight:600;font-size:15px;color:var(--txt);padding-left:2px}
+.libsearchbar[hidden],#libHead[hidden]{display:none!important}.libsearchbar .searchinp{flex:1;min-width:0;margin:0}
+.lsortwrap{position:relative;flex:none}.lsortbtn{height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border:0;border-radius:12px;background:var(--card2);color:var(--txt);font:inherit;font-size:14px;white-space:nowrap}
+.lsortbtn .lsl{white-space:nowrap}
+.lsortmenu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:200px;padding:4px 0;border-radius:12px;background:var(--card);color:var(--txt);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.lsortmenu[hidden]{display:none!important}
+.lsortmenu .lso{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:0;background:none;color:var(--txt);font:inherit;font-size:15px;text-align:left}
+.lsortmenu .lso span{flex:1}.lsortmenu .lso svg{color:var(--accent);visibility:hidden}.lsortmenu .lso[aria-checked="true"] svg{visibility:visible}
+#btnAdd.addicon{margin-left:6px;background:var(--card2);border:1.5px solid var(--muted)}html[data-skin="pencil"] #btnAdd.addicon{border:2px solid var(--rq-skin-border)}#btnAdd[aria-busy="true"]{opacity:.5}
+html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box-shadow:none}
+
 #rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}
@@ -701,7 +714,7 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .mvp-hist li{margin:4px 0}
 body.mvp .mvp-hide{display:none!important}
 body:not(.dev) .dev-only{display:none!important}
-body.mvp #goldChip,body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
+body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
 
 body.mvp #sumGoldCell,body.mvp #sumStatCell,body.mvp #luckLbl,body.mvp #sumBadges,body.mvp #lvlUp{display:none!important}
 body.mvp #profile .mvp-full{display:none!important}
@@ -715,7 +728,7 @@ body.mvp #sumDailyBox{display:block}
 
 /* ===== 1в: Lucide icons (one sprite, stroke currentColor) ===== */
 .mvp-only-i{display:none}body.mvp .mvp-only-i{display:inline}
-#goldChip,#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
+#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
 .ic{flex:none;fill:none;stroke:currentColor;stroke-width:var(--rq-icon-stroke,1.8);stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 .rhead button{display:inline-flex;align-items:center;justify-content:center;min-width:var(--rq-tap,44px);min-height:var(--rq-tap,44px);padding:0}
 #selpop button{display:inline-flex;align-items:center;gap:4px}
@@ -990,7 +1003,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- БИБЛИОТЕКА -->
 <div id="library" class="screen">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip"><span>0</span></span></div>
+    <div class="row libhead" id="libHead"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">Библиотека</h1><div class="spacer"></div><button class="iconbtn44" id="libSearchBtn" type="button" aria-label="Поиск" aria-controls="libSearchBar" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><span class="libgold" id="goldChip" aria-label="Баланс">0 монет</span></div>
+    <div class="row libsearchbar" id="libSearchBar" hidden><input id="libSearch" class="searchinp" type="search" placeholder="Поиск по названию и автору" aria-label="Поиск по названию и автору"><button class="iconbtn44" id="libSearchClose" type="button" aria-label="Закрыть поиск"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
     <div class="goalcard">
       <svg class="ring" viewBox="0 0 80 80">
         <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
@@ -1004,11 +1018,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       </div>
     </div>
     <div id="libGoldLine" class="hidden" role="status"></div>
-    <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="Поиск по названию и автору"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
-    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><select id="libSort" class="ghostbtn" style="padding:6px 8px;margin-right:8px"><option value="recent">Недавние</option><option value="title">По названию</option><option value="progress">По прогрессу</option></select><button class="addmini" id="btnAdd" title=".txt / .epub / .fb2 / .pdf">＋ Добавить</button></div>
+    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="lsortbtn" id="libSortBtn" type="button" aria-haspopup="menu" aria-controls="libSortMenu" aria-expanded="false"><span class="lsl">Недавние</span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button><div class="lsortmenu" id="libSortMenu" role="menu" hidden></div></div><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div>
     <div class="grid" id="shelf"></div>
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">

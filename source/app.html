@@ -630,6 +630,32 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .botnav-btn.on{color:var(--accent);background:rgba(43,179,192,.12)}
 #rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
 #rewardsSheet.open{transform:translateY(0)}
+/* shop build 14.10: «Награды» = «Из жизни» / «Магазин», balance as text, no coin icons */
+.rewhead{align-items:center;margin:0 36px 10px 0}
+.rewtabs{display:flex;gap:6px;background:var(--card);border-radius:12px;padding:4px;margin-bottom:12px}
+.rewtabs button{flex:1;min-height:40px;border-radius:9px;font-weight:600;color:var(--muted)}
+.rewtabs button.on{background:var(--card2);color:var(--txt)}
+.shopkinds{display:flex;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.shopkinds .on{color:var(--txt);font-weight:600}
+#shopList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.shopcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:12px;background:var(--card);text-align:left;min-width:0}
+.shopcard .shopcov{display:block;width:100%;aspect-ratio:3/2;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.shopcard .shopname{font-weight:700}
+.shopcard .shopprice{font-size:13px}
+.shopcard .shopst{font-size:12px;color:var(--muted)}
+.shopcard[data-st=worn] .shopst,.shopcard[data-st=owned] .shopst{color:var(--good)}
+#shopDetail{margin-top:12px}
+.shopdh{font-size:18px}
+.shopcols-h{font-size:13px;font-weight:600;margin-bottom:6px}
+.shopcols{display:flex;gap:8px;flex-wrap:wrap}
+.shopcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:80px;padding:6px;border-radius:10px;border:2px solid transparent}
+.shopcol.on{border-color:var(--accent)}
+.shopcol .shopcov{width:56px;height:40px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.shopbuy{width:100%;margin-top:10px;min-height:44px}
+#settings .stepbtn{width:44px;height:44px;min-width:44px}
+#shelfH{white-space:nowrap;flex:none}
+.addmini{white-space:nowrap}
+#libSort{min-width:0;max-width:140px;flex:0 1 auto}
 #rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}
@@ -964,7 +990,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       </div>
       <h2 id="mvpQuestH"><span class="pc-hide">Квесты</span><span class="pc-only">Задания</span></h2>
       <div id="mvpQuestBox"></div>
-      <button class="addbtn" id="btnOpenRewards" style="margin-top:8px"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg> Награды из жизни</button>
       <div style="height:8px"></div>
       <button class="ghostbtn" id="btnMvpSettings" style="width:100%"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg> Настройки</button>
     </div>
@@ -1075,8 +1100,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     </div>
     <h2 class="dev-only">🧪 Тест-режим</h2>
     <div class="pcard dev-only">
-      <div class="setrow"><div class="lab">∞ Бесконечная валюта<div class="sub">Для тестирования: покупки бесплатны, баланс показывает ∞. Выключите перед обычной игрой.</div></div><button class="ghostbtn" id="devMoneyTgl">Выкл</button></div>
-    </div>
+          </div>
     <h2 class="mvp-hide">Сложность книг</h2>
     <div class="pcard mvp-hide">
       <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги ⓘ. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
@@ -1208,14 +1232,22 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <button class="botnav-btn" id="bnProf" type="button"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg>Профиль</button>
 </nav>
 <div id="rewardsScrim" class="hidden"></div>
-<div id="rewardsSheet" role="dialog" aria-label="Награды из жизни">
+<div id="rewardsSheet" role="dialog" aria-label="Награды">
   <button class="closes" id="rewardsClose" type="button" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
-  <h3 style="margin:0 0 6px">Награды из жизни</h3>
-  <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Цена только по ступени. Монеты дают квесты за чтение.</div>
-  <div class="row" style="margin-bottom:10px"><span class="chip" id="rewGoldChip"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg><span>0</span></span><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
-  <div id="rewSlots"></div>
-  <h2 style="font-size:14px;margin-top:16px">История</h2>
-  <ul class="mvp-hist" id="rewHist"></ul>
+  <div class="row rewhead"><h3 style="margin:0">Награды</h3><div class="spacer"></div><span class="chip" id="rewBalance">0 монет</span></div>
+  <div class="rewtabs" role="tablist"><button type="button" role="tab" id="rewTabLife" aria-selected="true" class="on" onclick="setRewardsTab('life')">Из жизни</button><button type="button" role="tab" id="rewTabShop" aria-selected="false" onclick="setRewardsTab('shop')">Магазин</button></div>
+  <div id="rewPaneLife" role="tabpanel">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Назначьте себе награды за чтение. Цена только по ступени, монеты дают квесты за чтение.</div>
+    <div class="row" style="margin-bottom:10px"><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
+    <div id="rewSlots"></div>
+    <h2 style="font-size:14px;margin-top:16px">История</h2>
+    <ul class="mvp-hist" id="rewHist"></ul>
+  </div>
+  <div id="rewPaneShop" role="tabpanel" hidden>
+    <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
+    <div id="shopList"></div>
+    <div id="shopDetail" class="pcard" hidden></div>
+  </div>
 </div>
 
 <div id="scrim" class="hidden"></div>

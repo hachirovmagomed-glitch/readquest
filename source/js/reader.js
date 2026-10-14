@@ -76,7 +76,7 @@ function renderThemeSeg(){
     if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
     b.onclick=()=>{
-      if(locked){alert('Тема «'+name+'» покупается в Магазине за '+S.cur.name+' '+curI());return;}
+      if(locked){alert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
       const from=skinOf(activeTheme());
       SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);
     };
@@ -88,7 +88,7 @@ function renderThemeSeg(){
   /* 1в: a bought paid theme that is saved as the current one stays, as a highlighted «Ваша тема» swatch */
   {const o=ownedShopTheme(SET.theme);if(o)add(o.id,o.bg,o.name,false,true);}
   seg.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt)); /* rebuilt swatches keep the current mark */
-  /* 1в: paid themes (SHOP_THEMES) are not shown at all — no lock, no «buy in the Shop» alert. Code kept for later;
+  /* shop build: the 9 old themes (OLD_THEMES) are free; a saved one shows as «Ваша тема»;
      «Карандашный» (free skin) will be added here when it lands (product.md: after 1в). */
 }
 el('szMinus').onclick=()=>{setFontSizeKeepPos(SET.size-1);};

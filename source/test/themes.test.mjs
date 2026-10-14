@@ -93,10 +93,10 @@ await p.evaluate(() => toggleDayNight()); await sleep(300); s = await st();
 ok('day/night from an owned paid theme → sepia (user pick)', s.theme === 'sepia', s);
 await p.evaluate(() => closeReader()); await sleep(500);
 
-// 6. saved paid theme, NOT owned → base theme rendered, rq_set untouched until the user picks
+// 6. saved old theme, NOT owned → still renders (free since the shop build), rq_set untouched until the user picks
 await p.evaluate(() => { S.owned = (S.owned || []).filter(x => x !== 'kraft'); save(); SET.theme = 'kraft'; saveSet(); });
 await p.reload({ waitUntil: 'load' }); await boot(); await open(); await sheet(true); s = await st();
-ok('not owned: base sepia rendered (page #f4ecd8, data-page sepia), no «Ваша тема», no swatch on', s.bg === 'rgb(244, 236, 216)' && s.page === 'sepia' && !s.yours.length && s.sw.length === 5 && !s.on.length, s);
+ok('not owned (shop build 14.10: old themes are free): kraft rendered (page #e8d9b5) as highlighted «Ваша тема»', s.bg === 'rgb(232, 217, 181)' && s.yours.join() === 'kraft' && s.sw.length === 6 && s.on.join() === 'kraft', s);
 await p.evaluate(() => el('szPlus').click()); await sleep(500); await p.evaluate(() => closeReader()); await sleep(500);
 s = await st();
 ok('not owned: rq_set still kraft after other setting changes / closing the book', s.theme === 'kraft' && s.ls === 'kraft', { theme: s.theme, ls: s.ls });

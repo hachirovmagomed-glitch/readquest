@@ -31,7 +31,7 @@ function mvpEnforce(){
   if(!S.anti||typeof S.anti!=='object'){S.anti={minSec:12,maxMin:3,v:2};ch=true;}
   if(S.anti.minSec!==MVP_ANTI.minSec){S.anti.minSec=MVP_ANTI.minSec;ch=true;}
   if(S.anti.maxMin!==MVP_ANTI.maxMin){S.anti.maxMin=MVP_ANTI.maxMin;ch=true;}
-  if(S.devMoney!==false){S.devMoney=false;ch=true;}
+  if('devMoney' in S){delete S.devMoney;ch=true;}
   return ch;
 }
 /* ?dev=1 shows the MVP switch and «Тест-режим» (body.dev; .dev-only is hidden otherwise) */
@@ -134,14 +134,22 @@ function clearConfetti(){
 function clearToasts(){
   document.querySelectorAll('.rq-toast').forEach(function(n){try{n.remove();}catch(e){}});
 }
-function openRewardsSheet(){
+let rewTab='life';
+function setRewardsTab(t){rewTab=t==='shop'?'shop':'life';
+  if(rewTab!=='shop')try{closeShopDetail();}catch(e){}
+  [['life','rewTabLife','rewPaneLife'],['shop','rewTabShop','rewPaneShop']].forEach(function(x){const on=x[0]===rewTab,b=el(x[1]),p=el(x[2]);
+    if(b){b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');}if(p)p.hidden=!on;});
+  renderRewardsSheet();}
+function openRewardsSheet(tab){
+  if(tab)rewTab=tab==='shop'?'shop':'life';
   clearConfetti();clearToasts();
-  renderRewardsSheet();
+  setRewardsTab(rewTab);
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
   applyMvpChrome(); /* bottom nav: «Награды» selected */
 }
 function closeRewardsSheet(){
+  try{closeShopDetail();}catch(e){} /* примерка ends when the shop closes */
   el('rewardsSheet').classList.remove('open');
   el('rewardsScrim').classList.add('hidden');
   applyMvpChrome();
@@ -162,7 +170,8 @@ function ensureMvpRewards(){
 }
 function renderRewardsSheet(){
   ensureMvpRewards();
-  if(el('rewGoldChip')){el('rewGoldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('rewGoldChip').lastChild.textContent=coinsP(goldDisp());}
+  if(el('rewBalance'))el('rewBalance').textContent=coinsP(S.gold); /* one balance for both tabs, text only */
+  try{renderShopPane();}catch(e){console.warn('[rq] shop',e);}
   const box=el('rewSlots');if(!box)return;
   box.innerHTML=S.rewards.map(function(r,i){
     const label=r.name&&r.name.trim()?esc(r.name):(r.placeholder?'Назови награду…':'Без названия');
@@ -172,7 +181,7 @@ function renderRewardsSheet(){
     return '<div class="pcard" style="margin-bottom:10px">'+
       '<div class="row" style="gap:8px;align-items:center">'+
         '<input class="searchinp" style="flex:1;margin:0" value="'+esc(r.name||'')+'" placeholder="Название" onchange="renameRewardSlot('+i+',this.value)">'+
-        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+rqIcon('coins',14)+'<span>'+coinsP(r.cost)+'</span></button>'+
+        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+coinsP(r.cost)+'</button>'+
       '</div>'+
       '<div class="tierseg">'+tiers+'</div>'+
       '<div class="row" style="font-size:12px;color:var(--muted)"><span>получено: '+(r.bought||0)+'</span><div class="spacer"></div>'+

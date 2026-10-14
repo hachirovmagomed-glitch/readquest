@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261012-1621'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261014-1407'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -43,8 +43,10 @@ function applyMvpChrome(){
   if(bn){
     const onLib=!el('library').classList.contains('hidden');
     const onProf=!el('profile').classList.contains('hidden');
-    if(el('bnLib'))el('bnLib').classList.toggle('on', onLib||(!onProf&&isMvp()));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', onProf);
+    const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
+    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&(onLib||(!onProf&&isMvp())));
+    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&onProf);
+    if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -136,10 +138,12 @@ function openRewardsSheet(){
   renderRewardsSheet();
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
+  applyMvpChrome(); /* bottom nav: «Награды» selected */
 }
 function closeRewardsSheet(){
   el('rewardsSheet').classList.remove('open');
   el('rewardsScrim').classList.add('hidden');
+  applyMvpChrome();
 }
 function ensureMvpRewards(){
   if(!S.rewards||!S.rewards.length){

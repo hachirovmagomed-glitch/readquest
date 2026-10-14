@@ -7,6 +7,7 @@
   function goProf(){closeRewardsSheet();renderProfile();show('profile');closeDrawer();}
   if(el('bnLib'))el('bnLib').onclick=goLib;
   if(el('bnProf'))el('bnProf').onclick=goProf;
+  if(el('bnRew'))el('bnRew').onclick=function(){openRewardsSheet();};
   if(el('btnOpenRewards'))el('btnOpenRewards').onclick=function(){openRewardsSheet();};
   if(el('rewardsClose'))el('rewardsClose').onclick=closeRewardsSheet;
   if(el('rewardsScrim'))el('rewardsScrim').onclick=closeRewardsSheet;

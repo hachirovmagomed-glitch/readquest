@@ -63,20 +63,26 @@ function renderSettings(){
   if(el('devMoneyTgl'))el('devMoneyTgl').textContent=S.devMoney?'Вкл ∞':'Выкл';
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
+  /* theme tiles: tile + caption (+ check when selected). «Карандашный» = the app-wide skin (same as reader THEMES.pencil): it masks the app
+     palette, so while it is on only its tile is selected, and picking a palette leaves it (reader theme back to sepia). */
   const tb=el('appThemeBox');tb.innerHTML='';
-  const auto=document.createElement('button');
-  auto.className='appsw'+(S.appTheme==='auto'?' on':'');
-  auto.innerHTML=rqIcon('sun-moon',18);auto.title='Авто: день/ночь';auto.setAttribute('aria-label','Авто');
-  auto.onclick=()=>{S.appTheme='auto';save();applyAppTheme();renderSettings();};
-  tb.appendChild(auto);
+  const pc=!!activeTheme().skin;
+  const tile=(k,cap,on,draw,pick)=>{
+    const w=document.createElement('span');w.className='apptile'+(on?' on':'');
+    const b=document.createElement('button');b.className='appsw'+(on?' on':'');b.dataset.k=k;b.title=cap;b.setAttribute('aria-label',cap);b.setAttribute('aria-pressed',on?'true':'false');
+    draw(b);b.onclick=pick;w.appendChild(b);
+    const c=document.createElement('small');c.textContent=cap;w.appendChild(c);
+    const ck=document.createElement('span');ck.className='chk';ck.setAttribute('aria-hidden','true');ck.innerHTML=rqIcon('check',12);w.appendChild(ck);
+    tb.appendChild(w);
+  };
+  const leaveSkin=()=>{if(!activeTheme().skin)return;const from=skinOf(activeTheme());SET.theme='sepia';SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);};
+  tile('auto','Авто',!pc&&S.appTheme==='auto',b=>{b.innerHTML=rqIcon('sun-moon',18);},()=>{leaveSkin();S.appTheme='auto';save();applyAppTheme();renderSettings();});
   Object.keys(APP_THEMES).forEach(k=>{
     const t=APP_THEMES[k];
-    const b=document.createElement('button');
-    b.className='appsw'+(S.appTheme===k?' on':'');
-    b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';b.title=t.name;
-    b.onclick=()=>{S.appTheme=k;save();applyAppTheme();renderSettings();};
-    tb.appendChild(b);
+    tile(k,t.name,!pc&&S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
+  tile('pencil',THEMES.pencil.name,pc,b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},
+    ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);renderSettings();});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
 }

@@ -82,7 +82,7 @@ function renderSettings(){
     tile(k,t.name,!pc&&S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
   tile('pencil',THEMES.pencil.name,pc,b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},
-    ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;if(!window.__rqWriter||__rqWriter.mayWrite())saveSet();applySet();logSkinChange(from);renderSettings();});
+    ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
   rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){return activeTheme().skin?'pencil':'';},sub:function(){return activeTheme().skin?'Всегда этот скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});

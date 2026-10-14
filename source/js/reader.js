@@ -10,6 +10,10 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.readCounter!=='boolean')s.readCounter=true;return s;}
 normSet(SET);
 function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
+/* user pick → NS_set only through the gate (Архитектор 14.10): writer must exist AND allow. Before __rqReady: applied in memory,
+   one flag (no queue); on ready start.js does exactly ONE saveSet with the current SET, again only if the gate allows. */
+function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;return;}if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
+function rqFlushSetPending(){if(!window.__rqSetPending)return;window.__rqSetPending=false;if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
 /* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 function applySet(){
@@ -68,7 +72,7 @@ FONTS.forEach((f,i)=>{
   const b=document.createElement('button');b.type='button';b.className='xopt';b.dataset.k=String(i);
   b.innerHTML='<span class="xs" aria-hidden="true">Аа</span><span class="xn">'+esc(f.label)+'</span><span class="xm" aria-hidden="true">'+rqIcon('check',20)+'</span>';
   b.querySelector('.xs').style.fontFamily=f.v;b.querySelector('.xn').style.fontFamily=f.v;
-  b.onclick=()=>{SET.font=i;if(!window.__rqWriter||__rqWriter.mayWrite())saveSet();applySet();relayout();}; /* one saveSet, through the write gate */
+  b.onclick=()=>{SET.font=i;rqSaveSetGated();applySet();relayout();}; /* one saveSet, through the write gate (deferred until ready) */
   el('fontSeg').appendChild(b);
 });
 rqCollapse('fontSeg','Шрифт',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return (FONTS[SET.font]||FONTS[0]).v;}});

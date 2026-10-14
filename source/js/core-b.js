@@ -40,7 +40,7 @@ function applySkin(){setTimeout(syncThemeColor,0);
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
-function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&(!window.__rqWriter||__rqWriter.mayWrite()))__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
+function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&window.__rqWriter&&__rqWriter.mayWrite())__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
 function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||ownedShopTheme(SET.theme)||THEMES.sepia;}
 const FONTS=[
  {label:'Georgia',v:'Georgia, serif'},

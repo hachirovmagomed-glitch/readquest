@@ -27,12 +27,36 @@ const cards = await p.evaluate(() => [...document.querySelectorAll('#rewPaneShop
 ok('cards: «Купить» button on buyable skins (Гравюра at 1000)', cards.some(c => c.id === 'skin-gravyura' && c.cta === 'Купить' && c.tag === 'BUTTON'), cards);
 await p.screenshot({ path: SHOTS + 'shop2-shop-390.png' });
 
-// 5b. detail is a sheet over the list (fixed, inside the viewport, above the nav)
+// 5b. skin page: full screen (← back, large preview, colours, button pinned at the bottom); list scroll remembered in memory only
+await p.evaluate(() => { document.getElementById('rewardsSheet').scrollTop = 260; }); await sleep(150);
+const listScroll = await p.evaluate(() => document.getElementById('rewardsSheet').scrollTop);
+const setBefore = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 await p.evaluate(() => openShopDetail('skin-gravyura')); await sleep(400);
-const sh = await p.evaluate(() => { const d = document.getElementById('shopDetail'), r = d.getBoundingClientRect(), nav = document.getElementById('botnav').getBoundingClientRect(), cs = getComputedStyle(d);
-  return { pos: cs.position, top: Math.round(r.top), bottom: Math.round(r.bottom), navTop: Math.round(nav.top), inList: !!d.closest('#shopList,#rewPaneShop') }; });
-ok('detail: a sheet over the list (fixed, not inside the list pane), visible, not over the bottom nav', sh.pos === 'fixed' && !sh.inList && sh.top >= 0 && sh.top < 844 && sh.bottom <= sh.navTop + 1, sh);
-await p.screenshot({ path: SHOTS + 'shop2-detail-sheet-390.png' });
+const sh = await p.evaluate(() => { const d = document.getElementById('shopDetail'), r = d.getBoundingClientRect(), b = d.querySelector('.shopbuy').getBoundingClientRect(), pv = d.querySelector('.spprev');
+  return { pos: getComputedStyle(d).position, top: Math.round(r.top), h: Math.round(r.height), back: !!d.querySelector('#shopBack'), prevH: pv ? Math.round(pv.getBoundingClientRect().height) : 0, btnBottom: Math.round(b.bottom), inList: !!d.closest('#rewPaneShop'), nav: history.state && history.state.rq }; });
+ok('skin page: full screen, ← back, large preview, button pinned at the bottom, history entry', sh.pos === 'fixed' && !sh.inList && sh.top === 0 && sh.h === 844 && sh.back && sh.prevH >= 200 && sh.btnBottom >= 844 - 70 && sh.nav === 'shopskin', sh);
+await p.screenshot({ path: SHOTS + 'shop2-skin-page-390.png' });
+// try-on + in-app ← : memory only, NS_set unchanged, list scroll restored
+await p.evaluate(() => shopTryOn('color-gravyura-night')); await sleep(200);
+const tried = await p.evaluate(() => shopTry());
+await p.screenshot({ path: SHOTS + 'shop2-skin-page-tryon-390.png' });
+await p.click('#shopBack'); await sleep(500);
+let bk = await p.evaluate(() => ({ open: !document.getElementById('shopDetail').hidden, tr: shopTry(), set: localStorage.getItem(RQ_K.set), skin: SET.skin || null, color: SET.color || null, scroll: document.getElementById('rewardsSheet').scrollTop, nav: history.state && history.state.rq }));
+ok('← back: page closed, try-on reset, NS_set skin/color unchanged', tried === 'color-gravyura-night' && !bk.open && bk.tr === null && bk.set === setBefore && bk.nav !== 'shopskin', { tried, ...bk, same: bk.set === setBefore });
+ok('← back: shop list scroll restored', listScroll > 0 && Math.abs(bk.scroll - listScroll) <= 2, { listScroll, now: bk.scroll });
+// system back (popstate)
+await p.evaluate(() => openShopDetail('skin-gravyura')); await sleep(300); await p.evaluate(() => shopTryOn('color-gravyura-autumn')); await sleep(150);
+await p.goBack().catch(() => null); await sleep(600);
+bk = await p.evaluate(() => ({ open: !document.getElementById('shopDetail').hidden, tr: shopTry(), set: localStorage.getItem(RQ_K.set), scroll: document.getElementById('rewardsSheet').scrollTop, rew: document.getElementById('rewardsSheet').classList.contains('open') }));
+ok('system back: page closed, try-on reset, NS_set unchanged, still in the shop', !bk.open && bk.tr === null && bk.set === setBefore && bk.rew, bk);
+ok('system back: shop list scroll restored', Math.abs(bk.scroll - listScroll) <= 2, { listScroll, now: bk.scroll });
+// сворачивание
+await p.evaluate(() => openShopDetail('skin-gravyura')); await sleep(300);
+bk = await p.evaluate(() => { shopTryOn('color-gravyura-night'); const a = shopTry(); Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); delete document.visibilityState;
+  return { a, b: shopTry(), set: localStorage.getItem(RQ_K.set) }; });
+ok('сворачивание: try-on reset, NS_set unchanged', bk.a === 'color-gravyura-night' && bk.b === null && bk.set === setBefore, bk);
+const leak = await p.evaluate((n) => { const all = Object.keys(localStorage).map(k => localStorage.getItem(k)).join('|'); return { scrollKey: /scroll/i.test(Object.keys(localStorage).join()) || /shopListScroll|listScroll/.test(all), setHas: /scroll/i.test(localStorage.getItem(RQ_K.set) || '') }; }, listScroll);
+ok('list scroll kept in memory only (nothing in localStorage / NS_set)', !leak.scrollKey && !leak.setHas, leak);
 
 // 3. colour labels one line each
 const cl = await p.evaluate(() => [...document.querySelectorAll('#shopDetail .shopcol small')].map(e => { const rg = document.createRange(); rg.selectNodeContents(e);

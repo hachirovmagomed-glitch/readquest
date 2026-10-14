@@ -30,6 +30,12 @@ const th3 = await p.evaluate(async () => { const x = document.querySelector('#ap
   const t = document.querySelector('#appThemeBox .appsw[data-k="pencil"]'); t.click(); await new Promise(r => setTimeout(r, 400));
   return { skin: !!activeTheme().skin, sub: (document.querySelector('#appThemeX .xsub') || {}).textContent || '' }; });
 ok('theme: «Карандашный» → subtitle «Всегда этот скин»', th3.skin && th3.sub === 'Всегда этот скин', th3);
+const th4 = await p.evaluate(() => { const row = document.getElementById('appThemeX'), t = row.querySelector('.xt'), v = row.querySelector('.xv'), d = row.querySelector('.xdot');
+  const line = getComputedStyle(document.documentElement).getPropertyValue('--rq-skin-border').trim(); const probe = document.createElement('i'); probe.style.color = line; document.body.appendChild(probe); const lineRgb = getComputedStyle(probe).color; probe.remove();
+  return { t: t && t.textContent, tFit: !!t && t.scrollWidth <= t.clientWidth, v: v && v.textContent, vFit: !!v && v.scrollWidth <= v.clientWidth, w: v ? getComputedStyle(v).fontWeight : '',
+    icon: !!(d && d.querySelector('svg use[href="#i-pencil"], svg.lucide-pencil, svg')), bc: d ? getComputedStyle(d).borderTopColor : '', bw: d ? getComputedStyle(d).borderTopWidth : '', lineRgb }; });
+ok('pencil row @390: «Тема приложения» and «Карандашный» not truncated, value weight normal', th4.t === 'Тема приложения' && th4.tFit && th4.v === 'Карандашный' && th4.vFit && (th4.w === '400' || th4.w === 'normal'), th4);
+ok('pencil row: circle holds the Lucide pencil icon, 2px border in the skin frame colour (--rq-skin-border)', th4.icon && th4.bw === '2px' && th4.bc === th4.lineRgb, th4);
 await p.evaluate(async () => { document.querySelector('#appThemeX').click(); await new Promise(r => setTimeout(r, 200)); document.querySelector('#appThemeBox .apptile:nth-child(1) .appsw').click(); });
 // font
 await p.evaluate(async () => { closeGeneralSettings && closeGeneralSettings(); show('library'); openBook(allBooks()[0].id); for (let i = 0; i < 50 && !(R.pageCount > 1); i++) await new Promise(r => setTimeout(r, 200)); el('btnAa').click(); }).catch(() => {});

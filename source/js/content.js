@@ -116,7 +116,7 @@ let shopOpen=null; /* skin id shown in the detail */
 function shopState(it){
   if(it.type==='skin'){
     if(shopWorn()===it.id)return {k:'worn',t:'Надето'};
-    if(shopOwns(it.id))return {k:'owned',t:it.price?'Куплено — Надеть':'Бесплатно — Надеть'};
+    if(shopOwns(it.id))return {k:'owned',t:it.price?'Куплено':'Бесплатно'};
     if(S.gold>=it.price)return {k:'buy',t:'Купить'};
     return {k:'short',t:'Не хватает '+(it.price-S.gold)};
   }

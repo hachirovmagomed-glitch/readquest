@@ -48,6 +48,8 @@ function applyMvpChrome(){
     if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
     if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
     if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
+    bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
+      const scr={quests:'quests',notes:'quotes',vocab:'vocab',stats:'stats'}[id];b.classList.toggle('on',!onRew&&!!scr&&!!el(scr)&&!el(scr).classList.contains('hidden'));});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -144,7 +146,7 @@ function openRewardsSheet(tab){
   if(tab)rewTab=tab==='shop'?'shop':'life';
   clearConfetti();clearToasts();
   setRewardsTab(rewTab);
-  {const rs=el('rewardsSheet');rs.style.bottom=(typeof rqNavH==='function'?rqNavH():0)+'px';rs.scrollTop=0;}
+  {const rs=el('rewardsSheet'),nh=(typeof rqNavH==='function'?rqNavH():0);rs.style.bottom=nh+'px';rs.scrollTop=0;el('rewardsScrim').style.bottom=nh+'px';} /* scrim stops above the bottom nav: tabs stay tappable */
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
   applyMvpChrome(); /* bottom nav: «Награды» selected */

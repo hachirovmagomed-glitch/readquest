@@ -55,6 +55,13 @@ const c = has ? await p.evaluate(async () => { openGeneralSettings(false); const
   pane2.querySelector('[data-nav="profile"] .navup').click(); await new Promise(r => setTimeout(r, 200)); const saved = JSON.parse(localStorage.getItem(RQ_K.set)).nav;
   return { row: true, dis, lock, prev, cnt, max, saved }; }) : {};
 ok('«Нижняя панель»: превью, «В панели · 5 из 5», добавление выключено, замок у Библиотеки, «Выше» меняет порядок и пишет', c.row && c.dis && c.lock && c.prev === 5 && /5 из 5/.test(c.cnt || '') && c.max && c.saved && c.saved[0] === 'library' && c.saved.indexOf('profile') === 1, c);
+// gestures: edge swipe opens, swipe left closes; menu button visible in MVP library
+const sw = async (x0, x1) => { const c = await p.target().createCDPSession(); await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: 400 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: (x0 + x1) / 2, y: 402 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x1, y: 404 }] }); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await sleep(400); };
+await p.evaluate(() => { closeNavCfg && closeNavCfg(); show('library'); }); await sleep(300);
+const mb = await p.evaluate(() => !!el('menuLib').offsetParent);
+await sw(8, 200); const o1 = await p.evaluate(() => el('drawer').classList.contains('open'));
+await sw(300, 60); const o2 = await p.evaluate(() => el('drawer').classList.contains('open'));
+ok('drawer: кнопка меню в библиотеке; свайп от края открывает, свайп влево закрывает', mb && o1 && !o2, { mb, o1, o2 });
 ok('нет ошибок страницы', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY nav.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

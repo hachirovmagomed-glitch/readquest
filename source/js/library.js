@@ -1,31 +1,92 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
 const SCREENS=['library','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','reader','summary'];
-const DRAWER={library:'dLib',quotes:'dJournal',vocab:'dJournal',shop:'dShop',profile:'dProf',quests:'dJournal',stats:'dProg',calendar:'dProg',achievements:'dProg',shelfScreen:'dProg',settings:'dSet'};
+const DRAWER={library:'dLib',quotes:'dNotes',vocab:'dVocab',profile:'dProf',quests:'dQuests',stats:'dStats',settings:'dSet'};
+let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
   clearToasts();
   if(id!=='summary')clearConfetti();
   try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
   if(id!=='library'&&__bootGold){__bootGold=0;const gl=el('libGoldLine');if(gl)gl.classList.add('hidden');}
-  if(isMvp() && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
+  if(isMvp() && !__navAllow && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
     id = 'library';
   }
   SCREENS.forEach(s=>el(s).classList.toggle('hidden',s!==id));
   const tgt=DRAWER[id];
   Array.from(new Set(Object.values(DRAWER))).forEach(di=>{const e=el(di);if(e)e.classList.toggle('on',di===tgt);});
+  if(el('dRew'))el('dRew').classList.remove('on');
   const hideNav = (id==='reader'||id==='summary');
   if(el('botnav'))el('botnav').style.display = (isMvp()&&!hideNav)?'flex':'none';
   applyMvpChrome();
 }
+/* ===== Нижняя панель и боковое меню: NS_set.nav (контракт Архитектора 14.10) =====
+   One catalog for the drawer and the bottom bar; nav = ids from it, order = display order, 1..5, library first.
+   Read is forgiving and NEVER writes back; write = one saveSet() through the write gate (passive window refused). */
+const NAV_CATALOG=[
+  {id:'library',t:'Библиотека',ic:'book-open',sub:'Главный экран'},
+  {id:'rewards',t:'Награды',ic:'gift'},
+  {id:'profile',t:'Профиль',ic:'user-round'},
+  {id:'quests',t:'Квесты',ic:'target'},
+  {id:'notes',t:'Цитаты и заметки',s:'Цитаты',ic:'notebook-pen'},
+  {id:'vocab',t:'Словарь',ic:'book-marked'},
+  {id:'stats',t:'Статистика',ic:'chart-column'}];
+const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
+const NAV_BN={library:'bnLib',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',notes:'bnNotes',vocab:'bnVocab',stats:'bnStats'};
+const NAV_DI={library:'dLib',rewards:'dRew',profile:'dProf',quests:'dQuests',notes:'dNotes',vocab:'dVocab',stats:'dStats'};
+function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
+function navRead(v){
+  if(!Array.isArray(v))return NAV_DEF.slice();
+  const out=[];v.forEach(function(x){if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
+  if(!out.length)return NAV_DEF.slice();
+  const i=out.indexOf('library');if(i>0)out.splice(i,1);if(i!==0)out.unshift('library');
+  return out.slice(0,NAV_MAX);
+}
+function navGet(){return navRead(typeof SET!=='undefined'&&SET?SET.nav:null);}
+function navSave(arr){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return false; /* passive window: never write */
+  SET.nav=navRead(arr);saveSet();renderNav();return true;
+}
+function navGo(id){
+  closeDrawer();
+  if(id==='rewards'){openRewardsSheet();return;}
+  try{closeRewardsSheet();}catch(e){}
+  __navAllow=true;
+  try{
+    if(id==='library'){renderLibrary();show('library');}
+    else if(id==='profile'){renderProfile();show('profile');}
+    else if(id==='quests')openJournal('quests');
+    else if(id==='notes')openJournal('quotes');
+    else if(id==='vocab')openJournal('vocab');
+    else if(id==='stats')openProgress('stats');
+    else if(id==='settings'){renderSettings();show('settings');}
+  }finally{__navAllow=false;}
+}
+function renderNav(){
+  const nav=navGet();
+  const bn=el('botnav');
+  if(bn){bn.innerHTML=nav.map(function(id){const it=navItem(id);
+      return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';}).join('');
+    bn.dataset.n=nav.length;
+    bn.querySelectorAll('.botnav-btn').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
+    try{applyMvpChrome();}catch(e){}}
+  const list=el('dList');
+  if(list){
+    list.innerHTML=NAV_CATALOG.map(function(it){return '<button class="ditem" type="button" id="'+NAV_DI[it.id]+'" data-nav="'+it.id+'">'+rqIcon(it.ic,22)+'<span class="dlab">'+esc(it.t)+'</span>'+(nav.indexOf(it.id)>=0?'<span class="dpin" title="В нижней панели">'+rqIcon('pin',16)+'</span>':'')+'</button>';}).join('')+
+      '<div class="dsep"></div><button class="ditem" type="button" id="dSet" data-nav="settings">'+rqIcon('settings',22)+'<span class="dlab">Настройки</span></button>';
+    list.querySelectorAll('.ditem').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
+    const cur=SCREENS.find(function(s){return el(s)&&!el(s).classList.contains('hidden');});const tgt=DRAWER[cur];if(tgt&&el(tgt))el(tgt).classList.add('on');
+  }
+}
 /* drawer header: read-only view of the SAME sources as «Награды» and toasts — S.gold (coinsP) and S.xp (10 × floor dayMinutes via applySessionAwards), level()/lvlBounds(). No own counter, no save(). */
 function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:S.gold||0};}
-function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;el('dLvl').textContent='Ур. '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);return d;}
-function openDrawer(){try{renderDrawerHead();}catch(e){}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
+function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const nm=(S.heroName||'Читатель');el('dName').textContent=nm;el('dAva').textContent=nm.trim().charAt(0).toUpperCase()||'Ч';
+  el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);return d;}
+function openDrawer(){try{renderDrawerHead();renderNav();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
 ['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
-el('dLib').onclick=()=>{renderLibrary();show('library');closeDrawer();};
+
 let jrnLast='quotes';
 function openJournal(sub){
   if(sub==='quests'){renderQuests();}else if(sub==='vocab'){renderVocab();}else{sub='quotes';renderQuotes();}
@@ -33,7 +94,7 @@ function openJournal(sub){
   document.querySelectorAll('.jtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }
-el('dJournal').onclick=()=>openJournal(jrnLast);
+if(el('dJournal'))el('dJournal').onclick=()=>openJournal(jrnLast);
 /* ===== Словарь-копилка + флешкарты ===== */
 let vocabMode='list',vcIdx=0,vcFlip=false;
 function renderVocab(){
@@ -64,8 +125,8 @@ function renderVocabCards(){
 }
 function gradeCard(i,known){const v=(S.vocab||[])[i];if(!v)return;v.box=known?Math.min(5,(v.box||0)+1):0;save();vcFlip=false;vcIdx++;renderVocabCards();}
 if(el('btnVocabCards'))el('btnVocabCards').onclick=function(){vocabMode=(vocabMode==='cards')?'list':'cards';vcIdx=0;vcFlip=false;renderVocab();};
-el('dShop').onclick=()=>{renderShop();show('shop');closeDrawer();};
-el('dProf').onclick=()=>{renderProfile();show('profile');closeDrawer();};
+if(el('dShop'))el('dShop').onclick=()=>{renderShop();show('shop');closeDrawer();};
+
 /* Квесты живут во вкладке «Дневник» (openJournal) */
 let progLast='calendar';
 function openProgress(sub){
@@ -74,8 +135,8 @@ function openProgress(sub){
   document.querySelectorAll('.progtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }
-el('dProg').onclick=()=>openProgress(progLast);
-el('dSet').onclick=()=>{renderSettings();show('settings');closeDrawer();};
+if(el('dProg'))el('dProg').onclick=()=>openProgress(progLast);
+
 
 /* ================= БИБЛИОТЕКА ================= */
 /* gold auto-paid at boot for a session recovered after a kill: one quiet line on the library, once
@@ -241,3 +302,10 @@ el('fileInp').onchange=async e=>{
   btn.textContent='＋ Добавить';
 };
 
+/* drawer gestures (spec): swipe right from the left edge (20px) opens it — not in the reader (edge = page turns); swipe left on the drawer closes it. Nothing is written. */
+(function(){let sx=null,sy=0,mode='';
+  document.addEventListener('touchstart',function(e){const t=e.touches[0];if(!t)return;const open=el('drawer').classList.contains('open');
+    const inReader=!el('reader').classList.contains('hidden')||!el('summary').classList.contains('hidden');
+    if(open){sx=t.clientX;sy=t.clientY;mode='close';}else if(t.clientX<=20&&!inReader&&!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'))&&(!el('navCfg')||el('navCfg').hidden)){sx=t.clientX;sy=t.clientY;mode='open';}else sx=null;},{passive:true});
+  document.addEventListener('touchend',function(e){if(sx===null)return;const t=e.changedTouches[0];const dx=t.clientX-sx,dy=Math.abs(t.clientY-sy);sx=null;
+    if(dy>60)return;if(mode==='open'&&dx>50)openDrawer();else if(mode==='close'&&dx<-50)closeDrawer();},{passive:true});})();

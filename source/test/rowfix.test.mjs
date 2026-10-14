@@ -36,13 +36,18 @@ ok('theme: subtitle follows the real mode (manual theme → not the «Авто»
 const th3 = await p.evaluate(async () => { const x = document.querySelector('#appThemeX'); if (document.getElementById('appThemeBox').hidden) x.click(); await new Promise(r => setTimeout(r, 200));
   const t = document.querySelector('#appThemeBox .appsw[data-k="pencil"]'); t.click(); await new Promise(r => setTimeout(r, 400));
   return { skin: !!activeTheme().skin, sub: (document.querySelector('#appThemeX .xsub') || {}).textContent || '' }; });
-ok('theme: «Карандашный» → subtitle «Всегда этот скин»', th3.skin && th3.sub === 'Всегда этот скин', th3);
+ok('theme: «Карандашный» → subtitle «Скин»', th3.skin && th3.sub === 'Скин', th3);
 const th4 = await p.evaluate(() => { const row = document.getElementById('appThemeX'), t = row.querySelector('.xt'), v = row.querySelector('.xv'), d = row.querySelector('.xdot');
   const line = getComputedStyle(document.documentElement).getPropertyValue('--rq-skin-border').trim(); const probe = document.createElement('i'); probe.style.color = line; document.body.appendChild(probe); const lineRgb = getComputedStyle(probe).color; probe.remove();
   return { t: t && t.textContent, tFit: !!t && t.scrollWidth <= t.clientWidth, v: v && v.textContent, vFit: !!v && v.scrollWidth <= v.clientWidth, w: v ? getComputedStyle(v).fontWeight : '',
     icon: !!(d && d.querySelector('svg use[href="#i-pencil"], svg.lucide-pencil, svg')), bc: d ? getComputedStyle(d).borderTopColor : '', bw: d ? getComputedStyle(d).borderTopWidth : '', lineRgb }; });
 ok('pencil row @390: «Тема» and «Карандашный» not truncated, value weight normal', th4.t === 'Тема' && th4.tFit && th4.v === 'Карандашный' && th4.vFit && (th4.w === '400' || th4.w === 'normal'), th4);
 const pencilM = await rowM('appThemeX'), pencilB = await blockM();
+const al = await p.evaluate(() => { const r = document.getElementById('appThemeX'), sub = r.querySelector('.xsub'), lead = r.querySelector(':scope > svg'), cs = getComputedStyle(r);
+  const xs = [...new Set([...r.closest('.pcard').querySelectorAll('.setrow')].filter(x => x.offsetParent).map(x => { const i = x.querySelector(':scope > svg'); return i ? Math.round(i.getBoundingClientRect().left) : null; }).filter(x => x !== null))];
+  return { sub: sub && sub.textContent, subFit: !!sub && sub.scrollWidth <= sub.clientWidth, lead: lead ? Math.round(lead.getBoundingClientRect().left) : null, xs, bg: cs.backgroundColor, bgi: cs.backgroundImage, pl: cs.paddingLeft }; });
+ok('pencil @390: subtitle «Скин» not truncated', al.sub === 'Скин' && al.subFit, al);
+ok('theme row: no fill, icon x equals neighbour rows («Размер интерфейса», «Анимации»)', (al.bg === 'rgba(0, 0, 0, 0)' || al.bg === 'transparent') && al.bgi === 'none' && al.xs.length === 1 && al.lead === al.xs[0], al);
 ok('pencil row: circle holds the Lucide pencil icon, 2px border in the skin frame colour (--rq-skin-border)', th4.icon && th4.bw === '2px' && th4.bc === th4.lineRgb, th4);
 await p.evaluate(async () => { document.querySelector('#appThemeX').click(); await new Promise(r => setTimeout(r, 200)); document.querySelector('#appThemeBox .apptile:nth-child(1) .appsw').click(); });
 // font
@@ -56,8 +61,8 @@ const f = await p.evaluate(() => { const row = document.getElementById('fontSegX
 const norm = (x) => (x || '').replace(/["']/g, '').replace(/\s+/g, ' ').trim();
 ok('font: «Aa» sample in current font on the left, label «Шрифт», value on the right', f.row && f.sample === 'Aa' && norm(f.sampleFont) === norm(f.cur) && f.label === 'Шрифт' && f.sampleLeft && f.vRight && f.value === f.want, f);
 const fontM = await rowM('fontSegX');
-const same = ['pl', 'pr', 'gap', 'h', 'chev', 'vfs'].every(k => pencilM[k] === fontM[k]);
-ok('theme row = font row: padding, gap, height, chevron, value font-size', same, { pencilM, fontM });
+const same = ['gap', 'h', 'chev', 'vfs'].every(k => pencilM[k] === fontM[k]);
+ok('theme row = font row: gap, height, chevron, value font-size', same, { pencilM, fontM });
 ok('theme row = neighbouring rows in «Внешний вид»: gap, leading icon size, title font-size; circle 22px', pencilB.rowGaps.length === 1 && pencilB.gap === pencilB.rowGaps[0] && pencilB.rowIcons.length === 1 && pencilB.lead === pencilB.rowIcons[0] && pencilB.labFs.length === 1 && pencilB.tfs === pencilB.labFs[0] && pencilB.dot === 22, pencilB);
 ok('font: no separate «Шрифт» heading above the row', f.row && !f.heading, f);
 ok('no page errors', errs.length === 0, errs);

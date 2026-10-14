@@ -32,6 +32,11 @@ const NAV_CATALOG=[
   {id:'vocab',t:'Словарь',ic:'book-marked'},
   {id:'stats',t:'Статистика',ic:'chart-column'}];
 const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
+/* ONE flag: in MVP mode, show the extra sections (quests, «Цитаты и заметки», «Словарь», «Статистика») in the drawer, bottom bar and «Нижняя панель».
+   false → MVP shows only library/rewards/profile (+ settings); stored NS_set.nav is never rewritten by this. Outside MVP they always show. */
+const RQ_MVP_DRAWER_EXTRAS=true;
+function navAvail(id){return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
+function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
 const NAV_BN={library:'bnLib',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',notes:'bnNotes',vocab:'bnVocab',stats:'bnStats'};
 const NAV_DI={library:'dLib',rewards:'dRew',profile:'dProf',quests:'dQuests',notes:'dNotes',vocab:'dVocab',stats:'dStats'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
@@ -48,7 +53,7 @@ function navSave(arr){
   SET.nav=navRead(arr);saveSet();renderNav();return true;
 }
 function navGo(id){
-  closeDrawer();
+  closeDrawer();if(!navAvail(id))id='library';
   if(id==='rewards'){openRewardsSheet();return;}
   try{closeRewardsSheet();}catch(e){}
   __navAllow=true;
@@ -63,7 +68,7 @@ function navGo(id){
   }finally{__navAllow=false;}
 }
 function renderNav(){
-  const nav=navGet();
+  const nav=navShown();
   const bn=el('botnav');
   if(bn){bn.innerHTML=nav.map(function(id){const it=navItem(id);
       return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';}).join('');
@@ -72,7 +77,7 @@ function renderNav(){
     try{applyMvpChrome();}catch(e){}}
   const list=el('dList');
   if(list){
-    list.innerHTML=NAV_CATALOG.map(function(it){return '<button class="ditem" type="button" id="'+NAV_DI[it.id]+'" data-nav="'+it.id+'">'+rqIcon(it.ic,22)+'<span class="dlab">'+esc(it.t)+'</span>'+(nav.indexOf(it.id)>=0?'<span class="dpin" title="В нижней панели">'+rqIcon('pin',16)+'</span>':'')+'</button>';}).join('')+
+    list.innerHTML=NAV_CATALOG.filter(function(it){return navAvail(it.id);}).map(function(it){return '<button class="ditem" type="button" id="'+NAV_DI[it.id]+'" data-nav="'+it.id+'">'+rqIcon(it.ic,22)+'<span class="dlab">'+esc(it.t)+'</span>'+(nav.indexOf(it.id)>=0?'<span class="dpin" title="В нижней панели">'+rqIcon('pin',16)+'</span>':'')+'</button>';}).join('')+
       '<div class="dsep"></div><button class="ditem" type="button" id="dSet" data-nav="settings">'+rqIcon('settings',22)+'<span class="dlab">Настройки</span></button>';
     list.querySelectorAll('.ditem').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
     const cur=SCREENS.find(function(s){return el(s)&&!el(s).classList.contains('hidden');});const tgt=DRAWER[cur];if(tgt&&el(tgt))el(tgt).classList.add('on');

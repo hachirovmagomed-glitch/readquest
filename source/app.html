@@ -115,7 +115,7 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-html{background:var(--bg)} /* canvas under the bottom nav / safe area = page colour, never a dark strip */
+html{background:var(--bg);overscroll-behavior-x:none}body{overscroll-behavior-x:none} /* edge swipe opens the drawer, never browser back */ /* canvas under the bottom nav / safe area = page colour, never a dark strip */
 body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 .hidden{display:none!important}
@@ -752,6 +752,21 @@ html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>.lab{flex:1 1 0;min
 html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>#uxScaleVal~*{margin-left:0}
 #uxScaleMinus,#uxScaleVal,#uxScalePlus{flex:none}
 /* theme tiles with captions (both skins) */
+.xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+#appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
+.xdot{width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(127,127,127,.45)}
+/* expanded lists = mockups sf-1g-fonts / sf-1g-themes: 52px rows, sample, label, check on the current one */
+#fontSeg.xlist,#appThemeBox.xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
+#fontSeg.xlist[hidden],#appThemeBox.xlist[hidden]{display:none!important}
+.xopt{display:flex!important;align-items:center;gap:14px;width:100%;min-height:52px;height:52px;padding:0 6px;background:none!important;border:0;border-bottom:1px solid var(--card2);border-radius:0!important;color:var(--txt);text-align:left;font-size:17px}
+.xopt .xs{width:36px;font-size:18px;text-align:center;flex:none}.xopt .xn{flex:1;min-width:0;font-size:17px}.xopt .xm{visibility:hidden;color:var(--accent);display:flex}.xopt.on .xm{visibility:visible}
+#appThemeBox.xlist .apptile{flex-direction:row;gap:14px;min-height:52px;height:52px;padding:0 6px;border-bottom:1px solid var(--card2);cursor:pointer}
+#appThemeBox.xlist .apptile small{flex:1;text-align:left;font-size:16px;color:var(--txt)}
+#appThemeBox.xlist .apptile .appsw{width:36px;height:36px;flex:none}
+#appThemeBox.xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}#appThemeBox.xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}#appThemeBox.xlist .apptile small{white-space:nowrap}
+.srow:has(#fontSegX){flex-wrap:wrap}.srow:has(#fontSegX) > .seg,#fontSeg.xlist{width:100%;flex:1 1 100%}
+#appThemeBox.xlist .apptile .chk{position:static;display:flex;visibility:hidden;background:none;color:var(--accent);width:22px;height:22px}
+#appThemeBox.xlist .apptile.on .chk{visibility:visible}
 #appThemeBox{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
 .apptile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .apptile small{font-size:11px;line-height:1.2;color:var(--muted);text-align:center;white-space:nowrap}
@@ -1026,7 +1041,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <h2 id="mvpQuestH"><span class="pc-hide">Квесты</span><span class="pc-only">Задания</span></h2>
       <div id="mvpQuestBox"></div>
       <div style="height:8px"></div>
-      <button class="ghostbtn" id="btnMvpSettings" style="width:100%"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg> Настройки</button>
     </div>
 
     <div class="kpis mvp-full">
@@ -1230,7 +1244,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst">☰</button><h1>📓 Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">0 монет</span></div>
     <div class="ptabs"><button class="jtab" data-sub="quotes" onclick="openJournal('quotes')">📝 Цитаты</button><button class="jtab" data-sub="quests" onclick="openJournal('quests')">🎯 Квесты</button><button class="jtab" data-sub="vocab" onclick="openJournal('vocab')">📖 Словарь</button></div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
+    <div id="qstHint" style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
     <div id="questBox"></div>
   </div></div>
 </div>
@@ -1404,7 +1418,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div class="srow"><div class="segval">Остаётся только текст. Выход — тап в центр</div></div>
       <div class="srow"><label>Счётчик</label><div class="seg"><span class="segval" style="flex:1">«7 / 10 мин» в углу в режиме фокуса</span><button class="ghostbtn sw" id="readCntTgl" role="switch">Вкл</button></div></div>
     </div>
-    <button class="gsetrow" id="btnGeneral"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span><b>Общие настройки</b><small>Тема приложения, язык, экран, данные</small></span><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
   </div>
 </div>
 

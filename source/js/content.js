@@ -309,6 +309,7 @@ function monthDays(){
 const RQ_MVP_QUEST_PAYOUTS=false;
 function questPays(){return !isMvp()||RQ_MVP_QUEST_PAYOUTS;}
 function renderQuests(){
+  if(el('qstHint'))el('qstHint').textContent=questPays()?'Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.':'Цели для чтения. Создавайте свои под любые задачи'; /* tied to RQ_MVP_QUEST_PAYOUTS */
   if(el('qstGold'))el('qstGold').textContent=goldDisp()+' монет';
   el('questBox').innerHTML=allQuests().map(q=>{
     const key=q.id+':'+q.period();

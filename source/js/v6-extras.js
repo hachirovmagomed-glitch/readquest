@@ -313,6 +313,7 @@ function xpMultEff(){return achPays()?(S.xpMult||1):1;}
 function checkAchievements(){
   const nu=[];
   DEFAULT_ACH.forEach(a=>{
+    if(typeof achV2==='function'&&achV2())return; /* v2: the catalog (js/ach-core.js) owns these ids; no XP multiplier any more */
     if(!isUnlocked(a.id)&&a.ck()){
       S.achUnlocked.push(a.id);
       S.xpMult=Math.round(((S.xpMult||1)+a.mult)*100)/100;

@@ -327,7 +327,7 @@ el('fileInp').onchange=async e=>{
       await __rq.upsertUserBook(null,b,{text:b.text});
     }
     S.userBooks.push(b);
-    if(!S.badges.includes('collector'))S.badges.push('collector');
+    if(!(typeof achV2==='function'&&achV2())&&!S.badges.includes('collector'))S.badges.push('collector'); /* v2: «Коллекционер» needs 10 min in the book */
     save();renderLibrary();
   }catch(err){alert('Не удалось загрузить книгу: '+err.message);}
   btn.removeAttribute('aria-busy');btn.setAttribute('aria-label','Добавить книгу'); /* icon button: progress via aria-label, icon stays */

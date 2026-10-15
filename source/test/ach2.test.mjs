@@ -30,7 +30,10 @@ const seedHistory = (p) => p.evaluate(async () => {
 /* ---- 1. seed from history on boot ---- */
 const p = await fresh(BASE);
 ok('0 test build: achievements v2 are on', await p.evaluate(() => typeof achV2 === 'function' && achV2() === true));
-await seedHistory(p); await load(p);
+await seedHistory(p);
+/* an existing reader upgrading: history is there, v2 has not run yet */
+await p.evaluate(async () => { S.achDates = {}; S.achSeed = null; save(); await new Promise(r => setTimeout(r, 200)); });
+await load(p);
 let g = await G(p);
 const want = ['first', 'h1', 'd3', 'd7', 'streak3', 'streak7', 'lark', 'owl', 'marathon', 'sess10', 'morning10'];
 ok('1a boot after history: done achievements recorded in achDates (first, h1, d3, d7, streak7, lark, owl, marathon, sess10, morning10)', want.every(k => /^\d{4}-\d{2}-\d{2}$/.test((g.achDates || {})[k] || '')), g.achDates);
@@ -48,7 +51,7 @@ const view = await p.evaluate(async () => { renderProfile(); show('profile'); co
 ok('2a profile shows the achievements card; the page opens with 11 section tabs', view.vis && view.open && view.secs >= 11, { vis: view.vis, open: view.open, secs: view.secs });
 ok('2b page shows points and «из 106»', /из 106/.test(view.text) && /очк/.test(view.text), view.text.slice(0, 300));
 ok('2c open page, switch every section → 0 writes', (await V1(p)) === before);
-ok('2d secret ones show «???» and a hint, not the name', await p.evaluate(() => { const t = el('achPage').innerText; return /\?\?\?/.test(t) && !/Ровно сто/.test(t); }));
+ok('2d secret ones show «???» and a hint, not the name and not the progress', await p.evaluate(() => { const t = el('achPage').innerText; return /\?\?\?/.test(t) && !/Ровно сто/.test(t) && !/\/ 1001/.test(t); }));
 ok('2e no emoji in the page', await p.evaluate(() => !/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u.test(el('achPage').innerText + el('achCard').innerText)));
 const back = await p.evaluate(async () => { history.back(); await new Promise(r => setTimeout(r, 300)); return el('achPage').hidden && !el('profile').classList.contains('hidden'); });
 ok('2f system back closes the page, profile stays', back);

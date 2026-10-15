@@ -37,4 +37,20 @@ if ! curl -sf -o /dev/null http://127.0.0.1:8767/; then
   (cd /tmp/rqp-serve && setsid nohup python3 -m http.server 8767 --bind 127.0.0.1 </dev/null >/tmp/rqp-serve.log 2>&1 &)
   for i in $(seq 20); do curl -sf -o /dev/null http://127.0.0.1:8767/ && break; sleep 0.5; done
 fi
+# 5. hyphen-data for hyph.test: Chrome downloads the dictionaries on demand (component updater) the first time a page
+#    asks for hyphens:auto. Best effort: without network access to Google's update servers hyph stays red (known).
+if [ ! -d /workspace/rqtest/hyphen-data ] || [ -z "$(ls -A /workspace/rqtest/hyphen-data 2>/dev/null)" ]; then
+  HP="$(mktemp -d)"; HT="$HP/h.html"
+  printf '<html lang="ru"><body style="width:90px;hyphens:auto">капиталистический реализм культура<p lang="en">capitalist realism culture</body></html>' > "$HT"
+  /usr/bin/google-chrome --headless=new --no-sandbox --disable-dev-shm-usage --user-data-dir="$HP/prof" "file://$HT" >/dev/null 2>&1 &
+  CP=$!
+  for i in $(seq 90); do [ -n "$(find "$HP/prof/hyphen-data" -name '*.hyb' 2>/dev/null | head -1)" ] && break; sleep 2; done
+  sleep 3; kill $CP 2>/dev/null || true; wait $CP 2>/dev/null || true
+  if [ -n "$(find "$HP/prof/hyphen-data" -name '*.hyb' 2>/dev/null | head -1)" ]; then
+    rm -rf /workspace/rqtest/hyphen-data && cp -r "$HP/prof/hyphen-data" /workspace/rqtest/hyphen-data
+    echo "hyphen-data: $(find /workspace/rqtest/hyphen-data -name '*.hyb' | wc -l) dictionaries"
+  else
+    echo "hyphen-data: not downloaded, hyph will fail"
+  fi
+fi
 echo "CI setup done"

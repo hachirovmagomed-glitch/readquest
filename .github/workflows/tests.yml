@@ -1,11 +1,10 @@
-# Runs the full test suite (source/test/run-all.sh) on every push and pull request.
-# main holds only built pages (no source/), so it is skipped.
+# Runs the full test suite (source/test/run-all.sh) on every push. A PR shows the result of the push run on its head,
+# so there is no separate pull_request run. main holds only built pages (no source/), so it is skipped.
 name: tests
 
 on:
   push:
     branches-ignore: [main]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -21,15 +20,15 @@ jobs:
       LC_ALL: C.UTF-8
       TZ: UTC
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # scriptv archives an old commit, importskin serves origin/main
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -45,7 +44,7 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-logs
           path: /tmp/rq-runall/

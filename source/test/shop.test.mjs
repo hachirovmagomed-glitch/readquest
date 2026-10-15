@@ -25,8 +25,9 @@ const skins = Array.isArray(cat) ? cat.filter(x => x.type === 'skin') : [];
 ok('catalog: paid skins + prices 500 (Пергамент/Гравюра/Звёздный) / 800 (Подземелье/Небесный/Крик), Карандашный free', Array.isArray(cat) && Object.keys(want).every(k => (skins.find(s => s.id === k) || {}).price === want[k]) && (skins.find(s => s.id === 'skin-pencil') || {}).price === 0, Array.isArray(cat) ? skins.map(s => s.id + ':' + s.price) : cat);
 ok('catalog: «Лес» renamed «Гравюра» (skin-gravyura), no skin-les/forest id', Array.isArray(cat) && (skins.find(s => s.id === 'skin-gravyura') || {}).name === 'Гравюра' && !cat.some(x => /skin-(les|forest)|color-(les|forest)-/.test(x.id)), Array.isArray(cat) ? skins.map(s => s.name) : cat);
 const colBad = Array.isArray(cat) ? skins.filter(s => s.price > 0).map(s => { const c = cat.filter(x => x.type === 'color' && x.skin === s.id);
-  return { s: s.id, b: c.filter(x => x.bundled).length, paid: c.filter(x => !x.bundled).length, prices: [...new Set(c.filter(x => !x.bundled).map(x => x.price))].join(), ids: c.every(x => x.id.startsWith('color-' + s.id.slice(5) + '-')) }; }).filter(x => x.b !== 1 || x.paid < 1 || x.paid > 3 || x.prices !== '150' || !x.ids) : ['no catalog'];
-ok('catalog: each paid skin = 1 bundled colour + 1–3 paid at 150, id color-<skin>-<name>', !colBad.length, colBad);
+  return { s: s.id, b: c.filter(x => x.bundled).length, paid: c.filter(x => !x.bundled).length, prices: [...new Set(c.filter(x => !x.bundled).map(x => x.price))].join(), ids: c.every(x => x.id.startsWith('color-' + s.id.slice(5) + '-')) }; }).filter(x => x.b !== 1 || x.paid < (x.s === 'skin-ellada' ? 0 : 1) || x.paid > 3 || x.prices !== '150' || !x.ids) : ['no catalog'];
+/* 15.10 (Клод): бриф магазина — «до 3 доп. по 150»; у пака «Эллады» одна палитра, доп. расцветок нет → 0 платных допустимо только ей */
+ok('catalog: each paid skin = 1 bundled colour + 1–3 paid at 150 («Эллада»: 0–3), id color-<skin>-<name>', !colBad.length, colBad);
 const ids = Array.isArray(cat) ? cat.map(x => x.id) : []; ok('catalog: no duplicate ids', ids.length && new Set(ids).size === ids.length);
 /* audit 15.10 (plan, wave 2 → 1): old fields are never deleted — S.devMoney stays, always false; S.cur stays as stored, unused */
 const gone = await p.evaluate(() => ({ SHOP_THEMES: typeof SHOP_THEMES, buyTheme: typeof buyTheme, devMoney: S.devMoney }));

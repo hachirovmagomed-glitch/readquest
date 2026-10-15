@@ -29,7 +29,8 @@ function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}}
   const L=APP_THEMES.light,Dk=APP_THEMES.dark,v=S.appTheme==='auto'?['auto',L.bg,L.txt,L.muted,Dk.bg,Dk.txt,Dk.muted].join(' '):[t.bg,t.txt,t.muted].join(' ');
   try{if(localStorage.getItem(RQ_K.theme)!==v)localStorage.setItem(RQ_K.theme,v);}catch(e){}
 }
-function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
+/* «Размер интерфейса» removed (Маня 07.10 / 15.10): the UI adapts to the phone by itself. A stored S.ux.scale is kept but ignored. */
+function applyScale(){document.body.style.zoom='';}
 
 /* ================= НАСТРОЙКИ ================= */
 /** 1в: «Вкл/Выкл» buttons drawn as switches (.sw) — state mirrored to aria-checked, labels stay for screen readers / tests */
@@ -59,7 +60,6 @@ function renderSettings(){
   el('uxAnim').textContent=S.ux.anim!==false?'Вкл':'Выкл';
   el('uxWake').textContent=S.ux.wake?'Вкл':'Выкл';
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
-  el('uxScaleVal').textContent=(S.ux.scale||100)+'%';
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
@@ -93,8 +93,6 @@ el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save()
 el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};
-el('uxScaleMinus').onclick=()=>{S.ux.scale=Math.max(80,(S.ux.scale||100)-10);save();applyScale();renderSettings();};
-el('uxScalePlus').onclick=()=>{S.ux.scale=Math.min(130,(S.ux.scale||100)+10);save();applyScale();renderSettings();};
 let wakeRef=null;
 async function reqWake(){
   if(S.ux.wake&&navigator.wakeLock){try{wakeRef=await navigator.wakeLock.request('screen');}catch(e){}}
@@ -118,7 +116,7 @@ el('btnExport').onclick=async ()=>{
   if(__rq&&__rq.exportBackup){
     payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:S,settings:SET};
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');

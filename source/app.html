@@ -205,7 +205,7 @@ body.rq-nolocks #rqNoXp{display:block}
    outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
    running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
 #pgLine{flex:none;box-sizing:content-box;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 max(var(--r-margin,24px),env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(var(--r-margin,24px),env(safe-area-inset-left,0px)); /* 1б-fix #3: counter/number above the gesture bar */pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
-#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:inherit;opacity:.45;letter-spacing:.2px}
+#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--r-txt-2);letter-spacing:.2px} /* audit 15.10: token, no opacity (≥ 4.5, contrast.tsv «номер страницы в углу») */
 #reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
 #mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}
 #libGoldLine{margin-top:10px;font-size:13px;font-weight:600;color:#ffc107;opacity:.92}
@@ -243,7 +243,7 @@ body.rq-nolocks #rqNoXp{display:block}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
-#content .meta{text-indent:0;opacity:.6;font-style:italic;margin-bottom:1.6em}
+#content .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
 .tap.left{left:0}.tap.right{right:0}
 .tap.mid{left:30%;width:40%}
@@ -759,11 +759,6 @@ html[data-skin="pencil"] .setrow{border-bottom-color:var(--rq-line)}
 html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}
 html[data-skin="pencil"] #settings .setrow>.lab{flex:1 1 120px}
 html[data-skin="pencil"] #settings .setrow>:is(button,.btnpair,b){margin-left:auto}
-/* «Размер интерфейса» − 100% ＋ never wrap (14.10) */
-html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus){flex-wrap:nowrap}
-html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>.lab{flex:1 1 0;min-width:0}
-html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>#uxScaleVal~*{margin-left:0}
-#uxScaleMinus,#uxScaleVal,#uxScalePlus{flex:none}
 /* theme tiles with captions (both skins) */
 .xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
 #appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
@@ -1122,7 +1117,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <h2>Внешний вид</h2>
     <div class="pcard">
       <div class="seg" id="appThemeBox"></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-zoom-in"/></svg><div class="lab">Размер интерфейса</div><button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>
@@ -1153,7 +1147,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
     </div>
-    <div class="mvp-hide">
+    <div class="dev-only"><!-- «Режим» (MVP switch + read-only goal/anti) only with ?dev=1; .mvp-hide here also hid it from ?dev=1 (regression 77f2775) -->
     <h2>Режим</h2>
     <div class="pcard">
       <div class="setrow dev-only"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>

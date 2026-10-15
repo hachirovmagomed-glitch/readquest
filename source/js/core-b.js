@@ -84,7 +84,7 @@ function hydrateS(raw){
   if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
-  delete S.cur; /* contract: cur removed on load and import */
+  /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
   if(!S.rewards||!S.rewards.length)S.rewards=[
     {name:'Кофе',tier:'small',cost:100,bought:0},
     {name:'Серия сериала',tier:'small',cost:100,bought:0},
@@ -120,7 +120,7 @@ function hydrateS(raw){
   if(S.hp===undefined||S.hp===null)S.hp=S.hpMax;
   S.ownedGear=S.ownedGear||[];
   S.equipped=S.equipped||{};
-  delete S.devMoney; /* shop build: ∞ money removed */
+  S.devMoney=false; /* shop build: ∞ money removed; the field stays (old fields are never deleted) */
   S.shelfOrder=S.shelfOrder||[];
   if(S.useChar===undefined)S.useChar=true;
   S.char=S.char||{};

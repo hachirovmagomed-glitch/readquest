@@ -31,7 +31,7 @@ function mvpEnforce(){
   if(!S.anti||typeof S.anti!=='object'){S.anti={minSec:12,maxMin:3,v:2};ch=true;}
   if(S.anti.minSec!==MVP_ANTI.minSec){S.anti.minSec=MVP_ANTI.minSec;ch=true;}
   if(S.anti.maxMin!==MVP_ANTI.maxMin){S.anti.maxMin=MVP_ANTI.maxMin;ch=true;}
-  if('devMoney' in S){delete S.devMoney;ch=true;}
+  if(S.devMoney!==false){S.devMoney=false;ch=true;} /* field kept (contract: old fields are never deleted), ∞ money is gone */
   return ch;
 }
 /* ?dev=1 shows the MVP switch and «Тест-режим» (body.dev; .dev-only is hidden otherwise) */

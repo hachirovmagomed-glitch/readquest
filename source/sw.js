@@ -37,8 +37,26 @@ self.addEventListener('message', function (e) {
 
 function isBook(url) { return /\.(pdf|fb2|epub|txt|zip)$/i.test(url.pathname); }
 
+/* «Поделиться → ReadQuest» (manifest share_target, Android): the system POSTs the files to ./share-target.
+ * They go to the cache NS + '_share' (not NS + '-…', so activate never deletes it), one entry per file, name in X-RQ-Name;
+ * then 303 to ./?share=1, where the app (importSharedBooks in js/library.js) adds them and empties the cache. */
+const SHARE = NS + '_share';
+function shareTarget(req) {
+  return req.formData().then(function (fd) {
+    const files = fd.getAll('books').filter(function (f) { return f && typeof f === 'object' && f.size > 0; });
+    return caches.open(SHARE).then(function (c) {
+      const t = Date.now();
+      return Promise.all(files.map(function (f, i) {
+        return c.put(new Request('share/' + t + '-' + i), new Response(f, { headers: { 'Content-Type': f.type || 'application/octet-stream', 'X-RQ-Name': encodeURIComponent(f.name || '') } }));
+      }));
+    });
+  }).catch(function (err) { console.warn('[rq] share-target', err); })
+    .then(function () { return Response.redirect(new URL('./?share=1', self.registration.scope).href, 303); });
+}
+
 self.addEventListener('fetch', function (e) {
   const req = e.request;
+  if (req.method === 'POST' && new URL(req.url).pathname === new URL('./share-target', self.registration.scope).pathname) { e.respondWith(shareTarget(req)); return; }
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;          /* also excludes blob:, data: */

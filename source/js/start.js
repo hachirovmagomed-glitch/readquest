@@ -68,6 +68,7 @@ window.__rqStart=async function(api, tracker){
   try{renderNav();}catch(e){console.warn('[rq] nav',e);}
   window.__rqReady=true;
   try{rqFlushSetPending();}catch(e){console.warn('[rq] pending set',e);} /* picks made before ready: exactly one gated write */
+  try{importSharedBooks();}catch(e){console.warn('[rq] share',e);} /* «Поделиться → ReadQuest»: files the SW kept, once */
   {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');
     if(fl&&!fl.classList.contains('hidden')){ /* late boot after the watchdog (e.g. IndexedDB answered at 5 s): continue by itself, fade 200 ms into the library */
       if(window.__rqDiag)__rqDiag.mark('late-recover',Math.round(performance.now()));

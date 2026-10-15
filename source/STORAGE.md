@@ -10,7 +10,7 @@
 | **Тела книг** | IndexedDB only (`files`) | `text:{id}` / `pdf:{id}` — **не** в localStorage |
 | **progress** | localStorage (`rq_v1.progress`) | прогресс по книгам, hist, минуты дня, … |
 | **goal** | localStorage (`rq_v1.progress.goal`) | **defaultMinutes: 10** (в коде поле `goal`) |
-| **streak** | localStorage (`rq_v1.progress.streak`) | TODO: soft floor **≥ 2 мин** (логика позже; storage только хранит) |
+| **streak** | localStorage (`rq_v1.progress.streak`) | soft floor **≥ 3 мин** (`STREAK_MIN` в `js/core-a.js`; storage только хранит) |
 | **quests** | localStorage (`rq_v1.game`: `customQuests`, `claimed`, …) | квесты + claimed |
 | **gold** | localStorage (`rq_v1.game.gold`) | валюта |
 | **sessions[]** | IndexedDB store `sessions` | `{ id, date, bookId, minutes, pageTurns }` — `id` = reader UUID (2026-10-06, additive) |
@@ -50,7 +50,7 @@
 
 Домены внутри envelope:
 
-- **progress** — `goal` (defaultMinutes **10**), `streak` (TODO soft floor ≥2), `progress{}`, `minToday`, hist, …
+- **progress** — `goal` (defaultMinutes **10**), `streak` (soft floor ≥3), `progress{}`, `minToday`, hist, …
 - **game** — `gold`, quests (`customQuests` / `claimed` / …), XP/RPG
 - **library** — мета книг без тел, covers, hidden, shelfOrder
 
@@ -216,7 +216,7 @@ cd /workspace/readquest && python3 -m http.server 8765
 
 ## TODO
 
-1. ~~streak soft floor ≥ 2 мин~~ — сделано в `app.html` closeReader (`minToday ≥ 2`); daily/метрика по-прежнему от `goal` (10).
+1. ~~streak soft floor~~ — сделано в closeReader (`js/reader-ui.js`, день ≥ `STREAK_MIN`; 15.10 порог поднят с 2 до 3 мин); daily/метрика по-прежнему от `goal` (10).
 2. ~~Reader: `logSession` + `logReadingEvent`~~ — см. `app.html` + `reader-session.js` + `READER.md`.
 3. 4 экрана MVP — см. `MVP.md` / `app.html` (флаг `SET.mvp`).
 4. `data:`-обложки в LS → кандидат в `files` позже.

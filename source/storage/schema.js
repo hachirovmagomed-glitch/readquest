@@ -1,6 +1,6 @@
 /**
  * ReadQuest storage schema — version, defaults, domain splits.
- * Soft streak floor (2 min): TODO — document only; game logic not implemented here.
+ * Soft streak floor (3 min): game logic lives in js/core-a.js STREAK_MIN + closeReader; storage only keeps the number.
  */
 export const SCHEMA_VERSION = 1;
 
@@ -35,7 +35,7 @@ export function idbKeyText(bookId) {
 
 /**
  * Progress domain — reading habit metrics & per-book reading state.
- * TODO(soft-streak): Architect lock — streak soft floor ≥2 min (logic later).
+ * Streak soft floor ≥ 3 min (Маня 15.10, was 2): STREAK_MIN in js/core-a.js.
  * Daily quest / north-star still use goal (defaultMinutes: 10).
  */
 export const PROGRESS_DEF = {

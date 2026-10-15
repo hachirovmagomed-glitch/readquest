@@ -16,11 +16,17 @@ async function page(url) { const p = await (await browser.createBrowserContext()
   await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
   await p.evaluateOnNewDocument(() => { window.__confirmCalls = 0; const c = window.confirm; window.confirm = function () { window.__confirmCalls++; return true; }; });
-  await p.goto(url, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300); return p; }
+  await p.goto(url, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300); await allReady(p); return p; }
+/* audit 15.10: skins without styling are «Скоро» (SHOP_READY = ['skin-pencil']); this test checks buying for when they ship → mark all ready */
+async function allReady(p) { await p.evaluate(() => { SHOP_CATALOG.filter(x => x.type === 'skin').forEach(x => { if (SHOP_READY.indexOf(x.id) < 0) SHOP_READY.push(x.id); }); if (typeof renderShopPane === 'function') renderShopPane(); }); }
 const p = await page(BASE);
 const raw = () => p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); return localStorage.getItem(RQ_K.v1) || ''; });
 await p.evaluate(async () => { S.gold = 1000; save(); window.__buyCalls = 0; const b = window.buy; window.buy = function () { window.__buyCalls++; return b.apply(this, arguments); }; });
-await p.click('#bnRew'); await sleep(300); await p.click('#rewTabShop'); await sleep(300);
+/* flake 15.10: the rewards sheet slides in (--rq-dur-sheet); after a fixed 300 ms the «Магазин» tab was sometimes still below
+   the viewport (y 896 of 844) → wait until it is fully on screen before clicking */
+await p.waitForSelector('#bnRew', { visible: true, timeout: 10000 }); await p.click('#bnRew');
+await p.waitForFunction(() => { const t = document.getElementById('rewTabShop'); if (!t) return false; const r = t.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight; }, { timeout: 10000 });
+await sleep(150); await p.click('#rewTabShop'); await sleep(300);
 
 // 5a. cards: «Купить» button on buyable cards
 const cards = await p.evaluate(() => [...document.querySelectorAll('#rewPaneShop .shopcard')].map(c => ({ id: c.dataset.id, cta: ((c.querySelector('.shopcta') || {}).textContent || '').trim(), tag: (c.querySelector('.shopcta') || {}).tagName })));
@@ -88,7 +94,7 @@ await p.evaluate(() => closeShopDetail()); await sleep(300);
 const tg = await p.evaluate(() => { const b = document.getElementById('btnTestGold'); return b ? { vis: !!b.offsetParent, t: b.textContent.trim() } : null; });
 ok('rqt: «+1000 монет для теста» visible in the shop', tg && tg.vis && tg.t === '+1000 монет для теста', tg);
 if (tg) await p.click('#btnTestGold'); await sleep(400);
-const tg2 = await p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); const g = JSON.parse(localStorage.getItem(RQ_K.v1) || '{}'); return { gold: S.gold, stored: (g.game || g).gold, dev: 'devMoney' in S, bal: document.getElementById('rewBalance').textContent }; });
+const tg2 = await p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); const g = JSON.parse(localStorage.getItem(RQ_K.v1) || '{}'); return { gold: S.gold, stored: (g.game || g).gold, dev: S.devMoney !== false, bal: document.getElementById('rewBalance').textContent }; });
 ok('+1000: S.gold 500 → 1500, stored, balance «1500 монет», no devMoney', tg2.gold === 1500 && tg2.stored === 1500 && !tg2.dev && tg2.bal === '1500 монет', tg2);
 const b2 = await p.evaluate(() => { const r = buy('skin-krik'); return { r, gold: S.gold }; });
 ok('after +1000: buy(skin-krik) deducts by normal rules (1500 → 700)', b2.r.ok && b2.gold === 700, b2);
@@ -128,7 +134,7 @@ const lib = await p.evaluate(() => { show('library'); renderLibrary(); return [.
 ok('library gold chip / line: no coin icon', lib === 0, lib);
 const dd = await p.evaluate(async () => { const e = await __rq.exportBackup(null, SET, { includeTextBodies: false }); e.game.owned = ['skin-les', 'skin-forest', 'skin-gravyura', 'color-les-night', 'color-forest-night'];
   await __rq.importBackup(e); return true; });
-await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400); await allReady(p);
 const hg = await p.evaluate(async () => { const m = await import(new URL('storage/schema.js', location.href).href); return m.hydrateGame({ owned: ['skin-les', 'skin-forest', 'skin-gravyura', 'color-les-night', 'color-forest-night'] }).owned; });
 ok('schema hydrateGame: renamed ids deduped', JSON.stringify(hg) === JSON.stringify(['skin-gravyura', 'color-gravyura-night']), hg);
 const ow = await p.evaluate(async () => { const raw = await __rq.exportBackup(null, SET, { includeTextBodies: false }); return { mem: S.owned, stored: raw.game.owned }; });

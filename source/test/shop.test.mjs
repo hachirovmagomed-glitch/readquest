@@ -14,6 +14,8 @@ await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, d
 const errs = []; p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); });
 let confirmMsg = ''; p.on('dialog', d => { confirmMsg = d.message(); d.accept(); });
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
+/* audit 15.10: skins without styling are «Скоро» (SHOP_READY = ['skin-pencil']); this test checks the buy contract for when they ship → mark all ready */
+await p.evaluate(() => { SHOP_CATALOG.filter(x => x.type === 'skin').forEach(x => { if (SHOP_READY.indexOf(x.id) < 0) SHOP_READY.push(x.id); }); });
 const safe = (f, a) => p.evaluate(f, a).catch(e => ({ err: String(e.message || e).slice(0, 160) }));
 
 // A. catalog per brief: 6 paid skins 500/800, pencil free, colours 150 (≤3 paid, exactly one bundled), color-<skin>-<name>
@@ -26,8 +28,9 @@ const colBad = Array.isArray(cat) ? skins.filter(s => s.price > 0).map(s => { co
   return { s: s.id, b: c.filter(x => x.bundled).length, paid: c.filter(x => !x.bundled).length, prices: [...new Set(c.filter(x => !x.bundled).map(x => x.price))].join(), ids: c.every(x => x.id.startsWith('color-' + s.id.slice(5) + '-')) }; }).filter(x => x.b !== 1 || x.paid < 1 || x.paid > 3 || x.prices !== '150' || !x.ids) : ['no catalog'];
 ok('catalog: each paid skin = 1 bundled colour + 1–3 paid at 150, id color-<skin>-<name>', !colBad.length, colBad);
 const ids = Array.isArray(cat) ? cat.map(x => x.id) : []; ok('catalog: no duplicate ids', ids.length && new Set(ids).size === ids.length);
-const gone = await p.evaluate(() => ({ SHOP_THEMES: typeof SHOP_THEMES, buyTheme: typeof buyTheme, cur: 'cur' in S, devMoney: 'devMoney' in S }));
-ok('SHOP_THEMES / buyTheme / S.cur / S.devMoney removed', gone.SHOP_THEMES === 'undefined' && gone.buyTheme === 'undefined' && !gone.cur && !gone.devMoney, gone);
+/* audit 15.10 (plan, wave 2 → 1): old fields are never deleted — S.devMoney stays, always false; S.cur stays as stored, unused */
+const gone = await p.evaluate(() => ({ SHOP_THEMES: typeof SHOP_THEMES, buyTheme: typeof buyTheme, devMoney: S.devMoney }));
+ok('SHOP_THEMES / buyTheme removed; S.devMoney kept as false', gone.SHOP_THEMES === 'undefined' && gone.buyTheme === 'undefined' && gone.devMoney === false, gone);
 
 // B. «Награды»: two tabs, header balance = S.gold as text, no coin icons
 await p.evaluate(() => { S.gold = 640; save(); }); await sleep(200);
@@ -82,7 +85,7 @@ await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
 const st = await p.evaluate(() => [...document.querySelectorAll('#settings .stepbtn')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { id: b.id, w: Math.round(r.width), h: Math.round(r.height) }; }));
 const stBad = st.filter(x => x.w < 44 || x.h < 44);
 ok('settings −/+ buttons at least 44×44', st.length >= 4 && !stBad.length, stBad.length ? stBad : st.length);
-await p.evaluate(() => document.getElementById('uxScalePlus').scrollIntoView({ block: 'center' })); await sleep(200);
+await p.evaluate(() => document.getElementById('uxAnim').scrollIntoView({ block: 'center' })); await sleep(200);
 await p.screenshot({ path: SHOTS + 'shop-settings-size-390.png' });
 
 // F. library: «Моя полка» on one line at 390px (default + pencil)

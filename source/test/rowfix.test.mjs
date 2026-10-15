@@ -47,7 +47,7 @@ const al = await p.evaluate(() => { const r = document.getElementById('appThemeX
   const xs = [...new Set([...r.closest('.pcard').querySelectorAll('.setrow')].filter(x => x.offsetParent).map(x => { const i = x.querySelector(':scope > svg'); return i ? Math.round(i.getBoundingClientRect().left) : null; }).filter(x => x !== null))];
   return { sub: sub && sub.textContent, subFit: !!sub && sub.scrollWidth <= sub.clientWidth, lead: lead ? Math.round(lead.getBoundingClientRect().left) : null, xs, bg: cs.backgroundColor, bgi: cs.backgroundImage, pl: cs.paddingLeft }; });
 ok('pencil @390: subtitle «Скин» not truncated', al.sub === 'Скин' && al.subFit, al);
-ok('theme row: no fill, icon x equals neighbour rows («Размер интерфейса», «Анимации»)', (al.bg === 'rgba(0, 0, 0, 0)' || al.bg === 'transparent') && al.bgi === 'none' && al.xs.length === 1 && al.lead === al.xs[0], al);
+ok('theme row: no fill, icon x equals neighbour rows («Анимации», …; «Размер интерфейса» removed 15.10)', (al.bg === 'rgba(0, 0, 0, 0)' || al.bg === 'transparent') && al.bgi === 'none' && al.xs.length === 1 && al.lead === al.xs[0], al);
 ok('pencil row: circle holds the Lucide pencil icon, 2px border in the skin frame colour (--rq-skin-border)', th4.icon && th4.bw === '2px' && th4.bc === th4.lineRgb, th4);
 await p.evaluate(async () => { document.querySelector('#appThemeX').click(); await new Promise(r => setTimeout(r, 200)); document.querySelector('#appThemeBox .apptile:nth-child(1) .appsw').click(); });
 // font

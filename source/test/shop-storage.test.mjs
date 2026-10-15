@@ -9,7 +9,9 @@ const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome
 const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
-const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400); };
+/* audit 15.10: skins without styling are «Скоро» (SHOP_READY = ['skin-pencil']); the storage contract is checked for when they ship → mark all ready after each boot */
+const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+  await p.evaluate(() => { SHOP_CATALOG.filter(x => x.type === 'skin').forEach(x => { if (SHOP_READY.indexOf(x.id) < 0) SHOP_READY.push(x.id); }); }); };
 await p.goto(BASE, { waitUntil: 'load' }); await boot();
 const has = await p.evaluate(() => typeof buy === 'function');
 const snap = () => p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); const v = localStorage.getItem(RQ_K.v1) || ''; let g = {}; try { const j = JSON.parse(v); g = j.game || j; } catch (e) {}
@@ -59,8 +61,9 @@ const r8 = await p.evaluate(async () => {
   e.settings = Object.assign({}, e.settings, { skin: 'skin-les', color: 'color-les-day', theme: 'midnight' });
   try { await __rq.importBackup(e); return { ok: true }; } catch (x) { return { ok: false, err: String(x.message || x) }; } });
 await p.reload({ waitUntil: 'load' }); await boot();
-const s8 = await p.evaluate(() => ({ owned: S.owned, cur: 'cur' in S, dev: 'devMoney' in S, gold: S.gold, skin: SET.skin, color: SET.color, theme: SET.theme, bg: getComputedStyle(document.documentElement).getPropertyValue('--x') }));
-ok('8 импорт старого бэкапа: no error, cur/devMoney gone, skin-les → skin-gravyura (owned + NS_set), gold 77', r8.ok && !s8.cur && !s8.dev && s8.gold === 77 && s8.owned.includes('skin-gravyura') && !s8.owned.includes('skin-les') && s8.skin === 'skin-gravyura' && /^color-gravyura-/.test(s8.color || ''), { r8, s8 });
+const s8 = await p.evaluate(() => ({ owned: S.owned, cur: S.cur && S.cur.name, dev: S.devMoney, gold: S.gold, skin: SET.skin, color: SET.color, theme: SET.theme, bg: getComputedStyle(document.documentElement).getPropertyValue('--x') }));
+/* audit 15.10: old fields are never deleted — cur kept as stored (unused), devMoney kept but forced false (no ∞ money) */
+ok('8 импорт старого бэкапа: no error, cur kept as stored, devMoney false, skin-les → skin-gravyura (owned + NS_set), gold 77', r8.ok && s8.cur === 'алмазики' && s8.dev === false && s8.gold === 77 && s8.owned.includes('skin-gravyura') && !s8.owned.includes('skin-les') && s8.skin === 'skin-gravyura' && /^color-gravyura-/.test(s8.color || ''), { r8, s8 });
 const free = await p.evaluate(() => ({ t: activeTheme().name, owned: (S.owned || []).includes('midnight') }));
 ok('8b old paid theme «Полночь» renders free (no ownership needed)', free.t === 'Полночь', free);
 ok('no page errors', !errs.length, errs);

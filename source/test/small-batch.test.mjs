@@ -45,18 +45,11 @@ for (const skin of ['default', 'pencil']) {
   const nv = await p.evaluate(() => ({ vis: getComputedStyle(document.getElementById('botnav')).display, on: [...document.querySelectorAll('#botnav button.on')].map(b => b.textContent.trim()) }));
   ok(`${tag}: in «Общие настройки» bottom nav highlights nothing`, !nv.on.length, nv);
 
-  // 4. «Размер интерфейса»: − value ＋ on one row
-  const szs = [];
-  for (const sc of [80, 100, 110, 120, 130]) {
-    await p.evaluate((sc) => { S.ux.scale = sc; applyScale(); renderSettings(); }, sc); await sleep(150);
-    szs.push(await p.evaluate((sc) => { const r = id => document.getElementById(id).getBoundingClientRect();
-      const m = r('uxScaleMinus'), v = r('uxScaleVal'), pl = r('uxScalePlus'), card = document.getElementById('uxScalePlus').closest('.pcard').getBoundingClientRect();
-      const cy = x => Math.round(x.top + x.height / 2);
-      return { sc, m: cy(m), v: cy(v), p: cy(pl), order: m.right <= v.left + .5 && v.right <= pl.left + .5, inside: pl.right <= card.right + .5 }; }, sc));
-  }
-  await p.evaluate(() => { S.ux.scale = 100; applyScale(); renderSettings(); }); await sleep(150);
-  const badSz = szs.filter(sz => !(Math.abs(sz.m - sz.p) <= 2 && Math.abs(sz.v - sz.p) <= 2 && sz.order && sz.inside));
-  ok(`${tag}: «Размер интерфейса» − value ＋ on one line, inside the card (scale 80–130%)`, !badSz.length, badSz.length ? badSz : 'ok');
+  // 4. «Размер интерфейса» removed (Маня 15.10): no row; a stored S.ux.scale (80) is kept but ignored — no zoom
+  const sz = await p.evaluate(() => { S.ux.scale = 80; applyScale(); renderSettings();
+    return { row: !!document.getElementById('uxScalePlus') || [...document.querySelectorAll('#settings .lab')].some(l => /Размер интерфейса/.test(l.textContent)), zoom: document.body.style.zoom, kept: S.ux.scale }; });
+  await p.evaluate(() => { S.ux.scale = 100; renderSettings(); });
+  ok(`${tag}: no «Размер интерфейса» row; stored scale 80 kept but ignored (no zoom)`, !sz.row && (sz.zoom === '' || sz.zoom === '1') && sz.kept === 80, sz);
 
   // 1. pencil: controls 2px line
   if (skin === 'pencil') {
@@ -68,7 +61,7 @@ for (const skin of ['default', 'pencil']) {
     ok('pencil: buttons/fields/segmented/«＋ Добавить» 2px solid line', bt.length >= 5 && !bad.length, bad.length ? bad.slice(0, 8) : bt.length);
     await p.evaluate(() => { const s = document.querySelector('#settings .scroll'); if (s) s.scrollTop = 0; }); await sleep(200);
     await p.screenshot({ path: SHOTS + 'small-settings-390.png' });
-    await p.evaluate(() => document.getElementById('uxScalePlus').scrollIntoView({ block: 'center' })); await sleep(200);
+    await p.evaluate(() => document.getElementById('uxAnim').scrollIntoView({ block: 'center' })); await sleep(200);
     await p.screenshot({ path: SHOTS + 'small-settings-size-390.png' });
   }
 }

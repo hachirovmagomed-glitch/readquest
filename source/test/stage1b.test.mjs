@@ -575,12 +575,13 @@ if (want('pospct')) {
   const r = await q.evaluate(async () => {
     const A = BOOKS[0], B = BOOKS[1]; S.finished = S.finished.filter(x => x !== A.id && x !== B.id);
     S.progress[A.id] = { ratio: 1, pos: 0.3 }; S.progress[B.id] = { ratio: 0.5, pos: 0.5 }; save();
-    show('library'); LIB.sort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
+    /* since the library header (3d821bb) renderLibrary() takes the sort from SET.libSort (NS_set) — set it there, in memory only */
+    const sort0 = SET.libSort; show('library'); SET.libSort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
     const cards = [...document.querySelectorAll('#shelf .bookcard')]; const ci = t => cards.findIndex(c => c.querySelector('.btitle').textContent.includes(t));
     const cardA = cards[ci(A.title)].querySelector('.bpct').textContent;
     bookInfo(A.id); const info = (document.getElementById('bookSheetBody').textContent.match(/Прогресс:\s*([^·]+)/) || [])[1];
     let shared = null; const ns = navigator.share; navigator.share = (o) => { shared = o.text; return Promise.resolve(); }; shareBook(A.id); navigator.share = ns;
-    LIB.sort = 'recent'; renderLibrary();
+    SET.libSort = sort0; renderLibrary();
     return { cardA, info: info && info.trim(), shared, iA: ci(A.title), iB: ci(B.title), finished: S.finished.includes(A.id) };
   });
   ok('pospct: pos 30 % / farthest 100 % → card «30%», info «30%», share «30%», not finished', /^30%/.test(r.cardA) && r.info === '30%' && /прогресс 30%/.test(r.shared || '') && !r.finished, r);

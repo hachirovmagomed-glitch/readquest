@@ -626,6 +626,7 @@ function renderSummary(r){
 }
 
 function confetti(opts){
+  if(rqStill())return; /* «Анимации» off / prefers-reduced-motion */
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */

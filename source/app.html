@@ -713,6 +713,13 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 .mvp-hist{font-size:12px;color:var(--muted);margin-top:10px}
 .mvp-hist li{margin:4px 0}
 body.mvp .mvp-hide{display:none!important}
+/* wave 2 (15.10): «Анимации» off (html.rq-still) or prefers-reduced-motion → no animations, no transitions anywhere */
+html.rq-still *,html.rq-still *::before,html.rq-still *::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* MVP: a hidden row is often the last one → the last VISIBLE row has no divider */
+body.mvp .setrow:not(.mvp-hide):not(:has(~ .setrow:not(.mvp-hide))){border-bottom:none}
+/* «Общие настройки» on narrow phones (360): controls that do not fit go to their own line, right-aligned; words are never split */
+#settings .pcard .setrow{flex-wrap:wrap}#settings .pcard .setrow>.lab+*{margin-left:auto}#settings .pcard .setrow .lab{overflow-wrap:normal;min-width:min-content}.stepgrp{display:flex;align-items:center;gap:10px}
 body:not(.dev) .dev-only{display:none!important}
 body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
 
@@ -1130,7 +1137,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
       <div class="setrow"><div class="lab" style="padding-left:34px">Время напоминания</div>
-        <button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></div>
+        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></span></div>
     </div>
     <h2>Управление</h2>
     <div class="pcard">

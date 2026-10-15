@@ -42,6 +42,10 @@ jobs:
         working-directory: source/test
         run: ./run-all.sh
 
+      - name: Show failed checks
+        if: failure()
+        run: grep -H '^FAIL' /tmp/rq-runall/*/*.log | cut -c1-1500 || true
+
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v5

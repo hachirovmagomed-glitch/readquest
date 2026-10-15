@@ -87,6 +87,8 @@ export async function logAnalyticsEvent(entry) {
   if (typeof entry.granted === 'boolean') rec.granted = entry.granted;
   // theme_changed (1в): data-skin values, e.g. from 'default' to 'pencil' (metrics.py «kept a non-starting theme»)
   if (entry.type === 'theme_changed') { rec.from = String(entry.from || '').slice(0, 32); rec.to = String(entry.to || '').slice(0, 32); }
+  // purchase (shop): catalog id + price paid
+  if (entry.type === 'purchase') { rec.id = String(entry.id || '').slice(0, 48); rec.price = Math.max(0, Math.round(Number(entry.price) || 0)); }
   return addEvent(rec);
 }
 

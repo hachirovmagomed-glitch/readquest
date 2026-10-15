@@ -7,6 +7,7 @@
   function goProf(){closeRewardsSheet();renderProfile();show('profile');closeDrawer();}
   if(el('bnLib'))el('bnLib').onclick=goLib;
   if(el('bnProf'))el('bnProf').onclick=goProf;
+  if(el('bnRew'))el('bnRew').onclick=function(){openRewardsSheet();};
   if(el('btnOpenRewards'))el('btnOpenRewards').onclick=function(){openRewardsSheet();};
   if(el('rewardsClose'))el('rewardsClose').onclick=closeRewardsSheet;
   if(el('rewardsScrim'))el('rewardsScrim').onclick=closeRewardsSheet;
@@ -34,6 +35,7 @@ window.__rqStart=async function(api, tracker){
   const flat=api.loadFlat?api.loadFlat():{};
   hydrateS(flat);
   if(api.loadSettings){try{SET=Object.assign({},SETDEF,api.loadSettings());}catch(e){}}
+  try{shopFixState();}catch(e){console.warn('[rq] shopFixState',e);}
   if(mvpForceOn())saveSet(); /* import/load: settings.mvp=false → force true before lock-downs */
   if(mvpEnforce())save(); /* MVP: goal 10 / 12 s / 3 min / no ∞ money */
   /* Hydrate user book texts from IDB */
@@ -61,7 +63,9 @@ window.__rqStart=async function(api, tracker){
   applyAppTheme();applySkin();applyScale();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
+  try{renderNav();}catch(e){console.warn('[rq] nav',e);}
   window.__rqReady=true;
+  try{rqFlushSetPending();}catch(e){console.warn('[rq] pending set',e);} /* picks made before ready: exactly one gated write */
   {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');
     if(fl&&!fl.classList.contains('hidden')){ /* late boot after the watchdog (e.g. IndexedDB answered at 5 s): continue by itself, fade 200 ms into the library */
       if(window.__rqDiag)__rqDiag.mark('late-recover',Math.round(performance.now()));

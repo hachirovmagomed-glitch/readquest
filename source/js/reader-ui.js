@@ -516,7 +516,7 @@ async function closeReaderImpl(opts){
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
     const luck=Math.random();mult=luck<0.02?3:luck<0.08?2:1;
-    xp=Math.round(xp*mult*(S.xpMult||1)*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
+    xp=Math.round(xp*mult*xpMultEff()*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
   }
   const stN=statOf(b);
   const statGain=Math.max(1,Math.round((Math.round(min)+pages)*dmul*talVal('stat')));
@@ -580,7 +580,7 @@ function renderSummary(r){
   const hl=summaryHeadline(r.quest),hd=el('sumHead');
   if(hd){hd.textContent=hl||'Сессия завершена';hd.style.color=hl?'var(--accent2)':'';hd.style.fontWeight=hl?'600':'';}
   countUp(el('sumGold'),r.gold,n=>'+'+n);
-  el('sumGoldLbl').textContent=curI()+' '+S.cur.name;
+  el('sumGoldLbl').textContent='монет';
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
@@ -618,7 +618,7 @@ function renderSummary(r){
   if(pc){const de=t=>String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]+\s*/gu,'');
     ['sumNote','lvlUp','luckLbl'].forEach(function(k){const e=el(k);if(e)e.textContent=de(e.textContent);});
     bb.querySelectorAll('.newbadge').forEach(function(d){d.textContent=de(d.textContent);});
-    if(el('sumGoldLbl'))el('sumGoldLbl').textContent=S.cur.name;}
+    if(el('sumGoldLbl'))el('sumGoldLbl').textContent='монет';}
   applyMvpChrome();
 }
 

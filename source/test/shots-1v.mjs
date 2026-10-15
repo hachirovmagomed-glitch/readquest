@@ -34,7 +34,7 @@ for (const mode of ['day', 'night']) {
     if (th !== 'sepia') {
       await p.evaluate(() => el('btnSet').click()); await shot(p, 'reader-settings-' + mode);
       for (const g of ['grpPage', 'grpNav', 'grpFocus']) { await p.evaluate(g => openSetTab(g), g); await shot(p, 'reader-settings-' + g.slice(3).toLowerCase() + '-' + mode); }
-      await p.evaluate(() => el('btnGeneral').click()); await shot(p, 'general-settings-' + mode);
+      await p.evaluate(() => (openGeneralSettings(true))); await shot(p, 'general-settings-' + mode);
       await p.evaluate(() => el('setBack').click()); await sleep(200);
     }
     await p.evaluate(() => closeReader()); await sleep(600);

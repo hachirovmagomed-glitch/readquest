@@ -34,35 +34,169 @@ el('btnCopyAll').onclick=()=>{
 };
 
 /* ================= МАГАЗИН ================= */
-const SHOP_THEMES=[
- {id:'midnight',name:'Полночь',bg:'#0e1a2b',txt:'#a9c5e8',cost:120},
- {id:'kraft',name:'Крафт',bg:'#e8d9b5',txt:'#4a3b22',cost:120},
- {id:'forest',name:'Лес',bg:'#16241c',txt:'#b9d8c2',cost:150},
- {id:'lavender',name:'Лаванда',bg:'#f0eaff',txt:'#4a3b6b',cost:120},
- {id:'mint',name:'Мята',bg:'#eafff4',txt:'#1f4a38',cost:120},
- {id:'rose',name:'Роза',bg:'#2b0e1f',txt:'#e8a9c5',cost:150},
- {id:'ocean',name:'Океан',bg:'#0b2230',txt:'#9fd4e8',cost:150},
- {id:'coffee',name:'Кофе',bg:'#2a1f17',txt:'#d8c4a9',cost:150},
- {id:'matrix',name:'Матрица',bg:'#061206',txt:'#54d854',cost:200}
+/* 9 old themes that used to be locked: FREE since the shop build (14.10). Picking one = SET.theme=id; activeTheme() renders it, no ownership. */
+const OLD_THEMES=[
+ {id:'midnight',name:'Полночь',bg:'#0e1a2b',txt:'#a9c5e8'},
+ {id:'kraft',name:'Крафт',bg:'#e8d9b5',txt:'#4a3b22'},
+ {id:'forest',name:'Лес',bg:'#16241c',txt:'#b9d8c2'},
+ {id:'lavender',name:'Лаванда',bg:'#f0eaff',txt:'#4a3b6b'},
+ {id:'mint',name:'Мята',bg:'#eafff4',txt:'#1f4a38'},
+ {id:'rose',name:'Роза',bg:'#2b0e1f',txt:'#e8a9c5'},
+ {id:'ocean',name:'Океан',bg:'#0b2230',txt:'#9fd4e8'},
+ {id:'coffee',name:'Кофе',bg:'#2a1f17',txt:'#d8c4a9'},
+ {id:'matrix',name:'Матрица',bg:'#061206',txt:'#54d854'}
 ];
-const CUR_ICONS=['🪙','💎','⭐','🍪','🔮','💰','🧿','🍀'];
-function renderCur(){
-  const box=el('curBox');box.innerHTML='';
-  CUR_ICONS.forEach(ic=>{
-    const b=document.createElement('button');
-    b.className='curbtn'+(S.cur.icon===ic?' on':'');b.textContent=ic;
-    b.onclick=()=>{S.cur={icon:ic,name:ic==='🪙'?'золото':'валюта'};save();renderShop();};
-    box.appendChild(b);
-  });
-  const own=document.createElement('button');own.className='curbtn'+(CUR_ICONS.includes(S.cur.icon)?'':' on');
-  own.textContent=CUR_ICONS.includes(S.cur.icon)?'＋':S.cur.icon;own.title='Своя валюта';
-  own.onclick=()=>{
-    const ic=prompt('Символ валюты (любой эмодзи):','🦄');if(!ic)return;
-    const nm=prompt('Название валюты:','алмазики')||'валюта';
-    S.cur={icon:ic.trim().slice(0,4),name:nm.trim().slice(0,20)};save();renderShop();
-  };
-  box.appendChild(own);
+/* ================= МАГАЗИН (скины и расцветки) — контракт Архитектора «Магазин» 14.10 =================
+   Каталог только в коде, цена из хранилища не читается. id: skin-<имя>, color-<скин>-<имя> (поле skin, флаг bundled).
+   Комплектная расцветка не продаётся и не пишется в купленные. Купленное = S.owned (NS_v1.game). Надетое = SET.skin / SET.color (NS_set). */
+const SHOP_CATALOG=(function(){
+  const L=[];
+  const sk=(id,name,price,desc,cols)=>{L.push({id:'skin-'+id,type:'skin',name:name,price:price,desc:desc});
+    cols.forEach((c,i)=>L.push({id:'color-'+id+'-'+c[0],type:'color',skin:'skin-'+id,name:c[1],price:i===0?0:150,bundled:i===0,sw:c[2]}));};
+  sk('pencil','Карандашный',0,'Графит на тёплой бумаге',[['graphite','Графит','#f3f0e7']]);
+  sk('pergament','Пергамент',500,'Пиксельный свиток, перо и чернильница',[['classic','Классика','#e9d8a6'],['candle','Ночная свеча','#2a2118'],['sea','Морской','#cfe3e6']]);
+  sk('gravyura','Гравюра',500,'Книжная гравюра: ельник, лиса, облака',[['day','День','#e8e4d6'],['night','Ночь','#1d2a26'],['autumn','Осень','#e9d2b0']]);
+  sk('starry','Звёздный',500,'Ночное небо и созвездия',[['base','Звёздный','#121a33'],['chart','Карта неба','#1c2440'],['dawn','Рассвет','#f1d9c8']]);
+  sk('dungeon','Подземелье',800,'Каменные своды и факелы',[['base','Подземелье','#1b1a1f'],['emerald','Изумруд','#10261f'],['ice','Лёд','#1a2630']]);
+  sk('celestial','Небесный',800,'Солнце, луна и облака',[['base','Небесный','#e6eef7'],['moon','Луна','#1a2236'],['dusk','Сумерки','#3a2e4a']]);
+  sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
+  const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
+  return Object.freeze(L.map(Object.freeze));
+})();
+const SHOP_OLD_IDS={'skin-les':'skin-gravyura','skin-forest':'skin-gravyura'}; /* «Лес» → «Гравюра» */
+function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id])return SHOP_OLD_IDS[id];const m=/^color-(les|forest)-(.+)$/.exec(id);return m?'color-gravyura-'+m[2]:id;}
+function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
+/** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
+function shopOwns(id){const it=shopItem(id);if(!it)return false;
+  if(it.type==='skin')return it.price===0||(S.owned||[]).indexOf(id)>=0;
+  if(it.bundled)return shopOwns(it.skin);
+  return (S.owned||[]).indexOf(id)>=0;}
+function shopBundled(skinId){return (SHOP_CATALOG.find(x=>x.type==='color'&&x.skin===skinId&&x.bundled)||{}).id||null;}
+/** buy(id): one function, one NS_v1 write, idempotent; devMoney has no effect. → {ok, reason?} */
+function buy(id){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return {ok:false,reason:'passive'};
+  const it=shopItem(id);if(!it)return {ok:false,reason:'unknown'};
+  if(it.price<=0||it.bundled)return {ok:false,reason:'free'};
+  if((S.owned||[]).indexOf(id)>=0)return {ok:false,reason:'owned'};
+  if(it.type==='color'&&!shopOwns(it.skin))return {ok:false,reason:'skin'};
+  if(!(typeof S.gold==='number'&&S.gold>=it.price))return {ok:false,reason:'gold'};
+  S.gold-=it.price;S.owned=(S.owned||[]).concat(id);save();
+  try{if(__rq&&__rq.logAnalyticsEvent)__rq.logAnalyticsEvent({type:'purchase',id:id,price:it.price}).catch(function(){});}catch(e){}
+  return {ok:true};
 }
+/** wear a skin / colour (NS_set {skin,color}); «Карандашный» also switches the app-wide skin */
+function wear(id){
+  const it=shopItem(id);if(!it||!shopOwns(id))return false;
+  const skin=it.type==='skin'?it.id:it.skin, color=it.type==='color'?it.id:shopBundled(it.id);
+  const from=skinOf(activeTheme());
+  SET.skin=skin;SET.color=color;
+  if(skin==='skin-pencil'){if(SET.theme!=='pencil'&&SET.theme!=='pencil-night')SET.theme='pencil';}
+  else if(SET.theme==='pencil'||SET.theme==='pencil-night')SET.theme='sepia';
+  saveSet();applySet();logSkinChange(from);return true;
+}
+/** worn skin id (validated): not owned / unknown → default, in memory only */
+function shopWorn(){
+  if(SET.theme==='pencil'||SET.theme==='pencil-night')return 'skin-pencil';
+  return SET.skin&&SET.skin!=='skin-pencil'&&shopOwns(SET.skin)?SET.skin:null;
+}
+/** load/import: migrate «Лес» ids, drop a worn skin/colour that is not owned (memory only, NS_set not rewritten here) */
+function shopFixState(){
+  if(Array.isArray(S.owned))S.owned=S.owned.map(shopMigrateId).filter((x,i,a)=>a.indexOf(x)===i);
+  SET.skin=shopMigrateId(SET.skin);SET.color=shopMigrateId(SET.color);
+  if(SET.skin&&!shopOwns(SET.skin)){SET.skin=null;SET.color=null;}
+  if(SET.color){const c=shopItem(SET.color);if(!c||c.skin!==SET.skin||!shopOwns(SET.color))SET.color=SET.skin?shopBundled(SET.skin):null;}
+}
+/* примерка: memory only; cleared on leaving the shop, closing, сворачивание */
+let shopTrying=null;
+function shopTryOn(id){shopTrying=shopItem(id)?id:null;renderShopPane();}
+function shopTry(){return shopTrying;}
+function shopTryClear(){if(shopTrying!==null){shopTrying=null;try{renderShopPane();}catch(e){}}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')shopTryClear();});
+let shopOpen=null; /* skin id shown in the detail */
+function shopState(it){
+  if(it.type==='skin'){
+    if(shopWorn()===it.id)return {k:'worn',t:'Надето'};
+    if(shopOwns(it.id))return {k:'owned',t:it.price?'Куплено':'Бесплатно'};
+    if(S.gold>=it.price)return {k:'buy',t:'Купить'};
+    return {k:'short',t:'Не хватает '+(it.price-S.gold)};
+  }
+  return null;
+}
+function renderShopPane(){
+  const box=el('shopList');if(!box)return;
+  box.innerHTML=SHOP_CATALOG.filter(x=>x.type==='skin').map(function(it){
+    const st=shopState(it), sw=(SHOP_CATALOG.find(x=>x.skin===it.id&&x.bundled)||{}).sw||'#ccc';
+    const cta=st.k==='buy'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();shopBuyAsk(\''+it.id+'\')">Купить</button>'
+      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');renderShopPane()">Надеть</button>'
+      :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
+    return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
+      '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
+      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
+  }).join('');
+  /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
+  if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
+  renderShopDetail();
+}
+let shopListScroll=0; /* list scroll position: memory only, never stored */
+/* skin page: full screen over the shop; try-on lives in memory; ← / system back / сворачивание reset it and write nothing */
+function openShopDetail(id){const rs=el('rewardsSheet');if(shopOpen===null&&rs)shopListScroll=rs.scrollTop;
+  shopOpen=id;shopTrying=null;renderShopDetail();const d=el('shopDetail');if(d){d.hidden=false;const b=d.querySelector('.spbody');if(b)b.scrollTop=0;}
+  navPush('shopskin');}
+function shopBack(){const was=shopOpen!==null;closeShopDetail();if(was&&navState()==='shopskin')try{history.back();}catch(e){}}
+window.addEventListener('popstate',function(e){const st=(e.state&&e.state.rq)||null;if(shopOpen!==null&&st!=='shopskin')closeShopDetail();});
+function closeShopDetail(){const was=shopOpen!==null;shopOpen=null;shopTryClear();const d=el('shopDetail');if(d)d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;try{shopConfirmClose();}catch(e){}
+  if(was){const rs=el('rewardsSheet');if(rs)rs.scrollTop=shopListScroll;}}
+function renderShopDetail(){
+  const d=el('shopDetail');if(!d)return;const it=shopItem(shopOpen);if(!it){d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;return;}
+  const owned=shopOwns(it.id), worn=shopWorn()===it.id;
+  const cols=SHOP_CATALOG.filter(x=>x.type==='color'&&x.skin===it.id);
+  const sel=shopTrying&&shopItem(shopTrying)&&shopItem(shopTrying).skin===it.id?shopTrying:(worn&&SET.color)||shopBundled(it.id);
+  const selIt=shopItem(sel);
+  let btn,act;
+  if(!owned){btn='Купить скин за '+coinsP(it.price);act='shopBuyAsk(\''+it.id+'\')';}
+  else if(selIt&&!selIt.bundled&&!shopOwns(sel)){btn='Купить расцветку за '+coinsP(selIt.price);act='shopBuyAsk(\''+sel+'\')';}
+  else if(worn&&(!selIt||SET.color===sel)){btn='Надето';act='';}
+  else {btn='Надеть';act='wear(\''+(selIt?sel:it.id)+'\');renderShopPane()';}
+  const state=worn?'<span class="spst on">Надето</span>':owned?'<span class="spst">'+(it.price?'Куплено':'Бесплатно')+'</span>':'<span class="spst">'+coinsP(it.price)+'</span>';
+  const prev=(selIt&&selIt.sw)||'#ccc';
+  d.innerHTML='<div class="sphead"><button type="button" id="shopBack" class="spback" onclick="shopBack()" aria-label="Назад">'+rqIcon('arrow-left',22)+'</button>'+
+      '<b class="shopdh">'+esc(it.name)+'</b><div class="spacer"></div><span class="chip">'+coinsP(S.gold)+'</span></div>'+
+    '<div class="spbody"><div class="spprev"><span class="spphone" style="background:'+prev+'"></span><span class="spphone" style="background:'+prev+'"></span></div>'+
+    '<div class="row sptitle"><b>'+esc(it.name)+'</b><div class="spacer"></div>'+state+'</div>'+
+    '<div class="spdesc">'+esc(it.desc||'')+'</div>'+
+    '<div class="row shopcols-h"><span>Расцветки</span><div class="spacer"></div><small>'+(owned?'первая — со скином':'сначала купите скин')+'</small></div><div class="shopcols">'+
+    cols.map(function(c){return '<button type="button" class="shopcol'+(c.id===sel?' on':'')+'" data-id="'+c.id+'" onclick="shopTryOn(\''+c.id+'\')">'+
+      '<span class="shopcov" style="background:'+c.sw+'"></span><small>'+esc(c.name)+'</small><small class="shopcp">'+(c.bundled?'Со скином':shopOwns(c.id)?'Куплено':coinsP(c.price))+'</small></button>';}).join('')+'</div>'+
+    '<div class="spdesc" style="font-size:12px">'+(owned?'Нажмите на расцветку, чтобы примерить её на экранах выше.':'Расцветки можно примерить сейчас, купить — после покупки скина.')+
+    (it.id!=='skin-pencil'?' Оформление скина в приложении придёт отдельной сборкой.':'')+'</div></div>'+
+    '<div class="spfoot"><button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>'+
+    '<div class="spcap">'+(worn?'Этот скин сейчас на вас':owned?'Куплено · можно сменить в любой момент':'Монеты дают квесты за чтение')+'</div></div>';
+}
+let shopPending=null; /* id waiting in the confirm dialog; buy() runs only from «Купить», once */
+function shopBuyAsk(id){
+  const it=shopItem(id);if(!it)return;
+  if(S.gold<it.price){flashMsg('Не хватает '+coinsP(it.price-S.gold));return;}
+  const nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
+  shopPending=id;
+  el('scTitle').textContent='Купить «'+nm+'» за '+coinsP(it.price)+'?';
+  el('scText').textContent='Останется '+coinsP(S.gold-it.price)+'.'+(it.type==='skin'?' Скин можно будет сразу надеть.':'');
+  el('shopConfirmScrim').hidden=false;el('shopConfirm').hidden=false;
+}
+function shopConfirmClose(){shopPending=null;el('shopConfirm').hidden=true;el('shopConfirmScrim').hidden=true;}
+function shopConfirmOk(){
+  const id=shopPending;if(!id)return;shopConfirmClose();
+  const it=shopItem(id),nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
+  const r=buy(id);
+  if(r.ok){try{confettiReward();}catch(e){}flashMsg('Куплено: «'+nm+'»');}
+  else if(r.reason==='passive')flashMsg('Приложение открыто в другом окне');
+  shopTrying=null;renderRewardsSheet();
+}
+function shopTestGold(){
+  if(window.RQ_NS!=='rqt')return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
+  S.gold=(S.gold||0)+1000;save();renderRewardsSheet();
+}
+function rqNavH(){const n=el('botnav');return n&&getComputedStyle(n).display!=='none'?n.offsetHeight:0;}
 let shopLast='game';
 function openShopTab(sub){
   if(sub!=='real')sub='game';
@@ -80,32 +214,20 @@ function gearShopHtml(){
       return '<div class="shopitem"><div class="tprev gearprev">'+g.icon+'</div>'+
         '<div style="flex:1;min-width:0"><b>'+esc(g.name)+'</b><div style="font-size:12px;color:var(--muted)">'+esc(g.desc)+'</div></div>'+
         (owned?'<button class="buy owned" onclick="equipGear(\''+g.id+'\')">'+(on?'Снять':'Надеть')+'</button>'
-              :'<button class="buy" '+(canAfford(g.cost)?'':'disabled')+' onclick="buyGear(\''+g.id+'\')">'+g.cost+' '+curI()+'</button>')+
+              :'<button class="buy" '+(canAfford(g.cost)?'':'disabled')+' onclick="buyGear(\''+g.id+'\')">'+coinsP(g.cost)+'</button>')+
         '</div>';
     }).join('');
   }).join('');
 }
 function renderShop(){
-  renderCur();
-  el('shopGold').textContent=curI()+' '+goldDisp();
+  el('shopGold').textContent=coinsP(S.gold);
   el('shopGear').innerHTML=gearShopHtml();
   el('shopPixel').innerHTML=pixelShopHtml();
-  el('shopThemes').innerHTML=SHOP_THEMES.map(t=>{
-    const owned=S.owned.includes(t.id);
-    return '<div class="shopitem"><div class="tprev" style="background:'+t.bg+';color:'+t.txt+'">Aa</div>'+
-      '<div style="flex:1;min-width:0"><b>'+t.name+'</b><div style="font-size:12px;color:var(--muted)">тема читалки</div></div>'+
-      (owned
-        ?'<button class="buy owned" onclick="useTheme(\''+t.id+'\')">Применить</button>'
-        :'<button class="buy" '+(canAfford(t.cost)?'':'disabled')+' onclick="buyTheme(\''+t.id+'\')">'+t.cost+' '+curI()+'</button>')+
-      '</div>';
-  }).join('');
+  el('shopThemes').innerHTML=OLD_THEMES.map(t=>'<div class="shopitem"><div class="tprev" style="background:'+t.bg+';color:'+t.txt+'">Aa</div>'+
+      '<div style="flex:1;min-width:0"><b>'+t.name+'</b><div style="font-size:12px;color:var(--muted)">тема читалки · бесплатно</div></div>'+
+      '<button class="buy owned" onclick="useTheme(\''+t.id+'\')">Применить</button></div>').join('');
   renderRewards();
   openShopTab(shopLast);
-}
-function buyTheme(id){
-  const t=SHOP_THEMES.find(x=>x.id===id);
-  if(!t||S.owned.includes(id)||!canAfford(t.cost))return;
-  spend(t.cost);S.owned.push(id);save();confetti();renderShop();
 }
 function useTheme(id){
   SET.theme=id;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
@@ -129,7 +251,7 @@ function renderRewards(){
           (r.bought>0?' · <button class="lnk" onclick="undoRewardClaim('+i+')">отмена</button>':'')+
           ' · <button class="lnk danger" onclick="delReward('+i+')">удалить</button>'+
         '</div></div>'+
-        '<button class="buy" '+(canBuy?'':'disabled')+' onclick="buyReward('+i+')">'+r.cost+' '+curI()+'</button></div>';
+        '<button class="buy" '+(canBuy?'':'disabled')+' onclick="buyReward('+i+')">'+coinsP(r.cost)+'</button></div>';
     }).join('');
 }
 function buyReward(i){
@@ -143,7 +265,7 @@ function buyReward(i){
 }
 function undoRewardClaim(i){
   const r=S.rewards[i];if(!r||!(r.bought>0))return;
-  if(!confirm('Отменить последнее получение «'+r.name+'» и вернуть '+r.cost+' '+curI()+'?'))return;
+  if(!confirm('Отменить последнее получение «'+r.name+'» и вернуть '+r.cost+' монет'+'?'))return;
   r.bought--;S.gold+=r.cost;
   save();renderShop();
 }
@@ -151,7 +273,7 @@ function toggleRewardFav(i){const r=S.rewards[i];if(!r)return;r.fav=!r.fav;save(
 function editReward(i){
   const r=S.rewards[i];if(!r)return;
   const name=prompt('Название награды:',r.name);if(name===null)return;if(name.trim())r.name=name.trim().slice(0,60);
-  const cost=parseInt(prompt('Цена в '+S.cur.name+':',r.cost),10);if(cost&&cost>0)r.cost=Math.min(999,cost);
+  const cost=parseInt(prompt('Цена в '+'монет'+':',r.cost),10);if(cost&&cost>0)r.cost=Math.min(999,cost);
   const q=prompt('Количество (пусто или 0 — бесконечно):',r.qty==null?'':r.qty);
   if(q!==null){const qn=parseInt(q,10);r.qty=(!qn||qn<=0)?null:qn;}
   save();renderShop();
@@ -159,7 +281,7 @@ function editReward(i){
 function delReward(i){if(!confirm('Удалить награду?'))return;S.rewards.splice(i,1);save();renderShop();}
 el('btnAddReward').onclick=()=>{
   const name=prompt('Название награды (например, «Эпизод сериала»):');if(!name||!name.trim())return;
-  const cost=parseInt(prompt('Цена в '+S.cur.name+':','100'),10);
+  const cost=parseInt(prompt('Цена в '+'монет'+':','100'),10);
   if(!cost||cost<1)return;
   const q=parseInt(prompt('Количество (пусто/0 — бесконечно):','0'),10);
   S.rewards.push({name:name.trim().slice(0,60),cost:Math.min(999,cost),bought:0,qty:(!q||q<=0)?null:q,fav:false,item:null});
@@ -182,8 +304,13 @@ function monthDays(){
   const m=today().slice(0,7);
   return Object.keys(S.hist).filter(d=>d.startsWith(m)&&(S.hist[d].min||0)>=1).length;
 }
+/* ONE code constant for quest payouts (separate from RQ_MVP_DRAWER_EXTRAS). MVP economy = 10 XP/min, +30/day, +120/week only:
+   while false, MVP quests pay nothing and cards show no reward line. Never stored in NS_set or exports. Outside MVP quests pay as before. */
+const RQ_MVP_QUEST_PAYOUTS=false;
+function questPays(){return !isMvp()||RQ_MVP_QUEST_PAYOUTS;}
 function renderQuests(){
-  if(el('qstGold'))el('qstGold').textContent=curI()+' '+goldDisp();
+  if(el('qstHint'))el('qstHint').textContent=questPays()?'Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.':'Цели для чтения. Создавайте свои под любые задачи'; /* tied to RQ_MVP_QUEST_PAYOUTS */
+  if(el('qstGold'))el('qstGold').textContent=goldDisp()+' монет';
   el('questBox').innerHTML=allQuests().map(q=>{
     const key=q.id+':'+q.period();
     const done=!!S.claimed[key];
@@ -193,14 +320,14 @@ function renderQuests(){
     return '<div class="pcard quest'+(locked?' locked':'')+'"><div class="row"><span style="font-size:14px">'+q.name+'</span><div class="spacer"></div>'+
       (locked?'<span class="chip">🔒</span>'
         :done?'<span class="chip">✅ получено</span>'
-        :p>=1?'<button class="buy" onclick="claimQuest(\''+q.id+'\')">Забрать +'+q.reward+' '+curI()+'</button>'
+        :p>=1?(questPays()?'<button class="buy" onclick="claimQuest(\''+q.id+'\')">Забрать +'+q.reward+' монет'+'</button>':'<span class="chip">Выполнено</span>')
         :'<span class="chip">'+q.info()+'</span>')+
       edit+
       '</div><div class="pbar"><i style="width:'+Math.round(p*100)+'%"></i></div></div>';
   }).join('')+'<button class="miniadd" onclick="addCustomQuest()">＋ Добавить свой квест</button>';
 }
 function claimQuest(id){
-  if(isMvp()){flashMsg('В MVP — только дневной/недельный квест в профиле');return;}
+  if(!questPays())return; /* RQ_MVP_QUEST_PAYOUTS off: no payout, nothing written */
   const q=allQuests().find(x=>x.id===id);if(!q)return;
   const key=q.id+':'+q.period();
   if(S.claimed[key]||q.prog()<1)return;
@@ -409,7 +536,7 @@ function bookRewardPreview(b){
   const d=DIFFS[diffOf(b.id)];const im=impMulOf(b.id);
   const xpPage=Math.round(5*d.m),goldPage=Math.max(1,Math.round(2*d.m*im));
   return '<div class="rwd"><b>+'+xpPage+'</b><span>XP за страницу</span></div>'+
-         '<div class="rwd"><b>+'+goldPage+'</b><span>'+curI()+' за страницу</span></div>'+
+         '<div class="rwd"><b>+'+goldPage+'</b><span>монет за страницу</span></div>'+
          '<div class="rwd"><b>×'+d.m+'</b><span>множитель сложности</span></div>';
 }
 function onDiffSlide(id,v){
@@ -565,7 +692,7 @@ function renderStats(){
   el('stkMin').textContent=Math.round(S.totalMin);
   el('stkPages').textContent=S.totalPages;
   el('stkSpeed').textContent=S.totalMin>0?(S.totalPages/(S.totalMin/60)).toFixed(1):'0';
-  el('chGoldLbl').textContent=curI()+' '+S.cur.name.charAt(0).toUpperCase()+S.cur.name.slice(1);
+  el('chGoldLbl').textContent='Монеты';
   renderChart('chMin',days,'min','var(--accent)');
   renderChart('chPages',days,'pages','var(--accent2)');
   renderChart('chXp',days,'xp','#7fd8e0');

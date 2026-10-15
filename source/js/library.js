@@ -1,28 +1,98 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
 const SCREENS=['library','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','reader','summary'];
-const DRAWER={library:'dLib',quotes:'dJournal',vocab:'dJournal',shop:'dShop',profile:'dProf',quests:'dJournal',stats:'dProg',calendar:'dProg',achievements:'dProg',shelfScreen:'dProg',settings:'dSet'};
+const DRAWER={library:'dLib',quotes:'dNotes',vocab:'dVocab',profile:'dProf',quests:'dQuests',stats:'dStats',settings:'dSet'};
+let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
   clearToasts();
   if(id!=='summary')clearConfetti();
   try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
+  if(id==='library'){try{libGoldRender();}catch(e){}} /* balance is a pure read of S.gold on every visit */
   if(id!=='library'&&__bootGold){__bootGold=0;const gl=el('libGoldLine');if(gl)gl.classList.add('hidden');}
-  if(isMvp() && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
+  if(isMvp() && !__navAllow && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
     id = 'library';
   }
   SCREENS.forEach(s=>el(s).classList.toggle('hidden',s!==id));
   const tgt=DRAWER[id];
   Array.from(new Set(Object.values(DRAWER))).forEach(di=>{const e=el(di);if(e)e.classList.toggle('on',di===tgt);});
+  if(el('dRew'))el('dRew').classList.remove('on');
   const hideNav = (id==='reader'||id==='summary');
   if(el('botnav'))el('botnav').style.display = (isMvp()&&!hideNav)?'flex':'none';
   applyMvpChrome();
 }
-function openDrawer(){el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
+/* ===== Нижняя панель и боковое меню: NS_set.nav (контракт Архитектора 14.10) =====
+   One catalog for the drawer and the bottom bar; nav = ids from it, order = display order, 1..5, library first.
+   Read is forgiving and NEVER writes back; write = one saveSet() through the write gate (passive window refused). */
+const NAV_CATALOG=[
+  {id:'library',t:'Библиотека',ic:'book-open',sub:'Главный экран'},
+  {id:'rewards',t:'Награды',ic:'gift'},
+  {id:'profile',t:'Профиль',ic:'user-round'},
+  {id:'quests',t:'Квесты',ic:'target'},
+  {id:'notes',t:'Цитаты и заметки',s:'Цитаты',ic:'notebook-pen'},
+  {id:'vocab',t:'Словарь',ic:'book-marked'},
+  {id:'stats',t:'Статистика',ic:'chart-column'}];
+const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
+/* ONE flag: in MVP mode, show the extra sections (quests, «Цитаты и заметки», «Словарь», «Статистика») in the drawer, bottom bar and «Нижняя панель».
+   false → MVP shows only library/rewards/profile (+ settings); stored NS_set.nav is never rewritten by this. Outside MVP they always show. */
+const RQ_MVP_DRAWER_EXTRAS=true;
+function navAvail(id){return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
+function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
+const NAV_BN={library:'bnLib',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',notes:'bnNotes',vocab:'bnVocab',stats:'bnStats'};
+const NAV_DI={library:'dLib',rewards:'dRew',profile:'dProf',quests:'dQuests',notes:'dNotes',vocab:'dVocab',stats:'dStats'};
+function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
+function navRead(v){
+  if(!Array.isArray(v))return NAV_DEF.slice();
+  const out=[];v.forEach(function(x){if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
+  if(!out.length)return NAV_DEF.slice();
+  const i=out.indexOf('library');if(i>0)out.splice(i,1);if(i!==0)out.unshift('library');
+  return out.slice(0,NAV_MAX);
+}
+function navGet(){return navRead(typeof SET!=='undefined'&&SET?SET.nav:null);}
+function navSave(arr){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return false; /* passive window: never write */
+  SET.nav=navRead(arr);saveSet();renderNav();return true;
+}
+function navGo(id){
+  closeDrawer();if(!navAvail(id))id='library';
+  if(id==='rewards'){openRewardsSheet();return;}
+  try{closeRewardsSheet();}catch(e){}
+  __navAllow=true;
+  try{
+    if(id==='library'){renderLibrary();show('library');}
+    else if(id==='profile'){renderProfile();show('profile');}
+    else if(id==='quests')openJournal('quests');
+    else if(id==='notes')openJournal('quotes');
+    else if(id==='vocab')openJournal('vocab');
+    else if(id==='stats')openProgress('stats');
+    else if(id==='settings'){renderSettings();show('settings');}
+  }finally{__navAllow=false;}
+}
+function renderNav(){
+  const nav=navShown();
+  const bn=el('botnav');
+  if(bn){bn.innerHTML=nav.map(function(id){const it=navItem(id);
+      return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';}).join('');
+    bn.dataset.n=nav.length;
+    bn.querySelectorAll('.botnav-btn').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
+    try{applyMvpChrome();}catch(e){}}
+  const list=el('dList');
+  if(list){
+    list.innerHTML=NAV_CATALOG.filter(function(it){return navAvail(it.id);}).map(function(it){return '<button class="ditem" type="button" id="'+NAV_DI[it.id]+'" data-nav="'+it.id+'">'+rqIcon(it.ic,22)+'<span class="dlab">'+esc(it.t)+'</span>'+(nav.indexOf(it.id)>=0?'<span class="dpin" title="В нижней панели">'+rqIcon('pin',16)+'</span>':'')+'</button>';}).join('')+
+      '<div class="dsep"></div><button class="ditem" type="button" id="dSet" data-nav="settings">'+rqIcon('settings',22)+'<span class="dlab">Настройки</span></button>';
+    list.querySelectorAll('.ditem').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
+    const cur=SCREENS.find(function(s){return el(s)&&!el(s).classList.contains('hidden');});const tgt=DRAWER[cur];if(tgt&&el(tgt))el(tgt).classList.add('on');
+  }
+}
+/* drawer header: read-only view of the SAME sources as «Награды» and toasts — S.gold (coinsP) and S.xp (10 × floor dayMinutes via applySessionAwards), level()/lvlBounds(). No own counter, no save(). */
+function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:goldDisp(S.gold)};}
+function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const nm=(S.heroName||'Читатель');el('dName').textContent=nm;el('dAva').textContent=nm.trim().charAt(0).toUpperCase()||'Ч';
+  el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);try{libGoldRender();}catch(e){}return d;}
+function openDrawer(){try{renderDrawerHead();renderNav();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
 ['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
-el('dLib').onclick=()=>{renderLibrary();show('library');closeDrawer();};
+
 let jrnLast='quotes';
 function openJournal(sub){
   if(sub==='quests'){renderQuests();}else if(sub==='vocab'){renderVocab();}else{sub='quotes';renderQuotes();}
@@ -30,7 +100,7 @@ function openJournal(sub){
   document.querySelectorAll('.jtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }
-el('dJournal').onclick=()=>openJournal(jrnLast);
+if(el('dJournal'))el('dJournal').onclick=()=>openJournal(jrnLast);
 /* ===== Словарь-копилка + флешкарты ===== */
 let vocabMode='list',vcIdx=0,vcFlip=false;
 function renderVocab(){
@@ -61,8 +131,8 @@ function renderVocabCards(){
 }
 function gradeCard(i,known){const v=(S.vocab||[])[i];if(!v)return;v.box=known?Math.min(5,(v.box||0)+1):0;save();vcFlip=false;vcIdx++;renderVocabCards();}
 if(el('btnVocabCards'))el('btnVocabCards').onclick=function(){vocabMode=(vocabMode==='cards')?'list':'cards';vcIdx=0;vcFlip=false;renderVocab();};
-el('dShop').onclick=()=>{renderShop();show('shop');closeDrawer();};
-el('dProf').onclick=()=>{renderProfile();show('profile');closeDrawer();};
+if(el('dShop'))el('dShop').onclick=()=>{renderShop();show('shop');closeDrawer();};
+
 /* Квесты живут во вкладке «Дневник» (openJournal) */
 let progLast='calendar';
 function openProgress(sub){
@@ -71,8 +141,8 @@ function openProgress(sub){
   document.querySelectorAll('.progtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }
-el('dProg').onclick=()=>openProgress(progLast);
-el('dSet').onclick=()=>{renderSettings();show('settings');closeDrawer();};
+if(el('dProg'))el('dProg').onclick=()=>openProgress(progLast);
+
 
 /* ================= БИБЛИОТЕКА ================= */
 /* gold auto-paid at boot for a session recovered after a kill: one quiet line on the library, once
@@ -85,11 +155,11 @@ function renderLibrary(){
     const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
     if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
   }
-  el('goldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('goldChip').lastChild.textContent=goldDisp(); /* 1в: Lucide coins */
+  libSortSync();libGoldRender(); /* balance as text, floor(S.gold), same source as the drawer; no writes */
   el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
   const _mt=isMvp()?minTodaySess():S.minToday;
   el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
-  const gl=el('libGoldLine');if(gl){gl.innerHTML=__bootGold?(rqIcon('coins',14)+'<span></span>'):'';if(__bootGold)gl.lastChild.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
+  const gl=el('libGoldLine');if(gl){gl.textContent='';if(__bootGold)gl.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
   el('streakTxt').innerHTML=rqIcon('flame',16)+'<span></span>';el('streakTxt').lastChild.textContent=S.streak+' '+plural(S.streak,'день','дня','дней');
   el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/goalMin());
@@ -104,13 +174,14 @@ function renderLibrary(){
       cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">▶ ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
     else cc.innerHTML='';}
   const dc=el('dailyCard');
-  if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">🎁<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' '+curI()+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
+  if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">🎁<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
   const shelf=el('shelf');shelf.innerHTML='';
   let list=allBooks();
   if(LIB.q)list=list.filter(b=>(b.title+' '+b.author).toLowerCase().includes(LIB.q));
   if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
+  LIB.sort=libSortGet();
   if(LIB.sort==='title')list.sort((a,b)=>a.title.localeCompare(b.title));
   else if(LIB.sort==='progress')list.sort((a,b)=>rqPos(b.id)-rqPos(a.id)); /* 1б-144: by current position */
   else{const lo=S.lastOpen||{};list.sort((a,b)=>(lo[b.id]||0)-(lo[a.id]||0));}
@@ -140,7 +211,31 @@ function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)
 /* --- поиск и фильтры библиотеки --- */
 let LIB={q:'',f:'all',author:null,sort:'recent'};
 el('libSearch').oninput=e=>{LIB.q=e.target.value.toLowerCase().trim();renderLibrary();};
-if(el('libSort'))el('libSort').onchange=e=>{LIB.sort=e.target.value;renderLibrary();};
+/* balance: «N монет»; if the header overflows, the number alone */
+function libGoldRender(){const c=el('goldChip');if(!c)return;const g=goldDisp();c.textContent=coinsP(g);
+  const h=el('libHead');if(h&&h.offsetParent&&h.scrollWidth>h.clientWidth+1)c.textContent=String(g);}
+/* sort (15.10): NS_set.libSort = string id from LIB_SORTS. Read is forgiving and never writes; a DIFFERENT pick → one gated saveSet
+   (rqSaveSetGated: deferred until __rqReady, only if the gate allows). Opening / closing / re-picking the current one writes nothing. */
+const LIB_SORTS=[{k:'recent',t:'Недавние'},{k:'title',t:'По названию'},{k:'progress',t:'По прогрессу'}];
+function libSortRead(v){return (typeof v==='string'&&LIB_SORTS.some(function(o){return o.k===v;}))?v:'recent';}
+function libSortGet(){return libSortRead(typeof SET!=='undefined'&&SET?SET.libSort:null);}
+function libSortLabel(k){return (LIB_SORTS.find(function(o){return o.k===k;})||LIB_SORTS[0]).t;}
+function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet()){LIB.sort=k;return false;}
+  SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
+function libSortSync(){const b=el('libSortBtn');if(!b)return;const k=libSortGet();b.querySelector('.lsl').textContent=libSortLabel(k);
+  const m=el('libSortMenu');if(m)m.querySelectorAll('.lso').forEach(function(o){o.setAttribute('aria-checked',o.dataset.k===k?'true':'false');});}
+function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;m.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');if(open)libSortSync();}
+(function(){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;
+  m.innerHTML=LIB_SORTS.map(function(o){return '<button type="button" class="lso" role="menuitemradio" data-k="'+o.k+'" aria-checked="false"><span>'+esc(o.t)+'</span>'+rqIcon('check',20)+'</button>';}).join('');
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(o){e.stopPropagation();libSortPick(o.dataset.k);}});
+  b.onclick=function(e){e.stopPropagation();libSortMenu(m.hidden);};
+  document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)libSortMenu(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)libSortMenu(false);});})();
+/* search: hidden by default; the icon swaps the header for the field (focus); ✕ closes and clears */
+function libSearchOpen(open){const bar=el('libSearchBar'),h=el('libHead'),i=el('libSearch');if(!bar||!h)return;bar.hidden=!open;h.hidden=!!open;el('libSearchBtn').setAttribute('aria-expanded',open?'true':'false');
+  if(open){i.focus();}else{i.value='';LIB.q='';renderLibrary();}}
+if(el('libSearchBtn'))el('libSearchBtn').onclick=function(){libSearchOpen(true);};
+if(el('libSearchClose'))el('libSearchClose').onclick=function(){libSearchOpen(false);};
 function bookStatus(id){
   if(S.finished.includes(id))return 'done';
   if(S.status[id]==='want')return 'want';
@@ -204,7 +299,7 @@ el('fileInp').onchange=async e=>{
   try{
     let b;
     if(/\.pdf$/i.test(f.name)){
-      btn.textContent='⏳ Загружаю PDF...';
+      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Загружаю PDF...');
       await loadPdfJs();
       const buf=await f.arrayBuffer();
       const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
@@ -213,11 +308,11 @@ el('fileInp').onchange=async e=>{
       await idbPut('pdf:'+id,buf);
       b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
     }else if(/\.fb2$/i.test(f.name)){
-      btn.textContent='⏳ Разбираю FB2...';
+      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Разбираю FB2...');
       const r=await parseFb2(f);
       b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
     }else if(/\.epub$/i.test(f.name)){
-      btn.textContent='⏳ Распаковываю EPUB...';
+      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Распаковываю EPUB...');
       const r=await parseEpub(f);
       b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
     }else{
@@ -235,6 +330,13 @@ el('fileInp').onchange=async e=>{
     if(!S.badges.includes('collector'))S.badges.push('collector');
     save();renderLibrary();
   }catch(err){alert('Не удалось загрузить книгу: '+err.message);}
-  btn.textContent='＋ Добавить';
+  btn.removeAttribute('aria-busy');btn.setAttribute('aria-label','Добавить книгу'); /* icon button: progress via aria-label, icon stays */
 };
 
+/* drawer gestures (spec): swipe right from the left edge (20px) opens it — not in the reader (edge = page turns); swipe left on the drawer closes it. Nothing is written. */
+(function(){let sx=null,sy=0,mode='';
+  document.addEventListener('touchstart',function(e){const t=e.touches[0];if(!t)return;const open=el('drawer').classList.contains('open');
+    const inReader=!el('reader').classList.contains('hidden')||!el('summary').classList.contains('hidden');
+    if(open){sx=t.clientX;sy=t.clientY;mode='close';}else if(t.clientX<=20&&!inReader&&!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'))&&(!el('navCfg')||el('navCfg').hidden)){sx=t.clientX;sy=t.clientY;mode='open';}else sx=null;},{passive:true});
+  document.addEventListener('touchend',function(e){if(sx===null)return;const t=e.changedTouches[0];const dx=t.clientX-sx,dy=Math.abs(t.clientY-sy);sx=null;
+    if(dy>60)return;if(mode==='open'&&dx>50)openDrawer();else if(mode==='close'&&dx<-50)closeDrawer();},{passive:true});})();

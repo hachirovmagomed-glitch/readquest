@@ -21,16 +21,17 @@ const THEMES={
 /* day/night variants that have no swatch of their own (toggleDayNight swaps within the skin) */
 const THEME_VARIANTS={'pencil-night':{name:'Карандашный',bg:'#262a31',txt:'#e3e0d8',skin:'pencil',night:true,base:'pencil'}};
 function themeBase(k){const v=THEME_VARIANTS[k];return v?v.base:k;}
-/** paid theme saved in rq_set and bought (game.owned) */
-function ownedShopTheme(k){const s=(typeof SHOP_THEMES!=='undefined')?SHOP_THEMES.find(x=>x.id===k):null;return s&&(S.owned||[]).indexOf(k)>=0?s:null;}
+/** old (formerly paid) theme saved in rq_set — free since the shop build */
+function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.find(x=>x.id===k))||null;} /* shop build: the 9 old themes are free */
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
 /** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
     any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
-function applySkin(){
+function syncThemeColor(){try{const c=getComputedStyle(document.body).backgroundColor,m=c.match(/\d+/g),mt=document.querySelector('meta[name=theme-color]');if(mt&&m&&m.length>=3)mt.content='#'+m.slice(0,3).map(function(x){return (+x).toString(16).padStart(2,'0');}).join('');}catch(e){}}
+function applySkin(){setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
-  const lt=document.getElementById('libTitle');if(lt)lt.textContent=t.skin==='pencil'?'Библиотека':'ReadQuest'; /* «Карандашный»: mockup title */
+  const lt=document.getElementById('libTitle');if(lt)lt.textContent='Библиотека'; /* «Карандашный»: mockup title */
   const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
   applySkin._last=sk;
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
@@ -39,7 +40,7 @@ function applySkin(){
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
-function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&(!window.__rqWriter||__rqWriter.mayWrite()))__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
+function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&window.__rqWriter&&__rqWriter.mayWrite())__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
 function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||ownedShopTheme(SET.theme)||THEMES.sepia;}
 const FONTS=[
  {label:'Georgia',v:'Georgia, serif'},
@@ -83,7 +84,7 @@ function hydrateS(raw){
   if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
-  if(!S.cur||!S.cur.icon)S.cur={icon:'🪙',name:'золото'};
+  delete S.cur; /* contract: cur removed on load and import */
   if(!S.rewards||!S.rewards.length)S.rewards=[
     {name:'Кофе',tier:'small',cost:100,bought:0},
     {name:'Серия сериала',tier:'small',cost:100,bought:0},
@@ -119,7 +120,7 @@ function hydrateS(raw){
   if(S.hp===undefined||S.hp===null)S.hp=S.hpMax;
   S.ownedGear=S.ownedGear||[];
   S.equipped=S.equipped||{};
-  if(S.devMoney===undefined)S.devMoney=false;
+  delete S.devMoney; /* shop build: ∞ money removed */
   S.shelfOrder=S.shelfOrder||[];
   if(S.useChar===undefined)S.useChar=true;
   S.char=S.char||{};
@@ -146,9 +147,9 @@ function save(){
 }
 function allStats(){return STATS_BASE.concat((S.customStats||[]).filter(s=>!STATS_BASE.includes(s)));}
 /* === валюта (тест-режим) === */
-function canAfford(c){return !!S.devMoney||S.gold>=c;}
-function spend(c){if(!S.devMoney)S.gold=Math.max(0,S.gold-c);}
-function goldDisp(){return S.devMoney?'∞':S.gold;}
+function canAfford(c){return S.gold>=c;}
+function spend(c){S.gold=Math.max(0,S.gold-c);}
+function goldDisp(g){return Math.floor(Number(g===undefined?S.gold:g)||0);} /* one balance view: library header, drawer, profile — whole coins */
 /* === экипировка героя === */
 const GEAR_SLOTS={head:'Головной убор',body:'Костюм',weapon:'Оружие',feet:'Ботинки',pet:'Питомец',aura:'Аура',face:'Аксессуар',bg:'Фон'};
 const GEAR_CATS=[['body','🥋 Костюмы'],['weapon','⚔️ Оружие'],['head','🎩 Головные уборы'],['feet','👢 Ботинки'],['deco','✨ Декорации'],['bg','🏞 Задний план']];
@@ -214,5 +215,5 @@ function rollDay(){if(S.dayKey!==today()){S.dayKey=today();S.minToday=0;
   const gap=daysBetween(S.lastDay,today());
   if(gap>1)S.hp=Math.max(0,(S.hp==null?S.hpMax:S.hp)-Math.round((gap-1)*10*talentDecay()));
   save();}}
-function curI(){return S.cur.icon;}
+function curI(){return '';} /* currency icon removed (coins are text) */
 

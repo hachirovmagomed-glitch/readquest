@@ -1,6 +1,6 @@
 // 1б: «Сбросить тест» race (stream 2100). Two windows of the /test/ build (ns rqt): B = writer, A = passive.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node streak-reset.test.mjs
-// B reads 2.5 min → streak 1; passive A presses reset; reload B → streak 0, lastDay null, no books, rqt_v1 streak 0;
+// B reads 2.5 min → streak 0, +1 min → streak 1 (soft floor 3 min); passive A presses reset; reload B → streak 0, lastDay null, no books, rqt_v1 streak 0;
 // then 1.1 min in B → summary «1 / 10» and streak still 0. Before the fix B wrote its old state back (streak 1 after reset).
 import puppeteer from 'puppeteer-core';
 import { fileURLToPath } from 'url';
@@ -77,10 +77,15 @@ const c3 = await cal();
 ok('reset clears daily/weekly paid lists (fixed clock kept: Wed 2026-10-14)', !c3.daily.length && !c3.weekly.length && c3.day === '2026-10-14', c3);
 bid = await addBook(B);
 
-// --- reset race (stream 2100): 2.5 min → streak 1 ---
+// --- soft floor 3 min (Маня 15.10): 2.5 min a day keeps nothing, +1 min (3.5 that day) → streak 1 ---
 await sess(B, bid, 150000);
+const b0 = await st(B);
+ok('B reads 2.5 min → streak 0 (below the 3-min soft floor)', b0.streak === 0 && b0.lastDay == null && !b0.passive, b0);
+await B.evaluate(() => document.getElementById('btnDone').click()); await sleep(300);
+// --- reset race (stream 2100): day total 3.5 min → streak 1 ---
+await sess(B, bid, 60000);
 const b1 = await st(B);
-ok('B reads 2.5 min → streak 1', b1.streak === 1 && !b1.passive, b1);
+ok('B reads +1 min (3.5 min that day) → streak 1', b1.streak === 1 && b1.lastDay === '2026-10-14' && !b1.passive, b1);
 await B.evaluate(() => document.getElementById('btnDone').click()); await sleep(300);
 
 // A: second window → passive overlay; presses «Сбросить тест» in the banner
@@ -115,7 +120,7 @@ ok('reload B → streak 0, lastDay null, no books', b2.ready && !b2.passive && b
 ok('rqt_v1 streak 0', ls2 && ls2.streak === 0 && ls2.lastDay == null && ls2.books === 0, ls2);
 
 if (!b2.ready) { console.log('SUMMARY streak-reset.test ' + checks.filter(c => c.p).length + '/' + (checks.length + 4) + ' (B never became writer)'); await browser.close(); process.exit(1); }
-// 1.1 min after reset → «1 / 10», streak stays 0 (2-min threshold)
+// 1.1 min after reset → «1 / 10», streak stays 0 (3-min threshold)
 const bid2 = await addBook(B);
 await sess(B, bid2, 66000);
 const sum = await B.evaluate(() => ({ summary: !document.getElementById('summary').classList.contains('hidden'), daily: (document.getElementById('sumDailyInfo') || {}).textContent, streak: S.streak }));

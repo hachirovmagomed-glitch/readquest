@@ -1,4 +1,4 @@
-// Stage 1б (Фронт): focus mode + settings contract, jumps, atRisk 2 min, tap zones, pinch plaque, PDF backdrop, PDF night dim.
+// Stage 1б (Фронт): focus mode + settings contract, jumps, atRisk 3 min, tap zones, pinch plaque, PDF backdrop, PDF night dim.
 // Run: RQ_URL=http://127.0.0.1:8811/readquest/ [RQ_SHOTS=/tmp/1b-shots] node stage1b.test.mjs
 import puppeteer from 'puppeteer-core';
 import { fileURLToPath } from 'url';
@@ -126,18 +126,18 @@ if (want('jumpunit')) {
   ok('jump(unit): jumped() credits dwell, no pageTurn; next flip counts', ev.length === 2 && ev[0].via === 'jump' && ev[0].page === 0 && ev[1].via === 'turn' && sn.pageTurns === 1 && sn.turns === 1 && Math.abs(sn.minutes - 1) < 1e-9, { ev, sn });
 }
 
-/* ---------- 3. atRisk = 2 min, same as the streak ---------- */
+/* ---------- 3. atRisk = 3 min, same as the streak (soft floor 3 min, Маня 15.10) ---------- */
 if (want('risk')) {
   const p = await fresh();
   const r = await p.evaluate(() => {
     const k = today(), save = SESS.slice(), s0 = S.streak; S.streak = 3; const out = {};
-    for (const m of [0, 1, 1.4 + 0.5, 2, 2.6]) { SESS.length = 0; if (m) SESS.push({ date: k, minutes: m, bookId: 'x', id: 'r' + m }); out[m] = streakAtRisk(k); }
+    for (const m of [0, 1, 1.4 + 0.5, 2, 2.4 + 0.5, 3, 3.6]) { SESS.length = 0; if (m) SESS.push({ date: k, minutes: m, bookId: 'x', id: 'r' + m }); out[m] = streakAtRisk(k); }
     SESS.length = 0; save.forEach(x => SESS.push(x)); S.streak = s0;
     return { out, STREAK_MIN };
   });
-  ok('risk: atRisk at 0 / 1 / 1.9 min, not at 2 / 2.6 min (STREAK_MIN=2 = streak rule)', r.STREAK_MIN === 2 && r.out[0] && r.out[1] && r.out['1.9'] && !r.out[2] && !r.out['2.6'], r);
+  ok('risk: atRisk at 0 / 1 / 1.9 / 2 / 2.9 min, not at 3 / 3.6 min (STREAK_MIN=3 = streak rule)', r.STREAK_MIN === 3 && r.out[0] && r.out[1] && r.out['1.9'] && r.out[2] && r.out['2.9'] && !r.out[3] && !r.out['3.6'], r);
   const src = fs.readFileSync(new URL('../js/v6-extras.js', import.meta.url), 'utf8');
-  ok('risk: hint text says 2 minutes', src.includes('от 2 минут') && /A streak counts for 2\+ minutes/.test(src));
+  ok('risk: hint text says 3 minutes, no 2-minute text left', src.includes('от 3 минут') && /A streak counts for 3\+ minutes/.test(src) && !src.includes('от 2 минут') && !/streak counts for 2\+/.test(src));
   await p.__ctx.close();
 }
 

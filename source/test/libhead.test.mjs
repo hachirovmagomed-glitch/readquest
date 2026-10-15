@@ -32,6 +32,8 @@ ok('balance: Math.floor(S.gold) + plural (1 монета / 3 монеты / 5 м
 ok('balance: rendering header writes nothing', await W(p) === 0, await W(p));
 // 3 shop purchase + daily payout → header and drawer identical
 const pd = await p.evaluate(async () => { window.__w.length = 0; const out = {};
+  /* audit 15.10: skins without styling are «Скоро» → mark all ready to exercise a real purchase */
+  SHOP_CATALOG.filter(x => x.type === 'skin').forEach(x => { if (SHOP_READY.indexOf(x.id) < 0) SHOP_READY.push(x.id); });
   S.gold = 1000.6; save(); const it = SHOP_CATALOG.find(x => x.type === 'skin' && x.price > 0 && !shopOwns(x.id)); const r = buy(it.id); show('library'); renderDrawerHead();
   out.buy = { ok: r && r.ok, gold: S.gold, head: el('goldChip').textContent.trim(), drawer: el('dGold').textContent };
   const day = today(); SESS.push({ id: 'lh-' + Date.now(), date: day, bookId: allBooks()[0].id, minutes: 12, pageTurns: 3, startedAt: new Date().toISOString() });

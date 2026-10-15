@@ -156,20 +156,20 @@ if (want('zones')) {
   ok('zones: top-left 12 % = day/night, focus kept', s.focus && dn === 'night', { s, dn });
   await tap(p, 0.5, 0.05); s = await st(p);
   ok('zones: top-middle = centre (leaves focus)', !s.focus && !s.barsoff, s);
-  await p.evaluate(() => { SET.nav.tap = false; applySet(); }); await sleep(500);
+  await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { tap: false }); applySet(); }); /* 15.10: page-turn settings moved to SET.flip */ await sleep(500);
   await p.evaluate(() => setFocus(true)); await sleep(300);
   const m0 = await p.evaluate(() => (S.marks[R.book.id] || []).length), pg1 = await p.evaluate(() => R.page);
   await tap(p, 0.9, 0.05); s = await st(p);
   const m1 = await p.evaluate(() => (S.marks[R.book.id] || []).length);
-  ok('zones: SET.nav.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
+  ok('zones: SET.flip.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
   await p.evaluate(() => setFocus(true)); await sleep(300);
   /* 1в: the tap reveals the bars → the viewer gets shorter → relayout keeps the reading anchor, so the page INDEX
      may change without any flip. «No flip» = no turn counted; the index may only move by the bars relayout (R.anc returns to the pre-focus page). */
   const tb = await p.evaluate(() => ({ turned: R.turned, off: firstOffsetOfPage(R.page) }));
   await tap(p, 0.9, 0.5); s = await st(p);
   const ta = await p.evaluate((o) => ({ turned: R.turned, offPage: pageOfOffset(txtNodes(), o), page: R.page }), tb.off);
-  ok('zones: SET.nav.tap=false → side tap is centre (no flip, focus off)', !s.focus && ta.turned === tb.turned && Math.abs(ta.page - pg1) <= 1, { s, pg1, tb, ta });
-  await p.evaluate(() => { SET.nav.tap = true; SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
+  ok('zones: SET.flip.tap=false → side tap is centre (no flip, focus off)', !s.focus && ta.turned === tb.turned && Math.abs(ta.page - pg1) <= 1, { s, pg1, tb, ta });
+  await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { tap: true }); SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
   await p.__ctx.close();
   if (fs.existsSync(PDF)) {
     const q = await fresh(PDF);

@@ -2,6 +2,9 @@
 // gate: every NS_set write goes through the write gate. Passive window (mayWrite() false) → no NS_set write from any settings control;
 //       writer window → the same controls write; before __rqReady → nothing written, then exactly ONE write on ready.
 // static: the raw localStorage write of NS_set exists in one place only (saveSetRaw), called only by the gate.
+// motion: prefers-reduced-motion OR «Анимации» off (S.ux.anim === false) → no confetti, no book fly-in / opening animation, no CSS animations;
+//         default → confetti still runs (sanity).
+// s360: «Общие настройки» at 360 and 390: no word of a row label is split across lines; the last VISIBLE row of a card has no divider.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/ node audit2.test.mjs   [RQ_ONLY=gate,static,…]
 import puppeteer from 'puppeteer-core';
 import { readFileSync, readdirSync } from 'fs';
@@ -74,6 +77,58 @@ if (want('gate')) {
     const r = await p.evaluate(() => ({ early: window.__early, before: window.__w.filter(x => !x.ready).length, after: window.__w.filter(x => x.ready).length, err: window.__hookErr || null,
       stored: (() => { const s = JSON.parse(localStorage.getItem(RQ_K.set) || '{}'); return { lh: s.lh, margin: s.margin }; })() }));
     ok('gate before ready: saveSet() writes nothing before __rqReady, then exactly one write with the current SET', !r.err && r.early === 0 && r.before === 0 && r.after === 1 && r.stored.lh === 1.9 && r.stored.margin === 34, r);
+    await ctx.close();
+  }
+  await browser.close();
+}
+
+if (want('motion') || want('s360')) {
+  const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  async function page(w, reduce) {
+    const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+    await p.setViewport({ width: w, height: 800, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+    if (reduce) await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(500);
+    return { ctx, p, errs };
+  }
+  const probe = () => {
+    document.querySelectorAll('.confetti').forEach(n => n.remove());
+    confetti(); confettiReward(); confettiSummary(); const conf = document.querySelectorAll('.confetti').length;
+    const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:0;top:0;width:40px;height:60px'; document.body.appendChild(host);
+    const anim = ['flyin', 'opening'].map(c => { const d = document.createElement('div'); d.className = 'shelfbook ' + c; host.appendChild(d); return getComputedStyle(d).animationName; });
+    const spin = document.createElement('div'); spin.className = 'pdfSpin'; host.appendChild(spin); anim.push(getComputedStyle(spin).animationName);
+    host.remove(); document.querySelectorAll('.confetti').forEach(n => n.remove());
+    return { conf, anim, still: document.documentElement.classList.contains('rq-still') };
+  };
+  if (want('motion')) {
+    { const { ctx, p, errs } = await page(390, false); const r = await p.evaluate(probe);
+      ok('motion default: confetti and book animations run', r.conf > 0 && r.anim[0] !== 'none' && r.anim[1] !== 'none' && !errs.length, r); await ctx.close(); }
+    { const { ctx, p, errs } = await page(390, true); const r = await p.evaluate(probe);
+      ok('motion prefers-reduced-motion: no confetti, no fly-in / opening / spinner animation', r.conf === 0 && r.anim.every(a => a === 'none') && !errs.length, r); await ctx.close(); }
+    { const { ctx, p, errs } = await page(390, false);
+      const r = await p.evaluate((probeSrc) => { renderSettings(); const b = document.getElementById('uxAnim'); if (S.ux.anim !== false) b.onclick();
+        const off = eval('(' + probeSrc + ')')(); b.onclick(); const on = eval('(' + probeSrc + ')')(); return { off, on, anim: S.ux.anim }; }, probe.toString());
+      ok('motion «Анимации» off: no confetti, no book animations; back on → they return', r.off.conf === 0 && r.off.still && r.off.anim.every(a => a === 'none') && r.on.conf > 0 && !r.on.still && r.on.anim[0] !== 'none' && !errs.length, r); await ctx.close(); }
+  }
+  if (want('s360')) for (const w of [360, 390]) {
+    const { ctx, p, errs } = await page(w, false);
+    const r = await p.evaluate(async () => {
+      renderSettings(); show('settings'); await new Promise(z => setTimeout(z, 400));
+      const split = [];
+      document.querySelectorAll('#settings .setrow .lab').forEach(lab => {
+        if (!lab.offsetParent) return; const tn = [...lab.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (!tn) return;
+        const t = tn.textContent; const re = /[^\s-]+/g; let m; /* a break right after a hyphen (демо-|книги) is fine */
+        while ((m = re.exec(t))) { const rg = document.createRange(); rg.setStart(tn, m.index); rg.setEnd(tn, m.index + m[0].length);
+          const tops = new Set([...rg.getClientRects()].filter(x => x.width > 0).map(x => Math.round(x.top))); if (tops.size > 1) split.push(m[0]); }
+      });
+      const lines = [];
+      document.querySelectorAll('#settings .pcard').forEach(c => { const rows = [...c.children].filter(e => e.offsetParent && /\bsetrow\b/.test(e.className));
+        const last = rows[rows.length - 1]; if (last && parseFloat(getComputedStyle(last).borderBottomWidth) > 0) lines.push(last.textContent.trim().slice(0, 30)); });
+      return { split, lines, mvp: document.body.classList.contains('mvp') };
+    });
+    ok('s360 ' + w + ': no row label word split across lines in «Общие настройки»', !r.split.length && !errs.length, r.split);
+    ok('s360 ' + w + ': no divider under the last visible row of a card (MVP)', r.mvp && !r.lines.length, r.lines);
+    await p.screenshot({ path: (process.env.RQ_SHOTS || '/workspace/out/') + 'audit2-settings-' + w + '.png' });
     await ctx.close();
   }
   await browser.close();

@@ -35,6 +35,8 @@ window.__rqStart=async function(api, tracker){
   const flat=api.loadFlat?api.loadFlat():{};
   hydrateS(flat);
   if(api.loadSettings){try{SET=Object.assign({},SETDEF,api.loadSettings());}catch(e){}}
+  /* SET.flip (Архитектор 15.10): copied from the old nav object on this load → persist it once, through the gate */
+  try{const raw=JSON.parse(localStorage.getItem(RQ_K.set)||'{}');if(SET.flip&&!(raw.flip&&typeof raw.flip==='object'&&!Array.isArray(raw.flip)))rqSaveSetGated();}catch(e){}
   try{shopFixState();}catch(e){console.warn('[rq] shopFixState',e);}
   if(mvpForceOn())saveSet(); /* import/load: settings.mvp=false → force true before lock-downs */
   if(mvpEnforce())save(); /* MVP: goal 10 / 12 s / 3 min / no ∞ money */

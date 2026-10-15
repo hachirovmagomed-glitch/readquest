@@ -66,6 +66,10 @@ const SHOP_CATALOG=(function(){
 const SHOP_OLD_IDS={'skin-les':'skin-gravyura','skin-forest':'skin-gravyura'}; /* «Лес» → «Гравюра» */
 function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id])return SHOP_OLD_IDS[id];const m=/^color-(les|forest)-(.+)$/.exec(id);return m?'color-gravyura-'+m[2]:id;}
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
+/* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
+   A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
+const SHOP_READY=['skin-pencil'];
+function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
   if(it.type==='skin')return it.price===0||(S.owned||[]).indexOf(id)>=0;
@@ -77,6 +81,7 @@ function buy(id){
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return {ok:false,reason:'passive'};
   const it=shopItem(id);if(!it)return {ok:false,reason:'unknown'};
   if(it.price<=0||it.bundled)return {ok:false,reason:'free'};
+  if(!shopReady(id))return {ok:false,reason:'soon'};
   if((S.owned||[]).indexOf(id)>=0)return {ok:false,reason:'owned'};
   if(it.type==='color'&&!shopOwns(it.skin))return {ok:false,reason:'skin'};
   if(!(typeof S.gold==='number'&&S.gold>=it.price))return {ok:false,reason:'gold'};
@@ -86,7 +91,7 @@ function buy(id){
 }
 /** wear a skin / colour (NS_set {skin,color}); «Карандашный» also switches the app-wide skin */
 function wear(id){
-  const it=shopItem(id);if(!it||!shopOwns(id))return false;
+  const it=shopItem(id);if(!it||!shopOwns(id)||!shopReady(id))return false;
   const skin=it.type==='skin'?it.id:it.skin, color=it.type==='color'?it.id:shopBundled(it.id);
   const from=skinOf(activeTheme());
   SET.skin=skin;SET.color=color;
@@ -115,6 +120,7 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
 let shopOpen=null; /* skin id shown in the detail */
 function shopState(it){
   if(it.type==='skin'){
+    if(!shopReady(it.id))return {k:'soon',t:'Скоро'};
     if(shopWorn()===it.id)return {k:'worn',t:'Надето'};
     if(shopOwns(it.id))return {k:'owned',t:it.price?'Куплено':'Бесплатно'};
     if(S.gold>=it.price)return {k:'buy',t:'Купить'};
@@ -152,8 +158,9 @@ function renderShopDetail(){
   const cols=SHOP_CATALOG.filter(x=>x.type==='color'&&x.skin===it.id);
   const sel=shopTrying&&shopItem(shopTrying)&&shopItem(shopTrying).skin===it.id?shopTrying:(worn&&SET.color)||shopBundled(it.id);
   const selIt=shopItem(sel);
-  let btn,act;
-  if(!owned){btn='Купить скин за '+coinsP(it.price);act='shopBuyAsk(\''+it.id+'\')';}
+  let btn,act;const ready=shopReady(it.id);
+  if(!ready){btn='Скоро';act='';} /* audit 15.10: no styling yet → nothing to buy or wear */
+  else if(!owned){btn='Купить скин за '+coinsP(it.price);act='shopBuyAsk(\''+it.id+'\')';}
   else if(selIt&&!selIt.bundled&&!shopOwns(sel)){btn='Купить расцветку за '+coinsP(selIt.price);act='shopBuyAsk(\''+sel+'\')';}
   else if(worn&&(!selIt||SET.color===sel)){btn='Надето';act='';}
   else {btn='Надеть';act='wear(\''+(selIt?sel:it.id)+'\');renderShopPane()';}
@@ -167,14 +174,13 @@ function renderShopDetail(){
     '<div class="row shopcols-h"><span>Расцветки</span><div class="spacer"></div><small>'+(owned?'первая — со скином':'сначала купите скин')+'</small></div><div class="shopcols">'+
     cols.map(function(c){return '<button type="button" class="shopcol'+(c.id===sel?' on':'')+'" data-id="'+c.id+'" onclick="shopTryOn(\''+c.id+'\')">'+
       '<span class="shopcov" style="background:'+c.sw+'"></span><small>'+esc(c.name)+'</small><small class="shopcp">'+(c.bundled?'Со скином':shopOwns(c.id)?'Куплено':coinsP(c.price))+'</small></button>';}).join('')+'</div>'+
-    '<div class="spdesc" style="font-size:12px">'+(owned?'Нажмите на расцветку, чтобы примерить её на экранах выше.':'Расцветки можно примерить сейчас, купить — после покупки скина.')+
-    (it.id!=='skin-pencil'?' Оформление скина в приложении придёт отдельной сборкой.':'')+'</div></div>'+
-    '<div class="spfoot"><button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>'+
-    '<div class="spcap">'+(worn?'Этот скин сейчас на вас':owned?'Куплено · можно сменить в любой момент':'Монеты дают квесты за чтение')+'</div></div>';
+    '<div class="spdesc" style="font-size:12px">'+(!ready?'Оформление этого скина появится в одной из следующих сборок.':owned?'Нажмите на расцветку, чтобы примерить её на экранах выше.':'Расцветки можно примерить сейчас, купить — после покупки скина.')+'</div></div>'+
+    '<div class="spfoot"><button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(ready&&!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>'+
+    '<div class="spcap">'+(!ready?(owned?'Куплено · наденете, когда выйдет оформление':'Купить можно будет, когда выйдет оформление'):worn?'Этот скин сейчас на вас':owned?'Куплено · можно сменить в любой момент':'Монеты дают квесты за чтение')+'</div></div>';
 }
 let shopPending=null; /* id waiting in the confirm dialog; buy() runs only from «Купить», once */
 function shopBuyAsk(id){
-  const it=shopItem(id);if(!it)return;
+  const it=shopItem(id);if(!it||!shopReady(id))return;
   if(S.gold<it.price){flashMsg('Не хватает '+coinsP(it.price-S.gold));return;}
   const nm=it.type==='color'?it.name+' ('+(shopItem(it.skin)||{}).name+')':it.name;
   shopPending=id;

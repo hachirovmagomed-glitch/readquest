@@ -8,6 +8,7 @@ function show(id){
   clearToasts();
   if(id!=='summary')clearConfetti();
   try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
+  if(id==='library'){try{libGoldRender();}catch(e){}} /* balance is a pure read of S.gold on every visit */
   if(id!=='library'&&__bootGold){__bootGold=0;const gl=el('libGoldLine');if(gl)gl.classList.add('hidden');}
   if(isMvp() && !__navAllow && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
     id = 'library';
@@ -84,9 +85,9 @@ function renderNav(){
   }
 }
 /* drawer header: read-only view of the SAME sources as «Награды» and toasts — S.gold (coinsP) and S.xp (10 × floor dayMinutes via applySessionAwards), level()/lvlBounds(). No own counter, no save(). */
-function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:S.gold||0};}
+function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:goldDisp(S.gold)};}
 function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const nm=(S.heroName||'Читатель');el('dName').textContent=nm;el('dAva').textContent=nm.trim().charAt(0).toUpperCase()||'Ч';
-  el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);return d;}
+  el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);try{libGoldRender();}catch(e){}return d;}
 function openDrawer(){try{renderDrawerHead();renderNav();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
@@ -154,7 +155,7 @@ function renderLibrary(){
     const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
     if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
   }
-  el('goldChip').textContent=coinsP(goldDisp()); /* coins as text, no icon */
+  libSortSync();libGoldRender(); /* balance as text, floor(S.gold), same source as the drawer; no writes */
   el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
   const _mt=isMvp()?minTodaySess():S.minToday;
   el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
@@ -180,6 +181,7 @@ function renderLibrary(){
   if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
+  LIB.sort=libSortGet();
   if(LIB.sort==='title')list.sort((a,b)=>a.title.localeCompare(b.title));
   else if(LIB.sort==='progress')list.sort((a,b)=>rqPos(b.id)-rqPos(a.id)); /* 1б-144: by current position */
   else{const lo=S.lastOpen||{};list.sort((a,b)=>(lo[b.id]||0)-(lo[a.id]||0));}
@@ -209,7 +211,31 @@ function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)
 /* --- поиск и фильтры библиотеки --- */
 let LIB={q:'',f:'all',author:null,sort:'recent'};
 el('libSearch').oninput=e=>{LIB.q=e.target.value.toLowerCase().trim();renderLibrary();};
-if(el('libSort'))el('libSort').onchange=e=>{LIB.sort=e.target.value;renderLibrary();};
+/* balance: «N монет»; if the header overflows, the number alone */
+function libGoldRender(){const c=el('goldChip');if(!c)return;const g=goldDisp();c.textContent=coinsP(g);
+  const h=el('libHead');if(h&&h.offsetParent&&h.scrollWidth>h.clientWidth+1)c.textContent=String(g);}
+/* sort (15.10): NS_set.libSort = string id from LIB_SORTS. Read is forgiving and never writes; a DIFFERENT pick → one gated saveSet
+   (rqSaveSetGated: deferred until __rqReady, only if the gate allows). Opening / closing / re-picking the current one writes nothing. */
+const LIB_SORTS=[{k:'recent',t:'Недавние'},{k:'title',t:'По названию'},{k:'progress',t:'По прогрессу'}];
+function libSortRead(v){return (typeof v==='string'&&LIB_SORTS.some(function(o){return o.k===v;}))?v:'recent';}
+function libSortGet(){return libSortRead(typeof SET!=='undefined'&&SET?SET.libSort:null);}
+function libSortLabel(k){return (LIB_SORTS.find(function(o){return o.k===k;})||LIB_SORTS[0]).t;}
+function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet()){LIB.sort=k;return false;}
+  SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
+function libSortSync(){const b=el('libSortBtn');if(!b)return;const k=libSortGet();b.querySelector('.lsl').textContent=libSortLabel(k);
+  const m=el('libSortMenu');if(m)m.querySelectorAll('.lso').forEach(function(o){o.setAttribute('aria-checked',o.dataset.k===k?'true':'false');});}
+function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;m.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');if(open)libSortSync();}
+(function(){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;
+  m.innerHTML=LIB_SORTS.map(function(o){return '<button type="button" class="lso" role="menuitemradio" data-k="'+o.k+'" aria-checked="false"><span>'+esc(o.t)+'</span>'+rqIcon('check',20)+'</button>';}).join('');
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(o){e.stopPropagation();libSortPick(o.dataset.k);}});
+  b.onclick=function(e){e.stopPropagation();libSortMenu(m.hidden);};
+  document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)libSortMenu(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)libSortMenu(false);});})();
+/* search: hidden by default; the icon swaps the header for the field (focus); ✕ closes and clears */
+function libSearchOpen(open){const bar=el('libSearchBar'),h=el('libHead'),i=el('libSearch');if(!bar||!h)return;bar.hidden=!open;h.hidden=!!open;el('libSearchBtn').setAttribute('aria-expanded',open?'true':'false');
+  if(open){i.focus();}else{i.value='';LIB.q='';renderLibrary();}}
+if(el('libSearchBtn'))el('libSearchBtn').onclick=function(){libSearchOpen(true);};
+if(el('libSearchClose'))el('libSearchClose').onclick=function(){libSearchOpen(false);};
 function bookStatus(id){
   if(S.finished.includes(id))return 'done';
   if(S.status[id]==='want')return 'want';
@@ -273,7 +299,7 @@ el('fileInp').onchange=async e=>{
   try{
     let b;
     if(/\.pdf$/i.test(f.name)){
-      btn.textContent='⏳ Загружаю PDF...';
+      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Загружаю PDF...');
       await loadPdfJs();
       const buf=await f.arrayBuffer();
       const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
@@ -282,11 +308,11 @@ el('fileInp').onchange=async e=>{
       await idbPut('pdf:'+id,buf);
       b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
     }else if(/\.fb2$/i.test(f.name)){
-      btn.textContent='⏳ Разбираю FB2...';
+      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Разбираю FB2...');
       const r=await parseFb2(f);
       b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
     }else if(/\.epub$/i.test(f.name)){
-      btn.textContent='⏳ Распаковываю EPUB...';
+      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Распаковываю EPUB...');
       const r=await parseEpub(f);
       b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
     }else{
@@ -304,7 +330,7 @@ el('fileInp').onchange=async e=>{
     if(!S.badges.includes('collector'))S.badges.push('collector');
     save();renderLibrary();
   }catch(err){alert('Не удалось загрузить книгу: '+err.message);}
-  btn.textContent='＋ Добавить';
+  btn.removeAttribute('aria-busy');btn.setAttribute('aria-label','Добавить книгу'); /* icon button: progress via aria-label, icon stays */
 };
 
 /* drawer gestures (spec): swipe right from the left edge (20px) opens it — not in the reader (edge = page turns); swipe left on the drawer closes it. Nothing is written. */

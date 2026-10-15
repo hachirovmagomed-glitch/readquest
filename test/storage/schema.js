@@ -134,6 +134,7 @@ export const GAME_DEF = {
   useChar: true,
   char: {},
   vocab: [],
+  devMoney: false,
 };
 
 /**
@@ -168,7 +169,24 @@ export const SET_DEF = {
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
   pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
   readCounter: true, // 1б: «7 / 10 мин» in focus
+  flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe}; null = default FLIP_DEF
 };
+
+/** SET.flip (arch.md 15.10) — same rules as js/reader.js flipNorm: not an object → dropped (default);
+ *  no flip + nav is the OLD flip object (not a tab list) → copied once; nav is never deleted or rewritten. */
+export const FLIP_DEF = { btns: false, tap: true, invert: false, swipe: true };
+const FLIP_KEYS = ['btns', 'tap', 'invert', 'swipe'];
+function flipFrom(o) {
+  const f = {};
+  FLIP_KEYS.forEach((k) => { f[k] = typeof o[k] === 'boolean' ? o[k] : FLIP_DEF[k]; });
+  return f;
+}
+export function normFlip(s) {
+  if (s.flip != null && (typeof s.flip !== 'object' || Array.isArray(s.flip))) s.flip = null;
+  if (s.flip) s.flip = flipFrom(s.flip);
+  else if (s.nav && typeof s.nav === 'object' && !Array.isArray(s.nav) && FLIP_KEYS.some((k) => k in s.nav)) s.flip = flipFrom(s.nav);
+  return s;
+}
 
 export const FOCUS_MODES = ['off', 'button', 'auto'];
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
@@ -284,8 +302,8 @@ export function hydrateGame(g) {
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
   if (!out.ai) out.ai = { key: '', model: 'gpt-4o-mini' };
-  delete out.cur; /* shop build: currency picker removed */
-  delete out.devMoney;
+  /* shop build removed the currency picker and ∞ money; the fields stay (old fields are never deleted): cur as stored, devMoney always false */
+  out.devMoney = false;
   out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; }).filter(function (id, i, a) { return a.indexOf(id) === i; });
   if (!out.rewards || !out.rewards.length)
     out.rewards = [
@@ -345,7 +363,8 @@ export function hydrateLibrary(lib) {
 
 export function hydrateSettings(s) {
   const out = Object.assign({}, SET_DEF, s || {});
-  if (!out.nav) out.nav = { btns: false, tap: true, invert: false, swipe: true };
+  /* nav (bottom-bar tabs) is kept exactly as stored — no default object is put there any more (15.10, SET.flip) */
+  normFlip(out);
   delete out.focusMode; /* 1б: old bool is ignored, never mapped onto focus */
   if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
   out.pdfDim = normPdfDim(out.pdfDim);

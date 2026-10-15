@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261015-0043',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261015-2313',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -205,7 +205,7 @@ body.rq-nolocks #rqNoXp{display:block}
    outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
    running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
 #pgLine{flex:none;box-sizing:content-box;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 max(var(--r-margin,24px),env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(var(--r-margin,24px),env(safe-area-inset-left,0px)); /* 1б-fix #3: counter/number above the gesture bar */pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
-#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:inherit;opacity:.45;letter-spacing:.2px}
+#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--r-txt-2);letter-spacing:.2px} /* audit 15.10: token, no opacity (≥ 4.5, contrast.tsv «номер страницы в углу») */
 #reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
 #mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}
 #libGoldLine{margin-top:10px;font-size:13px;font-weight:600;color:#ffc107;opacity:.92}
@@ -243,7 +243,7 @@ body.rq-nolocks #rqNoXp{display:block}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
-#content .meta{text-indent:0;opacity:.6;font-style:italic;margin-bottom:1.6em}
+#content .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
 .tap.left{left:0}.tap.right{right:0}
 .tap.mid{left:30%;width:40%}
@@ -690,7 +690,20 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 #settings .stepbtn{width:44px;height:44px;min-width:44px}
 #shelfH{white-space:nowrap;flex:none}
 .addmini{white-space:nowrap}
-#libSort{min-width:max-content;flex:0 0 auto;padding-right:28px}
+/* library header (15.10): ☰ · title · search 44 · balance text; search bar replaces the header; sort menu + add icon in «Моя полка» */
+.libhead,.libsearchbar{margin-bottom:14px;min-height:44px;gap:6px;flex-wrap:nowrap}.libhead h1{white-space:nowrap;min-width:0}
+.iconbtn44{width:44px;height:44px;min-width:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:12px;background:none;color:var(--txt)}
+.libgold{flex:none;white-space:nowrap;font-weight:600;font-size:15px;color:var(--txt);padding-left:2px}
+.libsearchbar[hidden],#libHead[hidden]{display:none!important}.libsearchbar .searchinp{flex:1;min-width:0;margin:0}
+.lsortwrap{position:relative;flex:none}.lsortbtn{height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border:0;border-radius:12px;background:var(--card2);color:var(--txt);font:inherit;font-size:14px;white-space:nowrap}
+.lsortbtn .lsl{white-space:nowrap}
+.lsortmenu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:200px;padding:4px 0;border-radius:12px;background:var(--card);color:var(--txt);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.lsortmenu[hidden]{display:none!important}
+.lsortmenu .lso{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:0;background:none;color:var(--txt);font:inherit;font-size:15px;text-align:left}
+.lsortmenu .lso span{flex:1}.lsortmenu .lso svg{color:var(--accent);visibility:hidden}.lsortmenu .lso[aria-checked="true"] svg{visibility:visible}
+#btnAdd.addicon{margin-left:6px;background:var(--card2);border:1.5px solid var(--muted)}html[data-skin="pencil"] #btnAdd.addicon{border:2px solid var(--rq-skin-border)}#btnAdd[aria-busy="true"]{opacity:.5}
+html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box-shadow:none}
+
 #rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}
@@ -701,7 +714,7 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .mvp-hist li{margin:4px 0}
 body.mvp .mvp-hide{display:none!important}
 body:not(.dev) .dev-only{display:none!important}
-body.mvp #goldChip,body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
+body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
 
 body.mvp #sumGoldCell,body.mvp #sumStatCell,body.mvp #luckLbl,body.mvp #sumBadges,body.mvp #lvlUp{display:none!important}
 body.mvp #profile .mvp-full{display:none!important}
@@ -715,7 +728,7 @@ body.mvp #sumDailyBox{display:block}
 
 /* ===== 1в: Lucide icons (one sprite, stroke currentColor) ===== */
 .mvp-only-i{display:none}body.mvp .mvp-only-i{display:inline}
-#goldChip,#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
+#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
 .ic{flex:none;fill:none;stroke:currentColor;stroke-width:var(--rq-icon-stroke,1.8);stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 .rhead button{display:inline-flex;align-items:center;justify-content:center;min-width:var(--rq-tap,44px);min-height:var(--rq-tap,44px);padding:0}
 #selpop button{display:inline-flex;align-items:center;gap:4px}
@@ -746,11 +759,6 @@ html[data-skin="pencil"] .setrow{border-bottom-color:var(--rq-line)}
 html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}
 html[data-skin="pencil"] #settings .setrow>.lab{flex:1 1 120px}
 html[data-skin="pencil"] #settings .setrow>:is(button,.btnpair,b){margin-left:auto}
-/* «Размер интерфейса» − 100% ＋ never wrap (14.10) */
-html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus){flex-wrap:nowrap}
-html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>.lab{flex:1 1 0;min-width:0}
-html[data-skin="pencil"] #settings .setrow:has(#uxScalePlus)>#uxScaleVal~*{margin-left:0}
-#uxScaleMinus,#uxScaleVal,#uxScalePlus{flex:none}
 /* theme tiles with captions (both skins) */
 .xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
 #appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
@@ -990,7 +998,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- БИБЛИОТЕКА -->
 <div id="library" class="screen">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip"><span>0</span></span></div>
+    <div class="row libhead" id="libHead"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">Библиотека</h1><div class="spacer"></div><button class="iconbtn44" id="libSearchBtn" type="button" aria-label="Поиск" aria-controls="libSearchBar" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><span class="libgold" id="goldChip" aria-label="Баланс">0 монет</span></div>
+    <div class="row libsearchbar" id="libSearchBar" hidden><input id="libSearch" class="searchinp" type="search" placeholder="Поиск по названию и автору" aria-label="Поиск по названию и автору"><button class="iconbtn44" id="libSearchClose" type="button" aria-label="Закрыть поиск"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
     <div class="goalcard">
       <svg class="ring" viewBox="0 0 80 80">
         <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
@@ -1004,11 +1013,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       </div>
     </div>
     <div id="libGoldLine" class="hidden" role="status"></div>
-    <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="Поиск по названию и автору"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
-    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><select id="libSort" class="ghostbtn" style="padding:6px 8px;margin-right:8px"><option value="recent">Недавние</option><option value="title">По названию</option><option value="progress">По прогрессу</option></select><button class="addmini" id="btnAdd" title=".txt / .epub / .fb2 / .pdf">＋ Добавить</button></div>
+    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="lsortbtn" id="libSortBtn" type="button" aria-haspopup="menu" aria-controls="libSortMenu" aria-expanded="false"><span class="lsl">Недавние</span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button><div class="lsortmenu" id="libSortMenu" role="menu" hidden></div></div><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div>
     <div class="grid" id="shelf"></div>
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
@@ -1109,7 +1117,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <h2>Внешний вид</h2>
     <div class="pcard">
       <div class="seg" id="appThemeBox"></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-zoom-in"/></svg><div class="lab">Размер интерфейса</div><button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>
@@ -1140,7 +1147,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
     </div>
-    <div class="mvp-hide">
+    <div class="dev-only"><!-- «Режим» (MVP switch + read-only goal/anti) only with ?dev=1; .mvp-hide here also hid it from ?dev=1 (regression 77f2775) -->
     <h2>Режим</h2>
     <div class="pcard">
       <div class="setrow dev-only"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
@@ -1450,25 +1457,25 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261015-0043"></script>
-<script src="js/books-builtin.js?v=20261015-0043"></script>
-<script src="js/core-b.js?v=20261015-0043"></script>
-<script src="js/library.js?v=20261015-0043"></script>
-<script src="js/reader.js?v=20261015-0043"></script>
-<script src="js/pdf.js?v=20261015-0043"></script>
-<script src="js/reader-ui.js?v=20261015-0043"></script>
-<script src="js/rpg.js?v=20261015-0043"></script>
-<script src="js/content.js?v=20261015-0043"></script>
-<script src="js/settings.js?v=20261015-0043"></script>
-<script src="js/v6-extras.js?v=20261015-0043"></script>
-<script src="js/start.js?v=20261015-0043"></script>
+<script src="js/core-a.js?v=20261015-2313"></script>
+<script src="js/books-builtin.js?v=20261015-2313"></script>
+<script src="js/core-b.js?v=20261015-2313"></script>
+<script src="js/library.js?v=20261015-2313"></script>
+<script src="js/reader.js?v=20261015-2313"></script>
+<script src="js/pdf.js?v=20261015-2313"></script>
+<script src="js/reader-ui.js?v=20261015-2313"></script>
+<script src="js/rpg.js?v=20261015-2313"></script>
+<script src="js/content.js?v=20261015-2313"></script>
+<script src="js/settings.js?v=20261015-2313"></script>
+<script src="js/v6-extras.js?v=20261015-2313"></script>
+<script src="js/start.js?v=20261015-2313"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261015-0043"></script>
+<script src="js/pwa-lock.js?v=20261015-2313"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1476,9 +1483,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261015-0043';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261015-0043';
-import * as game from './game-awards.js?v=20261015-0043';
+} from './storage/index.js?v=20261015-2313';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261015-2313';
+import * as game from './game-awards.js?v=20261015-2313';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

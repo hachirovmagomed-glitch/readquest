@@ -280,7 +280,7 @@ function pdfSingleTap(x,y){
   if(el('reader').classList.contains('hidden'))return;
   const z=tapZone(x,y);
   const zoomed=P.z>1.01; /* contract 1б: zoomed PDF — no top corners, the centre does not leave focus */
-  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const inv=flipGet().invert?-1:1;
   if(z==='tl'){if(zoomed)return;toggleDayNight();return;}
   if(z==='tr'){if(zoomed)return;addBookmark();return;}
   if(z==='l'){fsResume();pdfFlip(-inv);}
@@ -347,8 +347,8 @@ function pdfTouchEnd(e){
   P.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
   if(g.bright&&g.moved){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});return;}
-  const swipeOn=!SET.nav||SET.nav.swipe!==false;
-  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const swipeOn=flipGet().swipe!==false;
+  const inv=flipGet().invert?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
   pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
   if(g.pannable&&g.moved){
@@ -453,15 +453,26 @@ function setFontSizeKeepPos(size){
 /* Page is saved while reading (not only on close): a frozen phone tab that gets stolen can't write later,
    so the farthest page must already be in NS_v1. Sync, progress-only, monotonic (ratio only grows), writer only.
    Session time is saved the same way by reader-session.js (NS_session_draft). */
-function persistPage(){
+function persistPage(posOverride){
   const b=R.book;if(!b||!__rq||!__rq.loadEnvelope||!__rq.saveEnvelope)return;
   if(window.__rqWriter&&!__rqWriter.mayWrite())return;
-  const c=S.progress[b.id]||{},cur=c.ratio||0,pos=typeof R.pos==='number'?R.pos:rqPos(b.id);
+  const c=S.progress[b.id]||{},cur=c.ratio||0,pos=typeof posOverride==='number'?posOverride:typeof R.pos==='number'?R.pos:rqPos(b.id);
   if(!(R.maxRatio>cur)&&c.pos===pos)return; /* farthest only grows; pos = current settled position (may go back) */
   S.progress[b.id]=Object.assign({},c,{ratio:Math.max(cur,R.maxRatio),pos:pos});
   try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});const o=pr[b.id]||{};
     pr[b.id]=Object.assign({},o,{ratio:Math.max(o.ratio||0,R.maxRatio),pos:pos});__rq.saveEnvelope(e);}catch(err){console.warn('[rq] persistPage',err);}
 }
+/* pos in the background (Архитектор 15.10, arch.md): hidden / pagehide write the current pos — after a re-layout it only lived in memory.
+   While the slider is dragged, the pos saved before the drag is written (R.posPreSlide); a preview page is never written.
+   persistPage keeps the gate (writer only), never touches the tracker / maxRatio / events; nothing changed → nothing written. */
+function persistPageBg(){
+  if(!R||!R.book||el('reader').classList.contains('hidden'))return;
+  const sliding=!!(R.sliding||(typeof P!=='undefined'&&P.sliding));
+  if(sliding){if(typeof R.posPreSlide==='number')persistPage(R.posPreSlide);return;}
+  persistPage();
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')persistPageBg();});
+window.addEventListener('pagehide',persistPageBg);
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
@@ -499,12 +510,12 @@ function goPage(p,turn){
   if(!R.sliding&&!R.relay)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page.
      Not on a re-pagination (R.relay): same text, only the layout fraction differs → R.pos stays in memory until the next real move / close */
 }
-el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null)R.slideFrom=R.mode==='pdf'?P.shown:R.page;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null){R.slideFrom=R.mode==='pdf'?P.shown:R.page;R.posPreSlide=typeof R.pos==='number'?R.pos:rqPos(R.book.id);}if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
 el('pgSlider').onchange=e=>{
   const v=parseInt(e.target.value,10)||0;
   if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);pdfReach(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
-  const from=R.slideFrom;R.slideFrom=null;
+  const from=R.slideFrom;R.slideFrom=null;R.posPreSlide=null;
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
 /* «Карандашный»: hand-drawn page slider. LOOK ONLY — the <input> under it keeps every behaviour (thumb-only drag,
@@ -595,7 +606,7 @@ function viewerTap(cx,cy){
   const x=(cx-r.left)/r.width;
   const y=(cy-r.top)/r.height;
   const z=tapZone(x,y);
-  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const inv=flipGet().invert?-1:1;
   if(z==='tl'){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra); фокус не трогает
   if(z==='tr'){addBookmark();return;}      // угол: закладка; фокус не трогает
   if(z==='l'){fsResume();goPage(R.page-1*inv,true);}
@@ -603,9 +614,9 @@ function viewerTap(cx,cy){
   else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen (and focus); next centre tap hides both
 }
 /** 1б tap zones (reader-focus-zones): top 12 % — corners 30 % (tl day/night, tr bookmark); below 30 / 40 / 30.
- *  SET.nav.tap === false → the whole screen is the centre (no corners, no flips by tap). */
+ *  SET.flip.tap === false → the whole screen is the centre (no corners, no flips by tap). */
 function tapZone(x,y){
-  if(SET.nav&&SET.nav.tap===false)return 'c';
+  if(flipGet().tap===false)return 'c';
   if(y<0.12&&x<0.3)return 'tl';
   if(y<0.12&&x>0.7)return 'tr';
   if(y>=0.12&&x<0.3)return 'l';

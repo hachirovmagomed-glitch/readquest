@@ -1,13 +1,23 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,flip:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
-if(!SET.nav)SET.nav={btns:false,tap:true,invert:false,swipe:true};
+/* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
+   Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
+   SET.nav is never deleted or rewritten here; flipping already wiped by the old bug is not restored. Writes: rqSaveSetGated only. */
+const FLIP_DEF={btns:false,tap:true,invert:false,swipe:true},FLIP_KEYS=['btns','tap','invert','swipe'];
+function flipFrom(o){const f={};FLIP_KEYS.forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:FLIP_DEF[k];});return f;}
+function flipNorm(s){
+  if(s.flip!=null&&(typeof s.flip!=='object'||Array.isArray(s.flip)))s.flip=null;
+  if(s.flip)s.flip=flipFrom(s.flip);
+  else if(s.nav&&typeof s.nav==='object'&&!Array.isArray(s.nav)&&FLIP_KEYS.some(function(k){return k in s.nav;})){s.flip=flipFrom(s.nav);return true;}
+  return false;}
+function flipGet(){return SET&&SET.flip?SET.flip:FLIP_DEF;}
 /* 1б settings contract (same rules as storage/schema.js hydrateSettings) */
 function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
-  if(typeof s.readCounter!=='boolean')s.readCounter=true;return s;}
+  if(typeof s.readCounter!=='boolean')s.readCounter=true;flipNorm(s);return s;}
 normSet(SET);
 function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
 /* user pick → NS_set only through the gate (Архитектор 14.10): writer must exist AND allow. Before __rqReady: applied in memory,
@@ -16,6 +26,7 @@ function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;retur
 function rqFlushSetPending(){if(!window.__rqSetPending)return;window.__rqSetPending=false;if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
 /* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
+const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */
 function applySet(){
   const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
@@ -27,6 +38,8 @@ function applySet(){
   el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
   el('dimmer').style.opacity=SET.dim||0;
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
+  /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
+  if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
   r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
   {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
@@ -37,7 +50,7 @@ function applySet(){
   c.style.fontFamily=FONTS[SET.font].v;
   c.style.fontSize=SET.size+'px';
   c.style.lineHeight=SET.lh;
-  c.style.textAlign=SET.align==='l'?'left':'justify';
+  rqTextAlign();
   c.style.letterSpacing=(SET.ls||0)+'px';
   c.style.fontWeight=SET.weight||400;
   c.style.hyphens=SET.hyph===false?'none':'auto';
@@ -57,7 +70,7 @@ function applySet(){
   document.querySelectorAll('#fontSeg button').forEach((b,i)=>b.classList.toggle('on',i===SET.font));
   try{rqCollapseSync('fontSeg');}catch(e){}
   document.querySelectorAll('#themeSeg .swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt));
-  const nv=SET.nav||{};
+  const nv=flipGet();
   el('navBtns').classList.toggle('on',!!nv.btns);
   el('navTap').classList.toggle('on',nv.tap!==false);
   el('navInvert').classList.toggle('on',!!nv.invert);
@@ -137,13 +150,15 @@ el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
 Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
 /* навигация при чтении */
-function navTurn(d){const inv=(SET.nav&&SET.nav.invert)?-1:1;goPage(R.page+d*inv,true);}
+function navTurn(d){const inv=flipGet().invert?-1:1;goPage(R.page+d*inv,true);}
 el('navPrev').onclick=()=>navTurn(-1);
 el('navNext').onclick=()=>navTurn(1);
-el('navBtns').onclick=()=>{SET.nav.btns=!SET.nav.btns;saveSet();applySet();};
-el('navTap').onclick=()=>{SET.nav.tap=!(SET.nav.tap!==false);saveSet();applySet();};
-el('navInvert').onclick=()=>{SET.nav.invert=!SET.nav.invert;saveSet();applySet();};
-el('navSwipe').onclick=()=>{SET.nav.swipe=!(SET.nav.swipe!==false);saveSet();applySet();};
+/* page-turn switches → SET.flip, written only through the gate (Архитектор 15.10) */
+function flipSet(k){SET.flip=Object.assign({},flipGet());SET.flip[k]=!SET.flip[k];rqSaveSetGated();applySet();}
+el('navBtns').onclick=()=>flipSet('btns');
+el('navTap').onclick=()=>flipSet('tap');
+el('navInvert').onclick=()=>flipSet('invert');
+el('navSwipe').onclick=()=>flipSet('swipe');
 
 /* ================= ЧИТАЛКА ================= */
 let R={book:null,page:0,pageCount:1,step:0,start:0,turned:0,maxRatio:0,mode:'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0};
@@ -202,7 +217,14 @@ function firstOffsetOfPage(pg){const T=txtNodes();let lo=0,hi=Math.max(0,T.len-1
 function hyphProbe(lang,word,mode){const d=document.createElement('div');d.lang=lang;d.setAttribute('aria-hidden','true');
   d.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;width:3ch;font:16px serif;hyphens:'+mode+';-webkit-hyphens:'+mode;
   d.textContent=word;document.body.appendChild(d);return d;}
+/* Маня 15.10 + arch.md: justified only once the hyphenation dictionary for the book's language really works — class rq-hyph-<lang> on <html>,
+   set from the probe (@supports cannot tell). Without it (or with hyphenation off) the text is left-aligned: no rivers of spaces.
+   The class lives only in the DOM (never in S / localStorage / export). */
+function hyphOk(lang){return !!lang&&document.documentElement.classList.contains('rq-hyph-'+lang);}
+function rqTextAlign(){const c=el('content');c.style.textAlign=(SET.align!=='l'&&SET.hyph!==false&&hyphOk(c.lang))?'justify':'left';}
+function hyphMark(lang){if(lang)document.documentElement.classList.add('rq-hyph-'+lang);rqTextAlign();}
 function hyphWaitStart(c,b){
+  rqTextAlign(); /* this book's language: justified only if its dictionary is already known to work */
   if(SET.hyph===false)return null;
   const w=((b.text||'').slice(0,4000).match(/[\p{L}]{12,}/u)||[])[0]||(c.lang==='ru'?'конфискованными':'representatives');
   const on=hyphProbe(c.lang,w,'auto'),off=hyphProbe(c.lang,w,'none');
@@ -211,7 +233,7 @@ function hyphWaitStart(c,b){
   const t0=Date.now(),late=+window.__rqHyphDelay||0;
   if(late){c.style.hyphens=c.style.webkitHyphens='none';}
   const ready=()=>!window.__rqHyphNoDict&&(late?Date.now()-t0>=late:on.offsetHeight>off.offsetHeight);
-  if(ready()){on.remove();off.remove();return null;} /* dictionary already applied → the first layout is final */
+  if(ready()){on.remove();off.remove();hyphMark(c.lang);return null;} /* dictionary already applied → justified, the first layout is final */
   const t=el('txtBack');if(t){el('txtBackN').textContent='Открываем страницу '+((R.page||0)+1);t.classList.remove('hidden');}
   return {on:on,off:off,ready:ready,book:b,t0:t0,late:late,done:false,tok:(++HY.tok)};
 }
@@ -223,6 +245,7 @@ function hyphWaitRun(h,p){
     if(relay){
       const off=firstOffsetOfPage(R.page); /* char offset of the first visible line */
       if(h.late){const c=el('content');c.style.hyphens=c.style.webkitHyphens='auto';}
+      hyphMark(el('content').lang); /* dictionary works now → justify, in the same silent re-layout */
       layout();
       let np=pageOfOffset(txtNodes(),off);if(np<0)np=R.page;
       np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;

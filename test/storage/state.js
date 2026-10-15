@@ -23,8 +23,8 @@ import {
   mergeFlat,
   splitLegacyState,
   NS,
-} from './schema.js?v=20261015-0043';
-import * as idb from './idb.js?v=20261015-0043';
+} from './schema.js?v=20261015-2313';
+import * as idb from './idb.js?v=20261015-2313';
 
 let saveWarned = false;
 
@@ -199,13 +199,18 @@ function buildNo(b) {
   const v = b || (typeof RQ_BUILD !== 'undefined' ? RQ_BUILD : null);
   return typeof v === 'string' && v && v.indexOf('__') !== 0 ? v : null;
 }
+/** copy of game with ai.key emptied (field kept; model kept) — export only, the stored game is untouched */
+export function withoutAiKey(game) {
+  if (!game || typeof game !== 'object' || !game.ai || typeof game.ai !== 'object') return game;
+  return Object.assign({}, game, { ai: Object.assign({}, game.ai, { key: '' }) });
+}
 export async function exportBackup(envelope, settings, opts) {
   const options = opts || {};
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261015-0043');
-  const { listReadingEvents } = await import('./events.js?v=20261015-0043');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261015-2313');
+  const { listReadingEvents } = await import('./events.js?v=20261015-2313');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
@@ -216,7 +221,7 @@ export async function exportBackup(envelope, settings, opts) {
     // real build number (core-a.js RQ_BUILD, substituted by build-dist.sh); null if unknown — never the raw marker
     build: buildNo(options.build),
     progress: e.progress,
-    game: e.game,
+    game: withoutAiKey(e.game), // arch.md 2026-10-15: the AI helper's API key never leaves the device
     library: e.library,
     sessions: sessions,
     events: events,
@@ -286,6 +291,14 @@ export async function importBackup(data) {
      pos > ratio raises ratio to pos, ratio is never lowered. Additive, schemaVersion stays 1. */
   sanitizeBookProgress(envelope && envelope.progress && envelope.progress.progress);
 
+  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none) */
+  if (envelope && envelope.game) {
+    let own = '';
+    try { const cur = loadEnvelope(); own = (cur && cur.game && cur.game.ai && typeof cur.game.ai.key === 'string') ? cur.game.ai.key : ''; } catch (e) { own = ''; }
+    const ai = envelope.game.ai && typeof envelope.game.ai === 'object' ? envelope.game.ai : { model: 'gpt-4o-mini' };
+    envelope.game.ai = Object.assign({}, ai, { key: own });
+  }
+
   if (data.textBodies && typeof data.textBodies === 'object') {
     const ids = Object.keys(data.textBodies);
     for (let i = 0; i < ids.length; i++) {
@@ -296,9 +309,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261015-0043');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261015-2313');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261015-0043'
+    './events.js?v=20261015-2313'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */

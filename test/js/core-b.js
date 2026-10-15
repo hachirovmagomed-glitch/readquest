@@ -31,7 +31,7 @@ function applySkin(){setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
-  const lt=document.getElementById('libTitle');if(lt)lt.textContent=t.skin==='pencil'?'Библиотека':'ReadQuest'; /* «Карандашный»: mockup title */
+  const lt=document.getElementById('libTitle');if(lt)lt.textContent='Библиотека'; /* «Карандашный»: mockup title */
   const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
   applySkin._last=sk;
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
@@ -84,7 +84,7 @@ function hydrateS(raw){
   if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
-  delete S.cur; /* contract: cur removed on load and import */
+  /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
   if(!S.rewards||!S.rewards.length)S.rewards=[
     {name:'Кофе',tier:'small',cost:100,bought:0},
     {name:'Серия сериала',tier:'small',cost:100,bought:0},
@@ -120,7 +120,7 @@ function hydrateS(raw){
   if(S.hp===undefined||S.hp===null)S.hp=S.hpMax;
   S.ownedGear=S.ownedGear||[];
   S.equipped=S.equipped||{};
-  delete S.devMoney; /* shop build: ∞ money removed */
+  S.devMoney=false; /* shop build: ∞ money removed; the field stays (old fields are never deleted) */
   S.shelfOrder=S.shelfOrder||[];
   if(S.useChar===undefined)S.useChar=true;
   S.char=S.char||{};
@@ -149,7 +149,7 @@ function allStats(){return STATS_BASE.concat((S.customStats||[]).filter(s=>!STAT
 /* === валюта (тест-режим) === */
 function canAfford(c){return S.gold>=c;}
 function spend(c){S.gold=Math.max(0,S.gold-c);}
-function goldDisp(){return S.gold;}
+function goldDisp(g){return Math.floor(Number(g===undefined?S.gold:g)||0);} /* one balance view: library header, drawer, profile — whole coins */
 /* === экипировка героя === */
 const GEAR_SLOTS={head:'Головной убор',body:'Костюм',weapon:'Оружие',feet:'Ботинки',pet:'Питомец',aura:'Аура',face:'Аксессуар',bg:'Фон'};
 const GEAR_CATS=[['body','🥋 Костюмы'],['weapon','⚔️ Оружие'],['head','🎩 Головные уборы'],['feet','👢 Ботинки'],['deco','✨ Декорации'],['bg','🏞 Задний план']];

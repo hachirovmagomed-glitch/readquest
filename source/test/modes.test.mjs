@@ -2,6 +2,7 @@
 // «Затемнение PDF» removed, read-aloud button icon, reading-settings sheet controls.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/ node modes.test.mjs   [RQ_ONLY=flipnorm,anim,…]
 import puppeteer from 'puppeteer-core';
+import { PNG } from 'pngjs';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/';
 const PDF = process.env.RQ_PDF || '/workspace/rqtest/pdf/b-nolabels-40.pdf';
 const ONLY = (process.env.RQ_ONLY || '').split(',').filter(Boolean); const want = (k) => !ONLY.length || ONLY.includes(k);
@@ -79,7 +80,7 @@ if (want('anim')) {
   const j = await p.evaluate(async () => { const a0 = (window.__rqAnim || {}).n || 0; jumpTo(R.page + 5); goPage(R.page - 1, false); await new Promise(r => setTimeout(r, 400)); return ((window.__rqAnim || {}).n || 0) - a0; });
   ok('anim: jumps / slider / non-turn moves are never animated', j === 0, j);
   /* fast taps: a new turn during a slide finishes the old one, both pages counted, strip ends on the last page */
-  const f = await p.evaluate(async () => { SET.flip = Object.assign({}, flipGet(), { anim: 'slide' }); const p0 = R.page, t0 = __tracker.snapshot().turns;
+  const f = await p.evaluate(async () => { SET.flip = Object.assign({}, flipGet(), { anim: 'slide' }); jumpTo(0); await new Promise(r => setTimeout(r, 300)); const p0 = R.page, t0 = __tracker.snapshot().turns;
     goPage(R.page + 1, true); await new Promise(r => setTimeout(r, 40)); goPage(R.page + 1, true); await new Promise(r => setTimeout(r, 500));
     return { d: R.page - p0, tr: document.getElementById('content').style.transform, want: 'translateX(' + (-R.page * R.step) + 'px)', turns: __tracker.snapshot().turns - t0 }; });
   ok('anim: two fast turns during a slide → +2 pages, strip on the last one', f.d === 2 && f.tr === f.want && f.turns === 2, f);
@@ -102,7 +103,7 @@ if (want('scroll')) {
     const one = { page: R.page, turns: __tracker.snapshot().turns - t0, max: R.maxRatio };
     v.scrollTop = h * 5; v.dispatchEvent(new Event('scroll')); await wait(450);
     const far = { page: R.page, turns: __tracker.snapshot().turns - t0, pos: R.pos, stored: (__rq.loadEnvelope().progress.progress[R.book.id] || {}).pos };
-    goPage(10, false); await wait(300); const prog = { top: v.scrollTop, page: R.page, want: Math.min(10 * h, max) };
+    goPage(3, false); await wait(300); const prog = { top: v.scrollTop, page: R.page, want: Math.min(3 * h, max) };
     await wait(300); const progAfter = { page: R.page, turns: __tracker.snapshot().turns - t0 };
     const top0 = v.scrollTop; viewerTap(v.getBoundingClientRect().left + v.clientWidth * 0.9, v.getBoundingClientRect().top + h * 0.5); await wait(500);
     const tap = { dy: v.scrollTop - top0, h, page: R.page };
@@ -116,7 +117,7 @@ if (want('scroll')) {
   ok('scroll: page = one screen (step = viewer height), page count = screens to the end', r.geo.step === r.geo.h && r.geo.pc === r.geo.wantPc && r.geo.pc > 3, r.geo);
   ok('scroll: stop on the next screen → one turn, «reached» grows', r.one.page === 1 && r.one.turns === 1 && r.one.max > 0, r.one);
   ok('scroll: stop 4 screens further → jump (no turn), pos saved', r.far.page === 5 && r.far.turns === 1 && Math.abs(r.far.stored - r.far.pos) < 1e-9, r.far);
-  ok('scroll: goPage scrolls to the screen and gives no scroll event of its own', r.prog.top === r.prog.want && r.prog.page === 10 && r.progAfter.page === 10 && r.progAfter.turns === 1, { prog: r.prog, after: r.progAfter });
+  ok('scroll: goPage scrolls to the screen and gives no scroll event of its own', r.prog.top === r.prog.want && r.prog.page === 3 && r.progAfter.page === 3 && r.progAfter.turns === 1, { prog: r.prog, after: r.progAfter });
   ok('scroll: tap on the right edge scrolls one screen minus a line (0.8–1 screen)', r.tap.dy > r.tap.h * 0.8 && r.tap.dy < r.tap.h, r.tap);
   ok('scroll: last page = end of the text', Math.abs(r.end.top - r.end.max) <= 1 && r.end.page === r.end.pc - 1, r.end);
   ok('scroll: slider drag writes nothing to «reached»', r.drag.max === r.drag.m0, r.drag);
@@ -195,6 +196,50 @@ if (want('sheet')) {
     ok('sheet ' + w + ': tap targets ≥ 40 px', all.every(x => !x.tiny.length), Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.tiny])));
     await ctx.close();
   }
+}
+
+/* frames: every screencast frame during «Сдвиг» / «Плавно» turns (CPU ×4) has text on it — never an empty page (Android bug 06.10) */
+if (want('frames')) {
+  const { ctx, p } = await fresh(412);
+  await openLong(p);
+  await p.evaluate(() => { SET.theme = 'sepia'; SET.cBg = null; SET.cTxt = null; applySet(); jumpTo(0); });
+  await p.waitForFunction(() => { const t = document.getElementById('txtBack'); return !t || t.classList.contains('hidden'); }, { timeout: 8000 }); /* hyphenation placeholder gone */
+  const cdp = await p.target().createCDPSession(); await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  const frames = []; let on = false;
+  cdp.on('Page.screencastFrame', (f) => { cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {}); if (on) frames.push(f.data); });
+  await cdp.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 });
+  const glyphs = (b64, soft) => { const png = PNG.sync.read(Buffer.from(b64, 'base64')); let n = 0; const d = png.data;
+    for (let i = 0; i < d.length; i += 4) { const L = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; if (L < (soft ? 200 : 150) && d[i] > d[i + 2] + (soft ? 8 : 12)) n++; } return n; };
+  const res = {};
+  for (const k of ['slide', 'fade']) {
+    await p.evaluate((k) => { SET.flip = Object.assign({}, flipGet(), { anim: k }); jumpTo(0); }, k); await sleep(500);
+    on = true; frames.length = 0; const counts = [];
+    for (let i = 0; i < 4; i++) { await p.evaluate(() => goPage(R.page + 1, true)); await sleep(420); }
+    on = false; for (const f of frames) counts.push(glyphs(f, k === 'fade'));
+    if (process.env.RQ_DUMP) { const fs = await import('fs'); const i = counts.indexOf(Math.min(...counts)); fs.writeFileSync(process.env.RQ_DUMP + '/min-' + k + '.png', Buffer.from(frames[i], 'base64')); fs.writeFileSync(process.env.RQ_DUMP + '/counts-' + k + '.json', JSON.stringify(counts)); }
+    res[k] = { frames: counts.length, min: Math.min(...counts), max: Math.max(...counts), n: await p.evaluate(() => window.__rqAnim.n) };
+  }
+  await cdp.send('Page.stopScreencast'); await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  ok('frames: «Сдвиг», 4 turns at CPU ×4 — every frame has text (min ≥ 25 % of the fullest frame)', res.slide.frames >= 8 && res.slide.min >= res.slide.max * 0.25, res.slide);
+  ok('frames: «Плавно», 4 turns at CPU ×4 — text visible on every frame, half-faded at most (min ≥ 25 % of the fullest frame)', res.fade.frames >= 8 && res.fade.min >= res.fade.max * 0.25, res.fade);
+  await ctx.close();
+}
+
+/* bars: tap in the centre → the top / bottom bars fade + slide in (CSS animation on the bars only); none with reduced motion or «Анимации» off */
+if (want('bars')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const run = () => p.evaluate(async () => { concealChrome('tap'); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 30));
+    const h = document.querySelector('#reader .rhead'); const a = h.getAnimations().map(x => x.animationName); const shown = getComputedStyle(h).display !== 'none';
+    const txt = document.getElementById('content').getAnimations().length + document.getElementById('viewer').getAnimations().length; return { a, shown, txt }; });
+  let r = await run();
+  ok('bars: revealed at once (display) and animated in; the text is not animated', r.shown && r.a.includes('rqBarTop') && r.txt === 0, r);
+  await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]); r = await run();
+  ok('bars: prefers-reduced-motion → no animation', r.shown && !r.a.length, r);
+  await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+  await p.evaluate(() => { S.ux.anim = false; }); r = await run();
+  ok('bars: «Анимации» off → no animation', r.shown && !r.a.length, r);
+  await ctx.close();
 }
 
 const pass = checks.filter(Boolean).length;

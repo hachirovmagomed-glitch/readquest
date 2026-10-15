@@ -16,9 +16,10 @@ fi
 /usr/bin/google-chrome --version || true
 
 # 2. Node deps for the tests (versions from fixtures/package.json; not committed into source/test).
+#    esprima (hoist-map.mjs → names) is listed explicitly: today it only arrives as a transitive dep of puppeteer-core.
 if [ ! -d "$T/node_modules/puppeteer-core" ]; then
   W="$(mktemp -d)"; cp "$T/fixtures/package.json" "$W/"
-  (cd "$W" && PUPPETEER_SKIP_DOWNLOAD=1 npm install --no-audit --no-fund --silent)
+  (cd "$W" && PUPPETEER_SKIP_DOWNLOAD=1 npm install --no-audit --no-fund --silent && npm install --no-audit --no-fund --silent --no-save esprima@4)
   rm -rf "$T/node_modules"; mv "$W/node_modules" "$T/node_modules"
 fi
 

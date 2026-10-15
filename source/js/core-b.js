@@ -37,12 +37,40 @@ function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.f
 /** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
     any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
 function syncThemeColor(){try{const c=getComputedStyle(document.body).backgroundColor,m=c.match(/\d+/g),mt=document.querySelector('meta[name=theme-color]');if(mt&&m&&m.length>=3)mt.content='#'+m.slice(0,3).map(function(x){return (+x).toString(16).padStart(2,'0');}).join('');}catch(e){}}
+/* skin icon sets: the sprite symbols (#i-*) are redrawn for the worn skin, so every rqIcon/<use> on every screen follows it;
+   leaving the skin restores the Lucide originals (cached on first swap). Same names = same meaning, layout untouched.
+   «Эллада»: свиток, амфора, шлем, лира (настройки), копьё (назад), факел (серия), венок, Гелиос / Селена — our drawings, 24×24 stroke like Lucide. */
+const SKIN_ICONS={ellada:{
+ 'book-open':'<path d="M6 4v16M18 4v16"/><path d="M4 4h4M4 20h4M16 4h4M16 20h4"/><path d="M6 7h12M6 17h12"/><path d="M9 10.5h6M9 13.5h4"/>',
+ 'library':'<path d="M6 4v16M18 4v16"/><path d="M4 4h4M4 20h4M16 4h4M16 20h4"/><path d="M6 7h12M6 17h12"/><path d="M9 10.5h6M9 13.5h4"/>',
+ 'gift':'<path d="M10 2v5.632c0 .424-.272.795-.653.982A6 6 0 0 0 6 14c.006 4 3 7 5 8"/><path d="M10 5H8a2 2 0 0 0 0 4h.68"/><path d="M14 2v5.632c0 .424.272.795.652.982A6 6 0 0 1 18 14c0 4-3 7-5 8"/><path d="M14 5h2a2 2 0 0 1 0 4h-.68"/><path d="M18 22H6"/><path d="M9 2h6"/>',
+ 'user-round':'<path d="M5 20v-8a7 7 0 0 1 14 0v2h-5v6"/><path d="M14 14v-2.5"/><path d="M7 5.5c2.5-3 7.5-3 10 0"/><path d="M5 20h9"/>',
+ 'settings':'<path d="M7 21h10"/><path d="M8 21c-3-4-3-9-1-13 .6-1.3.3-2.6-1-3.5"/><path d="M16 21c3-4 3-9 1-13-.6-1.3-.3-2.6 1-3.5"/><path d="M7 8h10"/><path d="M10 8v11M12 8v11M14 8v11"/>',
+ 'menu':'<path d="M4 6h16M4 12h16M4 18h16"/><path d="M4 4.5v3M20 4.5v3M4 16.5v3M20 16.5v3"/>',
+ 'search':'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 13h5v-4H9.5v2"/>',
+ 'sun':'<circle cx="12" cy="12" r="4"/><path d="M12 1.5l1.3 3h-2.6zM12 22.5l1.3-3h-2.6zM1.5 12l3 1.3v-2.6zM22.5 12l-3 1.3v-2.6z"/><path d="M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
+ 'moon':'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 2.5v4M17 4.5h4"/>',
+ 'bookmark':'<path d="M6 3h12v18l-6-4-6 4z"/><path d="M12 6.5c2 1.2 2 4 0 6-2-2-2-4.8 0-6z"/>',
+ 'list':'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 4.5h3v3h-3zM3.5 10.5h3v3h-3zM3.5 16.5h3v3h-3z"/>',
+ 'flame':'<path d="M12 2c3 3 3.5 5.5 2.5 7.5h-5C8.5 7.5 9 5 12 2z"/><path d="M8.5 9.5h7"/><path d="M9.5 9.5 11 22h2l1.5-12.5"/>',
+ 'trophy':'<path d="M12 21c-5 0-8-4-8-9 0-2 .5-4 1.5-5.5M12 21c5 0 8-4 8-9 0-2-.5-4-1.5-5.5"/><path d="M5 12 3 11M5.5 16l-2 .5M19 12l2-1M18.5 16l2 .5M6 8.5 4.2 7M18 8.5 19.8 7"/><path d="M10 21l2 2 2-2"/>',
+ 'arrow-left':'<path d="M21 12H8"/><path d="M3 12l5-3.5c-.7 2.3-.7 4.7 0 7z"/>'
+}};
+const SKIN_ICONS_ORIG={};
+function applySkinIcons(skin){
+  const set=SKIN_ICONS[skin]||{};
+  Object.keys(SKIN_ICONS).forEach(function(k){Object.keys(SKIN_ICONS[k]).forEach(function(n){
+    const sym=document.getElementById('i-'+n);if(!sym)return;
+    if(!(n in SKIN_ICONS_ORIG))SKIN_ICONS_ORIG[n]=sym.innerHTML;
+    const want=set[n]||SKIN_ICONS_ORIG[n];if(sym.innerHTML!==want)sym.innerHTML=want;});});
+}
 function applySkin(){setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
+  applySkinIcons(t.skin||'');
   const lt=document.getElementById('libTitle');if(lt)lt.textContent='Библиотека'; /* «Карандашный»: mockup title */
-  const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
+  const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{if(typeof renderLibrary==='function')renderLibrary();}catch(e){} /* covers are skin-drawn: re-render even when the library is behind settings / the reader */}
   applySkin._last=sk;
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }

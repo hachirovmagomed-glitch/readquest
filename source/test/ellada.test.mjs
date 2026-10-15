@@ -112,10 +112,15 @@ const after = await p.evaluate(() => ({ gold: S.gold, owned: S.owned.slice().sor
 s = await st();
 ok('9 export → reset → import → reload: balance, owned, theme, worn skin identical; skin on screen', r9.ok && JSON.stringify(after) === JSON.stringify(before) && s.skin === 'ellada', { r9, before, after, s });
 
+// 9b. own icon set: sprite symbols redrawn while the skin is on (amphora for «Награды», scroll for «Библиотека»), same ids
+const ic1 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, lib: document.getElementById('i-book-open').innerHTML, nav: [...document.querySelectorAll('#botnav use')].map(u => u.getAttribute('href')) }));
+ok('9b Эллада icons: «Награды» amphora, «Библиотека» scroll, nav keeps the same ids', /M10 2v5\.632/.test(ic1.gift) && /M6 4v16M18 4v16/.test(ic1.lib) && ic1.nav.includes('#i-gift'), ic1);
 // 10. other skins stay «Скоро»; «Карандашный» still free and wearable
 const soon = await p.evaluate(() => SHOP_CATALOG.filter(x => x.type === 'skin' && !shopReady(x.id)).map(x => x.id));
 await p.evaluate(() => wear('skin-pencil')); await sleep(200); s = await st();
 ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 6 && s.skin === 'pencil' && s.set === 'pencil', { soon, s });
+const ic2 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, el: document.querySelectorAll('#shelf .el-cover').length, pc: document.querySelectorAll('#shelf .pc-cover').length }));
+ok('10b leaving the skin: Lucide icons back, covers redrawn for the new skin', !/M10 2v5\.632/.test(ic2.gift) && ic2.el === 0 && ic2.pc > 0, ic2);
 
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY ellada.test ${pass}/${checks.length}`);

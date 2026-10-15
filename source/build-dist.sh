@@ -43,7 +43,7 @@ SKTOK="${RQ_SKIN_TOKENS:-$ROOT/../handoff/skins/karandashny/tokens.rq.css}"
 # Shop skins with app styling: handoff/skins/<dir>/tokens.css appended the same way. The pack's Google Fonts @import is dropped
 # (offline PWA, and @import is invalid mid-file): the fonts ship as woff2 in fonts/, @font-face in skins/skins.css.
 for SK in ${RQ_SHOP_SKINS:-ellada}; do
-  F="$ROOT/../handoff/skins/$SK/tokens.css"; [ -f "$F" ] || { echo "build-dist: skin tokens not found: $F" >&2; exit 1; }
+  F="${RQ_SKINS_DIR:-$ROOT/../handoff/skins}/$SK/tokens.css"; [ -f "$F" ] || { echo "build-dist: skin tokens not found: $F" >&2; exit 1; }
   { printf '\n'; grep -v '^@import' "$F"; } >> "$DIST/tokens.css"
 done
 if grep -q '@import' "$DIST/tokens.css"; then echo "build-dist: @import left in tokens.css" >&2; exit 1; fi

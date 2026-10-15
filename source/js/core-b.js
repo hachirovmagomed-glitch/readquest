@@ -20,7 +20,17 @@ const THEMES={
 };
 /* day/night variants that have no swatch of their own (toggleDayNight swaps within the skin) */
 const THEME_VARIANTS={'pencil-night':{name:'Карандашный',bg:'#262a31',txt:'#e3e0d8',skin:'pencil',night:true,base:'pencil'}};
-function themeBase(k){const v=THEME_VARIANTS[k];return v?v.base:k;}
+/* shop skins with app styling (handoff/skins/<dir>/tokens.css → tokens.css, decor → skins/skins.css). Theme key = skin key, night = key+'-night'.
+   bg/txt = the clean book page of the skin ([data-page] tokens). Rendered only while the skin is owned (else sepia, rq_set not rewritten). */
+const SKIN_THEMES={
+ ellada:{name:'Эллада',bg:'#fcf9f3',txt:'#1a1410',skin:'ellada',shop:'skin-ellada',icon:'amphora'},
+ 'ellada-night':{name:'Эллада',bg:'#100d0b',txt:'#ebe0d2',skin:'ellada',shop:'skin-ellada',icon:'amphora',night:true,base:'ellada'}
+};
+function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base?v.base:k;}
+/** owned shop skin theme for a saved key, else null (unknown / not bought / not styled yet) */
+function skinTheme(k){const t=SKIN_THEMES[k];return t&&typeof shopOwns==='function'&&shopOwns(t.shop)&&shopReady(t.shop)?t:null;}
+/** day/night key of the same skin: 'pencil' ↔ 'pencil-night', 'ellada' ↔ 'ellada-night' */
+function skinThemeKey(skin,night){return night?skin+'-night':skin;}
 /** old (formerly paid) theme saved in rq_set — free since the shop build */
 function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.find(x=>x.id===k))||null;} /* shop build: the 9 old themes are free */
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
@@ -41,7 +51,7 @@ function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
 function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&window.__rqWriter&&__rqWriter.mayWrite())__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
-function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||ownedShopTheme(SET.theme)||THEMES.sepia;}
+function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||skinTheme(SET.theme)||ownedShopTheme(SET.theme)||THEMES.sepia;}
 const FONTS=[
  {label:'Georgia',v:'Georgia, serif'},
  {label:'Times',v:'"Times New Roman", Times, serif'},

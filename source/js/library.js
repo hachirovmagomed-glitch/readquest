@@ -267,11 +267,29 @@ function pencilCover(b){
   if(!ic){let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;ic=PC_COVER_ICONS[h%PC_COVER_ICONS.length];}
   return '<span class="pc-cover">'+rqIcon(ic,20)+'<i>'+fmt+'</i></span>';
 }
+/* «Эллада»: emoji cover → vase-painting tile (handoff/skins/ellada, our own profile figures). Kind and figure by a hash of the id.
+   red = black glaze + terracotta figure, black = light label over a terracotta field with a black figure, marble, aegean.
+   The format label never sits on terracotta (README «Правило терракоты»). Picture covers stay pictures. */
+const EL_FIG={
+ ship:'<path d="M6 34H54L48 42H14z"/><path d="M30 34V8M30 10L46 30H30zM30 12L16 30H30z"/>',
+ dolphin:'<path d="M8 32Q14 14 34 16Q48 17 54 26Q46 24 40 28Q46 34 44 40Q38 32 30 32Q20 34 14 40Q14 34 8 32z"/><path d="M30 17l4-8 3 9z"/>',
+ runner:'<circle cx="34" cy="9" r="5"/><path d="M33 14L28 28 18 34 22 37 31 31 34 40 26 48 29 50 38 41 36 29 44 22 48 26 51 24 44 16z"/>',
+ horse:'<path d="M14 46Q18 30 26 22Q24 14 30 8L34 14Q44 14 50 24L46 28Q40 24 38 28Q42 38 40 46z"/>',
+ owl:'<path d="M20 14L24 8 28 12Q30 11 32 12L36 8 40 14Q44 24 40 36Q36 46 30 46Q24 46 20 36Q16 24 20 14z"/>',
+ vine:'<circle cx="20" cy="36" r="4"/><circle cx="26" cy="38" r="4"/><circle cx="23" cy="43" r="4"/><circle cx="42" cy="22" r="4"/><circle cx="47" cy="27" r="4"/><path d="M10 44Q20 20 30 30T50 14" fill="none" stroke-width="2.6"/>'};
+const EL_KINDS=['red','black','marble','aegean'];
+function bookFmt(b){return b.type==='pdf'?'PDF':(/\.fb2$/i.test(b.fname||'')||b.genre==='FB2'?'FB2':(/\.epub$/i.test(b.fname||'')?'EPUB':'TXT'));}
+function elladaCover(b){
+  let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
+  const kind=EL_KINDS[h%EL_KINDS.length],figs=Object.keys(EL_FIG),fig=figs[(h>>3)%figs.length];
+  return '<span class="el-cover el-'+kind+'"><i>'+bookFmt(b)+'</i><svg viewBox="0 0 60 52" aria-hidden="true" focusable="false"><g>'+EL_FIG[fig]+'</g></svg></span>';
+}
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){
   const cv=S.covers[b.id];
   if(cv&&cv.indexOf('data:')===0)return '<img src="'+cv+'" alt="">';
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
+  if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(cv)return cv;
   return b.cover;
 }

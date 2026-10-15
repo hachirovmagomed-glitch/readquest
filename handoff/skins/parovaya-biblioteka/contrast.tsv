@@ -1,0 +1,161 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+rewards	награды за прочитанное	Jost	13	rgb(31, 90, 82)	ui-small	4.5	6.23	6.17	ok
+session-summary	+180	Oswald	24	rgb(138, 59, 18)	ui	4.5	6.23	6.23	ok
+library	Г. Котельников · не начата	Jost	11.5	rgb(84, 68, 58)	ui-small	4.5	6.62	6.35	ok
+library	П. Манометров · 67%	Jost	11.5	rgb(84, 68, 58)	ui-small	4.5	6.62	6.35	ok
+library	В. Шестернёва · 4%	Jost	11.5	rgb(84, 68, 58)	ui-small	4.5	6.74	6.52	ok
+palette	фон ночи	Jost	10	rgb(84, 68, 58)	ui-small	4.5	6.87	6.52	ok
+palette	книга ночью	Jost	10	rgb(84, 68, 58)	ui-small	4.5	6.87	6.52	ok
+rewards	XXX	Jost	12.5	rgb(106, 74, 16)	ui-small	4.5	6.75	6.69	ok
+session-summary	Продолжить	Playfair Display SC	18	rgb(255, 255, 255)	ui	4.5	6.83	6.7	ok
+palette	поверхность	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.06	6.71	ok
+palette	акцент ночи	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.06	6.71	ok
+rewards	Добавить на верстак	Jost	14	rgb(138, 59, 18)	ui	4.5	6.81	6.81	ok
+palette	#0f0d0b	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	6.92	6.86	ok
+palette	#e6dcc8	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	6.92	6.86	ok
+rewards	+30	Jost	15	rgb(106, 74, 16)	ui	4.5	6.93	6.87	ok
+rewards	+120	Jost	15	rgb(106, 74, 16)	ui	4.5	6.93	6.87	ok
+session-summary	+30 жетонов за день	Jost	15	rgb(106, 74, 16)	ui	4.5	6.91	6.87	ok
+palette	#1d1914	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.08	7.06	ok
+palette	#f2b84b	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.08	7.06	ok
+library	И. Лудильщикова · прочитано	Jost	11.5	rgb(84, 68, 58)	ui-small	4.5	7.26	7.13	ok
+palette	#b5893a	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.2	7.13	ok
+palette	рамки, декор	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.2	7.13	ok
+palette	#f5efe2	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.2	7.13	ok
+palette	книга день	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.2	7.13	ok
+library	С. Колесов · 53%	Jost	11.5	rgb(84, 68, 58)	ui-small	4.5	7.27	7.2	ok
+palette	вторичный текст	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.32	7.25	ok
+palette	панель вкладок	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.27	7.25	ok
+palette	суммы	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.27	7.26	ok
+palette	#54443a	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.34	7.27	ok
+palette	#1f5a52	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.34	7.27	ok
+palette	навигация	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.32	7.27	ok
+palette	#6a4a10	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.27	7.27	ok
+palette	#5a3420	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.27	7.27	ok
+library	А. Воздвиженская · 12%	Jost	11.5	rgb(84, 68, 58)	ui-small	4.5	7.39	7.34	ok
+palette	#231a12	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.4	7.34	ok
+palette	#ddd2bb	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.4	7.34	ok
+palette	вторичный	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.4	7.34	ok
+palette	текст	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.4	7.38	ok
+palette	акцент	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.46	7.4	ok
+palette	нажатие	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.46	7.4	ok
+palette	#8a3b12	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.46	7.46	ok
+palette	#6e2e0d	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.46	7.46	ok
+session-summary	Чтение	Jost	12	rgb(84, 68, 58)	ui-small	4.5	7.47	7.47	ok
+session-summary	Страницы	Jost	12	rgb(84, 68, 58)	ui-small	4.5	7.47	7.47	ok
+session-summary	XP	Jost	12	rgb(84, 68, 58)	ui-small	4.5	7.47	7.47	ok
+palette	#e9e1d0	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.6	7.55	ok
+palette	#f6f0e2	monospace	10.5	rgb(84, 68, 58)	ui-small	4.5	7.6	7.55	ok
+palette	панели	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.6	7.55	ok
+palette	фон	Jost	10	rgb(84, 68, 58)	ui-small	4.5	7.6	7.6	ok
+library	Часовщик с Литейного	Playfair Display SC	11	rgb(241, 233, 216)	ui-small	4.5	7.71	7.71	ok
+library	С. Колесов	Jost	10.5	rgb(241, 233, 216)	ui-small	4.5	7.71	7.71	ok
+library	EPUB	Jost	9.5	rgb(241, 233, 216)	ui-small	4.5	7.71	7.71	ok
+library	Дирижабль «Сирин»	Playfair Display SC	11	rgb(255, 255, 255)	ui-small	4.5	7.73	7.73	ok
+library	А. Воздвиженская	Jost	10.5	rgb(255, 255, 255)	ui-small	4.5	7.73	7.73	ok
+library	FB2	Jost	9.5	rgb(255, 255, 255)	ui-small	4.5	7.73	7.73	ok
+library	Читаю	Jost	14	rgb(84, 68, 58)	ui	4.5	7.74	7.74	ok
+library	Хочу	Jost	14	rgb(84, 68, 58)	ui	4.5	7.74	7.74	ok
+library	Прочитано	Jost	14	rgb(84, 68, 58)	ui	4.5	7.74	7.74	ok
+rewards	Читать 10 мин · 6 из 10 мин	Jost	12.5	rgb(84, 68, 58)	ui-small	4.5	7.95	7.88	ok
+rewards	4 дня по 10 мин · 3 из 4	Jost	12.5	rgb(84, 68, 58)	ui-small	4.5	7.96	7.88	ok
+session-summary	Давление в норме · 18 из 10 мин	Jost	12.5	rgb(84, 68, 58)	ui-small	4.5	7.88	7.88	ok
+library	Все	Jost	14	rgb(255, 255, 255)	ui	4.5	7.95	7.95	ok
+library	Библиотека	Jost	12	rgb(255, 255, 255)	ui-small	4.5	7.95	7.95	ok
+library	Награды	Jost	12	rgb(241, 228, 200)	ui-small	4.5	8.07	7.95	ok
+library	Профиль	Jost	12	rgb(241, 228, 200)	ui-small	4.5	8.07	7.95	ok
+rewards	Библиотека	Jost	12	rgb(241, 228, 200)	ui-small	4.5	8.07	7.95	ok
+rewards	Награды	Jost	12	rgb(255, 255, 255)	ui-small	4.5	7.95	7.95	ok
+rewards	Профиль	Jost	12	rgb(241, 228, 200)	ui-small	4.5	8.07	7.95	ok
+session-summary	320 / 500 до уровня 5	Jost	12	rgb(84, 68, 58)	ui-small	4.5	8.01	8.01	ok
+rewards	Придумайте, чем себя порадовать, и назна	Jost	12.5	rgb(84, 68, 58)	ui-small	4.5	8.16	8.14	ok
+session-summary	Часовщик с Литейного · стр. 85–98	Jost	13	rgb(84, 68, 58)	ui-small	4.5	8.16	8.16	ok
+library	Паровой город	Playfair Display SC	11	rgb(246, 234, 208)	ui-small	4.5	9.04	9.04	ok
+library	Г. Котельников	Jost	10.5	rgb(246, 234, 208)	ui-small	4.5	9.04	9.04	ok
+library	PDF	Jost	9.5	rgb(246, 234, 208)	ui-small	4.5	9.04	9.04	ok
+library	Паровой город	Jost	12.5	rgb(35, 26, 18)	ui-small	4.5	11.75	10.74	ok
+library	Хроники котельной	Jost	12.5	rgb(35, 26, 18)	ui-small	4.5	11.87	10.75	ok
+library	Сад механизмов	Jost	12.5	rgb(35, 26, 18)	ui-small	4.5	12.02	10.95	ok
+reader-night	Часовщик с Литейного	Playfair Display SC	17	rgb(239, 227, 204)	ui	4.5	12.42	11.22	ok
+reader-night	98 из 185	Jost	14	rgb(239, 227, 204)	ui	4.5	11.56	11.22	ok
+palette	Merriweather — текст книги	Merriweather	15	rgb(35, 26, 18)	ui	4.5	11.73	11.22	ok
+reader-day	98 из 185	Jost	14	rgb(35, 26, 18)	ui	4.5	11.33	11.3	ok
+reader-day	Часовщик с Литейного	Playfair Display SC	17	rgb(35, 26, 18)	ui	4.5	11.45	11.32	ok
+palette	Jost — интерфейс	Jost	14	rgb(35, 26, 18)	ui	4.5	11.76	11.52	ok
+palette	Oswald — цифры 18 мин · +180	Oswald	17	rgb(35, 26, 18)	ui	4.5	12.09	11.58	ok
+palette	Playfair Display SC — заголовки	Playfair Display SC	19	rgb(35, 26, 18)	ui	4.5	12.21	11.79	ok
+library	Часовщик с Литейного	Jost	12.5	rgb(35, 26, 18)	ui-small	4.5	13.0	11.83	ok
+library	Медная ласточка	Jost	12.5	rgb(35, 26, 18)	ui-small	4.5	13.03	11.84	ok
+reader-day	Оглавление	Jost	12	rgb(35, 26, 18)	ui-small	4.5	11.86	11.86	ok
+reader-day	Текст	Jost	12	rgb(35, 26, 18)	ui-small	4.5	11.89	11.86	ok
+reader-day	Ночь	Jost	12	rgb(35, 26, 18)	ui-small	4.5	11.86	11.86	ok
+reader-day	Закладка	Jost	12	rgb(35, 26, 18)	ui-small	4.5	11.86	11.86	ok
+library	И. Лудильщикова	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	11.87	11.87	ok
+library	TXT	Jost	9.5	rgb(35, 26, 18)	ui-small	4.5	11.87	11.87	ok
+library	Дирижабль «Сирин»	Jost	12.5	rgb(35, 26, 18)	ui-small	4.5	13.16	11.99	ok
+palette	Ночь: текст	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	12.89	12.67	ok
+palette	Мастерская	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	12.93	12.68	ok
+palette	Патина	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.53	12.86	ok
+palette	Копоть	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.53	12.95	ok
+palette	Ночь: панели	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.15	13.05	ok
+palette	Газовый свет	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.15	13.05	ok
+palette	Палитра «Паровая библиотека»	Playfair Display SC	19	rgb(35, 26, 18)	ui	4.5	13.66	13.11	ok
+rewards	Верстак	Playfair Display SC	19	rgb(35, 26, 18)	ui	4.5	13.27	13.15	ok
+palette	Медь	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.79	13.2	ok
+palette	Медь тёмн.	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.79	13.2	ok
+palette	Латунь	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.37	13.27	ok
+palette	Страница	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.28	13.27	ok
+library	Библиотека	Playfair Display SC	28	rgb(35, 26, 18)	ui	4.5	13.76	13.4	ok
+rewards	Награды	Playfair Display SC	28	rgb(35, 26, 18)	ui	4.5	13.66	13.4	ok
+rewards	Задания	Playfair Display SC	19	rgb(35, 26, 18)	ui	4.5	13.63	13.4	ok
+palette	Латунь текст	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.5	13.4	ok
+library	Хроники котельной	Playfair Display SC	11	rgb(239, 227, 204)	ui-small	4.5	13.46	13.46	ok
+library	П. Манометров	Jost	10.5	rgb(239, 227, 204)	ui-small	4.5	13.46	13.46	ok
+library	PDF	Jost	9.5	rgb(239, 227, 204)	ui-small	4.5	13.46	13.46	ok
+palette	Кожа	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.53	13.49	ok
+palette	Сажа	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.66	13.53	ok
+palette	Сталь светл.	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	13.66	13.53	ok
+reader-night	Оглавление	Jost	12	rgb(239, 227, 204)	ui-small	4.5	13.76	13.76	ok
+reader-night	Текст	Jost	12	rgb(239, 227, 204)	ui-small	4.5	13.76	13.76	ok
+reader-night	День	Jost	12	rgb(239, 227, 204)	ui-small	4.5	13.76	13.76	ok
+reader-night	Закладка	Jost	12	rgb(239, 227, 204)	ui-small	4.5	13.76	13.76	ok
+session-summary	18 мин	Oswald	24	rgb(35, 26, 18)	ui	4.5	13.78	13.78	ok
+session-summary	14	Oswald	24	rgb(35, 26, 18)	ui	4.5	13.78	13.78	ok
+palette	Чертёжная	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	14.02	13.89	ok
+palette	Табличка	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	14.02	13.92	ok
+reader-night	Глава 7. Третья минута	Playfair Display SC	19	rgb(230, 220, 200)	ui	4.5	13.96	13.96	ok
+reader-night	К вечеру в мастерской становилось тихо. 	Merriweather	16.5	rgb(230, 220, 200)	book	7	13.96	13.96	ok
+library	В. Шестернёва	Jost	10.5	rgb(35, 26, 18)	ui-small	4.5	14.16	14.16	ok
+library	EPUB	Jost	9.5	rgb(35, 26, 18)	ui-small	4.5	14.16	14.16	ok
+rewards	Серия сериала	Jost	13	rgb(35, 26, 18)	ui-small	4.5	14.53	14.4	ok
+rewards	Кофе в кофейне	Jost	13	rgb(35, 26, 18)	ui-small	4.5	14.53	14.4	ok
+rewards	Новая книга	Jost	13	rgb(35, 26, 18)	ui-small	4.5	14.53	14.4	ok
+session-summary	Неделя: 3 из 4 дней	Jost	13	rgb(35, 26, 18)	ui-small	4.5	14.4	14.4	ok
+session-summary	Уровень 4	Jost	13	rgb(35, 26, 18)	ui-small	4.5	14.77	14.77	ok
+rewards	Задание дня	Jost	15	rgb(35, 26, 18)	ui	4.5	15.06	14.81	ok
+rewards	Задание недели	Jost	15	rgb(35, 26, 18)	ui	4.5	15.06	14.81	ok
+reader-day	Глава 7. Третья минута	Playfair Display SC	19	rgb(35, 26, 18)	ui	4.5	14.93	14.93	ok
+reader-day	К вечеру в мастерской становилось тихо. 	Merriweather	16.5	rgb(35, 26, 18)	book	7	14.93	14.93	ok
+session-summary	Сессия завершена	Playfair Display SC	25	rgb(35, 26, 18)	ui	4.5	15.19	15.06	ok
+library	390	Oswald	15	rgb(35, 26, 18)	ui	4.5	15.44	15.44	ok
+library	жетонов	Jost	14	rgb(35, 26, 18)	ui	4.5	15.44	15.44	ok
+rewards	390	Oswald	15	rgb(35, 26, 18)	ui	4.5	15.44	15.44	ok
+rewards	жетонов	Jost	14	rgb(35, 26, 18)	ui	4.5	15.44	15.44	ok
+tokens	книга день	—	—	#231a12 / #f5efe2	book	7	14.93	14.93	ok
+tokens	книга ночь	—	—	#e6dcc8 / #12100d	book	7	13.96	13.96	ok
+tokens	--rq-text/--rq-bg	—	—	#231a12 / #e9e1d0	ui	4.5	13.15	13.15	ok
+tokens	--rq-text-2/--rq-bg	—	—	#54443a / #e9e1d0	ui	4.5	7.13	7.13	ok
+tokens	--rq-text-2/--rq-surface	—	—	#54443a / #f6f0e2	ui	4.5	8.16	8.16	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #8a3b12	ui	4.5	7.73	7.73	ok
+tokens	--rq-coin/--rq-surface	—	—	#6a4a10 / #f6f0e2	ui	4.5	7.11	7.11	ok
+tokens	патина (nav on)/белый	—	—	#ffffff / #1f5a52	ui	4.5	7.95	7.95	ok
+tokens	вкладки на коже	—	—	#f1e4c8 / #5a3420	ui	4.5	8.56	8.56	ok
+tokens	медь как текст/--rq-surface	—	—	#8a3b12 / #f6f0e2	ui	4.5	6.81	6.81	ok
+tokens	латунь (декор)/--rq-surface	—	—	#b5893a / #f6f0e2	decor	не для текста	2.8	2.8	ok
+tokens	сталь (декор)/--rq-surface	—	—	#7d7a72 / #f6f0e2	decor	не для текста	3.77	3.77	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#efe3cc / #0f0d0b	ui	4.5	15.27	15.27	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#c4b196 / #1d1914	ui	4.5	8.39	8.39	ok
+tokens	ночь газовый свет/--rq-surface	—	—	#f2b84b / #1d1914	ui	4.5	9.77	9.77	ok
+tokens	ночь медь/--rq-surface	—	—	#f0956a / #1d1914	ui	4.5	7.67	7.67	ok
+tokens	ночь патина/--rq-surface	—	—	#7fc9b8 / #1d1914	ui	4.5	9.11	9.11	ok
+tokens	ночь латунь (декор)/--rq-surface	—	—	#6e5426 / #1d1914	decor	не для текста	2.46	2.46	ok

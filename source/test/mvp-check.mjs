@@ -54,10 +54,13 @@ await page.screenshot({ path: OUT + '/library-mvp.png' });
 await openSettings();
 const setv = {}; for (const id of ['goalMinus2', 'goalPlus2', 'antiMinMinus', 'antiMinPlus', 'antiMaxMinus', 'antiMaxPlus']) setv[id] = await vis(id);
 const setTxt = await page.evaluate(() => ({ min: antiMinVal.textContent, max: antiMaxVal.textContent, goal: goalVal2.textContent }));
-const rows1 = { mvpTgl: await rowVis('mvpTgl'), devMoneyTgl: await rowVis('devMoneyTgl'), focusTgl: (await rowVis('readCntTgl')) && (await vis('focusSeg')) }; /* 1б: «Режим фокуса» = #focusSeg + «Показывать счётчик чтения» */
+/* 1г (stage1g-settings-criteria): «Режим фокуса» (#focusSeg + счётчик #readCntTgl) is a reader setting — it lives in the reader panel, not in #settings.
+   Shop build (14.10, Квестмастер): «∞ валюта» (#devMoneyTgl) is removed, the row must not exist at all. */
+const focusIn = () => page.evaluate(() => { const f = document.getElementById('focusSeg'), c = document.getElementById('readCntTgl'); return !!f && !!c && !f.closest('#settings') && !c.closest('#settings'); });
+const rows1 = { mvpTgl: await rowVis('mvpTgl'), devMoneyTgl: await page.evaluate(() => !!document.getElementById('devMoneyTgl')), focusTgl: await focusIn() };
 const testH2 = await page.evaluate(() => [...document.querySelectorAll('#settings h2')].filter(h => /Тест-режим/.test(h.textContent)).map(h => getComputedStyle(h).display));
 ok('2 settings: all goal/anti steppers hidden; read-only values 12 с / 3 мин / 10 мин', Object.values(setv).every(v => !v) && setTxt.min === '12 с' && setTxt.max === '3 мин' && setTxt.goal === '10 мин', { setv, setTxt });
-ok('4 settings without ?dev=1: «Режим MVP» row and «🧪 Тест-режим» (∞ валюта) hidden; «Режим фокуса» stays', !rows1.mvpTgl && !rows1.devMoneyTgl && rows1.focusTgl && testH2.every(d => d === 'none'), { rows1, testH2 });
+ok('4 settings without ?dev=1: «Режим MVP» row and «🧪 Тест-режим» hidden, no «∞ валюта» row; «Режим фокуса» in the reader panel', !rows1.mvpTgl && !rows1.devMoneyTgl && rows1.focusTgl && testH2.every(d => d === 'none'), { rows1, testH2 });
 await page.screenshot({ path: OUT + '/settings-mvp.png', fullPage: true });
 await page.evaluate(() => { document.querySelector('#settings .scroll').scrollTop = 1e6; }); await sleep(200);
 await page.screenshot({ path: OUT + '/settings-mvp-bottom.png' });
@@ -82,10 +85,10 @@ await page.evaluate(() => setLang('ru')); await sleep(400); await reload();
 // ---- ?dev=1 ----
 await go('?dev=1');
 await openSettings();
-const rows2 = { mvpTgl: await rowVis('mvpTgl'), devMoneyTgl: await rowVis('devMoneyTgl') };
-ok('4 ?dev=1: «Режим MVP» and «∞ Бесконечная валюта» visible', rows2.mvpTgl && rows2.devMoneyTgl, rows2);
+const rows2 = { mvpTgl: await rowVis('mvpTgl'), devMoneyTgl: await page.evaluate(() => !!document.getElementById('devMoneyTgl')) };
+ok('4 ?dev=1: «Режим MVP» visible; «∞ Бесконечная валюта» removed (shop build)', rows2.mvpTgl && !rows2.devMoneyTgl, rows2);
 await page.screenshot({ path: OUT + '/settings-mvp-dev.png', fullPage: true });
-await page.evaluate(() => document.getElementById('devMoneyTgl').scrollIntoView({ block: 'center' })); await sleep(200);
+await page.evaluate(() => document.getElementById('mvpTgl').scrollIntoView({ block: 'center' })); await sleep(200);
 await page.screenshot({ path: OUT + '/settings-mvp-dev-testmode.png' });
 await openLib(); await page.screenshot({ path: OUT + '/library-mvp-dev.png' });
 

@@ -156,20 +156,20 @@ if (want('zones')) {
   ok('zones: top-left 12 % = day/night, focus kept', s.focus && dn === 'night', { s, dn });
   await tap(p, 0.5, 0.05); s = await st(p);
   ok('zones: top-middle = centre (leaves focus)', !s.focus && !s.barsoff, s);
-  await p.evaluate(() => { SET.nav.tap = false; applySet(); }); await sleep(500);
+  await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { tap: false }); applySet(); }); /* 15.10: page-turn settings moved to SET.flip */ await sleep(500);
   await p.evaluate(() => setFocus(true)); await sleep(300);
   const m0 = await p.evaluate(() => (S.marks[R.book.id] || []).length), pg1 = await p.evaluate(() => R.page);
   await tap(p, 0.9, 0.05); s = await st(p);
   const m1 = await p.evaluate(() => (S.marks[R.book.id] || []).length);
-  ok('zones: SET.nav.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
+  ok('zones: SET.flip.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
   await p.evaluate(() => setFocus(true)); await sleep(300);
   /* 1в: the tap reveals the bars → the viewer gets shorter → relayout keeps the reading anchor, so the page INDEX
      may change without any flip. «No flip» = no turn counted; the index may only move by the bars relayout (R.anc returns to the pre-focus page). */
   const tb = await p.evaluate(() => ({ turned: R.turned, off: firstOffsetOfPage(R.page) }));
   await tap(p, 0.9, 0.5); s = await st(p);
   const ta = await p.evaluate((o) => ({ turned: R.turned, offPage: pageOfOffset(txtNodes(), o), page: R.page }), tb.off);
-  ok('zones: SET.nav.tap=false → side tap is centre (no flip, focus off)', !s.focus && ta.turned === tb.turned && Math.abs(ta.page - pg1) <= 1, { s, pg1, tb, ta });
-  await p.evaluate(() => { SET.nav.tap = true; SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
+  ok('zones: SET.flip.tap=false → side tap is centre (no flip, focus off)', !s.focus && ta.turned === tb.turned && Math.abs(ta.page - pg1) <= 1, { s, pg1, tb, ta });
+  await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { tap: true }); SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
   await p.__ctx.close();
   if (fs.existsSync(PDF)) {
     const q = await fresh(PDF);
@@ -575,12 +575,13 @@ if (want('pospct')) {
   const r = await q.evaluate(async () => {
     const A = BOOKS[0], B = BOOKS[1]; S.finished = S.finished.filter(x => x !== A.id && x !== B.id);
     S.progress[A.id] = { ratio: 1, pos: 0.3 }; S.progress[B.id] = { ratio: 0.5, pos: 0.5 }; save();
-    show('library'); LIB.sort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
+    /* since the library header (3d821bb) renderLibrary() takes the sort from SET.libSort (NS_set) — set it there, in memory only */
+    const sort0 = SET.libSort; show('library'); SET.libSort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
     const cards = [...document.querySelectorAll('#shelf .bookcard')]; const ci = t => cards.findIndex(c => c.querySelector('.btitle').textContent.includes(t));
     const cardA = cards[ci(A.title)].querySelector('.bpct').textContent;
     bookInfo(A.id); const info = (document.getElementById('bookSheetBody').textContent.match(/Прогресс:\s*([^·]+)/) || [])[1];
     let shared = null; const ns = navigator.share; navigator.share = (o) => { shared = o.text; return Promise.resolve(); }; shareBook(A.id); navigator.share = ns;
-    LIB.sort = 'recent'; renderLibrary();
+    SET.libSort = sort0; renderLibrary();
     return { cardA, info: info && info.trim(), shared, iA: ci(A.title), iB: ci(B.title), finished: S.finished.includes(A.id) };
   });
   ok('pospct: pos 30 % / farthest 100 % → card «30%», info «30%», share «30%», not finished', /^30%/.test(r.cardA) && r.info === '30%' && /прогресс 30%/.test(r.shared || '') && !r.finished, r);

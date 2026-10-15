@@ -115,6 +115,7 @@
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+html{background:var(--bg)} /* system edge swipe «назад» stays enabled (no overscroll-behavior) */ /* canvas under the bottom nav / safe area = page colour, never a dark strip */
 body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
 .hidden{display:none!important}
@@ -138,7 +139,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .bookcard:active{transform:scale(.985)}
 .cover{width:44px;height:58px;flex:none;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden}
 .cover img{width:100%;height:100%;object-fit:cover}
-.addmini{background:var(--card2);border-radius:99px;padding:7px 16px;font-size:13px;color:var(--accent);font-weight:600}
+.addmini{background:var(--card2);border:1.5px solid var(--accent);border-radius:99px;padding:7px 16px;font-size:13px;color:var(--accent);font-weight:600}
 .trophy img{width:40px;height:52px;object-fit:cover;border-radius:6px}
 .bmeta{flex:1;min-width:0}
 .btitle{font-weight:700;font-size:16px}
@@ -204,7 +205,7 @@ body.rq-nolocks #rqNoXp{display:block}
    outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
    running footer. While the bars are shown the footer already has the number → keep the space, hide the digits. */
 #pgLine{flex:none;box-sizing:content-box;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 max(var(--r-margin,24px),env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(var(--r-margin,24px),env(safe-area-inset-left,0px)); /* 1б-fix #3: counter/number above the gesture bar */pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
-#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:inherit;opacity:.45;letter-spacing:.2px}
+#pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--r-txt-2);letter-spacing:.2px} /* audit 15.10: token, no opacity (≥ 4.5, contrast.tsv «номер страницы в углу») */
 #reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
 #mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}
 #libGoldLine{margin-top:10px;font-size:13px;font-weight:600;color:#ffc107;opacity:.92}
@@ -242,7 +243,7 @@ body.rq-nolocks #rqNoXp{display:block}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
-#content .meta{text-indent:0;opacity:.6;font-style:italic;margin-bottom:1.6em}
+#content .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
 .tap.left{left:0}.tap.right{right:0}
 .tap.mid{left:30%;width:40%}
@@ -330,10 +331,21 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 
 /* ===== Drawer, настройки, карточка книги ===== */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:80}
-#drawer{position:fixed;top:0;bottom:0;left:0;width:280px;max-width:80vw;background:var(--drawer);z-index:81;transform:translateX(-105%);transition:transform .25s ease;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 0 14px;box-shadow:8px 0 30px rgba(0,0,0,.35)}
+#drawer{position:fixed;top:0;bottom:0;left:0;width:85vw;max-width:none;background:var(--drawer);z-index:81;transform:translateX(-105%);transition:transform .25s ease;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 0 14px;box-shadow:8px 0 30px rgba(0,0,0,.35)}
 #drawer.open{transform:translateX(0)}
+.navcfg{position:fixed;inset:0;z-index:90;background:var(--bg);overflow-y:auto;padding:calc(40px + env(safe-area-inset-top)) 16px 24px}.navcfg h2{text-transform:none;letter-spacing:0}
+.navcfg .nch{display:flex;align-items:center;gap:10px;margin-bottom:12px}.navcfg .ncp{font-size:12px;color:var(--muted)}.navcfg h2{font-size:22px;margin:0}
+.navcfg h4{font-size:13px;color:var(--muted);margin:16px 4px 8px;font-weight:600}
+.navprev{display:flex;justify-content:space-around;background:var(--card);border-radius:14px;padding:8px 6px}.navprev span{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.navprev span:first-child{color:var(--accent)}
+.navlist{background:var(--card);border-radius:14px;overflow:hidden}.navli{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 6px 0 12px;border-bottom:1px solid var(--card2)}.navli:last-child{border-bottom:0}
+.navli .nl{flex:1;min-width:0}.navli .nl small{display:block;color:var(--muted);font-size:11px}.navli button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--txt);border-radius:10px}
+.navli button:disabled{opacity:.35}.navli .navdel{color:#e5604f}.navli .navadd{color:var(--accent)}.navli .navlock{width:44px;display:flex;justify-content:center;color:var(--muted)}
+.navmax{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin:8px 4px}.navrow{width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit}
 .dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid #1d4250;margin-bottom:8px}
-.dhead .logo{width:42px;height:42px;border-radius:10px;background:var(--bar);display:flex;align-items:center;justify-content:center;font-size:22px}
+.dstat{font-size:12px;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:3px;background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
+.dava{width:48px;height:48px;border-radius:50%;flex:none;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--accent)}.dname{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dgold{color:var(--txt);font-weight:600}
+#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:rgba(43,179,192,.16)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
+#botnav .botnav-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:15px;color:var(--txt);width:100%;text-align:left}
 .ditem.on{background:rgba(43,179,192,.12);color:var(--accent);border-right:3px solid var(--accent)}
 .ditem .ico{font-size:19px;width:24px;text-align:center}
@@ -352,6 +364,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* ===== Поиск, статистика, трофеи, сетка ===== */
 .searchinp{width:100%;background:var(--card);border:1px solid #2a5564;border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+#libChips{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);padding-right:24px}
 .chips::-webkit-scrollbar{display:none}
 .fchip{flex:none;background:var(--card2);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted)}
 .fchip.on{background:var(--accent);color:#fff}
@@ -630,6 +643,67 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .botnav-btn.on{color:var(--accent);background:rgba(43,179,192,.12)}
 #rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
 #rewardsSheet.open{transform:translateY(0)}
+/* shop build 14.10: «Награды» = «Из жизни» / «Магазин», balance as text, no coin icons */
+.rewhead{align-items:center;margin:0 36px 10px 0}
+.rewtabs{display:flex;gap:6px;background:var(--card);border-radius:12px;padding:4px;margin-bottom:12px}
+.rewtabs button{flex:1;min-height:40px;border-radius:9px;font-weight:600;color:var(--muted)}
+.rewtabs button.on{background:var(--card2);color:var(--txt)}
+.shopkinds{display:flex;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.shopkinds .on{color:var(--txt);font-weight:600}
+#shopList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.shopcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:12px;background:var(--card);text-align:left;min-width:0}
+.shopcard .shopcov{display:block;width:100%;aspect-ratio:3/2;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.shopcard .shopname{font-weight:700}
+.shopcard .shopprice{font-size:13px}
+.shopcard .shopst{font-size:12px;color:var(--muted)}
+.shopcard[data-st=worn] .shopst,.shopcard[data-st=owned] .shopst{color:var(--good)}
+#shopDetailScrim,#shopConfirmScrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:88}
+#shopConfirmScrim{z-index:98}
+#shopDetail{position:fixed;inset:0;z-index:96;display:flex;flex-direction:column;background:var(--bg,#0c2127);padding:calc(10px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom))}
+.sphead{display:flex;align-items:center;gap:8px;min-height:48px}
+.spback{width:44px;height:44px;display:flex;align-items:center;justify-content:center;margin-left:-10px}
+.spbody{flex:1;overflow-y:auto;min-height:0}
+.spprev{display:flex;gap:12px;justify-content:center;margin:8px 0 14px}
+.spphone{width:44%;aspect-ratio:9/16;border-radius:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.35)}
+.sptitle{align-items:baseline}.sptitle b{font-size:24px}
+.spst{font-weight:600}.spst.on{color:var(--accent)}
+.spdesc{font-size:14px;color:var(--muted);margin:4px 0 12px}
+.shopcols-h small{color:var(--muted);font-weight:400}
+.spfoot{padding-top:10px}.spcap{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+#shopDetail[hidden],#shopConfirm[hidden],#shopDetailScrim[hidden],#shopConfirmScrim[hidden]{display:none}
+#shopConfirm{position:fixed;left:24px;right:24px;top:50%;transform:translateY(-50%);z-index:99;background:var(--sheet);border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+#scTitle{font-size:19px;font-weight:700;line-height:1.3}
+#scText{font-size:15px;color:var(--muted);margin:8px 0 20px}
+.scRow{display:flex;gap:10px}.scRow button{flex:1;min-height:48px}
+.shopcta{width:100%;min-height:44px;margin-top:6px}
+#btnTestGold{width:100%;min-height:44px;margin-bottom:10px}
+#rewardsSheet .rewtabs button,#rewSlots .buy,#rewSlots .tierseg button,#btnAddRewardSlot,#rewSlots .searchinp{min-height:44px}
+#rewSlots .lnk{min-height:44px;min-width:44px;padding:0 8px}
+.shopcol small{white-space:nowrap}
+.shopdh{font-size:18px}
+.shopcols-h{font-size:13px;font-weight:600;margin-bottom:6px}
+.shopcols{display:flex;gap:8px;flex-wrap:wrap}
+.shopcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:96px;padding:6px;border-radius:10px;border:2px solid transparent}
+.shopcol.on{border-color:var(--accent)}
+.shopcol .shopcov{width:56px;height:40px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.shopbuy{width:100%;margin-top:10px;min-height:44px}#shopDetail .shopbuy{height:52px;min-height:52px;box-sizing:border-box}
+#settings .stepbtn{width:44px;height:44px;min-width:44px}
+#shelfH{white-space:nowrap;flex:none}
+.addmini{white-space:nowrap}
+/* library header (15.10): ☰ · title · search 44 · balance text; search bar replaces the header; sort menu + add icon in «Моя полка» */
+.libhead,.libsearchbar{margin-bottom:14px;min-height:44px;gap:6px;flex-wrap:nowrap}.libhead h1{white-space:nowrap;min-width:0}
+.iconbtn44{width:44px;height:44px;min-width:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:12px;background:none;color:var(--txt)}
+.libgold{flex:none;white-space:nowrap;font-weight:600;font-size:15px;color:var(--txt);padding-left:2px}
+.libsearchbar[hidden],#libHead[hidden]{display:none!important}.libsearchbar .searchinp{flex:1;min-width:0;margin:0}
+.lsortwrap{position:relative;flex:none}.lsortbtn{height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border:0;border-radius:12px;background:var(--card2);color:var(--txt);font:inherit;font-size:14px;white-space:nowrap}
+.lsortbtn .lsl{white-space:nowrap}
+.lsortmenu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:200px;padding:4px 0;border-radius:12px;background:var(--card);color:var(--txt);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.lsortmenu[hidden]{display:none!important}
+.lsortmenu .lso{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:0;background:none;color:var(--txt);font:inherit;font-size:15px;text-align:left}
+.lsortmenu .lso span{flex:1}.lsortmenu .lso svg{color:var(--accent);visibility:hidden}.lsortmenu .lso[aria-checked="true"] svg{visibility:visible}
+#btnAdd.addicon{margin-left:6px;background:var(--card2);border:1.5px solid var(--muted)}html[data-skin="pencil"] #btnAdd.addicon{border:2px solid var(--rq-skin-border)}#btnAdd[aria-busy="true"]{opacity:.5}
+html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box-shadow:none}
+
 #rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}
@@ -639,9 +713,16 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .mvp-hist{font-size:12px;color:var(--muted);margin-top:10px}
 .mvp-hist li{margin:4px 0}
 body.mvp .mvp-hide{display:none!important}
+/* wave 2 (15.10): «Анимации» off (html.rq-still) or prefers-reduced-motion → no animations, no transitions anywhere */
+html.rq-still *,html.rq-still *::before,html.rq-still *::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* MVP: a hidden row is often the last one → the last VISIBLE row has no divider */
+body.mvp .setrow:not(.mvp-hide):not(:has(~ .setrow:not(.mvp-hide))){border-bottom:none}
+/* «Общие настройки» on narrow phones (360): controls that do not fit go to their own line, right-aligned; words are never split */
+#settings .pcard .setrow{flex-wrap:wrap}#settings .pcard .setrow>.lab+*{margin-left:auto}#settings .pcard .setrow .lab{overflow-wrap:normal;min-width:min-content}.stepgrp{display:flex;align-items:center;gap:10px}
 body:not(.dev) .dev-only{display:none!important}
-body.mvp #goldChip,body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
-body.mvp #drawer .ditem:not(#dLib):not(#dProf):not(#dSet){display:none!important}
+body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
+
 body.mvp #sumGoldCell,body.mvp #sumStatCell,body.mvp #luckLbl,body.mvp #sumBadges,body.mvp #lvlUp{display:none!important}
 body.mvp #profile .mvp-full{display:none!important}
 body.mvp #btnProfSetup{display:none!important}
@@ -654,7 +735,7 @@ body.mvp #sumDailyBox{display:block}
 
 /* ===== 1в: Lucide icons (one sprite, stroke currentColor) ===== */
 .mvp-only-i{display:none}body.mvp .mvp-only-i{display:inline}
-#goldChip,#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
+#rewGoldChip,#streakTxt,#lvlTxt{display:inline-flex;align-items:center;gap:4px}
 .ic{flex:none;fill:none;stroke:currentColor;stroke-width:var(--rq-icon-stroke,1.8);stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 .rhead button{display:inline-flex;align-items:center;justify-content:center;min-width:var(--rq-tap,44px);min-height:var(--rq-tap,44px);padding:0}
 #selpop button{display:inline-flex;align-items:center;gap:4px}
@@ -667,6 +748,51 @@ body.mvp #sumDailyBox{display:block}
 .rbar .aa{font:700 19px/22px Georgia,serif;height:22px}
 .barsoff .rbar,.imm .rbar{display:none}
 #reader.nofocusbtn #btnFocus{display:none}
+/* ===== «Карандашный» rules (Интерфейс 13.10): frame only on cards; switches keep their shape; 2px graphite line on controls (14.10: 1.5px was too faint);
+   theme tiles 1px / selected 2px accent + check; no hyphenation anywhere outside the book page ===== */
+html[data-skin="pencil"] :is(.ghostbtn:not(.sw),.stepbtn,.seg:not(#appThemeBox) button,.fchip,.addmini,.searchinp,input[type=text],input[type=password],input[type=search],select,textarea){
+  border-style:solid;border-width:2px;border-color:var(--rq-skin-border);border-radius:var(--radius);box-shadow:none!important;border-image:none;outline-offset:2px}
+html[data-skin="pencil"] :is(.ghostbtn,.stepbtn,.seg button,.fchip)::after{content:none}
+html[data-skin="pencil"] .ghostbtn.sw{box-sizing:border-box;width:44px;min-width:44px;height:24px;min-height:0;padding:0;border:0;border-radius:999px;box-shadow:none!important;
+  background:color-mix(in srgb,var(--rq-line) 30%,transparent)}
+html[data-skin="pencil"] .ghostbtn.sw[aria-checked="true"]{background:var(--rq-accent)}
+html[data-skin="pencil"] .ghostbtn.sw::before{content:none}
+html[data-skin="pencil"] .ghostbtn.sw::after{content:"";position:absolute;inset:auto;top:2px;left:2px;width:20px;height:20px;border:0;border-image:none;border-radius:50%;background:var(--rq-surface);box-shadow:0 1px 2px rgba(0,0,0,.25)}
+html[data-skin="pencil"] .ghostbtn.sw[aria-checked="true"]::after{transform:translateX(20px);background:var(--rq-surface)}
+html[data-skin="pencil"] #appThemeBox .appsw{border:1px solid var(--rq-line);box-shadow:none}
+html[data-skin="pencil"] #appThemeBox .appsw.on{border:2px solid var(--rq-accent)}
+html[data-skin="pencil"] body :not(#reader,#reader *){hyphens:none!important;overflow-wrap:normal!important;word-break:normal!important}
+html[data-skin="pencil"] .setrow{border-bottom-color:var(--rq-line)}
+html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}
+html[data-skin="pencil"] #settings .setrow>.lab{flex:1 1 120px}
+html[data-skin="pencil"] #settings .setrow>:is(button,.btnpair,b){margin-left:auto}
+/* theme tiles with captions (both skins) */
+.xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+#appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
+.xdot{width:22px;height:22px;border-radius:50%;flex:none;box-sizing:border-box;border:2px solid var(--muted);box-shadow:none} /* 2px ring like list samples */
+.xrow .xlab{flex:1 1000 auto;min-width:0;display:flex;flex-direction:column;gap:2px}.xrow .xt{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xsub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xlab~.xv{flex:0 1 auto;min-width:0;max-width:none;font-weight:400}.xrow .xt{flex:none}
+button.xrow#appThemeX{background:none!important;padding-left:0!important;padding-right:0!important;border-radius:0;box-shadow:none} /* Интерфейс: no fill, icon/text aligned with the block's rows */ /* variant A: title never shrinks, value takes the rest, ellipsis only as last resort */
+.xdot.xdot-skin{display:flex;align-items:center;justify-content:center;color:var(--txt)}.xdot.xdot-skin svg{width:14px;height:14px}html[data-skin="pencil"] .xdot.xdot-skin{border-color:var(--rq-skin-border);color:var(--rq-skin-border)}
+.xrow .xs{width:32px;flex:none;font-size:18px;text-align:center}.xrow .xs~.xl{color:var(--txt);font-size:15px}
+/* expanded lists = mockups sf-1g-fonts / sf-1g-themes: 52px rows, sample, label, check on the current one */
+#fontSeg.xlist,#appThemeBox.xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
+#fontSeg.xlist[hidden],#appThemeBox.xlist[hidden]{display:none!important}
+.xopt{display:flex!important;align-items:center;gap:14px;width:100%;min-height:52px;height:52px;padding:0 6px;background:none!important;border:0;border-bottom:1px solid var(--card2);border-radius:0!important;color:var(--txt);text-align:left;font-size:17px}
+.xopt .xs{width:36px;font-size:18px;text-align:center;flex:none}.xopt .xn{flex:1;min-width:0;font-size:17px}.xopt .xm{visibility:hidden;color:var(--accent);display:flex}.xopt.on .xm{visibility:visible}
+#appThemeBox.xlist .apptile{flex-direction:row;gap:14px;min-height:52px;height:52px;padding:0 6px;border-bottom:1px solid var(--card2);cursor:pointer}
+#appThemeBox.xlist .apptile small{flex:1;text-align:left;font-size:16px;color:var(--txt)}
+#appThemeBox.xlist .apptile .appsw{width:36px;height:36px;flex:none}
+#appThemeBox.xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}#appThemeBox.xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}#appThemeBox.xlist .apptile small{white-space:nowrap}
+.srow:has(#fontSegX){flex-wrap:wrap}.srow:has(#fontSegX) > .seg,#fontSeg.xlist{width:100%;flex:1 1 100%}
+#appThemeBox.xlist .apptile .chk{position:static;display:flex;visibility:hidden;background:none;color:var(--accent);width:22px;height:22px}
+#appThemeBox.xlist .apptile.on .chk{visibility:visible}
+#appThemeBox{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
+.apptile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.apptile small{font-size:11px;line-height:1.2;color:var(--muted);text-align:center;white-space:nowrap}
+.apptile.on small{color:var(--txt);font-weight:700}
+.apptile .chk{display:none;position:absolute;top:-4px;right:calc(50% - 26px);width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center}
+.apptile.on .chk{display:flex}
+html[data-skin="pencil"] .apptile .chk{background:var(--rq-accent);color:var(--rq-on-accent)}
 /* ===== 1в: «Настройки чтения» sheet ===== */
 #sheet{padding-top:8px}
 #sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--muted);opacity:.5;margin:0 auto 10px}
@@ -745,22 +871,24 @@ html[data-skin="pencil"] #pgSlider::-moz-range-thumb{background:transparent;bord
 html[data-skin="pencil"] .pc-hide{display:none!important}
 html[data-skin="pencil"] svg.pc-only,html[data-skin="pencil"] span.pc-only{display:inline-block!important}
 html[data-skin="pencil"] div.pc-only{display:block!important}
-html[data-skin="pencil"]{--pc-frame:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%233d3d3a' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%233d3d3a' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-frame-n:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%23cfccc3' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%23cfccc3' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-fw:12px;--rq-page-bg:#fbfaf6;--rq-slider-track:#8f8c84}
+html[data-skin="pencil"]{--pc-frame:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%233d3d3a' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%233d3d3a' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-frame-n:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%23cfccc3' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%23cfccc3' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-fw:12px;--rq-page-bg:#fbfaf6;--rq-slider-track:#8f8c84}
 html[data-skin="pencil"][data-theme="night"]{--pc-frame:var(--pc-frame-n);--rq-page-bg:#262a31;--rq-slider-track:#7c828c}
 html[data-skin="pencil"] #libTitle,html[data-skin="pencil"] #profile h1,html[data-skin="pencil"] #rewardsSheet h3{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:32px;line-height:1.1;letter-spacing:0}
 html[data-skin="pencil"] #rewardsSheet h3{font-size:28px}
 /* pencil section labels in sentence case («Моя полка», «Задания»), not uppercase; ids/keys unchanged */
 html[data-skin="pencil"] :is(#shelfH,#mvpQuestH){text-transform:none;letter-spacing:0;font-size:18px;font-weight:700;color:var(--rq-text)}
 /* baked hand-drawn outline: 9-slice SVG (two jittered strokes) on a pseudo element — text never filtered */
-html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.fchip,.chip,.badge,.sumcell,.ghostbtn){position:relative;box-shadow:none!important;border-color:transparent}
-html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.fchip,.chip,.badge,.sumcell,.ghostbtn)::after{content:"";position:absolute;inset:-1px;pointer-events:none;border:var(--pc-fw) solid transparent;border-image:var(--pc-frame) 14 / var(--pc-fw) stretch}
-html[data-skin="pencil"] .fchip{--pc-fw:7px;border-radius:9px}
+html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.badge,.sumcell){position:relative;box-shadow:none!important;border-color:transparent}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){overflow:hidden}
+/* card paper sits exactly inside the drawn line (the 9-slice stroke is ~2.5px in from the edge, corner ~10px): no paper strip outside the frame */
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){isolation:isolate;background:transparent!important;border-radius:12px}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell)::before{content:"";position:absolute;inset:2.5px;z-index:-1;border-radius:10px;background:var(--rq-surface);pointer-events:none}
+html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.badge,.sumcell)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:var(--pc-fw) solid transparent;border-image:var(--pc-frame) 14 / var(--pc-fw) stretch}
 html[data-skin="pencil"] .chip{border:1.2px solid var(--rq-skin-border);border-radius:9px 7px 10px 6px/7px 10px 6px 9px}
-html[data-skin="pencil"] .chip::after{content:none!important}
 html[data-skin="pencil"] .fchip{min-height:44px;padding:7px 14px;background:var(--rq-surface);color:var(--rq-text)}
 html[data-skin="pencil"] .fchip.on{background:var(--rq-accent);color:var(--rq-on-accent)}
 html[data-skin="pencil"] .chip{background:var(--rq-surface);color:var(--rq-text-2)}
-html[data-skin="pencil"] .searchinp{border:9px solid transparent;border-image:var(--pc-frame) 14 / 9px stretch;padding:4px 6px;border-radius:0;background:var(--rq-surface) padding-box}
+html[data-skin="pencil"] .searchinp{background:var(--rq-surface)}
 html[data-skin="pencil"] .pbar{background:var(--rq-skin-daybar-track);height:4px}
 /* covers: hatched tile + Lucide icon + format label on a clean plate (README D: no text on hatching) */
 .pc-cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;color:var(--rq-skin-border);
@@ -791,7 +919,7 @@ html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter></svg>
-<!--RQ-ICONS--><svg id="rqSprite" xmlns="http://www.w3.org/2000/svg" style="display:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48"/><path d="M15 6h1v4"/><path d="m6.134 14.768.866-.5 2 3.464"/><circle cx="16" cy="8" r="6"/></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol><symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></symbol><symbol id="i-type" viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/></symbol><symbol id="i-a-large-small" viewBox="0 0 24 24"><path d="m15 16 2.536-7.328a1.02 1.02 1 0 1 1.928 0L22 16"/><path d="M15.697 14h5.606"/><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16"/><path d="M3.304 13h6.392"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></symbol><symbol id="i-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/><path d="M16 12a4 4 0 0 0-4-4"/><path d="m19 5-1.256 1.256"/><path d="M20 12h2"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol><symbol id="i-square" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol><symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/></symbol><symbol id="i-medal" viewBox="0 0 24 24"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"/><rect x="3" y="7" width="18" height="4" rx="1"/></symbol><symbol id="i-shopping-bag" viewBox="0 0 24 24"><path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.103 6.034h17.794"/><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/></symbol><symbol id="i-chart-column" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></symbol><symbol id="i-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol><symbol id="i-clipboard" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="i-rotate-cw" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol><symbol id="i-languages" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol><symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol><symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol><symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></symbol><symbol id="i-vibrate" viewBox="0 0 24 24"><path d="m2 8 2 2-2 2 2 2-2 2"/><path d="m22 8-2 2 2 2-2 2 2 2"/><rect width="8" height="14" x="8" y="5" rx="1"/></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-user-round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-align-justify" viewBox="0 0 24 24"><path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/></symbol><symbol id="i-book-marked" viewBox="0 0 24 24"><path d="M10 2v7.751a.25.25 0 00.407.195l2.28-1.834a.5.5 0 01.627 0l2.28 1.834A.25.25 0 0016 9.751V2"/><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H19a1 1 0 011 1v18a1 1 0 01-1 1H6.5a1 1 0 010-5H20"/></symbol><symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></symbol></svg><!--/RQ-ICONS-->
+<!--RQ-ICONS--><svg id="rqSprite" xmlns="http://www.w3.org/2000/svg" style="display:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol><symbol id="i-circle-minus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></symbol><symbol id="i-circle-plus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></symbol><symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol><symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48"/><path d="M15 6h1v4"/><path d="m6.134 14.768.866-.5 2 3.464"/><circle cx="16" cy="8" r="6"/></symbol><symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol><symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol><symbol id="i-notebook-pen" viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></symbol><symbol id="i-type" viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/></symbol><symbol id="i-a-large-small" viewBox="0 0 24 24"><path d="m15 16 2.536-7.328a1.02 1.02 1 0 1 1.928 0L22 16"/><path d="M15.697 14h5.606"/><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16"/><path d="M3.304 13h6.392"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></symbol><symbol id="i-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/><path d="M16 12a4 4 0 0 0-4-4"/><path d="m19 5-1.256 1.256"/><path d="M20 12h2"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol><symbol id="i-square" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol><symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></symbol><symbol id="i-trophy" viewBox="0 0 24 24"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/></symbol><symbol id="i-medal" viewBox="0 0 24 24"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/><path d="M12 18v-2h-.5"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"/><rect x="3" y="7" width="18" height="4" rx="1"/></symbol><symbol id="i-shopping-bag" viewBox="0 0 24 24"><path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.103 6.034h17.794"/><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/></symbol><symbol id="i-chart-column" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol><symbol id="i-trending-up" viewBox="0 0 24 24"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></symbol><symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></symbol><symbol id="i-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol><symbol id="i-clipboard" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id="i-rotate-cw" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol><symbol id="i-languages" viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/></symbol><symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol><symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></symbol><symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol><symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol><symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></symbol><symbol id="i-vibrate" viewBox="0 0 24 24"><path d="m2 8 2 2-2 2 2 2-2 2"/><path d="m22 8-2 2 2 2-2 2 2 2"/><rect width="8" height="14" x="8" y="5" rx="1"/></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-user-round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-align-justify" viewBox="0 0 24 24"><path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/></symbol><symbol id="i-book-marked" viewBox="0 0 24 24"><path d="M10 2v7.751a.25.25 0 00.407.195l2.28-1.834a.5.5 0 01.627 0l2.28 1.834A.25.25 0 0016 9.751V2"/><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H19a1 1 0 011 1v18a1 1 0 01-1 1H6.5a1 1 0 010-5H20"/></symbol><symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></symbol></svg><!--/RQ-ICONS-->
 <div id="rqBoot" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:2147482900;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:system-ui,sans-serif">
   <img src="icons/icon-192.png" alt="" width="72" height="72" style="border-radius:16px">
   <div style="font-size:16px">Открываем библиотеку…</div>
@@ -877,7 +1005,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- БИБЛИОТЕКА -->
 <div id="library" class="screen">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn mvp-hide" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">ReadQuest</h1><div class="spacer"></div><span class="chip" id="goldChip"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg><span>0</span></span></div>
+    <div class="row libhead" id="libHead"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">Библиотека</h1><div class="spacer"></div><button class="iconbtn44" id="libSearchBtn" type="button" aria-label="Поиск" aria-controls="libSearchBar" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><span class="libgold" id="goldChip" aria-label="Баланс">0 монет</span></div>
+    <div class="row libsearchbar" id="libSearchBar" hidden><input id="libSearch" class="searchinp" type="search" placeholder="Поиск по названию и автору" aria-label="Поиск по названию и автору"><button class="iconbtn44" id="libSearchClose" type="button" aria-label="Закрыть поиск"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
     <div class="goalcard">
       <svg class="ring" viewBox="0 0 80 80">
         <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
@@ -891,11 +1020,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       </div>
     </div>
     <div id="libGoldLine" class="hidden" role="status"></div>
-    <div style="margin-top:14px"><input id="libSearch" class="searchinp" placeholder="Поиск по названию и автору"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
-    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><select id="libSort" class="ghostbtn" style="padding:6px 8px;margin-right:8px"><option value="recent">Недавние</option><option value="title">По названию</option><option value="progress">По прогрессу</option></select><button class="addmini" id="btnAdd" title=".txt / .epub / .fb2 / .pdf">＋ Добавить</button></div>
+    <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="lsortbtn" id="libSortBtn" type="button" aria-haspopup="menu" aria-controls="libSortMenu" aria-expanded="false"><span class="lsl">Недавние</span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button><div class="lsortmenu" id="libSortMenu" role="menu" hidden></div></div><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div>
     <div class="grid" id="shelf"></div>
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
@@ -905,7 +1033,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- ПРОФИЛЬ -->
 <div id="profile" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:14px"><button class="menubtn mvp-hide" id="menuProf" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><span class="mvp-hide">Персонаж</span><span class="mvp-only-i">Профиль</span></h1><div class="spacer"></div><button class="ghostbtn" id="btnProfSetup"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg> Профиль</button></div>
+    <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuProf" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><span class="mvp-hide">Персонаж</span><span class="mvp-only-i">Профиль</span></h1><div class="spacer"></div><button class="ghostbtn" id="btnProfSetup"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg> Профиль</button></div>
     <div class="herocard">
       <div class="herotop">
         <div class="avatarframe" id="avatarFrame"><div class="avatar" id="avatar">📖</div><div class="gearlayer" id="gearLayer"></div><span class="pc-ava pc-only"><svg class="ic" width="34" height="34" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg></span></div>
@@ -925,20 +1053,18 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
     <div id="mvpProfileBlock">
       <div class="kpis" style="margin-top:12px">
-        <div class="kpi"><b id="mvpGold">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg> <span id="mvpGoldLbl">монет</span></span></div>
+        <div class="kpi"><b id="mvpGold">0</b><span><span id="mvpGoldLbl">монет</span></span></div>
         <div class="kpi"><b id="mvpStreak">0</b><span><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg> стрик</span></div>
         <div class="kpi"><b id="mvpMinToday">0</b><span>мин сегодня</span></div>
       </div>
       <h2 id="mvpQuestH"><span class="pc-hide">Квесты</span><span class="pc-only">Задания</span></h2>
       <div id="mvpQuestBox"></div>
-      <button class="addbtn" id="btnOpenRewards" style="margin-top:8px"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg> Награды из жизни</button>
       <div style="height:8px"></div>
-      <button class="ghostbtn" id="btnMvpSettings" style="width:100%"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg> Настройки</button>
     </div>
 
     <div class="kpis mvp-full">
       <div class="kpi"><b id="kStreak">0</b><span>🔥 стрик</span></div>
-      <div class="kpi"><b id="kGold">0</b><span id="kGoldLbl">🪙 золото</span></div>
+      <div class="kpi"><b id="kGold">0</b><span id="kGoldLbl">монеты</span></div>
       <div class="kpi"><b id="kMin">0</b><span>минут всего</span></div>
     </div>
     <div class="pcard bosscard mvp-full" id="bossCard"></div>
@@ -966,7 +1092,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- МАГАЗИН -->
 <div id="shop" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:12px"><button class="menubtn" id="menuShop">☰</button><h1>🛍 Магазин</h1><div class="spacer"></div><span class="chip" id="shopGold">🪙 0</span></div>
+    <div class="row" style="margin-bottom:12px"><button class="menubtn" id="menuShop">☰</button><h1>🛍 Магазин</h1><div class="spacer"></div><span class="chip" id="shopGold">0 монет</span></div>
     <div class="ptabs"><button class="shtab on" data-sub="game" onclick="openShopTab('game')">🎮 Игровое</button><button class="shtab" data-sub="real" onclick="openShopTab('real')">🎁 Награды из жизни</button></div>
     <div id="shopGame">
       <h2>🛡 Броня и аксессуары</h2>
@@ -997,9 +1123,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet">☰</button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
     <h2>Внешний вид</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun-moon"/></svg><div class="lab">Тема приложения<div class="sub">Авто: день с 7:00 до 21:00</div></div></div>
       <div class="seg" id="appThemeBox"></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-zoom-in"/></svg><div class="lab">Размер интерфейса</div><button class="stepbtn" id="uxScaleMinus">−</button><b id="uxScaleVal" style="width:56px;text-align:center">100%</b><button class="stepbtn" id="uxScalePlus">＋</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>
@@ -1013,7 +1137,11 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
       <div class="setrow"><div class="lab" style="padding-left:34px">Время напоминания</div>
-        <button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></div>
+        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></span></div>
+    </div>
+    <h2>Управление</h2>
+    <div class="pcard">
+      <button type="button" class="setrow navrow" id="btnNavCfg"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg><div class="lab">Нижняя панель<div class="sub" id="navCfgSub">3 вкладки</div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
     </div>
     <h2>Данные</h2>
     <div class="pcard">
@@ -1026,7 +1154,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
     </div>
-    <div class="mvp-hide">
+    <div class="dev-only"><!-- «Режим» (MVP switch + read-only goal/anti) only with ?dev=1; .mvp-hide here also hid it from ?dev=1 (regression 77f2775) -->
     <h2>Режим</h2>
     <div class="pcard">
       <div class="setrow dev-only"><div class="lab">Режим MVP (4 экрана)<div class="sub">Библиотека · Читалка · Итог · Профиль. Полный v6 UI — выключите флаг.</div></div><button class="ghostbtn" id="mvpTgl">Вкл</button></div>
@@ -1042,8 +1170,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     </div>
     <h2 class="dev-only">🧪 Тест-режим</h2>
     <div class="pcard dev-only">
-      <div class="setrow"><div class="lab">∞ Бесконечная валюта<div class="sub">Для тестирования: покупки бесплатны, баланс показывает ∞. Выключите перед обычной игрой.</div></div><button class="ghostbtn" id="devMoneyTgl">Выкл</button></div>
-    </div>
+          </div>
     <h2 class="mvp-hide">Сложность книг</h2>
     <div class="pcard mvp-hide">
       <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги ⓘ. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
@@ -1083,7 +1210,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="pcard"><b style="font-size:13px">⏱ Минуты чтения</b><div class="chart" id="chMin"></div></div>
     <div class="pcard"><b style="font-size:13px">📄 Страницы</b><div class="chart" id="chPages"></div></div>
     <div class="pcard"><b style="font-size:13px">⭐ XP</b><div class="chart" id="chXp"></div></div>
-    <div class="pcard"><b style="font-size:13px" id="chGoldLbl">🪙 Золото</b><div class="chart" id="chGold"></div></div>
+    <div class="pcard"><b style="font-size:13px" id="chGoldLbl">Монеты</b><div class="chart" id="chGold"></div></div>
     <div class="pcard"><b style="font-size:13px">🕐 Когда я читаю</b><div id="anaHours"></div></div>
     <div class="pcard"><b style="font-size:13px">📚 По жанрам</b><div id="anaGenre"></div></div>
     <div class="pcard"><b style="font-size:13px">📅 Книги по месяцам</b><div id="anaMonths"></div></div>
@@ -1132,9 +1259,9 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <!-- КВЕСТЫ -->
 <div id="quests" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst">☰</button><h1>📓 Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">🪙 0</span></div>
+    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst">☰</button><h1>📓 Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">0 монет</span></div>
     <div class="ptabs"><button class="jtab" data-sub="quotes" onclick="openJournal('quotes')">📝 Цитаты</button><button class="jtab" data-sub="quests" onclick="openJournal('quests')">🎯 Квесты</button><button class="jtab" data-sub="vocab" onclick="openJournal('vocab')">📖 Словарь</button></div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
+    <div id="qstHint" style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
     <div id="questBox"></div>
   </div></div>
 </div>
@@ -1160,7 +1287,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 <div id="badgeModal" class="hidden">
   <button class="closes" id="badgeClose" style="top:calc(14px + env(safe-area-inset-top));right:18px;font-size:24px;color:#fff;z-index:2" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <div class="badge3d"><div class="coin" id="badgeCoin">
-    <div class="face front" id="badgeFace">🏅</div>
+    <div class="face front" id="badgeFace"></div>
     <div class="face back" id="badgeBack">⭐</div>
   </div></div>
   <div id="badgeTitle" class="b3dtitle"></div>
@@ -1170,33 +1297,43 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
 
 <nav id="botnav" aria-label="MVP">
-  <button class="botnav-btn on" id="bnLib" type="button"><span class="ico pc-hide">📚</span><svg class="ic pc-only" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg>Библиотека</button>
-  <button class="botnav-btn" id="bnProf" type="button"><span class="ico pc-hide">🧙</span><svg class="ic pc-only" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg>Профиль</button>
+  <button class="botnav-btn on" id="bnLib" type="button"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg>Библиотека</button>
+  <button class="botnav-btn" id="bnRew" type="button"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg>Награды</button>
+  <button class="botnav-btn" id="bnProf" type="button"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg>Профиль</button>
 </nav>
 <div id="rewardsScrim" class="hidden"></div>
-<div id="rewardsSheet" role="dialog" aria-label="Награды из жизни">
+<div id="rewardsSheet" role="dialog" aria-label="Награды">
   <button class="closes" id="rewardsClose" type="button" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
-  <h3 style="margin:0 0 6px">Награды из жизни</h3>
-  <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Цена только по ступени. Монеты дают квесты за чтение.</div>
-  <div class="row" style="margin-bottom:10px"><span class="chip" id="rewGoldChip"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-coins"/></svg><span>0</span></span><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
-  <div id="rewSlots"></div>
-  <h2 style="font-size:14px;margin-top:16px">История</h2>
-  <ul class="mvp-hist" id="rewHist"></ul>
+  <div class="row rewhead"><h3 style="margin:0">Награды</h3><div class="spacer"></div><span class="chip" id="rewBalance">0 монет</span></div>
+  <div class="rewtabs" role="tablist"><button type="button" role="tab" id="rewTabLife" aria-selected="true" class="on" onclick="setRewardsTab('life')">Из жизни</button><button type="button" role="tab" id="rewTabShop" aria-selected="false" onclick="setRewardsTab('shop')">Магазин</button></div>
+  <div id="rewPaneLife" role="tabpanel">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Назначьте себе награды за чтение. Цена только по ступени, монеты дают квесты за чтение.</div>
+    <div class="row" style="margin-bottom:10px"><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
+    <div id="rewSlots"></div>
+    <h2 style="font-size:14px;margin-top:16px">История</h2>
+    <ul class="mvp-hist" id="rewHist"></ul>
+  </div>
+  <div id="rewPaneShop" role="tabpanel" hidden>
+    <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
+    <div id="shopList"></div>
+  </div>
 </div>
 
+<div id="shopDetailScrim" hidden onclick="closeShopDetail()"></div>
+<div id="shopDetail" role="dialog" aria-label="Скин" hidden></div>
+<div id="shopConfirmScrim" hidden onclick="shopConfirmClose()"></div>
+<div id="shopConfirm" role="alertdialog" aria-modal="true" hidden><div id="scTitle"></div><div id="scText"></div>
+  <div class="scRow"><button type="button" class="ghostbtn scCancel" onclick="shopConfirmClose()">Отмена</button><button type="button" class="buy scOk" onclick="shopConfirmOk()">Купить</button></div></div>
 <div id="scrim" class="hidden"></div>
-<aside id="drawer">
-  <div class="dhead"><div class="logo">📚</div><div><b>ReadQuest</b><div style="font-size:12px;color:var(--muted)">прототип v6</div></div></div>
-  <button class="ditem on" id="dLib"><span class="ico">📚</span>Библиотека</button>
-  <button class="ditem" id="dProf"><span class="ico">🧙</span>Персонаж</button>
-  <button class="ditem" id="dJournal"><span class="ico">📓</span>Дневник</button>
-  <button class="ditem" id="dShop"><span class="ico">🛍</span>Магазин</button>
-  <button class="ditem" id="dProg"><span class="ico">📊</span>Прогресс</button>
-  <button class="ditem" id="dSet"><span class="ico">⚙️</span>Настройки</button>
+<aside id="drawer" aria-label="Меню">
+  <div class="dhead"><div class="dava" id="dAva" aria-hidden="true">Ч</div><div style="flex:1;min-width:0"><b class="dname" id="dName">Читатель</b><div class="dstat"><span id="dLvl">Уровень 1</span> · <span id="dXp">0 / 100 XP</span></div><div class="dbar"><i id="dXpBar"></i></div><div class="dstat dgold" id="dGold">0 монет</div></div></div>
+  <div id="dList"></div>
   <div class="spacer"></div>
-  <div style="padding:0 20px;font-size:11px;color:var(--muted)">Свайп от левого края или ☰</div>
+  <div class="dcap"><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg>закреплено в нижней панели</div>
 </aside>
 
+<!-- НИЖНЯЯ ПАНЕЛЬ (Общие настройки → Управление) -->
+<div id="navCfg" class="navcfg" hidden role="dialog" aria-label="Нижняя панель"></div>
 <!-- О КНИГЕ -->
 <div class="sheet hidden" id="bookSheet" style="position:fixed;z-index:82">
   <button class="closes" id="bookSheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
@@ -1272,7 +1409,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     </div>
     <div class="setgrp on" id="grpText">
       <div class="srow"><label>Размер текста</label><div class="seg"><button id="szMinus" aria-label="Меньше">A−</button><span class="segval" id="szVal"></span><button id="szPlus" aria-label="Больше">A+</button></div></div>
-      <div class="srow"><label>Шрифт</label><div class="seg" id="fontSeg"></div></div>
+      <div class="srow"><div class="seg" id="fontSeg"></div></div>
       <div class="srow"><label>Интервал</label><div class="seg"><button id="lhMinus" aria-label="Плотнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="segval" id="lhVal"></span><button id="lhPlus" aria-label="Свободнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="srow"><label>Буквы</label><div class="seg"><button id="lsMinus">a−</button><span class="segval" id="lsVal"></span><button id="lsPlus">a+</button></div></div>
       <div class="srow"><label>Насыщенность</label><div class="seg"><button id="wLight">Тонкий</button><button id="wNorm">Обычный</button><button id="wBold">Жирный</button></div></div>
@@ -1298,7 +1435,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div class="srow"><div class="segval">Остаётся только текст. Выход — тап в центр</div></div>
       <div class="srow"><label>Счётчик</label><div class="seg"><span class="segval" style="flex:1">«7 / 10 мин» в углу в режиме фокуса</span><button class="ghostbtn sw" id="readCntTgl" role="switch">Вкл</button></div></div>
     </div>
-    <button class="gsetrow" id="btnGeneral"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span><b>Общие настройки</b><small>Тема приложения, язык, экран, данные</small></span><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
   </div>
 </div>
 
@@ -1312,7 +1448,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <div class="sumgrid">
       <div class="sumcell"><b id="sumPages">0</b><span>страниц</span></div>
       <div class="sumcell"><b id="sumMin">0</b><span id="sumMinLbl">минут</span></div>
-      <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">🪙 золота</span></div>
+      <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">монет</span></div>
       <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
     </div>
     <div id="sumDailyBox" class="pcard" style="background:rgba(255,255,255,.06)">

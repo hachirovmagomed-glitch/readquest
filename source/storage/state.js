@@ -199,6 +199,11 @@ function buildNo(b) {
   const v = b || (typeof RQ_BUILD !== 'undefined' ? RQ_BUILD : null);
   return typeof v === 'string' && v && v.indexOf('__') !== 0 ? v : null;
 }
+/** copy of game with ai.key emptied (field kept; model kept) — export only, the stored game is untouched */
+export function withoutAiKey(game) {
+  if (!game || typeof game !== 'object' || !game.ai || typeof game.ai !== 'object') return game;
+  return Object.assign({}, game, { ai: Object.assign({}, game.ai, { key: '' }) });
+}
 export async function exportBackup(envelope, settings, opts) {
   const options = opts || {};
   const e = envelope || loadEnvelope();
@@ -216,7 +221,7 @@ export async function exportBackup(envelope, settings, opts) {
     // real build number (core-a.js RQ_BUILD, substituted by build-dist.sh); null if unknown — never the raw marker
     build: buildNo(options.build),
     progress: e.progress,
-    game: e.game,
+    game: withoutAiKey(e.game), // arch.md 2026-10-15: the AI helper's API key never leaves the device
     library: e.library,
     sessions: sessions,
     events: events,
@@ -285,6 +290,14 @@ export async function importBackup(data) {
   /* 1б-144 (Архитектор): per-book {ratio, pos}. pos accepted only as a number in [0,1] (else dropped → reopen at ratio);
      pos > ratio raises ratio to pos, ratio is never lowered. Additive, schemaVersion stays 1. */
   sanitizeBookProgress(envelope && envelope.progress && envelope.progress.progress);
+
+  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none) */
+  if (envelope && envelope.game) {
+    let own = '';
+    try { const cur = loadEnvelope(); own = (cur && cur.game && cur.game.ai && typeof cur.game.ai.key === 'string') ? cur.game.ai.key : ''; } catch (e) { own = ''; }
+    const ai = envelope.game.ai && typeof envelope.game.ai === 'object' ? envelope.game.ai : { model: 'gpt-4o-mini' };
+    envelope.game.ai = Object.assign({}, ai, { key: own });
+  }
 
   if (data.textBodies && typeof data.textBodies === 'object') {
     const ids = Object.keys(data.textBodies);

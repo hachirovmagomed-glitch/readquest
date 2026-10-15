@@ -1,0 +1,15 @@
+import puppeteer from 'puppeteer-core';
+const B='http://127.0.0.1:8767/readquest/test/', O='/workspace/out/', s=ms=>new Promise(r=>setTimeout(r,ms));
+const br=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',headless:'new',args:['--no-sandbox']});
+const p=await (await br.createBrowserContext()).newPage();await p.setViewport({width:390,height:844,isMobile:true,hasTouch:true,deviceScaleFactor:2});
+await p.goto(B,{waitUntil:'load'});await p.waitForFunction(()=>window.__rqReady,{timeout:20000});await s(600);
+const shot=async n=>{await s(500);await p.screenshot({path:O+'drawer-'+n+'.png'});};
+await p.evaluate(()=>{S.gold=640;S.xp=1220;S.heroName='Джессика';navSave(['library','rewards','profile']);openDrawer();});await shot('01-open');
+await p.evaluate(()=>{closeDrawer();show('library');});await shot('02-library-3tabs');
+await p.evaluate(()=>{navSave(['library','rewards','quests','notes','profile']);});await shot('03-library-5tabs');
+await p.evaluate(()=>{navSave(['library','rewards','quests','profile']);openGeneralSettings(false);openNavCfg();});await shot('04-navcfg-4of5');
+await p.evaluate(()=>{navCfgAdd('notes');});await shot('05-navcfg-5of5');
+await p.evaluate(()=>{closeNavCfg();navSave(['library','rewards','profile']);show('library');openRewardsSheet('shop');openShopDetail('skin-gravyura');});await shot('06-skin-page-52');
+await p.evaluate(()=>{closeShopDetail();wear('skin-pencil');renderShopPane();});await shot('07-pencil-shop');
+await p.evaluate(()=>{closeRewardsSheet();openDrawer();});await shot('08-pencil-drawer');
+console.log(await p.evaluate(()=>RQ_BUILD));await br.close();

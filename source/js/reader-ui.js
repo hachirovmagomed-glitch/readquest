@@ -300,7 +300,7 @@ el('viewer').addEventListener('touchend',e=>{
   if(tx0===null)return;
   const ct=e.changedTouches[0];
   const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
-  if((!SET.nav||SET.nav.swipe!==false)&&Math.abs(dx)>50){const inv=(SET.nav&&SET.nav.invert)?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
+  if((flipGet().swipe!==false)&&Math.abs(dx)>50){const inv=flipGet().invert?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
   /* short, still touch = tap (not on buttons / selection popup) */
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tt0<450&&e.touches.length===0&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
@@ -420,7 +420,10 @@ function renderPanel(tab){
 
 /* --- озвучка (TTS): непрерывная, с авто-переходом по страницам --- */
 let speaking=false,ttsOn=false;
-function ttsStop(){ttsOn=false;speaking=false;try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}var b=el('btnTts');if(b)b.innerHTML=rqIcon('volume-2');}
+/* audit 15.10 (Маня): listening is not reading — while read-aloud is on, the tracker counts no minutes (no ring, XP, coins, streak).
+   Stop → counting back to the normal rule (MVP always; full UI only with the timer on). */
+function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(on?(isMvp()||!!R.timerOn):false);}
+function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}var b=el('btnTts');if(b)b.innerHTML=rqIcon('volume-2');}
 function ttsSay(t,onend){
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
   u.onend=function(){if(ttsOn&&onend)onend();};
@@ -451,7 +454,7 @@ el('btnTts').onclick=()=>{
   if(ttsOn||speaking){ttsStop();return;}
   if(!R.book)return;
   if(!window.speechSynthesis){alert('Озвучка не поддерживается этим браузером');return;}
-  ttsOn=true;el('btnTts').innerHTML=rqIcon('square');
+  ttsOn=true;ttsCount(false);el('btnTts').innerHTML=rqIcon('square');
   if(R.mode==='pdf'){ttsPdfNext();}
   else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
 };
@@ -516,7 +519,7 @@ async function closeReaderImpl(opts){
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
     const luck=Math.random();mult=luck<0.02?3:luck<0.08?2:1;
-    xp=Math.round(xp*mult*(S.xpMult||1)*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
+    xp=Math.round(xp*mult*xpMultEff()*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
   }
   const stN=statOf(b);
   const statGain=Math.max(1,Math.round((Math.round(min)+pages)*dmul*talVal('stat')));
@@ -580,7 +583,7 @@ function renderSummary(r){
   const hl=summaryHeadline(r.quest),hd=el('sumHead');
   if(hd){hd.textContent=hl||'Сессия завершена';hd.style.color=hl?'var(--accent2)':'';hd.style.fontWeight=hl?'600':'';}
   countUp(el('sumGold'),r.gold,n=>'+'+n);
-  el('sumGoldLbl').textContent=curI()+' '+S.cur.name;
+  el('sumGoldLbl').textContent='монет';
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
@@ -618,11 +621,12 @@ function renderSummary(r){
   if(pc){const de=t=>String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]+\s*/gu,'');
     ['sumNote','lvlUp','luckLbl'].forEach(function(k){const e=el(k);if(e)e.textContent=de(e.textContent);});
     bb.querySelectorAll('.newbadge').forEach(function(d){d.textContent=de(d.textContent);});
-    if(el('sumGoldLbl'))el('sumGoldLbl').textContent=S.cur.name;}
+    if(el('sumGoldLbl'))el('sumGoldLbl').textContent='монет';}
   applyMvpChrome();
 }
 
 function confetti(opts){
+  if(rqStill())return; /* «Анимации» off / prefers-reduced-motion */
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */

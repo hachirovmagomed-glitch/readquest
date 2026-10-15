@@ -19,11 +19,14 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
   if(typeof s.readCounter!=='boolean')s.readCounter=true;flipNorm(s);return s;}
 normSet(SET);
-function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
+/* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
+function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
 /* user pick → NS_set only through the gate (Архитектор 14.10): writer must exist AND allow. Before __rqReady: applied in memory,
-   one flag (no queue); on ready start.js does exactly ONE saveSet with the current SET, again only if the gate allows. */
-function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;return;}if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
-function rqFlushSetPending(){if(!window.__rqSetPending)return;window.__rqSetPending=false;if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
+   one flag (no queue); on ready start.js does exactly ONE write with the current SET, again only if the gate allows. */
+function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;return;}if(window.__rqWriter&&__rqWriter.mayWrite())saveSetRaw();}
+function rqFlushSetPending(){if(!window.__rqSetPending)return;window.__rqSetPending=false;if(window.__rqWriter&&__rqWriter.mayWrite())saveSetRaw();}
+/* wave 2: saveSet() IS the gate — every settings control (reader, pdf, reader-ui, settings, start, content, library) goes through it */
+function saveSet(){rqSaveSetGated();}
 /* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */

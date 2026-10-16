@@ -198,6 +198,7 @@ async function openBook(id){
   if(b.type!=='pdf'&&!b.text&&__rq&&__rq.idb){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
+  if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
   if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */

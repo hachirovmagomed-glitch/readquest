@@ -743,7 +743,7 @@ html.rq-still *,html.rq-still *::before,html.rq-still *::after{animation:none!im
 /* MVP: a hidden row is often the last one → the last VISIBLE row has no divider */
 body.mvp .setrow:not(.mvp-hide):not(:has(~ .setrow:not(.mvp-hide))){border-bottom:none}
 /* «Общие настройки» on narrow phones (360): controls that do not fit go to their own line, right-aligned; words are never split */
-#settings .pcard .setrow{flex-wrap:wrap}#settings .pcard .setrow>.lab+*{margin-left:auto}#settings .pcard .setrow .lab{overflow-wrap:normal;min-width:min-content}.stepgrp{display:flex;align-items:center;gap:10px}
+#settings .pcard .setrow{flex-wrap:wrap}#settings .pcard .setrow>.lab+*{margin-left:auto}#settings .pcard .setrow .lab,#settings .pcard .setrow .lab .sub{overflow-wrap:normal;hyphens:none;-webkit-hyphens:none}#settings .pcard .setrow .lab{min-width:min-content}#settings .pcard .setrow .lab:has(.sub){flex:1 1 150px}.stepgrp{display:flex;align-items:center;gap:10px}
 body:not(.dev) .dev-only{display:none!important}
 body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
 

@@ -1,0 +1,67 @@
+/* ReadQuest · скин «Бабочковый» (воздушный луг, перламутровые крылья; ночью — мотыльки и луна). Интерфейс, 15.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="babochkovyi"] на <html>. Ночь = [data-theme="night"]. Шрифты (OFL) лежат в src/fonts/. */
+@import url("https://fonts.googleapis.com/css2?family=Poiret+One&family=Mulish:wght@500;600;700;800&family=Bellota+Text:wght@700&family=IBM+Plex+Serif:wght@400;600&display=swap&subset=cyrillic");
+[data-skin="babochkovyi"]{
+  --rq-font-ui:"Mulish",system-ui,sans-serif;
+  --rq-font-display:"Poiret One","Mulish",sans-serif;  /* заголовки экранов и разделов, от 24 px */
+  --bb-font-title:"Mulish",sans-serif;                 /* кнопки, названия на обложках — 800 */
+  --rq-font-num:"Bellota Text","Mulish",sans-serif;    /* баланс, минуты, XP */
+  --rq-font-read:"IBM Plex Serif",Georgia,serif;
+  --rq-radius-xs:8px; --rq-radius-sm:14px; --rq-radius-md:18px; --rq-radius-lg:24px; /* мягкие, «крылатые» формы */
+  --rq-icon-stroke:1.7;
+  --rq-bg:#f4f2f8; --rq-surface:#ffffff; --rq-surface-2:#f3f1f8; --rq-sheet:#ffffff;
+  --rq-line:#d3cfe6; --rq-border-strong:#8e8aa8;
+  --rq-text:#1d2140; --rq-text-2:#4f5470; --rq-text-disabled:#a29fbd;
+  --rq-accent:#13646c; --rq-accent-pressed:#0d4c53; --rq-accent-text:#13646c;   /* «морфо» — глубокая бирюза */
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#e1f1f2; --rq-accent-border:#8fc3c7;
+  --rq-coin:#84480c; --rq-coin-tint:#fbf0d8;            /* суммы монет — тёмная пыльца */
+  --rq-success:#3d6a2c; --rq-success-tint:#e5f1de;      /* неделя, успех — клевер */
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#13646c;
+  --rq-scrim:rgba(29,33,64,.40);
+  --rq-badge-bg:#1d2140; --rq-badge-text:#ffffff;
+  --rq-toast-game-bg:#13646c; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#13646c; --rq-toast-info-border:#d3cfe6;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(60,50,110,.10);
+  --rq-shadow-2:0 0 0 1px #ddd7ef,0 6px 18px rgba(60,50,110,.10);
+  --rq-shadow-3:0 14px 40px rgba(29,33,64,.25);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --bb-iri-1:#8fd3d8; --bb-iri-2:#b9a7ec; --bb-iri-3:#f3b4cf;   /* перламутр крыла: 1.7 / 2.1 / 1.7 на белом */
+  --bb-iridescent:linear-gradient(110deg,#cdeef0 0,#e2dbf7 50%,#f8dde9 100%); /* шапка-крыло, полоска полки */
+  --bb-scales:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 6A5 5 0 0 1 10 6M-5 3A5 5 0 0 1 5 3M5 3A5 5 0 0 1 15 3' fill='none' stroke='%23fff' stroke-opacity='.45'/%3E%3C/svg%3E"); /* чешуйки, только поверх шапки */
+  --bb-meadow:#9cc48a;     /* трава луга внизу фона, под навигацией */
+  --bb-pollen:#f0c766;     /* монета-пыльца, сердцевины цветов */
+  --bb-decor-opacity:1;    /* бабочки фона и маскот; НЕ в читалке */
+  --bb-flutter-dur:1400ms; --bb-shimmer-dur:6s; --bb-hatch-dur:700ms; --bb-bloom-dur:900ms;
+}
+[data-skin="babochkovyi"][data-theme="night"]{
+  --rq-bg:#0e1019; --rq-surface:#181b28; --rq-surface-2:#20243a; --rq-sheet:#181b28;
+  --rq-line:#2e3247; --rq-border-strong:#5d6390;
+  --rq-text:#eceef6; --rq-text-2:#b9bdd4; --rq-text-disabled:#6a6f92;
+  --rq-accent:#b5e3c4; --rq-accent-pressed:#cdeed7; --rq-accent-text:#b5e3c4;  /* ночью главный — бледная зелень мотылька-лунника */
+  --rq-on-accent:#0e1019; --rq-control-on:#0e1019;
+  --rq-accent-tint:#1c2a27; --rq-accent-border:#5c8a72;
+  --rq-coin:#f2d38a; --rq-coin-tint:#2a2618;
+  --rq-success:#a9d79a; --rq-success-tint:#1e2a1c;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
+  --rq-focus:#b5e3c4;
+  --rq-scrim:rgba(4,5,12,.7);
+  --rq-badge-bg:#eceef6; --rq-badge-text:#0e1019;
+  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#b5e3c4;
+  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#b5e3c4; --rq-toast-info-border:#2e3247;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #2e3247,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+  --bb-iridescent:linear-gradient(110deg,#1c2a3a 0,#262447 50%,#2e2238 100%);
+  --bb-moth:#dfeee4;       /* мотыльки ночного фона — только декор */
+  --bb-firefly:#e9f7b0;    /* светлячки в траве — только декор */
+}
+/* Страница книги: чистая — без бабочек, чешуек, луга и маскота. Шапка и низ читалки однотонные. */
+@keyframes bb-flutter{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.72)}}       /* маскот и бабочки фона: взмах крыльями */
+@keyframes bb-shimmer{0%,100%{background-position:0 0}50%{background-position:100% 0}} /* перелив перламутра шапки */
+@keyframes bb-hatch{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}  /* кокон → бабочка в цели дня */
+@keyframes bb-bloom{from{transform:scale(.6) rotate(-20deg)}to{transform:none}}          /* бутон недели распускается */
+@media (prefers-reduced-motion:reduce){
+  [data-skin="babochkovyi"] *,[data-skin="babochkovyi"] *::before,[data-skin="babochkovyi"] *::after{animation:none!important;transition:none!important}
+}

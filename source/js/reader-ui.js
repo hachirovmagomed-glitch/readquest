@@ -132,7 +132,7 @@ function isLightBg(bg){
 }
 function toggleDayNight(){
   const t=activeTheme();
-  if(t.skin==='pencil'&&!SET.cBg)SET.theme=t.night?'pencil':'pencil-night'; /* the skin keeps its own night */
+  if(t.skin&&!SET.cBg)SET.theme=skinThemeKey(t.skin,!t.night); /* a skin keeps its own night («Карандашный», shop skins) */
   else SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
   SET.cBg=null;SET.cTxt=null;saveSet();applySet();
   {const lt=isLightBg(activeTheme().bg);flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}
@@ -529,7 +529,7 @@ async function closeReaderImpl(opts){
   if(sd===today())S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
   S.hp=Math.min(S.hpMax,(S.hp==null?S.hpMax:S.hp)+15);if(justFinished)S.hp=S.hpMax; // чтение восстанавливает здоровье
   dealBossDamage(min,pages,justFinished);S.petXp=(S.petXp||0)+min; // урон боссу + рост питомца
-  /* Soft streak ≥2 min (Boss/Product): preserve streak when day's total minutes ≥2.
+  /* Soft streak ≥ STREAK_MIN (3 min, Маня 15.10): preserve streak when day's total minutes ≥ 3.
      Daily quest / north-star still require goal minutes (default 10) — not changed here. */
   if((isMvp()?dayMin(sd):(sd===today()?S.minToday:min))>=STREAK_MIN){
     if(!S.lastDay||sd>String(S.lastDay)){
@@ -630,6 +630,7 @@ function renderSummary(r){
 }
 
 function confetti(opts){
+  if(rqStill())return; /* «Анимации» off / prefers-reduced-motion */
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */

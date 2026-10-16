@@ -32,7 +32,7 @@ function renderCalendar(){
   el('calGrid').innerHTML=cells;
   el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';
   el('calNotifTime').textContent=S.notif.time;
-  const atRisk=streakAtRisk(tk); /* 1б: 2 min, same as the streak */
+  const atRisk=streakAtRisk(tk); /* STREAK_MIN (3 min), same as the streak */
   const sm=monthSummary(calY,calM);
   el('calTop').innerHTML='<div class="pcard" style="margin-bottom:10px"><div class="row"><b style="font-size:16px">🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней')+' подряд</b>'+
     (atRisk?'<div class="spacer"></div><span class="chip" style="background:rgba(255,184,76,.18);color:var(--accent2)">⚠️ серия под угрозой</span>':'')+'</div>'+
@@ -541,7 +541,7 @@ const I18N={
  'Ничего не найдено':'Nothing found','Скопировать все':'Copy all',
  '🧙 Персонаж':'🧙 Character',
  'Читатель':'Reader','✏️ Профиль':'✏️ Profile','Тап по аватару — сменить':'Tap avatar to change',
- 'Цель дня':'Daily goal','Стрик засчитывается за любую сессию от 1 минуты.':'A streak counts for 2+ minutes of reading a day.','Стрик засчитывается, если за день прочитано от 2 минут.':'A streak counts for 2+ minutes of reading a day.',
+ 'Цель дня':'Daily goal','Стрик засчитывается за любую сессию от 1 минуты.':'A streak counts for 3+ minutes of reading a day.','Стрик засчитывается, если за день прочитано от 3 минут.':'A streak counts for 3+ minutes of reading a day.',
  'Характеристики':'Characteristics','Навыки':'Skills','Трофейный зал':'Trophy hall','Бейджи':'Badges',
  'Сбросить весь прогресс':'Reset all progress','＋ Добавить характеристику':'＋ Add characteristic','＋ Добавить навык':'＋ Add skill',
  'минут всего':'minutes total','🔥 стрик':'🔥 streak','🪙 золото':'🪙 gold','золото':'gold','монета':'coin','монеты':'coins','монет':'coins','Цена только по ступени. Монеты дают квесты за чтение.':'Price is set by tier. Coins come from reading quests.','Пока пусто — купите награду за монеты с квестов':'Nothing yet — buy a reward with coins from quests','Монеты начисляются сами: ежедневка +30 монет, неделя +120 монет':'Coins are paid automatically: daily +30 coins, week +120 coins',
@@ -681,6 +681,7 @@ function renderShelf(){
   shelfJustAdded=null;
 }
 function shelfOpen(elm,id){
+  if(rqStill()){openBook(id);return;}
   try{if(elm&&elm.classList){elm.classList.remove('flyin');elm.classList.add('opening');}}catch(e){}
   setTimeout(function(){openBook(id);},340);
 }

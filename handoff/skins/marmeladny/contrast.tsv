@@ -1,0 +1,154 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+session-summary	Продолжить	Rubik	18	rgb(255, 255, 255)	ui	3.0	4.93	3.71	ok
+library	Город огней	Rubik	16	rgb(255, 255, 255)	ui	3.0	4.23	3.89	ok
+library	Звёздная карта	Rubik	16	rgb(255, 255, 255)	ui	3.0	4.58	4.24	ok
+library	Тихая гавань	Rubik	16	rgb(255, 255, 255)	ui	3.0	4.62	4.4	ok
+rewards	Задание недели	Nunito	15	rgb(255, 255, 255)	ui	3.0	5.23	4.72	ok
+session-summary	14	Rubik	24	rgb(63, 122, 12)	ui	3.0	4.78	4.78	ok
+palette	Кнопка-мармеладка	Rubik	16	rgb(255, 255, 255)	ui	3.0	6.27	4.78	ok
+rewards	Награды	Nunito	11.5	rgb(255, 255, 255)	ui-small	4.5	5.92	5.07	ok
+rewards	4 дня по 10 мин · 3 из 4	Nunito	12	rgb(255, 255, 255)	ui-small	4.5	5.65	5.09	ok
+library	Библиотека	Nunito	11.5	rgb(255, 255, 255)	ui-small	4.5	5.88	5.1	ok
+library	Д. Карпов	Nunito	10	rgb(255, 255, 255)	ui-small	4.5	5.45	5.17	ok
+library	А. Морозова	Nunito	10	rgb(255, 255, 255)	ui-small	4.5	5.5	5.18	ok
+library	П. Волков	Nunito	10	rgb(255, 255, 255)	ui-small	4.5	5.72	5.24	ok
+rewards	Серия сериала	Nunito	12	rgb(255, 255, 255)	ui-small	4.5	5.61	5.24	ok
+rewards	Новая книга	Nunito	12	rgb(255, 255, 255)	ui-small	4.5	5.97	5.33	ok
+library	Все	Nunito	13	rgb(255, 255, 255)	ui-small	4.5	6.05	5.4	ok
+session-summary	Цель 10 мин · сегодня 18 мин	Nunito	12	rgb(138, 74, 28)	ui-small	4.5	5.7	5.53	ok
+library	Д. Карпов · 67%	Nunito	11	rgb(122, 69, 96)	ui-small	4.5	6.36	6.25	ok
+session-summary	Опыт	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.25	6.25	ok
+library	390 монет	Nunito	14	rgb(138, 59, 0)	ui	3.0	6.68	6.29	ok
+rewards	390 монет	Nunito	14	rgb(138, 59, 0)	ui	3.0	6.68	6.29	ok
+session-summary	Чтение	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.34	6.34	ok
+rewards	+120	Rubik	17	rgb(255, 255, 255)	ui	3.0	6.85	6.52	ok
+session-summary	+30 монет за день	Nunito	15	rgb(138, 59, 0)	ui	3.0	6.73	6.53	ok
+session-summary	18 мин	Rubik	24	rgb(163, 19, 74)	ui	3.0	6.56	6.56	ok
+palette	#a3134a	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.64	6.6	ok
+palette	текст-акцент, нажатие	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.64	6.6	ok
+palette	#ff8a1f	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.64	6.6	ok
+palette	монеты-капли	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.64	6.6	ok
+palette	текст UI	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.66	ok
+palette	#d81b60	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.73	6.68	ok
+palette	акцент, кнопки	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.77	6.68	ok
+session-summary	Страницы	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.72	6.72	ok
+palette	#8a3b00	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.77	6.73	ok
+palette	текст монет	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.73	ok
+palette	XP	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.75	ok
+library	А. Морозова · 53%	Nunito	11	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+library	И. Лебедев · 12%	Nunito	11	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+library	Е. Соколова · прочитано	Nunito	11	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+library	П. Волков · не начата	Nunito	11	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+library	М. Орлова · 4%	Nunito	11	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#7cc61e	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	успех, декор	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#3f7a0c	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	текст успеха	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#8e44c9	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	недельное задание	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#6a2c9e	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	#ffd23f	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	блики, декор	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#fff4ec	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	фон	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#fff9f3	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	страница книги	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#4a1f36	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	#1d0e1e	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	фон ночи	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#2e1533	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	панели ночи	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#ff8fb6	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	акцент ночи	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+palette	#ead7df	monospace	10.5	rgb(122, 69, 96)	ui	3.0	6.81	6.81	ok
+palette	текст книги ночью	Nunito	9.5	rgb(122, 69, 96)	ui-small	4.5	6.81	6.81	ok
+library	Награды	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.97	6.83	ok
+library	Профиль	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.97	6.83	ok
+rewards	Библиотека	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.97	6.83	ok
+rewards	Профиль	Nunito	11.5	rgb(122, 69, 96)	ui-small	4.5	6.97	6.83	ok
+rewards	Читать 10 мин · 6 из 10 мин	Nunito	12	rgb(122, 69, 96)	ui-small	4.5	7.02	6.92	ok
+library	Е. Соколова	Nunito	10	rgb(31, 58, 6)	ui-small	4.5	7.14	6.95	ok
+session-summary	320 / 500 до уровня 5	Nunito	12	rgb(122, 69, 96)	ui-small	4.5	7.02	7.02	ok
+rewards	Придумайте, чем себя порадовать, и назна	Nunito	12	rgb(122, 69, 96)	ui-small	4.5	7.21	7.11	ok
+session-summary	Тихая гавань · стр. 85–98	Nunito	13	rgb(122, 69, 96)	ui-small	4.5	7.17	7.17	ok
+session-summary	+180 XP	Rubik	24	rgb(106, 44, 158)	ui	3.0	7.21	7.21	ok
+rewards	+30	Rubik	17	rgb(138, 59, 0)	ui	3.0	7.39	7.29	ok
+library	Читаю	Nunito	13	rgb(122, 69, 96)	ui-small	4.5	7.37	7.37	ok
+library	Хочу	Nunito	13	rgb(122, 69, 96)	ui-small	4.5	7.37	7.37	ok
+library	Прочитано	Nunito	13	rgb(122, 69, 96)	ui-small	4.5	7.37	7.37	ok
+rewards	Добавить награду	Nunito	14	rgb(163, 19, 74)	ui	3.0	7.47	7.47	ok
+library	Сад у моря	Rubik	16	rgb(31, 58, 6)	ui	3.0	7.89	7.55	ok
+library	И. Лебедев	Nunito	10	rgb(58, 20, 36)	ui-small	4.5	7.88	7.66	ok
+rewards	Кофе в кофейне	Nunito	12	rgb(58, 20, 36)	ui-small	4.5	7.93	7.71	ok
+rewards	XXX	Nunito	12	rgb(138, 59, 0)	ui-small	4.5	7.76	7.76	ok
+library	Северный ветер	Rubik	16	rgb(58, 20, 36)	ui	3.0	8.52	8.16	ok
+library	Звёздная карта	Nunito	12.5	rgb(74, 31, 54)	ui-small	4.5	10.86	9.25	ok
+library	М. Орлова	Nunito	10	rgb(58, 42, 0)	ui-small	4.5	9.77	9.63	ok
+palette	Апельсин	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	11.09	9.91	ok
+palette	Апельсин тёмн.	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	11.37	9.95	ok
+rewards	Награды	Rubik	30	rgb(74, 31, 54)	ui	3.0	11.06	9.99	ok
+palette	Малина тёмн.	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	11.83	9.99	ok
+library	Библиотека	Rubik	30	rgb(74, 31, 54)	ui	3.0	11.53	10.06	ok
+palette	Малина	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	11.21	10.06	ok
+library	Дом с часами	Rubik	16	rgb(58, 42, 0)	ui	3.0	10.37	10.13	ok
+library	Тихая гавань	Nunito	12.5	rgb(74, 31, 54)	ui-small	4.5	11.62	10.15	ok
+library	Сад у моря	Nunito	12.5	rgb(74, 31, 54)	ui-small	4.5	11.62	10.15	ok
+library	Город огней	Nunito	12.5	rgb(74, 31, 54)	ui-small	4.5	11.45	10.15	ok
+library	Дом с часами	Nunito	12.5	rgb(74, 31, 54)	ui-small	4.5	11.43	10.15	ok
+library	Северный ветер	Nunito	12.5	rgb(74, 31, 54)	ui-small	4.5	12.11	10.25	ok
+rewards	Задания	Rubik	20	rgb(74, 31, 54)	ui	3.0	11.06	10.26	ok
+palette	Виноград тёмн.	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	10.59	ok
+palette	Лайм	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	10.69	ok
+palette	Лайм тёмн.	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	10.76	ok
+palette	Виноград	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.49	10.76	ok
+palette	Ягодный чернил.	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	10.96	ok
+library	EPUB	Nunito	9.5	rgb(74, 31, 54)	ui-small	4.5	11.07	11.07	ok
+library	PDF	Nunito	9.5	rgb(74, 31, 54)	ui-small	4.5	11.17	11.08	ok
+palette	Лимон	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	11.17	ok
+palette	Крем	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	11.17	ok
+palette	Сливки	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	11.17	ok
+reader-day	Оглавление	Nunito	11.5	rgb(74, 31, 54)	ui-small	4.5	11.68	11.59	ok
+reader-day	Текст	Nunito	11.5	rgb(74, 31, 54)	ui-small	4.5	11.68	11.59	ok
+reader-day	Ночь	Nunito	11.5	rgb(74, 31, 54)	ui-small	4.5	11.68	11.59	ok
+reader-day	Закладка	Nunito	11.5	rgb(74, 31, 54)	ui-small	4.5	11.68	11.59	ok
+palette	Палитра «Мармеладный»	Rubik	28	rgb(74, 31, 54)	ui	3.0	11.9	11.6	ok
+reader-day	Тихая гавань	Rubik	18	rgb(74, 31, 54)	ui	3.0	12.06	11.91	ok
+palette	Ночь: малина	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	12.0	ok
+palette	Ночь: поверхн.	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	12.14	ok
+palette	Ночь: текст	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	12.15	ok
+palette	Ночь: слива	Nunito	10.5	rgb(74, 31, 54)	ui-small	4.5	12.6	12.17	ok
+reader-day	98 из 185	Nunito	14	rgb(74, 31, 54)	ui	3.0	12.36	12.27	ok
+rewards	Награды из жизни	Rubik	20	rgb(74, 31, 54)	ui	3.0	12.6	12.32	ok
+library	FB2	Nunito	9.5	rgb(74, 31, 54)	ui-small	4.5	12.39	12.39	ok
+library	TXT	Nunito	9.5	rgb(74, 31, 54)	ui-small	4.5	12.59	12.59	ok
+palette	Rubik — заголовки и кнопки	Rubik	20	rgb(74, 31, 54)	ui	3.0	12.6	12.6	ok
+palette	Nunito — интерфейс, подписи, цифры	Nunito	13	rgb(74, 31, 54)	ui-small	4.5	12.6	12.6	ok
+palette	Literata — текст книги, обычная книжная 	Literata	15	rgb(74, 31, 54)	ui	3.0	12.6	12.6	ok
+session-summary	Неделя: 3 из 4 дней	Nunito	13	rgb(74, 31, 54)	ui-small	4.5	12.71	12.71	ok
+session-summary	Уровень 4	Nunito	13	rgb(74, 31, 54)	ui-small	4.5	12.97	12.89	ok
+rewards	Задание дня	Nunito	15	rgb(74, 31, 54)	ui	3.0	13.25	12.99	ok
+session-summary	Сессия завершена	Rubik	28	rgb(74, 31, 54)	ui	3.0	13.34	13.25	ok
+reader-night	Глава 7. Письмо	Literata	19	rgb(234, 215, 223)	book	4.5	13.68	13.68	ok
+reader-night	Утро выдалось тихим. Над рекой ещё висел	Literata	16	rgb(234, 215, 223)	book	4.5	13.68	13.68	ok
+reader-night	Оглавление	Nunito	11.5	rgb(246, 227, 236)	ui-small	4.5	13.74	13.68	ok
+reader-night	Текст	Nunito	11.5	rgb(246, 227, 236)	ui-small	4.5	13.74	13.68	ok
+reader-night	День	Nunito	11.5	rgb(246, 227, 236)	ui-small	4.5	13.74	13.68	ok
+reader-night	Закладка	Nunito	11.5	rgb(246, 227, 236)	ui-small	4.5	13.74	13.68	ok
+reader-night	98 из 185	Nunito	14	rgb(246, 227, 236)	ui	3.0	14.29	13.86	ok
+reader-night	Тихая гавань	Rubik	18	rgb(246, 227, 236)	ui	3.0	14.09	14.03	ok
+reader-day	Глава 7. Письмо	Literata	19	rgb(46, 28, 36)	book	4.5	15.37	15.26	ok
+reader-day	Утро выдалось тихим. Над рекой ещё висел	Literata	16	rgb(46, 28, 36)	book	4.5	15.37	15.37	ok
+tokens	книга день: --r-txt / --r-bg	Literata	16	#2e1c24 / #fff9f3	book	4.5	15.37	15.37	ok
+tokens	книга ночь: --r-txt / --r-bg	Literata	16	#ead7df / #1a0d1b	book	4.5	13.68	13.68	ok
+tokens	--rq-text / --rq-bg	Nunito	—	#4a1f36 / #fff4ec	ui	4.5	12.6	12.6	ok
+tokens	--rq-text-2 / --rq-bg	Nunito	—	#7a4560 / #fff4ec	ui	4.5	6.81	6.81	ok
+tokens	--rq-on-accent / --rq-accent	Rubik	—	#ffffff / #d81b60	ui	4.5	4.95	4.95	ok
+tokens	--rq-accent-text / --rq-surface	Nunito	—	#a3134a / #ffffff	ui	4.5	7.64	7.64	ok
+tokens	--rq-coin / --rq-coin-tint	Nunito	—	#8a3b00 / #ffe9cf	ui	4.5	6.58	6.58	ok
+tokens	--rq-success / --rq-surface	Nunito	—	#3f7a0c / #ffffff	ui	4.5	5.25	5.25	ok
+tokens	ночь --rq-text / --rq-bg	Nunito	—	#f6e3ec / #1d0e1e	ui	4.5	15.1	15.1	ok
+tokens	ночь --rq-text-2 / --rq-surface	Nunito	—	#c9a6bb / #2e1533	ui	4.5	7.6	7.6	ok
+tokens	ночь --rq-on-accent / --rq-accent	Nunito	—	#2a0c1c / #ff8fb6	ui	4.5	8.44	8.44	ok
+tokens	ночь --rq-coin / --rq-surface	Nunito	—	#ffb35c / #2e1533	ui	4.5	9.33	9.33	ok
+tokens	ночь --rq-success / --rq-surface	Nunito	—	#a6e36a / #2e1533	ui	4.5	10.87	10.87	ok
+tokens	ночь --rq-accent / панель читалки	Nunito	—	#ff8fb6 / #25112a	ui	4.5	8.27	8.27	ok

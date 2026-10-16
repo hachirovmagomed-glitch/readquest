@@ -57,6 +57,7 @@ ok('2e progress numbers: 90 min of 300 for «Пять часов»', (() => { co
 ok('3a day goal = floor(sum of the day) ≥ 10: 9.8 → no, 5 + 5 → yes', ev({ sessions: [S('2026-10-01', 9.8), S('2026-10-02', 5), S('2026-10-02', 5), S('2026-10-03', 10)] }).d3.cur === 2);
 ok('3b three goal days → «Три дня»', done({ sessions: days('2026-10-01', 3, 10) }, 'd3'));
 ok('3c streak from history: 3 days × 2 min → «Огонёк»; 1.9 min breaks it', done({ sessions: days('2026-10-01', 3, 2) }, 'streak3') && !done({ sessions: [S('2026-10-01', 2), S('2026-10-02', 1.9), S('2026-10-03', 2)] }, 'streak3'));
+ok('3c2 the app\'s streak threshold is used: streakMin 3 → 3 days × 2 min give no streak, × 3 min do', !done({ sessions: days('2026-10-01', 3, 2), streakMin: 3 }, 'streak3') && done({ sessions: days('2026-10-01', 3, 3), streakMin: 3 }, 'streak3'));
 ok('3d streak from the app (S.streak = 7) counts too', done({ streak: 7 }, 'streak7'));
 ok('3e week Mon–Sun with 4 goal days → wk1; 4 days split over two weeks → no', done({ sessions: days('2026-10-05', 4, 10) }, 'wk1') && !done({ sessions: days('2026-10-10', 4, 10) }, 'wk1'));
 ok('3f all 7 days of one week → «Без выходных»', done({ sessions: days('2026-10-05', 7, 10) }, 'full7') && !done({ sessions: days('2026-10-06', 7, 10) }, 'full7'));

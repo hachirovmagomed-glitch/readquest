@@ -1,0 +1,160 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+library	О. Миронов · не начата	PT Sans	11.5	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+library	В. Кузнецова · 4%	PT Sans	11.5	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+library	Р. Ахмедов · 67%	PT Sans	11.5	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	#0b0e0c	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	фон ночи	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	#9fe0ac	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	4.94	4.88	ok
+palette	UI ночи	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	#ffb000	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	4.93	4.88	ok
+palette	жетоны ночи	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	#ff5a4e	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	акцент ночи	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	4.88	4.88	ok
+palette	текст жетонов	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	5.35	5.19	ok
+palette	книга день	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	5.35	5.24	ok
+palette	#7a5410	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	5.45	5.3	ok
+palette	#f3ead8	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	5.45	5.3	ok
+palette	декор	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	5.6	5.5	ok
+library	С. Белова · 53%	PT Sans	11.5	rgb(94, 75, 54)	ui-small	4.5	5.83	5.6	ok
+palette	#2f6a6a	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	5.72	5.6	ok
+palette	#6a3d7a	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	5.71	5.6	ok
+library	Н. Зуева · прочитано	PT Sans	11.5	rgb(94, 75, 54)	ui-small	4.5	5.93	5.66	ok
+library	Г. Руденко · 12%	PT Sans	11.5	rgb(94, 75, 54)	ui-small	4.5	6.11	5.76	ok
+palette	жетоны, активное	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.05	5.79	ok
+palette	вторичный текст	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.05	5.83	ok
+palette	#5e4b36	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.11	5.94	ok
+palette	#e8b84a	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.11	5.94	ok
+palette	#2b2118	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.28	6.17	ok
+palette	текст, контуры	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.23	6.17	ok
+palette	#d6c5a4	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.23	6.17	ok
+palette	вторичный фон	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.23	6.17	ok
+palette	#b0262a	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.23	6.17	ok
+palette	акцент	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.23	6.17	ok
+palette	#8a1d20	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.23	6.17	ok
+palette	нажатие, текст	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.22	6.17	ok
+library	FB2	Press Start 2P	8	rgb(255, 255, 255)	ui-small	4.5	6.19	6.19	ok
+library	Тёплый свет	Oswald	17	rgb(255, 255, 255)	ui	3.0	6.19	6.19	ok
+library	Г. Руденко	PT Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	6.19	6.19	ok
+rewards	Новая книга	PT Sans	13	rgb(255, 255, 255)	ui-small	4.5	6.19	6.19	ok
+palette	#e9dcc4	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.51	6.45	ok
+palette	фон дня	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.45	6.45	ok
+palette	#f5ecda	IBM Plex Mono	11	rgb(94, 75, 54)	ui-small	4.5	6.51	6.45	ok
+palette	панели	PT Sans	10	rgb(94, 75, 54)	ui-small	4.5	6.45	6.45	ok
+session-summary	Чтение	PT Sans	12	rgb(94, 75, 54)	ui-small	4.5	6.56	6.56	ok
+session-summary	Страницы	PT Sans	12	rgb(94, 75, 54)	ui-small	4.5	6.56	6.56	ok
+session-summary	XP	PT Sans	12	rgb(94, 75, 54)	ui-small	4.5	6.56	6.56	ok
+library	Все	PT Sans	13	rgb(255, 255, 255)	ui-small	4.5	6.65	6.65	ok
+library	EPUB	Press Start 2P	8	rgb(255, 255, 255)	ui-small	4.5	6.65	6.65	ok
+library	Последний автобус	Oswald	17	rgb(255, 255, 255)	ui	3.0	6.65	6.65	ok
+library	С. Белова	PT Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	6.65	6.65	ok
+session-summary	Продолжить	Oswald	18	rgb(255, 255, 255)	ui	3.0	6.65	6.65	ok
+rewards	Серия сериала	PT Sans	13	rgb(255, 255, 255)	ui-small	4.5	6.65	6.65	ok
+rewards	Придумайте, чем себя порадовать, и назна	PT Sans	12.5	rgb(94, 75, 54)	ui-small	4.5	6.73	6.67	ok
+session-summary	Последний автобус · стр. 85–98	PT Sans	13	rgb(94, 75, 54)	ui-small	4.5	7.06	7.06	ok
+session-summary	320 / 500 до уровня 5	PT Sans	12	rgb(94, 75, 54)	ui-small	4.5	7.06	7.06	ok
+session-summary	+180	IBM Plex Mono	22	rgb(138, 29, 32)	ui	3.0	7.31	7.31	ok
+session-summary	06:00 AM · СМЕНА ОКОНЧЕНА	Press Start 2P	9	rgb(138, 29, 32)	ui-small	4.5	7.86	7.86	ok
+library	PDF	Press Start 2P	8	rgb(255, 255, 255)	ui-small	4.5	8.2	8.01	ok
+library	Карта звёзд	Oswald	17	rgb(255, 255, 255)	ui	3.0	8.2	8.2	ok
+library	О. Миронов	PT Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	8.2	8.2	ok
+library	TXT	Press Start 2P	8	rgb(43, 33, 24)	ui-small	4.5	8.54	8.54	ok
+library	Кафе на углу	Oswald	17	rgb(43, 33, 24)	ui	3.0	8.54	8.54	ok
+library	Н. Зуева	PT Sans	10.5	rgb(43, 33, 24)	ui-small	4.5	8.54	8.54	ok
+rewards	Кофе в кофейне	PT Sans	13	rgb(43, 33, 24)	ui-small	4.5	8.54	8.54	ok
+library	Карта звёзд	PT Sans	12.5	rgb(43, 33, 24)	ui-small	4.5	9.29	8.63	ok
+library	Сто лампочек	PT Sans	12.5	rgb(43, 33, 24)	ui-small	4.5	9.29	8.73	ok
+rewards	12:00 AM	Press Start 2P	8	rgb(255, 176, 0)	ui-small	4.5	9.88	8.98	ok
+session-summary	06:00 AM	Press Start 2P	8	rgb(255, 176, 0)	ui-small	4.5	9.87	9.0	ok
+library	Награды	PT Sans	12	rgb(214, 197, 164)	ui-small	4.5	9.29	9.29	ok
+library	Профиль	PT Sans	12	rgb(214, 197, 164)	ui-small	4.5	9.29	9.29	ok
+rewards	Библиотека	PT Sans	12	rgb(214, 197, 164)	ui-small	4.5	9.29	9.29	ok
+rewards	Профиль	PT Sans	12	rgb(214, 197, 164)	ui-small	4.5	9.29	9.29	ok
+palette	Офис	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	9.29	9.29	ok
+palette	Тревога	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	9.29	9.29	ok
+palette	Oswald — вывески и кнопки	Oswald	20	rgb(43, 33, 24)	ui	3.0	9.29	9.29	ok
+palette	Press Start 2P — CAM 03 · 12:00 AM	Press Start 2P	9	rgb(43, 33, 24)	ui-small	4.5	9.29	9.29	ok
+palette	PT Sans — интерфейс ·	PT Sans	14	rgb(43, 33, 24)	ui	3.0	9.29	9.29	ok
+palette	IBM Plex Mono — 390 / 18:00	IBM Plex Mono	14	rgb(43, 33, 24)	ui	3.0	9.29	9.29	ok
+palette	PT Serif — текст книги, спокойная антикв	PT Serif	14	rgb(43, 33, 24)	ui	3.0	9.29	9.29	ok
+palette	ЭЛТ-зелёный	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	9.56	9.39	ok
+palette	Янтарь	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	9.56	9.44	ok
+rewards	+30	IBM Plex Mono	16	rgb(255, 176, 0)	ui	3.0	10.18	9.71	ok
+rewards	+120	IBM Plex Mono	16	rgb(255, 176, 0)	ui	3.0	10.18	9.71	ok
+reader-day	Последний автобус	Oswald	19	rgb(43, 33, 24)	ui	3.0	9.87	9.87	ok
+reader-day	98 из 185	IBM Plex Mono	14	rgb(43, 33, 24)	ui	3.0	9.87	9.87	ok
+reader-day	Оглавление	PT Sans	11.5	rgb(43, 33, 24)	ui-small	4.5	9.87	9.87	ok
+reader-day	Текст	PT Sans	11.5	rgb(43, 33, 24)	ui-small	4.5	9.87	9.87	ok
+reader-day	Ночь	PT Sans	11.5	rgb(43, 33, 24)	ui-small	4.5	9.87	9.87	ok
+reader-day	Закладка	PT Sans	11.5	rgb(43, 33, 24)	ui-small	4.5	9.87	9.87	ok
+library	Сто лампочек	Oswald	17	rgb(255, 255, 255)	ui	3.0	9.96	9.96	ok
+library	Р. Ахмедов	PT Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	9.96	9.96	ok
+palette	Латунь тёмн.	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	10.55	10.18	ok
+library	Библиотека	PT Sans	12	rgb(26, 15, 8)	ui-small	4.5	10.2	10.2	ok
+rewards	Награды	PT Sans	12	rgb(26, 15, 8)	ui-small	4.5	10.2	10.2	ok
+rewards	Призовая стойка	Oswald	20	rgb(43, 33, 24)	ui	3.0	10.68	10.25	ok
+palette	Страница	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	10.47	10.25	ok
+rewards	XXX	IBM Plex Mono	12	rgb(255, 207, 90)	ui-small	4.5	10.74	10.74	ok
+palette	Бирюза кафе	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	10.98	10.76	ok
+palette	Слива флажков	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	10.98	10.76	ok
+library	Последний автобус	PT Sans	12.5	rgb(43, 33, 24)	ui-small	4.5	11.4	10.79	ok
+rewards	CAM 03	Press Start 2P	8	rgb(159, 224, 172)	ui-small	4.5	11.91	10.83	ok
+session-summary	CAM 01	Press Start 2P	8	rgb(159, 224, 172)	ui-small	4.5	11.84	10.88	ok
+library	Тёплый свет	PT Sans	12.5	rgb(43, 33, 24)	ui-small	4.5	11.73	11.29	ok
+palette	Латунь	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	11.62	11.29	ok
+palette	Табличка	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	11.62	11.4	ok
+library	EPUB	Press Start 2P	8	rgb(43, 33, 24)	ui-small	4.5	11.62	11.41	ok
+reader-night	Оглавление	PT Sans	11.5	rgb(159, 224, 172)	ui-small	4.5	11.6	11.6	ok
+reader-night	Текст	PT Sans	11.5	rgb(159, 224, 172)	ui-small	4.5	11.6	11.6	ok
+reader-night	День	PT Sans	11.5	rgb(159, 224, 172)	ui-small	4.5	11.6	11.6	ok
+reader-night	Закладка	PT Sans	11.5	rgb(159, 224, 172)	ui-small	4.5	11.6	11.6	ok
+palette	Вывеска	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	11.94	11.61	ok
+palette	Вывеска тёмн.	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	11.94	11.61	ok
+library	Старый парк	Oswald	17	rgb(43, 33, 24)	ui	3.0	11.62	11.62	ok
+library	В. Кузнецова	PT Sans	10.5	rgb(43, 33, 24)	ui-small	4.5	11.62	11.62	ok
+palette	Кафель	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	11.94	11.83	ok
+rewards	Задания	Oswald	20	rgb(43, 33, 24)	ui	3.0	12.06	11.84	ok
+palette	Сажа	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	11.94	11.84	ok
+palette	Обои	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	12.39	12.27	ok
+palette	Бумага	PT Sans	11	rgb(43, 33, 24)	ui-small	4.5	12.39	12.27	ok
+session-summary	18 мин	IBM Plex Mono	22	rgb(43, 33, 24)	ui	3.0	12.48	12.48	ok
+session-summary	14	IBM Plex Mono	22	rgb(43, 33, 24)	ui	3.0	12.48	12.48	ok
+palette	Палитра «Ночная смена»	Oswald	24	rgb(243, 230, 200)	ui	3.0	12.72	12.57	ok
+reader-night	Глава 7. Ночной обход	PT Serif	19	rgb(217, 212, 196)	book	4.5	12.61	12.61	ok
+reader-night	Сторож обошёл зал ещё раз. Стулья были п	PT Serif	16.5	rgb(217, 212, 196)	book	4.5	12.61	12.61	ok
+library	Библиотека	Oswald	28	rgb(243, 230, 200)	ui	3.0	12.72	12.72	ok
+rewards	Награды	Oswald	28	rgb(243, 230, 200)	ui	3.0	12.72	12.72	ok
+rewards	Добавить приз	PT Sans	14	rgb(43, 33, 24)	ui	3.0	12.8	12.8	ok
+reader-night	Последний автобус	Oswald	19	rgb(216, 230, 212)	ui	3.0	13.67	13.32	ok
+library	390	IBM Plex Mono	14	rgb(43, 33, 24)	ui	3.0	13.42	13.42	ok
+library	жетонов	PT Sans	14	rgb(43, 33, 24)	ui	3.0	13.42	13.42	ok
+library	Читаю	PT Sans	13	rgb(43, 33, 24)	ui-small	4.5	13.42	13.42	ok
+library	Хочу	PT Sans	13	rgb(43, 33, 24)	ui-small	4.5	13.42	13.42	ok
+library	Прочитано	PT Sans	13	rgb(43, 33, 24)	ui-small	4.5	13.42	13.42	ok
+session-summary	Сессия завершена	Oswald	30	rgb(43, 33, 24)	ui	3.0	13.42	13.42	ok
+session-summary	Уровень 4	PT Sans	13	rgb(43, 33, 24)	ui-small	4.5	13.42	13.42	ok
+session-summary	Неделя: 3 из 4 дней	PT Sans	13	rgb(43, 33, 24)	ui-small	4.5	13.42	13.42	ok
+rewards	390	IBM Plex Mono	14	rgb(43, 33, 24)	ui	3.0	13.42	13.42	ok
+rewards	жетонов	PT Sans	14	rgb(43, 33, 24)	ui	3.0	13.42	13.42	ok
+reader-night	98 из 185	IBM Plex Mono	14	rgb(216, 230, 212)	ui	3.0	13.69	13.67	ok
+reader-day	Глава 7. Ночной обход	PT Serif	19	rgb(38, 29, 21)	book	4.5	13.85	13.85	ok
+reader-day	Сторож обошёл зал ещё раз. Стулья были п	PT Serif	16.5	rgb(38, 29, 21)	book	4.5	13.85	13.85	ok
+session-summary	Заряд 100% · цель 10 мин, сегодня 18 мин	PT Sans	12.5	rgb(191, 240, 200)	ui-small	4.5	14.79	14.47	ok
+rewards	Читать 10 мин · 6 из 10 мин	PT Sans	12.5	rgb(191, 240, 200)	ui-small	4.5	14.66	14.57	ok
+rewards	4 дня по 10 мин · 3 из 4	PT Sans	12.5	rgb(191, 240, 200)	ui-small	4.5	14.66	14.57	ok
+rewards	ЗАДАНИЕ НЕДЕЛИ	Oswald	17	rgb(216, 245, 220)	ui	3.0	16.0	15.78	ok
+rewards	ЗАДАНИЕ ДНЯ · ЗАРЯД	Oswald	17	rgb(216, 245, 220)	ui	3.0	16.0	15.89	ok
+session-summary	+30 ЖЕТОНОВ ЗА ДЕНЬ	Oswald	16	rgb(216, 245, 220)	ui	3.0	16.22	16.0	ok
+tokens	книга день	—	—	#261d15 / #f3ead8	book	4.5	13.85	13.85	ok
+tokens	книга ночь	—	—	#d9d4c4 / #101311	book	4.5	12.61	12.61	ok
+tokens	--rq-text/--rq-bg	—	—	#2b2118 / #e9dcc4	ui	4.5	11.62	11.62	ok
+tokens	--rq-text-2/--rq-surface	—	—	#5e4b36 / #f5ecda	ui	4.5	7.06	7.06	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #b0262a	ui	4.5	6.65	6.65	ok
+tokens	--rq-coin/--rq-coin-tint	—	—	#7a5410 / #f3e2b4	ui	4.5	5.27	5.27	ok
+tokens	--rq-success/--rq-surface	—	—	#2f6a2a / #f5ecda	ui	4.5	5.56	5.56	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#d8e6d4 / #0b0e0c	ui	4.5	14.96	14.96	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#9fe0ac / #141a16	ui	4.5	11.55	11.55	ok
+tokens	ночь --rq-on-accent/--rq-accent	—	—	#1a0605 / #ff5a4e	ui	4.5	6.37	6.37	ok
+tokens	ночь --rq-coin/--rq-surface	—	—	#ffb000 / #141a16	ui	4.5	9.64	9.64	ok
+tokens	ЭЛТ: #bff0c8/#0e1410	—	—	#bff0c8 / #0e1410	ui	4.5	14.66	14.66	ok
+tokens	nav: #d6c5a4/#2b2118	—	—	#d6c5a4 / #2b2118	ui	4.5	9.29	9.29	ok
+tokens	nav on: #1a0f08/#e8b84a	—	—	#1a0f08 / #e8b84a	ui	4.5	10.2	10.2	ok

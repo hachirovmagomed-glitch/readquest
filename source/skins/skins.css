@@ -1,0 +1,96 @@
+/* ReadQuest · shop skins in the app. Linked AFTER the app <style> (app.html), tokens come from tokens.css (build-dist.sh appends
+   handoff/skins/<skin>/tokens.css). Rules (READQUEST-FOR-CLAUDE.md, Интерфейс): colours only from the skin tokens; the book page stays
+   clean (no decor next to the text, no red); terracotta / red decor ≥12px from text and controls; no motion with prefers-reduced-motion.
+   «Карандашный» keeps its own block in app.html; everything here is for html[data-skin] other than pencil. */
+
+/* ===== 1. Generic bridge: app palette vars → skin tokens (!important beats the inline --bg/... of applyAppTheme) ===== */
+html[data-skin]:not([data-skin="pencil"]){--bg:var(--rq-bg)!important;--card:var(--rq-surface)!important;--card2:var(--rq-surface-2)!important;
+  --txt:var(--rq-text)!important;--muted:var(--rq-text-2)!important;--accent:var(--rq-accent)!important;--accent2:var(--rq-coin)!important;
+  --good:var(--rq-success)!important;--bar:var(--rq-surface)!important;--sheet:var(--rq-sheet)!important;--drawer:var(--rq-surface)!important;
+  --radius:var(--rq-radius-lg);--rq-accent-on-dark:var(--rq-accent);--rq-slider-track:var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) body{font-family:var(--rq-font-ui)}
+html[data-skin]:not([data-skin="pencil"]) [data-page]{--rq-accent:inherit;--rq-accent-text:inherit} /* the skin accent, not the stage1 page accent */
+/* reader chrome: skin surfaces instead of the dark teal bars; the page itself keeps --r-* */
+html[data-skin]:not([data-skin="pencil"]) :is(.rhead,.rfoot,.rbar){background:var(--rq-surface-2);color:var(--rq-text);box-shadow:none}
+html[data-skin]:not([data-skin="pencil"]) .rhead{box-shadow:0 1px 0 var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) .rfoot{box-shadow:0 -1px 0 var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) :is(.rhead button,.rtitle){color:var(--rq-text)}
+html[data-skin]:not([data-skin="pencil"]) .rhead button .ic{color:var(--rq-accent-text)}
+html[data-skin]:not([data-skin="pencil"]) .rbar button{color:var(--rq-text)}
+html[data-skin]:not([data-skin="pencil"]) .rbar button .ic{color:var(--rq-accent-text)}
+/* controls */
+html[data-skin]:not([data-skin="pencil"]) .sheet{box-shadow:var(--rq-shadow-3)}
+html[data-skin]:not([data-skin="pencil"]) .settabs button.on{background:var(--rq-accent-tint);color:var(--rq-text)}
+html[data-skin]:not([data-skin="pencil"]) .seg button{background:var(--rq-surface-2);color:var(--rq-text);box-shadow:inset 0 0 0 1px var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) .seg button.on{background:var(--rq-accent);color:var(--rq-on-accent)}
+html[data-skin]:not([data-skin="pencil"]) .sw{--sw-on:var(--rq-accent)}
+html[data-skin]:not([data-skin="pencil"]) input[type=range]{accent-color:var(--rq-accent)}
+html[data-skin]:not([data-skin="pencil"]) .fchip{background:var(--rq-surface);color:var(--rq-text);box-shadow:inset 0 0 0 1px var(--rq-border-strong);min-height:44px}
+html[data-skin]:not([data-skin="pencil"]) .fchip.on{background:var(--rq-accent);color:var(--rq-on-accent);box-shadow:none}
+html[data-skin]:not([data-skin="pencil"]) .goalcard{background:var(--rq-surface)}
+html[data-skin]:not([data-skin="pencil"]) .ring circle:first-child{stroke:var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) #ringFg{stroke:var(--rq-accent)!important}
+html[data-skin]:not([data-skin="pencil"]) #dayBar i{background:var(--rq-accent);opacity:1}
+html[data-skin]:not([data-skin="pencil"]) :is(.bookcard,.kpi,.qcard,.pcard,.continuecard,.herocard){background:var(--rq-surface);border-color:var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) #summary{background:var(--rq-bg)}
+html[data-skin]:not([data-skin="pencil"]) .bigxp{color:var(--rq-text)}
+html[data-skin]:not([data-skin="pencil"]) #botnav{background:var(--rq-surface);border-top:1px solid var(--rq-line)}
+html[data-skin]:not([data-skin="pencil"]) .botnav-btn{color:var(--rq-text-2)}
+html[data-skin]:not([data-skin="pencil"]) .botnav-btn.on{color:var(--rq-on-accent);background:var(--rq-accent)}
+html[data-skin]:not([data-skin="pencil"]) .appsw-skin svg{display:block;margin:auto}
+
+/* ===== 2. «Эллада» (handoff/skins/ellada): вазопись, белый мрамор, Эгейское море. Decor never in the reader. ===== */
+@font-face{font-family:"Cormorant Unicase";src:url(../fonts/ellada-cormorantunicase-bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Alegreya Sans";src:url(../fonts/ellada-alegreyasans-medium.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"Alegreya Sans";src:url(../fonts/ellada-alegreyasans-bold.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Alegreya Sans SC";src:url(../fonts/ellada-alegreyasanssc-extrabold.woff2) format("woff2");font-weight:800;font-display:swap}
+html[data-skin="ellada"]{--el-meander:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23c8642c'/%3E%3Cpath d='M0 14.4H12.8V3.2H3.2V9.6H8.0V6.4M12.8 14.4H16' fill='none' stroke='%2315110e' stroke-width='2.08' stroke-linecap='square'/%3E%3C/svg%3E");--el-wave-line:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Crect width='20' height='12' fill='%2315110e'/%3E%3Cpath d='M0 10.2C6.0 10.2 7.0 1.8 12.0 2.4C17.0 3.0 16.0 7.2 12.4 7.0C10.0 6.6 11.0 4.8 13.0 5.0M12.4 7.0C16.0 10.2 20 10.2 20 10.2' fill='none' stroke='%23f4f0e8' stroke-width='1.6'/%3E%3C/svg%3E");--el-wave-line-n:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Crect width='20' height='12' fill='%2315110e'/%3E%3Cpath d='M0 10.2C6.0 10.2 7.0 1.8 12.0 2.4C17.0 3.0 16.0 7.2 12.4 7.0C10.0 6.6 11.0 4.8 13.0 5.0M12.4 7.0C16.0 10.2 20 10.2 20 10.2' fill='none' stroke='%230d0a08' stroke-width='1.6'/%3E%3C/svg%3E");--el-crest:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='10' viewBox='0 0 38 10'%3E%3Cpath d='M0 6q9.5-6 19 0t19 0' fill='none' stroke='%23ffffff' stroke-opacity='.8' stroke-width='1.6'/%3E%3C/svg%3E");--el-veins:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='420' viewBox='0 0 390 420'%3E%3Cpath d='M371 398 Q368 386 394 374 Q427 371 447 366 Q481 341 496 347 Q524 389 553 386 Q589 351 595 375' fill='none' stroke='%23b7ad9f' stroke-width='0.9' opacity='0.33'/%3E%3Cpath d='M123 375 Q159 360 170 384 Q188 388 206 363 Q232 361 260 346 Q292 394 316 380 Q325 401 354 418' fill='none' stroke='%23b7ad9f' stroke-width='1.2' opacity='0.43'/%3E%3Cpath d='M158 223 Q185 274 203 257 Q213 287 241 289 Q266 323 289 324 Q298 300 320 316 Q358 296 385 305' fill='none' stroke='%23b7ad9f' stroke-width='1.4' opacity='0.43'/%3E%3Cpath d='M177 217 Q217 214 229 229 Q254 243 275 264 Q308 269 336 285 Q372 248 393 259 Q417 291 425 290' fill='none' stroke='%23b7ad9f' stroke-width='1.3' opacity='0.31'/%3E%3Cpath d='M51 370 Q86 383 92 390 Q113 430 120 407 Q136 416 142 428 Q193 419 202 409 Q212 365 241 382' fill='none' stroke='%23b7ad9f' stroke-width='0.5' opacity='0.34'/%3E%3Cpath d='M225 312 Q244 303 250 305 Q281 340 309 327 Q355 333 372 347 Q417 336 425 339 Q469 312 488 318' fill='none' stroke='%23b7ad9f' stroke-width='1.0' opacity='0.29'/%3E%3Cpath d='M373 109 Q418 111 423 108 Q444 65 450 82 Q457 121 475 97 Q531 133 542 136 Q553 163 574 148' fill='none' stroke='%23b7ad9f' stroke-width='1.1' opacity='0.31'/%3E%3C/svg%3E")}
+html[data-skin="ellada"] body{font-weight:500;background:var(--el-veins) 0 0/390px 420px,var(--el-wall);background-attachment:fixed}
+html[data-skin="ellada"][data-theme="night"] body{background:var(--el-wall);background-attachment:fixed}
+/* sea at the bottom of the library and «Награды» (day only), under the shelf and the bottom nav */
+html[data-skin="ellada"]:not([data-theme="night"]) body:has(#library:not(.hidden))::before{content:"";position:fixed;left:0;right:0;bottom:0;height:150px;pointer-events:none;
+  background:var(--el-crest) 0 0/38px 10px repeat-x,linear-gradient(#5b93c4,var(--el-sea) 40%,#2f6a9c);opacity:.9}
+/* screen titles: Cormorant Unicase */
+html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h3,#settings h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
+html[data-skin="ellada"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
+/* library header = black-glaze frieze: terracotta meander on top, marble running wave below; the title ≥14px from the meander */
+html[data-skin="ellada"] #libHead{position:relative;margin:-20px -18px 18px;padding:30px 14px 22px;background:var(--el-glaze);color:#f6ead6}
+html[data-skin="ellada"] #libHead::before{content:"";position:absolute;left:0;right:0;top:0;height:16px;background:var(--el-meander) 0 0/16px 16px repeat-x;pointer-events:none}
+html[data-skin="ellada"] #libHead::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;background:var(--el-wave-line) 0 0/20px 12px repeat-x;pointer-events:none}
+html[data-skin="ellada"][data-theme="night"] #libHead::after{background-image:var(--el-wave-line-n)}
+html[data-skin="ellada"] #libHead :is(h1,.libgold,button,.iconbtn44){color:#f6ead6}
+html[data-skin="ellada"] #libTitle{font-size:28px;line-height:1.1}
+/* cards: marble tiles, almost square corners, frame «black glaze + marble edge» (--rq-shadow-2) */
+html[data-skin="ellada"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.herocard){border-radius:var(--rq-radius-sm);border-color:transparent;box-shadow:var(--rq-shadow-2)}
+html[data-skin="ellada"] :is(.bookcard,.continuecard){margin-bottom:16px}
+html[data-skin="ellada"] .goalcard{position:relative;padding-top:28px;margin-bottom:14px}
+html[data-skin="ellada"] .goalcard::before{content:"";position:absolute;left:10px;right:10px;top:4px;height:10px;background:var(--el-meander) 0 0/10px 10px repeat-x;pointer-events:none} /* 4..14, text from 28 */
+html[data-skin="ellada"] :is(.fchip,.lsortbtn,#btnAdd.addicon,.stepbtn,.ghostbtn){border-radius:var(--rq-radius-sm)}
+html[data-skin="ellada"] .lsortbtn{background:var(--rq-surface);box-shadow:inset 0 0 0 1px var(--rq-border-strong)}
+html[data-skin="ellada"] #btnAdd.addicon{background:var(--rq-surface);border:1.5px solid var(--rq-border-strong)}
+html[data-skin="ellada"] #botnav{background:var(--rq-surface);border-top:0;box-shadow:0 -1.5px 0 var(--el-glaze),0 -4px 0 var(--rq-surface),0 -5px 0 var(--rq-line)}
+html[data-skin="ellada"] .botnav-btn{border-radius:var(--rq-radius-sm);font-weight:700}
+html[data-skin="ellada"] .botnav-btn.on{box-shadow:inset 0 0 0 1px var(--rq-accent-pressed)}
+html[data-skin="ellada"] .sheet{border-radius:var(--rq-radius-lg) var(--rq-radius-lg) 0 0}
+html[data-skin="ellada"] .searchinp{border-radius:var(--rq-radius-sm)}
+/* vase covers (elladaCover in js/library.js) */
+html[data-skin="ellada"] .cover{border-radius:2px;background:none;box-shadow:0 0 0 1px var(--el-glaze)}
+.el-cover{position:relative;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;overflow:hidden}
+.el-cover i{font:800 8px/1 var(--rq-font-num,sans-serif);font-style:normal;letter-spacing:.08em;padding-top:6px}
+.el-cover svg{position:absolute;left:50%;bottom:4px;width:30px;height:26px;margin-left:-15px}
+.el-cover g{stroke-width:1}
+.el-red{background:#15110e}.el-red i{color:#f6ead6}.el-red g{fill:#c8642c;stroke:#c8642c}
+.el-black{background:linear-gradient(#f6ead6 0 50%,#c8642c 50%)}.el-black i{color:#1a1410}.el-black g{fill:#15110e;stroke:#15110e}
+.el-marble{background:#fffdf9}.el-marble i{color:#1a1410}.el-marble g{fill:#15110e;stroke:#15110e}
+.el-aegean{background:#1f5a8c}.el-aegean i{color:#ffffff}.el-aegean g{fill:#f6ead6;stroke:#f6ead6}
+/* the book page: nothing of the above (no meander, sea, owl, constellations) — only the clean page tokens of tokens.css */
+html[data-skin="ellada"] body:has(#reader:not(.hidden))::before{content:none}
+@media (prefers-reduced-motion:reduce){html[data-skin]:not([data-skin="pencil"]) *{animation:none!important;transition:none!important}}
+/* toasts over a night page carry data-theme="night" themselves: take the skin's own toast tokens from :root, not the stage1 night ones */
+html[data-skin]:not([data-skin="pencil"]) .rq-toast[data-theme="night"]{--rq-toast-info-bg:inherit;--rq-toast-info-fg:inherit;--rq-toast-info-icon:inherit;--rq-toast-info-border:inherit;--rq-toast-game-bg:inherit;--rq-toast-game-fg:inherit}
+html[data-skin]:not([data-skin="pencil"]) #pgSlider::-webkit-slider-thumb{background:var(--r-bg)}
+html[data-skin]:not([data-skin="pencil"]) #pgSlider::-moz-range-thumb{background:var(--r-bg)}
+/* app toasts outside the reader: inline background var(--sheet) + white text would be white on marble → the skin's toast tokens */
+html[data-skin]:not([data-skin="pencil"]) .rq-toast:not(.rd){background:var(--rq-toast-game-bg)!important;color:var(--rq-toast-game-fg)!important}
+/* narrow phones (360): title + search + a 5-digit balance in one row without cutting the title */
+@media (max-width:374px){html[data-skin="ellada"] #libTitle{font-size:24px;letter-spacing:0}html[data-skin="ellada"] #libHead{padding-left:10px;padding-right:10px}}

@@ -10,7 +10,7 @@ function achDates(){return (S.achDates&&typeof S.achDates==='object'&&!Array.isA
 function achInput(){
   const own={};(S.userBooks||[]).forEach(function(b){if(b)own[b.id]=1;});
   const books=BOOKS.concat(S.userBooks||[]).filter(Boolean).map(function(b){return {id:b.id,title:b.title,author:b.author,type:b.type,genre:b.genre,fname:b.fname,pages:b.pages,textLen:typeof b.text==='string'?b.text.length:0,own:!!own[b.id]};});
-  return {sessions:(typeof SESS!=='undefined'&&SESS)||[],finished:S.finished||[],finishDates:S.finishDates||{},books:books,xp:S.xp,streak:S.streak,quotes:S.quotes||{},goal:10};
+  return {sessions:(typeof SESS!=='undefined'&&SESS)||[],finished:S.finished||[],finishDates:S.finishDates||{},books:books,xp:S.xp,streak:S.streak,quotes:S.quotes||{},goal:10,streakMin:typeof STREAK_MIN!=='undefined'?STREAK_MIN:2};
 }
 /** открыто: записано в achDates, либо открыто старой версией (achUnlocked / бейдж с тем же или сопоставленным id) — никогда не отнимается */
 function achLegacy(id){return (S.achUnlocked||[]).indexOf(id)>=0||(S.badges||[]).some(function(b){return RQAch.alias(b)===id;});}

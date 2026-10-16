@@ -57,8 +57,10 @@ if (want('soon')) {
     const worn = wear('skin-dungeon');
     return { cards, detail, b1, b2, same: raw0 === raw1, gold: S.gold, owned: S.owned.slice(), worn, skin: SET.skin || null };
   });
-  const pencil = r.cards.find(c => c.id === 'skin-pencil'), others = r.cards.filter(c => c.id !== 'skin-pencil');
-  ok('soon: every skin but «Карандашный» shows «Скоро» (disabled), no «Купить»; «Карандашный» unchanged', others.length >= 6 && others.every(c => c.st === 'soon' && /Скоро/.test(c.cta) && c.dis) && pencil && pencil.st !== 'soon', r.cards);
+  /* 15.10: a skin leaves «Скоро» in the build that ships its styling («Эллада» first, its own test ellada.test.mjs) */
+  const styled = ['skin-pencil', 'skin-ellada'];
+  const pencil = r.cards.find(c => c.id === 'skin-pencil'), others = r.cards.filter(c => styled.indexOf(c.id) < 0);
+  ok('soon: every skin without styling (all but «Карандашный», «Эллада») shows «Скоро» (disabled), no «Купить»; «Карандашный» unchanged', others.length >= 6 && others.every(c => c.st === 'soon' && /Скоро/.test(c.cta) && c.dis) && pencil && pencil.st !== 'soon', r.cards);
   ok('soon: skin page button «Скоро», disabled', /Скоро/.test(r.detail.t || '') && r.detail.dis, r.detail);
   ok('soon: buy() refuses (reason soon) for a skin and its colour, nothing written, coins 2000', r.b1.reason === 'soon' && r.b2.reason === 'soon' && r.same && r.gold === 2000, { b1: r.b1, b2: r.b2, same: r.same, gold: r.gold });
   ok('soon: a skin bought before stays owned (no refund) and cannot be worn yet', r.owned.includes('skin-dungeon') && r.worn === false && r.skin !== 'skin-dungeon', { owned: r.owned, worn: r.worn, skin: r.skin });

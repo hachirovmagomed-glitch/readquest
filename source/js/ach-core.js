@@ -22,7 +22,7 @@
   const TIERS = { bronze: 'Бронза', silver: 'Серебро', gold: 'Золото', legend: 'Легенда', secret: 'Секрет', legacy: 'Из прошлой версии' };
   const POINTS = { bronze: 10, silver: 25, gold: 50, legend: 100, secret: 50, legacy: 0 };
   const GOAL = 10; /* «10+ минут» в условиях дня и времени суток — та же цель дня, что у ежедневки */
-  const STREAK_MIN = 2; /* мягкий стрик по истории; текущий S.streak приложения считается тоже (max) */
+  const STREAK_MIN = 2; /* мягкий стрик по истории, если приложение не передало свой порог (input.streakMin = STREAK_MIN из core-a.js); текущий S.streak считается тоже (max) */
 
   /* [id, раздел, ступень, название, описание, метрика, порог, звание?] — метрики в M ниже */
   const B = 'bronze', SV = 'silver', GD = 'gold', LG = 'legend', SC = 'secret';
@@ -192,6 +192,7 @@
   function stats(input) {
     const I = input || {};
     const goal = Number(I.goal) >= 1 ? Number(I.goal) : GOAL;
+    const smin = Number(I.streakMin) >= 1 ? Number(I.streakMin) : STREAK_MIN;
     const books = {}; (I.books || []).forEach(function (b) { if (b && b.id != null) books[b.id] = b; });
     const rows = (I.sessions || []).filter(function (r) { return r && Number.isFinite(Number(r.minutes)) && Number(r.minutes) > 0 && Number.isFinite(dn(r.date)); });
     const dayMin = {}, bookMin = {}, bookDays = {}, bookDayMin = {};
@@ -221,7 +222,7 @@
     const goalDays = Object.keys(goalSet).length;
     /* серия: подряд идущие дни с floor ≥ STREAK_MIN */
     let run = 0, best = 0, prev = NaN;
-    days.forEach(function (d) { if (dayFloor[d] < STREAK_MIN) return; run = d === prev + 1 ? run + 1 : 1; prev = d; best = Math.max(best, run); });
+    days.forEach(function (d) { if (dayFloor[d] < smin) return; run = d === prev + 1 ? run + 1 : 1; prev = d; best = Math.max(best, run); });
     best = Math.max(best, Number(I.streak) || 0);
     /* недели пн–вс */
     const wk = {}; Object.keys(goalSet).forEach(function (d) { d = +d; const w = d - dow(d); wk[w] = (wk[w] || 0) + 1; });

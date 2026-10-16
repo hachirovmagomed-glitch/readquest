@@ -58,7 +58,8 @@ function renderPath(){
       h+='<button type="button" class="pathnode '+side+(b.kind?' '+b.kind:'')+(st.done?' done':(st.lib?' started':''))+'" data-pid="'+b.id+'" onclick="pathOpen(\''+b.id+'\')">'+
         '<span class="pn-dot"><svg viewBox="0 0 '+(2*r+8)+' '+(2*r+8)+'" class="pn-ring"><circle cx="'+(r+4)+'" cy="'+(r+4)+'" r="'+r+'" class="pn-bg"/>'+
         (st.pct&&!st.done?'<circle cx="'+(r+4)+'" cy="'+(r+4)+'" r="'+r+'" class="pn-fg" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-st.pct/100)).toFixed(1)+'" transform="rotate(-90 '+(r+4)+' '+(r+4)+')"/>':'')+
-        '</svg>'+rqIcon(ic,b.kind==='boss'?26:(b.kind==='side'?18:22))+'</span>'+
+        '</svg>'+rqIcon(ic,b.kind==='boss'?26:(b.kind==='side'?18:22))+
+        (st.done?'<i class="pn-ok">'+rqIcon('check',12)+'</i>':(st.lib?'<i class="pn-bar"><b style="width:'+st.pct+'%"></b></i>':''))+'</span>'+ /* status by shape, not only colour: skins may show these */
         '<span class="pn-lab">'+(tag?'<span class="pn-tag">'+tag+'</span>':'')+'<b>'+esc(b.t)+'</b><span class="pn-a">'+esc(b.a)+'</span>'+
         '<span class="pn-p">'+(st.done?'Прочитано':(st.lib?st.pct+'%':pathHours(b.kb)))+'</span></span></button>';
     });

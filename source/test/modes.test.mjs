@@ -277,20 +277,29 @@ if (want('frames')) {
   await ctx.close();
 }
 
-/* bars: tap in the centre → the top / bottom bars fade + slide in (CSS animation on the bars only); none with reduced motion or «Анимации» off */
+/* bars (16.10, «как в ReadEra»): tap in the centre → the top / bottom bars slide + fade in OVER the text and slide out again
+   (CSS transitions on the bars only); the text area never moves; none with reduced motion or «Анимации» off */
 if (want('bars')) {
   const { ctx, p } = await fresh();
   await openLong(p);
-  const run = () => p.evaluate(async () => { concealChrome('tap'); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 30));
-    const h = document.querySelector('#reader .rhead'); const a = h.getAnimations().map(x => x.animationName); const shown = getComputedStyle(h).display !== 'none';
-    const txt = document.getElementById('content').getAnimations().length + document.getElementById('viewer').getAnimations().length; return { a, shown, txt }; });
+  const run = () => p.evaluate(async () => {
+    const h = document.querySelector('#reader .rhead'), b = document.querySelector('#reader .rbot'), V = () => { const r = document.getElementById('viewer').getBoundingClientRect(); return [r.top, r.bottom].map(Math.round).join(','); };
+    const tr = (n) => n.getAnimations().map(x => x.transitionProperty || x.animationName).filter(Boolean);
+    concealChrome('tap'); await new Promise(r => setTimeout(r, 400)); const v0 = V();
+    revealChrome(); await new Promise(r => setTimeout(r, 30));
+    const inA = tr(h).concat(tr(b)), shown = getComputedStyle(h).visibility === 'visible' && getComputedStyle(b).visibility === 'visible', v1 = V();
+    await new Promise(r => setTimeout(r, 400)); concealChrome('tap'); await new Promise(r => setTimeout(r, 30));
+    const outA = tr(h).concat(tr(b)), stillVisible = getComputedStyle(h).visibility === 'visible'; await new Promise(r => setTimeout(r, 400));
+    const gone = getComputedStyle(h).visibility === 'hidden' && getComputedStyle(b).visibility === 'hidden', v2 = V();
+    const txt = document.getElementById('content').getAnimations().length + document.getElementById('viewer').getAnimations().length; return { inA, outA, shown, stillVisible, gone, txt, v: [v0, v1, v2] }; });
   let r = await run();
-  ok('bars: revealed at once (display) and animated in; the text is not animated', r.shown && r.a.includes('rqBarTop') && r.txt === 0, r);
+  ok('bars: revealed at once and slid in, slid out on hide (visible during the slide-out, hidden after); text area unchanged; the text is not animated',
+    r.shown && r.inA.includes('transform') && r.outA.includes('transform') && r.stillVisible && r.gone && r.txt === 0 && r.v[0] === r.v[1] && r.v[1] === r.v[2], r);
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]); r = await run();
-  ok('bars: prefers-reduced-motion → no animation', r.shown && !r.a.length, r);
+  ok('bars: prefers-reduced-motion → no animation', r.shown && !r.inA.length && !r.outA.length && r.gone, r);
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
   await p.evaluate(() => { S.ux.anim = false; }); r = await run();
-  ok('bars: «Анимации» off → no animation', r.shown && !r.a.length, r);
+  ok('bars: «Анимации» off → no animation', r.shown && !r.inA.length && !r.outA.length && r.gone, r);
   await ctx.close();
 }
 

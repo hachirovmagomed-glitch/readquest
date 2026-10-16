@@ -60,6 +60,7 @@ const SHOP_CATALOG=(function(){
   sk('dungeon','Подземелье',800,'Каменные своды и факелы',[['base','Подземелье','#1b1a1f'],['emerald','Изумруд','#10261f'],['ice','Лёд','#1a2630']]);
   sk('celestial','Небесный',800,'Солнце, луна и облака',[['base','Небесный','#e6eef7'],['moon','Луна','#1a2236'],['dusk','Сумерки','#3a2e4a']]);
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
+  sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
   return Object.freeze(L.map(Object.freeze));
 })();
@@ -68,7 +69,7 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil'];
+const SHOP_READY=['skin-pencil','skin-ellada'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
@@ -95,14 +96,16 @@ function wear(id){
   const skin=it.type==='skin'?it.id:it.skin, color=it.type==='color'?it.id:shopBundled(it.id);
   const from=skinOf(activeTheme());
   SET.skin=skin;SET.color=color;
-  if(skin==='skin-pencil'){if(SET.theme!=='pencil'&&SET.theme!=='pencil-night')SET.theme='pencil';}
-  else if(SET.theme==='pencil'||SET.theme==='pencil-night')SET.theme='sepia';
+  /* a styled skin = its own reader theme (day kept if already in this skin's night); an unstyled one leaves any skin theme */
+  const key=skin.replace(/^skin-/,''), cur=activeTheme();
+  if(key==='pencil'||SKIN_THEMES[key]){if(cur.skin!==key)SET.theme=key;}
+  else if(cur.skin)SET.theme='sepia';
   saveSet();applySet();logSkinChange(from);return true;
 }
 /** worn skin id (validated): not owned / unknown → default, in memory only */
 function shopWorn(){
-  if(SET.theme==='pencil'||SET.theme==='pencil-night')return 'skin-pencil';
-  return SET.skin&&SET.skin!=='skin-pencil'&&shopOwns(SET.skin)?SET.skin:null;
+  const t=activeTheme();if(t.skin)return 'skin-'+t.skin; /* the skin on screen (pencil, or an owned styled shop skin) */
+  return SET.skin&&SET.skin!=='skin-pencil'&&!SKIN_THEMES[SET.skin.replace(/^skin-/,'')]&&shopOwns(SET.skin)?SET.skin:null;
 }
 /** load/import: migrate «Лес» ids, drop a worn skin/colour that is not owned (memory only, NS_set not rewritten here) */
 function shopFixState(){

@@ -305,3 +305,74 @@
 [data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
 [data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
 [data-skin="karandashny"] [data-page="night"],[data-theme="karandashny-day"] [data-page="night"],[data-theme="karandashny-night"] [data-page="night"]{--rq-accent:#5fb8ae;--rq-accent-text:#5fb8ae;} /* читалка в скинах чистая: канонический акцент */
+
+/* ReadQuest · скин «Эллада» (вазопись, мрамор, Эгейское море, созвездия). Интерфейс, 10.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="ellada"] на <html>. Ночь = [data-theme="night"]. Шрифты лежат и в src/fonts (OFL). */
+[data-skin="ellada"]{
+  --rq-font-ui:"Alegreya Sans",system-ui,sans-serif;
+  --rq-font-display:"Cormorant Unicase",Georgia,serif;   /* шапки экранов, кнопка, обложки */
+  --rq-font-num:"Alegreya Sans SC","Alegreya Sans",sans-serif; /* баланс, минуты, XP */
+  --rq-font-read:"Lora",Georgia,serif;
+  --rq-radius-xs:2px; --rq-radius-sm:3px; --rq-radius-md:3px; --rq-radius-lg:6px; /* почти прямые углы — как плитки и метопы */
+  --el-card-pad-top:28px; /* место под полоску меандра: от неё до текста ≥12 px */
+  --rq-icon-stroke:1.7;
+  --rq-bg:#f4f0e8; --rq-surface:#fffdf9; --rq-surface-2:#f2ede3; --rq-sheet:#fffdf9;
+  --rq-line:#c9bea9; --rq-border-strong:#8a7a5c;
+  --rq-text:#1a1410; --rq-text-2:#5a4a3e; --rq-text-disabled:#a89c88;
+  --rq-accent:#1f5a8c; --rq-accent-pressed:#17466e; --rq-accent-text:#1f5a8c;  /* днём акцент — Эгейский синий, не терракота */
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#e3edf6; --rq-accent-border:#8fb0cf;
+  --rq-coin:#7a3a12; --rq-coin-tint:#f5e6d8;           /* суммы драхм — обожжённая глина (текстовый цвет, 8.5) */
+  --rq-success:#4d6326; --rq-success-tint:#e8eed9;     /* неделя, успех — олива */
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#1f5a8c;
+  --rq-scrim:rgba(21,17,14,.45);
+  --rq-badge-bg:#1a1410; --rq-badge-text:#fffdf9;
+  --rq-toast-game-bg:#15110e; --rq-toast-game-fg:#f6ead6;
+  --rq-toast-info-bg:#fffdf9; --rq-toast-info-fg:#1a1410; --rq-toast-info-icon:#1f5a8c; --rq-toast-info-border:#8a7a5c;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(26,20,16,.12);
+  --rq-shadow-2:0 0 0 1.5px #15110e,0 0 0 4px #fffdf9,0 0 0 5px #b9ad97,0 8px 20px rgba(26,20,16,.16); /* рамка «чёрный лак + мраморный кант» */
+  --rq-shadow-3:0 14px 40px rgba(26,20,16,.3);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --el-terracotta:#c8642c;   /* меандр, фризы, фигуры — 3.9 на мраморе; от текста и контролов ≥12 px */
+  --el-terracotta-l:#e08a4e; /* процарапанные линии на чёрном лаке */
+  --el-glaze:#15110e;        /* чёрный лак: шапка-фриз, полка, фигуры */
+  --el-sea:#3f7fb5;          /* море внизу фона, капители колонн — 4.2 */
+  --el-wall:linear-gradient(135deg,#f8f5ef,#e9e3d8); /* белый мрамор с прожилками */
+  --el-decor-opacity:1;      /* меандры, вазы, море, сова — НЕ в читалке */
+  --el-leaf-dur:700ms; --el-column-dur:1100ms; --el-owl-dur:900ms; --el-wave-dur:14s; --el-star-dur:4s; --el-coin-dur:600ms;
+}
+[data-skin="ellada"][data-theme="night"]{
+  --rq-bg:#0d0a08; --rq-surface:#1c1714; --rq-surface-2:#26201b; --rq-sheet:#1c1714;
+  --rq-line:#3a2f27; --rq-border-strong:#6a5c4e;
+  --rq-text:#f3e9dc; --rq-text-2:#c9b6a2; --rq-text-disabled:#6a5c4e;
+  --rq-accent:#f0a066; --rq-accent-pressed:#f5b98a; --rq-accent-text:#f0a066;   /* ночью главный — светлая глина: краснофигурный стиль */
+  --rq-on-accent:#100d0b; --rq-control-on:#100d0b;
+  --rq-accent-tint:#2e2016; --rq-accent-border:#a85a28;
+  --rq-coin:#f2c58f; --rq-coin-tint:#2e2418;
+  --rq-success:#b8cf8a; --rq-success-tint:#232a16;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a16;
+  --rq-focus:#f0a066;
+  --rq-scrim:rgba(5,4,3,.7);
+  --rq-badge-bg:#f3e9dc; --rq-badge-text:#0d0a08;
+  --rq-toast-game-bg:#26201b; --rq-toast-game-fg:#f0a066;
+  --rq-toast-info-bg:#26201b; --rq-toast-info-fg:#f3e9dc; --rq-toast-info-icon:#f0a066; --rq-toast-info-border:#3a2f27;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1.5px #e08a4e,0 0 0 4px #1c1714,0 0 0 5px #6a5c4e,0 14px 40px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+  --el-wall:radial-gradient(120% 90% at 50% 30%,#2a201a,#0d0a08); /* небо чёрного лака */
+  --el-constellation:#e9c89a; /* линии мифических фигур — только декор, opacity .6 */
+}
+/* Страница книги: чистая — без меандров, ваз, созвездий, моря и совы. */
+[data-skin="ellada"] [data-page="day"]{--r-bg:#fcf9f3;--r-txt:#1a1410;--r-txt-2:#5a4a3e;--r-dim:0;}
+[data-skin="ellada"] [data-page="night"]{--r-bg:#100d0b;--r-txt:#ebe0d2;--r-txt-2:#b3a290;--r-dim:.35;}
+/* Анимации (описание — README). */
+@keyframes el-leaf{0%{opacity:0;transform:scale(.4) rotate(-20deg)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:none}}
+@keyframes el-column{0%{transform:scaleY(0);transform-origin:bottom}100%{transform:scaleY(1);transform-origin:bottom}}
+@keyframes el-owl{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg)}60%{transform:rotate(6deg)}}
+@keyframes el-wave{0%{background-position-x:0}100%{background-position-x:-38px}}
+@keyframes el-star{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes el-coin{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+@media (prefers-reduced-motion:reduce){
+  [data-skin="ellada"] *,[data-skin="ellada"] *::before,[data-skin="ellada"] *::after{animation:none!important;transition:none!important}
+}

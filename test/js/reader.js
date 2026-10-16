@@ -100,6 +100,7 @@ function renderThemeSeg(){
     b.style.background=bg;b.style.boxShadow='inset 0 0 0 1px rgba(255,255,255,.15)';
     if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
+    else if(SKIN_THEMES[key]){b.classList.add('sw-pencil');b.style.color=SKIN_THEMES[key].txt;b.innerHTML=rqIcon(SKIN_THEMES[key].icon,15);b.setAttribute('aria-label',name);} /* bought shop skin */
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
       const from=skinOf(activeTheme());
@@ -110,6 +111,7 @@ function renderThemeSeg(){
     seg.appendChild(b);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
+  Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>add(k,SKIN_THEMES[k].bg,SKIN_THEMES[k].name,false)); /* bought shop skins */
   /* 1в: a bought paid theme that is saved as the current one stays, as a highlighted «Ваша тема» swatch */
   {const o=ownedShopTheme(SET.theme);if(o)add(o.id,o.bg,o.name,false,true);}
   seg.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt)); /* rebuilt swatches keep the current mark */

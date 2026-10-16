@@ -132,7 +132,7 @@ function isLightBg(bg){
 }
 function toggleDayNight(){
   const t=activeTheme();
-  if(t.skin==='pencil'&&!SET.cBg)SET.theme=t.night?'pencil':'pencil-night'; /* the skin keeps its own night */
+  if(t.skin&&!SET.cBg)SET.theme=skinThemeKey(t.skin,!t.night); /* a skin keeps its own night («Карандашный», shop skins) */
   else SET.theme=isLightBg(SET.cBg||t.bg)?'dark':'sepia';
   SET.cBg=null;SET.cTxt=null;saveSet();applySet();
   {const lt=isLightBg(activeTheme().bg);flashMsg(lt?'Дневной режим':'Ночной режим',{kind:'info',icon:lt?'sun':'moon'});}

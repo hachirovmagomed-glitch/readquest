@@ -1,6 +1,6 @@
 /**
  * ReadQuest storage schema — version, defaults, domain splits.
- * Soft streak floor (2 min): TODO — document only; game logic not implemented here.
+ * Soft streak floor (3 min): game logic lives in js/core-a.js STREAK_MIN + closeReader; storage only keeps the number.
  */
 export const SCHEMA_VERSION = 1;
 
@@ -35,7 +35,7 @@ export function idbKeyText(bookId) {
 
 /**
  * Progress domain — reading habit metrics & per-book reading state.
- * TODO(soft-streak): Architect lock — streak soft floor ≥2 min (logic later).
+ * Streak soft floor ≥ 3 min (Маня 15.10, was 2): STREAK_MIN in js/core-a.js.
  * Daily quest / north-star still use goal (defaultMinutes: 10).
  */
 export const PROGRESS_DEF = {
@@ -93,6 +93,13 @@ export const GAME_DEF = {
   customStats: [],
   customAch: [],
   achUnlocked: [],
+  /** Достижения v2 (arch.md 15.10): id → 'YYYY-MM-DD' дня записи; только дописывается */
+  achDates: {},
+  /** первый проход по истории: {d: 'YYYY-MM-DD', n} или null */
+  achSeed: null,
+  /** выбранные звание и рамка (id каталога js/ach-core.js), '' = нет */
+  achTitle: '',
+  achFrame: '',
   avatar: null,
   heroName: 'Читатель',
   statuses: null,
@@ -251,6 +258,18 @@ export function hydrateGame(g) {
   out.customStats = out.customStats || [];
   out.customAch = out.customAch || [];
   out.achUnlocked = out.achUnlocked || [];
+  /* Достижения v2: прощающее чтение, ничего не записывается обратно; кривое → отбросить / умолчание */
+  {
+    const d = out.achDates, clean = {};
+    if (d && typeof d === 'object' && !Array.isArray(d))
+      Object.keys(d).forEach(function (k) { if (k.length <= 40 && typeof d[k] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d[k])) clean[k] = d[k]; });
+    out.achDates = clean;
+    const sd = out.achSeed;
+    out.achSeed = sd && typeof sd === 'object' && !Array.isArray(sd) && typeof sd.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(sd.d) && Number.isFinite(sd.n) && sd.n >= 0
+      ? { d: sd.d, n: Math.floor(sd.n) } : null;
+    out.achTitle = typeof out.achTitle === 'string' ? out.achTitle.slice(0, 40) : '';
+    out.achFrame = typeof out.achFrame === 'string' ? out.achFrame.slice(0, 40) : '';
+  }
   out.talents = out.talents || {};
   out.inventory = out.inventory || [];
   out.invHist = out.invHist || [];

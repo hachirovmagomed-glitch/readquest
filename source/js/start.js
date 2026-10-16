@@ -57,17 +57,19 @@ window.__rqStart=async function(api, tracker){
   /* old «Забрать» claims (incl. a UTC-day claim of today) → paid lists, once */
   if(window.__rqGame&&window.__rqGame.migrateClaimedToPaid(S,Date.now()))save();
   if(isMvp()&&!noLocks){const br=awardPendingSessions();__bootGold=br.gold||0;} /* recovered session: paid now, silently */
+  try{if(typeof achRun==='function')achRun();}catch(e){console.warn('[rq] achievements',e);} /* v2: history → achDates, silently (first pass = achSeed) */
   if(noLocks){
     document.body.classList.add('rq-nolocks'); /* quiet line in the reader */
     if(!window.__rqNoLocksLogged&&api.logAnalyticsEvent){window.__rqNoLocksLogged=true;api.logAnalyticsEvent({type:'no_locks'}).catch(function(e){console.warn('[rq] no_locks',e);});}
   }
   if(el('buildVer'))el('buildVer').textContent=RQ_BUILD;
-  applyAppTheme();applySkin();applyScale();applyPixel();
+  applyAppTheme();applySkin();applyScale();applyMotion();applyPixel();
   renderThemeSeg();applyMvpChrome();renderLibrary();show('library');startLang();
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
   try{renderNav();}catch(e){console.warn('[rq] nav',e);}
   window.__rqReady=true;
   try{rqFlushSetPending();}catch(e){console.warn('[rq] pending set',e);} /* picks made before ready: exactly one gated write */
+  try{importSharedBooks();}catch(e){console.warn('[rq] share',e);} /* «Поделиться → ReadQuest»: files the SW kept, once */
   {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');
     if(fl&&!fl.classList.contains('hidden')){ /* late boot after the watchdog (e.g. IndexedDB answered at 5 s): continue by itself, fade 200 ms into the library */
       if(window.__rqDiag)__rqDiag.mark('late-recover',Math.round(performance.now()));

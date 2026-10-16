@@ -1,0 +1,63 @@
+/* ReadQuest · скин «Бамбуковый» (тихая роща: рисовая бумага, мазки туши, зелёные стебли; ночью — луна и бумажный фонарик). Интерфейс, 15.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="bambukovyi"] на <html>. Ночь = [data-theme="night"]. Шрифты (OFL) лежат в src/fonts/. */
+@import url("https://fonts.googleapis.com/css2?family=Kurale&family=Golos+Text:wght@500;600;700;800&family=Geologica:wght@600&family=Roboto+Serif:wght@400;600&display=swap&subset=cyrillic");
+[data-skin="bambukovyi"]{
+  --rq-font-ui:"Golos Text",system-ui,sans-serif;
+  --rq-font-display:"Kurale","Roboto Serif",serif;    /* заголовки экранов и разделов, кнопка, названия на обложках */
+  --rq-font-num:"Geologica","Golos Text",sans-serif;  /* баланс, минуты, XP — 600 */
+  --rq-font-read:"Roboto Serif",Georgia,serif;
+  --rq-radius-xs:2px; --rq-radius-sm:4px; --rq-radius-md:4px; --rq-radius-lg:6px; /* почти прямые листы бумаги */
+  --rq-icon-stroke:1.7;
+  --rq-bg:#f2eee2; --rq-surface:#fbf8ef; --rq-surface-2:#efeadc; --rq-sheet:#fbf8ef;
+  --rq-line:#cfc8b3; --rq-border-strong:#8a8470;
+  --rq-text:#1b1d18; --rq-text-2:#4c5245; --rq-text-disabled:#a8a18a;
+  --rq-accent:#2f5d3a; --rq-accent-pressed:#22462b; --rq-accent-text:#2f5d3a;   /* бамбук */
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#e2ebd8; --rq-accent-border:#8fae86;
+  --rq-coin:#7a4e12; --rq-coin-tint:#f4ead2;            /* бронза */
+  --rq-success:#2d4a6b; --rq-success-tint:#e1e8ef;      /* неделя, успех — речная тушь */
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#2d4a6b;
+  --rq-scrim:rgba(27,29,24,.42);
+  --rq-badge-bg:#1b1d18; --rq-badge-text:#fbf8ef;
+  --rq-toast-game-bg:#2f5d3a; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fbf8ef; --rq-toast-info-fg:#1b1d18; --rq-toast-info-icon:#2f5d3a; --rq-toast-info-border:#cfc8b3;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 6px rgba(40,40,20,.08);
+  --rq-shadow-2:0 0 0 1px #d6cfb9,0 3px 10px rgba(40,40,20,.10);
+  --rq-shadow-3:0 14px 40px rgba(27,29,24,.28);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --bm-stalk:#7fa86a; --bm-stalk-dark:#4e7440; --bm-stalk-light:#a9c58f;  /* стебли и листья — 2.4 на бумаге */
+  --bm-mist:#aeb6a2;       /* дальние горы размывом туши — 1.8 */
+  --bm-ink-stroke:#1b1d18; /* мазок туши: только кромки карточек и линия под шапкой, не текст */
+  --bm-paper:#f2eee2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cpath d='M10 20q6 2 18 -3M60 70q8 -2 16 4M90 30q-5 4 -14 2M30 100q6 -3 15 1' stroke='%23d9d0b6' stroke-width='.6' fill='none'/%3E%3C/svg%3E"); /* волокна рисовой бумаги */
+  --bm-decor-opacity:1;    /* роща, горы, маскот; НЕ в читалке */
+  --bm-sway-dur:7s; --bm-grow-dur:600ms; --bm-ink-dur:900ms; --bm-drop-dur:1600ms;
+}
+[data-skin="bambukovyi"][data-theme="night"]{
+  --rq-bg:#0f120f; --rq-surface:#191d18; --rq-surface-2:#20261f; --rq-sheet:#191d18;
+  --rq-line:#2c322a; --rq-border-strong:#4d5e47;
+  --rq-text:#e9ecdf; --rq-text-2:#b8c0ad; --rq-text-disabled:#5f6a58;
+  --rq-accent:#e7b964; --rq-accent-pressed:#f0cd88; --rq-accent-text:#e7b964;   /* ночью главный — свет бумажного фонарика */
+  --rq-on-accent:#0f120f; --rq-control-on:#0f120f;
+  --rq-accent-tint:#2a2414; --rq-accent-border:#7a6232;
+  --rq-coin:#f1e3b0; --rq-coin-tint:#26231a;
+  --rq-success:#9fc0e0; --rq-success-tint:#1a2430;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
+  --rq-focus:#e7b964;
+  --rq-scrim:rgba(4,5,4,.7);
+  --rq-badge-bg:#e9ecdf; --rq-badge-text:#0f120f;
+  --rq-toast-game-bg:#20261f; --rq-toast-game-fg:#e7b964;
+  --rq-toast-info-bg:#20261f; --rq-toast-info-fg:#e9ecdf; --rq-toast-info-icon:#e7b964; --rq-toast-info-border:#2c322a;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #2c322a,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+  --bm-stalk:#24331f; --bm-stalk-dark:#18231a; --bm-moon:#ece6cf; --bm-firefly:#f1e3a0;  /* только декор */
+}
+/* Страница книги: чистая — без стеблей, мазков, гор и маскота. Шапка и низ читалки однотонные (бумага / ночная тушь). */
+@keyframes bm-sway{0%,100%{transform:rotate(0)}50%{transform:rotate(1.2deg)}}       /* стебли рощи чуть качаются, не в читалке */
+@keyframes bm-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}                /* новое колено стебля в цели дня */
+@keyframes bm-ink{from{stroke-dashoffset:60}to{stroke-dashoffset:0}}                 /* круг недели дорисовывается кистью */
+@keyframes bm-drop{0%,80%,100%{transform:none}90%{transform:translateY(2px)}}       /* капля росы на маскоте */
+@media (prefers-reduced-motion:reduce){
+  [data-skin="bambukovyi"] *,[data-skin="bambukovyi"] *::before,[data-skin="bambukovyi"] *::after{animation:none!important;transition:none!important}
+}

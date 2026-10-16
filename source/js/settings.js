@@ -31,6 +31,9 @@ function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}}
 }
 /* «Размер интерфейса» removed (Маня 07.10 / 15.10): the UI adapts to the phone by itself. A stored S.ux.scale is kept but ignored. */
 function applyScale(){document.body.style.zoom='';}
+/* «Анимации» (S.ux.anim) — wave 2: off → html.rq-still (CSS kills animations/transitions); prefers-reduced-motion counts the same */
+function rqStill(){try{if(S&&S.ux&&S.ux.anim===false)return true;return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function applyMotion(){document.documentElement.classList.toggle('rq-still',!!(S&&S.ux&&S.ux.anim===false));}
 
 /* ================= НАСТРОЙКИ ================= */
 /** 1в: «Вкл/Выкл» buttons drawn as switches (.sw) — state mirrored to aria-checked, labels stay for screen readers / tests */
@@ -81,16 +84,20 @@ function renderSettings(){
     const t=APP_THEMES[k];
     tile(k,t.name,!pc&&S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
-  tile('pencil',THEMES.pencil.name,pc,b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},
-    ()=>{if(activeTheme().skin){renderSettings();return;}const from=skinOf(activeTheme());SET.theme='pencil';SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();});
+  const sk=activeTheme().skin||'';
+  const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=key;SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
+  tile('pencil',THEMES.pencil.name,sk==='pencil',b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},pickSkin('pencil'));
+  /* bought shop skins with app styling: a tile each (Продукт 14.10: купленные — в списке тем) */
+  Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>{const t=SKIN_THEMES[k];
+    tile(k,t.name,sk===k,b=>{b.classList.add('appsw-skin');b.style.background=t.bg;b.style.color=t.txt;b.innerHTML=rqIcon(t.icon,18);},pickSkin(k));});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
-  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){return activeTheme().skin?'pencil':'';},sub:function(){return activeTheme().skin?'Скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
+  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'';},sub:function(){return activeTheme().skin?'Скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
 el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
-el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();renderSettings();};
+el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();applyMotion();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};
 let wakeRef=null;

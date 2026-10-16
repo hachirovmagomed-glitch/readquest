@@ -1,0 +1,158 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+rewards	награды за прочитанное	Raleway	13	rgb(35, 103, 110)	ui-small	4.5	5.18	5.08	ok
+library	В. Облакова · 4%	Raleway	11.5	rgb(92, 79, 110)	ui-small	4.5	5.74	5.47	ok
+palette	книга ночью	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.57	5.52	ok
+palette	акцент ночи	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.65	5.56	ok
+palette	#e8e4f4	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.64	5.6	ok
+palette	#ffc46b	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.7	5.61	ok
+library	Н. Светлов · 67%	Raleway	11.5	rgb(92, 79, 110)	ui-small	4.5	6.11	5.67	ok
+palette	#2b2340	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.82	5.78	ok
+palette	#f3e4ec	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.82	5.78	ok
+palette	текст	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.83	5.82	ok
+palette	#f8e6dc	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.82	5.82	ok
+palette	фон	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.83	5.82	ok
+palette	#fffaf5	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.82	5.82	ok
+palette	карточки	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.83	5.82	ok
+palette	вторичный	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.83	5.82	ok
+palette	#5b3f99	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.91	5.85	ok
+palette	#5c4f6e	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.91	5.89	ok
+palette	вторичный текст	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.9	5.9	ok
+palette	акцент	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.9	5.9	ok
+palette	#46307a	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.9	5.9	ok
+palette	нажатие	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.91	5.9	ok
+palette	#23676e	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.91	5.9	ok
+palette	неделя, успех	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.9	5.9	ok
+palette	поверхность	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	6.04	5.93	ok
+library	Л. Ветрова · 53%	Raleway	11.5	rgb(92, 79, 110)	ui-small	4.5	5.95	5.94	ok
+library	М. Зорин · 12%	Raleway	11.5	rgb(92, 79, 110)	ui-small	4.5	5.95	5.94	ok
+library	А. Небесная · прочитано	Raleway	11.5	rgb(92, 79, 110)	ui-small	4.5	5.95	5.94	ok
+palette	#f5b955	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.98	5.95	ok
+palette	#f4a98a	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.98	5.95	ok
+palette	#8a4a0c	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.98	5.98	ok
+palette	#fdf8f2	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	5.98	5.98	ok
+palette	#1a2050	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	6.04	5.98	ok
+palette	только декор	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.99	5.99	ok
+palette	суммы	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.99	5.99	ok
+palette	книга день	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	5.99	5.99	ok
+palette	#0d1230	monospace	10.5	rgb(92, 79, 110)	ui-small	4.5	6.04	6.04	ok
+palette	фон ночи	Raleway	10	rgb(92, 79, 110)	ui-small	4.5	6.04	6.04	ok
+library	Е. Лёгкая · не начата	Raleway	11.5	rgb(92, 79, 110)	ui-small	4.5	6.12	6.12	ok
+session-summary	+30 огоньков за день	Raleway	15	rgb(138, 74, 12)	ui	4.5	6.39	6.39	ok
+rewards	XXX	Raleway	12.5	rgb(138, 74, 12)	ui-small	4.5	6.51	6.51	ok
+session-summary	Чтение	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	6.51	6.51	ok
+session-summary	Страницы	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	6.51	6.51	ok
+session-summary	XP	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	6.51	6.51	ok
+rewards	+30	Raleway	15	rgb(138, 74, 12)	ui	4.5	6.52	6.52	ok
+rewards	+120	Raleway	15	rgb(138, 74, 12)	ui	4.5	6.56	6.52	ok
+session-summary	Продолжить	Philosopher	19	rgb(255, 255, 255)	ui	4.5	6.84	6.63	ok
+session-summary	+180	Montserrat Alternates	22	rgb(91, 63, 153)	ui	4.5	6.96	6.96	ok
+library	Н. Светлов	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	7.15	6.97	ok
+session-summary	320 / 500 до уровня 5	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	7.0	7.0	ok
+session-summary	Все 10 огней горят · 18 из 10 мин	Raleway	12.5	rgb(92, 79, 110)	ui-small	4.5	7.0	7.0	ok
+library	Читаю	Raleway	14	rgb(92, 79, 110)	ui	4.5	7.03	7.01	ok
+library	Хочу	Raleway	14	rgb(92, 79, 110)	ui	4.5	7.03	7.01	ok
+library	Прочитано	Raleway	14	rgb(92, 79, 110)	ui	4.5	7.03	7.01	ok
+library	Л. Ветрова	Raleway	10.5	rgb(255, 255, 255)	ui-small	4.5	7.15	7.01	ok
+session-summary	Свеча для маяка · стр. 85–98	Raleway	13	rgb(92, 79, 110)	ui-small	4.5	7.01	7.01	ok
+rewards	Читать 10 мин · 6 из 10 мин	Raleway	12.5	rgb(92, 79, 110)	ui-small	4.5	7.15	7.13	ok
+rewards	Придумайте, чем себя порадовать, и назна	Raleway	12.5	rgb(92, 79, 110)	ui-small	4.5	7.15	7.14	ok
+rewards	4 дня по 10 мин · 3 из 4	Raleway	12.5	rgb(92, 79, 110)	ui-small	4.5	7.19	7.15	ok
+library	А. Небесная	Raleway	10.5	rgb(255, 255, 255)	ui-small	4.5	7.44	7.22	ok
+library	Награды	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	7.24	7.24	ok
+library	Профиль	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	7.24	7.24	ok
+rewards	Библиотека	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	7.24	7.24	ok
+rewards	Профиль	Raleway	12	rgb(92, 79, 110)	ui-small	4.5	7.24	7.24	ok
+library	Библиотека	Raleway	12	rgb(255, 255, 255)	ui-small	4.5	7.42	7.26	ok
+rewards	Награды	Raleway	12	rgb(255, 255, 255)	ui-small	4.5	7.42	7.26	ok
+library	Свеча для маяка	Philosopher	13	rgb(255, 255, 255)	ui-small	4.5	7.46	7.29	ok
+library	Последний рассвет	Philosopher	13	rgb(43, 35, 64)	ui-small	4.5	7.74	7.39	ok
+library	Песня ветра	Philosopher	13	rgb(255, 255, 255)	ui-small	4.5	7.9	7.56	ok
+rewards	Добавить на террасу	Raleway	14	rgb(91, 63, 153)	ui	4.5	7.64	7.63	ok
+library	EPUB	Raleway	9.5	rgb(255, 255, 255)	ui-small	4.5	7.87	7.82	ok
+library	Все	Raleway	14	rgb(255, 255, 255)	ui	4.5	8.03	8.03	ok
+library	TXT	Raleway	9.5	rgb(255, 255, 255)	ui-small	4.5	8.37	8.24	ok
+library	PDF	Raleway	9.5	rgb(43, 35, 64)	ui-small	4.5	8.69	8.54	ok
+library	М. Зорин	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	9.62	9.34	ok
+library	В. Облакова	Raleway	10.5	rgb(255, 244, 220)	ui-small	4.5	10.13	9.73	ok
+library	Город над облаками	Philosopher	13	rgb(43, 35, 64)	ui-small	4.5	10.24	9.85	ok
+library	Острова тумана	Raleway	12.5	rgb(43, 35, 64)	ui-small	4.5	10.9	10.01	ok
+library	Свеча для маяка	Raleway	12.5	rgb(43, 35, 64)	ui-small	4.5	11.15	10.53	ok
+library	Песня ветра	Raleway	12.5	rgb(43, 35, 64)	ui-small	4.5	11.15	10.53	ok
+library	Острова тумана	Philosopher	13	rgb(255, 244, 220)	ui-small	4.5	11.07	10.56	ok
+library	Крылья из бумаги	Raleway	12.5	rgb(43, 35, 64)	ui-small	4.5	11.98	10.88	ok
+palette	Звёздное небо	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.92	11.04	ok
+library	FB2	Raleway	9.5	rgb(43, 35, 64)	ui-small	4.5	11.37	11.11	ok
+palette	Ночь: текст	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.31	11.16	ok
+rewards	Задания	Philosopher	21	rgb(43, 35, 64)	ui	4.5	11.39	11.2	ok
+palette	Свеча	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.42	11.25	ok
+library	Библиотека	Philosopher	30	rgb(43, 35, 64)	ui	4.5	11.29	11.26	ok
+rewards	Награды	Philosopher	30	rgb(43, 35, 64)	ui	4.5	11.29	11.26	ok
+palette	Палитра «Свет облаков»	Philosopher	22	rgb(43, 35, 64)	ui	4.5	11.29	11.26	ok
+palette	Сумерки	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.42	11.41	ok
+palette	Закатный фон	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.43	11.41	ok
+palette	Облако	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.43	11.41	ok
+palette	Сирень светл.	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.43	11.41	ok
+palette	Туман	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.64	11.56	ok
+palette	Вечерний	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.64	11.56	ok
+palette	Вечерний тёмн.	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.64	11.56	ok
+palette	Море	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.64	11.56	ok
+rewards	Облачная терраса	Philosopher	21	rgb(43, 35, 64)	ui	4.5	11.83	11.63	ok
+palette	Сияние	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.75	11.75	ok
+palette	Персик	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.75	11.75	ok
+palette	Огонёк текст	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.75	11.75	ok
+palette	Страница	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.75	11.75	ok
+palette	Ночь: облако	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	11.92	11.8	ok
+reader-day	Оглавление	Raleway	12	rgb(43, 35, 64)	ui-small	4.5	11.97	11.88	ok
+reader-day	Текст	Raleway	12	rgb(43, 35, 64)	ui-small	4.5	11.97	11.88	ok
+reader-day	Ночь	Raleway	12	rgb(43, 35, 64)	ui-small	4.5	11.97	11.88	ok
+reader-day	Закладка	Raleway	12	rgb(43, 35, 64)	ui-small	4.5	11.97	11.88	ok
+reader-day	Свеча для маяка	Philosopher	18	rgb(43, 35, 64)	ui	4.5	12.12	12.09	ok
+reader-day	98 из 185	Raleway	14	rgb(43, 35, 64)	ui	4.5	12.2	12.19	ok
+library	EPUB	Raleway	9.5	rgb(255, 244, 220)	ui-small	4.5	12.71	12.52	ok
+library	Е. Лёгкая	Raleway	10.5	rgb(43, 35, 64)	ui-small	4.5	12.91	12.69	ok
+session-summary	18 мин	Montserrat Alternates	22	rgb(43, 35, 64)	ui	4.5	12.85	12.85	ok
+session-summary	14	Montserrat Alternates	22	rgb(43, 35, 64)	ui	4.5	12.85	12.85	ok
+reader-night	98 из 185	Raleway	14	rgb(241, 236, 255)	ui	4.5	13.49	13.47	ok
+reader-night	Свеча для маяка	Philosopher	18	rgb(241, 236, 255)	ui	4.5	13.65	13.49	ok
+session-summary	Неделя: 3 из 4 дней	Raleway	13	rgb(43, 35, 64)	ui-small	4.5	13.83	13.82	ok
+session-summary	Уровень 4	Raleway	13	rgb(43, 35, 64)	ui-small	4.5	13.83	13.83	ok
+session-summary	Сессия завершена	Philosopher	27	rgb(43, 35, 64)	ui	4.5	13.84	13.84	ok
+reader-night	Оглавление	Raleway	12	rgb(241, 236, 255)	ui-small	4.5	14.15	14.02	ok
+reader-night	Текст	Raleway	12	rgb(241, 236, 255)	ui-small	4.5	14.15	14.02	ok
+reader-night	День	Raleway	12	rgb(241, 236, 255)	ui-small	4.5	14.15	14.02	ok
+reader-night	Закладка	Raleway	12	rgb(241, 236, 255)	ui-small	4.5	14.15	14.02	ok
+reader-day	Глава 5. Тёплый ветер	Philosopher	21	rgb(43, 35, 64)	ui	4.5	14.03	14.03	ok
+reader-day	Ветер поднялся снизу, из-под облачного м	Noto Serif	16.5	rgb(43, 35, 64)	book	7	14.03	14.03	ok
+rewards	Кофе в кофейне	Raleway	13	rgb(43, 35, 64)	ui-small	4.5	14.09	14.07	ok
+rewards	Новая книга	Raleway	13	rgb(43, 35, 64)	ui-small	4.5	14.08	14.07	ok
+palette	Philosopher — заголовки	Philosopher	20	rgb(43, 35, 64)	ui	4.5	14.18	14.07	ok
+palette	Montserrat Alternates — 18 мин · +180	Montserrat Alternates	16	rgb(43, 35, 64)	ui	4.5	14.17	14.07	ok
+rewards	Задание дня	Raleway	15	rgb(43, 35, 64)	ui	4.5	14.08	14.08	ok
+palette	Noto Serif — текст книги	Noto Serif	15	rgb(43, 35, 64)	ui	4.5	14.19	14.08	ok
+palette	Raleway — интерфейс	Raleway	14	rgb(43, 35, 64)	ui	4.5	14.19	14.09	ok
+rewards	Задание недели	Raleway	15	rgb(43, 35, 64)	ui	4.5	14.11	14.11	ok
+rewards	Серия сериала	Raleway	13	rgb(43, 35, 64)	ui-small	4.5	14.19	14.19	ok
+library	390	Montserrat Alternates	15	rgb(43, 35, 64)	ui	4.5	14.29	14.29	ok
+library	огоньков	Raleway	14	rgb(43, 35, 64)	ui	4.5	14.29	14.29	ok
+rewards	390	Montserrat Alternates	15	rgb(43, 35, 64)	ui	4.5	14.29	14.29	ok
+rewards	огоньков	Raleway	14	rgb(43, 35, 64)	ui	4.5	14.29	14.29	ok
+reader-night	Глава 5. Тёплый ветер	Philosopher	21	rgb(232, 228, 244)	ui	4.5	14.56	14.56	ok
+reader-night	Ветер поднялся снизу, из-под облачного м	Noto Serif	16.5	rgb(232, 228, 244)	book	7	14.56	14.56	ok
+tokens	книга день	—	—	#2b2340 / #fdf8f2	book	7	14.03	14.03	ok
+tokens	книга ночь	—	—	#e8e4f4 / #0f1330	book	7	14.56	14.56	ok
+tokens	--rq-text/--rq-bg	—	—	#2b2340 / #f8e6dc	ui	4.5	12.24	12.24	ok
+tokens	--rq-text-2/--rq-bg	—	—	#5c4f6e / #f8e6dc	ui	4.5	6.2	6.2	ok
+tokens	--rq-text-2/--rq-surface	—	—	#5c4f6e / #fffaf5	ui	4.5	7.23	7.23	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #5b3f99	ui	4.5	8.03	8.03	ok
+tokens	--rq-coin/--rq-surface	—	—	#8a4a0c / #fffaf5	ui	4.5	6.6	6.6	ok
+tokens	море (успех)/--rq-surface	—	—	#23676e / #fffaf5	ui	4.5	6.25	6.25	ok
+tokens	вечерний как текст/--rq-surface	—	—	#5b3f99 / #fffaf5	ui	4.5	7.74	7.74	ok
+tokens	сияние (декор)/--rq-surface	—	—	#f5b955 / #fffaf5	decor	не для текста	1.69	1.69	ok
+tokens	персик (декор)/--rq-surface	—	—	#f4a98a / #fffaf5	decor	не для текста	1.86	1.86	ok
+tokens	сирень (декор)/--rq-surface	—	—	#c9b6dc / #fffaf5	decor	не для текста	1.81	1.81	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#f1ecff / #0d1230	ui	4.5	15.86	15.86	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#c4bde0 / #1a2050	ui	4.5	8.56	8.56	ok
+tokens	ночь свеча/--rq-surface	—	—	#ffc46b / #1a2050	ui	4.5	9.78	9.78	ok
+tokens	ночь on-accent/свеча	—	—	#2a1a05 / #ffc46b	ui	4.5	10.7	10.7	ok
+tokens	ночь море/--rq-surface	—	—	#8fd8d0 / #1a2050	ui	4.5	9.44	9.44	ok
+tokens	ночь сирень (декор)/--rq-surface	—	—	#6d6aa0 / #1a2050	decor	не для текста	3.09	3.09	ok

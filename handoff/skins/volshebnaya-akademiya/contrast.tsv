@@ -1,0 +1,154 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+library	Северные огни	Comfortaa	15	rgb(255, 255, 255)	ui	3.0	7.03	4.6	ok
+library	К. Белых	Nunito Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	7.09	4.75	ok
+library	Город у моря	Comfortaa	15	rgb(255, 255, 255)	ui	3.0	6.98	4.81	ok
+library	Часовая башня	Comfortaa	15	rgb(255, 255, 255)	ui	3.0	7.32	4.85	ok
+library	Л. Яснова	Nunito Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	7.36	5.07	ok
+library	Т. Громов	Nunito Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	7.98	5.27	ok
+rewards	Награды	Nunito Sans	11.5	rgb(255, 255, 255)	ui-small	4.5	7.02	5.36	ok
+library	Библиотека	Nunito Sans	11.5	rgb(255, 255, 255)	ui-small	4.5	7.02	5.37	ok
+session-summary	Продолжить	Comfortaa	17	rgb(255, 255, 255)	ui	3.0	6.67	5.92	ok
+library	Л. Яснова · 53%	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.5	5.93	ok
+library	И. Светлова · 67%	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.5	5.93	ok
+palette	#b3349d	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.0	6.0	ok
+palette	акцент	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.07	6.03	ok
+palette	#7c1d6e	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.18	6.1	ok
+palette	нажатие, текст	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.23	6.15	ok
+session-summary	14	Comfortaa	21	rgb(31, 106, 122)	ui	3.0	6.17	6.17	ok
+library	Лунный мост	Comfortaa	15	rgb(255, 255, 255)	ui	3.0	10.15	6.25	ok
+palette	шкалы, декор	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.36	6.31	ok
+palette	#b98cff	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.36	6.32	ok
+palette	#fff2c2	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.35	6.32	ok
+palette	голограмма	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.36	6.34	ok
+library	А. Ветрова · прочитано	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.38	6.35	ok
+library	К. Белых · 12%	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.5	6.36	ok
+palette	градиент кнопок	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.44	6.39	ok
+palette	#6a2fb0	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.45	6.41	ok
+palette	#ff8fd0	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.45	6.41	ok
+palette	сердца, декор	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.45	6.41	ok
+palette	#6b4a80	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.43	6.41	ok
+palette	вторичный	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.45	6.41	ok
+library	Т. Громов · не начата	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.5	6.46	ok
+palette	#5fe0d8	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.46	ok
+palette	#3d1f4f	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.46	ok
+library	Д. Орлова · 4%	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	декор, блики	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#1f6a7a	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	текст-бирюза	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#fbf0fb	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	фон дня	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#fdf9fc	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	книга день	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	текст UI	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#140b2a	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	фон ночи	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#231446	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	поверхность	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#ff9be0	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	акцент ночи	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	#e6dcf0	monospace	11	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+palette	книга ночью	Nunito Sans	10	rgb(107, 74, 128)	ui-small	4.5	6.5	6.5	ok
+library	Профиль	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.66	6.59	ok
+rewards	Профиль	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.66	6.59	ok
+library	Все	Nunito Sans	13	rgb(255, 255, 255)	ui-small	4.5	7.11	6.66	ok
+rewards	Читать 10 мин · 6 из 10 мин	Nunito Sans	12.5	rgb(107, 74, 128)	ui-small	4.5	6.78	6.66	ok
+library	Награды	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.78	6.73	ok
+rewards	Библиотека	Nunito Sans	11.5	rgb(107, 74, 128)	ui-small	4.5	6.86	6.76	ok
+session-summary	320 / 500 до уровня 5	Nunito Sans	12	rgb(107, 74, 128)	ui-small	4.5	6.82	6.78	ok
+session-summary	Палочка заряжена · 18 из 10 мин	Nunito Sans	12.5	rgb(107, 74, 128)	ui-small	4.5	6.79	6.79	ok
+session-summary	Город у моря · стр. 85–98	Nunito Sans	13	rgb(107, 74, 128)	ui-small	4.5	6.9	6.89	ok
+rewards	+120	Nunito Sans	16	rgb(255, 255, 255)	ui	3.0	7.83	6.9	ok
+rewards	Придумайте, чем себя порадовать, и назна	Nunito Sans	12.5	rgb(107, 74, 128)	ui-small	4.5	6.95	6.9	ok
+library	И. Светлова	Nunito Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	11.7	6.92	ok
+library	Читаю	Nunito Sans	13	rgb(107, 74, 128)	ui-small	4.5	6.98	6.98	ok
+library	Хочу	Nunito Sans	13	rgb(107, 74, 128)	ui-small	4.5	7.07	7.02	ok
+library	Прочитано	Nunito Sans	13	rgb(107, 74, 128)	ui-small	4.5	7.1	7.09	ok
+session-summary	Чтение	Nunito Sans	12	rgb(107, 74, 128)	ui-small	4.5	7.2	7.2	ok
+session-summary	Страницы	Nunito Sans	12	rgb(107, 74, 128)	ui-small	4.5	7.2	7.2	ok
+session-summary	XP	Nunito Sans	12	rgb(107, 74, 128)	ui-small	4.5	7.2	7.2	ok
+rewards	Задание недели	Nunito Sans	15	rgb(255, 255, 255)	ui	3.0	8.38	7.57	ok
+rewards	4 дня по 10 мин · 3 из 4	Nunito Sans	12.5	rgb(255, 255, 255)	ui-small	4.5	8.87	7.91	ok
+palette	Marck Script — короткие акценты	Marck Script	20	rgb(124, 29, 110)	ui	3.0	8.21	7.96	ok
+session-summary	Чудесно!	Marck Script	22	rgb(124, 29, 110)	ui	3.0	8.97	8.96	ok
+session-summary	+180	Comfortaa	21	rgb(91, 42, 168)	ui	3.0	8.97	8.97	ok
+rewards	Добавить в лавку	Nunito Sans	14	rgb(124, 29, 110)	ui	3.0	8.98	8.98	ok
+library	Д. Орлова	Nunito Sans	10.5	rgb(31, 58, 79)	ui-small	4.5	9.53	9.26	ok
+session-summary	18 мин	Comfortaa	21	rgb(124, 29, 110)	ui	3.0	9.3	9.3	ok
+palette	Фуксия	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	10.52	9.32	ok
+library	Летний бал	Comfortaa	15	rgb(31, 58, 79)	ui	3.0	9.91	9.59	ok
+library	А. Ветрова	Nunito Sans	10.5	rgb(61, 31, 79)	ui-small	4.5	10.36	9.97	ok
+palette	Фуксия тёмн.	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.11	10.04	ok
+palette	Лимонный	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.33	10.07	ok
+palette	Бирюза	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.38	10.16	ok
+palette	Розовый	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.49	10.22	ok
+palette	Бирюза тёмн.	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.81	10.32	ok
+palette	Сирень	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.3	10.35	ok
+palette	Слива 2	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.83	10.39	ok
+library	Город у моря	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	11.51	10.4	ok
+library	Северные огни	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	11.51	10.4	ok
+library	Часовая башня	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	11.51	10.4	ok
+library	Летний бал	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	11.74	10.4	ok
+library	Лунный мост	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	11.58	10.4	ok
+palette	Фиалка	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.44	10.49	ok
+palette	Слива	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.86	10.51	ok
+palette	Страница	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.71	10.61	ok
+library	Сад камней	Comfortaa	15	rgb(61, 31, 79)	ui	3.0	10.9	10.62	ok
+palette	Палитра «Волшебная академия»	Comfortaa	22	rgb(61, 31, 79)	ui	3.0	11.53	10.78	ok
+palette	Фон	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	11.99	10.79	ok
+rewards	+30	Nunito Sans	16	rgb(74, 31, 122)	ui	3.0	11.0	10.93	ok
+palette	Ночь: текст	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	12.58	10.93	ok
+palette	Ночь	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	12.29	11.02	ok
+palette	Ночь: панели	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	12.58	11.02	ok
+palette	Ночь: розов.	Nunito Sans	11	rgb(61, 31, 79)	ui-small	4.5	12.47	11.02	ok
+reader-day	Текст	Nunito Sans	11.5	rgb(61, 31, 79)	ui-small	4.5	11.1	11.04	ok
+rewards	Задания	Comfortaa	19	rgb(61, 31, 79)	ui	3.0	11.19	11.04	ok
+reader-day	98 из 185	Nunito Sans	14	rgb(61, 31, 79)	ui	3.0	11.15	11.05	ok
+reader-day	Город у моря	Comfortaa	17	rgb(61, 31, 79)	ui	3.0	11.15	11.06	ok
+reader-day	Ночь	Nunito Sans	11.5	rgb(61, 31, 79)	ui-small	4.5	11.22	11.11	ok
+session-summary	+30 кристаллов за день	Nunito Sans	15	rgb(74, 31, 122)	ui	3.0	11.2	11.2	ok
+reader-day	Закладка	Nunito Sans	11.5	rgb(61, 31, 79)	ui-small	4.5	11.43	11.29	ok
+reader-day	Оглавление	Nunito Sans	11.5	rgb(61, 31, 79)	ui-small	4.5	11.55	11.38	ok
+palette	Alegreya — текст книги	Alegreya	16	rgb(61, 31, 79)	ui	3.0	11.63	11.45	ok
+palette	Nunito Sans — интерфейс	Nunito Sans	14	rgb(61, 31, 79)	ui	3.0	11.9	11.66	ok
+library	390 кристаллов	Nunito Sans	13	rgb(74, 31, 122)	ui-small	4.5	11.88	11.88	ok
+rewards	390 кристаллов	Nunito Sans	13	rgb(74, 31, 122)	ui-small	4.5	11.88	11.88	ok
+rewards	XXX	Nunito Sans	12	rgb(74, 31, 122)	ui-small	4.5	11.88	11.88	ok
+library	EPUB	Nunito Sans	9.5	rgb(61, 31, 79)	ui-small	4.5	11.91	11.91	ok
+rewards	Волшебная лавка	Comfortaa	19	rgb(61, 31, 79)	ui	3.0	12.29	11.92	ok
+library	PDF	Nunito Sans	9.5	rgb(61, 31, 79)	ui-small	4.5	11.97	11.96	ok
+library	FB2	Nunito Sans	9.5	rgb(61, 31, 79)	ui-small	4.5	12.06	11.98	ok
+palette	Comfortaa — заголовки	Comfortaa	19	rgb(61, 31, 79)	ui	3.0	12.58	12.3	ok
+session-summary	Уровень 4	Nunito Sans	13	rgb(61, 31, 79)	ui-small	4.5	13.17	12.33	ok
+rewards	Новая книга	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	12.84	12.76	ok
+session-summary	Неделя: 3 из 4 дней	Nunito Sans	13	rgb(61, 31, 79)	ui-small	4.5	12.96	12.88	ok
+rewards	Кофе в кофейне	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	13.1	13.02	ok
+rewards	Серия сериала	Nunito Sans	12.5	rgb(61, 31, 79)	ui-small	4.5	13.19	13.1	ok
+rewards	Задание дня · заряд палочки	Nunito Sans	15	rgb(61, 31, 79)	ui	3.0	13.31	13.2	ok
+session-summary	Сессия завершена	Comfortaa	25	rgb(61, 31, 79)	ui	3.0	13.44	13.36	ok
+reader-night	Закладка	Nunito Sans	11.5	rgb(241, 230, 255)	ui-small	4.5	13.7	13.63	ok
+library	TXT	Nunito Sans	9.5	rgb(61, 31, 79)	ui-small	4.5	13.67	13.67	ok
+reader-night	Оглавление	Nunito Sans	11.5	rgb(241, 230, 255)	ui-small	4.5	13.88	13.7	ok
+reader-night	День	Nunito Sans	11.5	rgb(241, 230, 255)	ui-small	4.5	14.08	14.01	ok
+reader-night	Город у моря	Comfortaa	17	rgb(241, 230, 255)	ui	3.0	14.19	14.05	ok
+reader-night	98 из 185	Nunito Sans	14	rgb(241, 230, 255)	ui	3.0	14.26	14.11	ok
+reader-night	Текст	Nunito Sans	11.5	rgb(241, 230, 255)	ui-small	4.5	14.31	14.18	ok
+reader-night	Глава 7. Синий том	Alegreya	21	rgb(230, 220, 240)	book	4.5	14.49	14.49	ok
+reader-night	В библиотеке башни пахло старой бумагой 	Alegreya	17.5	rgb(230, 220, 240)	book	4.5	14.49	14.49	ok
+reader-day	Глава 7. Синий том	Alegreya	21	rgb(42, 26, 51)	book	4.5	15.56	15.42	ok
+reader-day	В библиотеке башни пахло старой бумагой 	Alegreya	17.5	rgb(42, 26, 51)	book	4.5	15.56	15.56	ok
+library	Библиотека	Comfortaa	25	rgba(0, 0, 0, 0)	ui	3.0	16.76	16.25	ok
+rewards	Награды	Comfortaa	25	rgba(0, 0, 0, 0)	ui	3.0	16.64	16.25	ok
+tokens	книга день	—	—	#2a1a33 / #fdf9fc	book	4.5	15.56	15.56	ok
+tokens	книга ночь	—	—	#e6dcf0 / #120a24	book	4.5	14.49	14.49	ok
+tokens	--rq-text/--rq-bg	—	—	#3d1f4f / #fbf0fb	ui	4.5	12.58	12.58	ok
+tokens	--rq-text-2/--rq-bg	—	—	#6b4a80 / #fbf0fb	ui	4.5	6.5	6.5	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #b3349d	ui	4.5	5.39	5.39	ok
+tokens	--rq-accent-text/--rq-surface	—	—	#7c1d6e / #ffffff	ui	4.5	9.3	9.3	ok
+tokens	--rq-coin/--rq-coin-tint	—	—	#4a1f7a / #efe3ff	ui	4.5	9.67	9.67	ok
+tokens	--rq-success/--rq-surface	—	—	#1f6a4a / #ffffff	ui	4.5	6.52	6.52	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#f1e6ff / #140b2a	ui	4.5	15.75	15.75	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#c7b2ea / #231446	ui	4.5	8.72	8.72	ok
+tokens	ночь --rq-on-accent/--rq-accent	—	—	#2a0a24 / #ff9be0	ui	4.5	9.44	9.44	ok
+tokens	ночь --rq-coin/--rq-surface	—	—	#9ff3ec / #231446	ui	4.5	13.1	13.1	ok
+tokens	ночь --rq-success/--rq-surface	—	—	#9fe6b8 / #231446	ui	4.5	11.5	11.5	ok
+tokens	ночь иконки читалки	—	—	#ffa8e4 / #1f1242	ui	4.5	9.79	9.79	ok

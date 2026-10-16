@@ -164,7 +164,7 @@ function renderLibrary(){
   el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/goalMin());
   el('ringFg').style.strokeDashoffset=207*(1-pct);
-  el('ringFg').style.stroke=pct>=1?'#4cd97b':'#2bb3c0';
+  el('ringFg').style.stroke=pct>=1?'var(--good)':'var(--accent)';
   el('ringTxt').textContent=Math.floor(pct*100)+'%';
   renderLibChips();
   // карточка «Продолжить чтение»
@@ -267,11 +267,29 @@ function pencilCover(b){
   if(!ic){let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;ic=PC_COVER_ICONS[h%PC_COVER_ICONS.length];}
   return '<span class="pc-cover">'+rqIcon(ic,20)+'<i>'+fmt+'</i></span>';
 }
+/* «Эллада»: emoji cover → vase-painting tile (handoff/skins/ellada, our own profile figures). Kind and figure by a hash of the id.
+   red = black glaze + terracotta figure, black = light label over a terracotta field with a black figure, marble, aegean.
+   The format label never sits on terracotta (README «Правило терракоты»). Picture covers stay pictures. */
+const EL_FIG={
+ ship:'<path d="M6 34H54L48 42H14z"/><path d="M30 34V8M30 10L46 30H30zM30 12L16 30H30z"/>',
+ dolphin:'<path d="M8 32Q14 14 34 16Q48 17 54 26Q46 24 40 28Q46 34 44 40Q38 32 30 32Q20 34 14 40Q14 34 8 32z"/><path d="M30 17l4-8 3 9z"/>',
+ runner:'<circle cx="34" cy="9" r="5"/><path d="M33 14L28 28 18 34 22 37 31 31 34 40 26 48 29 50 38 41 36 29 44 22 48 26 51 24 44 16z"/>',
+ horse:'<path d="M14 46Q18 30 26 22Q24 14 30 8L34 14Q44 14 50 24L46 28Q40 24 38 28Q42 38 40 46z"/>',
+ owl:'<path d="M20 14L24 8 28 12Q30 11 32 12L36 8 40 14Q44 24 40 36Q36 46 30 46Q24 46 20 36Q16 24 20 14z"/>',
+ vine:'<circle cx="20" cy="36" r="4"/><circle cx="26" cy="38" r="4"/><circle cx="23" cy="43" r="4"/><circle cx="42" cy="22" r="4"/><circle cx="47" cy="27" r="4"/><path d="M10 44Q20 20 30 30T50 14" fill="none" stroke-width="2.6"/>'};
+const EL_KINDS=['red','black','marble','aegean'];
+function bookFmt(b){return b.type==='pdf'?'PDF':(/\.fb2$/i.test(b.fname||'')||b.genre==='FB2'?'FB2':(/\.epub$/i.test(b.fname||'')?'EPUB':'TXT'));}
+function elladaCover(b){
+  let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
+  const kind=EL_KINDS[h%EL_KINDS.length],figs=Object.keys(EL_FIG),fig=figs[(h>>3)%figs.length];
+  return '<span class="el-cover el-'+kind+'"><i>'+bookFmt(b)+'</i><svg viewBox="0 0 60 52" aria-hidden="true" focusable="false"><g>'+EL_FIG[fig]+'</g></svg></span>';
+}
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){
   const cv=S.covers[b.id];
   if(cv&&cv.indexOf('data:')===0)return '<img src="'+cv+'" alt="">';
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
+  if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(cv)return cv;
   return b.cover;
 }
@@ -292,46 +310,116 @@ function renderLibChips(){
 }
 function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 
-el('btnAdd').onclick=()=>el('fileInp').click();
-el('fileInp').onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;e.target.value='';
-  const btn=el('btnAdd');
-  try{
-    let b;
-    if(/\.pdf$/i.test(f.name)){
-      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Загружаю PDF...');
-      await loadPdfJs();
-      const buf=await f.arrayBuffer();
-      const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
-      const nPages=doc.numPages;try{doc.destroy();}catch(_){} /* only the page count is needed here */
-      const id='u'+Date.now();
-      await idbPut('pdf:'+id,buf);
-      b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
-    }else if(/\.fb2$/i.test(f.name)){
-      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Разбираю FB2...');
-      const r=await parseFb2(f);
-      b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
-    }else if(/\.epub$/i.test(f.name)){
-      btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label','Распаковываю EPUB...');
-      const r=await parseEpub(f);
-      b={id:'u'+Date.now(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
-    }else{
-      const txt=await f.text();
-      b={id:'u'+Date.now(),title:f.name.replace(/\.txt$/i,''),author:'Моя книга',genre:'Своя книга',stat:'Воля',cover:'📜',text:txt,fname:f.name,size:f.size};
-    }
-    if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
-    /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
-    if(b.type!=='pdf'){
-      if(window.__rqWriter&&!window.__rqWriter.mayWrite())throw new Error('книга открыта в другом окне');
-      if(!__rq||!__rq.upsertUserBook)throw new Error('хранилище ещё не готово — обновите страницу');
-      await __rq.upsertUserBook(null,b,{text:b.text});
-    }
-    S.userBooks.push(b);
-    if(!S.badges.includes('collector'))S.badges.push('collector');
-    save();renderLibrary();
-  }catch(err){alert('Не удалось загрузить книгу: '+err.message);}
+/* Добавление книг (Джессика 15.10): несколько файлов за раз, папка (Android Chrome), «Поделиться → ReadQuest» (share target в sw.js).
+   One path for all: files go one by one through importBookFile (same book card and IDB writes as a single add). In a batch (2+ files)
+   a file already on the shelf (same fname + size) is skipped, so picking the same folder twice adds nothing; a single picked file is
+   added as before (savetext contract). Unsupported extensions are ignored, a broken file does not stop the rest, the batch result is one
+   toast (arch.md «1в: импорт пачкой»); a single file keeps its old alert. */
+const BOOK_EXT=/\.(txt|epub|fb2|pdf)$/i;
+let bookIdN=0;
+function newBookId(){try{if(crypto&&crypto.randomUUID)return 'u'+crypto.randomUUID();}catch(e){}return 'u'+Date.now()+'-'+(++bookIdN);} /* arch.md 1в: id is never parsed as time */
+function importToast(t,err){flashMsg(t,{kind:err?'error':'info',ms:6000});const d=document.querySelector('.rq-toast');if(d)d.classList.add('imp');}
+/* binary check (bug 16.10, an .mp3 on the shelf): NUL bytes or many U+FFFD / control chars in the first 64K = not text */
+function looksLikeText(t){const h=String(t||'').slice(0,65536);if(!h)return true;let bad=0;
+  for(let i=0;i<h.length;i++){const c=h.charCodeAt(i);if(c===0)return false;if(c===0xFFFD||(c<32&&c!==9&&c!==10&&c!==13&&c!==12))bad++;}
+  return bad/h.length<0.02;}
+async function importBookFile(f,setBusy){
+  let b;
+  if(/\.pdf$/i.test(f.name)){
+    setBusy('Загружаю PDF...');
+    await loadPdfJs();
+    const buf=await f.arrayBuffer();
+    const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
+    const nPages=doc.numPages;try{doc.destroy();}catch(_){} /* only the page count is needed here */
+    const id=newBookId();
+    await idbPut('pdf:'+id,buf);
+    b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
+  }else if(/\.fb2$/i.test(f.name)){
+    setBusy('Разбираю FB2...');
+    const r=await parseFb2(f);
+    b={id:newBookId(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
+  }else if(/\.epub$/i.test(f.name)){
+    setBusy('Распаковываю EPUB...');
+    const r=await parseEpub(f);
+    b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
+  }else{
+    let txt=await f.text();
+    if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */
+    if(!looksLikeText(txt))throw new Error('это не текстовый файл'); /* 16.10: music / binary under .txt never becomes a book */
+    b={id:newBookId(),title:f.name.replace(/\.txt$/i,''),author:'Моя книга',genre:'Своя книга',stat:'Воля',cover:'📜',text:txt,fname:f.name,size:f.size};
+  }
+  if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
+  /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
+  if(b.type!=='pdf'){
+    if(window.__rqWriter&&!window.__rqWriter.mayWrite())throw new Error('книга открыта в другом окне');
+    if(!__rq||!__rq.upsertUserBook)throw new Error('хранилище ещё не готово — обновите страницу');
+    await __rq.upsertUserBook(null,b,{text:b.text});
+  }
+  S.userBooks.push(b);
+  if(!(typeof achV2==='function'&&achV2())&&!S.badges.includes('collector'))S.badges.push('collector'); /* v2: «Коллекционер» needs 10 min in the book */
+  save();
+  return b;
+}
+let bookImportBusy=false;
+async function importBookFiles(list){
+  const all=Array.from(list||[]);
+  const files=all.filter(function(f){return BOOK_EXT.test(f.name);});
+  if(!files.length){if(all.length)importToast('Здесь нет книг: подходят .txt, .epub, .fb2 и .pdf',true);return {added:0};}
+  if(bookImportBusy){importToast('Подождите, предыдущие книги ещё добавляются');return {added:0};}
+  bookImportBusy=true;
+  const btn=el('btnAdd'),many=files.length>1;
+  let added=0,skipped=0;const failed=[];
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    const setBusy=function(t){btn.setAttribute('aria-busy','true');btn.setAttribute('aria-label',many?('Добавляю '+(i+1)+' из '+files.length+'...'):t);};
+    setBusy('Добавляю...');
+    if(many&&S.userBooks.some(function(b){return b&&b.fname===f.name&&b.size===f.size;})){skipped++;continue;}
+    try{await importBookFile(f,setBusy);added++;}catch(err){failed.push({n:f.name,m:String(err&&err.message||err)});}
+  }
   btn.removeAttribute('aria-busy');btn.setAttribute('aria-label','Добавить книгу'); /* icon button: progress via aria-label, icon stays */
-};
+  bookImportBusy=false;
+  if(added)renderLibrary();
+  if(!many){if(failed.length)alert('Не удалось загрузить книгу: '+failed[0].m);}
+  else{
+    const m=['Добавлено книг: '+added+' из '+files.length+'.'];
+    if(skipped)m.push('Уже были в библиотеке: '+skipped+'.');
+    if(failed.length)m.push('Не открылись: '+failed.slice(0,2).map(function(x){return x.n;}).join(', ')+(failed.length>2?' и ещё '+(failed.length-2):'')+'.');
+    if(failed.length)console.warn('[rq] import',failed);
+    importToast(m.join(' '),failed.length>0);
+  }
+  return {added:added,skipped:skipped,failed:failed.length};
+}
+el('fileInp').onchange=function(e){const fs=Array.from(e.target.files||[]);e.target.value='';if(fs.length)importBookFiles(fs);};
+if(el('dirInp'))el('dirInp').onchange=function(e){const fs=Array.from(e.target.files||[]);e.target.value='';if(fs.length)importBookFiles(fs);};
+/* «+»: a menu «Выбрать файлы» / «Выбрать папку». The folder row only where a folder can be picked (not on iPhone / iPad). */
+function addFolderOk(){const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  return !ios&&('webkitdirectory' in document.createElement('input'));}
+function addMenu(open){const m=el('addMenu'),b=el('btnAdd');if(!m||!b)return;m.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');}
+(function(){const m=el('addMenu'),b=el('btnAdd');
+  if(!m){b.onclick=function(){el('fileInp').click();};return;}
+  const rows=[{k:'files',t:'Выбрать файлы',i:'file-text'}];if(addFolderOk())rows.push({k:'folder',t:'Выбрать папку',i:'folder'});
+  m.innerHTML=rows.map(function(o){return '<button type="button" class="lso" role="menuitem" data-k="'+o.k+'">'+rqIcon(o.i,20)+'<span>'+esc(o.t)+'</span></button>';}).join('');
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();addMenu(false);el(o.dataset.k==='folder'?'dirInp':'fileInp').click();});
+  b.onclick=function(e){e.stopPropagation();if(b.getAttribute('aria-busy')==='true')return;if(rows.length===1){el('fileInp').click();return;}addMenu(m.hidden);};
+  document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)addMenu(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)addMenu(false);});})();
+/* «Поделиться → ReadQuest» (Android, installed app): sw.js keeps the POSTed files in the cache `<ns>_share` and opens `?share=1`.
+   Called once after boot: take the files, empty the cache, clean the URL, add them through the same path. */
+async function importSharedBooks(){
+  if(!/[?&]share=1(&|$)/.test(location.search))return;
+  try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
+  if(!('caches' in window))return;
+  const name=(window.RQ_NS||'rq')+'_share';let files=[];
+  try{const c=await caches.open(name);const reqs=await c.keys();
+    for(const r of reqs){const res=await c.match(r);if(!res)continue;const blob=await res.blob();
+      let fn='';try{fn=decodeURIComponent(res.headers.get('X-RQ-Name')||'');}catch(e){}
+      if(!BOOK_EXT.test(fn)){const t=blob.type||'';const ext=/pdf/.test(t)?'.pdf':/epub/.test(t)?'.epub':/fictionbook/.test(t)?'.fb2':/^text\/plain/.test(t)?'.txt':'';
+        if(ext)fn=(fn||'Книга')+ext;} /* a shared file may come without its extension: the type tells which */
+      files.push(new File([blob],fn||'book',{type:blob.type}));}
+    await caches.delete(name);
+  }catch(e){console.warn('[rq] share',e);}
+  if(files.length){try{show('library');}catch(e){}await importBookFiles(files);}
+}
 
 /* drawer gestures (spec): swipe right from the left edge (20px) opens it — not in the reader (edge = page turns); swipe left on the drawer closes it. Nothing is written. */
 (function(){let sx=null,sy=0,mode='';

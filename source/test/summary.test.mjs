@@ -44,7 +44,9 @@ const done = async (p) => { await p.evaluate(() => { const b = document.getEleme
   const b = await session(p, 0.9);
   ok('0.9 #2: +10 XP → summary, «меньше минуты», «+10 XP», row.xp 10 in IDB', b.summary && b.min === 'меньше минуты' && b.xpTxt === '+10 XP' && b.rowXp === 10 && b.idbXp === 10, b); await done(p);
   const c = await session(p, 0.9);
-  ok('0.9 #3: +10 XP; total +20 XP, «2 / 10», streak 1', c.summary && c.rowXp === 10 && c.xp === 20 && /^2 \/ 10/.test(c.daily) && c.streak === 1 && c.n === 3, c); await done(p);
+  ok('0.9 #3: +10 XP; total +20 XP, «2 / 10», streak 0 (2 min < soft floor 3)', c.summary && c.rowXp === 10 && c.xp === 20 && /^2 \/ 10/.test(c.daily) && c.streak === 0 && c.n === 3, c); await done(p);
+  const d = await session(p, 0.9);
+  ok('0.9 #4: day 3.6 min → «3 / 10», streak 1 (soft floor 3 min reached; daily goal 10 still not met, no +30)', d.summary && d.rowXp === 10 && d.xp === 30 && /^3 \/ 10/.test(d.daily) && d.streak === 1 && d.gold === c.gold && d.n === 4, d); await done(p);
   await p.__ctx.close(); }
 // single 0.71
 { const p = await fresh();

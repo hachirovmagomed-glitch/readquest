@@ -1,0 +1,154 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+library	PDF	IBM Plex Sans	9.5	rgb(243, 234, 214)	ui-small	4.5	13.67	4.85	ok
+library	PDF	IBM Plex Sans	9.5	rgb(255, 255, 255)	ui-small	4.5	10.2	4.93	ok
+library	Е. Вяземская · не начата	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	6.93	6.68	ok
+library	В. Белогорская · 67%	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	6.99	6.8	ok
+palette	фон ночи	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.01	6.91	ok
+palette	#e8dcc0	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.06	6.99	ok
+palette	#140d08	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.07	6.99	ok
+palette	книга ночью	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.13	6.99	ok
+session-summary	+30 червонцев за день	IBM Plex Sans	15	rgb(107, 79, 20)	ui	3.0	7.01	7.01	ok
+rewards	+30	IBM Plex Sans	15	rgb(107, 79, 20)	ui	3.0	7.01	7.01	ok
+rewards	+120	IBM Plex Sans	15	rgb(107, 79, 20)	ui	3.0	7.01	7.01	ok
+rewards	XXX	IBM Plex Sans	12.5	rgb(107, 79, 20)	ui-small	4.5	7.01	7.01	ok
+palette	вторичный	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.06	7.01	ok
+library	Д. Дельвин · 4%	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	7.19	7.05	ok
+palette	#e8dcc4	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.18	7.06	ok
+palette	поверхность	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.26	7.17	ok
+palette	Bad Script — «Я помню чудное мгновенье»	Bad Script	17	rgb(44, 74, 53)	ui	3.0	7.65	7.17	ok
+palette	#20160e	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.26	7.19	ok
+palette	#faf5e8	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.31	7.24	ok
+library	Прочитано	IBM Plex Sans	14	rgb(90, 70, 50)	ui	3.0	7.38	7.25	ok
+palette	панели	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.38	7.26	ok
+palette	#2c4a35	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.38	7.31	ok
+palette	акцент ночи	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.38	7.31	ok
+palette	книга день	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.45	7.32	ok
+library	П. Ямщиков · прочитано	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	7.5	7.37	ok
+palette	#f7f0e0	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.45	7.37	ok
+palette	#e8c27a	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.45	7.37	ok
+palette	навигация, неделя	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.43	7.38	ok
+palette	линейки, декор	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.45	7.38	ok
+palette	#b8923f	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.5	7.45	ok
+palette	#5c1720	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.57	7.52	ok
+palette	суммы	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.59	7.52	ok
+palette	печати	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.57	7.52	ok
+library	Хочу	IBM Plex Sans	14	rgb(90, 70, 50)	ui	3.0	7.64	7.57	ok
+library	А. Любимов · 53%	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	7.64	7.57	ok
+palette	#f3ead6	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.66	7.57	ok
+palette	вторичный текст	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.64	7.57	ok
+palette	нажатие	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.64	7.57	ok
+palette	#6b4f14	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.59	7.57	ok
+library	Читаю	IBM Plex Sans	14	rgb(90, 70, 50)	ui	3.0	7.71	7.64	ok
+library	Н. Зимин · 12%	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	7.71	7.64	ok
+palette	#2a1d14	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.71	7.64	ok
+palette	текст, линии	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.71	7.64	ok
+palette	#5a4632	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.64	7.64	ok
+palette	фон	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.71	7.65	ok
+palette	акцент	IBM Plex Sans	10	rgb(90, 70, 50)	ui-small	4.5	7.76	7.71	ok
+palette	#7a1f2b	monospace	10.5	rgb(90, 70, 50)	ui-small	4.5	7.76	7.76	ok
+rewards	Придумайте, чем себя порадовать, и назна	IBM Plex Sans	12.5	rgb(90, 70, 50)	ui-small	4.5	7.93	7.92	ok
+library	Награды	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+library	Профиль	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	А. С. Пушкин, «Осень»	IBM Plex Sans	11.5	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	Осень в Знаменском · стр. 85–98	IBM Plex Sans	13	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	Чтение	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	Страницы	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	XP	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	320 / 500 до уровня 5	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+session-summary	Свеча догорела до метки · 18 из 10 мин	IBM Plex Sans	12.5	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+rewards	Читать 10 мин · 6 из 10 мин	IBM Plex Sans	12.5	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+rewards	4 дня по 10 мин · 3 из 4	IBM Plex Sans	12.5	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+rewards	Библиотека	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+rewards	Профиль	IBM Plex Sans	12	rgb(90, 70, 50)	ui-small	4.5	8.19	8.19	ok
+rewards	для милых сердцу наград	Bad Script	15	rgb(44, 74, 53)	ui	3.0	8.29	8.21	ok
+session-summary	«И пробуждается поэзия во мне»	Bad Script	18	rgb(44, 74, 53)	ui	3.0	9.02	9.02	ok
+rewards	Добавить на стол	IBM Plex Sans	14	rgb(122, 31, 43)	ui	3.0	9.08	9.07	ok
+session-summary	+180	Prata	22	rgb(122, 31, 43)	ui	3.0	9.37	9.37	ok
+library	Метель	Prata	13.5	rgb(255, 255, 255)	ui-small	4.5	9.82	9.82	ok
+library	Н. Зимин	IBM Plex Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	9.82	9.82	ok
+library	FB2	IBM Plex Sans	9.5	rgb(255, 255, 255)	ui-small	4.5	9.82	9.82	ok
+library	Библиотека	IBM Plex Sans	12	rgb(255, 255, 255)	ui-small	4.5	9.82	9.82	ok
+rewards	Награды	IBM Plex Sans	12	rgb(255, 255, 255)	ui-small	4.5	9.82	9.82	ok
+library	Бал у губернатора	Prata	13.5	rgb(255, 255, 255)	ui-small	4.5	10.2	10.2	ok
+library	Е. Вяземская	IBM Plex Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	10.2	10.2	ok
+session-summary	Продолжить	Prata	18	rgb(255, 255, 255)	ui	3.0	10.2	10.2	ok
+library	Бал у губернатора	IBM Plex Sans	12.5	rgb(42, 29, 20)	ui-small	4.5	12.27	11.45	ok
+reader-night	Осень в Знаменском	Prata	18	rgb(240, 226, 198)	ui	3.0	12.5	11.54	ok
+reader-night	98 из 185	IBM Plex Sans	14	rgb(240, 226, 198)	ui	3.0	11.83	11.54	ok
+library	Капитанская внучка	IBM Plex Sans	12.5	rgb(42, 29, 20)	ui-small	4.5	12.51	11.68	ok
+palette	Vollkorn — текст книги	Vollkorn	16	rgb(42, 29, 20)	ui	3.0	12.17	11.81	ok
+palette	IBM Plex Sans — интерфейс	IBM Plex Sans	14	rgb(42, 29, 20)	ui	3.0	12.38	11.83	ok
+library	Станционный двор	Prata	13.5	rgb(42, 29, 20)	ui-small	4.5	12.01	12.01	ok
+library	П. Ямщиков	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	12.01	12.01	ok
+library	TXT	IBM Plex Sans	9.5	rgb(42, 29, 20)	ui-small	4.5	12.01	12.01	ok
+palette	Prata — заголовки	Prata	20	rgb(42, 29, 20)	ui	3.0	12.82	12.23	ok
+reader-day	Осень в Знаменском	Prata	18	rgb(42, 29, 20)	ui	3.0	12.48	12.48	ok
+reader-day	98 из 185	IBM Plex Sans	14	rgb(42, 29, 20)	ui	3.0	12.48	12.48	ok
+reader-day	Оглавление	IBM Plex Sans	12	rgb(42, 29, 20)	ui-small	4.5	12.48	12.48	ok
+reader-day	Текст	IBM Plex Sans	12	rgb(42, 29, 20)	ui-small	4.5	12.48	12.48	ok
+reader-day	Ночь	IBM Plex Sans	12	rgb(42, 29, 20)	ui-small	4.5	12.48	12.48	ok
+reader-day	Закладка	IBM Plex Sans	12	rgb(42, 29, 20)	ui-small	4.5	12.48	12.48	ok
+library	Метель	IBM Plex Sans	12.5	rgb(42, 29, 20)	ui-small	4.5	13.68	12.7	ok
+palette	Пергамент	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	12.83	12.74	ok
+palette	Палитра «Золотой век»	Prata	24	rgb(42, 29, 20)	ui	3.0	13.67	12.83	ok
+palette	Гостиная	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.08	12.95	ok
+palette	Ночь: текст	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.19	12.96	ok
+library	Письма к другу	Prata	13.5	rgb(42, 29, 20)	ui-small	4.5	13.18	13.18	ok
+library	Д. Дельвин	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.18	13.18	ok
+palette	Ночь: панели	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.42	13.29	ok
+palette	Лист	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.42	13.3	ok
+palette	Зелень	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.53	13.42	ok
+library	Библиотека	Prata	30	rgb(42, 29, 20)	ui	3.0	13.9	13.54	ok
+palette	Страница	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.67	13.54	ok
+library	Капитанская внучка	Prata	13.5	rgb(243, 234, 214)	ui-small	4.5	13.67	13.67	ok
+library	В. Белогорская	IBM Plex Sans	10.5	rgb(243, 234, 214)	ui-small	4.5	13.67	13.67	ok
+palette	Бордо тёмн.	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.9	13.67	ok
+palette	Свеча	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.67	13.67	ok
+palette	Позолота	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.89	13.76	ok
+rewards	Награды	Prata	30	rgb(42, 29, 20)	ui	3.0	13.92	13.77	ok
+rewards	Письменный стол	Prata	20	rgb(42, 29, 20)	ui	3.0	14.01	13.79	ok
+reader-night	Оглавление	IBM Plex Sans	12	rgb(240, 226, 198)	ui-small	4.5	13.87	13.87	ok
+reader-night	Текст	IBM Plex Sans	12	rgb(240, 226, 198)	ui-small	4.5	13.87	13.87	ok
+reader-night	День	IBM Plex Sans	12	rgb(240, 226, 198)	ui-small	4.5	13.87	13.87	ok
+reader-night	Закладка	IBM Plex Sans	12	rgb(240, 226, 198)	ui-small	4.5	13.87	13.87	ok
+palette	Сургуч	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.9	13.89	ok
+library	Все	IBM Plex Sans	14	rgb(42, 29, 20)	ui	3.0	14.01	13.9	ok
+library	Осень в Знаменском	Prata	13.5	rgb(42, 29, 20)	ui-small	4.5	13.9	13.9	ok
+library	А. Любимов	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	13.9	13.9	ok
+library	EPUB	IBM Plex Sans	9.5	rgb(42, 29, 20)	ui-small	4.5	13.9	13.9	ok
+palette	Бумага	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	14.02	13.9	ok
+reader-night	Глава VII. Письмо из города	Prata	20	rgb(232, 220, 196)	ui	3.0	13.92	13.92	ok
+reader-night	Осень в тот год выдалась долгой и тёплой	Vollkorn	17	rgb(232, 220, 196)	book	4.5	13.92	13.92	ok
+rewards	Задания	Prata	20	rgb(42, 29, 20)	ui	3.0	14.02	13.92	ok
+palette	Позолота текст	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	14.02	13.92	ok
+palette	Железо-галловые чернила	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	14.15	14.02	ok
+palette	Сепия	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	14.12	14.02	ok
+palette	Бордо	IBM Plex Sans	10.5	rgb(42, 29, 20)	ui-small	4.5	14.28	14.25	ok
+reader-day	Глава VII. Письмо из города	Prata	20	rgb(42, 29, 20)	ui	3.0	14.4	14.4	ok
+reader-day	Осень в тот год выдалась долгой и тёплой	Vollkorn	17	rgb(42, 29, 20)	book	4.5	14.4	14.4	ok
+library	390 червонцев	IBM Plex Sans	14	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+session-summary	Сессия завершена	Prata	27	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+session-summary	18 мин	Prata	22	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+session-summary	14	Prata	22	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+session-summary	Уровень 4	IBM Plex Sans	13	rgb(42, 29, 20)	ui-small	4.5	15.02	15.02	ok
+session-summary	Неделя: 3 из 4 дней	IBM Plex Sans	13	rgb(42, 29, 20)	ui-small	4.5	15.02	15.02	ok
+rewards	390 червонцев	IBM Plex Sans	14	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+rewards	Задание дня	IBM Plex Sans	15	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+rewards	Задание недели	IBM Plex Sans	15	rgb(42, 29, 20)	ui	3.0	15.02	15.02	ok
+rewards	Серия сериала	IBM Plex Sans	13	rgb(42, 29, 20)	ui-small	4.5	15.02	15.02	ok
+rewards	Кофе в кофейне	IBM Plex Sans	13	rgb(42, 29, 20)	ui-small	4.5	15.02	15.02	ok
+rewards	Новая книга	IBM Plex Sans	13	rgb(42, 29, 20)	ui-small	4.5	15.02	15.02	ok
+tokens	книга день	—	—	#2a1d14 / #f7f0e0	book	4.5	14.4	14.4	ok
+tokens	книга ночь	—	—	#e8dcc4 / #15100b	book	4.5	13.92	13.92	ok
+tokens	--rq-text/--rq-bg	—	—	#2a1d14 / #f3ead6	ui	4.5	13.67	13.67	ok
+tokens	--rq-text-2/--rq-bg	—	—	#5a4632 / #f3ead6	ui	4.5	7.45	7.45	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #7a1f2b	ui	4.5	10.2	10.2	ok
+tokens	--rq-coin/--rq-surface	—	—	#6b4f14 / #faf5e8	ui	4.5	7.01	7.01	ok
+tokens	зелень (nav on)/белый текст	—	—	#ffffff / #2c4a35	ui	4.5	9.82	9.82	ok
+tokens	цитата Bad Script/--rq-surface	—	—	#2c4a35 / #faf5e8	ui	4.5	9.02	9.02	ok
+tokens	позолота (декор)/--rq-surface	—	—	#b8923f / #faf5e8	decor	1.5	2.67	2.67	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#f0e2c6 / #140d08	ui	4.5	15.03	15.03	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#c9b28a / #20160e	ui	4.5	8.64	8.64	ok
+tokens	ночь --rq-accent/--rq-surface	—	—	#e8c27a / #20160e	ui	4.5	10.51	10.51	ok
+tokens	ночь бордо/--rq-surface	—	—	#f08a92 / #20160e	ui	4.5	7.4	7.4	ok
+tokens	ночь зелень/--rq-surface	—	—	#9ccaa4 / #20160e	ui	4.5	9.64	9.64	ok

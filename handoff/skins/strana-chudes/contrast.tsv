@@ -1,0 +1,153 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+session-summary	+30 ключей за день	Fira Sans	15	rgb(110, 84, 24)	ui	3.0	6.06	6.06	ok
+session-summary	+180	Playfair Display SC	21	rgb(163, 32, 42)	ui	3.0	6.38	6.38	ok
+rewards	+30	Fira Sans	15	rgb(110, 84, 24)	ui	3.0	6.61	6.61	ok
+rewards	+120	Fira Sans	15	rgb(110, 84, 24)	ui	3.0	6.61	6.61	ok
+rewards	XXX	Fira Sans	12.5	rgb(110, 84, 24)	ui-small	4.5	6.61	6.61	ok
+library	7	Playfair Display SC	11	rgb(255, 138, 138)	ui-small	4.5	6.68	6.68	ok
+rewards	Поставить на стол	Fira Sans	14	rgb(163, 32, 42)	ui	3.0	6.78	6.73	ok
+library	7	Playfair Display SC	11	rgb(163, 32, 42)	ui-small	4.5	6.96	6.96	ok
+library	Г. Замков · не начата	Fira Sans	11.5	rgb(77, 69, 54)	ui-small	4.5	7.83	7.33	ok
+library	Л. Глубоков · 67%	Fira Sans	11.5	rgb(77, 69, 54)	ui-small	4.5	7.89	7.33	ok
+library	7	Playfair Display SC	11	rgb(251, 246, 234)	ui-small	4.5	7.4	7.4	ok
+session-summary	«Чем дальше, тем чудеснее!»	Old Standard TT	16	rgb(31, 90, 78)	ui	3.0	7.4	7.4	ok
+library	М. Чашкина · 4%	Fira Sans	11.5	rgb(77, 69, 54)	ui-small	4.5	8.04	7.47	ok
+palette	#0d0f1c	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.04	7.47	ok
+palette	фон ночи	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.04	7.47	ok
+palette	#ff6b6b	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.04	7.47	ok
+palette	акцент ночи	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	7.98	7.47	ok
+library	PDF	Fira Sans	9.5	rgb(255, 255, 255)	ui-small	4.5	7.51	7.51	ok
+library	Ключ от двери	Playfair Display SC	16	rgb(255, 255, 255)	ui	3.0	7.51	7.51	ok
+library	Г. Замков	Fira Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	7.51	7.51	ok
+library	Библиотека	Fira Sans	12	rgb(255, 255, 255)	ui-small	4.5	7.51	7.51	ok
+session-summary	Продолжить	Playfair Display SC	18	rgb(255, 255, 255)	ui	3.0	7.51	7.51	ok
+rewards	Награды	Fira Sans	12	rgb(255, 255, 255)	ui-small	4.5	7.51	7.51	ok
+palette	#c9a24e	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.11	7.53	ok
+palette	ключи, часы	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.11	7.53	ok
+palette	поверхность	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.11	7.53	ok
+palette	#a9bcff	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.11	7.53	ok
+palette	иконки ночи	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.1	7.53	ok
+library	Н. Розова · 53%	Fira Sans	11.5	rgb(77, 69, 54)	ui-small	4.5	8.12	7.54	ok
+library	Е. Королёва · прочитано	Fira Sans	11.5	rgb(77, 69, 54)	ui-small	4.5	8.11	7.54	ok
+palette	«покрашены»	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.11	7.54	ok
+palette	#161a2e	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.12	7.54	ok
+palette	#1c1a17	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	текст, линии	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	#e9dcbe	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	вторичный фон	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	#4d4536	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	#1f5a4e	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	декор, неделя	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.12	7.55	ok
+palette	вторичный текст	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.12	7.59	ok
+palette	#6e5418	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.19	7.62	ok
+palette	суммы	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.19	7.62	ok
+palette	#f8f3e6	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.19	7.62	ok
+palette	книга день	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.19	7.62	ok
+library	П. Минутин · 12%	Fira Sans	11.5	rgb(77, 69, 54)	ui-small	4.5	8.27	7.67	ok
+palette	#f4ecd9	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.25	7.67	ok
+palette	фон	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.25	7.67	ok
+palette	#fbf6ea	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.25	7.67	ok
+palette	панели	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.25	7.67	ok
+palette	#a3202a	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.32	7.69	ok
+palette	акцент	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.32	7.69	ok
+palette	#7e1820	monospace	11	rgb(77, 69, 54)	ui-small	4.5	8.27	7.69	ok
+palette	нажатие	Fira Sans	10	rgb(77, 69, 54)	ui-small	4.5	8.27	7.69	ok
+library	FB2	Fira Sans	9.5	rgb(255, 255, 255)	ui-small	4.5	7.98	7.98	ok
+library	Часы без стрелок	Playfair Display SC	16	rgb(255, 255, 255)	ui	3.0	7.98	7.98	ok
+library	П. Минутин	Fira Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	7.98	7.98	ok
+session-summary	Чтение	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.04	8.04	ok
+session-summary	Страницы	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.04	8.04	ok
+session-summary	XP	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.04	8.04	ok
+session-summary	Часы завелись · 18 из 10 мин	Fira Sans	12.5	rgb(77, 69, 54)	ui-small	4.5	8.04	8.04	ok
+rewards	Придумайте, чем себя порадовать, и назна	Fira Sans	12.5	rgb(77, 69, 54)	ui-small	4.5	8.55	8.47	ok
+library	Награды	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+library	Профиль	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+session-summary	Сад за стеной · стр. 85–98	Fira Sans	13	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+session-summary	320 / 500 до уровня 5	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+rewards	Читать 10 мин · 6 из 10 мин	Fira Sans	12.5	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+rewards	4 дня по 10 мин · 3 из 4	Fira Sans	12.5	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+rewards	Библиотека	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+rewards	Профиль	Fira Sans	12	rgb(77, 69, 54)	ui-small	4.5	8.77	8.77	ok
+palette	EB Garamond — текст книги	EB Garamond	16	rgb(28, 26, 23)	ui	3.0	13.97	12.99	ok
+palette	Fira Sans — интерфейс	Fira Sans	14	rgb(28, 26, 23)	ui	3.0	13.99	13.09	ok
+library	Чаепитие	Playfair Display SC	16	rgb(28, 26, 23)	ui	3.0	13.25	13.25	ok
+library	М. Чашкина	Fira Sans	10.5	rgb(28, 26, 23)	ui-small	4.5	13.25	13.25	ok
+palette	Old Standard TT — цитаты-курсив	Old Standard TT	16	rgb(28, 26, 23)	ui	3.0	14.36	13.34	ok
+library	Ключ от двери	Fira Sans	12.5	rgb(28, 26, 23)	ui-small	4.5	14.47	13.45	ok
+reader-night	Сад за стеной	Playfair Display SC	18	rgb(236, 228, 210)	ui	3.0	13.59	13.59	ok
+reader-night	98 из 185	Fira Sans	14	rgb(236, 228, 210)	ui	3.0	13.59	13.59	ok
+reader-night	Оглавление	Fira Sans	12	rgb(236, 228, 210)	ui-small	4.5	13.59	13.59	ok
+reader-night	Текст	Fira Sans	12	rgb(236, 228, 210)	ui-small	4.5	13.59	13.59	ok
+reader-night	День	Fira Sans	12	rgb(236, 228, 210)	ui-small	4.5	13.59	13.59	ok
+reader-night	Закладка	Fira Sans	12	rgb(236, 228, 210)	ui-small	4.5	13.59	13.59	ok
+reader-night	Глава 7. Безумный вечер	Playfair Display SC	19	rgb(226, 220, 203)	ui	3.0	13.67	13.67	ok
+reader-night	Чай остыл, а гости всё не расходились. Х	EB Garamond	18	rgb(226, 220, 203)	book	4.5	13.67	13.67	ok
+palette	Playfair Display SC — заголовки	Playfair Display SC	20	rgb(28, 26, 23)	ui	3.0	14.62	13.68	ok
+library	Нора	Fira Sans	12.5	rgb(28, 26, 23)	ui-small	4.5	14.76	13.72	ok
+palette	Нора	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.76	13.72	ok
+palette	Червы ночью	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.76	13.72	ok
+rewards	Награды	Playfair Display SC	30	rgb(28, 26, 23)	ui	3.0	14.89	13.82	ok
+palette	Палитра «Страна чудес»	Playfair Display SC	24	rgb(28, 26, 23)	ui	3.0	14.89	13.85	ok
+palette	Пергамент	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.9	13.85	ok
+palette	Золото	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.9	13.85	ok
+palette	Розы	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.9	13.85	ok
+palette	Нора: панели	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.9	13.85	ok
+palette	Чернильно-син.	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.9	13.85	ok
+reader-day	Сад за стеной	Playfair Display SC	18	rgb(28, 26, 23)	ui	3.0	13.86	13.86	ok
+reader-day	98 из 185	Fira Sans	14	rgb(28, 26, 23)	ui	3.0	13.86	13.86	ok
+reader-day	Оглавление	Fira Sans	12	rgb(28, 26, 23)	ui-small	4.5	13.86	13.86	ok
+reader-day	Текст	Fira Sans	12	rgb(28, 26, 23)	ui-small	4.5	13.86	13.86	ok
+reader-day	Ночь	Fira Sans	12	rgb(28, 26, 23)	ui-small	4.5	13.86	13.86	ok
+reader-day	Закладка	Fira Sans	12	rgb(28, 26, 23)	ui-small	4.5	13.86	13.86	ok
+library	Библиотека	Playfair Display SC	30	rgb(28, 26, 23)	ui	3.0	14.89	13.86	ok
+rewards	Задания	Playfair Display SC	19	rgb(28, 26, 23)	ui	3.0	14.9	13.86	ok
+palette	Чернила	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.9	13.86	ok
+rewards	Чайный стол	Playfair Display SC	19	rgb(28, 26, 23)	ui	3.0	14.93	13.95	ok
+palette	Сепия	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.99	13.95	ok
+palette	Сад	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	14.99	13.95	ok
+palette	Золото текст	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	15.14	14.08	ok
+palette	Страница	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	15.14	14.08	ok
+library	Часы без стрелок	Fira Sans	12.5	rgb(28, 26, 23)	ui-small	4.5	15.18	14.09	ok
+palette	Бумага	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	15.14	14.09	ok
+palette	Экслибрис	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	15.14	14.09	ok
+library	Шахматный лес	Playfair Display SC	16	rgb(28, 26, 23)	ui	3.0	16.1	14.11	ok
+palette	Червы тёмн.	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	15.27	14.12	ok
+palette	Червы	Fira Sans	11	rgb(28, 26, 23)	ui-small	4.5	15.27	14.22	ok
+session-summary	18 мин	Playfair Display SC	21	rgb(28, 26, 23)	ui	3.0	14.76	14.76	ok
+session-summary	14	Playfair Display SC	21	rgb(28, 26, 23)	ui	3.0	14.76	14.76	ok
+library	Нора	Playfair Display SC	16	rgb(255, 255, 255)	ui	3.0	15.17	15.17	ok
+library	Л. Глубоков	Fira Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	15.17	15.17	ok
+reader-day	Глава 7. Безумный вечер	Playfair Display SC	19	rgb(28, 26, 23)	ui	3.0	15.67	15.67	ok
+reader-day	Чай остыл, а гости всё не расходились. Х	EB Garamond	18	rgb(28, 26, 23)	book	4.5	15.67	15.67	ok
+library	390 ключей	Fira Sans	14	rgb(28, 26, 23)	ui	3.0	16.1	16.1	ok
+library	Все	Fira Sans	13	rgb(251, 246, 234)	ui-small	4.5	16.1	16.1	ok
+library	Читаю	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+library	Хочу	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+library	Прочитано	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+library	EPUB	Fira Sans	9.5	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+library	Сад за стеной	Playfair Display SC	16	rgb(28, 26, 23)	ui	3.0	16.1	16.1	ok
+library	Н. Розова	Fira Sans	10.5	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+library	Е. Королёва	Fira Sans	10.5	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+session-summary	Сессия завершена	Playfair Display SC	27	rgb(28, 26, 23)	ui	3.0	16.1	16.1	ok
+session-summary	Уровень 4	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+session-summary	Неделя: 3 из 4 дней	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+rewards	390 ключей	Fira Sans	14	rgb(28, 26, 23)	ui	3.0	16.1	16.1	ok
+rewards	Задание дня	Fira Sans	15	rgb(28, 26, 23)	ui	3.0	16.1	16.1	ok
+rewards	Задание недели	Fira Sans	15	rgb(28, 26, 23)	ui	3.0	16.1	16.1	ok
+rewards	Серия сериала	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+rewards	Кофе в кофейне	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+rewards	Новая книга	Fira Sans	13	rgb(28, 26, 23)	ui-small	4.5	16.1	16.1	ok
+tokens	книга день	—	—	#1c1a17 / #f8f3e6	book	4.5	15.67	15.67	ok
+tokens	книга ночь	—	—	#e2dccb / #0f1120	book	4.5	13.67	13.67	ok
+tokens	--rq-text/--rq-bg	—	—	#1c1a17 / #f4ecd9	ui	4.5	14.76	14.76	ok
+tokens	--rq-text-2/--rq-bg	—	—	#4d4536 / #f4ecd9	ui	4.5	8.04	8.04	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #a3202a	ui	4.5	7.51	7.51	ok
+tokens	--rq-accent-text/--rq-surface	—	—	#a3202a / #fbf6ea	ui	4.5	6.96	6.96	ok
+tokens	--rq-coin/--rq-surface	—	—	#6e5418 / #fbf6ea	ui	4.5	6.61	6.61	ok
+tokens	сад (--rq-success)/--rq-surface	—	—	#1f5a4e / #fbf6ea	ui	4.5	7.4	7.4	ok
+tokens	золото ключей (декор)/--rq-surface	—	—	#c9a24e / #fbf6ea	decor	1.5	2.22	2.22	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#ece4d2 / #0d0f1c	ui	4.5	15.06	15.06	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#b9b0c8 / #161a2e	ui	4.5	8.28	8.28	ok
+tokens	ночь --rq-accent/--rq-surface	—	—	#ff6b6b / #161a2e	ui	4.5	6.2	6.2	ok
+tokens	ночь иконки/--rq-surface	—	—	#a9bcff / #161a2e	ui	4.5	9.27	9.27	ok
+tokens	ночь --rq-coin/--rq-surface	—	—	#d9b86a / #161a2e	ui	4.5	9.02	9.02	ok

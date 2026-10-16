@@ -630,11 +630,10 @@ function confetti(opts){
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
-  const em=['🎉','✨','⭐','📖'];
+  const ic=['sparkles','star','book-open','check']; /* Lucide in every theme, no emoji; colour = theme tokens (app.html .confetti) */
   for(let i=0;i<count;i++){
     const s=document.createElement('div');s.className='confetti';
-    if(typeof isPencil==='function'&&isPencil()){s.innerHTML=rqIcon(['sparkles','star','book-open','check'][i%4],16);} /* «Карандашный»: Lucide, no emoji */
-    else s.textContent=em[i%em.length];
+    s.innerHTML=rqIcon(ic[i%ic.length],16);
     s.style.left=(8+Math.random()*84)+'vw';
     /* start well below heading when avoidTop */
     s.style.top=avoidTop?((32+Math.random()*40)+'vh'):'-30px';

@@ -185,7 +185,7 @@ if (want('confetti') || want('refund') || want('testgold')) {
     const r = await p.evaluate(async () => {
       S.rewards = [{ name: 'Кино', cost: 50, qty: null, bought: 0 }]; S.gold = 200; S.rewardPurchases = []; save();
       buyReward(0); await new Promise(r => setTimeout(r, 5)); buyReward(0); undoRewardClaim(0);
-      const live = { gold: S.gold, bought: S.rewards[0].bought, refunds: JSON.parse(JSON.stringify(S.rewardRefunds || null)), buys: S.rewardPurchases.map(x => x.id) };
+      const live = { cost: S.rewards[0].cost, gold: S.gold, bought: S.rewards[0].bought, refunds: JSON.parse(JSON.stringify(S.rewardRefunds || null)), buys: S.rewardPurchases.map(x => x.id) };
       const exp = await __rq.exportBackup(null, SET, { includeTextBodies: false });
       const inExp = (exp.game.rewardRefunds || []).length;
       await __rq.importBackup(JSON.parse(JSON.stringify(exp)));
@@ -198,8 +198,8 @@ if (want('confetti') || want('refund') || want('testgold')) {
       return { live, inExp, back, fromOld, fromJunk, fromStr };
     });
     const rf = r.live.refunds;
-    ok('refund: cancelling a reward returns coins and writes one rewardRefunds record pointing at the last purchase', r.live.gold === 150 && r.live.bought === 1 && Array.isArray(rf) && rf.length === 1 &&
-      rf[0].purchaseId === r.live.buys[1] && rf[0].price === 50 && rf[0].title === 'Кино' && /^rr_/.test(rf[0].id) && !isNaN(Date.parse(rf[0].at)) && r.live.buys.length === 2 && !errs.length, { live: r.live, errs });
+    ok('refund: cancelling a reward returns coins and writes one rewardRefunds record pointing at the last purchase', r.live.cost > 0 && r.live.gold === 200 - r.live.cost && r.live.bought === 1 && Array.isArray(rf) && rf.length === 1 &&
+      rf[0].purchaseId === r.live.buys[1] && rf[0].price === r.live.cost && rf[0].title === 'Кино' && /^rr_/.test(rf[0].id) && !isNaN(Date.parse(rf[0].at)) && r.live.buys.length === 2 && !errs.length, { live: r.live, errs });
     ok('refund: the record survives export → import', r.inExp === 1 && Array.isArray(r.back) && r.back.length === 1 && r.back[0].purchaseId === r.live.buys[1], { inExp: r.inExp, back: r.back });
     ok('refund: an old backup without rewardRefunds imports with [], junk is dropped, a non-array becomes []', Array.isArray(r.fromOld) && r.fromOld.length === 0 &&
       Array.isArray(r.fromJunk) && r.fromJunk.length === 1 && r.fromJunk[0].price === 50 && Array.isArray(r.fromStr) && r.fromStr.length === 0, { fromOld: r.fromOld, fromJunk: r.fromJunk, fromStr: r.fromStr });

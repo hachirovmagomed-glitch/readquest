@@ -680,6 +680,7 @@ function renderShelf(){
   shelfJustAdded=null;
 }
 function shelfOpen(elm,id){
+  if(rqStill()){openBook(id);return;}
   try{if(elm&&elm.classList){elm.classList.remove('flyin');elm.classList.add('opening');}}catch(e){}
   setTimeout(function(){openBook(id);},340);
 }

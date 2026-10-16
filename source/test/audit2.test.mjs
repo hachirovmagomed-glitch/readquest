@@ -154,10 +154,10 @@ if (want('motion') || want('s360')) {
 
 if (want('confetti') || want('refund') || want('testgold')) {
   const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-  async function open() {
+  async function open(url) {
     const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
     await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
-    await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(600);
+    await p.goto(url || BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(600);
     return { ctx, p, errs };
   }
   if (want('confetti')) {
@@ -212,14 +212,15 @@ if (want('confetti') || want('refund') || want('testgold')) {
     await ctx.close();
   }
   if (want('testgold')) {
-    const { ctx, p, errs } = await open();
-    const r = await p.evaluate(async () => {
-      const g0 = S.gold || 0; shopTestGold(); await new Promise(r => setTimeout(r, 400));
-      const ev = (await __rq.listReadingEvents({})).filter(e => e.type === 'test_gold');
-      return { ns: window.RQ_NS, add: (S.gold || 0) - g0, ev };
-    });
-    ok('testgold: «+1000 монет для теста» logs one test_gold event with amount 1000 (rqt)', r.ns === 'rqt' && r.add === 1000 && r.ev.length === 1 && r.ev[0].amount === 1000 && !errs.length, { r, errs });
-    await ctx.close();
+    /* the +1000 button lives only in the test build (rqt): run-all serves it at <BASE>test/ */
+    const TBASE = /\/test\/?$/.test(BASE) ? BASE : BASE.replace(/\/?$/, '/') + 'test/';
+    const RBASE = TBASE.replace(/test\/?$/, '');
+    const probe = async () => { const g0 = S.gold || 0; shopTestGold(); await new Promise(r => setTimeout(r, 400));
+      return { ns: window.RQ_NS, add: (S.gold || 0) - g0, ev: (await __rq.listReadingEvents({})).filter(e => e.type === 'test_gold') }; };
+    { const { ctx, p, errs } = await open(TBASE); const r = await p.evaluate(probe);
+      ok('testgold: «+1000 монет для теста» logs one test_gold event with amount 1000 (rqt)', r.ns === 'rqt' && r.add === 1000 && r.ev.length === 1 && r.ev[0].amount === 1000 && !errs.length, { r, errs }); await ctx.close(); }
+    { const { ctx, p, errs } = await open(RBASE); const r = await p.evaluate(probe);
+      ok('testgold: main build (rq) adds no coins and logs no test_gold', r.ns === 'rq' && r.add === 0 && r.ev.length === 0 && !errs.length, { r, errs }); await ctx.close(); }
   }
   await browser.close();
 }

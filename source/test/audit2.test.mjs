@@ -126,13 +126,17 @@ if (want('motion') || want('s360')) {
         [...lab.parentElement.children].filter(k => k !== lab && !k.matches('svg.ic') && k.offsetParent).forEach(k => { const kr = k.getBoundingClientRect();
           const rg = document.createRange(); rg.selectNodeContents(lab); const tr = [...rg.getClientRects()];
           if (tr.some(t => t.width > 0 && t.right > kr.left + 1 && t.left < kr.right - 1 && t.bottom > kr.top + 1 && t.top < kr.bottom - 1)) overlap.push(lab.textContent.trim().slice(0, 20)); }); });
+      /* phone Chrome has a Russian hyphenation dictionary (headless here has none): with hyphens:auto the label's min-content is one syllable,
+         so «Жур-нал за-пуска» squeezes beside the button instead of wrapping — labels must not auto-hyphenate */
+      const hyph = [...document.querySelectorAll('#settings .setrow .lab, #settings .setrow .lab .sub')].filter(e => e.offsetParent && getComputedStyle(e).hyphens !== 'none').map(e => e.textContent.trim().slice(0, 20));
       const lines = [];
       document.querySelectorAll('#settings .pcard').forEach(c => { const rows = [...c.children].filter(e => e.offsetParent && /\bsetrow\b/.test(e.className));
         const last = rows[rows.length - 1]; if (last && parseFloat(getComputedStyle(last).borderBottomWidth) > 0) lines.push(last.textContent.trim().slice(0, 30)); });
-      return { split, overlap, lines, mvp: document.body.classList.contains('mvp') };
+      return { split, overlap, hyph, lines, mvp: document.body.classList.contains('mvp') };
     });
     ok('s360 ' + w + ': no row label word split across lines in «Общие настройки»', !r.split.length && !errs.length, r.split);
     ok('s360 ' + w + ': no row label text runs under its buttons', !r.overlap.length, r.overlap);
+    ok('s360 ' + w + ': row labels are never auto-hyphenated (phone Chrome splits «Жур-нал»)', !r.hyph.length, r.hyph);
     ok('s360 ' + w + ': no divider under the last visible row of a card (MVP)', r.mvp && !r.lines.length, r.lines);
     await p.screenshot({ path: (process.env.RQ_SHOTS || '/workspace/out/') + 'audit2-settings-' + w + '.png' });
     await ctx.close();

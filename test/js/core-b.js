@@ -24,7 +24,9 @@ const THEME_VARIANTS={'pencil-night':{name:'Карандашный',bg:'#262a31'
    bg/txt = the clean book page of the skin ([data-page] tokens). Rendered only while the skin is owned (else sepia, rq_set not rewritten). */
 const SKIN_THEMES={
  ellada:{name:'Эллада',bg:'#fcf9f3',txt:'#1a1410',skin:'ellada',shop:'skin-ellada',icon:'amphora'},
- 'ellada-night':{name:'Эллада',bg:'#100d0b',txt:'#ebe0d2',skin:'ellada',shop:'skin-ellada',icon:'amphora',night:true,base:'ellada'}
+ 'ellada-night':{name:'Эллада',bg:'#100d0b',txt:'#ebe0d2',skin:'ellada',shop:'skin-ellada',icon:'amphora',night:true,base:'ellada'},
+ babochkovyi:{name:'Бабочковый',bg:'#fcfbf8',txt:'#1d2140',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2'},
+ 'babochkovyi-night':{name:'Бабочковый',bg:'#0e1019',txt:'#e4e6ef',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2',night:true,base:'babochkovyi'}
 };
 function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base?v.base:k;}
 /** owned shop skin theme for a saved key, else null (unknown / not bought / not styled yet) */
@@ -56,6 +58,14 @@ const SKIN_ICONS={ellada:{
  'trophy':'<path d="M12 21c-5 0-8-4-8-9 0-2 .5-4 1.5-5.5M12 21c5 0 8-4 8-9 0-2-.5-4-1.5-5.5"/><path d="M5 12 3 11M5.5 16l-2 .5M19 12l2-1M18.5 16l2 .5M6 8.5 4.2 7M18 8.5 19.8 7"/><path d="M10 21l2 2 2-2"/>',
  'arrow-left':'<path d="M21 12H8"/><path d="M3 12l5-3.5c-.7 2.3-.7 4.7 0 7z"/>'
 }};
+const SKIN_ICONS_BB={
+ 'gift':'<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/>', /* «Цветник» */
+ 'trophy':'<circle cx="12" cy="12" r="3"/><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/><path d="M12 7.5V9"/><path d="M7.5 12H9"/><path d="M16.5 12H15"/><path d="M12 16.5V15"/><path d="m8 8 1.88 1.88"/><path d="M14.12 9.88 16 8"/><path d="m8 16 1.88-1.88"/><path d="M14.12 14.12 16 16"/>',
+ 'flame':'<path d="M12 8v12"/><path d="M12 9C10 5 6.5 3 4.5 4.5 2.8 6 3.6 10 7 11.5 4.6 12.6 4.2 16 6.6 17.4 9 18.8 11 16 12 13"/><path d="M12 9c2-4 5.5-6 7.5-4.5 1.7 1.5.9 5.5-2.5 7 2.4 1.1 2.8 4.5.4 5.9-2.4 1.4-4.4-1.4-5.4-4.4"/><path d="M12 8 10.5 4.5M12 8l1.5-3.5"/>', /* серия = бабочка */
+ 'star':'<path d="M12 2v3"/><path d="M12 5c-4 2-4.5 11 0 17 4.5-6 4-15 0-17z"/><path d="M9.2 10.5Q12 12 14.8 10.5M8.8 14.5Q12 16 15.2 14.5"/>', /* уровень = кокон */
+ 'user-round':'<circle cx="12" cy="14" r="6"/><path d="M10 8.5 7.5 3.5M14 8.5l2.5-5"/><path d="M6.5 3.5h2M15.5 3.5h2"/><path d="M4 12c-2-1-2.5-4 0-5 1.5.5 2.5 2 2.8 3.5M20 12c2-1 2.5-4 0-5-1.5.5-2.5 2-2.8 3.5"/>' /* маскот «Пыльца» */
+};
+SKIN_ICONS.babochkovyi=SKIN_ICONS_BB; /* «Бабочковый»: цветник, цветок, бабочка, кокон, шелкопряд (flower/flower-2 = Lucide, the rest our drawings) */
 const SKIN_ICONS_ORIG={};
 function applySkinIcons(skin){
   const set=SKIN_ICONS[skin]||{};

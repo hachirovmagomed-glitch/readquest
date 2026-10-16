@@ -22,8 +22,9 @@ import {
   stripBookBody,
   mergeFlat,
   splitLegacyState,
-} from './schema.js?v=20261008-1054';
-import * as idb from './idb.js?v=20261008-1054';
+  NS,
+} from './schema.js?v=20261017-0034';
+import * as idb from './idb.js?v=20261017-0034';
 
 let saveWarned = false;
 
@@ -126,26 +127,16 @@ export function loadFlat() {
 
 /**
  * Save from a flat S-like object (adapter for gradual cut).
- * Strips book bodies into IDB when present.
+ * Writes ONLY the rq_v1 envelope (progress / game / library meta). Book bodies are NOT written here
+ * (Architect 09.10): a text body goes to IDB exactly once — when the book is added (upsertUserBook),
+ * imported (importBackup) or migrated from v6 (migrateFromV6). Calling save() 10× writes 0 bodies.
  */
 export async function saveFlat(flat, opts) {
   const options = opts || {};
   const src = flat || {};
-  const progress = {};
-  const game = {};
-  const library = {};
 
-  // Re-split using migrate/split path
+  // Re-split using migrate/split path (book .text is stripped from library meta here; never persisted)
   const split = splitLegacyState(src);
-
-  // If caller left text on books, move to IDB
-  const books = Array.isArray(src.userBooks) ? src.userBooks : [];
-  for (let i = 0; i < books.length; i++) {
-    const b = books[i];
-    if (b && b.text && b.type !== 'pdf') {
-      await idb.putText(b.id, b.text);
-    }
-  }
 
   const envelope = {
     schemaVersion: SCHEMA_VERSION,
@@ -203,21 +194,34 @@ export async function removeUserBook(envelope, bookId, wipeFile) {
  * Optional: settings, textBodies (when includeTextBodies), note.
  * No format/readquest flat mirror required — domains + IDB arrays are the contract.
  */
+function buildNo(b) {
+  // eslint-disable-next-line no-undef
+  const v = b || (typeof RQ_BUILD !== 'undefined' ? RQ_BUILD : null);
+  return typeof v === 'string' && v && v.indexOf('__') !== 0 ? v : null;
+}
+/** copy of game with ai.key emptied (field kept; model kept) — export only, the stored game is untouched */
+export function withoutAiKey(game) {
+  if (!game || typeof game !== 'object' || !game.ai || typeof game.ai !== 'object') return game;
+  return Object.assign({}, game, { ai: Object.assign({}, game.ai, { key: '' }) });
+}
 export async function exportBackup(envelope, settings, opts) {
   const options = opts || {};
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261008-1054');
-  const { listReadingEvents } = await import('./events.js?v=20261008-1054');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261017-0034');
+  const { listReadingEvents } = await import('./events.js?v=20261017-0034');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
 
   const payload = {
     schemaVersion: SCHEMA_VERSION,
+    ns: NS, // 'rq' main / 'rqt' test build (metrics.py counts only ns 'rq'); additive, schemaVersion stays 1
+    // real build number (core-a.js RQ_BUILD, substituted by build-dist.sh); null if unknown — never the raw marker
+    build: buildNo(options.build),
     progress: e.progress,
-    game: e.game,
+    game: withoutAiKey(e.game), // arch.md 2026-10-15: the AI helper's API key never leaves the device
     library: e.library,
     sessions: sessions,
     events: events,
@@ -245,6 +249,18 @@ export async function exportBackup(envelope, settings, opts) {
  *   { schemaVersion, progress, game, library, sessions, events [, settings] }
  * or legacy { readquest, settings }. Replace mode for sessions/events.
  */
+function sanitizeBookProgress(map) {
+  if (!map || typeof map !== 'object') return;
+  Object.keys(map).forEach((id) => {
+    const e = map[id];
+    if (!e || typeof e !== 'object') return;
+    if ('pos' in e) {
+      const ok = typeof e.pos === 'number' && isFinite(e.pos) && e.pos >= 0 && e.pos <= 1;
+      if (!ok) delete e.pos;
+      else if (!(typeof e.ratio === 'number' && e.ratio >= e.pos)) e.ratio = e.pos;
+    }
+  });
+}
 export async function importBackup(data) {
   if (!data) throw new Error('пустой бэкап');
   let envelope;
@@ -271,6 +287,18 @@ export async function importBackup(data) {
     throw new Error('это не резервная копия ReadQuest');
   }
 
+  /* 1б-144 (Архитектор): per-book {ratio, pos}. pos accepted only as a number in [0,1] (else dropped → reopen at ratio);
+     pos > ratio raises ratio to pos, ratio is never lowered. Additive, schemaVersion stays 1. */
+  sanitizeBookProgress(envelope && envelope.progress && envelope.progress.progress);
+
+  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none) */
+  if (envelope && envelope.game) {
+    let own = '';
+    try { const cur = loadEnvelope(); own = (cur && cur.game && cur.game.ai && typeof cur.game.ai.key === 'string') ? cur.game.ai.key : ''; } catch (e) { own = ''; }
+    const ai = envelope.game.ai && typeof envelope.game.ai === 'object' ? envelope.game.ai : { model: 'gpt-4o-mini' };
+    envelope.game.ai = Object.assign({}, ai, { key: own });
+  }
+
   if (data.textBodies && typeof data.textBodies === 'object') {
     const ids = Object.keys(data.textBodies);
     for (let i = 0; i < ids.length; i++) {
@@ -281,9 +309,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261008-1054');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261017-0034');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261008-1054'
+    './events.js?v=20261017-0034'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */
@@ -302,6 +330,8 @@ export async function importBackup(data) {
         bookId: s.bookId,
         minutes: s.minutes,
         pageTurns: s.pageTurns != null ? s.pageTurns : s.pages,
+        startedAt: s.startedAt,
+        xp: s.xp,
       });
     } catch (e) {
       /* skip bad rows */
@@ -323,6 +353,7 @@ export async function importBackup(data) {
           date: ev.date,
           at: ev.at,
           page: ev.page,
+          via: ev.via,
           type: ev.type || 'page_visible',
         });
       } else if (ev.type) {

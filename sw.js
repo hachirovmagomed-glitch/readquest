@@ -6,9 +6,9 @@
  * HTML is network-first, so the next open after all windows closed shows the new build. */
 'use strict';
 const NS = 'rq';
-const BUILD = '20261008-1054';
+const BUILD = '20261017-0034';
 const CACHE = NS + '-' + BUILD;
-const PRECACHE = ["./","app.html","game-awards.js?v=20261008-1054","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png","index.html","manifest.webmanifest","reader-session.js?v=20261008-1054","storage/adapter.js?v=20261008-1054","storage/events.js?v=20261008-1054","storage/idb.js?v=20261008-1054","storage/index.js?v=20261008-1054","storage/migrate-v6.js?v=20261008-1054","storage/schema.js?v=20261008-1054","storage/sessions.js?v=20261008-1054","storage/state.js?v=20261008-1054","vendor/pdfjs/pdf.min.js","vendor/pdfjs/pdf.worker.min.js"];
+const PRECACHE = ["./","app.html","fonts/OFL.txt","fonts/babochkovyi-bellotatext-bold.woff2","fonts/babochkovyi-mulish-extrabold.woff2","fonts/babochkovyi-mulish-medium.woff2","fonts/babochkovyi-poiretone.woff2","fonts/caveat.woff2","fonts/ellada-alegreyasans-bold.woff2","fonts/ellada-alegreyasans-medium.woff2","fonts/ellada-alegreyasanssc-extrabold.woff2","fonts/ellada-cormorantunicase-bold.woff2","fonts/nunito.woff2","game-awards.js?v=20261017-0034","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png","index.html","js/ach-core.js?v=20261017-0034","js/achievements.js?v=20261017-0034","js/books-builtin.js?v=20261017-0034","js/content.js?v=20261017-0034","js/core-a.js?v=20261017-0034","js/core-b.js?v=20261017-0034","js/library.js?v=20261017-0034","js/path.js?v=20261017-0034","js/pdf.js?v=20261017-0034","js/pwa-lock.js?v=20261017-0034","js/reader-ui.js?v=20261017-0034","js/reader.js?v=20261017-0034","js/rpg.js?v=20261017-0034","js/settings.js?v=20261017-0034","js/start.js?v=20261017-0034","js/v6-extras.js?v=20261017-0034","manifest.webmanifest","reader-session.js?v=20261017-0034","skins/skins.css","storage/adapter.js?v=20261017-0034","storage/events.js?v=20261017-0034","storage/idb.js?v=20261017-0034","storage/index.js?v=20261017-0034","storage/migrate-v6.js?v=20261017-0034","storage/schema.js?v=20261017-0034","storage/sessions.js?v=20261017-0034","storage/state.js?v=20261017-0034","tokens.css","vendor/pdfjs/pdf.min.js","vendor/pdfjs/pdf.worker.min.js"];
 const NAV_TIMEOUT_MS = 1500; /* navigation: network vs cache race */
 const APP_MARK = '<meta name="rq-app" content="readquest">'; /* in app.html <head>; a captive portal page won't have it */
 
@@ -37,8 +37,26 @@ self.addEventListener('message', function (e) {
 
 function isBook(url) { return /\.(pdf|fb2|epub|txt|zip)$/i.test(url.pathname); }
 
+/* «Поделиться → ReadQuest» (manifest share_target, Android): the system POSTs the files to ./share-target.
+ * They go to the cache NS + '_share' (not NS + '-…', so activate never deletes it), one entry per file, name in X-RQ-Name;
+ * then 303 to ./?share=1, where the app (importSharedBooks in js/library.js) adds them and empties the cache. */
+const SHARE = NS + '_share';
+function shareTarget(req) {
+  return req.formData().then(function (fd) {
+    const files = fd.getAll('books').filter(function (f) { return f && typeof f === 'object' && f.size > 0; });
+    return caches.open(SHARE).then(function (c) {
+      const t = Date.now();
+      return Promise.all(files.map(function (f, i) {
+        return c.put(new Request('share/' + t + '-' + i), new Response(f, { headers: { 'Content-Type': f.type || 'application/octet-stream', 'X-RQ-Name': encodeURIComponent(f.name || '') } }));
+      }));
+    });
+  }).catch(function (err) { console.warn('[rq] share-target', err); })
+    .then(function () { return Response.redirect(new URL('./?share=1', self.registration.scope).href, 303); });
+}
+
 self.addEventListener('fetch', function (e) {
   const req = e.request;
+  if (req.method === 'POST' && new URL(req.url).pathname === new URL('./share-target', self.registration.scope).pathname) { e.respondWith(shareTarget(req)); return; }
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;          /* also excludes blob:, data: */

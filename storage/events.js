@@ -4,9 +4,9 @@
  * Do NOT invent separate DBs for focus / anti-cheat — those are rules on top of events.
  * Do NOT put analytics into sessions[] — sessions stay reading-only.
  */
-import { IDB_STORE_EVENTS } from './schema.js?v=20261008-1054';
-import { openDb } from './idb.js?v=20261008-1054';
-import { normalizeDate } from './sessions.js?v=20261008-1054';
+import { IDB_STORE_EVENTS } from './schema.js?v=20261017-0034';
+import { openDb } from './idb.js?v=20261017-0034';
+import { normalizeDate } from './sessions.js?v=20261017-0034';
 
 async function addEvent(rec) {
   const db = await openDb();
@@ -49,6 +49,7 @@ export async function logReadingEvent(entry) {
     at: entry.at || new Date().toISOString(),
   };
   if (entry.page != null) rec.page = Number(entry.page);
+  if (entry.via === 'turn' || entry.via === 'jump' || entry.via === 'tts') rec.via = entry.via; /* 1б, optional; 'tts' = read-aloud auto-advance (1в) */
   return addEvent(rec);
 }
 
@@ -84,6 +85,10 @@ export async function logAnalyticsEvent(entry) {
   if (entry.reason != null) rec.reason = String(entry.reason).slice(0, 32);
   // storage_persist (PWA): navigator.storage.persist() result
   if (typeof entry.granted === 'boolean') rec.granted = entry.granted;
+  // theme_changed (1в): data-skin values, e.g. from 'default' to 'pencil' (metrics.py «kept a non-starting theme»)
+  if (entry.type === 'theme_changed') { rec.from = String(entry.from || '').slice(0, 32); rec.to = String(entry.to || '').slice(0, 32); }
+  // purchase (shop): catalog id + price paid
+  if (entry.type === 'purchase') { rec.id = String(entry.id || '').slice(0, 48); rec.price = Math.max(0, Math.round(Number(entry.price) || 0)); }
   return addEvent(rec);
 }
 

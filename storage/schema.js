@@ -1,6 +1,6 @@
 /**
  * ReadQuest storage schema — version, defaults, domain splits.
- * Soft streak floor (2 min): TODO — document only; game logic not implemented here.
+ * Soft streak floor (3 min): game logic lives in js/core-a.js STREAK_MIN + closeReader; storage only keeps the number.
  */
 export const SCHEMA_VERSION = 1;
 
@@ -35,7 +35,7 @@ export function idbKeyText(bookId) {
 
 /**
  * Progress domain — reading habit metrics & per-book reading state.
- * TODO(soft-streak): Architect lock — streak soft floor ≥2 min (logic later).
+ * Streak soft floor ≥ 3 min (Маня 15.10, was 2): STREAK_MIN in js/core-a.js.
  * Daily quest / north-star still use goal (defaultMinutes: 10).
  */
 export const PROGRESS_DEF = {
@@ -89,11 +89,17 @@ export const GAME_DEF = {
   owned: [],
   claimed: {},
   rewards: null,
-  cur: null,
   customQuests: [],
   customStats: [],
   customAch: [],
   achUnlocked: [],
+  /** Достижения v2 (arch.md 15.10): id → 'YYYY-MM-DD' дня записи; только дописывается */
+  achDates: {},
+  /** первый проход по истории: {d: 'YYYY-MM-DD', n} или null */
+  achSeed: null,
+  /** выбранные звание и рамка (id каталога js/ach-core.js), '' = нет */
+  achTitle: '',
+  achFrame: '',
   avatar: null,
   heroName: 'Читатель',
   statuses: null,
@@ -167,8 +173,37 @@ export const SET_DEF = {
   dim: 0,
   nav: null,
   mvp: true,
-  focusMode: true,
+  focus: 'button',   // 1б: 'off' | 'button' | 'auto'
+  pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
+  readCounter: true, // 1б: «7 / 10 мин» in focus
+  flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
+
+/** SET.flip (arch.md 15.10) — same rules as js/reader.js flipNorm: not an object → dropped (default);
+ *  no flip + nav is the OLD flip object (not a tab list) → copied once; nav is never deleted or rewritten. */
+export const FLIP_DEF = { btns: false, tap: true, invert: false, swipe: true, mode: 'page', anim: 'none' };
+const FLIP_KEYS = ['btns', 'tap', 'invert', 'swipe'];
+/* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings; junk → default */
+const FLIP_STR = { mode: ['page', 'scroll'], anim: ['none', 'slide', 'fade'] };
+function flipFrom(o) {
+  const f = {};
+  FLIP_KEYS.forEach((k) => { f[k] = typeof o[k] === 'boolean' ? o[k] : FLIP_DEF[k]; });
+  Object.keys(FLIP_STR).forEach((k) => { f[k] = FLIP_STR[k].includes(o[k]) ? o[k] : FLIP_DEF[k]; });
+  return f;
+}
+export function normFlip(s) {
+  if (s.flip != null && (typeof s.flip !== 'object' || Array.isArray(s.flip))) s.flip = null;
+  if (s.flip) s.flip = flipFrom(s.flip);
+  else if (s.nav && typeof s.nav === 'object' && !Array.isArray(s.nav) && FLIP_KEYS.some((k) => k in s.nav)) s.flip = flipFrom(s.nav);
+  return s;
+}
+
+export const FOCUS_MODES = ['off', 'button', 'auto'];
+/** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
+export function normPdfDim(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 0.35;
+  return Math.round(Math.max(0, Math.min(0.5, v)) * 20) / 20;
+}
 
 const DEFAULT_SKILLS = ['Концентрация', 'Дисциплина', 'Аналитика', 'Скорочтение'];
 const DEFAULT_SKILL_LINKS = {
@@ -223,6 +258,18 @@ export function hydrateGame(g) {
   out.customStats = out.customStats || [];
   out.customAch = out.customAch || [];
   out.achUnlocked = out.achUnlocked || [];
+  /* Достижения v2: прощающее чтение, ничего не записывается обратно; кривое → отбросить / умолчание */
+  {
+    const d = out.achDates, clean = {};
+    if (d && typeof d === 'object' && !Array.isArray(d))
+      Object.keys(d).forEach(function (k) { if (k.length <= 40 && typeof d[k] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d[k])) clean[k] = d[k]; });
+    out.achDates = clean;
+    const sd = out.achSeed;
+    out.achSeed = sd && typeof sd === 'object' && !Array.isArray(sd) && typeof sd.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(sd.d) && Number.isFinite(sd.n) && sd.n >= 0
+      ? { d: sd.d, n: Math.floor(sd.n) } : null;
+    out.achTitle = typeof out.achTitle === 'string' ? out.achTitle.slice(0, 40) : '';
+    out.achFrame = typeof out.achFrame === 'string' ? out.achFrame.slice(0, 40) : '';
+  }
   out.talents = out.talents || {};
   out.inventory = out.inventory || [];
   out.invHist = out.invHist || [];
@@ -277,7 +324,9 @@ export function hydrateGame(g) {
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
   if (!out.ai) out.ai = { key: '', model: 'gpt-4o-mini' };
-  if (!out.cur || !out.cur.icon) out.cur = { icon: '🪙', name: 'золото' };
+  /* shop build removed the currency picker and ∞ money; the fields stay (old fields are never deleted): cur as stored, devMoney always false */
+  out.devMoney = false;
+  out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; }).filter(function (id, i, a) { return a.indexOf(id) === i; });
   if (!out.rewards || !out.rewards.length)
     out.rewards = [
       { name: 'Кофе', tier: 'small', cost: 100, bought: 0 },
@@ -336,7 +385,15 @@ export function hydrateLibrary(lib) {
 
 export function hydrateSettings(s) {
   const out = Object.assign({}, SET_DEF, s || {});
-  if (!out.nav) out.nav = { btns: false, tap: true, invert: false, swipe: true };
+  /* nav (bottom-bar tabs) is kept exactly as stored — no default object is put there any more (15.10, SET.flip) */
+  normFlip(out);
+  delete out.focusMode; /* 1б: old bool is ignored, never mapped onto focus */
+  if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
+  out.pdfDim = normPdfDim(out.pdfDim);
+  if (typeof out.readCounter !== 'boolean') out.readCounter = true;
+  /* 1в: theme is an id string — the free ones incl. 'pencil' / 'pencil-night' («Карандашный»), paid SHOP ids. Unknown ids are KEPT
+     (forward compat: an older build simply renders sepia, see activeTheme); only a non-string / empty / huge value falls back. */
+  if (typeof out.theme !== 'string' || !out.theme || out.theme.length > 32) out.theme = 'sepia';
   return out;
 }
 

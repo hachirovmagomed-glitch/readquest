@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 HOST="${RQ_HOST:-http://127.0.0.1:8767}"
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
-ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 drawer uifix nav mvpflag extra achgate setentry expand qhint bookcard sysback rowfix gatepick libhead blackcanvas importskin mvp-check audit1 audit2 pdf pdf-test pwa"
+ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 drawer uifix nav mvpflag extra achgate setentry expand qhint bookcard sysback rowfix gatepick libhead blackcanvas importskin import-many mvp-check audit1 audit2 pdf pdf-test pwa"
 SEL="${*:-$ALL}"
 LOG="/tmp/rq-runall/$BUILD"; mkdir -p "$LOG"; rc=0  # per-run log dir: a rerun never overwrites the logs of a failed run
 for t in $SEL; do
@@ -52,6 +52,7 @@ for t in $SEL; do
     shop2)        cmd="env RQ_URL=$HOST/readquest/test/ RQ_MAIN_URL=$HOST/readquest/ node shop2.test.mjs";;
     blackcanvas)  cmd="node blackcanvas.test.mjs";;
     importskin)   cmd="bash serve-old-root.sh && env RQ_OLD_URL=http://127.0.0.1:8770/readquest/ node importskin.test.mjs";;
+    import-many)  cmd="env RQ_URL=$HOST/readquest/test/ node import-many.test.mjs";;
     mvp-check)    cmd="node mvp-check.mjs";;
     audit1)       cmd="node audit1.test.mjs";;
     audit2)       cmd="node audit2.test.mjs";;

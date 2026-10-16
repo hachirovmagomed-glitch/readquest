@@ -293,7 +293,7 @@ function coverHtml(b){
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(cv)return cv;
-  return b.cover;
+  return b.cover||rqIcon('book-open',22); /* no emoji cover (path books) → Lucide */
 }
 function renderLibChips(){
   const box=el('libChips');box.innerHTML='';
@@ -352,6 +352,10 @@ async function importBookFile(f,setBusy){
   }
   if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
   /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
+  return rqAddBook(b);
+}
+/* one way a new book reaches the shelf (file import and «Путь читателя»): text body to IDB once, then the card, then save() */
+async function rqAddBook(b){
   if(b.type!=='pdf'){
     if(window.__rqWriter&&!window.__rqWriter.mayWrite())throw new Error('книга открыта в другом окне');
     if(!__rq||!__rq.upsertUserBook)throw new Error('хранилище ещё не готово — обновите страницу');

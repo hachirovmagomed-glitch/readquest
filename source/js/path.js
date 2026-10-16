@@ -28,7 +28,7 @@ function pathAll(){const out=[];PATH_CHAPTERS.forEach(function(c){c.books.forEac
 function pathFind(id){let r=null;PATH_CHAPTERS.forEach(function(c){c.books.forEach(function(b){if(b.id===id)r={ch:c,b:b};});});return r;}
 /* read-only view of one path book: {lib, pct, done} */
 function pathState(pid){
-  const lib=allBooks().find(function(x){return x.pathId===pid;})||null;
+  const lib=allBooks().find(function(x){return x&&typeof x.pathId==='string'&&x.pathId===pid;})||null; /* unknown or broken pathId = an ordinary book */
   if(!lib)return {lib:null,pct:0,done:false};
   const done=S.finished.includes(lib.id);
   return {lib:lib,pct:done?100:Math.round(rqPos(lib.id)*100),done:done};
@@ -97,6 +97,23 @@ function pathOpen(pid){
     '<button type="button" class="cta" onclick="pathRead(\''+pid+'\')">'+(st.done?'Открыть':(st.lib?'Продолжить':'Взять в библиотеку и читать'))+'</button>';
   el('bookSheet').classList.remove('hidden');
 }
-/* text download comes in the next step; until then the button only opens a book that is already on the shelf */
-function pathRead(pid){const st=pathState(pid);if(st.lib){el('bookSheet').classList.add('hidden');openBook(st.lib.id);return;}
-  flashMsg('Текст книги появится в следующей сборке','info');}
+/* «Взять в библиотеку»: the text is fetched once from books/<id>.txt (same origin, not precached), then it is an ordinary
+   book with one extra field pathId (arch.md 16.10). A second tap never adds a second copy. */
+let pathBusy=false;
+async function pathRead(pid){
+  const f=pathFind(pid);if(!f||pathBusy)return;
+  const st=pathState(pid);
+  if(st.lib){el('bookSheet').classList.add('hidden');openBook(st.lib.id);return;}
+  pathBusy=true;
+  try{
+    let txt='';
+    try{const r=await fetch('books/'+pid+'.txt',{cache:'no-cache'});if(!r.ok)throw new Error(String(r.status));txt=await r.text();}
+    catch(e){flashMsg(navigator.onLine===false?'Нет сети. Книга скачается один раз, дальше читается без интернета':'Текст этой книги ещё не добавлен','info');return;}
+    if(!txt||txt.length<20){flashMsg('Текст этой книги ещё не добавлен','info');return;}
+    const b={id:newBookId(),title:f.b.t,author:f.b.a,genre:'Путь читателя',stat:'Воображение',cover:'',text:txt,pathId:pid,fname:pid+'.txt',size:txt.length};
+    try{await rqAddBook(b);}catch(e){flashMsg('Не удалось добавить книгу: '+(e&&e.message||e),'info');return;}
+    el('bookSheet').classList.add('hidden');
+    try{renderLibrary();}catch(e){}
+    openBook(b.id);
+  }finally{pathBusy=false;}
+}

@@ -96,8 +96,10 @@ cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
+# «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB
+if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
-PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE | sed 's#^\./##' | sort | while read -r f; do
+PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' | sed 's#^\./##' | sort | while read -r f; do
   case "$f" in vendor/*) echo "\"$f\"";; *.js) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
 sed -i "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#__RQ_PRECACHE__#[\"./\",$PRE]#" "$DIST/sw.js"
 

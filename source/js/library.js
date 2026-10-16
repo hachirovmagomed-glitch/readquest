@@ -164,7 +164,7 @@ function renderLibrary(){
   el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
   const pct=Math.min(1,_mt/goalMin());
   el('ringFg').style.strokeDashoffset=207*(1-pct);
-  el('ringFg').style.stroke=pct>=1?'#4cd97b':'#2bb3c0';
+  el('ringFg').style.stroke=pct>=1?'var(--good)':'var(--accent)';
   el('ringTxt').textContent=Math.floor(pct*100)+'%';
   renderLibChips();
   // карточка «Продолжить чтение»

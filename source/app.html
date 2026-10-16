@@ -130,9 +130,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
 /* ===== Библиотека ===== */
 .topbar{padding:18px 18px 6px}
-.goalcard{background:linear-gradient(135deg,#1a4a57,#143039);border-radius:var(--radius);padding:16px;display:flex;gap:16px;align-items:center;margin-bottom:6px}
+.goalcard{background:linear-gradient(135deg,var(--card2),var(--card));border-radius:var(--radius);padding:16px;display:flex;gap:16px;align-items:center;margin-bottom:6px}
 .ring{width:74px;height:74px;flex:none}
 .ring text{fill:var(--txt);font-size:15px;font-weight:700}
+.goalcard .ring circle:first-child{stroke:color-mix(in srgb,var(--muted) 25%,var(--card2))} /* 16.10: track and card follow «Тема», were teal hex */
 .goalcard .sub{color:var(--muted);font-size:13px;margin-top:3px}
 .streakline{display:flex;gap:14px;margin-top:8px;font-size:14px}
 .bookcard{background:var(--card);border-radius:var(--radius);padding:14px;display:flex;gap:14px;align-items:center;margin-bottom:12px;width:100%;text-align:left}
@@ -151,7 +152,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @media(min-width:700px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bookcard{margin-bottom:0}}
 
 /* ===== Нижняя навигация ===== */
-#bottomNav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(12,33,39,.94);backdrop-filter:blur(12px);border-top:1px solid #1d4250;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:40}
+#bottomNav{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--card2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:40}
 #bottomNav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
 #bottomNav button.on{color:var(--accent)}
 #bottomNav .ico{font-size:21px}
@@ -634,13 +635,13 @@ body.pixel .charpanel .cbtn,body.pixel .charpanel .swatch{border-radius:0}
 body.pixel .talnode{border-radius:0}
 
 /* ===== MVP bottom nav + rewards sheet ===== */
-#botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;background:var(--card);border-top:1px solid #1d4250;padding:6px 10px calc(6px + env(safe-area-inset-bottom));gap:6px;justify-content:space-around}
+#botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;background:var(--card);border-top:1px solid var(--card2);padding:6px 10px calc(6px + env(safe-area-inset-bottom));gap:6px;justify-content:space-around}
 body.mvp #botnav{display:flex}
 body.mvp .screen > .scroll{padding-bottom:76px}
 body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .botnav-btn{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:12px;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .botnav-btn .ico{font-size:20px;line-height:1}
-.botnav-btn.on{color:var(--accent);background:rgba(43,179,192,.12)}
+.botnav-btn.on{color:var(--accent);background:var(--card2)} /* 16.10: was teal 12% → grey on Багрянец */
 #rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
 #rewardsSheet.open{transform:translateY(0)}
 /* shop build 14.10: «Награды» = «Из жизни» / «Магазин», balance as text, no coin icons */

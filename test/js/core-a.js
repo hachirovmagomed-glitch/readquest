@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261016-1235'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261016-1340'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -104,8 +104,9 @@ function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today
 function mvpDailyProg(day){const g=goalMin();return Math.min(1,dayMin(day||today())/g);}
 /** ONE function for whole counted minutes of a day (summary, quests, reader counter «7 / 10 мин»). */
 function dayMinFloor(day,live){return Math.floor(dayMin(day||today(),live));}
-/** Streak threshold (Boss/Product): a day keeps the streak at ≥ 2 counted minutes. atRisk + hint use the same number. */
-const STREAK_MIN=2;
+/** Streak soft floor (Маня 15.10: 3 min, was 2): a day keeps the streak at ≥ 3 counted minutes; the daily goal (10) is separate.
+    atRisk + hint use the same number. */
+const STREAK_MIN=3;
 function streakAtRisk(day){const k=day||today();const m=isMvp()?dayMin(k):(((S.hist||{})[k]||{}).min||0);return S.streak>0&&m<STREAK_MIN;}
 function mvpDailyInfo(day,live){return dayMinFloor(day,live)+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
 function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(1,w.count/4);}

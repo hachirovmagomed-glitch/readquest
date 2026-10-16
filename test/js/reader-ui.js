@@ -529,7 +529,7 @@ async function closeReaderImpl(opts){
   if(sd===today())S.minToday+=min;S.totalMin+=min;S.totalPages+=pages;S.sessions++;
   S.hp=Math.min(S.hpMax,(S.hp==null?S.hpMax:S.hp)+15);if(justFinished)S.hp=S.hpMax; // чтение восстанавливает здоровье
   dealBossDamage(min,pages,justFinished);S.petXp=(S.petXp||0)+min; // урон боссу + рост питомца
-  /* Soft streak ≥2 min (Boss/Product): preserve streak when day's total minutes ≥2.
+  /* Soft streak ≥ STREAK_MIN (3 min, Маня 15.10): preserve streak when day's total minutes ≥ 3.
      Daily quest / north-star still require goal minutes (default 10) — not changed here. */
   if((isMvp()?dayMin(sd):(sd===today()?S.minToday:min))>=STREAK_MIN){
     if(!S.lastDay||sd>String(S.lastDay)){

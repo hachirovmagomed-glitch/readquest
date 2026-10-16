@@ -78,7 +78,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   /* ---- HEAD: rule checks only (Architect) ---- */
   { const tags = (h) => [...h.matchAll(/^<script src="(js\/[^"?]+\.js)"><\/script>$/gm)].map(m => m[1]);
     const ht = tags(fs.readFileSync(path.join(SRC, 'app.html'), 'utf8')), tt = tags(fs.readFileSync(path.join(treeSrc, 'app.html'), 'utf8'));
-    ok(`(split HEAD) <script src="js/…"> order in app.html = the 1a order of ${SPLIT_TREE} (${tt.length} tags), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(ht) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
+    ok(`(split HEAD) <script src="js/…"> order in app.html keeps the 1a order of ${SPLIT_TREE} (${tt.length} tags; files added later, e.g. js/path.js, may sit between), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(ht.filter(f => tt.includes(f))) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
     const STR = "'use strict';\n", strictBad = [];
     for (const f of TREEJS) { const t = fs.readFileSync(path.join(treeSrc, f), 'utf8').startsWith(STR); const hp = path.join(SRC, f);
       const hs = fs.existsSync(hp) && fs.readFileSync(hp, 'utf8').startsWith(STR); if (t !== hs) strictBad.push([f, { tree: t, head: hs }]); }

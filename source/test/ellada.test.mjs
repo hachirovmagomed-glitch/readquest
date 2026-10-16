@@ -122,6 +122,31 @@ ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 6
 const ic2 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, el: document.querySelectorAll('#shelf .el-cover').length, pc: document.querySelectorAll('#shelf .pc-cover').length }));
 ok('10b leaving the skin: Lucide icons back, covers redrawn for the new skin', !/M10 2v5\.632/.test(ic2.gift) && ic2.el === 0 && ic2.pc > 0, ic2);
 
+// 11. Джессика 16.10: white strip at the bottom in the reader / summary after the rewards sheet was opened once
+// (open() sets style.bottom = nav height; closed translateY(110%) then left the top of the sheet above the screen edge)
+await p.evaluate(() => { wear('skin-ellada'); show('library'); }); await sleep(200);
+await p.evaluate(() => { openRewardsSheet(); }); await sleep(400);
+await p.evaluate(() => { closeRewardsSheet(); }); await sleep(400);
+await p.evaluate(() => { show('summary'); }); await sleep(300);
+const peek = await p.evaluate(() => { const rs = el('rewardsSheet'), r = rs.getBoundingClientRect(), cs = getComputedStyle(rs);
+  return { top: Math.round(r.top), h: innerHeight, vis: cs.visibility, bottom: rs.style.bottom, open: rs.classList.contains('open') }; });
+ok('11 closed rewards sheet is not painted anywhere (no strip above the screen edge)', !peek.open && (peek.vis === 'hidden' || peek.top >= peek.h), peek);
+// 12. reader fonts: no generic «cursive»/«fantasy» (on Android they are Latin-only → Cyrillic from another font, tiny punctuation)
+const gen = await p.evaluate(() => FONTS.filter(f => /\b(cursive|fantasy)\b/.test(f.v)).map(f => f.label));
+ok('12 reader fonts never fall back to cursive/fantasy', gen.length === 0, gen);
+
+// 13–15. Джессика 16.10 («Дневник»): veins read as scribbles → even marble + fine grain; thin meander under headers and over the nav;
+// amphora over the empty hint; Lucide instead of emoji in the diary header, tabs and hint
+await p.evaluate(() => { wear('skin-ellada'); S.quotes = []; save(); openJournal('quotes'); }); await sleep(400);
+const dj = await p.evaluate(() => { const bg = getComputedStyle(document.body), q = document.getElementById('quotes'), h = q.querySelector('.wrap > .row'), hint = q.querySelector('.emptyhint');
+  const emo = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u, nb = getComputedStyle(document.getElementById('botnav'), '::before'), ha = getComputedStyle(h, '::after');
+  return { veins: /Q\d/.test(bg.backgroundImage), grain: /feTurbulence/.test(bg.backgroundImage), size: bg.backgroundSize,
+    emoji: emo.test(h.textContent + q.querySelector('.ptabs').textContent + (hint ? hint.textContent : '')), icons: q.querySelectorAll('.wrap > .row h1 .ic, .ptabs .ic, .emptyhint .ic').length,
+    amph: hint ? getComputedStyle(hint, '::before').width : null, navM: [nb.height, nb.opacity], headM: [ha.height, ha.opacity] }; });
+ok('13 Эллада background: no vein drawing, fine grain tile 140px', !dj.veins && dj.grain && /140px/.test(dj.size), dj);
+ok('14 «Дневник»: no emoji in header, tabs and hint; Lucide icons instead (h1 + 3 tabs + hint)', !dj.emoji && dj.icons >= 5, dj);
+ok('15 meander 8px at 40% under the header and over the bottom nav; amphora 96px over the empty hint', dj.navM[0] === '8px' && dj.navM[1] === '0.4' && dj.headM[0] === '8px' && dj.headM[1] === '0.4' && dj.amph === '96px', dj);
+
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY ellada.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

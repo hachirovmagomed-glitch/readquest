@@ -153,8 +153,8 @@ const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => 
   const g = (e, ps) => getComputedStyle(e, ps);
   const sc = document.querySelector('#path .scroll');
   return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg/.test(g(map, '::after').backgroundImage),
-    isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', wide: sc.scrollWidth > sc.clientWidth + 1 }; });
-ok('16 Путь читателя в Элладе: море с волнами, острова под книгами, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && /8/.test(pm.dash) && !pm.wide, pm);
+    isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
+ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
 await p.evaluate(() => navGo('library'));
 
 ok('no page errors', !errs.length, errs);

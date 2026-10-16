@@ -667,8 +667,8 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .botnav-btn{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:12px;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .botnav-btn .ico{font-size:20px;line-height:1}
 .botnav-btn.on{color:var(--accent);background:var(--card2)} /* 16.10: was teal 12% → grey on Багрянец */
-#rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .25s ease;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
-#rewardsSheet.open{transform:translateY(0)}
+#rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
+#rewardsSheet.open{transform:translateY(0);visibility:visible;transition:transform .25s ease} /* 16.10: closed sheet not painted — open() lifts it by the nav height, so 110% left its top edge (and shadow) above the screen bottom: white strip in Эллада */
 /* shop build 14.10: «Награды» = «Из жизни» / «Магазин», balance as text, no coin icons */
 .rewhead{align-items:center;margin:0 36px 10px 0}
 .rewtabs{display:flex;gap:6px;background:var(--card);border-radius:12px;padding:4px;margin-bottom:12px}

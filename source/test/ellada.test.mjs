@@ -122,6 +122,19 @@ ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 6
 const ic2 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, el: document.querySelectorAll('#shelf .el-cover').length, pc: document.querySelectorAll('#shelf .pc-cover').length }));
 ok('10b leaving the skin: Lucide icons back, covers redrawn for the new skin', !/M10 2v5\.632/.test(ic2.gift) && ic2.el === 0 && ic2.pc > 0, ic2);
 
+// 11. Джессика 16.10: white strip at the bottom in the reader / summary after the rewards sheet was opened once
+// (open() sets style.bottom = nav height; closed translateY(110%) then left the top of the sheet above the screen edge)
+await p.evaluate(() => { wear('skin-ellada'); show('library'); }); await sleep(200);
+await p.evaluate(() => { openRewardsSheet(); }); await sleep(400);
+await p.evaluate(() => { closeRewardsSheet(); }); await sleep(400);
+await p.evaluate(() => { show('summary'); }); await sleep(300);
+const peek = await p.evaluate(() => { const rs = el('rewardsSheet'), r = rs.getBoundingClientRect(), cs = getComputedStyle(rs);
+  return { top: Math.round(r.top), h: innerHeight, vis: cs.visibility, bottom: rs.style.bottom, open: rs.classList.contains('open') }; });
+ok('11 closed rewards sheet is not painted anywhere (no strip above the screen edge)', !peek.open && (peek.vis === 'hidden' || peek.top >= peek.h), peek);
+// 12. reader fonts: no generic «cursive»/«fantasy» (on Android they are Latin-only → Cyrillic from another font, tiny punctuation)
+const gen = await p.evaluate(() => FONTS.filter(f => /\b(cursive|fantasy)\b/.test(f.v)).map(f => f.label));
+ok('12 reader fonts never fall back to cursive/fantasy', gen.length === 0, gen);
+
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY ellada.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

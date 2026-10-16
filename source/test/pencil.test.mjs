@@ -22,14 +22,14 @@ ok('bottom nav: 3 items Библиотека/Награды/Профиль', n.m
 
 // 2. «Общие настройки»: theme tiles captioned, «Карандашный» tile → html[data-skin=pencil]
 await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
-const tiles = await p.evaluate(() => [...document.querySelectorAll('#appThemeBox .appsw')].map(b => ({ cap: (b.closest('.apptile') || b).querySelector('small') ? (b.closest('.apptile') || b).querySelector('small').textContent.trim() : '', k: b.dataset.k || '' })));
+const tiles = await p.evaluate(() => [...document.querySelectorAll('#appThemeBox .appsw, #appSkinBox .appsw')].map(b => ({ cap: (b.closest('.apptile') || b).querySelector('small') ? (b.closest('.apptile') || b).querySelector('small').textContent.trim() : '', k: b.dataset.k || '' })));
 ok('every app theme tile has a caption', tiles.length > 5 && tiles.every(t => t.cap), tiles.map(t => t.cap));
 ok('«Карандашный» tile exists', tiles.some(t => t.cap === 'Карандашный'));
-await p.evaluate(() => { const b = document.getElementById('appThemeBox'); if (b && b.hidden && document.getElementById('appThemeX')) document.getElementById('appThemeX').click(); }); await sleep(200); /* theme list is collapsed into one row (14.10) */
-const pt = await p.$('#appThemeBox .appsw[data-k="pencil"]');
+await p.evaluate(() => { const b = document.getElementById('appSkinBox'); if (b && b.hidden && document.getElementById('appSkinX')) document.getElementById('appSkinX').click(); }); await sleep(200); /* skin list is its own collapsed row (16.10: «Тема» and «Скин» split) */
+const pt = await p.$('#appSkinBox .appsw[data-k="pencil"]');
 if (pt) { await pt.evaluate(e => e.scrollIntoView({ block: 'center' })); await sleep(150); await pt.click(); await sleep(400); } /* centre it: the fixed bottom nav covers a tile scrolled just into view */
 else await p.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); renderSettings(); }); /* no tile (red run): still measure the rest in the skin */
-const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', theme: SET.theme, on: [...document.querySelectorAll('#appThemeBox .appsw.on')].map(b => b.dataset.k) }));
+const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', theme: SET.theme, on: [...document.querySelectorAll('#appSkinBox .appsw.on')].map(b => b.dataset.k) }));
 ok('click «Карандашный» → data-skin=pencil, SET.theme=pencil, tile selected', sk.skin === 'pencil' && sk.theme === 'pencil' && sk.on.join() === 'pencil', sk);
 n = await nav();
 ok('pencil: nav 3 items, each a Lucide icon', n.length === 3 && n.every(x => /^#i-/.test(x.ic)), n);
@@ -73,7 +73,7 @@ const bt = await p.evaluate(() => {
   const decl = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch (e) { return []; } }).filter(r => r.selectorText && r.selectorText.includes('pencil') && r.style && r.style.borderTopWidth);
   b.forEach((x, i) => { const hit = decl.filter(r => { try { return els[i].matches(r.selectorText); } catch (e) { return false; } }); x.decl = hit.length ? hit[hit.length - 1].style.borderTopWidth : ''; x.graph = x.bc === graph; });
   const acc = getComputedStyle(document.documentElement).getPropertyValue('--rq-accent').trim();
-  const t = [...document.querySelectorAll('#appThemeBox .appsw')].map(e => { const cs = getComputedStyle(e); return { k: e.dataset.k, on: e.classList.contains('on'), bw: cs.borderTopWidth, bc: cs.borderTopColor, chk: !!e.parentElement.querySelector('.chk') && getComputedStyle(e.parentElement.querySelector('.chk')).display !== 'none' && getComputedStyle(e.parentElement.querySelector('.chk')).visibility !== 'hidden' }; });
+  const t = [...document.querySelectorAll('#appThemeBox .appsw, #appSkinBox .appsw')].map(e => { const cs = getComputedStyle(e); return { k: e.dataset.k, on: e.classList.contains('on'), bw: cs.borderTopWidth, bc: cs.borderTopColor, chk: !!e.parentElement.querySelector('.chk') && getComputedStyle(e.parentElement.querySelector('.chk')).display !== 'none' && getComputedStyle(e.parentElement.querySelector('.chk')).visibility !== 'hidden' }; });
   const probe = document.createElement('i'); probe.style.color = acc; document.body.appendChild(probe); const accRgb = getComputedStyle(probe).color; probe.remove();
   return { b, t, accRgb };
 });

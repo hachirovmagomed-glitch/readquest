@@ -48,7 +48,7 @@ function renderSettings(){
   if(el('navCfgSub')&&typeof navGet==='function'){const k=navShown().length;el('navCfgSub').textContent=k+' '+plural(k,'вкладка','вкладки','вкладок');}
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
-  if(el('readCntTgl'))el('readCntTgl').textContent=SET.readCounter?'Вкл':'Выкл';
+  if(el('readCntTgl')){const b=el('readCntTgl');b.classList.toggle('on',!!SET.readCounter);b.setAttribute('aria-checked',SET.readCounter?'true':'false');}
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
   el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */
   const ls=el('langSeg');ls.innerHTML='';

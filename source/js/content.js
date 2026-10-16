@@ -488,6 +488,8 @@ function bookInfo(id){
   const words=b.text?b.text.split(/\s+/).length:null;
   const nq=(S.quotes[id]||[]).length,nm=(S.marks[id]||[]).length;
   const fav=S.favs.includes(id),want=S.status[id]==='want';
+  const rmin=Math.floor(((S.bookStats[id]||{}).min)||0); /* counted reading minutes for this book (same ones that give XP) */
+  const rtime=rmin>=60?Math.floor(rmin/60)+' ч'+(rmin%60?' '+(rmin%60)+' мин':''):rmin+' мин';
   const fmt=b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст');
   const sub=[b.author,b.genre].filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF» */
   const place=builtin?'Встроена в приложение':(b.type==='pdf'?'На этом устройстве, в браузере':'На этом устройстве, в приложении');
@@ -499,7 +501,8 @@ function bookInfo(id){
     (sub?'<div class="bk-sub">'+sub+'</div>':'')+'</div></div>'+
     '<div class="bk-prog" data-rq="prog"><div class="bk-bar"><i style="width:'+(done?100:p)+'%"></i></div>'+
     '<div class="bk-pl"><span><b data-rq="pct">'+(done?'Прочитано':p+'%')+'</b>'+(done?'':' прочитано')+'</span>'+
-    '<span>'+nq+' '+plural(nq,'цитата','цитаты','цитат')+' · '+nm+' '+plural(nm,'закладка','закладки','закладок')+'</span></div></div>'+
+    '<span><b data-rq="time">'+rtime+'</b> за чтением</span></div>'+
+    '<div class="bk-pn">'+nq+' '+plural(nq,'цитата','цитаты','цитат')+' · '+nm+' '+plural(nm,'закладка','закладки','закладок')+'</div></div>'+
     '<div class="bk-acts">'+
     act('star',fav?'В избранном':'В избранное','toggleFav',fav)+
     act('bookmark',want?'В «Хочу»':'Хочу прочитать','toggleWant',want)+

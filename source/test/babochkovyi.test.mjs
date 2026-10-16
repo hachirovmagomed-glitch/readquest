@@ -56,12 +56,12 @@ await p.evaluate(() => { show('library'); renderLibrary(); }); await sleep(300);
 const lib = (w) => p.evaluate(() => { const h = document.getElementById('libHead'), r = h.getBoundingClientRect(), cs = getComputedStyle(h);
   const kids = [...h.children].filter(e => e.offsetParent).map(e => { const q = e.getBoundingClientRect(); return { id: e.id || e.className, l: Math.round(q.left), r: Math.round(q.right) }; });
   const t = document.getElementById('libTitle');
-  const pair = getComputedStyle(t, '::after'), meadow = getComputedStyle(document.body, '::before');
-  return { grad: /gradient/.test(cs.backgroundImage), mask: /data:image\/svg/.test(cs.maskImage || cs.webkitMaskImage), pair: [pair.width, pair.marginLeft, /data:image\/svg/.test(pair.backgroundImage)], meadow: [meadow.height, /data:image\/svg/.test(meadow.backgroundImage)],
+  const meadow = getComputedStyle(document.body, '::before'), coin = getComputedStyle(document.getElementById('goldChip'), '::before'), strip = getComputedStyle(document.getElementById('shelfH'), '::after');
+  return { grad: /gradient/.test(cs.backgroundImage), mask: /data:image\/svg/.test(cs.maskImage || cs.webkitMaskImage), fly: (cs.backgroundImage.match(/data:image\/svg/g) || []).length, coin: [coin.width, /data:image\/svg/.test(coin.backgroundImage)], strip: strip.width, flyers: (meadow.backgroundImage.match(/data:image\/svg/g) || []).length, meadow: [meadow.height, /data:image\/svg/.test(meadow.backgroundImage)],
     covers: document.querySelectorAll('#shelf .bb-cover').length, svgs: document.querySelectorAll('#shelf .bb-cover svg').length,
     books: document.querySelectorAll('#shelf .bookcard').length, inside: kids.every(k => k.l >= 0 && k.r <= innerWidth), cut: t.scrollWidth > t.clientWidth + 1, kids, sx: document.documentElement.scrollWidth <= innerWidth }; });
 let l390 = await lib();
-ok('5 library: wing header (gradient + wavy mask), pair 44px at 12px after the title, meadow 110px, every cover a butterfly tile', l390.grad && l390.mask && l390.pair[0] === '44px' && l390.pair[1] === '12px' && l390.pair[2] && l390.meadow[0] === '110px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
+ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 110px with flyers, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 2 && l390.meadow[0] === '110px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-390.png' });
 await p.evaluate(() => { S.gold = 12345; save(); renderLibrary(); });
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(400);
@@ -69,6 +69,18 @@ const l360 = await lib();
 ok('5b 360 px, balance 12345: header items inside the screen, title not cut, no horizontal scroll', l360.inside && !l360.cut && l360.sx, l360);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-360.png' });
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
+// 5c. goal of the day: ring hidden, 10 cocoons, 6 of 10 min → 6 butterflies; full goal → all 10 and «Все бабочки проснулись»
+const goal = (m) => p.evaluate((m) => { window.__mt0 = window.__mt0 || minTodaySess; window.minTodaySess = () => m; renderLibrary();
+  const h = document.getElementById('bbHatch'); return { ring: getComputedStyle(document.querySelector('.goalcard .ring')).display, n: h.children.length, on: h.querySelectorAll('i.on').length, sub: document.getElementById('goalSub').textContent, aria: h.getAttribute('aria-hidden') }; }, m);
+const g6 = await goal(6), g10 = await goal(10);
+ok('5c goal: ring hidden, 10 cocoons, 6 min → 6 butterflies; 10 min → 10 and «Все бабочки проснулись»', g6.ring === 'none' && g6.n === 10 && g6.on === 6 && g6.aria === 'true' && g10.on === 10 && g10.sub === 'Все бабочки проснулись', { g6, g10 });
+await p.evaluate(() => { window.minTodaySess = window.__mt0; renderLibrary(); });
+// 5d. night header (Джессика 16.10: the knit of white scales on dark looked awful): sky with moon and moths, no scales, no shimmer
+await p.evaluate(() => toggleDayNight()); await sleep(300);
+const nh = await p.evaluate(() => { const cs = getComputedStyle(document.getElementById('libHead')); return { scales: /stroke-opacity/.test(cs.backgroundImage), moon: /fffbe9/i.test(cs.backgroundImage), anim: cs.animationName, theme: document.documentElement.dataset.theme }; });
+ok('5d night header: moon sky, no white scales, no shimmer', nh.theme === 'night' && !nh.scales && nh.moon && nh.anim === 'none', nh);
+await p.screenshot({ path: SHOTS + 'babochkovyi-library-night-390.png' });
+await p.evaluate(() => toggleDayNight()); await sleep(300);
 
 // 6. reader: clean page (skin page tokens, no pseudo decor), day/night stays inside the skin
 const bid = await p.evaluate(() => allBooks()[1].id);

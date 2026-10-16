@@ -66,33 +66,36 @@ function renderSettings(){
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
-  /* theme tiles: tile + caption (+ check when selected). «Карандашный» = the app-wide skin (same as reader THEMES.pencil): it masks the app
-     palette, so while it is on only its tile is selected, and picking a palette leaves it (reader theme back to sepia). */
-  const tb=el('appThemeBox');tb.innerHTML='';
-  const pc=!!activeTheme().skin;
-  const tile=(k,cap,on,draw,pick)=>{
+  /* Джессика 16.10: «Тема» and «Скин» are two rows. Тема = the app palette (Авто + APP_THEMES), Скин = «Без скина», «Карандашный» and the bought
+     shop skins. A worn skin paints the app with its own colours; the picked palette stays selected underneath and comes back when the skin is
+     taken off. Picking a palette while a skin is on takes the skin off (reader theme back to sepia), same as before the split. */
+  const mkTile=box=>(k,cap,on,draw,pick)=>{
     const w=document.createElement('span');w.className='apptile'+(on?' on':'');
     const b=document.createElement('button');b.className='appsw'+(on?' on':'');b.dataset.k=k;b.title=cap;b.setAttribute('aria-label',cap);b.setAttribute('aria-pressed',on?'true':'false');
     draw(b);b.onclick=pick;w.appendChild(b);w.onclick=function(e){if(!b.contains(e.target))b.click();}; /* whole 52px row is the target */
     const c=document.createElement('small');c.textContent=cap;w.appendChild(c);
     const ck=document.createElement('span');ck.className='chk';ck.setAttribute('aria-hidden','true');ck.innerHTML=rqIcon('check',20);w.appendChild(ck);
-    tb.appendChild(w);
+    box.appendChild(w);
   };
+  const tb=el('appThemeBox');tb.innerHTML='';const tile=mkTile(tb);
+  const sbx=el('appSkinBox');sbx.innerHTML='';const stile=mkTile(sbx);
   const leaveSkin=()=>{if(!activeTheme().skin)return;const from=skinOf(activeTheme());SET.theme='sepia';SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);};
-  tile('auto','Авто',!pc&&S.appTheme==='auto',b=>{b.innerHTML=rqIcon('sun-moon',18);},()=>{leaveSkin();S.appTheme='auto';save();applyAppTheme();renderSettings();});
+  tile('auto','Авто',S.appTheme==='auto',b=>{b.innerHTML=rqIcon('sun-moon',18);},()=>{leaveSkin();S.appTheme='auto';save();applyAppTheme();renderSettings();});
   Object.keys(APP_THEMES).forEach(k=>{
     const t=APP_THEMES[k];
-    tile(k,t.name,!pc&&S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
+    tile(k,t.name,S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
   const sk=activeTheme().skin||'';
   const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=key;SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
-  tile('pencil',THEMES.pencil.name,sk==='pencil',b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},pickSkin('pencil'));
-  /* bought shop skins with app styling: a tile each (Продукт 14.10: купленные — в списке тем) */
+  stile('none','Без скина',!sk,b=>{b.innerHTML=rqIcon('circle-minus',18);},()=>{leaveSkin();renderSettings();});
+  stile('pencil',THEMES.pencil.name,sk==='pencil',b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},pickSkin('pencil'));
+  /* bought shop skins with app styling: a tile each (Продукт 14.10: купленные — в списке) */
   Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>{const t=SKIN_THEMES[k];
-    tile(k,t.name,sk===k,b=>{b.classList.add('appsw-skin');b.style.background=t.bg;b.style.color=t.txt;b.innerHTML=rqIcon(t.icon,18);},pickSkin(k));});
+    stile(k,t.name,sk===k,b=>{b.classList.add('appsw-skin');b.style.background=t.bg;b.style.color=t.txt;b.innerHTML=rqIcon(t.icon,18);},pickSkin(k));});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
-  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'';},sub:function(){return activeTheme().skin?'Скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
+  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',sub:function(){return activeTheme().skin?'Сейчас цвета задаёт скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
+  rqCollapse('appSkinBox','',function(){const t=document.querySelector('#appSkinBox .apptile.on small');return t?t.textContent:'';},'appSkinX',{icon:'palette',title:'Скин',sub:function(){return 'Свои и купленные';},dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'circle-minus';},dot:function(){const b=document.querySelector('#appSkinBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};

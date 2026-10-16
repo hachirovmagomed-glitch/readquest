@@ -291,7 +291,7 @@ function pdfSingleTap(x,y){
   const zoomed=P.z>1.01; /* contract 1б: zoomed PDF — no top corners, the centre does not leave focus */
   const inv=flipGet().invert?-1:1;
   if(z==='tl'){if(zoomed)return;toggleDayNight();return;}
-  if(z==='tr'){if(zoomed)return;addBookmark();return;}
+  if(z==='tr'){if(zoomed)return;cornerTR();return;}
   if(z==='l'){fsResume();pdfFlip(-inv);}
   else if(z==='r'){fsResume();pdfFlip(inv);}
   else if(!(zoomed&&isFocusOn()))toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen (+ focus) */
@@ -655,9 +655,10 @@ function showJumpBack(from){
 function hideJumpBack(){if(R)R.jumpFrom=null;const b=el('jumpBack');if(b&&!b.classList.contains('hidden')){b.classList.add('hidden');el('jumpMark').classList.add('hidden');}}
 function placeJumpBack(){
   if(!R||R.jumpFrom==null)return;
-  const pl=el('pgLine').getBoundingClientRect(),b=el('jumpBack');
+  const pl=el('pgLine').getBoundingClientRect(),b=el('jumpBack'),rd=el('reader'),bot=document.querySelector('#reader .rbot');
   b.style.left=(pl.left+parseFloat(getComputedStyle(el('pgLine')).paddingLeft||0)-6)+'px';
-  b.style.bottom=Math.max(0,innerHeight-pl.top)+'px';
+  /* 16.10: the bottom bars overlay the page-number line → while they are shown the pill sits above them */
+  b.style.bottom=(rd&&bot&&!rd.classList.contains('barsoff')?bot.offsetHeight:Math.max(0,innerHeight-pl.top))+'px';
   const s=el('pgSlider').getBoundingClientRect(),mx=Math.max(1,+el('pgSlider').max||1),th=16,m=el('jumpMark');
   m.style.left=(s.left+th/2+(s.width-th)*(R.jumpFrom/mx)-1)+'px';m.style.top=(s.top+s.height/2-6)+'px';
 }
@@ -687,7 +688,7 @@ function viewerTap(cx,cy){
   const z=tapZone(x,y);
   const inv=flipGet().invert?-1:1;
   if(z==='tl'){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra); фокус не трогает
-  if(z==='tr'){addBookmark();return;}      // угол: закладка; фокус не трогает
+  if(z==='tr'){cornerTR();return;}      // угол: закладка; фокус не трогает
   if(z==='l'){fsResume();goPage(R.page-1*inv,true);}
   else if(z==='r'){fsResume();goPage(R.page+1*inv,true);}
   else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen (and focus); next centre tap hides both

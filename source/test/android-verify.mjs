@@ -215,25 +215,27 @@ ok('10 consecutive tap flips advanced 10 pages', (await st()).page === startPage
   const edgeTap = async () => { await page.touchscreen.tap(viewerRect.left + (viewerRect.right - viewerRect.left) * 0.85, (viewerRect.top + viewerRect.bottom) / 2); };
   // probes WITHOUT a user gesture (puppeteer's page.evaluate runs with userGesture:true and would refresh activation)
   const ev = async (fn) => { const r = await cdp.send('Runtime.evaluate', { expression: `(${fn})()`, returnByValue: true, userGesture: false }); return r.result.value; };
-  const fsState = () => ev(() => ({ fs: !!document.fullscreenElement, barsOff: document.getElementById('reader').classList.contains('barsoff'), head: getComputedStyle(document.querySelector('.rhead')).display, foot: getComputedStyle(document.querySelector('.rfoot')).display,
-    pending: fsPending, page: R.page, num: document.getElementById('pgNum').textContent, footNum: document.getElementById('rPage').textContent, pgVis: getComputedStyle(document.getElementById('pgNum')).visibility, ua: navigator.userActivation ? navigator.userActivation.isActive : null, log: __rqFsLog.slice(-4).map(x => x.how + ':' + x.ok + (x.why ? ':' + x.why : '')) }));
+  /* 16.10 (Джессика, «как в ReadEra»): the bars lie OVER the text and slide in/out; fullscreen is KEPT while they are shown.
+     Hidden bars = visibility:hidden (after the slide-out), never display:none. */
+  const fsState = () => ev(() => { const v = document.getElementById('viewer').getBoundingClientRect(); return { fs: !!document.fullscreenElement, barsOff: document.getElementById('reader').classList.contains('barsoff'), head: getComputedStyle(document.querySelector('.rhead')).visibility, foot: getComputedStyle(document.querySelector('.rfoot')).visibility,
+    pending: fsPending, page: R.page, num: document.getElementById('pgNum').textContent, footNum: document.getElementById('rPage').textContent, pgVis: getComputedStyle(document.getElementById('pgNum')).visibility, ua: navigator.userActivation ? navigator.userActivation.isActive : null, log: __rqFsLog.slice(-4).map(x => x.how + ':' + x.ok + (x.why ? ':' + x.why : '')), vr: [v.top, v.bottom, v.left, v.right].map(Math.round).join(',') }; });
   const fs0 = await fsState();
-  ok('(fs) reader open on phone → reading state: bars hidden + fullscreen', fs0.fs && fs0.barsOff && fs0.head === 'none' && fs0.foot === 'none', fs0);
-  // (а) ONE centre tap: bars + leave fullscreen, same handler; check immediately (no wait for timers)
-  await page.evaluate(() => { window.__tapFrame = null; const r = document.getElementById('reader'); const mo = new MutationObserver(() => { if (!r.classList.contains('barsoff') && window.__tapFrame === null) window.__tapFrame = { fsAtReveal: !!document.fullscreenElement, exitCalled: true }; }); mo.observe(r, { attributes: true }); window.__tapMo = mo; });
+  ok('(fs) reader open on phone → reading state: bars hidden + fullscreen', fs0.fs && fs0.barsOff && fs0.head === 'hidden' && fs0.foot === 'hidden', fs0);
+  // (а) ONE centre tap: bars slide in over the text, fullscreen stays, the text area does not move
   await ctap(60);
   const fsA = await fsState();
-  const tapFrame = await ev(() => { window.__tapMo.disconnect(); return window.__tapFrame; });
-  ok('(а) ONE centre tap in fullscreen → our bars visible at once + document.fullscreenElement == null', !fsA.barsOff && fsA.head !== 'none' && fsA.foot !== 'none' && !fsA.fs, { fsA, tapFrame });
+  const slide = await ev(() => { const h = document.querySelector('#reader .rhead'), b = document.querySelector('#reader .rbot'); return { ht: getComputedStyle(h).transitionProperty, bt: getComputedStyle(b).transitionProperty, pos: getComputedStyle(h).position + '/' + getComputedStyle(b).position }; });
+  ok('(а) ONE centre tap in fullscreen → our bars visible at once, fullscreen kept, text area unchanged, bars slide (transition on transform/opacity)', !fsA.barsOff && fsA.head === 'visible' && fsA.foot === 'visible' && fsA.fs && fsA.vr === fs0.vr && /transform/.test(slide.ht) && /opacity/.test(slide.bt) && slide.pos === 'absolute/absolute', { fsA, fs0vr: fs0.vr, slide });
   ok('(з) bars shown: footer has the number, corner number hidden (no duplicate / overlap)', fsA.pgVis === 'hidden' && fsA.footNum === fsA.num, { footNum: fsA.footNum, num: fsA.num, pgVis: fsA.pgVis });
-  // (б) after 3.2 s: bars hidden again; fullscreen back from the TIMER (tap activation still alive, ≤5 s)?
+  // (б) after 3.2 s: bars slid out again, fullscreen still on, text area unchanged
   await sleep(3500);
   const fsB = await fsState();
   results.fullscreen = { timer: fsB };
-  ok('(б) 3.2 s after the tap: bars hidden; fullscreen re-entered by the timer (transient activation ≤5 s)', fsB.barsOff && fsB.foot === 'none' && fsB.fs && fsB.log.some(x => x.startsWith('timer:true')), fsB);
-  ok('(з) bars auto-hidden again → corner number visible', fsB.pgVis === 'visible' && fsB.foot === 'none');
-  // (б′) EMULATED refusal: activation expired before the timer → fullscreen comes back on the next reading gesture
-  await ctap(60);
+  ok('(б) 3.2 s after the tap: bars hidden, fullscreen still on, text area unchanged', fsB.barsOff && fsB.foot === 'hidden' && fsB.fs && fsB.vr === fs0.vr, fsB);
+  ok('(з) bars auto-hidden again → corner number visible', fsB.pgVis === 'visible' && fsB.foot === 'hidden');
+  // (б′) the SYSTEM leaves fullscreen (Android back) → bars shown; EMULATED refusal at the timer → next reading gesture re-enters fullscreen
+  await ev(() => document.exitFullscreen()); await sleep(500);
+  const fsX = await fsState();
   await ev(() => { window.__uaPatch = Object.getOwnPropertyDescriptor(UserActivation.prototype, 'isActive'); Object.defineProperty(UserActivation.prototype, 'isActive', { configurable: true, get: () => false }); });
   await sleep(3500);
   const fsC = await fsState();
@@ -241,12 +243,12 @@ ok('10 consecutive tap flips advanced 10 pages', (await st()).page === startPage
   const pgBeforeEdge = fsC.page;
   await edgeTap(); await sleep(300);
   const fsD = await fsState();
-  results.fullscreen.fallback = { afterTimer: fsC, afterEdgeTap: fsD };
-  ok('(б′) [emulated: userActivation.isActive=false at the timer] bars hide, fullscreen pending → next edge tap re-enters fullscreen AND still flips 1 page',
-    fsC.barsOff && !fsC.fs && fsC.pending && fsC.log.some(x => x.startsWith('timer:false:no-activation')) && fsD.fs && !fsD.pending && fsD.page === pgBeforeEdge + 1 && fsD.barsOff && fsD.log.some(x => x.startsWith('gesture:true')), { fsC, fsD });
-  // centre tap with bars open hides them (and re-enters fullscreen from that tap)
-  await ctap(60); const fsE1 = await fsState(); await ctap(300); const fsE2 = await fsState();
-  ok('centre tap while bars are open → bars hidden + fullscreen back', !fsE1.barsOff && !fsE1.fs && fsE2.barsOff && fsE2.fs && fsE2.foot === 'none', { open: fsE1, closed: fsE2 });
+  results.fullscreen.fallback = { sysExit: fsX, afterTimer: fsC, afterEdgeTap: fsD };
+  ok('(б′) system fullscreen exit → bars shown; [emulated: userActivation.isActive=false at the timer] bars hide, fullscreen pending → next edge tap re-enters fullscreen AND still flips 1 page',
+    !fsX.fs && !fsX.barsOff && fsC.barsOff && !fsC.fs && fsC.pending && fsC.log.some(x => x.startsWith('timer:false:no-activation')) && fsD.fs && !fsD.pending && fsD.page === pgBeforeEdge + 1 && fsD.barsOff && fsD.log.some(x => x.startsWith('gesture:true')), { fsX, fsC, fsD });
+  // centre tap with bars open hides them; fullscreen on throughout
+  await ctap(60); const fsE1 = await fsState(); await ctap(400); const fsE2 = await fsState();
+  ok('centre tap while bars are open → bars hidden, fullscreen on throughout', !fsE1.barsOff && fsE1.fs && fsE2.barsOff && fsE2.fs && fsE2.foot === 'hidden', { open: fsE1, closed: fsE2 });
   // (в) enter/exit fullscreen with the bars (real taps) + EMULATED viewport resize (system bars) — frames + position
   await page.evaluate(() => { window.__anc0 = captureAnchor(); window.__anc0txt = window.__anc0 ? window.__anc0.node.nodeValue.slice(window.__anc0.offset, window.__anc0.offset + 24) : null; });
   const posChk = () => page.evaluate(() => ({ anchorPage: pageOfAnchor(window.__anc0), page: R.page, num: document.getElementById('pgNum').textContent, foot: document.getElementById('rPage').textContent, count: R.pageCount, txt: window.__anc0txt }));

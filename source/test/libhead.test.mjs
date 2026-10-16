@@ -30,6 +30,12 @@ const pl = await p.evaluate(async () => { window.__w.length = 0; const out = [];
   S.gold = g0; renderLibrary(); return out; });
 ok('balance: Math.floor(S.gold) + plural (1 монета / 3 монеты / 5 монет / 21 монета / 104 монеты / 0 монет), equals the drawer', JSON.stringify(pl.map(x => x[0])) === JSON.stringify(['1 монета', '3 монеты', '5 монет', '21 монета', '104 монеты', '0 монет']) && pl.every(x => x[0] === x[1]), pl);
 ok('balance: rendering header writes nothing', await W(p) === 0, await W(p));
+// 2b (16.10, Actions run 38956430871: «104» bare on the runner's fonts): a wider title font that squeezes «Библиотека» but leaves the header
+// inside the screen must not drop the word — only a real header overflow does
+const sq = await p.evaluate(async () => { const st = document.createElement('style'); st.textContent = '#libTitle{font-size:40px!important;letter-spacing:.05em}'; document.head.appendChild(st);
+  S.gold = 104.5; renderLibrary(); await new Promise(r => setTimeout(r, 50)); const t = el('libTitle'), h = el('libHead');
+  const out = { chip: el('goldChip').textContent.trim(), squeezed: t.scrollWidth > t.clientWidth + 1, overflow: h.scrollWidth > h.clientWidth + 1 }; st.remove(); renderLibrary(); return out; });
+ok('balance: title squeezed by its font but header fits → still «104 монеты»', sq.squeezed && !sq.overflow && sq.chip === '104 монеты', sq);
 // 3 shop purchase + daily payout → header and drawer identical
 const pd = await p.evaluate(async () => { window.__w.length = 0; const out = {};
   /* audit 15.10: skins without styling are «Скоро» → mark all ready to exercise a real purchase */

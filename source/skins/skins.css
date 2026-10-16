@@ -136,7 +136,7 @@ html[data-skin="babochkovyi"] #libHead{position:relative;margin:-20px -18px 18px
   -webkit-mask:linear-gradient(#000,#000) top/100% calc(100% - 8px) no-repeat,var(--bb-wave) bottom left/22px 9px repeat-x;mask:linear-gradient(#000,#000) top/100% calc(100% - 8px) no-repeat,var(--bb-wave) bottom left/22px 9px repeat-x;
   animation:bb-shimmer var(--bb-shimmer-dur) ease-in-out infinite}
 html[data-skin="babochkovyi"] #libHead :is(h1,.libgold,button,.iconbtn44){color:var(--rq-text)}
-html[data-skin="babochkovyi"] #libTitle{font-size:30px;line-height:1.1}
+html[data-skin="babochkovyi"] #libTitle{font-size:30px;line-height:1.1;flex-shrink:0} /* never squeezed: wide Poiret + coin push the header to overflow instead, then the balance shows the number alone */
 /* night: the wing becomes the meadow sky — the moon rising low on the right, sparse stars above and below the row, moths instead of butterflies; no scales, no shimmer */
 html[data-skin="babochkovyi"][data-theme="night"] #libHead{background:var(--bb-sky-n) 100% 0/390px 108px no-repeat,radial-gradient(140% 170% at 92% 0%,#2a3156 0,#161a33 50%,#10121f 100%);animation:none}
 /* balance = «пыльца»: amber coin with wings before the number */

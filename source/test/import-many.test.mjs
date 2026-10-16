@@ -19,6 +19,11 @@ const F = {};
 const put = (name, body) => { const p = join(dir, name); writeFileSync(p, body); F[name] = p; return p; };
 put('Альфа.txt', txt('Альфа')); put('Бета.txt', txt('Бета')); put('Гамма.fb2', fb2('Гамма', 'Иван'));
 put('Битая.epub', 'это не zip'); put('Заметки.docx', 'не книга');
+/* bug 16.10 (Джессика): an .mp3 picked through «Все файлы» landed on the shelf as a text book; binary bytes under .txt likewise */
+const mp3 = Buffer.concat([Buffer.from('ID3\x04\x00\x00\x00\x00\x00\x00', 'binary'), Buffer.from(Array.from({ length: 6000 }, (_, i) => (i * 37 + 11) % 256))]);
+put('Skillet_-_The_Resistance.mp3', mp3); put('Песня.txt', mp3);
+const cp1251 = (t) => Buffer.from([...t].map(ch => { const c = ch.charCodeAt(0); return c >= 0x410 && c <= 0x44F ? c - 0x410 + 0xC0 : c === 0x401 ? 0xA8 : c === 0x451 ? 0xB8 : c; }));
+put('Старая.txt', cp1251(txt('Старая книга про лес и реку')));
 mkdirSync(join(dir, 'Книги'), { recursive: true });
 put('Книги/Дельта.txt', txt('Дельта')); put('Книги/Эпсилон.txt', txt('Эпсилон')); put('Книги/Заметки.docx', 'не книга'); put('Книги/Альфа.txt', txt('Альфа'));
 
@@ -65,6 +70,18 @@ await inp.uploadFile(F['Альфа.txt'], F['Бета.txt']); await idle();
 ok('same files again: skipped, shelf unchanged', (await books()).length === bs.length, (await books()).length);
 ts = await toast();
 ok('toast says they are already on the shelf', !alerts.length && /Уже были в библиотеке: 2/.test(ts || ''), { alerts, ts });
+
+// --- 1b. not a book (bug 16.10): a single .mp3, and audio bytes renamed to .txt
+{ const n = (await books()).length;
+  await inp.uploadFile(F['Skillet_-_The_Resistance.mp3']); await idle(); const t1 = await toast(); const a1 = alerts.splice(0);
+  ok('single .mp3: no book on the shelf, a toast says it is not a book', (await books()).length === n && /нет книг/.test(t1 || '') && !a1.length, { t1, a1 });
+  await inp.uploadFile(F['Песня.txt']); await idle(); const a2 = alerts.splice(0);
+  ok('audio bytes named .txt: no book, the alert says it is not text', (await books()).length === n && a2.length === 1 && /не текст/.test(a2[0]), a2);
+  await inp.uploadFile(F['Skillet_-_The_Resistance.mp3'], F['Песня.txt'], F['Альфа.txt']); await idle(); const t3 = await toast(); alerts.splice(0);
+  ok('batch with music: only real books count, music never lands', (await books()).length === n && !(await books()).some(b => /Skillet|Песня/.test(b.t)), t3); }
+  await inp.uploadFile(F['Старая.txt']); await idle(); alerts.splice(0);
+  const old = await p.evaluate(() => { const b = S.userBooks.find(x => x.fname === 'Старая.txt'); return b && b.text.slice(0, 40); });
+  ok('old Russian .txt in cp1251 is still a book, read correctly', !!old && /Глава первая\. Старая книга/.test(old), old);
 
 // --- 2. folder
 await p.evaluate(() => show('library')); await sleep(200);

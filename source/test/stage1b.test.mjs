@@ -282,6 +282,8 @@ if (want('banner')) {
     const w = document.createTreeWalker(document.getElementById('content'), NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.left >= v.left - 1 && q.right <= v.right + 1 && q.height > 4 && (!first || q.top < first.top)) first = q; }
     return { bannerBottom: bn.bottom, firstTop: first && first.top }; });
   ok('banner: in the reader the banner does not cover the first text line (stripe ≤ 3 px above it)', cov.bannerBottom <= 3 + 0.5 && cov.firstTop != null && cov.bannerBottom <= cov.firstTop, cov);
+  const top0 = await p.evaluate(() => { const b = document.getElementById('rqTestBanner'), was = b.style.top; b.style.top = '30px'; const t = b.getBoundingClientRect().top; b.style.top = was; return t; });
+  ok('banner: in the reader the stripe stays on the top edge even with a safe-area inset (fullscreen focus on a phone with a cutout)', top0 === 0, top0);
   const strip = [];
   for (const th of ['sepia', 'dark']) { await p.evaluate((th) => { SET.theme = th; applySet(); }, th); await sleep(150);
     strip.push(await p.evaluate((th) => { const b = document.getElementById('rqTestBanner'); return { th, h: b.getBoundingClientRect().height, bg: getComputedStyle(b).backgroundColor, vis: getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' }; }, th)); }

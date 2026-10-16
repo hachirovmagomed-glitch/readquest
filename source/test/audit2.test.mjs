@@ -5,6 +5,11 @@
 // motion: prefers-reduced-motion OR «Анимации» off (S.ux.anim === false) → no confetti, no book fly-in / opening animation, no CSS animations;
 //         default → confetti still runs (sanity).
 // s360: «Общие настройки» at 360 and 390: no word of a row label is split across lines; the last VISIBLE row of a card has no divider.
+// confetti (part 2): in every theme the confetti are Lucide icons (svg), no emoji; colour = theme tokens (--accent / --accent2), «Карандашный» as before.
+// refund (part 2): cancelling a real-life reward writes game.rewardRefunds[] {id, purchaseId, title, price, at}; it survives export → import;
+//         an old backup without the field imports with []; junk is dropped; a passive window changes nothing.
+// testgold (part 2): «+1000 монет для теста» logs {type:'test_gold', amount:1000} in events.
+// metrics (part 2): metrics.py — reward buys = purchases − refunds; skin buys (purchase events) separate; test_gold reported.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/ node audit2.test.mjs   [RQ_ONLY=gate,static,…]
 import puppeteer from 'puppeteer-core';
 import { readFileSync, readdirSync } from 'fs';
@@ -145,6 +150,102 @@ if (want('motion') || want('s360')) {
     await ctx.close();
   }
   await browser.close();
+}
+
+if (want('confetti') || want('refund') || want('testgold')) {
+  const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  async function open(url) {
+    const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+    await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+    await p.goto(url || BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(600);
+    return { ctx, p, errs };
+  }
+  if (want('confetti')) {
+    const { ctx, p, errs } = await open();
+    const r = await p.evaluate(() => {
+      const h = document.documentElement, out = {};
+      const EMO = /\p{Extended_Pictographic}/u;
+      for (const sk of ['', 'pencil', 'future-skin']) {
+        if (sk) h.dataset.skin = sk; else delete h.dataset.skin;
+        document.querySelectorAll('.confetti').forEach(n => n.remove());
+        confetti(); confettiReward(); confettiSummary();
+        const ns = [...document.querySelectorAll('.confetti')];
+        const css = getComputedStyle(h), tok = [css.getPropertyValue('--accent'), css.getPropertyValue('--accent2')].map(v => { const d = document.createElement('i'); d.style.color = v.trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
+        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use')).length,
+          offTok: sk === 'pencil' ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length };
+        ns.forEach(n => n.remove());
+      }
+      delete h.dataset.skin; return out;
+    });
+    for (const k of Object.keys(r)) ok('confetti ' + k + ': Lucide icons only, no emoji' + (k === 'pencil' ? '' : ', colour from theme tokens'), r[k].n > 0 && r[k].emoji === 0 && r[k].svg === r[k].n && r[k].offTok === 0 && !errs.length, r[k]);
+    await ctx.close();
+  }
+  if (want('refund')) {
+    const { ctx, p, errs } = await open();
+    const r = await p.evaluate(async () => {
+      S.rewards = [{ name: 'Кино', cost: 50, qty: null, bought: 0 }]; S.gold = 200; S.rewardPurchases = []; save();
+      buyReward(0); await new Promise(r => setTimeout(r, 5)); buyReward(0); undoRewardClaim(0);
+      const live = { cost: S.rewards[0].cost, gold: S.gold, bought: S.rewards[0].bought, refunds: JSON.parse(JSON.stringify(S.rewardRefunds || null)), buys: S.rewardPurchases.map(x => x.id) };
+      const exp = await __rq.exportBackup(null, SET, { includeTextBodies: false });
+      const inExp = (exp.game.rewardRefunds || []).length;
+      await __rq.importBackup(JSON.parse(JSON.stringify(exp)));
+      const back = __rq.loadEnvelope().game.rewardRefunds;
+      const old = JSON.parse(JSON.stringify(exp)); delete old.game.rewardRefunds; await __rq.importBackup(old);
+      const fromOld = __rq.loadEnvelope().game.rewardRefunds;
+      const junk = JSON.parse(JSON.stringify(exp)); junk.game.rewardRefunds = [{ title: 'x', price: 'много', at: 'вчера' }, 5, { id: 'rr_1', purchaseId: null, title: 'Кино', price: 50, at: '2026-10-16T10:00:00.000Z' }];
+      await __rq.importBackup(junk); const fromJunk = __rq.loadEnvelope().game.rewardRefunds;
+      const notArr = JSON.parse(JSON.stringify(exp)); notArr.game.rewardRefunds = 'да'; await __rq.importBackup(notArr); const fromStr = __rq.loadEnvelope().game.rewardRefunds;
+      return { live, inExp, back, fromOld, fromJunk, fromStr };
+    });
+    const rf = r.live.refunds;
+    ok('refund: cancelling a reward returns coins and writes one rewardRefunds record pointing at the last purchase', r.live.cost > 0 && r.live.gold === 200 - r.live.cost && r.live.bought === 1 && Array.isArray(rf) && rf.length === 1 &&
+      rf[0].purchaseId === r.live.buys[1] && rf[0].price === r.live.cost && rf[0].title === 'Кино' && /^rr_/.test(rf[0].id) && !isNaN(Date.parse(rf[0].at)) && r.live.buys.length === 2 && !errs.length, { live: r.live, errs });
+    ok('refund: the record survives export → import', r.inExp === 1 && Array.isArray(r.back) && r.back.length === 1 && r.back[0].purchaseId === r.live.buys[1], { inExp: r.inExp, back: r.back });
+    ok('refund: an old backup without rewardRefunds imports with [], junk is dropped, a non-array becomes []', Array.isArray(r.fromOld) && r.fromOld.length === 0 &&
+      Array.isArray(r.fromJunk) && r.fromJunk.length === 1 && r.fromJunk[0].price === 50 && Array.isArray(r.fromStr) && r.fromStr.length === 0, { fromOld: r.fromOld, fromJunk: r.fromJunk, fromStr: r.fromStr });
+    const q = await p.evaluate(() => {
+      S.rewards = [{ name: 'Торт', cost: 30, qty: null, bought: 1 }]; S.gold = 10; S.rewardRefunds = []; save();
+      window.__rqWriter.mayWrite = () => false; undoRewardClaim(0);
+      return { gold: S.gold, bought: S.rewards[0].bought, refunds: (S.rewardRefunds || []).length };
+    });
+    ok('refund: a passive window changes nothing (coins, counter, record)', q.gold === 10 && q.bought === 1 && q.refunds === 0, q);
+    await ctx.close();
+  }
+  if (want('testgold')) {
+    /* the +1000 button lives only in the test build (rqt): run-all serves it at <BASE>test/ */
+    const TBASE = /\/test\/?$/.test(BASE) ? BASE : BASE.replace(/\/?$/, '/') + 'test/';
+    const RBASE = TBASE.replace(/test\/?$/, '');
+    const probe = async () => { const g0 = S.gold || 0; shopTestGold(); await new Promise(r => setTimeout(r, 400));
+      return { ns: window.RQ_NS, add: (S.gold || 0) - g0, ev: (await __rq.listReadingEvents({})).filter(e => e.type === 'test_gold') }; };
+    { const { ctx, p, errs } = await open(TBASE); const r = await p.evaluate(probe);
+      ok('testgold: «+1000 монет для теста» logs one test_gold event with amount 1000 (rqt)', r.ns === 'rqt' && r.add === 1000 && r.ev.length === 1 && r.ev[0].amount === 1000 && !errs.length, { r, errs }); await ctx.close(); }
+    { const { ctx, p, errs } = await open(RBASE); const r = await p.evaluate(probe);
+      ok('testgold: main build (rq) adds no coins and logs no test_gold', r.ns === 'rq' && r.add === 0 && r.ev.length === 0 && !errs.length, { r, errs }); await ctx.close(); }
+  }
+  await browser.close();
+}
+
+if (want('metrics')) {
+  const { mkdtempSync, writeFileSync } = await import('fs'); const { tmpdir } = await import('os');
+  const dir = mkdtempSync(tmpdir() + '/rq-metrics-');
+  const at = '2026-10-13T10:00:00.000Z';
+  const sess = [{ date: '2026-10-13', minutes: 12, pageTurns: 5 }];
+  const rq = { schemaVersion: 1, ns: 'rq', build: 'x', sessions: sess,
+    game: { rewardPurchases: [{ id: 'rp_1', title: 'Кино', price: 50, at }, { id: 'rp_2', title: 'Торт', price: 30, at }, { id: 'rp_3', title: 'Кино', price: 50, at }],
+      rewardRefunds: [{ id: 'rr_1', purchaseId: 'rp_3', title: 'Кино', price: 50, at }, { id: 'rr_2', purchaseId: null, title: 'Торт', price: 30, at }] },
+    events: [{ type: 'purchase', id: 'skin-pencil', price: 300 }, { type: 'purchase', id: 'skin-x', price: 300 }, { type: 'test_gold', amount: 1000 }] };
+  const rqAll = { schemaVersion: 1, ns: 'rq', build: 'x', sessions: sess, game: { rewardPurchases: [{ id: 'rp_9', title: 'Кино', price: 50, at }], rewardRefunds: [{ id: 'rr_9', purchaseId: 'rp_9', title: 'Кино', price: 50, at }] }, events: [] };
+  const rqt = { schemaVersion: 1, ns: 'rqt', build: 'x', sessions: sess, game: {}, events: [{ type: 'test_gold', amount: 1000 }, { type: 'test_gold', amount: 1000 }] };
+  writeFileSync(dir + '/a.json', JSON.stringify(rq)); writeFileSync(dir + '/b.json', JSON.stringify(rqAll)); writeFileSync(dir + '/c.json', JSON.stringify(rqt));
+  const { spawnSync } = await import('child_process');
+  const run = spawnSync('python3', [new URL('metrics.py', import.meta.url).pathname, '--start', '2026-10-12', dir + '/a.json', dir + '/b.json', dir + '/c.json'], { encoding: 'utf8' });
+  const out = run.stdout || '', err = (run.stderr || '') + (run.error ? String(run.error) : '');
+  const lines = out.split('\n'); const head = (lines.find(l => l.startsWith('file |')) || '').split(' | ').map(x => x.trim());
+  const row = (f) => { const l = lines.find(l => l.startsWith(dir + '/' + f + ' ')); return l ? Object.fromEntries(l.split(' | ').map((v, i) => [head[i], v.trim()])) : null; };
+  const a = row('a.json'), b = row('b.json');
+  ok('metrics: reward buys = purchases − refunds (by purchaseId, else by title)', a && a['reward buys'] === '1' && b && b['reward buys'] === '0', { a, b, out: out.slice(0, 400), err: err.slice(0, 300) });
+  ok('metrics: skin buys (purchase events) counted separately', a && a['skin buys'] === '2' && b && b['skin buys'] === '0' && /Bought a skin: 50%/.test(out), { a, b });
+  ok('metrics: test coins reported — rqt skip names them, test_gold in an rq export warns', /skipped .*c\.json.*test coins: 2000/.test(err) && /a\.json.*test_gold/.test(err), err.slice(0, 400));
 }
 
 const pass = checks.filter(Boolean).length;

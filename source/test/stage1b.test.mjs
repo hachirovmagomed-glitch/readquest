@@ -306,8 +306,9 @@ if (want('jumpback')) {
   const t0 = await p.evaluate(() => ({ turned: R.turned, snap: __tracker.snapshot() })), n0 = (await evs()).length;
   await drag(75); await sleep(400);
   const pl = await p.evaluate(() => { const b = document.getElementById('jumpBack'), r = b.getBoundingClientRect(), pg = document.getElementById('pgLine').getBoundingClientRect(), m = document.getElementById('jumpMark'), mr = m.getBoundingClientRect(), s = document.getElementById('pgSlider').getBoundingClientRect();
-    return { vis: getComputedStyle(b).display !== 'none', txt: b.textContent.trim(), h: r.height, w: r.width, left: r.left, bottom: r.bottom, pgTop: pg.top, vw: innerWidth, mark: getComputedStyle(m).display !== 'none', markX: mr.left, sl: s.left, sw: s.width, emoji: /\p{Extended_Pictographic}/u.test(b.textContent), svg: !!b.querySelector('svg') }; });
-  ok('jumpback: after slider 1→76 plaque «на стр. 1» left, just above the page-number line, hit area ≥44 px, Lucide chevron, no emoji', pl.vis && pl.txt === 'на стр. 1' && pl.h >= 44 && pl.left < pl.vw * 0.3 && Math.abs(pl.bottom - pl.pgTop) <= 1 && pl.svg && !pl.emoji, pl);
+    return { vis: getComputedStyle(b).display !== 'none', txt: b.textContent.trim(), h: r.height, w: r.width, left: r.left, bottom: r.bottom, pgTop: pg.top, botTop: document.querySelector('#reader .rbot').getBoundingClientRect().top, vw: innerWidth, mark: getComputedStyle(m).display !== 'none', markX: mr.left, sl: s.left, sw: s.width, emoji: /\p{Extended_Pictographic}/u.test(b.textContent), svg: !!b.querySelector('svg') }; });
+  /* 16.10: the bottom bars overlay the page-number line → while they are shown the plaque sits just above them */
+  ok('jumpback: after slider 1→76 plaque «на стр. 1» left, just above the bottom bars (shown), hit area ≥44 px, Lucide chevron, no emoji', pl.vis && pl.txt === 'на стр. 1' && pl.h >= 44 && pl.left < pl.vw * 0.3 && Math.abs(pl.bottom - pl.botTop) <= 1 && pl.svg && !pl.emoji, pl);
   const sl = await p.evaluate(() => { const s = document.getElementById('pgSlider').getBoundingClientRect(), f = document.querySelector('#reader .rfoot').getBoundingClientRect(); return { h: s.height, footH: f.height, inFoot: s.top >= f.top - 14.5 && s.bottom <= f.bottom + 14.5 }; });
   ok('jumpback(#6): jump slider hit area 44 px high, footer height not grown', sl.h >= 44 && sl.footH < 50 && sl.inFoot, sl);
   ok('jumpback: old-page marker on the slider at page 1 (left end)', pl.mark && pl.markX >= pl.sl && pl.markX < pl.sl + 16, pl);
@@ -525,9 +526,12 @@ if (want('relay')) for (const TH of ['sepia', 'pencil']) {
     for (let k = 0; k < 5; k++) { goPage(R.page + 1, true); await W(120); }
     const ev0 = (await pv()).length, s0 = __tracker.snapshot(), max0 = R.maxRatio, saved0 = (S.progress[id] || {}).ratio, n0 = R.pageCount;
     const before = await store();
-    /* 10 idle minutes on ONE page, the panels toggled 4 times (synchronous relayouts, no real-time wait → no periodic flush in between) */
+    /* 10 idle minutes on ONE page, the panels toggled 4 times (synchronous relayouts, no real-time wait → no periodic flush in between).
+       16.10: the panels lie over the text and no longer re-paginate — the re-pagination comes with them from the system bars
+       (fullscreen left / back: the reader gets shorter by 48 px), emulated here, then relayout() as the resize handler does */
     const steps = [];
     for (let k = 0; k < 4; k++) { window.__rqTimeOffset += 150000; if (k % 2 === 0) revealChrome(); else concealChrome('tap');
+      document.getElementById('reader').style.bottom = k % 2 === 0 ? '48px' : ''; relayout();
       steps.push({ N: R.pageCount, page: R.page, trk: __tracker.snapshot().page }); }
     window.__rqTimeOffset += 30000; await W(50);
     const after = await store();
@@ -546,7 +550,7 @@ if (want('relay')) for (const TH of ['sepia', 'pencil']) {
     const j = blob ? JSON.parse(await blob.text()) : null; out.schemaVersion = j && j.schemaVersion;
     return out; }, q.__bid);
   const tag = 'relay[' + TH + ']: ';
-  ok(tag + 'panels on/off in a text book re-paginate (N changes) but write NO page_visible event', r.steps.some(x => x.N !== r.n0) && r.newEvents === 0, r);
+  ok(tag + 'panels on/off + system bars in a text book re-paginate (N changes) but write NO page_visible event', r.steps.some(x => x.N !== r.n0) && r.newEvents === 0, r);
   ok(tag + 'relayout: turns / pageTurns / maxRatio / saved ratio unchanged, tracker page = shown page', r.turns[0] === r.turns[1] && r.pageTurns[0] === r.pageTurns[1] && r.max[0] === r.max[1] && r.saved[0] === r.saved[1] && r.steps.every(x => x.trk === x.page), r);
   ok(tag + '(a) 4 toggles write nothing: NS_v1, session draft, sessions[] and event journal byte-identical before/after', r.storeSame, { len: r.storeLen, diff: r.storeDiff });
   ok(tag + '10 idle minutes on one page with 4 panel toggles → counted ≤ the 3-min page cap (cap not reset by a relayout)', r.gainedMin <= r.capMin + 0.05, r);

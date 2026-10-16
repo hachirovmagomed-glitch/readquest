@@ -549,7 +549,8 @@ if (!OLD) {
   ok('(г) at width an edge tap flips immediately (no double-tap wait)', tEdge < 200, { ms: tEdge });
   const f0 = await st();
   await tapAt(0.5, 0.5); await sleep(320); const f1 = await st();
-  ok('(г) ONE centre tap → bars shown and fullscreen left (first time)', f0.barsOff && f0.fs && !f1.barsOff && !f1.fs, { before: { barsOff: f0.barsOff, fs: f0.fs }, after: { barsOff: f1.barsOff, fs: f1.fs } });
+  /* 16.10 (Джессика, «как в ReadEra»): the bars slide in over the page, fullscreen stays */
+  ok('(г) ONE centre tap → bars shown, fullscreen kept (first time)', f0.barsOff && f0.fs && !f1.barsOff && f1.fs, { before: { barsOff: f0.barsOff, fs: f0.fs }, after: { barsOff: f1.barsOff, fs: f1.fs } });
   await sleep(3600); const f2 = await st();
   ok('(г) bars hide again after 3.2 s and fullscreen comes back (as in 1306)', f2.barsOff && f2.fs, { barsOff: f2.barsOff, fs: f2.fs });
   const tr = await page.evaluate(() => getComputedStyle(document.getElementById('viewer')).touchAction + '|' + getComputedStyle(document.getElementById('pdfWrap')).touchAction);

@@ -171,6 +171,58 @@ if (want('tts')) {
   await ctx.close();
 }
 
+/* ttslook (Джессика 16.10, видео): the «on» state must not repaint the button. Old: solid --accent disc, white icon; in «Эллада»
+   the disc and the icon were the same blue → an empty circle. Now: same icon colour as «off», only a faint backdrop; icon ≥ 3:1 on the header. */
+if (want('ttslook')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  await p.evaluate(() => { S.gold = 900; save(); buy('skin-ellada'); window.speechSynthesis.speak = function () {}; });
+  const keys = await p.evaluate(() => Object.keys(THEMES).concat(['ellada', 'ellada-night']));
+  for (const k of keys) {
+    const r = await p.evaluate(async (k) => {
+      if (k.startsWith('ellada')) wear('skin-ellada'); else if (document.documentElement.dataset.skin === 'ellada') wear(null);
+      SET.theme = k; SET.cBg = null; SET.cTxt = null; saveSet(); applySet(); revealChrome(); await new Promise(r => setTimeout(r, 150));
+      const b = document.getElementById('btnTts'), head = document.querySelector('#reader .rhead');
+      const rgba = (c) => { const m = String(c).match(/[\d.]+/g) || []; const srgb = /color\(srgb/.test(c); const v = m.map(Number); const [r, g, bl] = srgb ? v.slice(0, 3).map(x => x * 255) : v.slice(0, 3); return { r, g, b: bl, a: v.length > 3 ? v[3] : 1 }; };
+      const lum = (c) => { const f = (x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+      const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+      const icOff = getComputedStyle(b.querySelector('.ic')).color;
+      jumpTo(0); b.click(); /* from the start: a pass near the end would finish the book and stop at once */ await new Promise(r => setTimeout(r, 150));
+      const icOn = getComputedStyle(b.querySelector('.ic')).color, bg = rgba(getComputedStyle(b).backgroundColor), hb = rgba(getComputedStyle(head).backgroundColor);
+      const mix = { r: bg.r * bg.a + hb.r * (1 - bg.a), g: bg.g * bg.a + hb.g * (1 - bg.a), b: bg.b * bg.a + hb.b * (1 - bg.a) };
+      const out = { k, skin: document.documentElement.dataset.skin || '', icOff, icOn, bgA: bg.a, cr: +cr(rgba(icOn), mix).toFixed(2), on: b.classList.contains('on') };
+      b.click(); await new Promise(r => setTimeout(r, 100));
+      return out;
+    }, k);
+    ok('ttslook ' + k + ': listening keeps the icon colour, faint backdrop (alpha ≤ 0.25), icon ≥ 3:1', r.on && r.icOn === r.icOff && r.bgA <= 0.25 && r.cr >= 3, r);
+  }
+  await ctx.close();
+}
+
+/* ttscorner (Джессика 16.10, видео): while listening the bars hide after a few seconds; a tap where «Слушать» was (top-right corner)
+   must bring the bars back so the button can be pressed, not drop a bookmark. Not listening → the corner still bookmarks. */
+if (want('ttscorner')) {
+  const { ctx, p } = await fresh();
+  const bk = await openLong(p);
+  const r = await p.evaluate(async (id) => {
+    window.speechSynthesis.speak = function () {};
+    const v = document.getElementById('viewer'), rd = document.getElementById('reader'), vr = v.getBoundingClientRect();
+    const tr = () => viewerTap(vr.left + vr.width * 0.9, vr.top + vr.height * 0.05);
+    const n = () => (S.marks[id] || []).length;
+    /* headless refuses fullscreen and shows the bars again, so the «hidden bars» state is set by hand after that settles */
+    const hide = async () => { await new Promise(r => setTimeout(r, 100)); rd.classList.add('barsoff'); };
+    revealChrome(); document.getElementById('btnTts').click(); await hide();
+    const m0 = n(); tr(); await new Promise(r => setTimeout(r, 100));
+    const listen = { on: ttsOn, marks: n() - m0, bars: !rd.classList.contains('barsoff') };
+    document.getElementById('btnTts').click(); await hide();
+    const m1 = n(); tr(); await new Promise(r => setTimeout(r, 100));
+    return { listen, idle: { marks: n() - m1 } };
+  }, bk.id);
+  ok('ttscorner: listening → top-right tap shows the bars, no bookmark', r.listen.marks === 0 && r.listen.bars, r);
+  ok('ttscorner: not listening → top-right tap still bookmarks', r.idle.marks === 1, r);
+  await ctx.close();
+}
+
 /* sheet: every tab of «Настройки чтения» uses three control kinds only — stepper, segmented choice, switch; nothing wider than the sheet at 360/390 */
 if (want('sheet')) {
   for (const w of [360, 390]) {
@@ -225,20 +277,29 @@ if (want('frames')) {
   await ctx.close();
 }
 
-/* bars: tap in the centre → the top / bottom bars fade + slide in (CSS animation on the bars only); none with reduced motion or «Анимации» off */
+/* bars (16.10, «как в ReadEra»): tap in the centre → the top / bottom bars slide + fade in OVER the text and slide out again
+   (CSS transitions on the bars only); the text area never moves; none with reduced motion or «Анимации» off */
 if (want('bars')) {
   const { ctx, p } = await fresh();
   await openLong(p);
-  const run = () => p.evaluate(async () => { concealChrome('tap'); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 30));
-    const h = document.querySelector('#reader .rhead'); const a = h.getAnimations().map(x => x.animationName); const shown = getComputedStyle(h).display !== 'none';
-    const txt = document.getElementById('content').getAnimations().length + document.getElementById('viewer').getAnimations().length; return { a, shown, txt }; });
+  const run = () => p.evaluate(async () => {
+    const h = document.querySelector('#reader .rhead'), b = document.querySelector('#reader .rbot'), V = () => { const r = document.getElementById('viewer').getBoundingClientRect(); return [r.top, r.bottom].map(Math.round).join(','); };
+    const tr = (n) => n.getAnimations().map(x => x.transitionProperty || x.animationName).filter(Boolean);
+    concealChrome('tap'); await new Promise(r => setTimeout(r, 400)); const v0 = V();
+    revealChrome(); await new Promise(r => setTimeout(r, 30));
+    const inA = tr(h).concat(tr(b)), shown = getComputedStyle(h).visibility === 'visible' && getComputedStyle(b).visibility === 'visible', v1 = V();
+    await new Promise(r => setTimeout(r, 400)); concealChrome('tap'); await new Promise(r => setTimeout(r, 30));
+    const outA = tr(h).concat(tr(b)), stillVisible = getComputedStyle(h).visibility === 'visible'; await new Promise(r => setTimeout(r, 400));
+    const gone = getComputedStyle(h).visibility === 'hidden' && getComputedStyle(b).visibility === 'hidden', v2 = V();
+    const txt = document.getElementById('content').getAnimations().length + document.getElementById('viewer').getAnimations().length; return { inA, outA, shown, stillVisible, gone, txt, v: [v0, v1, v2] }; });
   let r = await run();
-  ok('bars: revealed at once (display) and animated in; the text is not animated', r.shown && r.a.includes('rqBarTop') && r.txt === 0, r);
+  ok('bars: revealed at once and slid in, slid out on hide (visible during the slide-out, hidden after); text area unchanged; the text is not animated',
+    r.shown && r.inA.includes('transform') && r.outA.includes('transform') && r.stillVisible && r.gone && r.txt === 0 && r.v[0] === r.v[1] && r.v[1] === r.v[2], r);
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]); r = await run();
-  ok('bars: prefers-reduced-motion → no animation', r.shown && !r.a.length, r);
+  ok('bars: prefers-reduced-motion → no animation', r.shown && !r.inA.length && !r.outA.length && r.gone, r);
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
   await p.evaluate(() => { S.ux.anim = false; }); r = await run();
-  ok('bars: «Анимации» off → no animation', r.shown && !r.a.length, r);
+  ok('bars: «Анимации» off → no animation', r.shown && !r.inA.length && !r.outA.length && r.gone, r);
   await ctx.close();
 }
 

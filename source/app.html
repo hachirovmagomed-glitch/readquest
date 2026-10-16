@@ -922,15 +922,21 @@ html[data-skin="pencil"] #sheet .rstep,html[data-skin="pencil"] #sheet .rseg,htm
 html[data-skin="pencil"] #sheet .rseg button.on{background:var(--rq-accent);color:var(--rq-on-accent)}
 html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::before{background:var(--rq-accent);border-color:var(--rq-accent)}
 html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(--rq-surface)}
-/* read-aloud on: highlighted pause (16.10) */
-.rhead #btnTts.on{background:var(--accent);color:#fff;border-radius:50%}
-html[data-skin="pencil"] .rhead #btnTts.on{background:var(--rq-accent);color:var(--rq-on-accent)}
-/* bars appear smoothly (16.10): only while .barsin is on, never with reduced motion */
-@media (prefers-reduced-motion:no-preference){
-#reader.barsin .rhead{animation:rqBarTop .22s cubic-bezier(.2,.7,.3,1) both}
-#reader.barsin .rfoot,#reader.barsin .rbar{animation:rqBarBot .22s cubic-bezier(.2,.7,.3,1) both}}
-@keyframes rqBarTop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
-@keyframes rqBarBot{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* read-aloud on: pause icon on a faint backdrop of the header's own colour (16.10). No filled accent disc: in skins the icon
+   is the accent colour, so a disc of the same accent hid it («Эллада»); the icon keeps the colour it has when off. */
+.rhead #btnTts.on{background:color-mix(in srgb,currentColor 16%,transparent);border-radius:50%}
+/* 16.10 (Джессика, «как в ReadEra»): the bars lie OVER the text and slide/fade in and out. The text never moves:
+   #viewer keeps its size whether the bars are shown or not (no relayout, no fullscreen exit on the centre tap).
+   Hidden = transform + opacity + visibility (delayed so the slide-out is seen), never display:none. */
+#reader .rhead{position:absolute;top:0;left:0;right:0;z-index:30}
+#reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
+#reader .rhead,#reader .rbot{transition:transform .26s cubic-bezier(.2,.7,.3,1),opacity .2s ease,visibility 0s linear 0s}
+#reader.barsoff .rhead,#reader.barsoff .rbot{opacity:0;visibility:hidden;pointer-events:none;transition:transform .22s cubic-bezier(.4,0,.6,1),opacity .2s ease,visibility 0s linear .22s}
+#reader.barsoff .rhead{transform:translateY(-100%)}
+#reader.barsoff .rbot{transform:translateY(100%)}
+#reader.barsoff .rhead,#reader.barsoff .rfoot,#reader.barsoff .rbar{display:flex}
+#reader.nobaranim .rhead,#reader.nobaranim .rbot{transition:none}
+@media (prefers-reduced-motion:reduce){#reader .rhead,#reader .rbot{transition:none}}
 /* reading modes (16.10, arch.md SET.flip.mode): vertical scroll for text — the browser scrolls #viewer; pinch stays ours */
 #reader.scrollmode #viewer{overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior-y:contain;scrollbar-width:none}
 #reader.scrollmode #viewer::-webkit-scrollbar{display:none}
@@ -1526,6 +1532,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
+  <div class="rbot">
   <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><svg id="pgArt" aria-hidden="true" focusable="false"></svg><span id="pgTip" class="hidden" aria-hidden="true"></span><span id="pgSafe" aria-hidden="true"></span><span id="rPct"></span></footer>
   <nav class="rbar" id="rBar" aria-label="Панель читалки">
     <button id="btnPanel"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span>Оглавление</span></button>
@@ -1534,6 +1541,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <button id="btnFocus"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-focus"/></svg><span>Фокус</span></button>
     <button id="btnSet"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-settings"/></svg><span>Настройки</span></button>
   </nav>
+  </div>
   <div class="sheet hidden" id="panel">
     <button class="closes" id="panelClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
     <div class="ptabs">

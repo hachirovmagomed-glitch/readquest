@@ -301,6 +301,10 @@ const BOOK_EXT=/\.(txt|epub|fb2|pdf)$/i;
 let bookIdN=0;
 function newBookId(){try{if(crypto&&crypto.randomUUID)return 'u'+crypto.randomUUID();}catch(e){}return 'u'+Date.now()+'-'+(++bookIdN);} /* arch.md 1в: id is never parsed as time */
 function importToast(t,err){flashMsg(t,{kind:err?'error':'info',ms:6000});const d=document.querySelector('.rq-toast');if(d)d.classList.add('imp');}
+/* binary check (bug 16.10, an .mp3 on the shelf): NUL bytes or many U+FFFD / control chars in the first 64K = not text */
+function looksLikeText(t){const h=String(t||'').slice(0,65536);if(!h)return true;let bad=0;
+  for(let i=0;i<h.length;i++){const c=h.charCodeAt(i);if(c===0)return false;if(c===0xFFFD||(c<32&&c!==9&&c!==10&&c!==13&&c!==12))bad++;}
+  return bad/h.length<0.02;}
 async function importBookFile(f,setBusy){
   let b;
   if(/\.pdf$/i.test(f.name)){
@@ -321,7 +325,9 @@ async function importBookFile(f,setBusy){
     const r=await parseEpub(f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
   }else{
-    const txt=await f.text();
+    let txt=await f.text();
+    if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */
+    if(!looksLikeText(txt))throw new Error('это не текстовый файл'); /* 16.10: music / binary under .txt never becomes a book */
     b={id:newBookId(),title:f.name.replace(/\.txt$/i,''),author:'Моя книга',genre:'Своя книга',stat:'Воля',cover:'📜',text:txt,fname:f.name,size:f.size};
   }
   if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');

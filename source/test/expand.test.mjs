@@ -49,7 +49,7 @@ await check('font', 'fontSeg', 'fontSegX', () => p.evaluate(() => { el('btnAa').
 await p.evaluate(() => { el('sheet') && el('sheet').classList.add('hidden'); window.__buys = 0; const b = window.buy; window.buy = function () { window.__buys++; return b.apply(this, arguments); }; openGeneralSettings(false); });
 await sleep(300);
 const paid = await p.evaluate(async () => { const out = []; const ids = (typeof SHOP_CATALOG !== 'undefined' ? SHOP_CATALOG : []).filter(x => x.type === 'skin' && x.price > 0 && !shopOwns(x.id)).map(x => x.id);
-  for (const t of [...document.querySelectorAll('#appThemeBox .apptile')]) { const k = (t.querySelector('.appsw') || {}).dataset ? t.querySelector('.appsw').dataset.k : ''; if (ids.indexOf(k) < 0) continue;
+  for (const t of [...document.querySelectorAll('#appSkinBox .apptile')]) { const k = (t.querySelector('.appsw') || {}).dataset ? t.querySelector('.appsw').dataset.k : ''; if (ids.indexOf(k) < 0) continue;
     const th0 = SET.theme; t.click(); await new Promise(r => setTimeout(r, 300));
     out.push({ k, lock: !!t.querySelector('use[href="#i-lock"]'), price: /\d+ монет/.test(t.textContent), applied: SET.theme !== th0, page: shopOpen === k }); }
   return { ids, out, buys: window.__buys }; });

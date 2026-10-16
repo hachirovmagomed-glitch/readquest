@@ -104,11 +104,11 @@ await p.evaluate(() => { if (typeof closeReader === 'function') closeReader(); e
 
 // 7. «Общие настройки → Тема»: tile «Бабочковый» selected; picking «Бирюза» leaves the skin, the tile brings it back
 await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
-const tl = await p.evaluate(() => [...document.querySelectorAll('#appThemeBox .apptile')].map(t => ({ k: t.querySelector('.appsw').dataset.k, on: t.classList.contains('on') })));
+const tl = await p.evaluate(() => [...document.querySelectorAll('#appSkinBox .apptile')].map(t => ({ k: t.querySelector('.appsw').dataset.k, on: t.classList.contains('on') })));
 ok('7 settings: «Бабочковый» tile, the only selected one', tl.some(x => x.k === 'babochkovyi' && x.on) && tl.filter(x => x.on).length === 1, tl.filter(x => x.on || x.k === 'babochkovyi'));
 await p.evaluate(() => document.querySelector('#appThemeBox .appsw[data-k="teal"]').click()); await sleep(300); s = await st();
 const s7 = s;
-await p.evaluate(() => document.querySelector('#appThemeBox .appsw[data-k="babochkovyi"]').click()); await sleep(300); s = await st();
+await p.evaluate(() => document.querySelector('#appSkinBox .appsw[data-k="babochkovyi"]').click()); await sleep(300); s = await st();
 ok('7b «Бирюза» leaves the skin (sepia, no data-skin), tile «Бабочковый» puts it back', s7.skin === '' && s7.set === 'sepia' && s.skin === 'babochkovyi' && s.set === 'babochkovyi', { s7, s });
 
 // 8. reduced motion: no animation on any element of the skin

@@ -808,7 +808,7 @@ body.mvp #sumDailyBox{display:block}
 #reader.nofocusbtn #btnFocus{display:none}
 /* ===== «Карандашный» rules (Интерфейс 13.10): frame only on cards; switches keep their shape; 2px graphite line on controls (14.10: 1.5px was too faint);
    theme tiles 1px / selected 2px accent + check; no hyphenation anywhere outside the book page ===== */
-html[data-skin="pencil"] :is(.ghostbtn:not(.sw),.stepbtn,.seg:not(#appThemeBox) button,.fchip,.addmini,.searchinp,input[type=text],input[type=password],input[type=search],select,textarea){
+html[data-skin="pencil"] :is(.ghostbtn:not(.sw),.stepbtn,.seg:not(#appThemeBox):not(#appSkinBox) button,.fchip,.addmini,.searchinp,input[type=text],input[type=password],input[type=search],select,textarea){
   border-style:solid;border-width:2px;border-color:var(--rq-skin-border);border-radius:var(--radius);box-shadow:none!important;border-image:none;outline-offset:2px}
 html[data-skin="pencil"] :is(.ghostbtn,.stepbtn,.seg button,.fchip)::after{content:none}
 html[data-skin="pencil"] .ghostbtn.sw{box-sizing:border-box;width:44px;min-width:44px;height:24px;min-height:0;padding:0;border:0;border-radius:999px;box-shadow:none!important;
@@ -817,8 +817,8 @@ html[data-skin="pencil"] .ghostbtn.sw[aria-checked="true"]{background:var(--rq-a
 html[data-skin="pencil"] .ghostbtn.sw::before{content:none}
 html[data-skin="pencil"] .ghostbtn.sw::after{content:"";position:absolute;inset:auto;top:2px;left:2px;width:20px;height:20px;border:0;border-image:none;border-radius:50%;background:var(--rq-surface);box-shadow:0 1px 2px rgba(0,0,0,.25)}
 html[data-skin="pencil"] .ghostbtn.sw[aria-checked="true"]::after{transform:translateX(20px);background:var(--rq-surface)}
-html[data-skin="pencil"] #appThemeBox .appsw{border:1px solid var(--rq-line);box-shadow:none}
-html[data-skin="pencil"] #appThemeBox .appsw.on{border:2px solid var(--rq-accent)}
+html[data-skin="pencil"] :is(#appThemeBox,#appSkinBox) .appsw{border:1px solid var(--rq-line);box-shadow:none}
+html[data-skin="pencil"] :is(#appThemeBox,#appSkinBox) .appsw.on{border:2px solid var(--rq-accent)}
 html[data-skin="pencil"] body :not(#reader,#reader *){hyphens:none!important;overflow-wrap:normal!important;word-break:normal!important}
 html[data-skin="pencil"] .setrow{border-bottom-color:var(--rq-line)}
 html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}
@@ -826,25 +826,25 @@ html[data-skin="pencil"] #settings .setrow>.lab{flex:1 1 120px}
 html[data-skin="pencil"] #settings .setrow>:is(button,.btnpair,b){margin-left:auto}
 /* theme tiles with captions (both skins) */
 .xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
-#appThemeBox[hidden],#fontSeg[hidden]{display:none!important}
+:is(#appThemeBox,#appSkinBox)[hidden],#fontSeg[hidden]{display:none!important}
 .xdot{width:22px;height:22px;border-radius:50%;flex:none;box-sizing:border-box;border:2px solid var(--muted);box-shadow:none} /* 2px ring like list samples */
 .xrow .xlab{flex:1 1000 auto;min-width:0;display:flex;flex-direction:column;gap:2px}.xrow .xt{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xsub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xlab~.xv{flex:0 1 auto;min-width:0;max-width:none;font-weight:400}.xrow .xt{flex:none}
-button.xrow#appThemeX{background:none!important;padding-left:0!important;padding-right:0!important;border-radius:0;box-shadow:none} /* Интерфейс: no fill, icon/text aligned with the block's rows */ /* variant A: title never shrinks, value takes the rest, ellipsis only as last resort */
+button.xrow:is(#appThemeX,#appSkinX){background:none!important;padding-left:0!important;padding-right:0!important;border-radius:0;box-shadow:none} /* Интерфейс: no fill, icon/text aligned with the block's rows */ /* variant A: title never shrinks, value takes the rest, ellipsis only as last resort */
 .xdot.xdot-skin{display:flex;align-items:center;justify-content:center;color:var(--txt)}.xdot.xdot-skin svg{width:14px;height:14px}html[data-skin="pencil"] .xdot.xdot-skin{border-color:var(--rq-skin-border);color:var(--rq-skin-border)}
 .xrow .xs{width:32px;flex:none;font-size:18px;text-align:center}.xrow .xs~.xl{color:var(--txt);font-size:15px}
 /* expanded lists = mockups sf-1g-fonts / sf-1g-themes: 52px rows, sample, label, check on the current one */
-#fontSeg.xlist,#appThemeBox.xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
-#fontSeg.xlist[hidden],#appThemeBox.xlist[hidden]{display:none!important}
+#fontSeg.xlist,:is(#appThemeBox,#appSkinBox).xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
+#fontSeg.xlist[hidden],:is(#appThemeBox,#appSkinBox).xlist[hidden]{display:none!important}
 .xopt{display:flex!important;align-items:center;gap:14px;width:100%;min-height:52px;height:52px;padding:0 6px;background:none!important;border:0;border-bottom:1px solid var(--card2);border-radius:0!important;color:var(--txt);text-align:left;font-size:17px}
 .xopt .xs{width:36px;font-size:18px;text-align:center;flex:none}.xopt .xn{flex:1;min-width:0;font-size:17px}.xopt .xm{visibility:hidden;color:var(--accent);display:flex}.xopt.on .xm{visibility:visible}
-#appThemeBox.xlist .apptile{flex-direction:row;gap:14px;min-height:52px;height:52px;padding:0 6px;border-bottom:1px solid var(--card2);cursor:pointer}
-#appThemeBox.xlist .apptile small{flex:1;text-align:left;font-size:16px;color:var(--txt)}
-#appThemeBox.xlist .apptile .appsw{width:36px;height:36px;flex:none}
-#appThemeBox.xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}#appThemeBox.xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}#appThemeBox.xlist .apptile small{white-space:nowrap}
+:is(#appThemeBox,#appSkinBox).xlist .apptile{flex-direction:row;gap:14px;min-height:52px;height:52px;padding:0 6px;border-bottom:1px solid var(--card2);cursor:pointer}
+:is(#appThemeBox,#appSkinBox).xlist .apptile small{flex:1;text-align:left;font-size:16px;color:var(--txt)}
+:is(#appThemeBox,#appSkinBox).xlist .apptile .appsw{width:36px;height:36px;flex:none}
+:is(#appThemeBox,#appSkinBox).xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}:is(#appThemeBox,#appSkinBox).xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}:is(#appThemeBox,#appSkinBox).xlist .apptile small{white-space:nowrap}
 .srow:has(#fontSegX){flex-wrap:wrap}.srow:has(#fontSegX) > .seg,#fontSeg.xlist{width:100%;flex:1 1 100%}
-#appThemeBox.xlist .apptile .chk{position:static;display:flex;visibility:hidden;background:none;color:var(--accent);width:22px;height:22px}
-#appThemeBox.xlist .apptile.on .chk{visibility:visible}
-#appThemeBox{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
+:is(#appThemeBox,#appSkinBox).xlist .apptile .chk{position:static;display:flex;visibility:hidden;background:none;color:var(--accent);width:22px;height:22px}
+:is(#appThemeBox,#appSkinBox).xlist .apptile.on .chk{visibility:visible}
+:is(#appThemeBox,#appSkinBox){display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
 .apptile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .apptile small{font-size:11px;line-height:1.2;color:var(--muted);text-align:center;white-space:nowrap}
 .apptile.on small{color:var(--txt);font-weight:700}
@@ -1186,6 +1186,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
     <h2>Внешний вид</h2>
     <div class="pcard">
       <div class="seg" id="appThemeBox"></div>
+      <div class="seg" id="appSkinBox"></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>

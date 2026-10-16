@@ -478,48 +478,59 @@ function fmtSize(n){
   if(n<1048576)return (n/1024).toFixed(1)+' КБ';
   return (n/1048576).toFixed(2)+' МБ';
 }
+function bkIc(n){return '<svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
   const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
+  const done=S.finished.includes(id);
   const size=fmtSize(b.size!=null?b.size:(b.text?b.text.length*2:null));
   const words=b.text?b.text.split(/\s+/).length:null;
-  const place=builtin
-    ?'Встроена в приложение (демо-книга)'
-    :b.type==='pdf'
-      ?'Импортирована: <b>'+esc(b.fname||'файл')+'</b><br>Копия хранится в базе браузера (IndexedDB) на этом устройстве'
-      :'Импортирована: <b>'+esc(b.fname||'файл')+'</b><br>Хранится в памяти приложения (localStorage) на этом устройстве';
+  const nq=(S.quotes[id]||[]).length,nm=(S.marks[id]||[]).length;
+  const fav=S.favs.includes(id),want=S.status[id]==='want';
+  const fmt=b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст');
+  const sub=[b.author,b.genre].filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF» */
+  const place=builtin?'Встроена в приложение':(b.type==='pdf'?'На этом устройстве, в браузере':'На этом устройстве, в приложении');
+  const row=(k,v,cls)=>'<div class="bk-row'+(cls?' '+cls:'')+'"><span class="bk-k">'+k+'</span><span class="bk-v">'+v+'</span></div>';
+  const act=(ic,label,fn,on)=>'<button type="button" class="bk-act'+(on?' on':'')+'" onclick="'+fn+'(\''+id+'\')"'+(on!=null?' aria-pressed="'+!!on+'"':'')+'>'+bkIc(ic)+'<span>'+label+'</span></button>';
+  const line=(ic,label,fn,cls,arg)=>'<button type="button" class="bk-line'+(cls?' '+cls:'')+'" onclick="'+fn+'(\''+id+'\''+(arg!=null?','+arg:'')+')">'+bkIc(ic)+'<span>'+label+'</span></button>';
   el('bookSheetBody').innerHTML=
-    '<div class="row"><div class="cover">'+coverHtml(b)+'</div><div style="flex:1;min-width:0"><b>'+esc(b.title)+'</b>'+
-    '<div style="font-size:13px;color:var(--muted)">'+esc(b.author)+' · <span class="chip">'+esc(b.genre)+'</span></div></div></div>'+
-    '<div class="binfo">'+
-    'Формат: <b>'+(b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст'))+'</b><br>'+
-    'Размер: <b>'+size+'</b>'+(words?' · слов: <b>'+words+'</b>':'')+'<br>'+
-    'Расположение: '+place+'<br>'+
-    'Прогресс: <b>'+(S.finished.includes(id)?'прочитано ✅':p+'%')+'</b> · цитат: <b>'+((S.quotes[id]||[]).length)+
-    '</b> · закладок: <b>'+((S.marks[id]||[]).length)+'</b>'+
+    '<div class="bk-head"><div class="cover">'+coverHtml(b)+'</div><div class="bk-ttl"><b>'+esc(b.title)+'</b>'+
+    (sub?'<div class="bk-sub">'+sub+'</div>':'')+'</div></div>'+
+    '<div class="bk-prog" data-rq="prog"><div class="bk-bar"><i style="width:'+(done?100:p)+'%"></i></div>'+
+    '<div class="bk-pl"><span><b data-rq="pct">'+(done?'Прочитано':p+'%')+'</b>'+(done?'':' прочитано')+'</span>'+
+    '<span>'+nq+' '+plural(nq,'цитата','цитаты','цитат')+' · '+nm+' '+plural(nm,'закладка','закладки','закладок')+'</span></div></div>'+
+    '<div class="bk-acts">'+
+    act('star',fav?'В избранном':'В избранное','toggleFav',fav)+
+    act('bookmark',want?'В «Хочу»':'Хочу прочитать','toggleWant',want)+
+    act('share-2','Поделиться','shareBook',null)+
     '</div>'+
-    '<div class="bset-row"><div class="bset-lab">⚔️ Сложность<span class="val" id="bsetDiffName">'+(S.bookDiff[id]>0?'':'авто · ')+DIFFS[diffOf(id)].n+' ×'+DIFFS[diffOf(id)].m+'</span></div>'+
-    '<input type="range" class="bslider" id="bsetDiff" min="0" max="5" step="1" value="'+(S.bookDiff[id]||0)+'" oninput="onDiffSlide(\''+id+'\',this.value)">'+
-    '<div style="font-size:11px;color:var(--muted)">0 — авто по объёму и жанру. Сложнее книга — больше опыта и валюты.</div></div>'+
-    '<div class="bset-row"><div class="bset-lab">💰 Важность<span class="val" id="bsetImpVal">'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'%</span></div>'+
-    '<input type="range" class="bslider" id="bsetImp" min="0" max="100" step="10" value="'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'" oninput="onImpSlide(\''+id+'\',this.value)">'+
-    '<div style="font-size:11px;color:var(--muted)">Личная важность книги — повышает награду в валюте.</div></div>'+
-    '<div class="bset-row"><div class="bset-lab">💪 Качает характеристику<span class="val">'+esc(statOf(b))+'</span></div>'+
+    '<div class="bk-h">О файле</div><div class="bk-list">'+
+    row('Формат',fmt)+row('Размер',size+(words?' · '+words+' '+plural(words,'слово','слова','слов'):''))+
+    (builtin?'':row('Файл',esc(b.fname||'файл'),'wrap'))+row('Хранится',place)+
+    '</div>'+
+    (isMvp()?'': /* MVP: XP only per minute, coins only per day/week → difficulty, importance and stat change nothing there; shown outside MVP only */
+    '<div class="bk-h">Игра</div><div class="bk-list">'+
+    '<div class="bset-row"><div class="bset-lab">Сложность<span class="val" id="bsetDiffName">'+(S.bookDiff[id]>0?'':'авто · ')+DIFFS[diffOf(id)].n+' ×'+DIFFS[diffOf(id)].m+'</span></div>'+
+    '<input type="range" class="bslider" id="bsetDiff" min="0" max="5" step="1" value="'+(S.bookDiff[id]||0)+'" oninput="onDiffSlide(\''+id+'\',this.value)" aria-label="Сложность">'+
+    '<div class="bk-note">0 — авто по объёму и жанру. Сложнее книга — больше опыта и монет.</div></div>'+
+    '<div class="bset-row"><div class="bset-lab">Важность<span class="val" id="bsetImpVal">'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'%</span></div>'+
+    '<input type="range" class="bslider" id="bsetImp" min="0" max="100" step="10" value="'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'" oninput="onImpSlide(\''+id+'\',this.value)" aria-label="Важность">'+
+    '<div class="bk-note">Личная важность книги повышает награду в монетах.</div></div>'+
+    '<div class="bset-row"><div class="bset-lab">Качает характеристику<span class="val">'+esc(statOf(b))+'</span></div>'+
     '<div class="chips" style="padding:4px 0">'+
     allStats().map(s2=>'<button class="fchip'+(statOf(b)===s2?' on':'')+'" onclick="setBookStat(\''+id+'\',\''+esc(s2)+'\')">'+esc(s2)+'</button>').join('')+
     '</div></div>'+
-    '<div class="bset-reward" id="bsetReward">'+bookRewardPreview(b)+'</div>'+
-    '<div class="bsheet-actions">'+
-    '<button onclick="pickCover(\''+id+'\')">🖼 Обложка из файла</button>'+
-    '<button onclick="emojiCover(\''+id+'\')">😀 Эмодзи-обложка</button>'+
-    '<button onclick="toggleFav(\''+id+'\')">'+(S.favs.includes(id)?'★ В избранном':'☆ В избранное')+'</button>'+
-    '<button onclick="toggleWant(\''+id+'\')">'+(S.status[id]==='want'?'📌 Убрать из «Хочу»':'📌 Хочу прочитать')+'</button>'+
-    '<button onclick="shareBook(\''+id+'\')">📤 Поделиться</button>'+
-    '<button class="danger" onclick="removeBook(\''+id+'\',false)">🗑 Убрать из приложения</button>'+
-    (b.type==='pdf'?'<button class="danger" onclick="removeBook(\''+id+'\',true)">💥 Удалить файл с устройства</button>':'')+
+    '<div class="bset-reward" id="bsetReward">'+bookRewardPreview(b)+'</div></div>')+
+    '<div class="bk-h">Обложка</div><div class="bk-list">'+
+    line('image','Выбрать картинку','pickCover')+
+    (S.covers[id]?line('rotate-cw','Вернуть стандартную','resetCover'):'')+
     '</div>'+
-    (b.type==='pdf'?'<div style="font-size:11px;color:var(--muted);margin-top:10px">«Удалить файл» стирает копию из хранилища браузера. Исходник в папке загрузок веб-приложение трогать не может — это появится в нативной версии.</div>':'');
+    '<div class="bk-list bk-danger">'+
+    line('x',builtin?'Скрыть из библиотеки':'Убрать из библиотеки','removeBook','danger','false')+
+    (b.type==='pdf'?line('trash-2','Удалить файл с устройства','removeBook','danger','true'):'')+
+    '</div>'+
+    (b.type==='pdf'?'<div class="bk-note">«Удалить файл» стирает копию из хранилища браузера. Исходник в папке загрузок останется на месте.</div>':'');
   el('bookSheet').classList.remove('hidden');
 }
 el('bookSheetClose').onclick=()=>el('bookSheet').classList.add('hidden');
@@ -575,13 +586,7 @@ el('covInp').onchange=e=>{
   img.onerror=()=>alert('Не удалось прочитать изображение');
   img.src=URL.createObjectURL(f);
 };
-function emojiCover(id){
-  const e2=prompt('Эмодзи для обложки (пусто — вернуть стандартную):','📗');
-  if(e2===null)return;
-  if(!e2.trim())delete S.covers[id];
-  else S.covers[id]=e2.trim().slice(0,4);
-  save();renderLibrary();bookInfo(id);
-}
+function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);}
 
 /* --- ИИ-помощник --- */
 el('spAI').onclick=()=>{
@@ -621,14 +626,14 @@ function shareBook(id){
 async function removeBook(id,wipeFile){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
-  if(!confirm(wipeFile?'Удалить книгу и её файл из хранилища устройства?':'Убрать книгу из приложения? Прогресс по ней будет удалён.'))return;
+  if(!confirm(wipeFile?'Удалить книгу и её файл из хранилища устройства?':'Убрать книгу из библиотеки? Прогресс по ней будет удалён.'))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
   delete S.progress[id];delete S.quotes[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   save();el('bookSheet').classList.add('hidden');renderLibrary();
-  flashMsg(wipeFile?'💥 Книга и файл удалены':'🗑 Книга убрана из приложения');
+  flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');
 }
 
 /* ================= СТАТИСТИКА ================= */

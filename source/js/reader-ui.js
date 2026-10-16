@@ -1,8 +1,8 @@
 'use strict';
 /* ===== Bars + fullscreen as ONE state (Интерфейс, build 4) =====
    reading : .barsoff (our bars hidden)  + browser fullscreen (if wanted: phone / ⛶)
-   chrome  : bars shown                  + fullscreen exited (system bars back)
-   Centre tap toggles both in the same handler/frame. Bars auto-hide after 3.2 s; fullscreen is re-requested
+   chrome  : bars shown OVER the text    + fullscreen kept (16.10, Джессика «как в ReadEra»; it ends when the reader closes)
+   Centre tap toggles the bars (slide/fade, the text never moves). Bars auto-hide after 3.2 s; fullscreen is re-requested
    from that timer — Chrome still accepts it while the tap's transient user activation is alive (~5 s; exit
    does not consume it). If the browser refuses, the next reading gesture in the reader (edge tap / swipe)
    re-enters fullscreen inside its own handler before the flip. Viewport resizes → relayout() with the kept
@@ -36,7 +36,7 @@ function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(functi
 /** reading state: hide our bars + (re)enter fullscreen */
 function concealChrome(how){
   const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
-  if(!r.classList.contains('barsoff')){r.classList.add('barsoff');if(how!=='open')relayout();} /* open: the book is laid out right after */
+  if(!r.classList.contains('barsoff')){r.classList.toggle('nobaranim',rqBarsStill());r.classList.add('barsoff');} /* 16.10: bars overlay the text → no relayout */
   fsRequest(how||'tap');
   placeJumpBack();
   armFocusAuto();
@@ -45,10 +45,11 @@ function concealChrome(how){
 function revealChrome(){if(typeof pgArtSync==='function')requestAnimationFrame(pgArtSync);
   const r=el('reader');if(!r||r.classList.contains('hidden'))return;
   fsPending=false;
-  exitFullscreenSafe();
+  /* 16.10 (Джессика, «как в ReadEra»): fullscreen STAYS while the bars are shown — no status bar popping in, no black
+     frame, no Chrome «выйти из полноэкранного режима» toast on every tap. Fullscreen ends when the reader closes (stopChrome). */
   if(r.classList.contains('focus'))setFocus(false); /* panels visible ⇒ never focus */
-  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');rqBarsIn(r);relayout();if(lastUp&&Date.now()-lastUp.t<300){chromeShownAt=Date.now();chromeShownXY={x:lastUp.x,y:lastUp.y};}}
-  placeJumpBack();
+  if(r.classList.contains('barsoff')){r.classList.toggle('nobaranim',rqBarsStill());r.classList.remove('barsoff');if(lastUp&&Date.now()-lastUp.t<300){chromeShownAt=Date.now();chromeShownXY={x:lastUp.x,y:lastUp.y};}}
+  placeJumpBack();setTimeout(placeJumpBack,300); /* again once the bottom bars have slid in */
   armChromeHide();
 }
 /* 1в: the tap that REVEALS the bars must not also click the button that appears under the finger
@@ -68,10 +69,8 @@ document.addEventListener('click',function(e){
 },true);
 function showChrome(){revealChrome();}
 function hideChrome(){concealChrome('tap');}
-/* 16.10 (Джессика, как в Readest): the bars fade + slide in instead of popping up. Only the small bars animate (never the text);
-   the state (.barsoff, fullscreen, relayout) changes at once as before. Off with «Анимации» off or prefers-reduced-motion. */
-function rqBarsIn(r){if(typeof rqStill==='function'&&rqStill())return;
-  r.classList.remove('barsin');void r.offsetWidth;r.classList.add('barsin');clearTimeout(rqBarsIn.t);rqBarsIn.t=setTimeout(function(){r.classList.remove('barsin');},320);}
+/* 16.10: the bars slide in/out over the text (CSS transitions on .barsoff). Off with «Анимации» off or prefers-reduced-motion. */
+function rqBarsStill(){return typeof rqStill==='function'&&rqStill();}
 function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}
 function stopChrome(){clearTimeout(chromeTimer);clearTimeout(focusAutoT);hideJumpBack();FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff','focus');exitFullscreenSafe();}
 /* ===== 1б: focus mode (README «Режим фокуса»). Class .focus on #reader on top of .barsoff: no panels, no corner
@@ -149,6 +148,9 @@ function addBookmark(){
   save();
   flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
+/* top-right corner tap: bookmark. While read-aloud is on (Джессика 16.10) the bars hide after a few seconds and the finger goes
+   to where «Слушать» was — that tap shows the bars (so the pause button can be pressed) instead of dropping a bookmark. */
+function cornerTR(){if(ttsOn||speaking){const r=el('reader');if(r&&r.classList.contains('barsoff')){revealChrome();return;}}addBookmark();}
 /* toast icons: rqIcon() (js/core-a.js, one Lucide sprite in app.html) */
 /* legacy calls without {kind}: game wording ⇒ game */
 const RQ_GAME_RE=/XP|🪙|монет|босс|квест|талант|золот|награда|Удача|питом|опыт/i;

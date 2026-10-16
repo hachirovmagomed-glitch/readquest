@@ -147,6 +147,27 @@ ok('13 Эллада background: no vein drawing, fine grain tile 140px', !dj.vei
 ok('14 «Дневник»: no emoji in header, tabs and hint; Lucide icons instead (h1 + 3 tabs + hint)', !dj.emoji && dj.icons >= 5, dj);
 ok('15 meander 8px at 40% under the header and over the bottom nav; amphora 96px over the empty hint', dj.navM[0] === '8px' && dj.navM[1] === '0.4' && dj.headM[0] === '8px' && dj.headM[1] === '0.4' && dj.amph === '96px', dj);
 
+// 16. «Путь читателя» in Ellada = an old Aegean sea chart (Джессика 16.10): sea sheet with waves, islands under books, dotted course, wind rose, trireme
+const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => setTimeout(r, 500));
+  const ch = document.querySelector('#path .pathch'), dot = document.querySelector('#path .pn-dot'), map = document.querySelector('#path .pathmap'), line = document.querySelector('#path .pathline path:not(.on)');
+  const g = (e, ps) => getComputedStyle(e, ps);
+  const sc = document.querySelector('#path .scroll');
+  return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg/.test(g(map, '::after').backgroundImage),
+    isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
+ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
+const pst = await p.evaluate(async () => {
+  S.userBooks.push({ id: 'elp1', title: 'a', author: '', pathId: 'odyssey' }, { id: 'elp2', title: 'b', author: '', pathId: 'hamlet' }); S.finished.push('elp1'); S.progress.elp2 = { ratio: 0.4 };
+  renderPath(); await new Promise(r => setTimeout(r, 400));
+  const vis = (e) => !!e && getComputedStyle(e).display !== 'none';
+  const od = document.querySelector('#path .pathnode[data-pid="odyssey"]'), hm = document.querySelector('#path .pathnode[data-pid="hamlet"]');
+  let minGap = 1e9; document.querySelectorAll('#path .pathch').forEach(ch => { const c = ch.getBoundingClientRect(); ch.querySelectorAll('.pn-dot').forEach(d => { const r = d.getBoundingClientRect(), w = r.width * 0.62; minGap = Math.min(minGap, r.left - w - c.left, c.right - (r.right + w)); }); });
+  const laurel = /el-laurel|data:image\/svg.*data:image\/svg/.test(getComputedStyle(od.querySelector('.pn-dot'), '::before').backgroundImage);
+  S.userBooks = S.userBooks.filter(x => !/^elp/.test(x.id)); S.finished = S.finished.filter(x => x !== 'elp1'); delete S.progress.elp2; renderPath();
+  return { ok: vis(od.querySelector('.pn-ok')), bar: vis(hm.querySelector('.pn-bar')), barW: hm.querySelector('.pn-bar b').style.width, minGap: Math.round(minGap), laurel };
+});
+ok('16b статус не только цветом: у прочитанной книги значок-галочка, у начатой полоска прогресса; у главной книги лавровый венок; острова не ближе 16 px к краю листа', pst.ok && pst.bar && pst.barW === "40%" && pst.laurel && pst.minGap >= 16, pst);
+await p.evaluate(() => navGo('library'));
+
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY ellada.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

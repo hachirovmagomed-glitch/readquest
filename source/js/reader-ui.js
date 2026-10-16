@@ -47,7 +47,7 @@ function revealChrome(){if(typeof pgArtSync==='function')requestAnimationFrame(p
   fsPending=false;
   exitFullscreenSafe();
   if(r.classList.contains('focus'))setFocus(false); /* panels visible ⇒ never focus */
-  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');relayout();if(lastUp&&Date.now()-lastUp.t<300){chromeShownAt=Date.now();chromeShownXY={x:lastUp.x,y:lastUp.y};}}
+  if(r.classList.contains('barsoff')){r.classList.remove('barsoff');rqBarsIn(r);relayout();if(lastUp&&Date.now()-lastUp.t<300){chromeShownAt=Date.now();chromeShownXY={x:lastUp.x,y:lastUp.y};}}
   placeJumpBack();
   armChromeHide();
 }
@@ -68,6 +68,10 @@ document.addEventListener('click',function(e){
 },true);
 function showChrome(){revealChrome();}
 function hideChrome(){concealChrome('tap');}
+/* 16.10 (Джессика, как в Readest): the bars fade + slide in instead of popping up. Only the small bars animate (never the text);
+   the state (.barsoff, fullscreen, relayout) changes at once as before. Off with «Анимации» off or prefers-reduced-motion. */
+function rqBarsIn(r){if(typeof rqStill==='function'&&rqStill())return;
+  r.classList.remove('barsin');void r.offsetWidth;r.classList.add('barsin');clearTimeout(rqBarsIn.t);rqBarsIn.t=setTimeout(function(){r.classList.remove('barsin');},320);}
 function toggleChrome(){const r=el('reader');if(r&&r.classList.contains('barsoff'))revealChrome();else concealChrome('tap');}
 function stopChrome(){clearTimeout(chromeTimer);clearTimeout(focusAutoT);hideJumpBack();FSW=false;fsPending=false;const r=el('reader');if(r)r.classList.remove('barsoff','focus');exitFullscreenSafe();}
 /* ===== 1б: focus mode (README «Режим фокуса»). Class .focus on #reader on top of .barsoff: no panels, no corner
@@ -268,7 +272,7 @@ el('viewer').addEventListener('touchstart',e=>{
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
-  if(e.touches[0].clientX<28){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края
+  if(e.touches[0].clientX<28&&!rqScrollMode()){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края (в прокрутке палец у края прокручивает)
   tx0=e.touches[0].clientX;
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
@@ -300,7 +304,7 @@ el('viewer').addEventListener('touchend',e=>{
   if(tx0===null)return;
   const ct=e.changedTouches[0];
   const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
-  if((flipGet().swipe!==false)&&Math.abs(dx)>50){const inv=flipGet().invert?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
+  if((flipGet().swipe!==false)&&Math.abs(dx)>50&&(!rqScrollMode()||Math.abs(dx)>Math.abs(dy)*1.5)){const inv=flipGet().invert?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
   /* short, still touch = tap (not on buttons / selection popup) */
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tt0<450&&e.touches.length===0&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
@@ -313,6 +317,7 @@ el('viewer').addEventListener('wheel',e=>{
   if(el('reader').classList.contains('hidden'))return;
   if(R.mode==='pdf'){pdfWheel(e);return;}
   if(e.ctrlKey){e.preventDefault();setFontSizeKeepPos(SET.size+(e.deltaY<0?1:-1));return;}
+  if(rqScrollMode())return; /* scroll mode: the wheel scrolls natively */
   e.preventDefault();
   goPage(R.page+(e.deltaY>0?1:-1),true);
 },{passive:false});
@@ -423,7 +428,10 @@ let speaking=false,ttsOn=false;
 /* audit 15.10 (Маня): listening is not reading — while read-aloud is on, the tracker counts no minutes (no ring, XP, coins, streak).
    Stop → counting back to the normal rule (MVP always; full UI only with the timer on). */
 function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(on?(isMvp()||!!R.timerOn):false);}
-function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}var b=el('btnTts');if(b)b.innerHTML=rqIcon('volume-2');}
+/* Джессика 16.10: the bare «stop» square read as a glitch. Listening = a pause icon on a highlighted button (aria-pressed), stop = the speaker again. */
+function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
+  const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
+function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}ttsBtn(false);}
 function ttsSay(t,onend){
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
   u.onend=function(){if(ttsOn&&onend)onend();};
@@ -454,7 +462,7 @@ el('btnTts').onclick=()=>{
   if(ttsOn||speaking){ttsStop();return;}
   if(!R.book)return;
   if(!window.speechSynthesis){alert('Озвучка не поддерживается этим браузером');return;}
-  ttsOn=true;ttsCount(false);el('btnTts').innerHTML=rqIcon('square');
+  ttsOn=true;ttsCount(false);ttsBtn(true);
   if(R.mode==='pdf'){ttsPdfNext();}
   else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
 };
@@ -478,7 +486,7 @@ async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
-  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;el('btnTts').innerHTML=rqIcon('volume-2');}
+  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   R.book=null;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
@@ -548,7 +556,8 @@ async function closeReaderImpl(opts){
   if(hour<9&&min>=5)addSkillXp('Дисциплина',1);
   if(min>0&&pages>=3&&pages/min>=0.8)addSkillXp('Скорочтение',1);
   const newB=[];
-  const earn=id=>{if(!S.badges.includes(id)){S.badges.push(id);newB.push(BADGES.find(x=>x.id===id));}};
+  const earn=id=>{if(typeof achV2==='function'&&achV2())return; /* v2: old badges are not earned any more (their ids live in the catalog) */
+    if(!S.badges.includes(id)){S.badges.push(id);newB.push(BADGES.find(x=>x.id===id));}};
   earn('first');
   if(hour>=23)earn('owl');
   if(hour<8)earn('lark');
@@ -558,9 +567,10 @@ async function closeReaderImpl(opts){
   if(justFinished)earn('finisher');
   if(level(S.xp)>=5)earn('lvl5');
   const newAch=checkAchievements();
+  const achNew=typeof achRun==='function'?achRun():[]; /* v2: recorded once, shown only on the summary (no toast in the reader) */
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid,title:(b&&b.title)||''};
+  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);return;}
   renderSummary(_sumArgs);
@@ -602,6 +612,8 @@ function renderSummary(r){
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
+  /* achievements v2: at most two lines + «и ещё N»; visible in MVP (#sumBadges is not) */
+  const sa=el('sumAch');if(sa){const an=r.achNew||[];sa.innerHTML=an.slice(0,2).map(function(a){return '<div>'+rqIcon('trophy',14)+'<span>Новое достижение: «'+esc(a.name)+'»</span></div>';}).join('')+(an.length>2?'<div class="more">и ещё '+(an.length-2)+'</div>':'');sa.classList.toggle('hidden',!an.length);}
   /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
   const sday=r.day||today();
   if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');

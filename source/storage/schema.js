@@ -93,6 +93,13 @@ export const GAME_DEF = {
   customStats: [],
   customAch: [],
   achUnlocked: [],
+  /** Достижения v2 (arch.md 15.10): id → 'YYYY-MM-DD' дня записи; только дописывается */
+  achDates: {},
+  /** первый проход по истории: {d: 'YYYY-MM-DD', n} или null */
+  achSeed: null,
+  /** выбранные звание и рамка (id каталога js/ach-core.js), '' = нет */
+  achTitle: '',
+  achFrame: '',
   avatar: null,
   heroName: 'Читатель',
   statuses: null,
@@ -169,16 +176,19 @@ export const SET_DEF = {
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
   pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
   readCounter: true, // 1б: «7 / 10 мин» in focus
-  flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe}; null = default FLIP_DEF
+  flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
 /** SET.flip (arch.md 15.10) — same rules as js/reader.js flipNorm: not an object → dropped (default);
  *  no flip + nav is the OLD flip object (not a tab list) → copied once; nav is never deleted or rewritten. */
-export const FLIP_DEF = { btns: false, tap: true, invert: false, swipe: true };
+export const FLIP_DEF = { btns: false, tap: true, invert: false, swipe: true, mode: 'page', anim: 'none' };
 const FLIP_KEYS = ['btns', 'tap', 'invert', 'swipe'];
+/* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings; junk → default */
+const FLIP_STR = { mode: ['page', 'scroll'], anim: ['none', 'slide', 'fade'] };
 function flipFrom(o) {
   const f = {};
   FLIP_KEYS.forEach((k) => { f[k] = typeof o[k] === 'boolean' ? o[k] : FLIP_DEF[k]; });
+  Object.keys(FLIP_STR).forEach((k) => { f[k] = FLIP_STR[k].includes(o[k]) ? o[k] : FLIP_DEF[k]; });
   return f;
 }
 export function normFlip(s) {
@@ -248,6 +258,18 @@ export function hydrateGame(g) {
   out.customStats = out.customStats || [];
   out.customAch = out.customAch || [];
   out.achUnlocked = out.achUnlocked || [];
+  /* Достижения v2: прощающее чтение, ничего не записывается обратно; кривое → отбросить / умолчание */
+  {
+    const d = out.achDates, clean = {};
+    if (d && typeof d === 'object' && !Array.isArray(d))
+      Object.keys(d).forEach(function (k) { if (k.length <= 40 && typeof d[k] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d[k])) clean[k] = d[k]; });
+    out.achDates = clean;
+    const sd = out.achSeed;
+    out.achSeed = sd && typeof sd === 'object' && !Array.isArray(sd) && typeof sd.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(sd.d) && Number.isFinite(sd.n) && sd.n >= 0
+      ? { d: sd.d, n: Math.floor(sd.n) } : null;
+    out.achTitle = typeof out.achTitle === 'string' ? out.achTitle.slice(0, 40) : '';
+    out.achFrame = typeof out.achFrame === 'string' ? out.achFrame.slice(0, 40) : '';
+  }
   out.talents = out.talents || {};
   out.inventory = out.inventory || [];
   out.invHist = out.invHist || [];

@@ -655,9 +655,10 @@ function showJumpBack(from){
 function hideJumpBack(){if(R)R.jumpFrom=null;const b=el('jumpBack');if(b&&!b.classList.contains('hidden')){b.classList.add('hidden');el('jumpMark').classList.add('hidden');}}
 function placeJumpBack(){
   if(!R||R.jumpFrom==null)return;
-  const pl=el('pgLine').getBoundingClientRect(),b=el('jumpBack');
+  const pl=el('pgLine').getBoundingClientRect(),b=el('jumpBack'),rd=el('reader'),bot=document.querySelector('#reader .rbot');
   b.style.left=(pl.left+parseFloat(getComputedStyle(el('pgLine')).paddingLeft||0)-6)+'px';
-  b.style.bottom=Math.max(0,innerHeight-pl.top)+'px';
+  /* 16.10: the bottom bars overlay the page-number line → while they are shown the pill sits above them */
+  b.style.bottom=(rd&&bot&&!rd.classList.contains('barsoff')?bot.offsetHeight:Math.max(0,innerHeight-pl.top))+'px';
   const s=el('pgSlider').getBoundingClientRect(),mx=Math.max(1,+el('pgSlider').max||1),th=16,m=el('jumpMark');
   m.style.left=(s.left+th/2+(s.width-th)*(R.jumpFrom/mx)-1)+'px';m.style.top=(s.top+s.height/2-6)+'px';
 }

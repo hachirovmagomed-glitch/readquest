@@ -147,6 +147,16 @@ ok('13 Эллада background: no vein drawing, fine grain tile 140px', !dj.vei
 ok('14 «Дневник»: no emoji in header, tabs and hint; Lucide icons instead (h1 + 3 tabs + hint)', !dj.emoji && dj.icons >= 5, dj);
 ok('15 meander 8px at 40% under the header and over the bottom nav; amphora 96px over the empty hint', dj.navM[0] === '8px' && dj.navM[1] === '0.4' && dj.headM[0] === '8px' && dj.headM[1] === '0.4' && dj.amph === '96px', dj);
 
+// 16. «Путь читателя» in Ellada = an old Aegean sea chart (Джессика 16.10): sea sheet with waves, islands under books, dotted course, wind rose, trireme
+const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => setTimeout(r, 500));
+  const ch = document.querySelector('#path .pathch'), dot = document.querySelector('#path .pn-dot'), map = document.querySelector('#path .pathmap'), line = document.querySelector('#path .pathline path:not(.on)');
+  const g = (e, ps) => getComputedStyle(e, ps);
+  const sc = document.querySelector('#path .scroll');
+  return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg/.test(g(map, '::after').backgroundImage),
+    isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', wide: sc.scrollWidth > sc.clientWidth + 1 }; });
+ok('16 Путь читателя в Элладе: море с волнами, острова под книгами, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && /8/.test(pm.dash) && !pm.wide, pm);
+await p.evaluate(() => navGo('library'));
+
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY ellada.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

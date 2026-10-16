@@ -548,7 +548,8 @@ async function closeReaderImpl(opts){
   if(hour<9&&min>=5)addSkillXp('Дисциплина',1);
   if(min>0&&pages>=3&&pages/min>=0.8)addSkillXp('Скорочтение',1);
   const newB=[];
-  const earn=id=>{if(!S.badges.includes(id)){S.badges.push(id);newB.push(BADGES.find(x=>x.id===id));}};
+  const earn=id=>{if(typeof achV2==='function'&&achV2())return; /* v2: old badges are not earned any more (their ids live in the catalog) */
+    if(!S.badges.includes(id)){S.badges.push(id);newB.push(BADGES.find(x=>x.id===id));}};
   earn('first');
   if(hour>=23)earn('owl');
   if(hour<8)earn('lark');
@@ -558,9 +559,10 @@ async function closeReaderImpl(opts){
   if(justFinished)earn('finisher');
   if(level(S.xp)>=5)earn('lvl5');
   const newAch=checkAchievements();
+  const achNew=typeof achRun==='function'?achRun():[]; /* v2: recorded once, shown only on the summary (no toast in the reader) */
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,day:sd,quest:questPaid,title:(b&&b.title)||''};
+  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);return;}
   renderSummary(_sumArgs);
@@ -602,6 +604,8 @@ function renderSummary(r){
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
+  /* achievements v2: at most two lines + «и ещё N»; visible in MVP (#sumBadges is not) */
+  const sa=el('sumAch');if(sa){const an=r.achNew||[];sa.innerHTML=an.slice(0,2).map(function(a){return '<div>'+rqIcon('trophy',14)+'<span>Новое достижение: «'+esc(a.name)+'»</span></div>';}).join('')+(an.length>2?'<div class="more">и ещё '+(an.length-2)+'</div>':'');sa.classList.toggle('hidden',!an.length);}
   /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
   const sday=r.day||today();
   if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');

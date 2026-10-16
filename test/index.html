@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261016-1340',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261016-1416',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -696,6 +696,36 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .spdesc{font-size:14px;color:var(--muted);margin:4px 0 12px}
 .shopcols-h small{color:var(--muted);font-weight:400}
 .spfoot{padding-top:10px}.spcap{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+/* Достижения v2 (js/achievements.js): только цвета приложения/скина (--card, --card2, --muted, --accent, --accent2), без анимаций */
+#achPage{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;background:var(--bg,#0c2127);padding:calc(10px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom))}
+#achPage[hidden]{display:none}
+#achPage h1{font-size:20px}
+.achv-card{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0 0;text-align:left;color:inherit;font:inherit;border:0;cursor:pointer;min-height:56px}
+.achv-ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.achv-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.achv-name{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.achv-desc{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.achv-sub{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.achv-top{margin-bottom:6px}.achv-score{display:flex;flex-direction:column;gap:2px}.achv-score b{font-size:20px}.achv-score span{font-size:13px;color:var(--muted)}
+.achv-note{margin-top:8px;font-size:13px;color:var(--muted)}
+.achv-lbl{margin:14px 0 6px;font-size:13px;font-weight:600;color:var(--muted)}
+.achv-hint{font-size:12px;color:var(--muted);margin-top:6px}
+.achv-chips{display:flex;flex-wrap:wrap;gap:6px}
+.achv-chip{min-height:36px;max-width:100%;padding:6px 12px;border-radius:99px;border:1px solid var(--card2);background:var(--card);color:inherit;font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:4px;overflow-wrap:anywhere;text-align:left}
+.achv-chip small{color:var(--muted);font-size:11px}
+.achv-chip.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.achv-chip[disabled]{color:var(--muted);opacity:.85}
+.achv-secs{margin:16px 0 10px}
+.achv-tile{display:flex;gap:12px;padding:12px;border-radius:14px;background:var(--card);margin-bottom:8px}
+.achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
+.achv-tile .pbar{margin-top:6px}
+#sumAch{margin:8px 0;font-size:14px;line-height:1.5}#sumAch div{display:flex;align-items:center;gap:6px}#sumAch .ic{flex:none;color:var(--accent2)}#sumAch .more{color:var(--muted);padding-left:20px}
+#avatarFrame.achf-frame250{outline:2px solid var(--muted);outline-offset:3px}
+#avatarFrame.achf-frame500{outline:4px double var(--accent);outline-offset:3px}
+#avatarFrame.achf-frame1000{outline:3px solid var(--accent);outline-offset:3px}
+#avatarFrame.achf-frame2000{outline:3px solid var(--accent2);outline-offset:3px}
+#avatarFrame.achf-frame3500{outline:6px double var(--accent2);outline-offset:3px}
+#avatarFrame.achf-frameSecret{outline:2px dashed var(--accent2);outline-offset:4px}
 #shopDetail[hidden],#shopConfirm[hidden],#shopDetailScrim[hidden],#shopConfirmScrim[hidden]{display:none}
 #shopConfirm{position:fixed;left:24px;right:24px;top:50%;transform:translateY(-50%);z-index:99;background:var(--sheet);border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
 #scTitle{font-size:19px;font-weight:700;line-height:1.3}
@@ -1068,6 +1098,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
         <div class="avatarframe" id="avatarFrame"><div class="avatar" id="avatar">📖</div><div class="gearlayer" id="gearLayer"></div><span class="pc-ava pc-only"><svg class="ic" width="34" height="34" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg></span></div>
         <div class="herobars">
           <b id="pName">Читатель</b>
+          <div class="lvl" id="pAchTitle" hidden></div>
           <div class="lvl" id="pLvl">Уровень 1</div>
           <div class="barline mvp-full"><span class="barlbl" title="Здоровье">❤️</span><div class="statbar hp"><i id="hpFill"></i></div><span class="barnum" id="hpTxt">50 / 50</span></div>
           <div class="barline"><span class="barlbl" title="Опыт"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg></span><div class="statbar xp"><i id="xpFill"></i></div><span class="barnum" id="xpTxt2">0%</span></div>
@@ -1079,6 +1110,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div id="avaPal" class="emojigrid hidden mvp-full"></div>
       <button class="ghostbtn mvp-hide" id="btnHeroCreate" style="margin-top:12px;width:100%"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Создать героя</button>
     </div>
+    <button type="button" class="pcard achv-card hidden" id="achCard" onclick="openAchPage()"><span class="achv-ic"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg></span><span class="achv-txt"><span class="achv-name">Достижения</span><span class="achv-sub"><span id="achCardNum"></span> · <span id="achCardPts"></span></span></span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
 
     <div id="mvpProfileBlock">
       <div class="kpis" style="margin-top:12px">
@@ -1350,6 +1382,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
 
 <div id="shopDetailScrim" hidden onclick="closeShopDetail()"></div>
 <div id="shopDetail" role="dialog" aria-label="Скин" hidden></div>
+<div id="achPage" role="dialog" aria-label="Достижения" hidden><div class="sphead"><button type="button" class="menubtn" onclick="achBack()" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Достижения</h1></div><div class="spbody" id="achBody"></div></div>
 <div id="shopConfirmScrim" hidden onclick="shopConfirmClose()"></div>
 <div id="shopConfirm" role="alertdialog" aria-modal="true" hidden><div id="scTitle"></div><div id="scText"></div>
   <div class="scRow"><button type="button" class="ghostbtn scCancel" onclick="shopConfirmClose()">Отмена</button><button type="button" class="buy scOk" onclick="shopConfirmOk()">Купить</button></div></div>
@@ -1487,31 +1520,34 @@ body:has(#reader:not(.hidden)) #rqTestBanner{height:3px!important;font-size:0!im
       <div id="sumQuestGold" class="hidden"></div>
     </div>
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
+    <div id="sumAch" class="hidden"></div>
     <div id="sumBadges"></div>
     <div class="flame" id="sumStreak"></div>
     <button class="cta" id="btnDone">В библиотеку</button>
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261016-1340"></script>
-<script src="js/books-builtin.js?v=20261016-1340"></script>
-<script src="js/core-b.js?v=20261016-1340"></script>
-<script src="js/library.js?v=20261016-1340"></script>
-<script src="js/reader.js?v=20261016-1340"></script>
-<script src="js/pdf.js?v=20261016-1340"></script>
-<script src="js/reader-ui.js?v=20261016-1340"></script>
-<script src="js/rpg.js?v=20261016-1340"></script>
-<script src="js/content.js?v=20261016-1340"></script>
-<script src="js/settings.js?v=20261016-1340"></script>
-<script src="js/v6-extras.js?v=20261016-1340"></script>
-<script src="js/start.js?v=20261016-1340"></script>
+<script src="js/core-a.js?v=20261016-1416"></script>
+<script src="js/books-builtin.js?v=20261016-1416"></script>
+<script src="js/core-b.js?v=20261016-1416"></script>
+<script src="js/library.js?v=20261016-1416"></script>
+<script src="js/reader.js?v=20261016-1416"></script>
+<script src="js/pdf.js?v=20261016-1416"></script>
+<script src="js/reader-ui.js?v=20261016-1416"></script>
+<script src="js/rpg.js?v=20261016-1416"></script>
+<script src="js/content.js?v=20261016-1416"></script>
+<script src="js/settings.js?v=20261016-1416"></script>
+<script src="js/v6-extras.js?v=20261016-1416"></script>
+<script src="js/ach-core.js?v=20261016-1416"></script>
+<script src="js/achievements.js?v=20261016-1416"></script>
+<script src="js/start.js?v=20261016-1416"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261016-1340"></script>
+<script src="js/pwa-lock.js?v=20261016-1416"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1519,9 +1555,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261016-1340';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261016-1340';
-import * as game from './game-awards.js?v=20261016-1340';
+} from './storage/index.js?v=20261016-1416';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261016-1416';
+import * as game from './game-awards.js?v=20261016-1416';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

@@ -287,6 +287,7 @@ function renderProfile(){
   renderTalents();
   renderEquip();
   renderMvpProfile();
+  try{if(typeof achProfile==='function')achProfile();}catch(e){console.warn('[rq] achievements',e);}
   applyMvpChrome();
 }
 el('goalMinus').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderLibrary();};

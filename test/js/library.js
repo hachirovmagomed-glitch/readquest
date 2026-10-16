@@ -356,7 +356,7 @@ async function importBookFile(f,setBusy){
     await __rq.upsertUserBook(null,b,{text:b.text});
   }
   S.userBooks.push(b);
-  if(!S.badges.includes('collector'))S.badges.push('collector');
+  if(!(typeof achV2==='function'&&achV2())&&!S.badges.includes('collector'))S.badges.push('collector'); /* v2: «Коллекционер» needs 10 min in the book */
   save();
   return b;
 }

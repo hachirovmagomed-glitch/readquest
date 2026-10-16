@@ -222,11 +222,11 @@ function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)
 /* --- поиск и фильтры библиотеки --- */
 let LIB={q:'',f:'all',author:null,sort:'recent'};
 el('libSearch').oninput=e=>{LIB.q=e.target.value.toLowerCase().trim();renderLibrary();};
-/* balance: «N монет»; if the header overflows or the title is squeezed, the number alone */
+/* balance: «N монет»; if the header overflows, the number alone */
 function libGoldRender(){const c=el('goldChip');if(!c)return;const g=goldDisp();c.textContent=coinsP(g);
-  const h=el('libHead'),t=el('libTitle');if(h&&h.offsetParent&&(h.scrollWidth>h.clientWidth+1||(t&&t.scrollWidth>t.clientWidth+1)))c.textContent=String(g);} /* title squeezed (wide skin fonts, coin icon) counts as overflow too */
+  const h=el('libHead');if(h&&h.offsetParent&&h.scrollWidth>h.clientWidth+1)c.textContent=String(g);} /* only a real header overflow; a squeezed title is the skin's job (16.10: «104» bare on other fonts) */
 addEventListener('resize',function(){if(!el('library').classList.contains('hidden'))libGoldRender();});
-if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',function(){libGoldRender();}); /* skin fonts arrive later and widen the title */
+if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',function(){libGoldRender();}); /* skin fonts arrive later and widen the header */
 /* sort (15.10): NS_set.libSort = string id from LIB_SORTS. Read is forgiving and never writes; a DIFFERENT pick → one gated saveSet
    (rqSaveSetGated: deferred until __rqReady, only if the gate allows). Opening / closing / re-picking the current one writes nothing. */
 const LIB_SORTS=[{k:'recent',t:'Недавние'},{k:'title',t:'По названию'},{k:'progress',t:'По прогрессу'}];

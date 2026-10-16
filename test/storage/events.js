@@ -4,9 +4,9 @@
  * Do NOT invent separate DBs for focus / anti-cheat — those are rules on top of events.
  * Do NOT put analytics into sessions[] — sessions stay reading-only.
  */
-import { IDB_STORE_EVENTS } from './schema.js?v=20261017-0001';
-import { openDb } from './idb.js?v=20261017-0001';
-import { normalizeDate } from './sessions.js?v=20261017-0001';
+import { IDB_STORE_EVENTS } from './schema.js?v=20261017-0031';
+import { openDb } from './idb.js?v=20261017-0031';
+import { normalizeDate } from './sessions.js?v=20261017-0031';
 
 async function addEvent(rec) {
   const db = await openDb();

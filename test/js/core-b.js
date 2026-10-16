@@ -89,7 +89,7 @@ const FONTS=[
  {label:'Verdana',v:'Verdana,Geneva,sans-serif'},
  {label:'Trebuchet',v:'"Trebuchet MS",sans-serif'},
  {label:'Tahoma',v:'Tahoma,sans-serif'},
- {label:'Comic',v:'"Comic Sans MS","Segoe UI",cursive'},
+ {label:'Comic',v:'"Comic Sans MS","Comic Neue","Segoe UI",system-ui,sans-serif'}, /* 16.10: no «cursive» — on Android it is a Latin-only face: punctuation from it, Cyrillic from another font */
  {label:'Mono',v:'"Courier New",monospace'}
 ];
 

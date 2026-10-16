@@ -57,6 +57,7 @@ window.__rqStart=async function(api, tracker){
   /* old «Забрать» claims (incl. a UTC-day claim of today) → paid lists, once */
   if(window.__rqGame&&window.__rqGame.migrateClaimedToPaid(S,Date.now()))save();
   if(isMvp()&&!noLocks){const br=awardPendingSessions();__bootGold=br.gold||0;} /* recovered session: paid now, silently */
+  try{if(typeof achRun==='function')achRun();}catch(e){console.warn('[rq] achievements',e);} /* v2: history → achDates, silently (first pass = achSeed) */
   if(noLocks){
     document.body.classList.add('rq-nolocks'); /* quiet line in the reader */
     if(!window.__rqNoLocksLogged&&api.logAnalyticsEvent){window.__rqNoLocksLogged=true;api.logAnalyticsEvent({type:'no_locks'}).catch(function(e){console.warn('[rq] no_locks',e);});}

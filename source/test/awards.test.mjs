@@ -13,7 +13,7 @@ const game = () => ({ xp: 0, gold: 0, awardedSessionIds: [] });
 { const g = game(), rows = [], xs = [];
   for (const r of [row(0.9, 0), row(0.9, 5), row(0.9, 10)]) { rows.push(r); const a = G.applySessionAwards(g, rows); xs.push(a.byId[r.id]); }
   ok('0.9+0.9+0.9 → per session 0, 10, 10; total +20 XP; stored in row.xp', JSON.stringify(xs) === '[0,10,10]' && g.xp === 20 && rows.every((r, i) => r.xp === xs[i]), { xs, xp: g.xp });
-  ok('… dayMinutes = 2 («2 / 10», streak threshold 2 reached)', G.dayMinutes(rows, D) === 2, G.dayMinutes(rows, D));
+  ok('… dayMinutes = 2 («2 / 10», below the streak floor 3)', G.dayMinutes(rows, D) === 2, G.dayMinutes(rows, D));
   const again = G.applySessionAwards(g, rows);
   ok('… second award pass pays nothing (once per sessionId)', again.xp === 0 && g.xp === 20, again);
 }

@@ -11,7 +11,8 @@ play pause timer clock search highlighter target flame trophy medal star gift sh
 archive clipboard copy file-text rotate-cw languages compass sparkles shield heart moon sun focus arrow-left chevron-right
 chevron-left bookmark info circle-alert download zoom-in vibrate smartphone check minus plus user-round lock
 align-justify book-marked circle circle-check
-pin circle-minus circle-plus chevron-up share-2 trash-2 image folder'''.split()
+pin circle-minus circle-plus chevron-up share-2 trash-2 image folder
+map castle scroll-text'''.split()
 out = []
 for n in NAMES:
     p = os.path.join(HAND, n + '.svg')

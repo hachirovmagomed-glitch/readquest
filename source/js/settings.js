@@ -31,6 +31,9 @@ function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}}
 }
 /* «Размер интерфейса» removed (Маня 07.10 / 15.10): the UI adapts to the phone by itself. A stored S.ux.scale is kept but ignored. */
 function applyScale(){document.body.style.zoom='';}
+/* «Анимации» (S.ux.anim) — wave 2: off → html.rq-still (CSS kills animations/transitions); prefers-reduced-motion counts the same */
+function rqStill(){try{if(S&&S.ux&&S.ux.anim===false)return true;return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function applyMotion(){document.documentElement.classList.toggle('rq-still',!!(S&&S.ux&&S.ux.anim===false));}
 
 /* ================= НАСТРОЙКИ ================= */
 /** 1в: «Вкл/Выкл» buttons drawn as switches (.sw) — state mirrored to aria-checked, labels stay for screen readers / tests */
@@ -94,7 +97,7 @@ function renderSettings(){
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
 el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
-el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();renderSettings();};
+el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();applyMotion();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};
 let wakeRef=null;

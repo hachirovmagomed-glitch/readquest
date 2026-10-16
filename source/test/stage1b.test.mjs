@@ -579,7 +579,7 @@ if (want('pospct')) {
     const sort0 = SET.libSort; show('library'); SET.libSort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
     const cards = [...document.querySelectorAll('#shelf .bookcard')]; const ci = t => cards.findIndex(c => c.querySelector('.btitle').textContent.includes(t));
     const cardA = cards[ci(A.title)].querySelector('.bpct').textContent;
-    bookInfo(A.id); const info = (document.getElementById('bookSheetBody').textContent.match(/Прогресс:\s*([^·]+)/) || [])[1];
+    bookInfo(A.id); const info = (document.querySelector('#bookSheetBody [data-rq="pct"]') || {}).textContent; /* book card redesign: progress value lives in [data-rq=pct] */
     let shared = null; const ns = navigator.share; navigator.share = (o) => { shared = o.text; return Promise.resolve(); }; shareBook(A.id); navigator.share = ns;
     SET.libSort = sort0; renderLibrary();
     return { cardA, info: info && info.trim(), shared, iA: ci(A.title), iB: ci(B.title), finished: S.finished.includes(A.id) };

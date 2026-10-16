@@ -291,7 +291,7 @@ function pdfSingleTap(x,y){
   const zoomed=P.z>1.01; /* contract 1б: zoomed PDF — no top corners, the centre does not leave focus */
   const inv=flipGet().invert?-1:1;
   if(z==='tl'){if(zoomed)return;toggleDayNight();return;}
-  if(z==='tr'){if(zoomed)return;addBookmark();return;}
+  if(z==='tr'){if(zoomed)return;cornerTR();return;}
   if(z==='l'){fsResume();pdfFlip(-inv);}
   else if(z==='r'){fsResume();pdfFlip(inv);}
   else if(!(zoomed&&isFocusOn()))toggleChrome(); /* same as text: one centre tap = bars + leave fullscreen (+ focus) */
@@ -687,7 +687,7 @@ function viewerTap(cx,cy){
   const z=tapZone(x,y);
   const inv=flipGet().invert?-1:1;
   if(z==='tl'){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra); фокус не трогает
-  if(z==='tr'){addBookmark();return;}      // угол: закладка; фокус не трогает
+  if(z==='tr'){cornerTR();return;}      // угол: закладка; фокус не трогает
   if(z==='l'){fsResume();goPage(R.page-1*inv,true);}
   else if(z==='r'){fsResume();goPage(R.page+1*inv,true);}
   else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen (and focus); next centre tap hides both

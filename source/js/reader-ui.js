@@ -149,6 +149,9 @@ function addBookmark(){
   save();
   flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
+/* top-right corner tap: bookmark. While read-aloud is on (Джессика 16.10) the bars hide after a few seconds and the finger goes
+   to where «Слушать» was — that tap shows the bars (so the pause button can be pressed) instead of dropping a bookmark. */
+function cornerTR(){if(ttsOn||speaking){const r=el('reader');if(r&&r.classList.contains('barsoff')){revealChrome();return;}}addBookmark();}
 /* toast icons: rqIcon() (js/core-a.js, one Lucide sprite in app.html) */
 /* legacy calls without {kind}: game wording ⇒ game */
 const RQ_GAME_RE=/XP|🪙|монет|босс|квест|талант|золот|награда|Удача|питом|опыт/i;

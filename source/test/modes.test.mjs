@@ -171,6 +171,58 @@ if (want('tts')) {
   await ctx.close();
 }
 
+/* ttslook (Джессика 16.10, видео): the «on» state must not repaint the button. Old: solid --accent disc, white icon; in «Эллада»
+   the disc and the icon were the same blue → an empty circle. Now: same icon colour as «off», only a faint backdrop; icon ≥ 3:1 on the header. */
+if (want('ttslook')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  await p.evaluate(() => { S.gold = 900; save(); buy('skin-ellada'); window.speechSynthesis.speak = function () {}; });
+  const keys = await p.evaluate(() => Object.keys(THEMES).concat(['ellada', 'ellada-night']));
+  for (const k of keys) {
+    const r = await p.evaluate(async (k) => {
+      if (k.startsWith('ellada')) wear('skin-ellada'); else if (document.documentElement.dataset.skin === 'ellada') wear(null);
+      SET.theme = k; SET.cBg = null; SET.cTxt = null; saveSet(); applySet(); revealChrome(); await new Promise(r => setTimeout(r, 150));
+      const b = document.getElementById('btnTts'), head = document.querySelector('#reader .rhead');
+      const rgba = (c) => { const m = String(c).match(/[\d.]+/g) || []; const srgb = /color\(srgb/.test(c); const v = m.map(Number); const [r, g, bl] = srgb ? v.slice(0, 3).map(x => x * 255) : v.slice(0, 3); return { r, g, b: bl, a: v.length > 3 ? v[3] : 1 }; };
+      const lum = (c) => { const f = (x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+      const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+      const icOff = getComputedStyle(b.querySelector('.ic')).color;
+      jumpTo(0); b.click(); /* from the start: a pass near the end would finish the book and stop at once */ await new Promise(r => setTimeout(r, 150));
+      const icOn = getComputedStyle(b.querySelector('.ic')).color, bg = rgba(getComputedStyle(b).backgroundColor), hb = rgba(getComputedStyle(head).backgroundColor);
+      const mix = { r: bg.r * bg.a + hb.r * (1 - bg.a), g: bg.g * bg.a + hb.g * (1 - bg.a), b: bg.b * bg.a + hb.b * (1 - bg.a) };
+      const out = { k, skin: document.documentElement.dataset.skin || '', icOff, icOn, bgA: bg.a, cr: +cr(rgba(icOn), mix).toFixed(2), on: b.classList.contains('on') };
+      b.click(); await new Promise(r => setTimeout(r, 100));
+      return out;
+    }, k);
+    ok('ttslook ' + k + ': listening keeps the icon colour, faint backdrop (alpha ≤ 0.25), icon ≥ 3:1', r.on && r.icOn === r.icOff && r.bgA <= 0.25 && r.cr >= 3, r);
+  }
+  await ctx.close();
+}
+
+/* ttscorner (Джессика 16.10, видео): while listening the bars hide after a few seconds; a tap where «Слушать» was (top-right corner)
+   must bring the bars back so the button can be pressed, not drop a bookmark. Not listening → the corner still bookmarks. */
+if (want('ttscorner')) {
+  const { ctx, p } = await fresh();
+  const bk = await openLong(p);
+  const r = await p.evaluate(async (id) => {
+    window.speechSynthesis.speak = function () {};
+    const v = document.getElementById('viewer'), rd = document.getElementById('reader'), vr = v.getBoundingClientRect();
+    const tr = () => viewerTap(vr.left + vr.width * 0.9, vr.top + vr.height * 0.05);
+    const n = () => (S.marks[id] || []).length;
+    /* headless refuses fullscreen and shows the bars again, so the «hidden bars» state is set by hand after that settles */
+    const hide = async () => { await new Promise(r => setTimeout(r, 100)); rd.classList.add('barsoff'); };
+    revealChrome(); document.getElementById('btnTts').click(); await hide();
+    const m0 = n(); tr(); await new Promise(r => setTimeout(r, 100));
+    const listen = { on: ttsOn, marks: n() - m0, bars: !rd.classList.contains('barsoff') };
+    document.getElementById('btnTts').click(); await hide();
+    const m1 = n(); tr(); await new Promise(r => setTimeout(r, 100));
+    return { listen, idle: { marks: n() - m1 } };
+  }, bk.id);
+  ok('ttscorner: listening → top-right tap shows the bars, no bookmark', r.listen.marks === 0 && r.listen.bars, r);
+  ok('ttscorner: not listening → top-right tap still bookmarks', r.idle.marks === 1, r);
+  await ctx.close();
+}
+
 /* sheet: every tab of «Настройки чтения» uses three control kinds only — stepper, segmented choice, switch; nothing wider than the sheet at 360/390 */
 if (want('sheet')) {
   for (const w of [360, 390]) {

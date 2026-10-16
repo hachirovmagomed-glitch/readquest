@@ -889,9 +889,9 @@ html[data-skin="pencil"] #sheet .rstep,html[data-skin="pencil"] #sheet .rseg,htm
 html[data-skin="pencil"] #sheet .rseg button.on{background:var(--rq-accent);color:var(--rq-on-accent)}
 html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::before{background:var(--rq-accent);border-color:var(--rq-accent)}
 html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(--rq-surface)}
-/* read-aloud on: highlighted pause (16.10) */
-.rhead #btnTts.on{background:var(--accent);color:#fff;border-radius:50%}
-html[data-skin="pencil"] .rhead #btnTts.on{background:var(--rq-accent);color:var(--rq-on-accent)}
+/* read-aloud on: pause icon on a faint backdrop of the header's own colour (16.10). No filled accent disc: in skins the icon
+   is the accent colour, so a disc of the same accent hid it («Эллада»); the icon keeps the colour it has when off. */
+.rhead #btnTts.on{background:color-mix(in srgb,currentColor 16%,transparent);border-radius:50%}
 /* bars appear smoothly (16.10): only while .barsin is on, never with reduced motion */
 @media (prefers-reduced-motion:no-preference){
 #reader.barsin .rhead{animation:rqBarTop .22s cubic-bezier(.2,.7,.3,1) both}

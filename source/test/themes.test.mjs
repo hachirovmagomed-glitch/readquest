@@ -42,7 +42,7 @@ ok('Карандашный day: SET/rq_set = pencil, #reader data-skin=pencil, f
 { const ev = await p.evaluate(async () => (await __rq.listReadingEvents({})).filter(e => e.type === 'theme_changed').map(e => e.from + '>' + e.to));
   ok('switching to Карандашный writes ONE theme_changed default>pencil', ev.join() === 'default>pencil', ev); }
 ok('pencil icons load: no runtime SVG filter on the Lucide strokes (it blanked icons on phones)', s.icFilter === 'none', s.icFilter);
-{ const ic = await p.evaluate(() => { const vis = [...document.querySelectorAll('.ic')].filter(e => e.getClientRects().length); return { n: vis.length, drawn: vis.filter(e => { const r = e.getBoundingClientRect(); return r.width >= 12 && r.height >= 12 && getComputedStyle(e).visibility !== 'hidden' && getComputedStyle(e).opacity !== '0'; }).length }; });
+{ const ic = await p.evaluate(() => { const vis = [...document.querySelectorAll('.ic')].filter(e => e.getClientRects().length && !e.closest('#rewardsSheet:not(.open)')); /* closed sheet is visibility:hidden since 16.10 — not on screen */ return { n: vis.length, drawn: vis.filter(e => { const r = e.getBoundingClientRect(); return r.width >= 12 && r.height >= 12 && getComputedStyle(e).visibility !== 'hidden' && getComputedStyle(e).opacity !== '0'; }).length }; });
   ok('pencil: every visible Lucide icon is drawn (≥12 px, visible)', ic.n >= 5 && ic.drawn === ic.n, ic); }
 { const d = await p.evaluate(() => getComputedStyle(document.querySelector('#reader .rbar'), '::before').content);
   ok('pencil: no wobbly divider above the bottom toolbar (.rbar::before none)', d === 'none' || d === 'normal', d); }
@@ -93,10 +93,10 @@ await p.evaluate(() => toggleDayNight()); await sleep(300); s = await st();
 ok('day/night from an owned paid theme → sepia (user pick)', s.theme === 'sepia', s);
 await p.evaluate(() => closeReader()); await sleep(500);
 
-// 6. saved paid theme, NOT owned → base theme rendered, rq_set untouched until the user picks
+// 6. saved old theme, NOT owned → still renders (free since the shop build), rq_set untouched until the user picks
 await p.evaluate(() => { S.owned = (S.owned || []).filter(x => x !== 'kraft'); save(); SET.theme = 'kraft'; saveSet(); });
 await p.reload({ waitUntil: 'load' }); await boot(); await open(); await sheet(true); s = await st();
-ok('not owned: base sepia rendered (page #f4ecd8, data-page sepia), no «Ваша тема», no swatch on', s.bg === 'rgb(244, 236, 216)' && s.page === 'sepia' && !s.yours.length && s.sw.length === 5 && !s.on.length, s);
+ok('not owned (shop build 14.10: old themes are free): kraft rendered (page #e8d9b5) as highlighted «Ваша тема»', s.bg === 'rgb(232, 217, 181)' && s.yours.join() === 'kraft' && s.sw.length === 6 && s.on.join() === 'kraft', s);
 await p.evaluate(() => el('szPlus').click()); await sleep(500); await p.evaluate(() => closeReader()); await sleep(500);
 s = await st();
 ok('not owned: rq_set still kraft after other setting changes / closing the book', s.theme === 'kraft' && s.ls === 'kraft', { theme: s.theme, ls: s.ls });

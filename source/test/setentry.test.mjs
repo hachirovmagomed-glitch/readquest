@@ -1,0 +1,21 @@
+// General settings only from the drawer's «Настройки»: no entry on the Profile screen, none in the reader's «Настройки чтения» sheet;
+// reader settings tabs stay; drawer «Настройки» opens general settings.  Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node setentry.test.mjs
+import puppeteer from 'puppeteer-core';
+const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
+const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+const p = await (await browser.createBrowserContext()).newPage(); await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500);
+const prof = await p.evaluate(() => { navGo('profile'); const s = el('profile'); return { btn: !!el('btnMvpSettings'), txt: [...s.querySelectorAll('button')].filter(b => /Настройки/.test(b.textContent)).map(b => b.textContent.trim()) }; });
+ok('profile: no general-settings entry', !prof.btn && prof.txt.length === 0, prof);
+const rd = await p.evaluate(async () => { const b = allBooks()[0]; openBook(b.id); for (let i = 0; i < 50 && !(R.pageCount > 1); i++) await new Promise(r => setTimeout(r, 200)); await new Promise(r => setTimeout(r, 300));
+  const g = el('btnSet') || document.querySelector('#reader [aria-label*="астройк"]'); if (g) g.click(); await new Promise(r => setTimeout(r, 400));
+  const sh = el('sheet'); return { open: !sh.classList.contains('hidden'), gen: !!el('btnGeneral') || /Общие настройки/.test(sh.textContent), tabs: [...sh.querySelectorAll('button')].map(b => b.textContent.trim()).filter(t => /^(Текст|Страница|Листание|Фокус)$/.test(t)) }; });
+ok('reader «Настройки чтения»: no «Общие настройки» row; reading tabs stay', rd.open && !rd.gen && rd.tabs.length >= 3, rd);
+const d = await p.evaluate(async () => { el('sheet').classList.add('hidden'); show('library'); openDrawer(); await new Promise(r => setTimeout(r, 300)); el('dSet').click(); await new Promise(r => setTimeout(r, 300)); return !el('settings').classList.contains('hidden'); });
+ok('drawer «Настройки» opens general settings', d, d);
+ok('no page errors', errs.length === 0, errs);
+const n = checks.filter(Boolean).length; console.log(`SUMMARY setentry.test ${n}/${checks.length}`);
+await browser.close(); process.exit(n === checks.length ? 0 : 1);

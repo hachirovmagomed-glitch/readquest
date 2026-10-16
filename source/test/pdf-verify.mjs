@@ -554,8 +554,11 @@ if (!OLD) {
   ok('(г) bars hide again after 3.2 s and fullscreen comes back (as in 1306)', f2.barsOff && f2.fs, { barsOff: f2.barsOff, fs: f2.fs });
   const tr = await page.evaluate(() => getComputedStyle(document.getElementById('viewer')).touchAction + '|' + getComputedStyle(document.getElementById('pdfWrap')).touchAction);
   ok('(г) visualViewport.scale == 1 after all gestures; touch-action none on the PDF view', f2.vv === 1 && tr === 'none|none', { vv: f2.vv, touchAction: tr });
-  const geo = await page.evaluate(() => { const n = document.getElementById('pgNum'), cs = getComputedStyle(n), r = n.getBoundingClientRect(), d = document.getElementById('dayBar').getBoundingClientRect(); return { text: n.textContent, font: cs.fontSize, op: cs.opacity, vis: cs.visibility, bottom: Math.round(r.bottom), dayTop: Math.round(d.top), right: Math.round(r.right) }; });
-  ok('(в) corner number in PDF: same style as the text reader (11px, opacity .45, above the day bar, right side)', geo.font === '11px' && Math.abs(+geo.op - 0.45) < 0.01 && geo.vis === 'visible' && geo.bottom <= geo.dayTop + 0.5 && geo.right > 300, geo);
+  const geo = await page.evaluate(() => { const n = document.getElementById('pgNum'), cs = getComputedStyle(n), r = n.getBoundingClientRect(), d = document.getElementById('dayBar').getBoundingClientRect();
+    const pr = document.createElement('i'); pr.style.color = 'var(--r-txt-2)'; document.getElementById('reader').appendChild(pr); const tok = getComputedStyle(pr).color; pr.remove();
+    return { text: n.textContent, font: cs.fontSize, op: cs.opacity, color: cs.color, tok, vis: cs.visibility, bottom: Math.round(r.bottom), dayTop: Math.round(d.top), right: Math.round(r.right) }; });
+  /* audit 15.10 (Маня): muted = page token --r-txt-2 (≥ 4.5), opacity 1 — was opacity .45 (2.1–3.4) */
+  ok('(в) corner number in PDF: same style as the text reader (11px, token --r-txt-2, opacity 1, above the day bar, right side)', geo.font === '11px' && geo.op === '1' && geo.color === geo.tok && geo.vis === 'visible' && geo.bottom <= geo.dayTop + 0.5 && geo.right > 300, geo);
   await page.screenshot({ path: `${OUT}/pdf-reading-state.png` });
   // pinch hint «150%»
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: X(0.4), y: Y(0.5), id: 0 }, { x: X(0.6), y: Y(0.5), id: 1 }] });

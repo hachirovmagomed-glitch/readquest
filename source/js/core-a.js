@@ -31,7 +31,7 @@ function mvpEnforce(){
   if(!S.anti||typeof S.anti!=='object'){S.anti={minSec:12,maxMin:3,v:2};ch=true;}
   if(S.anti.minSec!==MVP_ANTI.minSec){S.anti.minSec=MVP_ANTI.minSec;ch=true;}
   if(S.anti.maxMin!==MVP_ANTI.maxMin){S.anti.maxMin=MVP_ANTI.maxMin;ch=true;}
-  if(S.devMoney!==false){S.devMoney=false;ch=true;}
+  if(S.devMoney!==false){S.devMoney=false;ch=true;} /* field kept (contract: old fields are never deleted), ∞ money is gone */
   return ch;
 }
 /* ?dev=1 shows the MVP switch and «Тест-режим» (body.dev; .dev-only is hidden otherwise) */
@@ -43,8 +43,13 @@ function applyMvpChrome(){
   if(bn){
     const onLib=!el('library').classList.contains('hidden');
     const onProf=!el('profile').classList.contains('hidden');
-    if(el('bnLib'))el('bnLib').classList.toggle('on', onLib||(!onProf&&isMvp()));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', onProf);
+    const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
+    const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
+    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
+    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
+    if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
+    bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
+      const scr={quests:'quests',notes:'quotes',vocab:'vocab',stats:'stats'}[id];b.classList.toggle('on',!onRew&&!!scr&&!!el(scr)&&!el(scr).classList.contains('hidden'));});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -99,8 +104,9 @@ function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today
 function mvpDailyProg(day){const g=goalMin();return Math.min(1,dayMin(day||today())/g);}
 /** ONE function for whole counted minutes of a day (summary, quests, reader counter «7 / 10 мин»). */
 function dayMinFloor(day,live){return Math.floor(dayMin(day||today(),live));}
-/** Streak threshold (Boss/Product): a day keeps the streak at ≥ 2 counted minutes. atRisk + hint use the same number. */
-const STREAK_MIN=2;
+/** Streak soft floor (Маня 15.10: 3 min, was 2): a day keeps the streak at ≥ 3 counted minutes; the daily goal (10) is separate.
+    atRisk + hint use the same number. */
+const STREAK_MIN=3;
 function streakAtRisk(day){const k=day||today();const m=isMvp()?dayMin(k):(((S.hist||{})[k]||{}).min||0);return S.streak>0&&m<STREAK_MIN;}
 function mvpDailyInfo(day,live){return dayMinFloor(day,live)+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
 function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(1,w.count/4);}
@@ -111,10 +117,10 @@ function renderMvpQuests(){
   const dDone=dailyPaid(), dP=dDone?1:mvpDailyProg();
   const wDone=weeklyPaid(), wP=wDone?1:mvpWeeklyProg();
   box.innerHTML=
-    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px">'+rqIcon('coins',14)+'<span>Ежедневка +'+coinsP(30)+'</span></span><div class="spacer"></div>'+
+    '<div class="pcard mvp-quest" id="mvpDailyCard"><div class="row"><span style="font-size:14px"><span>Ежедневка +'+coinsP(30)+'</span></span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+(dDone?'✓ выполнено сегодня':mvpDailyInfo())+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(dP*100)+'%"></i></div></div>'+
-    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px">'+rqIcon('coins',14)+'<span>Неделя +'+coinsP(120)+'</span></span><div class="spacer"></div>'+
+    '<div class="pcard mvp-quest" id="mvpWeeklyCard"><div class="row"><span style="font-size:14px"><span>Неделя +'+coinsP(120)+'</span></span><div class="spacer"></div>'+
       '<span class="chip" style="white-space:nowrap">'+mvpWeeklyInfo()+'</span>'+
     '</div><div class="pbar"><i style="width:'+Math.round(wP*100)+'%"></i></div>'+
       '<div class="mvp-qsub">'+(wDone?'✓ неделя выполнена':('4 дня по '+goalMin()+' мин за пн–вс'))+'</div></div>';
@@ -131,15 +137,26 @@ function clearConfetti(){
 function clearToasts(){
   document.querySelectorAll('.rq-toast').forEach(function(n){try{n.remove();}catch(e){}});
 }
-function openRewardsSheet(){
+let rewTab='life';
+function setRewardsTab(t){rewTab=t==='shop'?'shop':'life';
+  if(rewTab!=='shop')try{closeShopDetail();}catch(e){}
+  [['life','rewTabLife','rewPaneLife'],['shop','rewTabShop','rewPaneShop']].forEach(function(x){const on=x[0]===rewTab,b=el(x[1]),p=el(x[2]);
+    if(b){b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');}if(p)p.hidden=!on;});
+  renderRewardsSheet();}
+function openRewardsSheet(tab){
+  if(tab)rewTab=tab==='shop'?'shop':'life';
   clearConfetti();clearToasts();
-  renderRewardsSheet();
+  setRewardsTab(rewTab);
+  {const rs=el('rewardsSheet'),nh=(typeof rqNavH==='function'?rqNavH():0);rs.style.bottom=nh+'px';rs.scrollTop=0;el('rewardsScrim').style.bottom=nh+'px';} /* scrim stops above the bottom nav: tabs stay tappable */
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
+  applyMvpChrome(); /* bottom nav: «Награды» selected */
 }
 function closeRewardsSheet(){
+  try{closeShopDetail();}catch(e){} /* примерка ends when the shop closes */
   el('rewardsSheet').classList.remove('open');
   el('rewardsScrim').classList.add('hidden');
+  applyMvpChrome();
 }
 function ensureMvpRewards(){
   if(!S.rewards||!S.rewards.length){
@@ -157,7 +174,8 @@ function ensureMvpRewards(){
 }
 function renderRewardsSheet(){
   ensureMvpRewards();
-  if(el('rewGoldChip')){el('rewGoldChip').innerHTML=rqIcon('coins',16)+'<span></span>';el('rewGoldChip').lastChild.textContent=coinsP(goldDisp());}
+  if(el('rewBalance'))el('rewBalance').textContent=coinsP(S.gold); /* one balance for both tabs, text only */
+  try{renderShopPane();}catch(e){console.warn('[rq] shop',e);}
   const box=el('rewSlots');if(!box)return;
   box.innerHTML=S.rewards.map(function(r,i){
     const label=r.name&&r.name.trim()?esc(r.name):(r.placeholder?'Назови награду…':'Без названия');
@@ -167,7 +185,7 @@ function renderRewardsSheet(){
     return '<div class="pcard" style="margin-bottom:10px">'+
       '<div class="row" style="gap:8px;align-items:center">'+
         '<input class="searchinp" style="flex:1;margin:0" value="'+esc(r.name||'')+'" placeholder="Название" onchange="renameRewardSlot('+i+',this.value)">'+
-        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+rqIcon('coins',14)+'<span>'+coinsP(r.cost)+'</span></button>'+
+        '<button class="buy" '+(canAfford(r.cost)&&r.name&&r.name.trim()?'':'disabled')+' onclick="buyRewardTier('+i+')">'+coinsP(r.cost)+'</button>'+
       '</div>'+
       '<div class="tierseg">'+tiers+'</div>'+
       '<div class="row" style="font-size:12px;color:var(--muted)"><span>получено: '+(r.bought||0)+'</span><div class="spacer"></div>'+
@@ -210,3 +228,28 @@ function addRewardSlot(){
   S.rewards.push({name:'',tier:'small',cost:100,bought:0,placeholder:true});save();renderRewardsSheet();
 }
 
+/* Collapsible option list (14.10): one 52px row «label · current value ⌄»; tap expands inline; picking an option applies it and collapses.
+   Open state lives in memory only (RQ_EXP), nothing is written. valueFn reads the current value from the list itself. */
+const RQ_EXP={};
+function rqCollapse(boxId,label,valueFn,rowId,opt){
+  const box=el(boxId);if(!box)return;rowId=rowId||(boxId+'X');box.dataset.xrow=rowId;let row=el(rowId);
+  if(!row){row=document.createElement('button');row.type='button';row.id=rowId;row.className='xrow';row.setAttribute('aria-controls',boxId);
+    box.parentNode.insertBefore(row,box);
+    row.onclick=function(){RQ_EXP[boxId]=!RQ_EXP[boxId];rqCollapseSync(boxId);};
+    box.addEventListener('click',function(e){if(e.target.closest('button')&&RQ_EXP[boxId]){RQ_EXP[boxId]=false;setTimeout(function(){rqCollapseSync(boxId);},0);}});
+    row._label=label;row._val=valueFn;row._opt=opt||{};}
+  rqCollapseSync(boxId);
+}
+function rqCollapseSync(boxId){const box=el(boxId),row=box&&el(box.dataset.xrow||boxId+'X');if(!box||!row)return;const open=!!RQ_EXP[boxId];
+  let v='';try{v=row._val()||'';}catch(e){}
+  const o=row._opt||{};let dot='';try{dot=o.dot?o.dot():'';}catch(e){}
+  const ic=o.icon?rqIcon(o.icon,22):'';let sub='';try{sub=o.sub?o.sub():'';}catch(e){}
+  let di='';try{di=o.dotIcon?o.dotIcon():'';}catch(e){}
+  const dotH=dot?'<span class="xdot'+(di?' xdot-skin':'')+'" aria-hidden="true" style="background:'+dot+'">'+(di?rqIcon(di,14):'')+'</span>':'';
+  const head=o.title?'<span class="xlab"><span class="xt">'+esc(o.title)+'</span>'+(sub?'<span class="xsub">'+esc(sub)+'</span>':'')+'</span>':'';
+  const sample=o.sample?'<span class="xs" aria-hidden="true">'+esc(o.sample)+'</span>':'';
+  /* layout (Интерфейс 14.10): [icon | sample] [title+sub | label] … [dot] value ⌄ */
+  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+'<span class="xv">'+esc(v)+'</span>'+(o.title?'':'')+rqIcon(open?'chevron-up':'chevron-down',20);
+  if(o.title&&dot){row.querySelector('.xv').insertAdjacentHTML('beforebegin',dotH);}
+  try{if(o.font){const ff=o.font();row.querySelector('.xv').style.fontFamily=ff;const xs=row.querySelector('.xs');if(xs)xs.style.fontFamily=ff;}}catch(e){}
+  row.setAttribute('aria-expanded',open?'true':'false');box.hidden=!open;box.classList.add('xlist');}

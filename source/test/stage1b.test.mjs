@@ -1,4 +1,4 @@
-// Stage 1б (Фронт): focus mode + settings contract, jumps, atRisk 2 min, tap zones, pinch plaque, PDF backdrop, PDF night dim.
+// Stage 1б (Фронт): focus mode + settings contract, jumps, atRisk 3 min, tap zones, pinch plaque, PDF backdrop, PDF night dim.
 // Run: RQ_URL=http://127.0.0.1:8811/readquest/ [RQ_SHOTS=/tmp/1b-shots] node stage1b.test.mjs
 import puppeteer from 'puppeteer-core';
 import { fileURLToPath } from 'url';
@@ -126,18 +126,18 @@ if (want('jumpunit')) {
   ok('jump(unit): jumped() credits dwell, no pageTurn; next flip counts', ev.length === 2 && ev[0].via === 'jump' && ev[0].page === 0 && ev[1].via === 'turn' && sn.pageTurns === 1 && sn.turns === 1 && Math.abs(sn.minutes - 1) < 1e-9, { ev, sn });
 }
 
-/* ---------- 3. atRisk = 2 min, same as the streak ---------- */
+/* ---------- 3. atRisk = 3 min, same as the streak (soft floor 3 min, Маня 15.10) ---------- */
 if (want('risk')) {
   const p = await fresh();
   const r = await p.evaluate(() => {
     const k = today(), save = SESS.slice(), s0 = S.streak; S.streak = 3; const out = {};
-    for (const m of [0, 1, 1.4 + 0.5, 2, 2.6]) { SESS.length = 0; if (m) SESS.push({ date: k, minutes: m, bookId: 'x', id: 'r' + m }); out[m] = streakAtRisk(k); }
+    for (const m of [0, 1, 1.4 + 0.5, 2, 2.4 + 0.5, 3, 3.6]) { SESS.length = 0; if (m) SESS.push({ date: k, minutes: m, bookId: 'x', id: 'r' + m }); out[m] = streakAtRisk(k); }
     SESS.length = 0; save.forEach(x => SESS.push(x)); S.streak = s0;
     return { out, STREAK_MIN };
   });
-  ok('risk: atRisk at 0 / 1 / 1.9 min, not at 2 / 2.6 min (STREAK_MIN=2 = streak rule)', r.STREAK_MIN === 2 && r.out[0] && r.out[1] && r.out['1.9'] && !r.out[2] && !r.out['2.6'], r);
+  ok('risk: atRisk at 0 / 1 / 1.9 / 2 / 2.9 min, not at 3 / 3.6 min (STREAK_MIN=3 = streak rule)', r.STREAK_MIN === 3 && r.out[0] && r.out[1] && r.out['1.9'] && r.out[2] && r.out['2.9'] && !r.out[3] && !r.out['3.6'], r);
   const src = fs.readFileSync(new URL('../js/v6-extras.js', import.meta.url), 'utf8');
-  ok('risk: hint text says 2 minutes', src.includes('от 2 минут') && /A streak counts for 2\+ minutes/.test(src));
+  ok('risk: hint text says 3 minutes, no 2-minute text left', src.includes('от 3 минут') && /A streak counts for 3\+ minutes/.test(src) && !src.includes('от 2 минут') && !/streak counts for 2\+/.test(src));
   await p.__ctx.close();
 }
 
@@ -156,20 +156,20 @@ if (want('zones')) {
   ok('zones: top-left 12 % = day/night, focus kept', s.focus && dn === 'night', { s, dn });
   await tap(p, 0.5, 0.05); s = await st(p);
   ok('zones: top-middle = centre (leaves focus)', !s.focus && !s.barsoff, s);
-  await p.evaluate(() => { SET.nav.tap = false; applySet(); }); await sleep(500);
+  await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { tap: false }); applySet(); }); /* 15.10: page-turn settings moved to SET.flip */ await sleep(500);
   await p.evaluate(() => setFocus(true)); await sleep(300);
   const m0 = await p.evaluate(() => (S.marks[R.book.id] || []).length), pg1 = await p.evaluate(() => R.page);
   await tap(p, 0.9, 0.05); s = await st(p);
   const m1 = await p.evaluate(() => (S.marks[R.book.id] || []).length);
-  ok('zones: SET.nav.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
+  ok('zones: SET.flip.tap=false → top-right corner is centre (no bookmark, focus off)', !s.focus && m1 === m0, { s, m0, m1 });
   await p.evaluate(() => setFocus(true)); await sleep(300);
   /* 1в: the tap reveals the bars → the viewer gets shorter → relayout keeps the reading anchor, so the page INDEX
      may change without any flip. «No flip» = no turn counted; the index may only move by the bars relayout (R.anc returns to the pre-focus page). */
   const tb = await p.evaluate(() => ({ turned: R.turned, off: firstOffsetOfPage(R.page) }));
   await tap(p, 0.9, 0.5); s = await st(p);
   const ta = await p.evaluate((o) => ({ turned: R.turned, offPage: pageOfOffset(txtNodes(), o), page: R.page }), tb.off);
-  ok('zones: SET.nav.tap=false → side tap is centre (no flip, focus off)', !s.focus && ta.turned === tb.turned && Math.abs(ta.page - pg1) <= 1, { s, pg1, tb, ta });
-  await p.evaluate(() => { SET.nav.tap = true; SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
+  ok('zones: SET.flip.tap=false → side tap is centre (no flip, focus off)', !s.focus && ta.turned === tb.turned && Math.abs(ta.page - pg1) <= 1, { s, pg1, tb, ta });
+  await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { tap: true }); SET.theme = 'sepia'; applySet(); closeReader(); }); await sleep(800);
   await p.__ctx.close();
   if (fs.existsSync(PDF)) {
     const q = await fresh(PDF);
@@ -230,29 +230,16 @@ if (want('pdfback') && fs.existsSync(PDF)) {
   await q.__ctx.close();
 }
 
-/* ---------- 7. night PDF dim slider ---------- */
+/* ---------- 7. night PDF: no own dim layer (Джессика 16.10, arch.md «SET.pdfDim»: slider and #pdfDim removed; SET.pdfDim kept in the data) ---------- */
 if (want('dim') && fs.existsSync(PDF)) {
   const q = await fresh(PDF);
   await q.evaluate(id => openBook(id), q.__bid); await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(500);
-  const L = () => q.evaluate(() => { const d = document.getElementById('pdfDim'), sh = document.getElementById('pdfSheet'), kids = [...sh.children].map(c => c.id || c.tagName); const cs = getComputedStyle(d);
-    return { disp: cs.display, bg: cs.backgroundColor, pe: cs.pointerEvents, order: kids, val: document.getElementById('pdfDimVal').textContent, hint: getComputedStyle(document.getElementById('pdfDimHint')).display }; });
-  let a = await L();
-  ok('dim: day — layer off, slider hint «работает в ночной теме» visible', a.disp === 'none' && a.hint !== 'none' && a.val === '35 %', a);
-  await q.evaluate(() => { SET.theme = 'dark'; applySet(); }); await sleep(150); a = await L();
-  ok('dim: night default 35 %, layer between canvas and text layer, pointer-events none', a.disp === 'block' && a.bg === 'rgba(0, 0, 0, 0.35)' && a.pe === 'none' && a.order.indexOf('CANVAS') < a.order.indexOf('pdfDim') && a.order.indexOf('pdfDim') < a.order.indexOf('pdfText'), a);
-  await q.evaluate(() => { const s = document.getElementById('pdfDimRange'); s.value = 50; s.dispatchEvent(new Event('input')); s.dispatchEvent(new Event('change')); }); await sleep(100); a = await L();
-  const saved = await q.evaluate(() => JSON.parse(localStorage.getItem(RQ_K.set)).pdfDim);
-  ok('dim: slider 50 % → layer .5, saved SET.pdfDim=0.5', a.bg === 'rgba(0, 0, 0, 0.5)' && a.val === '50 %' && saved === 0.5, { a, saved });
-  const rng = await q.evaluate(() => { const s = document.getElementById('pdfDimRange'); return { min: s.min, max: s.max, step: s.step }; });
-  ok('dim: range 0–50, step 5', rng.min === '0' && rng.max === '50' && rng.step === '5', rng);
-  await q.evaluate(() => { revealChrome(); document.getElementById('sheet').classList.remove('hidden'); openSetTab('grpPage'); }); await sleep(400); /* 1в: PDF dimming lives in the «Страница» tab */
-  const row = await q.evaluate(() => { const l = document.querySelector('#pdfDimRow label'), r = document.getElementById('pdfDimRange'), lr = l.getBoundingClientRect(); return { oneLine: l.scrollWidth <= l.clientWidth + 1 && l.textContent === 'Затемнение PDF' && getComputedStyle(l).textOverflow !== 'ellipsis' && getComputedStyle(l).whiteSpace === 'normal', h: lr.height, accent: getComputedStyle(r).accentColor, rh: r.getBoundingClientRect().height }; });
-  ok('dim(#5): label «Затемнение PDF» fully visible (wraps, never clipped or ellipsized), thumb #5fb8ae, range hit ≥44 px', row.oneLine && row.accent === 'rgb(95, 184, 174)' && row.rh >= 44, row);
-  await q.screenshot({ path: SHOTS + '/aa-sheet-dim-night.png' });
-  await q.evaluate(() => { SET.theme = 'sepia'; applySet(); }); await sleep(150); await q.screenshot({ path: SHOTS + '/aa-sheet-dim-day.png' });
-  await q.evaluate(() => { document.getElementById('sheet').classList.add('hidden'); SET.theme = 'dark'; applySet(); }); await sleep(150);
-  await q.screenshot({ path: SHOTS + '/pdf-night-dim50.png' });
-  await q.evaluate(() => { SET.theme = 'sepia'; SET.pdfDim = 0.35; saveSet(); closeReader(); }); await sleep(800);
+  await q.evaluate(() => { SET.theme = 'dark'; applySet(); revealChrome(); document.getElementById('sheet').classList.remove('hidden'); openSetTab('grpPage'); }); await sleep(400);
+  const a = await q.evaluate(() => ({ layer: !!document.getElementById('pdfDim'), range: !!document.getElementById('pdfDimRange'), txt: /Затемнение PDF/.test(document.getElementById('sheet').textContent),
+    kids: [...document.getElementById('pdfSheet').children].map(c => c.id || c.tagName), dim: !!document.getElementById('dimRange'), pdfDim: SET.pdfDim }));
+  ok('dim: night PDF — no own dim layer or «Затемнение PDF» slider; canvas then text layer; general «Затемнение» stays; SET.pdfDim kept', !a.layer && !a.range && !a.txt && a.kids.indexOf('CANVAS') < a.kids.indexOf('pdfText') && a.dim && a.pdfDim === 0.35, a);
+  await q.screenshot({ path: SHOTS + '/aa-sheet-page-night.png' });
+  await q.evaluate(() => { document.getElementById('sheet').classList.add('hidden'); SET.theme = 'sepia'; saveSet(); closeReader(); }); await sleep(800);
   await q.__ctx.close();
 }
 
@@ -295,6 +282,8 @@ if (want('banner')) {
     const w = document.createTreeWalker(document.getElementById('content'), NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { const rg = document.createRange(); rg.selectNodeContents(n); for (const q of rg.getClientRects()) if (q.left >= v.left - 1 && q.right <= v.right + 1 && q.height > 4 && (!first || q.top < first.top)) first = q; }
     return { bannerBottom: bn.bottom, firstTop: first && first.top }; });
   ok('banner: in the reader the banner does not cover the first text line (stripe ≤ 3 px above it)', cov.bannerBottom <= 3 + 0.5 && cov.firstTop != null && cov.bannerBottom <= cov.firstTop, cov);
+  const top0 = await p.evaluate(() => { const b = document.getElementById('rqTestBanner'), was = b.style.top; b.style.top = '30px'; const t = b.getBoundingClientRect().top; b.style.top = was; return t; });
+  ok('banner: in the reader the stripe stays on the top edge even with a safe-area inset (fullscreen focus on a phone with a cutout)', top0 === 0, top0);
   const strip = [];
   for (const th of ['sepia', 'dark']) { await p.evaluate((th) => { SET.theme = th; applySet(); }, th); await sleep(150);
     strip.push(await p.evaluate((th) => { const b = document.getElementById('rqTestBanner'); return { th, h: b.getBoundingClientRect().height, bg: getComputedStyle(b).backgroundColor, vis: getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' }; }, th)); }
@@ -575,12 +564,13 @@ if (want('pospct')) {
   const r = await q.evaluate(async () => {
     const A = BOOKS[0], B = BOOKS[1]; S.finished = S.finished.filter(x => x !== A.id && x !== B.id);
     S.progress[A.id] = { ratio: 1, pos: 0.3 }; S.progress[B.id] = { ratio: 0.5, pos: 0.5 }; save();
-    show('library'); LIB.sort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
+    /* since the library header (3d821bb) renderLibrary() takes the sort from SET.libSort (NS_set) — set it there, in memory only */
+    const sort0 = SET.libSort; show('library'); SET.libSort = 'progress'; LIB.f = 'all'; LIB.q = ''; renderLibrary();
     const cards = [...document.querySelectorAll('#shelf .bookcard')]; const ci = t => cards.findIndex(c => c.querySelector('.btitle').textContent.includes(t));
     const cardA = cards[ci(A.title)].querySelector('.bpct').textContent;
-    bookInfo(A.id); const info = (document.getElementById('bookSheetBody').textContent.match(/Прогресс:\s*([^·]+)/) || [])[1];
+    bookInfo(A.id); const info = (document.querySelector('#bookSheetBody [data-rq="pct"]') || {}).textContent; /* book card redesign: progress value lives in [data-rq=pct] */
     let shared = null; const ns = navigator.share; navigator.share = (o) => { shared = o.text; return Promise.resolve(); }; shareBook(A.id); navigator.share = ns;
-    LIB.sort = 'recent'; renderLibrary();
+    SET.libSort = sort0; renderLibrary();
     return { cardA, info: info && info.trim(), shared, iA: ci(A.title), iB: ci(B.title), finished: S.finished.includes(A.id) };
   });
   ok('pospct: pos 30 % / farthest 100 % → card «30%», info «30%», share «30%», not finished', /^30%/.test(r.cardA) && r.info === '30%' && /прогресс 30%/.test(r.shared || '') && !r.finished, r);

@@ -71,6 +71,8 @@ tokens	page-day	--r-txt на --r-bg	текст книги		#26241f	#fbfaf6	4.5	1
 tokens	page-day	--r-txt-2 на --r-bg	номер страницы в углу		#6b6658	#fbfaf6	4.5	5.48	5.48	ok
 tokens	page-night	--r-txt на --r-bg	текст книги		#c2d0cd	#0f1c1f	4.5	10.94	10.94	ok
 tokens	page-night	--r-txt-2 на --r-bg	номер страницы в углу		#7f938f	#0f1c1f	4.5	5.37	5.37	ok
+tokens	page-kraft	текст темы на --r-bg	текст книги «Крафт»		#4a3b22	#e8d9b5	7	7.74	7.74	ok
+tokens	page-kraft	текст темы на --r-bg	номер страницы и «автор · жанр» («Крафт», вариант А 15.10)		#4a3b22	#e8d9b5	4.5	7.74	7.74	ok
 tokens	night	PDF: #000 на #fff под слоем rgba(0,0,0,.35)	текст PDF ночью (страница ≈ #a6a6a6)		#000000	#a6a6a6	4.5	8.6	8.6	ok
 pixels	reader-clean-day	Он дол­го стоял у окна, гля­дя, как над кры­ша	19px/400		#5b4636		4.5	7.51	7.51	ok
 pixels	reader-clean-day	Чай­ник на пли­те дав­но ос­тыл. На сто­ле ле­	19px/400		#5b4636		4.5	7.51	7.51	ok

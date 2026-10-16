@@ -18,7 +18,7 @@ function resolveAppTheme(){
   const h2=new Date().getHours();
   return (h2>=7&&h2<21)?'light':'dark';
 }
-function applyAppTheme(){
+function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
   const t=APP_THEMES[resolveAppTheme()]||APP_THEMES.teal;
   const r=document.documentElement;
   r.style.setProperty('--bg',t.bg);r.style.setProperty('--card',t.card);
@@ -29,7 +29,11 @@ function applyAppTheme(){
   const L=APP_THEMES.light,Dk=APP_THEMES.dark,v=S.appTheme==='auto'?['auto',L.bg,L.txt,L.muted,Dk.bg,Dk.txt,Dk.muted].join(' '):[t.bg,t.txt,t.muted].join(' ');
   try{if(localStorage.getItem(RQ_K.theme)!==v)localStorage.setItem(RQ_K.theme,v);}catch(e){}
 }
-function applyScale(){document.body.style.zoom=(S.ux.scale||100)/100;}
+/* «Размер интерфейса» removed (Маня 07.10 / 15.10): the UI adapts to the phone by itself. A stored S.ux.scale is kept but ignored. */
+function applyScale(){document.body.style.zoom='';}
+/* «Анимации» (S.ux.anim) — wave 2: off → html.rq-still (CSS kills animations/transitions); prefers-reduced-motion counts the same */
+function rqStill(){try{if(S&&S.ux&&S.ux.anim===false)return true;return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function applyMotion(){document.documentElement.classList.toggle('rq-still',!!(S&&S.ux&&S.ux.anim===false));}
 
 /* ================= НАСТРОЙКИ ================= */
 /** 1в: «Вкл/Выкл» buttons drawn as switches (.sw) — state mirrored to aria-checked, labels stay for screen readers / tests */
@@ -41,9 +45,10 @@ function openGeneralSettings(over){renderSettings();const g=el('settings');
 function closeGeneralSettings(){const g=el('settings');g.classList.add('hidden');g.classList.remove('over');}
 el('setBack').onclick=function(){if(generalOverReader()){closeGeneralSettings();if(navState()==='settings')try{history.back();}catch(e){}return;}show(isMvp()?'profile':'library');};
 function renderSettings(){
+  if(el('navCfgSub')&&typeof navGet==='function'){const k=navShown().length;el('navCfgSub').textContent=k+' '+plural(k,'вкладка','вкладки','вкладок');}
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
-  if(el('readCntTgl'))el('readCntTgl').textContent=SET.readCounter?'Вкл':'Выкл';
+  if(el('readCntTgl')){const b=el('readCntTgl');b.classList.toggle('on',!!SET.readCounter);b.setAttribute('aria-checked',SET.readCounter?'true':'false');}
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
   el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */
   const ls=el('langSeg');ls.innerHTML='';
@@ -58,37 +63,43 @@ function renderSettings(){
   el('uxAnim').textContent=S.ux.anim!==false?'Вкл':'Выкл';
   el('uxWake').textContent=S.ux.wake?'Вкл':'Выкл';
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
-  el('uxScaleVal').textContent=(S.ux.scale||100)+'%';
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
-  if(el('devMoneyTgl'))el('devMoneyTgl').textContent=S.devMoney?'Вкл ∞':'Выкл';
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
+  /* theme tiles: tile + caption (+ check when selected). «Карандашный» = the app-wide skin (same as reader THEMES.pencil): it masks the app
+     palette, so while it is on only its tile is selected, and picking a palette leaves it (reader theme back to sepia). */
   const tb=el('appThemeBox');tb.innerHTML='';
-  const auto=document.createElement('button');
-  auto.className='appsw'+(S.appTheme==='auto'?' on':'');
-  auto.innerHTML=rqIcon('sun-moon',18);auto.title='Авто: день/ночь';auto.setAttribute('aria-label','Авто');
-  auto.onclick=()=>{S.appTheme='auto';save();applyAppTheme();renderSettings();};
-  tb.appendChild(auto);
+  const pc=!!activeTheme().skin;
+  const tile=(k,cap,on,draw,pick)=>{
+    const w=document.createElement('span');w.className='apptile'+(on?' on':'');
+    const b=document.createElement('button');b.className='appsw'+(on?' on':'');b.dataset.k=k;b.title=cap;b.setAttribute('aria-label',cap);b.setAttribute('aria-pressed',on?'true':'false');
+    draw(b);b.onclick=pick;w.appendChild(b);w.onclick=function(e){if(!b.contains(e.target))b.click();}; /* whole 52px row is the target */
+    const c=document.createElement('small');c.textContent=cap;w.appendChild(c);
+    const ck=document.createElement('span');ck.className='chk';ck.setAttribute('aria-hidden','true');ck.innerHTML=rqIcon('check',20);w.appendChild(ck);
+    tb.appendChild(w);
+  };
+  const leaveSkin=()=>{if(!activeTheme().skin)return;const from=skinOf(activeTheme());SET.theme='sepia';SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);};
+  tile('auto','Авто',!pc&&S.appTheme==='auto',b=>{b.innerHTML=rqIcon('sun-moon',18);},()=>{leaveSkin();S.appTheme='auto';save();applyAppTheme();renderSettings();});
   Object.keys(APP_THEMES).forEach(k=>{
     const t=APP_THEMES[k];
-    const b=document.createElement('button');
-    b.className='appsw'+(S.appTheme===k?' on':'');
-    b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';b.title=t.name;
-    b.onclick=()=>{S.appTheme=k;save();applyAppTheme();renderSettings();};
-    tb.appendChild(b);
+    tile(k,t.name,!pc&&S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
+  const sk=activeTheme().skin||'';
+  const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=key;SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
+  tile('pencil',THEMES.pencil.name,sk==='pencil',b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},pickSkin('pencil'));
+  /* bought shop skins with app styling: a tile each (Продукт 14.10: купленные — в списке тем) */
+  Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>{const t=SKIN_THEMES[k];
+    tile(k,t.name,sk===k,b=>{b.classList.add('appsw-skin');b.style.background=t.bg;b.style.color=t.txt;b.innerHTML=rqIcon(t.icon,18);},pickSkin(k));});
   if(S.notif){el('calNotifTgl').textContent=S.notif.on?'Вкл':'Выкл';el('calNotifTime').textContent=S.notif.time;}
   rqSyncSwitches();
+  rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'';},sub:function(){return activeTheme().skin?'Скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
-el('devMoneyTgl').onclick=()=>{S.devMoney=!S.devMoney;save();renderSettings();renderLibrary();flashMsg(S.devMoney?'∞ Бесконечная валюта включена':'Тест-валюта выключена');};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
 el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
-el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();renderSettings();};
+el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();applyMotion();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};
-el('uxScaleMinus').onclick=()=>{S.ux.scale=Math.max(80,(S.ux.scale||100)-10);save();applyScale();renderSettings();};
-el('uxScalePlus').onclick=()=>{S.ux.scale=Math.min(130,(S.ux.scale||100)+10);save();applyScale();renderSettings();};
 let wakeRef=null;
 async function reqWake(){
   if(S.ux.wake&&navigator.wakeLock){try{wakeRef=await navigator.wakeLock.request('screen');}catch(e){}}
@@ -112,7 +123,7 @@ el('btnExport').onclick=async ()=>{
   if(__rq&&__rq.exportBackup){
     payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:S,settings:SET};
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');
@@ -179,3 +190,30 @@ function timerNudge(){
 }
 el('btnTimer').onclick=toggleTimer;
 
+
+/* ===== «Нижняя панель» (Общие настройки → Управление): 1..5 вкладок, Библиотека несъёмная и первая; каждое изменение = navSave() (один saveSet через гейт) =====
+   Порядок: кнопки «Выше» / «Ниже» (альтернатива перетаскиванию для тача и экранного диктора). */
+function openNavCfg(){const p=el('navCfg');if(!p)return;renderNavCfg();p.hidden=false;}
+function closeNavCfg(){const p=el('navCfg');if(p)p.hidden=true;try{renderSettings();}catch(e){}}
+function navCfgMove(id,d){const n=navGet(),i=n.indexOf(id),j=i+d;if(i<1||j<1||j>=n.length)return;n[i]=n[j];n[j]=id;navSave(n);renderNavCfg();}
+function navCfgDel(id){if(id==='library')return;const n=navGet().filter(function(x){return x!==id;});navSave(n);renderNavCfg();}
+function navCfgAdd(id){const n=navGet();if(n.length>=NAV_MAX||n.indexOf(id)>=0)return;n.push(id);navSave(n);renderNavCfg();}
+function renderNavCfg(){
+  const p=el('navCfg');if(!p)return;const n=navShown(),full=navGet().length>=NAV_MAX;
+  const ic=function(k,sz){return rqIcon(k,sz||22);};
+  p.innerHTML='<div class="nch"><button type="button" class="menubtn" id="navCfgBack" aria-label="Назад">'+ic('arrow-left')+'</button><div><div class="ncp">Общие настройки · Управление</div><h2>Нижняя панель</h2></div></div>'+
+    '<h4>Так будет выглядеть</h4><div class="navprev">'+n.map(function(id){const it=navItem(id);return '<span data-nav="'+id+'">'+ic(it.ic,20)+esc(it.s||it.t)+'</span>';}).join('')+'</div>'+
+    '<h4 class="navcnt">В панели · '+n.length+' из '+NAV_MAX+'</h4><div class="navlist">'+
+    n.map(function(id,i){const it=navItem(id);
+      if(id==='library')return '<div class="navli" data-nav="library">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>Главный экран</small></div><span class="navlock" aria-label="Нельзя убрать">'+ic('lock',18)+'</span></div>';
+      return '<div class="navli" data-nav="'+id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
+        '<button type="button" class="navup" aria-label="Выше"'+(i<=1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',-1)">'+ic('chevron-up',20)+'</button>'+
+        '<button type="button" class="navdown" aria-label="Ниже"'+(i>=n.length-1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',1)">'+ic('chevron-down',20)+'</button>'+
+        '<button type="button" class="navdel" aria-label="Убрать" onclick="navCfgDel(\''+id+'\')">'+ic('circle-minus')+'</button></div>';}).join('')+'</div>'+
+    (full?'<div class="navmax">'+ic('lock',14)+'Максимум 5 вкладок. Уберите одну, чтобы добавить другую.</div>':'<div class="navmax">Порядок — кнопками «Выше» и «Ниже».</div>')+
+    '<h4>Можно добавить</h4><div class="navlist">'+
+    NAV_CATALOG.filter(function(it){return navAvail(it.id)&&navGet().indexOf(it.id)<0;}).map(function(it){return '<div class="navli" data-nav="'+it.id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
+      '<button type="button" class="navadd" aria-label="Добавить"'+(full?' disabled':'')+' onclick="navCfgAdd(\''+it.id+'\')">'+ic('circle-plus')+'</button></div>';}).join('')+'</div>';
+  el('navCfgBack').onclick=closeNavCfg;
+}
+if(el('btnNavCfg'))el('btnNavCfg').onclick=openNavCfg;

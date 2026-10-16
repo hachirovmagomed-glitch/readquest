@@ -213,11 +213,11 @@ function dealBossDamage(min,pages,finished){
   const bo=ensureBoss();const dmg=Math.round((min*10+pages*2+(finished?150:0))*talVal('boss'));if(dmg<=0)return;
   bo.hp-=dmg;
   if(bo.hp<=0){const cur=bo.n,rew=isMvp()?0:(80+cur*40),xpr=isMvp()?0:(40+cur*20);if(!isMvp()){S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.xp+=xpr;}bo.n=cur+1;bo.hp=bossMax(bo.n);
-    try{confetti();}catch(e){}try{flashMsg('⚔️ Повержен «'+bossInfo(cur).name+'»! +'+rew+' '+curI()+', +'+xpr+' XP');}catch(e){}}
+    try{confetti();}catch(e){}try{flashMsg('⚔️ Повержен «'+bossInfo(cur).name+'»! +'+rew+' монет'+', +'+xpr+' XP');}catch(e){}}
 }
 /* ===== Ежедневный бонус ===== */
 function dailyReward(){return Math.round((20+Math.min(10,S.streak||0)*10)*talVal('daily'));}
-function claimDaily(){if(isMvp()){flashMsg('Монеты начисляются сами: ежедневка +30 монет, неделя +120 монет');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' '+curI()+'! Возвращайся завтра');renderLibrary();}
+function claimDaily(){if(isMvp()){flashMsg('Монеты начисляются сами: ежедневка +30 монет, неделя +120 монет');return;}if(S.dailyClaim===today())return;const rew=dailyReward();S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.dailyClaim=today();save();try{confetti();}catch(e){}flashMsg('🎁 +'+rew+' монет'+'! Возвращайся завтра');renderLibrary();}
 /* ===== Стадии питомца ===== */
 const PET_STAGES=[['Малыш',0],['Подросток',60],['Взрослый',180],['Легендарный',420]];
 function petStage(){const px=S.petXp||0;let st=0;for(let i=0;i<PET_STAGES.length;i++)if(px>=PET_STAGES[i][1])st=i;return st;}
@@ -268,7 +268,7 @@ function renderProfile(){
   if(el('hpHint'))el('hpHint').textContent=hpPct<=0?'😵 Герой обессилел! Откройте книгу, чтобы он ожил.':(hpPct<=35?'🥀 Герой слабеет без чтения — пора почитать.':(hpPct>=100?'💪 Герой полон сил!':'❤️ Читайте каждый день, иначе герой теряет здоровье.'));
   el('kStreak').textContent=S.streak;
   el('kGold').textContent=goldDisp();
-  el('kGoldLbl').textContent=curI()+' '+S.cur.name;
+  el('kGoldLbl').textContent='монет';
   el('kMin').textContent=Math.round(S.totalMin);
   if(el('bossCard')){const bo=ensureBoss(),bi=bossInfo(bo.n),bmax=bossMax(bo.n),bp=Math.max(0,Math.min(100,Math.round(bo.hp/bmax*100)));
     el('bossCard').innerHTML='<div class="row" style="align-items:center;gap:12px"><div class="bossmob">'+bi.emoji+'</div><div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--muted)">⚔️ БОСС ЧТЕНИЯ · #'+bo.n+'</div><b>'+esc(bi.name)+'</b><div class="statbar" style="margin-top:6px"><i style="width:'+bp+'%;background:#e0445b"></i></div><div style="font-size:11px;color:var(--muted);margin-top:3px">'+Math.max(0,Math.ceil(bo.hp))+' / '+bmax+' HP · читай, чтобы наносить урон</div></div></div>';}
@@ -287,6 +287,7 @@ function renderProfile(){
   renderTalents();
   renderEquip();
   renderMvpProfile();
+  try{if(typeof achProfile==='function')achProfile();}catch(e){console.warn('[rq] achievements',e);}
   applyMvpChrome();
 }
 el('goalMinus').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderLibrary();};

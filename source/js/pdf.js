@@ -145,6 +145,8 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
     if(tts){R.pos=R.pageCount>1?n/(R.pageCount-1):1;persistPage();} /* 1в: a read-aloud page moves the position, never «reached» */
     else if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
     pdfNumbers(P.sliding?P.target:n);
+    const fd=P.flipDir;P.flipDir=0;
+    if(fd&&n===P.target&&!P.sliding&&P.z===1)pdfTurnAnim(fd);
     if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
     else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n,tts?'tts':undefined); /* the page is on screen now */
     updDayBar();
@@ -152,6 +154,12 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   if(P.stall)pdfStallLog(n);
   pdfResumeDone(); /* 1в-black: the page is on screen → release the held clock */
 }
+/* 16.10: PDF turn animation — only the screen-sized #pdfWrap moves / fades, AFTER the new page is already drawn (never an empty frame) */
+function pdfTurnAnim(d){const k=rqAnimKind(),w=el('pdfWrap');if(!k||!w.animate)return;
+  __rqAnim.n++;__rqAnim.last='pdf-'+k;
+  try{if(P.anim)P.anim.finish();}catch(e){}
+  try{P.anim=k==='slide'?w.animate([{transform:'translateX('+(d*18)+'%)',opacity:0.6},{transform:'none',opacity:1}],{duration:220,easing:'cubic-bezier(.2,.7,.3,1)'})
+    :w.animate([{opacity:0.45},{opacity:1}],{duration:180,easing:'ease-out'});}catch(e){}}
 /** Corner number + bar number + slider: printed label / total (same frame as the swap). */
 function pdfReach(n){const r=R.pageCount>1?n/(R.pageCount-1):1;R.maxRatio=Math.max(R.maxRatio,r);R.pos=r;persistPage();}
 function pdfNumbers(n,fromSlider){
@@ -236,10 +244,11 @@ function pdfGo(np,why){
   if(why==='tts'){P.jump=false;} /* 1в: read-aloud auto-advance: no turn, no jump; reported via:'tts' at the swap */
   else if(why==='slider'||why==='nav'){P.jump=true;} /* 1б: jump ≠ page flip (no turn, no fast-flip count); reported once on release */
   else{
-    P.jump=false;
+    P.jump=false;P.flipDir=fwd?1:-1; /* 16.10: a real turn may be animated at the swap */
     if(__tracker&&__tracker.pageTurned)__tracker.pageTurned(fwd);
     if(fwd){R.turned++;R.lastTurn=Date.now();if(!isMvp()&&!R.timerOn)timerNudge();}
   }
+  if(why==='tts'||why==='slider'||why==='nav')P.flipDir=0;
   P.target=np;
   if(why==='slider')pdfNumbers(np,true); /* slider shows the TARGET label while dragging */
   pdfRender(why||'flip');
@@ -280,7 +289,7 @@ function pdfSingleTap(x,y){
   if(el('reader').classList.contains('hidden'))return;
   const z=tapZone(x,y);
   const zoomed=P.z>1.01; /* contract 1б: zoomed PDF — no top corners, the centre does not leave focus */
-  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const inv=flipGet().invert?-1:1;
   if(z==='tl'){if(zoomed)return;toggleDayNight();return;}
   if(z==='tr'){if(zoomed)return;addBookmark();return;}
   if(z==='l'){fsResume();pdfFlip(-inv);}
@@ -347,8 +356,8 @@ function pdfTouchEnd(e){
   P.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
   if(g.bright&&g.moved){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});return;}
-  const swipeOn=!SET.nav||SET.nav.swipe!==false;
-  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const swipeOn=flipGet().swipe!==false;
+  const inv=flipGet().invert?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
   pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
   if(g.pannable&&g.moved){
@@ -375,11 +384,18 @@ function pdfWheel(e){
   pdfFlip(e.deltaY>0?1:-1);
 }
 window.__rqLayoutCount=0; /* test hook: number of full column reflows */
-function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|');}
+function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|')+(rqScrollMode()?'|s':'');}
 function layout(){
   if(R.mode==='pdf'){pdfOnResize();return;}
   const v=el('viewer'),c=el('content');
   const w=v.clientWidth,h=v.clientHeight,gap=48;
+  if(rqScrollMode()){ /* 16.10: one vertical strip; «page» = one screen, the last page = the end of the text */
+    c.style.columnWidth='auto';c.style.columnGap='normal';c.style.height='auto';c.style.width=w+'px';c.style.transform='none';
+    R.step=h;const max=Math.max(0,v.scrollHeight-h);R.scrollMax=max;
+    R.pageCount=max>0?1+Math.ceil(max/h-0.001):1;
+    R.layoutKey=layoutKey(w,h)+'|s';window.__rqLayoutCount++;return;
+  }
+  if(v.scrollTop)v.scrollTop=0; /* back from the scroll mode */
   const cols=w>=860?2:1;
   const cw=(w-gap*(cols-1))/cols;
   c.style.columnWidth=cw+'px';c.style.columnGap=gap+'px';
@@ -415,6 +431,7 @@ function pageOfAnchor(a){
     const o=Math.min(a.offset,Math.max(0,len-1));
     rg.setStart(a.node,o);rg.setEnd(a.node,Math.min(len,o+1));
     const rects=rg.getClientRects();const r=rects.length?rects[0]:rg.getBoundingClientRect();
+    if(rqScrollMode()){const y=r.top-c.getBoundingClientRect().top;return Math.max(0,Math.min(R.pageCount-1,Math.floor((y+2)/R.step)));}
     const x=r.left-c.getBoundingClientRect().left;
     return Math.max(0,Math.floor((x+2)/R.step));
   }catch(e){return -1;}
@@ -432,6 +449,7 @@ function relayout(opts){
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
   R.relay=true;try{goPage(p,false);}finally{R.relay=false;} /* 1в: a re-layout keeps the text in view; it never grows «reached» (e.g. after read-aloud) */
+  if(rqScrollMode()&&anchor)rqScrollToAnchor(anchor); /* scroll: the anchor's line at the top, not just its screen */
   R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
 }
 /* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
@@ -453,15 +471,84 @@ function setFontSizeKeepPos(size){
 /* Page is saved while reading (not only on close): a frozen phone tab that gets stolen can't write later,
    so the farthest page must already be in NS_v1. Sync, progress-only, monotonic (ratio only grows), writer only.
    Session time is saved the same way by reader-session.js (NS_session_draft). */
-function persistPage(){
+function persistPage(posOverride){
   const b=R.book;if(!b||!__rq||!__rq.loadEnvelope||!__rq.saveEnvelope)return;
   if(window.__rqWriter&&!__rqWriter.mayWrite())return;
-  const c=S.progress[b.id]||{},cur=c.ratio||0,pos=typeof R.pos==='number'?R.pos:rqPos(b.id);
+  const c=S.progress[b.id]||{},cur=c.ratio||0,pos=typeof posOverride==='number'?posOverride:typeof R.pos==='number'?R.pos:rqPos(b.id);
   if(!(R.maxRatio>cur)&&c.pos===pos)return; /* farthest only grows; pos = current settled position (may go back) */
   S.progress[b.id]=Object.assign({},c,{ratio:Math.max(cur,R.maxRatio),pos:pos});
   try{const e=__rq.loadEnvelope();const pr=e.progress.progress||(e.progress.progress={});const o=pr[b.id]||{};
     pr[b.id]=Object.assign({},o,{ratio:Math.max(o.ratio||0,R.maxRatio),pos:pos});__rq.saveEnvelope(e);}catch(err){console.warn('[rq] persistPage',err);}
 }
+/* pos in the background (Архитектор 15.10, arch.md): hidden / pagehide write the current pos — after a re-layout it only lived in memory.
+   While the slider is dragged, the pos saved before the drag is written (R.posPreSlide); a preview page is never written.
+   persistPage keeps the gate (writer only), never touches the tracker / maxRatio / events; nothing changed → nothing written. */
+function persistPageBg(){
+  if(!R||!R.book||el('reader').classList.contains('hidden'))return;
+  const sliding=!!(R.sliding||(typeof P!=='undefined'&&P.sliding));
+  if(sliding){if(typeof R.posPreSlide==='number')persistPage(R.posPreSlide);return;}
+  persistPage();
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')persistPageBg();});
+window.addEventListener('pagehide',persistPageBg);
+/* ===== 16.10 reading modes (arch.md «SET.flip.mode и SET.flip.anim») ===== */
+window.__rqAnim={n:0,last:null}; /* test hook: page-turn animations started */
+/** Put page np on screen: column strip offset, or the scroll position in the scroll mode. `anim` = 'slide'|'fade'|null. */
+function rqShowPage(np,anim,prev){
+  const c=el('content'),v=el('viewer');
+  if(rqScrollMode()){if(!R.fromScroll){const t=Math.min(np*R.step,R.scrollMax||0);v.scrollTop=t;R.progTop=v.scrollTop;}return;}
+  rqAnimStop();
+  const x=-np*R.step;
+  if(anim==='slide'&&prev!=null){rqSlide(-prev*R.step,x);return;}
+  c.style.transform='translateX('+x+'px)';
+  if(anim==='fade'&&v.animate){__rqAnim.n++;__rqAnim.last='fade';
+    try{R.anim=v.animate([{opacity:0.45},{opacity:1}],{duration:180,easing:'ease-out'});}catch(e){}}
+}
+/* «Сдвиг»: the strip moves on the MAIN thread, frame by frame, with no transition / will-change — the strip is never promoted to one
+   giant GPU layer (Android blank-page bug 06.10). Both pages are real text all the way, the last frame is the exact page offset. */
+function rqSlide(from,to){
+  const c=el('content'),d=Math.min(260,Math.max(160,Math.abs(to-from)*0.6)),t0=performance.now();
+  __rqAnim.n++;__rqAnim.last='slide';
+  const st={to:to,raf:0};
+  const f=function(t){if(R.slide!==st)return;const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);
+    c.style.transform='translateX('+(k<1?(from+(to-from)*e).toFixed(1):to)+'px)';
+    if(k<1)st.raf=requestAnimationFrame(f);else if(R.slide===st)R.slide=null;};
+  R.slide=st;c.style.transform='translateX('+from+'px)';st.raf=requestAnimationFrame(f);
+}
+/** A running animation is finished at once (next turn, relayout, close): the strip lands on its target. */
+function rqAnimStop(){
+  if(R.slide){cancelAnimationFrame(R.slide.raf);el('content').style.transform='translateX('+R.slide.to+'px)';R.slide=null;}
+  if(R.anim){try{R.anim.finish();}catch(e){}R.anim=null;}
+}
+/** Scroll mode: one screen minus a line (taps, keys, swipe, ‹ › buttons). Smooth only when animations are allowed. */
+function rqScrollStep(d){
+  const v=el('viewer'),lh=parseFloat(getComputedStyle(el('content')).lineHeight)||SET.size*SET.lh;
+  const top=Math.max(0,Math.min(R.scrollMax||0,v.scrollTop+d*Math.max(R.step*0.5,R.step-lh)));
+  R.progTop=null;
+  if(rqAnimKind()&&v.scrollTo)v.scrollTo({top:top,behavior:'smooth'});else v.scrollTop=top;
+  rqScrollSoon();
+}
+function rqScrollToAnchor(a){
+  try{const v=el('viewer'),c=el('content');const rg=document.createRange();const len=a.node.nodeValue.length,o=Math.min(a.offset,Math.max(0,len-1));
+    rg.setStart(a.node,o);rg.setEnd(a.node,Math.min(len,o+1));const r=rg.getClientRects()[0]||rg.getBoundingClientRect();
+    v.scrollTop=Math.max(0,Math.min(R.scrollMax||0,r.top-c.getBoundingClientRect().top));R.progTop=v.scrollTop;}catch(e){}
+}
+/** Screen index of the current scroll position: nearest screen, the end of the text = the last page. */
+function rqScrollPage(){const v=el('viewer');if(v.scrollTop>=(R.scrollMax||0)-2)return R.pageCount-1;return Math.max(0,Math.min(R.pageCount-1,Math.round(v.scrollTop/R.step)));}
+let rqScrT=0;
+function rqScrollSoon(){clearTimeout(rqScrT);rqScrT=setTimeout(rqScrollSettle,180);}
+/** The scroll stopped: report it like a page change. Next / previous screen = a turn; farther = a jump (as the slider). Programmatic scrolls are ignored. */
+function rqScrollSettle(){
+  if(!rqScrollMode()||!R.book||el('reader').classList.contains('hidden')||R.sliding)return;
+  const v=el('viewer');
+  if(R.progTop!=null&&Math.abs(v.scrollTop-R.progTop)<2)return;
+  R.progTop=null;
+  const np=rqScrollPage(),d=np-R.page;if(!d)return;
+  R.fromScroll=true;
+  try{if(Math.abs(d)===1)goPage(np,true);else{R.jumping=true;try{goPage(np,false);}finally{R.jumping=false;}}}
+  finally{R.fromScroll=false;}
+}
+el('viewer').addEventListener('scroll',function(){if(rqScrollMode())rqScrollSoon();},{passive:true});
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
@@ -470,6 +557,8 @@ function goPage(p,turn){
   }
   const prev=R.page;
   const np=Math.max(0,Math.min(R.pageCount-1,p));
+  /* scroll mode: a tap / key / swipe / button turn scrolls one screen minus a line; the tracker hears about it when the scroll stops */
+  if(rqScrollMode()&&turn&&!R.fromScroll&&!R.sliding&&Math.abs(np-prev)===1){rqScrollStep(np-prev);return;}
   const forwardTurn=!!(turn&&np>prev);
   if(forwardTurn){
     R.turned++;
@@ -480,7 +569,8 @@ function goPage(p,turn){
   if(turn&&np!==prev)hideJumpBack(); /* 1б-fix #1: first normal flip hides «< на стр. N» */
   if(np!==prev)R.anc=null;
   R.page=np;
-  el('content').style.transform='translateX('+(-np*R.step)+'px)';
+  const ak=(turn&&!R.sliding&&!R.relay&&!R.jumping&&Math.abs(np-prev)===1&&!rqScrollMode())?rqAnimKind():null;
+  rqShowPage(np,ak,prev);
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
   if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
   /* page number + book progress: same task as the transform → same frame as the new text */
@@ -499,12 +589,12 @@ function goPage(p,turn){
   if(!R.sliding&&!R.relay)persistPage(); /* monotonic no-op unless maxRatio grew; also covers release on the previewed page.
      Not on a re-pagination (R.relay): same text, only the layout fraction differs → R.pos stays in memory until the next real move / close */
 }
-el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null)R.slideFrom=R.mode==='pdf'?P.shown:R.page;if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
+el('pgSlider').oninput=e=>{const v=parseInt(e.target.value,10)||0;if(R.slideFrom==null){R.slideFrom=R.mode==='pdf'?P.shown:R.page;R.posPreSlide=typeof R.pos==='number'?R.pos:rqPos(R.book.id);}if(R.mode==='pdf'){P.sliding=true;pdfGo(v,'slider');}else{R.sliding=true;goPage(v,false);}};
 el('pgSlider').onchange=e=>{
   const v=parseInt(e.target.value,10)||0;
   if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);pdfReach(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
-  const from=R.slideFrom;R.slideFrom=null;
+  const from=R.slideFrom;R.slideFrom=null;R.posPreSlide=null;
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
 /* «Карандашный»: hand-drawn page slider. LOOK ONLY — the <input> under it keeps every behaviour (thumb-only drag,
@@ -595,7 +685,7 @@ function viewerTap(cx,cy){
   const x=(cx-r.left)/r.width;
   const y=(cy-r.top)/r.height;
   const z=tapZone(x,y);
-  const inv=(SET.nav&&SET.nav.invert)?-1:1;
+  const inv=flipGet().invert?-1:1;
   if(z==='tl'){toggleDayNight();return;}   // угол: день/ночь (как в ReadEra); фокус не трогает
   if(z==='tr'){addBookmark();return;}      // угол: закладка; фокус не трогает
   if(z==='l'){fsResume();goPage(R.page-1*inv,true);}
@@ -603,9 +693,9 @@ function viewerTap(cx,cy){
   else toggleChrome(); // centre: ONE tap shows our bars AND leaves fullscreen (and focus); next centre tap hides both
 }
 /** 1б tap zones (reader-focus-zones): top 12 % — corners 30 % (tl day/night, tr bookmark); below 30 / 40 / 30.
- *  SET.nav.tap === false → the whole screen is the centre (no corners, no flips by tap). */
+ *  SET.flip.tap === false → the whole screen is the centre (no corners, no flips by tap). */
 function tapZone(x,y){
-  if(SET.nav&&SET.nav.tap===false)return 'c';
+  if(flipGet().tap===false)return 'c';
   if(y<0.12&&x<0.3)return 'tl';
   if(y<0.12&&x>0.7)return 'tr';
   if(y>=0.12&&x<0.3)return 'l';

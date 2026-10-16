@@ -65,8 +65,49 @@ async function run(file, mode) {
   sessRows.push({ mode, row, ttsEvents: ev.length, tapTurns: 1 });
   await ctx.close();
 }
+/* audit 15.10 (Маня: «Слушать» считаем отдельно, без наград): 10 minutes of read-aloud = 0 counted reading minutes →
+   dayMinutes(today) 0, no XP, no coins, no daily. Each utterance «lasts» 2 min on the test clock, pages advance by themselves. */
+async function listen10(file, mode) {
+  const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
+  await p.setViewport({ width: 412, height: 915, isMobile: true, hasTouch: true });
+  await p.evaluateOnNewDocument(() => {
+    window.__rqTimeOffset = 0; const pn = performance.now.bind(performance); performance.now = () => pn() + window.__rqTimeOffset;
+    const dn = Date.now; Date.now = () => dn() + window.__rqTimeOffset; window.__rqAdv = (ms) => { window.__rqTimeOffset += ms; };
+    window.__utt = null; /* utterance ends only when the test says so */
+    const ss = { speaking: false, cancel() { window.__utt = null; }, speak(u) { window.__utt = u; }, getVoices: () => [] };
+    Object.defineProperty(window, 'speechSynthesis', { value: ss, configurable: true });
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', { value: function (t) { this.text = t; }, configurable: true, writable: true });
+  });
+  p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
+  await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
+  await (await p.$('#fileInp')).uploadFile(file); await p.waitForFunction(() => (S.userBooks || []).length > 0, { timeout: 15000 });
+  const id = await p.evaluate(() => S.userBooks[0].id);
+  const g0 = await p.evaluate(() => ({ gold: S.gold, xp: S.xp, paid: (S.dailyPaidDays || []).length }));
+  await p.evaluate(id => openBook(id), id);
+  if (mode === 'pdf') await p.waitForFunction(() => R.pdf && __rqPdf.swaps > 0, { timeout: 20000 });
+  await sleep(800);
+  await p.evaluate(() => { revealChrome(); }); await sleep(600);
+  await p.evaluate(() => document.getElementById('btnTts').click());
+  const page0 = await p.evaluate(() => R.page);
+  for (let i = 0; i < 5; i++) { /* 5 × 2 min of listening, each utterance end advances the page */
+    await p.waitForFunction(() => !!window.__utt, { timeout: 10000, polling: 50 }).catch(() => {});
+    await p.evaluate(() => { window.__rqAdv(120000); const u = window.__utt; window.__utt = null; if (u && u.onend) u.onend(); });
+    await sleep(400);
+  }
+  const mid = await p.evaluate(() => ({ page: R.page, snap: __tracker.snapshot() }));
+  await p.evaluate(() => ttsStop()); await sleep(300);
+  await p.evaluate(() => closeReader()); await sleep(1500);
+  const r = await p.evaluate(() => { const day = localDay(); let m = 0; (SESS || []).forEach(x => { if (x && String(x.date).slice(0, 10) === day) m += Number(x.minutes) || 0; });
+    return { dayMin: Math.floor(m + 1e-9), rawMin: +m.toFixed(3), gold: S.gold, xp: S.xp, paid: (S.dailyPaidDays || []).length }; });
+  console.log('   [' + mode + ' listen10]', JSON.stringify({ pages: [page0, mid.page], countedMs: Math.round(mid.snap.countedMs), r }));
+  ok(mode + ': 10 min read-aloud advanced pages by itself', mid.page > page0, { from: page0, to: mid.page });
+  ok(mode + ': 10 min read-aloud → dayMinutes 0, XP +0, coins +0, no daily', r.dayMin === 0 && r.xp === g0.xp && r.gold === g0.gold && r.paid === g0.paid, { r, g0 });
+  await ctx.close();
+}
 await run(BOOK, 'text');
 await run(PDF, 'pdf');
+await listen10(BOOK, 'text');
+await listen10(PDF, 'pdf');
 // metrics.py: page_visible events (incl. via:'tts') never feed reading metrics; only sessions[].pageTurns does.
 {
   const { execFileSync } = await import('child_process'); const fs = await import('fs');

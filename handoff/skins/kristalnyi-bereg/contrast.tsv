@@ -1,0 +1,157 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+rewards	Придумайте, чем себя порадовать, и назна	Jost	12.5	rgb(74, 100, 102)	ui-small	4.5	5.37	5.31	ok
+session-summary	Продолжить	Tenor Sans	14	rgb(255, 255, 255)	ui	3.0	7.06	5.32	ok
+rewards	+30	Jost	15	rgb(42, 111, 98)	ui	3.0	5.46	5.41	ok
+session-summary	+30 камней за день	Jost	15	rgb(42, 111, 98)	ui	3.0	5.58	5.47	ok
+library	FB2	Tenor Sans	9.5	rgb(255, 255, 255)	ui-small	4.5	7.81	5.6	ok
+rewards	XXX	Jost	12.5	rgb(42, 111, 98)	ui-small	4.5	5.79	5.71	ok
+rewards	Задания	Tenor Sans	11	rgb(74, 100, 102)	ui-small	4.5	5.77	5.72	ok
+library	Читаю	Jost	14	rgb(74, 100, 102)	ui	3.0	5.77	5.77	ok
+library	Хочу	Jost	14	rgb(74, 100, 102)	ui	3.0	5.77	5.77	ok
+library	Прочитано	Jost	14	rgb(74, 100, 102)	ui	3.0	5.77	5.77	ok
+session-summary	Камень огранён · 18 из 10 мин	Jost	12.5	rgb(74, 100, 102)	ui-small	4.5	5.96	5.79	ok
+session-summary	320 / 500 до уровня 5	Jost	12	rgb(74, 100, 102)	ui-small	4.5	5.96	5.82	ok
+library	Морская соль	Forum	18	rgb(255, 255, 255)	ui	3.0	8.4	5.83	ok
+palette	#383d78	monospace	11	rgb(74, 100, 102)	ui-small	4.5	5.88	5.88	ok
+palette	акцент, кнопки	Jost	10	rgb(74, 100, 102)	ui-small	4.5	5.89	5.88	ok
+palette	#565ca6	monospace	11	rgb(74, 100, 102)	ui-small	4.5	5.88	5.88	ok
+palette	градиент кнопок	Jost	10	rgb(74, 100, 102)	ui-small	4.5	5.89	5.88	ok
+palette	#b8bcff	monospace	11	rgb(74, 100, 102)	ui-small	4.5	5.88	5.88	ok
+palette	акцент ночи	Jost	10	rgb(74, 100, 102)	ui-small	4.5	5.89	5.88	ok
+palette	#c8a24a	monospace	11	rgb(74, 100, 102)	ui-small	4.5	5.88	5.88	ok
+palette	швы, линии	Jost	10	rgb(74, 100, 102)	ui-small	4.5	5.89	5.88	ok
+rewards	10 мин · огранено 6 из 10 граней	Jost	12.5	rgb(74, 100, 102)	ui-small	4.5	6.18	5.91	ok
+library	390	Jost	14	rgb(42, 111, 98)	ui	3.0	5.92	5.92	ok
+rewards	390	Jost	14	rgb(42, 111, 98)	ui	3.0	5.92	5.92	ok
+rewards	4 дня по 10 мин · 3 из 4	Jost	12.5	rgb(74, 100, 102)	ui-small	4.5	6.22	5.96	ok
+rewards	Витрина	Tenor Sans	11	rgb(74, 100, 102)	ui-small	4.5	6.01	5.96	ok
+session-summary	XP	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.0	5.99	ok
+library	Е. Волна · 53%	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+library	А. Ракитин · 12%	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+library	М. Светлова · прочитано	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+library	К. Лазарев · не начата	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+library	О. Тихонова · 4%	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+library	С. Миров · 67%	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#7a5a12	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	подписи-золото	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#8fdcc4	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	грани, шкалы	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#2a6f62	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	текст камней	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#d9f7ee	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	грани светлые	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#eaf3f6	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	верх фона	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#f7f9f8	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	фон	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#f3ece0	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	берег	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#1f3a3d	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	текст UI	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#081a22	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	фон ночи	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#0f2731	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	панели ночи	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#8fe3cf	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	камни ночью	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	#dce8e6	monospace	11	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+palette	книга ночью	Jost	10	rgb(74, 100, 102)	ui-small	4.5	6.01	6.01	ok
+session-summary	Страницы	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.22	6.17	ok
+session-summary	Тихий берег · стр. 85–98	Jost	13	rgb(74, 100, 102)	ui-small	4.5	6.23	6.22	ok
+session-summary	отлив · конец сессии	Tenor Sans	11	rgb(122, 90, 18)	ui-small	4.5	6.29	6.23	ok
+session-summary	Чтение	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.23	6.23	ok
+library	Награды	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.31	6.31	ok
+library	Профиль	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.31	6.31	ok
+rewards	Библиотека	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.31	6.31	ok
+rewards	Профиль	Jost	12	rgb(74, 100, 102)	ui-small	4.5	6.31	6.31	ok
+library	Отражения	Forum	18	rgb(255, 255, 255)	ui	3.0	9.17	6.4	ok
+library	PDF	Tenor Sans	9.5	rgb(255, 255, 255)	ui-small	4.5	10.45	7.18	ok
+library	Глубина	Forum	18	rgb(255, 255, 255)	ui	3.0	10.98	7.44	ok
+library	А. Ракитин	Jost	11	rgb(255, 255, 255)	ui-small	4.5	9.27	8.06	ok
+library	С. Миров	Jost	11	rgb(255, 255, 255)	ui-small	4.5	9.86	8.73	ok
+library	Все	Jost	14	rgb(56, 61, 120)	ui	3.0	9.05	9.05	ok
+rewards	+120	Jost	15	rgb(56, 61, 120)	ui	3.0	9.17	9.11	ok
+rewards	Добавить в витрину	Jost	14	rgb(56, 61, 120)	ui	3.0	9.43	9.26	ok
+session-summary	+180	Forum	26	rgb(56, 61, 120)	ui	3.0	9.54	9.4	ok
+library	Е. Волна	Jost	11	rgb(31, 58, 61)	ui-small	4.5	9.68	9.56	ok
+library	К. Лазарев	Jost	11	rgb(255, 255, 255)	ui-small	4.5	11.5	9.87	ok
+library	Библиотека	Jost	12	rgb(56, 61, 120)	ui-small	4.5	9.9	9.9	ok
+rewards	Награды	Jost	12	rgb(56, 61, 120)	ui-small	4.5	9.9	9.9	ok
+library	Тихий берег	Forum	18	rgb(31, 58, 61)	ui	3.0	10.07	9.91	ok
+palette	Tenor Sans — метки и кнопки	Tenor Sans	11	rgb(31, 58, 61)	ui-small	4.5	10.18	10.17	ok
+palette	Jost — интерфейс	Jost	14	rgb(31, 58, 61)	ui	3.0	10.29	10.19	ok
+library	EPUB	Tenor Sans	9.5	rgb(31, 58, 61)	ui-small	4.5	10.42	10.28	ok
+palette	Source Serif Pro — текст книги	Source Serif Pro	14	rgb(31, 58, 61)	ui	3.0	10.41	10.29	ok
+library	М. Светлова	Jost	11	rgb(45, 42, 74)	ui-small	4.5	10.47	10.31	ok
+library	Белый песок	Forum	18	rgb(45, 42, 74)	ui	3.0	11.02	10.75	ok
+library	Библиотека	Forum	34	rgb(31, 58, 61)	ui	3.0	10.88	10.88	ok
+rewards	Награды	Forum	34	rgb(31, 58, 61)	ui	3.0	10.88	10.88	ok
+palette	Палитра «Кристальный берег»	Forum	28	rgb(31, 58, 61)	ui	3.0	10.88	10.88	ok
+library	О. Тихонова	Jost	11	rgb(61, 47, 18)	ui-small	4.5	11.07	10.96	ok
+rewards	Новая книга	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.14	11.03	ok
+rewards	Кофе в кофейне	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.45	11.12	ok
+palette	Индиго-аметист	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.15	11.13	ok
+palette	Аметист светл.	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.15	11.13	ok
+palette	Лаванда	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.15	11.13	ok
+palette	Золото кинцуги	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.15	11.13	ok
+library	Перламутр	Forum	18	rgb(61, 47, 18)	ui	3.0	11.36	11.15	ok
+library	TXT	Tenor Sans	9.5	rgb(45, 42, 74)	ui-small	4.5	11.48	11.28	ok
+session-summary	Неделя: 3 из 4 дней	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.54	11.28	ok
+reader-day	Оглавление	Jost	12	rgb(31, 58, 61)	ui-small	4.5	11.4	11.31	ok
+reader-day	Текст	Jost	12	rgb(31, 58, 61)	ui-small	4.5	11.4	11.31	ok
+reader-day	Ночь	Jost	12	rgb(31, 58, 61)	ui-small	4.5	11.4	11.31	ok
+reader-day	Закладка	Jost	12	rgb(31, 58, 61)	ui-small	4.5	11.4	11.31	ok
+palette	Золото текст	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.38	11.38	ok
+palette	Аквамарин	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.38	11.38	ok
+palette	Мята тёмн.	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.38	11.38	ok
+palette	Мята	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.38	11.38	ok
+library	Морская соль	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+library	Белый песок	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+library	Глубина	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+library	Перламутр	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+library	Отражения	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Небо	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Жемчуг	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Песок	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Чернила моря	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Ночь: глубина	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Ночь: волна	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Ночь: свечение	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Ночь: текст	Jost	11	rgb(31, 58, 61)	ui-small	4.5	11.47	11.47	ok
+palette	Forum — заголовки	Forum	22	rgb(31, 58, 61)	ui	3.0	11.47	11.47	ok
+library	EPUB	Tenor Sans	9.5	rgb(61, 47, 18)	ui-small	4.5	11.64	11.48	ok
+reader-day	Тихий берег	Forum	20	rgb(31, 58, 61)	ui	3.0	11.67	11.55	ok
+rewards	Задание недели	Forum	19	rgb(31, 58, 61)	ui	3.0	11.88	11.63	ok
+rewards	Задание дня	Forum	19	rgb(31, 58, 61)	ui	3.0	11.88	11.78	ok
+rewards	Серия сериала	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.88	11.8	ok
+reader-day	98 из 185	Jost	14	rgb(31, 58, 61)	ui	3.0	11.93	11.88	ok
+session-summary	Сессия завершена	Forum	30	rgb(31, 58, 61)	ui	3.0	11.91	11.88	ok
+session-summary	14	Forum	26	rgb(31, 58, 61)	ui	3.0	11.88	11.88	ok
+session-summary	Уровень 4	Jost	13	rgb(31, 58, 61)	ui-small	4.5	11.9	11.88	ok
+session-summary	18 мин	Forum	26	rgb(31, 58, 61)	ui	3.0	11.98	11.91	ok
+library	камней	Jost	14	rgb(31, 58, 61)	ui	3.0	12.13	12.13	ok
+rewards	камней	Jost	14	rgb(31, 58, 61)	ui	3.0	12.13	12.13	ok
+reader-night	Тихий берег	Forum	20	rgb(227, 241, 239)	ui	3.0	13.52	13.5	ok
+reader-night	98 из 185	Jost	14	rgb(227, 241, 239)	ui	3.0	13.5	13.5	ok
+reader-night	Оглавление	Jost	12	rgb(227, 241, 239)	ui-small	4.5	13.81	13.66	ok
+reader-night	Текст	Jost	12	rgb(227, 241, 239)	ui-small	4.5	13.81	13.66	ok
+reader-night	День	Jost	12	rgb(227, 241, 239)	ui-small	4.5	13.81	13.66	ok
+reader-night	Закладка	Jost	12	rgb(227, 241, 239)	ui-small	4.5	13.81	13.66	ok
+reader-day	Глава 7. Отлив	Forum	23	rgb(30, 42, 43)	book	4.5	14.37	14.37	ok
+reader-day	Утром берег был совершенно пуст. Песок, 	Source Serif Pro	16.5	rgb(30, 42, 43)	book	4.5	14.37	14.37	ok
+reader-night	Глава 7. Отлив	Forum	23	rgb(220, 232, 230)	book	4.5	14.51	14.51	ok
+reader-night	Утром берег был совершенно пуст. Песок, 	Source Serif Pro	16.5	rgb(220, 232, 230)	book	4.5	14.51	14.51	ok
+tokens	книга день	—	—	#1e2a2b / #fbfcfb	book	4.5	14.37	14.37	ok
+tokens	книга ночь	—	—	#dce8e6 / #0a171d	book	4.5	14.51	14.51	ok
+tokens	--rq-text/--rq-bg	—	—	#1f3a3d / #f7f9f8	ui	4.5	11.47	11.47	ok
+tokens	--rq-text-2/--rq-bg	—	—	#4a6466 / #f7f9f8	ui	4.5	6.01	6.01	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #383d78	ui	4.5	9.97	9.97	ok
+tokens	--rq-coin/--rq-surface	—	—	#2a6f62 / #ffffff	ui	4.5	5.92	5.92	ok
+tokens	золото-текст/--rq-surface	—	—	#7a5a12 / #ffffff	ui	4.5	6.37	6.37	ok
+tokens	шов кинцуги (декор, не текст)/--rq-surface	—	—	#c8a24a / #ffffff	decor	1.5	2.41	2.41	ok
+tokens	ночь --rq-text/--rq-bg	—	—	#e3f1ef / #081a22	ui	4.5	15.32	15.32	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#9fc4c0 / #0f2731	ui	4.5	8.22	8.22	ok
+tokens	ночь --rq-accent/--rq-surface	—	—	#b8bcff / #0f2731	ui	4.5	8.62	8.62	ok
+tokens	ночь --rq-on-accent/--rq-accent	—	—	#141633 / #b8bcff	ui	4.5	9.79	9.79	ok
+tokens	ночь --rq-coin/--rq-surface	—	—	#8fe3cf / #0f2731	ui	4.5	10.37	10.37	ok
+tokens	ночь золото/--rq-surface	—	—	#e0c27a / #0f2731	ui	4.5	8.98	8.98	ok

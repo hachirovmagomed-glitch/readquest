@@ -32,7 +32,7 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261016-0953';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261016-1023';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';

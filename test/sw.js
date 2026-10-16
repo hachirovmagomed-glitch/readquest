@@ -6,9 +6,9 @@
  * HTML is network-first, so the next open after all windows closed shows the new build. */
 'use strict';
 const NS = 'rqt';
-const BUILD = '20261016-0953';
+const BUILD = '20261016-1023';
 const CACHE = NS + '-' + BUILD;
-const PRECACHE = ["./","app.html","fonts/OFL.txt","fonts/caveat.woff2","fonts/nunito.woff2","game-awards.js?v=20261016-0953","icons/icon-192.png","icons/icon-test-192.png","icons/icon-test-512.png","icons/icon-test-maskable-512.png","icons/icon-test-mono.svg","index.html","js/books-builtin.js?v=20261016-0953","js/content.js?v=20261016-0953","js/core-a.js?v=20261016-0953","js/core-b.js?v=20261016-0953","js/library.js?v=20261016-0953","js/pdf.js?v=20261016-0953","js/pwa-lock.js?v=20261016-0953","js/reader-ui.js?v=20261016-0953","js/reader.js?v=20261016-0953","js/rpg.js?v=20261016-0953","js/settings.js?v=20261016-0953","js/start.js?v=20261016-0953","js/v6-extras.js?v=20261016-0953","manifest.webmanifest","reader-session.js?v=20261016-0953","storage/adapter.js?v=20261016-0953","storage/events.js?v=20261016-0953","storage/idb.js?v=20261016-0953","storage/index.js?v=20261016-0953","storage/migrate-v6.js?v=20261016-0953","storage/schema.js?v=20261016-0953","storage/sessions.js?v=20261016-0953","storage/state.js?v=20261016-0953","tokens.css","vendor/pdfjs/pdf.min.js","vendor/pdfjs/pdf.worker.min.js"];
+const PRECACHE = ["./","app.html","fonts/OFL.txt","fonts/caveat.woff2","fonts/nunito.woff2","game-awards.js?v=20261016-1023","icons/icon-192.png","icons/icon-test-192.png","icons/icon-test-512.png","icons/icon-test-maskable-512.png","icons/icon-test-mono.svg","index.html","js/books-builtin.js?v=20261016-1023","js/content.js?v=20261016-1023","js/core-a.js?v=20261016-1023","js/core-b.js?v=20261016-1023","js/library.js?v=20261016-1023","js/pdf.js?v=20261016-1023","js/pwa-lock.js?v=20261016-1023","js/reader-ui.js?v=20261016-1023","js/reader.js?v=20261016-1023","js/rpg.js?v=20261016-1023","js/settings.js?v=20261016-1023","js/start.js?v=20261016-1023","js/v6-extras.js?v=20261016-1023","manifest.webmanifest","reader-session.js?v=20261016-1023","storage/adapter.js?v=20261016-1023","storage/events.js?v=20261016-1023","storage/idb.js?v=20261016-1023","storage/index.js?v=20261016-1023","storage/migrate-v6.js?v=20261016-1023","storage/schema.js?v=20261016-1023","storage/sessions.js?v=20261016-1023","storage/state.js?v=20261016-1023","tokens.css","vendor/pdfjs/pdf.min.js","vendor/pdfjs/pdf.worker.min.js"];
 const NAV_TIMEOUT_MS = 1500; /* navigation: network vs cache race */
 const APP_MARK = '<meta name="rq-app" content="readquest">'; /* in app.html <head>; a captive portal page won't have it */
 
@@ -37,8 +37,26 @@ self.addEventListener('message', function (e) {
 
 function isBook(url) { return /\.(pdf|fb2|epub|txt|zip)$/i.test(url.pathname); }
 
+/* «Поделиться → ReadQuest» (manifest share_target, Android): the system POSTs the files to ./share-target.
+ * They go to the cache NS + '_share' (not NS + '-…', so activate never deletes it), one entry per file, name in X-RQ-Name;
+ * then 303 to ./?share=1, where the app (importSharedBooks in js/library.js) adds them and empties the cache. */
+const SHARE = NS + '_share';
+function shareTarget(req) {
+  return req.formData().then(function (fd) {
+    const files = fd.getAll('books').filter(function (f) { return f && typeof f === 'object' && f.size > 0; });
+    return caches.open(SHARE).then(function (c) {
+      const t = Date.now();
+      return Promise.all(files.map(function (f, i) {
+        return c.put(new Request('share/' + t + '-' + i), new Response(f, { headers: { 'Content-Type': f.type || 'application/octet-stream', 'X-RQ-Name': encodeURIComponent(f.name || '') } }));
+      }));
+    });
+  }).catch(function (err) { console.warn('[rq] share-target', err); })
+    .then(function () { return Response.redirect(new URL('./?share=1', self.registration.scope).href, 303); });
+}
+
 self.addEventListener('fetch', function (e) {
   const req = e.request;
+  if (req.method === 'POST' && new URL(req.url).pathname === new URL('./share-target', self.registration.scope).pathname) { e.respondWith(shareTarget(req)); return; }
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;          /* also excludes blob:, data: */

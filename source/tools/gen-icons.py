@@ -12,7 +12,7 @@ archive clipboard copy file-text rotate-cw languages compass sparkles shield hea
 chevron-left bookmark info circle-alert download zoom-in vibrate smartphone check minus plus user-round lock
 align-justify book-marked circle circle-check
 pin circle-minus circle-plus chevron-up share-2 trash-2 image folder
-amphora notebook quote layers chevron-down map castle scroll-text'''.split()
+amphora notebook quote layers chevron-down flower flower-2 map castle scroll-text'''.split()
 out = []
 for n in NAMES:
     p = os.path.join(HAND, n + '.svg')

@@ -1,7 +1,7 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
-const SCREENS=['library','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','reader','summary'];
-const DRAWER={library:'dLib',quotes:'dNotes',vocab:'dVocab',profile:'dProf',quests:'dQuests',stats:'dStats',settings:'dSet'};
+const SCREENS=['library','path','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','reader','summary'];
+const DRAWER={library:'dLib',path:'dPath',quotes:'dNotes',vocab:'dVocab',profile:'dProf',quests:'dQuests',stats:'dStats',settings:'dSet'};
 let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
@@ -28,6 +28,7 @@ const NAV_CATALOG=[
   {id:'library',t:'Библиотека',ic:'book-open',sub:'Главный экран'},
   {id:'rewards',t:'Награды',ic:'gift'},
   {id:'profile',t:'Профиль',ic:'user-round'},
+  {id:'path',t:'Путь читателя',s:'Путь',ic:'map'},
   {id:'quests',t:'Квесты',ic:'target'},
   {id:'notes',t:'Цитаты и заметки',s:'Цитаты',ic:'notebook-pen'},
   {id:'vocab',t:'Словарь',ic:'book-marked'},
@@ -38,8 +39,8 @@ const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
 const RQ_MVP_DRAWER_EXTRAS=true;
 function navAvail(id){return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
 function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
-const NAV_BN={library:'bnLib',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',notes:'bnNotes',vocab:'bnVocab',stats:'bnStats'};
-const NAV_DI={library:'dLib',rewards:'dRew',profile:'dProf',quests:'dQuests',notes:'dNotes',vocab:'dVocab',stats:'dStats'};
+const NAV_BN={library:'bnLib',path:'bnPath',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',notes:'bnNotes',vocab:'bnVocab',stats:'bnStats'};
+const NAV_DI={library:'dLib',path:'dPath',rewards:'dRew',profile:'dProf',quests:'dQuests',notes:'dNotes',vocab:'dVocab',stats:'dStats'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
   if(!Array.isArray(v))return NAV_DEF.slice();
@@ -61,6 +62,7 @@ function navGo(id){
   try{
     if(id==='library'){renderLibrary();show('library');}
     else if(id==='profile'){renderProfile();show('profile');}
+    else if(id==='path'){show('path');renderPath();}
     else if(id==='quests')openJournal('quests');
     else if(id==='notes')openJournal('quotes');
     else if(id==='vocab')openJournal('vocab');
@@ -91,7 +93,7 @@ function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const 
 function openDrawer(){try{renderDrawerHead();renderNav();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
-['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
+['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
 
 let jrnLast='quotes';
 function openJournal(sub){
@@ -317,7 +319,7 @@ function coverHtml(b){
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
   if(cv)return cv;
-  return b.cover;
+  return b.cover||rqIcon('book-open',22); /* no emoji cover (path books) → Lucide */
 }
 function renderLibChips(){
   const box=el('libChips');box.innerHTML='';
@@ -376,6 +378,10 @@ async function importBookFile(f,setBusy){
   }
   if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
   /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
+  return rqAddBook(b);
+}
+/* one way a new book reaches the shelf (file import and «Путь читателя»): text body to IDB once, then the card, then save() */
+async function rqAddBook(b){
   if(b.type!=='pdf'){
     if(window.__rqWriter&&!window.__rqWriter.mayWrite())throw new Error('книга открыта в другом окне');
     if(!__rq||!__rq.upsertUserBook)throw new Error('хранилище ещё не готово — обновите страницу');

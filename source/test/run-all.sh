@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 HOST="${RQ_HOST:-http://127.0.0.1:8767}"
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
-ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 ellada themecolors drawer uifix nav mvpflag extra achgate ach ach2 setentry expand qhint bookcard sysback rowfix gatepick libhead blackcanvas importskin import-many mvp-check audit1 audit2 pdf pdf-test pwa"
+ALL="export export-test reset-timeout names savetext scriptv cap awards back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 ellada babochkovyi themecolors drawer uifix nav mvpflag extra achgate ach ach2 setentry expand qhint bookcard sysback rowfix gatepick libhead blackcanvas importskin import-many mvp-check audit1 audit2 pdf pdf-test pwa"
 SEL="${*:-$ALL}"
 LOG="/tmp/rq-runall/$BUILD"; mkdir -p "$LOG"; rc=0  # per-run log dir: a rerun never overwrites the logs of a failed run
 for t in $SEL; do
@@ -52,6 +52,7 @@ for t in $SEL; do
     nav)          cmd="env RQ_URL=$HOST/readquest/test/ node nav.test.mjs";;
     drawer)       cmd="env RQ_URL=$HOST/readquest/test/ node drawer.test.mjs";;
     ellada)       cmd="env RQ_URL=$HOST/readquest/test/ node ellada.test.mjs";;
+    babochkovyi)  cmd="env RQ_URL=$HOST/readquest/test/ node babochkovyi.test.mjs";;
     themecolors)  cmd="env RQ_URL=$HOST/readquest/test/ node themecolors.test.mjs";;
     shop2)        cmd="env RQ_URL=$HOST/readquest/test/ RQ_MAIN_URL=$HOST/readquest/ node shop2.test.mjs";;
     blackcanvas)  cmd="node blackcanvas.test.mjs";;

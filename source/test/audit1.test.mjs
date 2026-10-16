@@ -58,7 +58,7 @@ if (want('soon')) {
     return { cards, detail, b1, b2, same: raw0 === raw1, gold: S.gold, owned: S.owned.slice(), worn, skin: SET.skin || null };
   });
   /* 15.10: a skin leaves «Скоро» in the build that ships its styling («Эллада» first, its own test ellada.test.mjs) */
-  const styled = ['skin-pencil', 'skin-ellada'];
+  const styled = ['skin-pencil', 'skin-ellada', 'skin-babochkovyi'];
   const pencil = r.cards.find(c => c.id === 'skin-pencil'), others = r.cards.filter(c => styled.indexOf(c.id) < 0);
   ok('soon: every skin without styling (all but «Карандашный», «Эллада») shows «Скоро» (disabled), no «Купить»; «Карандашный» unchanged', others.length >= 6 && others.every(c => c.st === 'soon' && /Скоро/.test(c.cta) && c.dis) && pencil && pencil.st !== 'soon', r.cards);
   ok('soon: skin page button «Скоро», disabled', /Скоро/.test(r.detail.t || '') && r.detail.dis, r.detail);

@@ -84,7 +84,7 @@ function pathLines(){
 window.addEventListener('resize',function(){if(el('path')&&!el('path').classList.contains('hidden'))pathLines();});
 
 function pathOpen(pid){
-  const f=pathFind(pid);if(!f)return;const b=f.b,c=f.ch,st=pathState(pid);
+  const f=pathFind(pid);if(!f)return;const b=f.b,c=f.ch,st=pathState(pid),has=!!(st.lib&&st.lib.text);
   const tag=b.kind==='boss'?'Главная книга главы':(b.kind==='side'?'Рассказ':'Книга главы');
   el('bookSheetBody').innerHTML=
     '<div class="bk-head"><div class="cover">'+rqIcon(b.kind==='boss'?'castle':(b.kind==='side'?'scroll-text':'book-open'),28)+'</div><div class="bk-ttl"><b>'+esc(b.t)+'</b>'+
@@ -95,27 +95,54 @@ function pathOpen(pid){
     '<div class="bk-row"><span class="bk-k">Место</span><span class="bk-v">'+tag+'</span></div>'+
     '<div class="bk-row"><span class="bk-k">Объём</span><span class="bk-v">'+pathHours(b.kb)+' чтения</span></div>'+
     '<div class="bk-row"><span class="bk-k">Звание за главу</span><span class="bk-v">«'+esc(c.rank)+'»</span></div></div>'+
-    '<div class="bk-note">Книга бесплатная, из общественного достояния. Минуты, опыт и серия считаются как у любой книги.</div>'+
-    '<button type="button" class="cta" onclick="pathRead(\''+pid+'\')">'+(st.done?'Открыть':(st.lib?'Продолжить':'Взять в библиотеку и читать'))+'</button>';
+    '<div class="bk-note">'+(has?'Книга лежит на телефоне и читается без интернета. Её можно удалить, прогресс останется.':
+      (st.lib?'Текст удалён с телефона, прогресс сохранён. Скачайте книгу снова, чтобы продолжить.':
+      'Книга бесплатная, из общественного достояния. Скачивается один раз и дальше читается без интернета. Минуты, опыт и серия считаются как у любой книги.'))+'</div>'+
+    '<button type="button" class="cta" onclick="pathRead(\''+pid+'\')">'+(has?(st.done?'Открыть':'Продолжить'):(st.lib?'Скачать снова · ':'Скачать на телефон и читать · ')+pathSize(b.kb))+'</button>'+
+    (has?'<button type="button" class="pathdel" onclick="pathDrop(\''+pid+'\')">Удалить с телефона · '+pathSize(b.kb)+'</button>':'');
   el('bookSheet').classList.remove('hidden');
 }
-/* «Взять в библиотеку»: the text is fetched once from books/<id>.txt (same origin, not precached), then it is an ordinary
-   book with one extra field pathId (arch.md 16.10). A second tap never adds a second copy. */
+/* Download on demand (Джессика 16.10): nothing is fetched until the button. The text comes once from books/<id>.txt
+   (same origin, not precached, no-store so the browser keeps no second copy) and lives only in IDB, like an imported book.
+   The book card carries one extra field pathId (arch.md 16.10). A second tap never adds a second copy.
+   «Удалить с телефона» drops only the text body (IDB + memory): the card, progress and «прочитано» stay, so the map is unchanged;
+   «Скачать снова» or opening it from the shelf fetches the text again into the same book. */
 let pathBusy=false;
+async function pathFetch(pid){
+  let txt='';
+  try{const r=await fetch('books/'+pid+'.txt',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));txt=await r.text();}
+  catch(e){flashMsg(navigator.onLine===false?'Нет сети. Книга скачается один раз, дальше читается без интернета':'Текст этой книги ещё не добавлен','info');return '';}
+  if(!txt||txt.length<20){flashMsg('Текст этой книги ещё не добавлен','info');return '';}
+  return txt;
+}
 async function pathRead(pid){
   const f=pathFind(pid);if(!f||pathBusy)return;
   const st=pathState(pid);
-  if(st.lib){el('bookSheet').classList.add('hidden');openBook(st.lib.id);return;}
+  if(st.lib&&st.lib.text){el('bookSheet').classList.add('hidden');openBook(st.lib.id);return;}
   pathBusy=true;
   try{
-    let txt='';
-    try{const r=await fetch('books/'+pid+'.txt',{cache:'no-cache'});if(!r.ok)throw new Error(String(r.status));txt=await r.text();}
-    catch(e){flashMsg(navigator.onLine===false?'Нет сети. Книга скачается один раз, дальше читается без интернета':'Текст этой книги ещё не добавлен','info');return;}
-    if(!txt||txt.length<20){flashMsg('Текст этой книги ещё не добавлен','info');return;}
+    if(st.lib){ /* card is on the shelf, its text was deleted from the phone: download into the same book */
+      if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+      const txt=await pathFetch(pid);if(!txt)return;
+      try{await __rq.idb.putText(st.lib.id,txt);}catch(e){flashMsg('Не удалось сохранить книгу: '+(e&&e.message||e),'info');return;}
+      st.lib.text=txt;
+      el('bookSheet').classList.add('hidden');
+      openBook(st.lib.id);return;
+    }
+    const txt=await pathFetch(pid);if(!txt)return;
     const b={id:newBookId(),title:f.b.t,author:f.b.a,genre:'Путь читателя',stat:'Воображение',cover:'',text:txt,pathId:pid,fname:pid+'.txt',size:txt.length};
     try{await rqAddBook(b);}catch(e){flashMsg('Не удалось добавить книгу: '+(e&&e.message||e),'info');return;}
     el('bookSheet').classList.add('hidden');
     try{renderLibrary();}catch(e){}
     openBook(b.id);
   }finally{pathBusy=false;}
+}
+async function pathDrop(pid){
+  const st=pathState(pid);if(!st.lib||!st.lib.text||pathBusy)return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+  if(R&&R.book&&R.book.id===st.lib.id)return; /* never under an open reader */
+  try{await __rq.idb.delText(st.lib.id);}catch(e){flashMsg('Не удалось удалить: '+(e&&e.message||e),'info');return;}
+  delete st.lib.text;
+  flashMsg('Книга удалена с телефона. Прогресс сохранён','info');
+  pathOpen(pid);
 }

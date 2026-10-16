@@ -2,7 +2,8 @@
 //  1) карта и карточка книги ничего не пишут: NS и NS_set побайтно равны, setItem не вызывался;
 //  2) «Взять в библиотеку»: книга одна, с pathId, текст в IDB, открывается читалка; повторный тап копию не добавляет;
 //  3) экспорт → сброс → импорт: pathId на месте, карта снова отмечает книгу; старый бэкап без pathId и битый pathId не ломают карту;
-//  4) звание и «прочитано» берутся из S.finished, монеты и XP не меняются.
+//  4) звание и «прочитано» берутся из S.finished, монеты и XP не меняются;
+//  5) книга скачивается только по кнопке и удаляется с телефона: текст уходит из IDB, карточка и прогресс остаются, «Скачать снова» и открытие с полки качают заново.
 // Text of books/<id>.txt is served by request interception (fixture), so the test does not depend on the real texts.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node path.test.mjs
 import puppeteer from 'puppeteer-core';
@@ -13,7 +14,7 @@ const TEXT = 'Муза, скажи мне о том многоопытном м�
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
-const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+const errs = [], dialogs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
 let fetched = 0;
 await p.setRequestInterception(true);
 p.on('request', r => {
@@ -30,12 +31,13 @@ await p.evaluate(() => { window.__lsW = []; const s = Storage.prototype.setItem;
 const a = await snap();
 const m = await p.evaluate(async () => { navGo('path'); await new Promise(r => setTimeout(r, 300));
   const nodes = document.querySelectorAll('#pathBox .pathnode').length, ch = document.querySelectorAll('#pathBox .pathch').length;
-  pathOpen('odyssey'); const sheet = !el('bookSheet').classList.contains('hidden'); el('bookSheet').classList.add('hidden');
+  pathOpen('odyssey'); const sheet = !el('bookSheet').classList.contains('hidden'); const cta = el('bookSheetBody').querySelector('.cta').textContent; el('bookSheet').classList.add('hidden');
   pathOpen('crime'); el('bookSheet').classList.add('hidden');
   const roads = document.querySelectorAll('#pathBox .pathline path').length;
-  return { nodes, ch, sheet, roads, vis: !el('path').classList.contains('hidden') }; });
+  return { nodes, ch, sheet, roads, cta, vis: !el('path').classList.contains('hidden') }; });
 ok('1a карта: 4 главы, 14 книг, дорога между книгами (10 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 14 && m.roads === 10 && m.sheet, m);
 const b = await snap(); const w = await p.evaluate(() => window.__lsW.filter(k => k === RQ_K.v1 || k === RQ_K.set));
+ok('1c до кнопки ничего не скачано: кнопка «Скачать на телефон и читать · 1,1 МБ», запросов к books/ нет', /^Скачать на телефон и читать · 1,1 МБ$/.test(m.cta) && fetched === 0, { cta: m.cta, fetched });
 ok('1b карта и карточка ничего не пишут (NS и NS_set равны, setItem 0)', a.ns === b.ns && a.set === b.set && w.length === 0, { writes: w });
 const money0 = await p.evaluate(() => ({ gold: S.gold, xp: S.xp }));
 
@@ -53,6 +55,32 @@ const t2 = await p.evaluate(async () => { await closeReader({ quiet: true }); na
 ok('2b повторный тап открывает ту же книгу, копии нет, текст скачан один раз', t2.n === 1 && t2.inReader && fetched === 1, { ...t2, fetched });
 const t3 = await p.evaluate(async () => { const n0 = S.userBooks.length; await pathRead('hamlet'); return S.userBooks.length - n0; });
 ok('2c нет текста (404) → книга не добавляется', t3 === 0, t3);
+
+// 5. delete from the phone, download again
+const d = await p.evaluate(async (id) => {
+  const bk = S.userBooks.find(x => x.id === id); S.progress[id] = { ratio: 0.3, page: 5 }; save(); await new Promise(r => setTimeout(r, 400));
+  pathOpen('odyssey'); const del = el('bookSheetBody').querySelector('.pathdel'); const delT = del ? del.textContent : '';
+  const ns0 = localStorage.getItem(RQ_K.v1); window.__lsW = [];
+  await pathDrop('odyssey'); await new Promise(r => setTimeout(r, 400));
+  const idb = await __rq.idb.getText(id).catch(() => null);
+  const st = pathState('odyssey'); const cta = el('bookSheetBody').querySelector('.cta').textContent;
+  return { delT, idbGone: !idb, memGone: !bk.text, kept: !!st.lib && S.userBooks.filter(x => x.pathId === 'odyssey').length === 1, prog: (S.progress[id] || {}).ratio,
+    nsSame: localStorage.getItem(RQ_K.v1) === ns0, cta, sheetOpen: !el('bookSheet').classList.contains('hidden') };
+}, t.id);
+ok('5a «Удалить с телефона»: текст удалён из IDB и памяти, карточка и прогресс 30% на месте, rq_v1 не тронут', /^Удалить с телефона · 1,1 МБ$/.test(d.delT) && d.idbGone && d.memGone && d.kept && d.prog === 0.3 && d.nsSame, d);
+ok('5b после удаления в карточке «Скачать снова · 1,1 МБ»', /^Скачать снова · 1,1 МБ$/.test(d.cta) && d.sheetOpen, d.cta);
+const f0 = fetched;
+const g = await p.evaluate(async (id) => { await pathRead('odyssey'); await new Promise(r => setTimeout(r, 900));
+  const idb = await __rq.idb.getText(id).catch(() => null); const inReader = !el('reader').classList.contains('hidden'); await closeReader({ quiet: true });
+  return { idbLen: idb ? idb.length : 0, inReader, n: S.userBooks.filter(x => x.pathId === 'odyssey').length, prog: (S.progress[id] || {}).ratio >= 0.3 }; }, t.id);
+ok('5c «Скачать снова»: текст снова в IDB, та же книга, прогресс не сброшен, открыта читалка', g.idbLen > 1000 && g.inReader && g.n === 1 && g.prog && fetched === f0 + 1, { ...g, fetched });
+await p.evaluate(async () => { await pathDrop('odyssey'); });
+await p.reload({ waitUntil: 'load' }); await boot();
+const f1 = fetched, dl0 = dialogs.length;
+const h = await p.evaluate(async (id) => { await openBook(id); await new Promise(r => setTimeout(r, 1200));
+  const idb = await __rq.idb.getText(id).catch(() => null); const inReader = !el('reader').classList.contains('hidden'); await closeReader({ quiet: true });
+  return { idbLen: idb ? idb.length : 0, inReader }; }, t.id);
+ok('5d книга без текста открыта с полки → скачивается заново, без окна «Текст не найден»', h.idbLen > 1000 && h.inReader && fetched === f1 + 1 && dialogs.length === dl0, { ...h, fetched, dialogs: dialogs.slice(dl0) });
 
 // 3. export → reset → import
 const exp = await p.evaluate(async (id) => { S.finished.push(id); save(); await new Promise(r => setTimeout(r, 300)); return JSON.stringify(await __rq.exportBackup(null, SET, { includeTextBodies: false })); }, t.id);

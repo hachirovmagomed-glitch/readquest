@@ -1,0 +1,164 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+rewards	награды за чтение	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	6.24	5.92	ok
+rewards	Добавить в сокровищницу	Alegreya Sans	15	rgb(31, 90, 140)	ui	4.5	7.13	7.13	ok
+library	Е. Оливина · не начата	Alegreya Sans	12	rgb(90, 74, 62)	ui-small	4.5	8.32	7.17	ok
+library	Все	Alegreya Sans	15	rgb(255, 255, 255)	ui	4.5	7.24	7.24	ok
+library	PDF	Alegreya Sans	10	rgb(255, 255, 255)	ui-small	4.5	7.24	7.24	ok
+library	Виноградник у храма	Cormorant Unicase	15	rgb(255, 255, 255)	ui	4.5	7.24	7.24	ok
+library	Н. Лаврова	Alegreya Sans	10.5	rgb(255, 255, 255)	ui-small	4.5	7.24	7.24	ok
+library	Библиотека	Alegreya Sans	13	rgb(255, 255, 255)	ui-small	4.5	7.24	7.24	ok
+rewards	Награды	Alegreya Sans	13	rgb(255, 255, 255)	ui-small	4.5	7.24	7.24	ok
+session-summary	+180	Alegreya Sans SC	24	rgb(240, 160, 102)	ui	4.5	7.61	7.61	ok
+session-summary	Чтение	Alegreya Sans	13	rgb(201, 182, 162)	ui-small	4.5	8.2	8.2	ok
+session-summary	Страницы	Alegreya Sans	13	rgb(201, 182, 162)	ui-small	4.5	8.2	8.2	ok
+session-summary	XP	Alegreya Sans	13	rgb(201, 182, 162)	ui-small	4.5	8.2	8.2	ok
+palette	#5a4a3e	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.25	ok
+palette	#1f5a8c	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.25	ok
+palette	#17466e	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.25	ok
+palette	#4d6326	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.25	ok
+library	Читаю	Alegreya Sans	15	rgb(90, 74, 62)	ui	4.5	8.32	8.32	ok
+library	Хочу	Alegreya Sans	15	rgb(90, 74, 62)	ui	4.5	8.32	8.32	ok
+library	Прочитано	Alegreya Sans	15	rgb(90, 74, 62)	ui	4.5	8.32	8.32	ok
+library	Д. Керамиди · 53%	Alegreya Sans	12	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+library	М. Солонова · 12%	Alegreya Sans	12	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+library	А. Эгеева · прочитано	Alegreya Sans	12	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+library	В. Стадиев · 4%	Alegreya Sans	12	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+library	Н. Лаврова · 67%	Alegreya Sans	12	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+library	Награды	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+library	Профиль	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+rewards	Читать 10 мин · 6 из 10 мин	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+rewards	4 дня по 10 мин · 3 из 4	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+rewards	Придумайте, чем себя порадовать, и назна	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+rewards	Библиотека	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+rewards	Профиль	Alegreya Sans	13	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#1a1410	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	текст	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#f4f0e8	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	фон	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#fffdf9	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	карточки	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#f2ede3	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	панели	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	вторичный текст	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	акцент	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	нажатие	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	неделя, успех	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#c8642c	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	только декор	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#3f7fb5	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#7a3a12	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	суммы драхм	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#fcf9f3	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	книга день	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#0d0a08	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	фон ночи	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#1c1714	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	поверхность	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#f0a066	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	акцент ночи	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	#ebe0d2	monospace	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+palette	книга ночью	Alegreya Sans	10.5	rgb(90, 74, 62)	ui-small	4.5	8.32	8.32	ok
+rewards	+30	Alegreya Sans	16	rgb(122, 58, 18)	ui	4.5	8.47	8.47	ok
+rewards	+120	Alegreya Sans	16	rgb(122, 58, 18)	ui	4.5	8.47	8.47	ok
+rewards	XXX	Alegreya Sans	13	rgb(122, 58, 18)	ui-small	4.5	8.47	8.47	ok
+session-summary	Гончар из нижнего города · стр. 85–98	Alegreya Sans	14	rgb(201, 182, 162)	ui	4.5	9.05	9.05	ok
+session-summary	320 / 500 до уровня 5	Alegreya Sans	12.5	rgb(201, 182, 162)	ui-small	4.5	9.05	9.05	ok
+session-summary	Лавровый венок · 18 из 10 мин	Alegreya Sans	13	rgb(201, 182, 162)	ui-small	4.5	9.05	9.05	ok
+session-summary	Продолжить	Cormorant Unicase	24	rgb(16, 13, 11)	ui	4.5	9.15	9.15	ok
+session-summary	+30 драхм за день	Alegreya Sans	15	rgb(242, 197, 143)	ui	4.5	11.13	11.13	ok
+rewards	Сокровищница	Cormorant Unicase	24	rgb(26, 20, 16)	ui	4.5	15.48	13.22	ok
+session-summary	18 мин	Alegreya Sans SC	24	rgb(243, 233, 220)	ui	4.5	13.41	13.41	ok
+session-summary	14	Alegreya Sans SC	24	rgb(243, 233, 220)	ui	4.5	13.41	13.41	ok
+library	Виноградник у храма	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	17.95	14.66	ok
+reader-night	Гончар из нижнего города	Cormorant Unicase	21	rgb(243, 233, 220)	ui	4.5	14.8	14.8	ok
+reader-night	98 из 185	Alegreya Sans	15	rgb(243, 233, 220)	ui	4.5	14.8	14.8	ok
+reader-night	Оглавление	Alegreya Sans	13	rgb(243, 233, 220)	ui-small	4.5	14.8	14.8	ok
+reader-night	Текст	Alegreya Sans	13	rgb(243, 233, 220)	ui-small	4.5	14.8	14.8	ok
+reader-night	День	Alegreya Sans	13	rgb(243, 233, 220)	ui-small	4.5	14.8	14.8	ok
+reader-night	Закладка	Alegreya Sans	13	rgb(243, 233, 220)	ui-small	4.5	14.8	14.8	ok
+session-summary	Уровень 4	Alegreya Sans	14	rgb(243, 233, 220)	ui	4.5	14.8	14.8	ok
+session-summary	Неделя: 3 из 4 дней	Alegreya Sans	14	rgb(243, 233, 220)	ui	4.5	14.8	14.8	ok
+reader-night	Глава 7. Сова на амфоре	Cormorant Unicase	24	rgb(235, 224, 210)	ui	4.5	14.87	14.87	ok
+reader-night	Дочь гончара Ксения просыпалась раньше в	Lora	16	rgb(235, 224, 210)	book	7	14.87	14.87	ok
+session-summary	Сессия завершена	Cormorant Unicase	30	rgb(246, 234, 214)	ui	4.5	14.94	14.94	ok
+library	Песнь о медном корабле	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	17.95	14.95	ok
+library	Остров тысячи амфор	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	17.95	15.37	ok
+library	Сова, что видела всё	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	17.95	15.47	ok
+reader-day	Гончар из нижнего города	Cormorant Unicase	21	rgb(26, 20, 16)	ui	4.5	15.63	15.63	ok
+reader-day	98 из 185	Alegreya Sans	15	rgb(26, 20, 16)	ui	4.5	15.63	15.63	ok
+reader-day	Оглавление	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	15.63	15.63	ok
+reader-day	Текст	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	15.63	15.63	ok
+reader-day	Ночь	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	15.63	15.63	ok
+reader-day	Закладка	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	15.63	15.63	ok
+library	Гончар из нижнего города	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	17.95	15.76	ok
+library	Библиотека	Cormorant Unicase	30	rgb(246, 234, 214)	ui	4.5	15.79	15.79	ok
+library	EPUB	Alegreya Sans	10	rgb(246, 234, 214)	ui-small	4.5	15.79	15.79	ok
+library	Гончар из нижнего города	Cormorant Unicase	15	rgb(246, 234, 214)	ui	4.5	15.79	15.79	ok
+library	Д. Керамиди	Alegreya Sans	10.5	rgb(246, 234, 214)	ui-small	4.5	15.79	15.79	ok
+library	Бег до самого моря	Cormorant Unicase	15	rgb(246, 234, 214)	ui	4.5	15.79	15.79	ok
+library	В. Стадиев	Alegreya Sans	10.5	rgb(246, 234, 214)	ui-small	4.5	15.79	15.79	ok
+rewards	Награды	Cormorant Unicase	30	rgb(246, 234, 214)	ui	4.5	15.79	15.79	ok
+palette	Палитра	Cormorant Unicase	30	rgb(246, 234, 214)	ui	4.5	15.79	15.79	ok
+rewards	Задания	Cormorant Unicase	24	rgb(26, 20, 16)	ui	4.5	16.31	16.16	ok
+library	FB2	Alegreya Sans	10	rgb(21, 17, 14)	ui-small	4.5	16.43	16.43	ok
+library	Остров тысячи амфор	Cormorant Unicase	15	rgb(21, 17, 14)	ui	4.5	16.43	16.43	ok
+library	М. Солонова	Alegreya Sans	10.5	rgb(21, 17, 14)	ui-small	4.5	16.43	16.43	ok
+library	PDF	Alegreya Sans	10	rgb(21, 17, 14)	ui-small	4.5	16.43	16.43	ok
+library	Сова, что видела всё	Cormorant Unicase	15	rgb(21, 17, 14)	ui	4.5	16.43	16.43	ok
+library	Е. Оливина	Alegreya Sans	10.5	rgb(21, 17, 14)	ui-small	4.5	16.43	16.43	ok
+library	TXT	Alegreya Sans	10	rgb(26, 20, 16)	ui-small	4.5	16.47	16.47	ok
+library	А. Эгеева	Alegreya Sans	10.5	rgb(26, 20, 16)	ui-small	4.5	16.47	16.47	ok
+palette	Ночной лак	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	16.88	ok
+palette	Ночь: панель	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	16.88	ok
+palette	Светлая глина	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	16.92	ok
+palette	Ночь: текст	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	16.92	ok
+reader-day	Глава 7. Сова на амфоре	Cormorant Unicase	24	rgb(26, 20, 16)	ui	4.5	17.35	17.35	ok
+reader-day	Дочь гончара Ксения просыпалась раньше в	Lora	16	rgb(26, 20, 16)	book	7	17.35	17.35	ok
+palette	Терракота	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.64	ok
+palette	Море	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.64	ok
+palette	Обожжённая	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.64	ok
+palette	Страница	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.64	ok
+library	390	Alegreya Sans SC	19	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+library	драхм	Alegreya Sans	14	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+library	Бег до самого моря	Alegreya Sans	13	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+rewards	390	Alegreya Sans SC	19	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+rewards	драхм	Alegreya Sans	14	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+rewards	Задание дня	Alegreya Sans	16	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+rewards	Задание недели	Alegreya Sans	16	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+rewards	Серия сериала	Alegreya Sans	14	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+rewards	Кофе в кофейне	Alegreya Sans	14	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+rewards	Новая книга	Alegreya Sans	14	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+palette	Чёрный лак	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Мрамор	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Белый мрамор	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Мрамор тёпл.	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Глина тёмн.	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Эгейский	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Эгейский тёмн.	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Олива	Alegreya Sans	11	rgb(26, 20, 16)	ui-small	4.5	17.95	17.95	ok
+palette	Cormorant Unicase — шапки	Cormorant Unicase	21	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+palette	Alegreya Sans SC — 18 мин · +180	Alegreya Sans SC	19	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+palette	Alegreya Sans — интерфейс	Alegreya Sans	15	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+palette	Lora — текст книги	Lora	15	rgb(26, 20, 16)	ui	4.5	17.95	17.95	ok
+tokens	книга день	—	—	#1a1410 / #fcf9f3	book	7	17.35	17.35	ok
+tokens	книга ночь	—	—	#ebe0d2 / #100d0b	book	7	14.87	14.87	ok
+tokens	--rq-text/--rq-bg	—	—	#1a1410 / #f4f0e8	ui	4.5	16.05	16.05	ok
+tokens	--rq-text-2/--rq-bg	—	—	#5a4a3e / #f4f0e8	ui	4.5	7.44	7.44	ok
+tokens	--rq-text-2/--rq-surface	—	—	#5a4a3e / #fffdf9	ui	4.5	8.32	8.32	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #1f5a8c	ui	4.5	7.24	7.24	ok
+tokens	--rq-accent-text/--rq-surface	—	—	#1f5a8c / #fffdf9	ui	4.5	7.13	7.13	ok
+tokens	--rq-coin/--rq-surface	—	—	#7a3a12 / #fffdf9	ui	4.5	8.47	8.47	ok
+tokens	олива (успех)/--rq-surface	—	—	#4d6326 / #fffdf9	ui	4.5	6.61	6.61	ok
+tokens	заголовок/чёрный лак шапки	—	—	#f6ead6 / #15110e	ui	4.5	15.79	15.79	ok
+tokens	чёрный лак/светлая обложка	—	—	#15110e / #f7efe0	ui	4.5	16.43	16.43	ok
+tokens	белый/эгейская обложка	—	—	#ffffff / #1f5a8c	ui	4.5	7.24	7.24	ok
+tokens	терракота (декор)/--rq-surface	—	—	#c8642c / #fffdf9	decor	не для текста	3.89	3.89	ok
+tokens	море (декор)/--rq-surface	—	—	#3f7fb5 / #fffdf9	decor	не для текста	4.21	4.21	ok
+tokens	светлая терракота (декор)/лак	—	—	#e08a4e / #15110e	decor	не для текста	7.08	7.08	ok
+tokens	ночь --rq-text/--rq-surface	—	—	#f3e9dc / #1c1714	ui	4.5	14.8	14.8	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#c9b6a2 / #1c1714	ui	4.5	9.05	9.05	ok
+tokens	ночь акцент/--rq-surface	—	—	#f0a066 / #1c1714	ui	4.5	8.4	8.4	ok
+tokens	ночь on-accent/акцент	—	—	#100d0b / #f0a066	ui	4.5	9.15	9.15	ok
+tokens	ночь драхмы/--rq-surface	—	—	#f2c58f / #1c1714	ui	4.5	11.13	11.13	ok
+tokens	ночь олива/--rq-surface	—	—	#b8cf8a / #1c1714	ui	4.5	10.43	10.43	ok
+tokens	ночь созвездия (подписи)/фон	—	—	#c9b6a2 / #0d0a08	ui	4.5	10.05	10.05	ok

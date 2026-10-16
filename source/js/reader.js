@@ -19,11 +19,14 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
   if(typeof s.readCounter!=='boolean')s.readCounter=true;flipNorm(s);return s;}
 normSet(SET);
-function saveSet(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
+/* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
+function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
 /* user pick → NS_set only through the gate (Архитектор 14.10): writer must exist AND allow. Before __rqReady: applied in memory,
-   one flag (no queue); on ready start.js does exactly ONE saveSet with the current SET, again only if the gate allows. */
-function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;return;}if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
-function rqFlushSetPending(){if(!window.__rqSetPending)return;window.__rqSetPending=false;if(window.__rqWriter&&__rqWriter.mayWrite())saveSet();}
+   one flag (no queue); on ready start.js does exactly ONE write with the current SET, again only if the gate allows. */
+function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;return;}if(window.__rqWriter&&__rqWriter.mayWrite())saveSetRaw();}
+function rqFlushSetPending(){if(!window.__rqSetPending)return;window.__rqSetPending=false;if(window.__rqWriter&&__rqWriter.mayWrite())saveSetRaw();}
+/* wave 2: saveSet() IS the gate — every settings control (reader, pdf, reader-ui, settings, start, content, library) goes through it */
+function saveSet(){rqSaveSetGated();}
 /* book language: FB2 <lang> → else Cyrillic in the text → 'ru', else 'en' */
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */
@@ -97,6 +100,7 @@ function renderThemeSeg(){
     b.style.background=bg;b.style.boxShadow='inset 0 0 0 1px rgba(255,255,255,.15)';
     if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
+    else if(SKIN_THEMES[key]){b.classList.add('sw-pencil');b.style.color=SKIN_THEMES[key].txt;b.innerHTML=rqIcon(SKIN_THEMES[key].icon,15);b.setAttribute('aria-label',name);} /* bought shop skin */
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
       const from=skinOf(activeTheme());
@@ -107,6 +111,7 @@ function renderThemeSeg(){
     seg.appendChild(b);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
+  Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>add(k,SKIN_THEMES[k].bg,SKIN_THEMES[k].name,false)); /* bought shop skins */
   /* 1в: a bought paid theme that is saved as the current one stays, as a highlighted «Ваша тема» swatch */
   {const o=ownedShopTheme(SET.theme);if(o)add(o.id,o.bg,o.name,false,true);}
   seg.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt)); /* rebuilt swatches keep the current mark */

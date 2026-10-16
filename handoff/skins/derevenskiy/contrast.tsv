@@ -1,0 +1,155 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+rewards	+30	Arsenal	16	rgb(122, 63, 18)	ui	4.5	7.59	7.59	ok
+rewards	+120	Arsenal	16	rgb(122, 63, 18)	ui	4.5	7.59	7.59	ok
+rewards	XXX	Arsenal	13	rgb(122, 63, 18)	ui-small	4.5	7.59	7.59	ok
+library	Библиотека	Yeseva One	29	rgb(251, 245, 233)	ui	4.5	7.88	7.88	ok
+library	TXT	Arsenal	10	rgb(251, 245, 233)	ui-small	4.5	7.88	7.88	ok
+library	Конёк-качалка	Yeseva One	13.5	rgb(251, 245, 233)	ui-small	4.5	7.88	7.88	ok
+library	И. Резной	Arsenal	10.5	rgb(251, 245, 233)	ui-small	4.5	7.88	7.88	ok
+rewards	Награды	Yeseva One	29	rgb(251, 245, 233)	ui	4.5	7.88	7.88	ok
+rewards	Добавить в горницу	Arsenal	15	rgb(44, 74, 138)	ui	4.5	7.88	7.88	ok
+palette	Палитра	Yeseva One	29	rgb(251, 245, 233)	ui	4.5	7.88	7.88	ok
+palette	#efe3cf	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.12	ok
+library	Читаю	Arsenal	15	rgb(90, 70, 52)	ui	4.5	8.19	8.19	ok
+library	Хочу	Arsenal	15	rgb(90, 70, 52)	ui	4.5	8.19	8.19	ok
+library	Прочитано	Arsenal	15	rgb(90, 70, 52)	ui	4.5	8.19	8.19	ok
+library	А. Печкина · 53%	Arsenal	12	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	Г. Полева · 12%	Arsenal	12	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	И. Резной · прочитано	Arsenal	12	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	В. Белова · не начата	Arsenal	12	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	Н. Житная · 4%	Arsenal	12	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	С. Ранняя · 67%	Arsenal	12	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	Награды	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+library	Профиль	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+rewards	Читать 10 мин · 6 из 10 мин	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+rewards	4 дня по 10 мин · 3 из 4	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+rewards	награды за чтение	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+rewards	Придумайте, чем себя порадовать, и назна	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+rewards	Библиотека	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+rewards	Профиль	Arsenal	13	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#23180f	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	текст	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#e9d8bd	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	фон	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#fbf5e9	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	карточки	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	панели	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#5a4634	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	вторичный текст	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#2c4a8a	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	акцент	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#1f3768	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	нажатие	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#45622a	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	неделя, успех	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#c98a2e	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	только декор	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#b23a2a	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#7a3f12	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	суммы монет	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#fbf6ec	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	книга день	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#15100b	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	фон ночи	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#211910	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	поверхность	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#f2d2a9	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	акцент ночи	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	#ebdfcc	monospace	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+palette	книга ночью	Arsenal	10.5	rgb(90, 70, 52)	ui-small	4.5	8.19	8.19	ok
+session-summary	Чтение	Arsenal	13	rgb(205, 185, 160)	ui-small	4.5	8.38	8.38	ok
+session-summary	Страницы	Arsenal	13	rgb(205, 185, 160)	ui-small	4.5	8.38	8.38	ok
+session-summary	XP	Arsenal	13	rgb(205, 185, 160)	ui-small	4.5	8.38	8.38	ok
+library	Все	Arsenal	15	rgb(255, 255, 255)	ui	4.5	8.56	8.56	ok
+library	Библиотека	Arsenal	13	rgb(255, 255, 255)	ui-small	4.5	8.56	8.56	ok
+rewards	Награды	Arsenal	13	rgb(255, 255, 255)	ui-small	4.5	8.56	8.56	ok
+session-summary	Изба у реки · стр. 85–98	Arsenal	14	rgb(205, 185, 160)	ui	4.5	9.29	9.29	ok
+session-summary	320 / 500 до уровня 5	Arsenal	12.5	rgb(205, 185, 160)	ui-small	4.5	9.29	9.29	ok
+session-summary	Ряд вышит · 18 из 10 мин	Arsenal	13	rgb(205, 185, 160)	ui-small	4.5	9.29	9.29	ok
+reader-night	Бабушка Анна затопила печь ещё затемно, 	Bitter	16	rgb(235, 223, 204)	book	7	14.37	10.37	ok
+session-summary	+30 монет за день	Arsenal	15	rgb(232, 194, 122)	ui	4.5	10.46	10.46	ok
+session-summary	+180	Podkova	24	rgb(242, 210, 169)	ui	4.5	11.06	11.06	ok
+session-summary	Продолжить	Yeseva One	21	rgb(21, 16, 11)	ui	4.5	13.11	13.11	ok
+session-summary	18 мин	Podkova	24	rgb(246, 236, 221)	ui	4.5	13.63	13.63	ok
+session-summary	14	Podkova	24	rgb(246, 236, 221)	ui	4.5	13.63	13.63	ok
+reader-day	Изба у реки	Yeseva One	21	rgb(35, 24, 15)	ui	4.5	13.7	13.7	ok
+reader-day	98 из 185	Arsenal	15	rgb(35, 24, 15)	ui	4.5	13.7	13.7	ok
+reader-day	Оглавление	Arsenal	13	rgb(35, 24, 15)	ui-small	4.5	13.7	13.7	ok
+reader-day	Текст	Arsenal	13	rgb(35, 24, 15)	ui-small	4.5	13.7	13.7	ok
+reader-day	Ночь	Arsenal	13	rgb(35, 24, 15)	ui-small	4.5	13.7	13.7	ok
+reader-day	Закладка	Arsenal	13	rgb(35, 24, 15)	ui-small	4.5	13.7	13.7	ok
+reader-night	Изба у реки	Yeseva One	21	rgb(241, 230, 214)	ui	4.5	14.06	14.06	ok
+reader-night	98 из 185	Arsenal	15	rgb(241, 230, 214)	ui	4.5	14.06	14.06	ok
+reader-night	Оглавление	Arsenal	13	rgb(241, 230, 214)	ui-small	4.5	14.06	14.06	ok
+reader-night	Текст	Arsenal	13	rgb(241, 230, 214)	ui-small	4.5	14.06	14.06	ok
+reader-night	День	Arsenal	13	rgb(241, 230, 214)	ui-small	4.5	14.06	14.06	ok
+reader-night	Закладка	Arsenal	13	rgb(241, 230, 214)	ui-small	4.5	14.06	14.06	ok
+library	А. Печкина	Arsenal	10.5	rgb(35, 24, 15)	ui-small	4.5	14.29	14.14	ok
+library	С. Ранняя	Arsenal	10.5	rgb(35, 24, 15)	ui-small	4.5	14.29	14.14	ok
+library	Н. Житная	Arsenal	10.5	rgb(35, 24, 15)	ui-small	4.5	14.45	14.21	ok
+reader-night	Глава 7. Первый снег	Yeseva One	24	rgb(235, 223, 204)	ui	4.5	14.37	14.37	ok
+library	Изба у реки	Yeseva One	13.5	rgb(35, 24, 15)	ui-small	4.5	14.66	14.39	ok
+library	Петушок	Yeseva One	13.5	rgb(35, 24, 15)	ui-small	4.5	14.66	14.39	ok
+library	Г. Полева	Arsenal	10.5	rgb(35, 24, 15)	ui-small	4.5	14.54	14.4	ok
+library	В. Белова	Arsenal	10.5	rgb(35, 24, 15)	ui-small	4.5	14.63	14.5	ok
+library	Подсолнухи	Yeseva One	13.5	rgb(35, 24, 15)	ui-small	4.5	14.78	14.55	ok
+library	Каравай	Yeseva One	13.5	rgb(35, 24, 15)	ui-small	4.5	14.83	14.58	ok
+library	Три берёзы	Yeseva One	13.5	rgb(35, 24, 15)	ui-small	4.5	14.81	14.64	ok
+library	EPUB	Arsenal	10	rgb(35, 24, 15)	ui-small	4.5	14.78	14.67	ok
+library	PDF	Arsenal	10	rgb(35, 24, 15)	ui-small	4.5	14.8	14.67	ok
+library	FB2	Arsenal	10	rgb(35, 24, 15)	ui-small	4.5	14.9	14.79	ok
+session-summary	Сессия завершена	Yeseva One	30	rgb(246, 236, 221)	ui	4.5	15.11	15.11	ok
+session-summary	Уровень 4	Arsenal	14	rgb(246, 236, 221)	ui	4.5	15.11	15.11	ok
+session-summary	Неделя: 3 из 4 дней	Arsenal	14	rgb(246, 236, 221)	ui	4.5	15.11	15.11	ok
+library	390	Podkova	19	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+library	монет	Arsenal	14	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+library	Конёк-качалка	Arsenal	13	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+rewards	390	Podkova	19	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	монет	Arsenal	14	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Задания	Yeseva One	22	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Задание дня	Arsenal	16	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Задание недели	Arsenal	16	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Горница	Yeseva One	22	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Серия сериала	Arsenal	14	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Кофе в кофейне	Arsenal	14	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+rewards	Новая книга	Arsenal	14	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+palette	Сажа	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Сосна	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Лён	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Лён тёмн.	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Кора	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Наличник	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Наличник тёмн.	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Огород	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Охра нити	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Красная нить	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Медь	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Страница	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Ночная изба	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Ночь: панель	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Топлёное молоко	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Ночь: текст	Arsenal	11	rgb(35, 24, 15)	ui-small	4.5	16.0	16.0	ok
+palette	Yeseva One — заголовки	Yeseva One	21	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+palette	Podkova — 18 мин · +180	Podkova	19	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+palette	Arsenal — интерфейс	Arsenal	15	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+palette	Bitter — текст книги	Bitter	15	rgb(35, 24, 15)	ui	4.5	16.0	16.0	ok
+reader-day	Глава 7. Первый снег	Yeseva One	24	rgb(35, 24, 15)	ui	4.5	16.12	16.12	ok
+reader-day	Бабушка Анна затопила печь ещё затемно, 	Bitter	16	rgb(35, 24, 15)	book	7	16.12	16.12	ok
+tokens	книга день	—	—	#23180f / #fbf6ec	book	7	16.12	16.12	ok
+tokens	книга ночь	—	—	#ebdfcc / #15100b	book	7	14.37	14.37	ok
+tokens	--rq-text/--rq-surface (лён)	—	—	#23180f / #fbf5e9	ui	4.5	16.0	16.0	ok
+tokens	--rq-text/доска стены (тёмная)	—	—	#23180f / #dfc59c	ui	4.5	10.43	10.43	ok
+tokens	--rq-text-2/--rq-surface	—	—	#5a4634 / #fbf5e9	ui	4.5	8.19	8.19	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #2c4a8a	ui	4.5	8.56	8.56	ok
+tokens	заголовок лён/синий наличник	—	—	#fbf5e9 / #2c4a8a	ui	4.5	7.88	7.88	ok
+tokens	--rq-accent-text/--rq-surface	—	—	#2c4a8a / #fbf5e9	ui	4.5	7.88	7.88	ok
+tokens	--rq-coin/--rq-surface	—	—	#7a3f12 / #fbf5e9	ui	4.5	7.59	7.59	ok
+tokens	огород (успех)/--rq-surface	—	—	#45622a / #fbf5e9	ui	4.5	6.38	6.38	ok
+tokens	охра нити (декор)/лён	—	—	#c98a2e / #fbf5e9	decor	не для текста	2.7	2.7	ok
+tokens	красная нить (декор)/лён	—	—	#b23a2a / #fbf5e9	decor	не для текста	5.48	5.48	ok
+tokens	ночь --rq-text/--rq-surface	—	—	#f1e6d6 / #211910	ui	4.5	14.06	14.06	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#cdb9a0 / #211910	ui	4.5	9.12	9.12	ok
+tokens	ночь акцент-молоко/--rq-surface	—	—	#f2d2a9 / #211910	ui	4.5	12.03	12.03	ok
+tokens	ночь on-accent/акцент	—	—	#15100b / #f2d2a9	ui	4.5	13.11	13.11	ok
+tokens	ночь монеты/--rq-surface	—	—	#e8c27a / #1f1710	ui	4.5	10.46	10.46	ok
+tokens	ночь успех/--rq-surface	—	—	#b5d08f / #211910	ui	4.5	10.22	10.22	ok

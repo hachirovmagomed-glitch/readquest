@@ -1,0 +1,51 @@
+<html lang="ru"><head><meta charset="utf-8"><style>*{box-sizing:border-box;margin:0;padding:0}body{width:390px;height:844px;overflow:hidden;position:relative;font-family:"PT Sans",sans-serif;color:#2b2118;background:#e9dcc4}
+.abs{position:absolute;pointer-events:none}
+.H{font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.px{font-family:"Press Start 2P",monospace;font-size:8px;letter-spacing:.5px;line-height:1.4}
+.mono{font-family:"IBM Plex Mono",monospace}
+.bg{position:absolute;inset:0;background:radial-gradient(90% 45% at 50% 18%,#f3e6c8 0,#e9dcc4 55%,#d6c5a4 100%)}
+.floor{position:absolute;left:0;right:0;bottom:0;height:200px;background:
+ linear-gradient(180deg,#e9dcc4 0,rgba(233,220,196,0) 40%),
+ conic-gradient(#2b2118 25%,#efe4cc 0 50%,#2b2118 0 75%,#efe4cc 0) 0 0/36px 36px;opacity:.55;transform:perspective(300px) rotateX(38deg);transform-origin:bottom}
+.panel{position:relative;background:#f5ecda;border:2px solid #2b2118;border-radius:6px;box-shadow:4px 4px 0 rgba(43,33,24,.85)}
+.tape{position:absolute;width:52px;height:16px;background:rgba(232,216,160,.85);border:1px solid rgba(43,33,24,.15);top:-8px}
+.hdr{position:absolute;top:0;left:0;right:0;padding:52px 20px 0;display:flex;align-items:center;justify-content:space-between}
+.sign{display:inline-block;padding:3px 12px 2px;background:#2b2118;color:#f3e6c8;border-radius:4px;font-size:28px;box-shadow:0 0 0 3px #e8b84a,0 0 0 5px #2b2118;position:relative}
+.sign:after{content:"";position:absolute;inset:-3px;background:radial-gradient(circle,#ffe8a0 0 2px,transparent 2.5px) 0 0/12px 100%;opacity:.0}
+.bal{display:flex;align-items:center;gap:6px;padding:5px 12px 5px 6px;font-weight:700;font-size:14px;color:#2b2118;background:#f5ecda;border:2px solid #2b2118;border-radius:20px;box-shadow:3px 3px 0 #2b2118}
+.nav{position:absolute;left:12px;right:12px;bottom:14px;height:66px;display:flex;align-items:center;padding:0 6px;background:#2b2118;border-radius:10px;box-shadow:0 0 0 2px #e8b84a,4px 6px 0 rgba(43,33,24,.5);isolation:isolate}
+.nav .t{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700;color:#d6c5a4;position:relative;padding:6px 0;text-transform:uppercase;letter-spacing:.5px}
+.nav .on{color:#1a0f08}.nav .on:before{content:"";position:absolute;inset:2px 8px;border-radius:6px;z-index:-1;background:#e8b84a;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:8px;font-family:"Oswald",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;font-size:18px;color:#fff;
+ background:#b0262a;border:2px solid #2b2118;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),4px 4px 0 #2b2118}
+.cap{font-size:12px;color:#5e4b36;font-weight:700}
+.crt{position:relative;background:#0e1410;border:3px solid #2b2118;border-radius:14px;box-shadow:inset 0 0 0 2px #3a4a40,inset 0 0 28px rgba(126,230,150,.18),4px 4px 0 rgba(43,33,24,.85);color:#bff0c8;overflow:hidden}
+.crt:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);pointer-events:none}
+.crt .tag{position:absolute;top:7px;left:10px;color:#9fe0ac}.crt .ts{position:absolute;top:7px;right:10px;color:#ffb000}
+.rec{display:inline-block;width:6px;height:6px;border-radius:50%;background:#ff4a3d;margin-right:4px;box-shadow:0 0 6px #ff4a3d}
+.batt{display:flex;align-items:center;gap:2px}.batt i{width:14px;height:20px;border:1.5px solid #9fe0ac;border-radius:2px}.batt i.f{background:#7ee696;box-shadow:0 0 6px rgba(126,230,150,.7)}.batt b{width:4px;height:10px;background:#9fe0ac;border-radius:0 2px 2px 0}
+/* читалка: страница без сканлайнов, шума и декора */
+.rd{position:absolute;inset:0;background:#f3ead8;color:#261d15}
+.page{position:absolute;top:96px;bottom:150px;left:0;right:0;overflow:hidden;padding:18px 26px 0;font-family:"PT Serif",serif;font-size:16.5px;line-height:1.62;text-align:left}
+.page h3{font-family:"PT Serif",serif;font-size:19px;font-weight:700;margin-bottom:12px}.page p{text-indent:1.4em;margin-bottom:6px}
+.rtop{position:absolute;top:0;left:0;right:0;height:96px;padding:44px 8px 0;display:flex;align-items:center;background:#dccbaa;border-bottom:3px solid #2b2118;overflow:hidden}
+.rtop:before,.rbot:before{content:"";position:absolute;left:0;right:0;height:5px;background:repeating-linear-gradient(-45deg,#2b2118 0 6px,#e8b84a 6px 12px);opacity:.85}
+.rtop:before{bottom:0}.rbot:before{top:0}
+.rtop .t{flex:1;text-align:center;font-family:"Oswald",sans-serif;font-weight:600;font-size:19px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#2b2118}
+.ib{width:42px;height:42px;display:flex;align-items:center;justify-content:center;color:#2b2118}
+.rbot{position:absolute;left:0;right:0;bottom:0;height:150px;background:#dccbaa;border-top:3px solid #2b2118;padding:18px 22px 0}
+.pg{display:flex;justify-content:center;align-items:center;gap:10px;font-size:14px;color:#2b2118;margin-bottom:10px;font-weight:700}
+.sl{position:relative;height:22px}.sl .tr{position:absolute;top:8px;left:0;right:0;height:6px;background:#bfae8c;border:1.5px solid #2b2118}.sl .fi{position:absolute;top:8px;left:0;height:6px;background:#b0262a;border:1.5px solid #2b2118}
+.sl .th{position:absolute;top:0;margin-left:-11px;width:22px;height:22px;border-radius:4px;background:#e8b84a;border:2px solid #2b2118;box-shadow:2px 2px 0 #2b2118}
+.tools{display:flex;justify-content:space-around;margin-top:14px;color:#2b2118;font-size:11.5px;font-weight:700;text-transform:uppercase}.tools div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.night{background:#0b0e0c}.night .rd{background:#101311;color:#d9d4c4}
+.night .rtop,.night .rbot{background:#121a15;border-color:#2f3f35;box-shadow:inset 0 0 24px rgba(126,230,150,.10)}
+.night .rtop:before,.night .rbot:before{background:repeating-linear-gradient(-45deg,#2a1210 0 6px,#a8332a 6px 12px);opacity:.7}
+.night .rtop:after,.night .rbot:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px);pointer-events:none}
+.night .rtop .t,.night .pg{color:#d8e6d4}.night .ib,.night .tools{color:#9fe0ac}
+.night .sl .tr{background:#1f2a23;border-color:#3a4a40}.night .sl .fi{background:#ff5a4e;border-color:#ff5a4e;box-shadow:0 0 8px rgba(255,90,78,.6)}.night .sl .th{background:#ffb000;border-color:#0b0e0c;box-shadow:0 0 10px rgba(255,176,0,.6)}
+</style></head><body class=""><div class="rd"><div class="page"><h3>Глава 7. Ночной обход</h3><p>Сторож обошёл зал ещё раз. Стулья были подняты на столы, и в тусклом свете ламп их ножки торчали, как ветки зимнего леса. За стойкой тихо гудел холодильник, а со стены смотрели выцветшие афиши давно прошедших праздников. Он сел у окна, открыл термос и достал книгу, которую начал ещё весной. До утра оставалось много страниц. Сторож обошёл зал ещё раз. Стулья были подняты на столы, и в тусклом свете ламп их ножки торчали, как ветки зимнего леса. За стойкой тихо гудел холодильник, а со стены смотрели выцветшие афиши давно прошедших праздников. Он сел у окна, открыл термос и достал книгу, которую начал ещё весной. До утра оставалось много страниц. </p><p>Сторож обошёл зал ещё раз. Стулья были подняты на столы, и в тусклом свете ламп их ножки торчали, как ветки зимнего леса. За стойкой тихо гудел холодильник, а со стены смотрели выцветшие афиши давно прошедших праздников. Он сел у окна, открыл термос и достал книгу, которую начал ещё весной. До утра оставалось много страниц. </p></div>
+<div class="rtop"><div class="ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="t">Последний автобус</div><div class="ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M6 3h12v18l-6-4-6 4z"/></svg></div><div class="ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></div></div>
+<div class="rbot"><div class="pg"><span class="mono">98 из 185</span></div>
+<div class="sl"><div class="tr"></div><div class="fi" style="width:52.71739130434783%"></div><div class="th" style="left:52.71739130434783%"></div></div>
+<div class="tools"><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg>Оглавление</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>Текст</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Ночь</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M6 3h12v18l-6-4-6 4z"/><path d="M12 7v6M9 10h6"/></svg>Закладка</div></div></div></div></body></html>

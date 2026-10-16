@@ -1,0 +1,64 @@
+/* ReadQuest · скин «Деревенский» (уютная изба: тёплое дерево, лён, вышивка крестиком, резной наличник; ночью — печь и окно с луной). Интерфейс, 15.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
+/* Подключать ПОСЛЕ базового tokens.css: [data-skin="derevenskiy"] на <html>. Ночь = [data-theme="night"]. Шрифты (OFL) лежат в src/fonts/. */
+@import url("https://fonts.googleapis.com/css2?family=Yeseva+One&family=Arsenal:wght@400;700&family=Podkova:wght@700&family=Bitter:wght@400;600&display=swap&subset=cyrillic");
+[data-skin="derevenskiy"]{
+  --rq-font-ui:"Arsenal",system-ui,sans-serif;
+  --rq-font-display:"Yeseva One","Bitter",serif;    /* заголовки, кнопка, названия на обложках */
+  --rq-font-num:"Podkova","Bitter",serif;           /* баланс, минуты, XP — 700 */
+  --rq-font-read:"Bitter",Georgia,serif;
+  --rq-radius-xs:3px; --rq-radius-sm:6px; --rq-radius-md:6px; --rq-radius-lg:10px;
+  --rq-icon-stroke:1.7;
+  --rq-bg:#e9d8bd; --rq-surface:#fbf5e9; --rq-surface-2:#efe3cf; --rq-sheet:#fbf5e9;
+  --rq-line:#d4c3a6; --rq-border-strong:#8c7356;
+  --rq-text:#23180f; --rq-text-2:#5a4634; --rq-text-disabled:#b8a183;
+  --rq-accent:#2c4a8a; --rq-accent-pressed:#1f3768; --rq-accent-text:#2c4a8a;   /* синий наличник */
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#e3e8f4; --rq-accent-border:#8fa2cf;
+  --rq-coin:#7a3f12; --rq-coin-tint:#f6e3cc;            /* медь */
+  --rq-success:#45622a; --rq-success-tint:#e6eed9;      /* неделя, успех — огород */
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#2c4a8a;
+  --rq-scrim:rgba(35,24,15,.45);
+  --rq-badge-bg:#23180f; --rq-badge-text:#fbf5e9;
+  --rq-toast-game-bg:#2c4a8a; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fbf5e9; --rq-toast-info-fg:#23180f; --rq-toast-info-icon:#2c4a8a; --rq-toast-info-border:#c9b28c;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 6px rgba(60,35,10,.14);
+  --rq-shadow-2:0 0 0 1px #c9b28c,0 0 0 4px #fbf5e9,0 0 0 5px #b8946a,0 6px 16px rgba(60,35,10,.18); /* льняная салфетка с подрубкой */
+  --rq-shadow-3:0 14px 40px rgba(35,24,15,.35);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --dv-thread-ochre:#c98a2e;  /* охристая нить вышивки — 2.8 на льне */
+  --dv-thread-red:#b23a2a;    /* красная нить — ТОЛЬКО верхняя полоса шапки (y ≤ 18), от текста ≥ 30 px; в карточках и читалке красного нет */
+  --dv-wood:repeating-linear-gradient(180deg,#e7d1ad 0 62px,#b8946a 62px 63px,#e2c9a2 63px 126px,#b8946a 126px 127px); /* доски стены */
+  --dv-lace:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='14'%3E%3Cpath d='M0 0H18V0Q18 14 9 14Q0 14 0 0z' fill='%232c4a8a'/%3E%3Ccircle cx='9' cy='7' r='1.8' fill='%23e7d1ad'/%3E%3C/svg%3E"); /* резной край наличника */
+  --dv-decor-opacity:1;       /* доски, половик, кот; НЕ в читалке */
+  --dv-stitch-dur:500ms; --dv-window-dur:900ms; --dv-fire-dur:3.2s; --dv-tail-dur:1200ms;
+}
+[data-skin="derevenskiy"][data-theme="night"]{
+  --rq-bg:#15100b; --rq-surface:#211910; --rq-surface-2:#2a2017; --rq-sheet:#211910;
+  --rq-line:#3a2c1e; --rq-border-strong:#6a5038;
+  --rq-text:#f1e6d6; --rq-text-2:#cdb9a0; --rq-text-disabled:#6f5c48;
+  --rq-accent:#f2d2a9; --rq-accent-pressed:#f8e2c4; --rq-accent-text:#f2d2a9;   /* ночью главный — топлёное молоко */
+  --rq-on-accent:#15100b; --rq-control-on:#15100b;
+  --rq-accent-tint:#33271a; --rq-accent-border:#8a6e4c;
+  --rq-coin:#e8c27a; --rq-coin-tint:#2c2214;
+  --rq-success:#b5d08f; --rq-success-tint:#232a18;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
+  --rq-focus:#f2d2a9;
+  --rq-scrim:rgba(8,5,2,.7);
+  --rq-badge-bg:#f1e6d6; --rq-badge-text:#15100b;
+  --rq-toast-game-bg:#2a2017; --rq-toast-game-fg:#f2d2a9;
+  --rq-toast-info-bg:#2a2017; --rq-toast-info-fg:#f1e6d6; --rq-toast-info-icon:#f2d2a9; --rq-toast-info-border:#3a2c1e;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #3a2c1e,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+  --dv-wood:repeating-linear-gradient(180deg,#2a1e14 0 62px,#1a120b 62px 63px,#261b12 63px 126px,#1a120b 126px 127px);
+  --dv-stove-glow:radial-gradient(circle at 20% 95%,rgba(224,138,58,.35),transparent 70%); /* отсвет печи — только фон итога сессии */
+}
+/* Страница книги: чистая — без досок, вышивки, наличника и кота. Шапка и низ читалки однотонные (лён / ночная изба). */
+@keyframes dv-stitch{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}     /* новый крестик в цели дня */
+@keyframes dv-window{from{fill:#5a4634}to{fill:#f3c766}}                     /* окошко недели загорается */
+@keyframes dv-fire{0%,100%{opacity:.85}50%{opacity:1}}                       /* огонь в печи, только итог сессии */
+@keyframes dv-tail{0%,100%{transform:rotate(0)}50%{transform:rotate(8deg)}}  /* кот Уголёк машет хвостом при открытии */
+@media (prefers-reduced-motion:reduce){
+  [data-skin="derevenskiy"] *,[data-skin="derevenskiy"] *::before,[data-skin="derevenskiy"] *::after{animation:none!important;transition:none!important}
+}

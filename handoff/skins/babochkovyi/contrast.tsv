@@ -1,0 +1,156 @@
+screen	text	font	size_px	color	kind	threshold	contrast_typical	contrast_worst_bg	verdict
+library	В. Перова · не начата	Mulish	12	rgb(79, 84, 112)	ui-small	4.5	7.41	6.27	ok
+library	Л. Мотылькова · 53%	Mulish	12	rgb(79, 84, 112)	ui-small	4.5	7.41	6.3	ok
+library	М. Радужная · 67%	Mulish	12	rgb(79, 84, 112)	ui-small	4.5	7.41	6.41	ok
+library	Е. Ночная · прочитано	Mulish	12	rgb(79, 84, 112)	ui-small	4.5	7.41	6.46	ok
+rewards	награды за чтение	Mulish	13	rgb(79, 84, 112)	ui-small	4.5	6.62	6.62	ok
+library	Все	Mulish	15	rgb(255, 255, 255)	ui	4.5	6.85	6.85	ok
+library	Библиотека	Mulish	13	rgb(255, 255, 255)	ui-small	4.5	6.85	6.85	ok
+rewards	Добавить в цветник	Mulish	15	rgb(19, 100, 108)	ui	4.5	6.85	6.85	ok
+rewards	Награды	Mulish	13	rgb(255, 255, 255)	ui-small	4.5	6.85	6.85	ok
+rewards	+30	Mulish	16	rgb(132, 72, 12)	ui	4.5	7.21	7.21	ok
+rewards	+120	Mulish	16	rgb(132, 72, 12)	ui	4.5	7.21	7.21	ok
+rewards	XXX	Mulish	13	rgb(132, 72, 12)	ui-small	4.5	7.21	7.21	ok
+palette	#1d2140	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.35	ok
+palette	#ffffff	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.35	ok
+palette	#f3f1f8	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.35	ok
+library	Читаю	Mulish	15	rgb(79, 84, 112)	ui	4.5	7.41	7.41	ok
+library	Хочу	Mulish	15	rgb(79, 84, 112)	ui	4.5	7.41	7.41	ok
+library	Прочитано	Mulish	15	rgb(79, 84, 112)	ui	4.5	7.41	7.41	ok
+library	А. Шелкова · 12%	Mulish	12	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+library	Н. Луговая · 4%	Mulish	12	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+library	Награды	Mulish	13	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+library	Профиль	Mulish	13	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+rewards	Читать 10 мин · 6 из 10 мин	Mulish	12.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+rewards	4 дня по 10 мин · 3 из 4	Mulish	12.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+rewards	Придумайте, чем себя порадовать, и назна	Mulish	13	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+rewards	Библиотека	Mulish	13	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+rewards	Профиль	Mulish	13	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	текст	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#f4f2f8	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	фон	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	карточки	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	панели	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#4f5470	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	вторичный текст	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#13646c	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	акцент	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#0d4c53	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	нажатие	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#3d6a2c	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	неделя, успех	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#8fd3d8	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	только декор	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#b9a7ec	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#84480c	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	суммы монет	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#fcfbf8	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	книга день	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#0e1019	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	фон ночи	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#181b28	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	поверхность	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#b5e3c4	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	акцент ночи	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	#e4e6ef	monospace	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+palette	книга ночью	Mulish	10.5	rgb(79, 84, 112)	ui-small	4.5	7.41	7.41	ok
+session-summary	Чтение	Mulish	13	rgb(185, 189, 212)	ui-small	4.5	8.21	8.21	ok
+session-summary	Страницы	Mulish	13	rgb(185, 189, 212)	ui-small	4.5	8.21	8.21	ok
+session-summary	XP	Mulish	13	rgb(185, 189, 212)	ui-small	4.5	8.21	8.21	ok
+session-summary	Сад на краю луга · стр. 85–98	Mulish	14	rgb(185, 189, 212)	ui	4.5	9.27	9.27	ok
+session-summary	320 / 500 до уровня 5	Mulish	12.5	rgb(185, 189, 212)	ui-small	4.5	9.27	9.27	ok
+session-summary	Все бабочки проснулись · 18 из 10 мин	Mulish	13	rgb(185, 189, 212)	ui-small	4.5	9.27	9.27	ok
+reader-night	Утром Вера вышла к лугу раньше, чем высо	IBM Plex Serif	16	rgb(228, 230, 239)	book	7	15.24	10.29	ok
+session-summary	+180	Bellota Text	24	rgb(181, 227, 196)	ui	4.5	10.73	10.73	ok
+library	Библиотека	Poiret One	34	rgb(29, 33, 64)	ui	4.5	11.98	11.69	ok
+rewards	Награды	Poiret One	34	rgb(29, 33, 64)	ui	4.5	12.03	11.69	ok
+palette	Палитра	Poiret One	34	rgb(29, 33, 64)	ui	4.5	12.03	11.69	ok
+session-summary	+30 монет за день	Mulish	15	rgb(242, 211, 138)	ui	4.5	11.88	11.88	ok
+library	PDF	Mulish	10	rgb(29, 33, 64)	ui-small	4.5	12.82	12.81	ok
+library	Тысяча чешуек	Mulish	13.5	rgb(29, 33, 64)	ui-small	4.5	12.84	12.81	ok
+library	М. Радужная	Mulish	10.5	rgb(29, 33, 64)	ui-small	4.5	12.88	12.86	ok
+library	Л. Мотылькова	Mulish	10.5	rgb(29, 33, 64)	ui-small	4.5	13.04	12.88	ok
+library	FB2	Mulish	10	rgb(29, 33, 64)	ui-small	4.5	13.02	12.94	ok
+library	Крылья из пыльцы	Mulish	13.5	rgb(29, 33, 64)	ui-small	4.5	13.01	12.98	ok
+library	Сад на краю луга	Mulish	13.5	rgb(29, 33, 64)	ui-small	4.5	13.16	13.02	ok
+library	А. Шелкова	Mulish	10.5	rgb(29, 33, 64)	ui-small	4.5	13.06	13.04	ok
+session-summary	18 мин	Bellota Text	24	rgb(236, 238, 246)	ui	4.5	13.18	13.18	ok
+session-summary	14	Bellota Text	24	rgb(236, 238, 246)	ui	4.5	13.18	13.18	ok
+rewards	Цветник	Poiret One	27	rgb(29, 33, 64)	ui	4.5	13.97	13.29	ok
+library	EPUB	Mulish	10	rgb(29, 33, 64)	ui-small	4.5	13.36	13.3	ok
+library	Ветер над клевером	Mulish	13	rgb(29, 33, 64)	ui-small	4.5	15.63	13.3	ok
+session-summary	Продолжить	Mulish	19	rgb(14, 16, 25)	ui	4.5	13.33	13.33	ok
+library	В. Перова	Mulish	10.5	rgb(29, 33, 64)	ui-small	4.5	13.58	13.55	ok
+library	Куколка	Mulish	13.5	rgb(29, 33, 64)	ui-small	4.5	13.64	13.58	ok
+library	Лунный мотылёк	Mulish	13	rgb(29, 33, 64)	ui-small	4.5	15.63	13.63	ok
+library	Н. Луговая	Mulish	10.5	rgb(29, 33, 64)	ui-small	4.5	13.76	13.74	ok
+rewards	Задания	Poiret One	27	rgb(29, 33, 64)	ui	4.5	13.8	13.79	ok
+reader-day	Сад на краю луга	Poiret One	21	rgb(29, 33, 64)	ui	4.5	13.95	13.95	ok
+reader-day	98 из 185	Mulish	15	rgb(29, 33, 64)	ui	4.5	13.95	13.95	ok
+reader-day	Оглавление	Mulish	13	rgb(29, 33, 64)	ui-small	4.5	13.95	13.95	ok
+reader-day	Текст	Mulish	13	rgb(29, 33, 64)	ui-small	4.5	13.95	13.95	ok
+reader-day	Ночь	Mulish	13	rgb(29, 33, 64)	ui-small	4.5	13.95	13.95	ok
+reader-day	Закладка	Mulish	13	rgb(29, 33, 64)	ui-small	4.5	13.95	13.95	ok
+library	TXT	Mulish	10	rgb(244, 242, 255)	ui-small	4.5	14.19	14.19	ok
+library	Лунный мотылёк	Mulish	13.5	rgb(244, 242, 255)	ui-small	4.5	14.19	14.19	ok
+library	Е. Ночная	Mulish	10.5	rgb(244, 242, 255)	ui-small	4.5	14.19	14.19	ok
+reader-night	Сад на краю луга	Poiret One	21	rgb(236, 238, 246)	ui	4.5	14.78	14.78	ok
+reader-night	98 из 185	Mulish	15	rgb(236, 238, 246)	ui	4.5	14.78	14.78	ok
+reader-night	Оглавление	Mulish	13	rgb(236, 238, 246)	ui-small	4.5	14.78	14.78	ok
+reader-night	Текст	Mulish	13	rgb(236, 238, 246)	ui-small	4.5	14.78	14.78	ok
+reader-night	День	Mulish	13	rgb(236, 238, 246)	ui-small	4.5	14.78	14.78	ok
+reader-night	Закладка	Mulish	13	rgb(236, 238, 246)	ui-small	4.5	14.78	14.78	ok
+session-summary	Сессия завершена	Poiret One	30	rgb(236, 238, 246)	ui	4.5	14.89	14.89	ok
+session-summary	Уровень 4	Mulish	14	rgb(236, 238, 246)	ui	4.5	14.89	14.89	ok
+session-summary	Неделя: 3 из 4 дней	Mulish	14	rgb(236, 238, 246)	ui	4.5	14.89	14.89	ok
+reader-day	Глава 7. Первый полёт	Poiret One	24	rgb(29, 33, 64)	ui	4.5	15.1	15.1	ok
+reader-day	Утром Вера вышла к лугу раньше, чем высо	IBM Plex Serif	16	rgb(29, 33, 64)	book	7	15.1	15.1	ok
+reader-night	Глава 7. Первый полёт	Poiret One	24	rgb(228, 230, 239)	ui	4.5	15.24	15.24	ok
+library	390	Bellota Text	19	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+library	монет	Mulish	14	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	390	Bellota Text	19	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	монет	Mulish	14	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	Задание дня	Mulish	16	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	Задание недели	Mulish	16	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	Серия сериала	Mulish	14	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	Кофе в кофейне	Mulish	14	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+rewards	Новая книга	Mulish	14	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+palette	Чернила	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Утро	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Белый	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Перламутр	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Сумерки	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Морфо	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Морфо тёмн.	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Клевер	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Бирюза крыла	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Сирень крыла	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Пыльца	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Страница	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Ночной луг	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Ночь: панель	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Лунник	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Ночь: текст	Mulish	11	rgb(29, 33, 64)	ui-small	4.5	15.63	15.63	ok
+palette	Poiret One — заголовки	Poiret One	24	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+palette	Bellota Text — 18 мин · +180	Bellota Text	19	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+palette	Mulish — интерфейс	Mulish	15	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+palette	IBM Plex Serif — текст книги	IBM Plex Serif	15	rgb(29, 33, 64)	ui	4.5	15.63	15.63	ok
+tokens	книга день	—	—	#1d2140 / #fcfbf8	book	7	15.1	15.1	ok
+tokens	книга ночь	—	—	#e4e6ef / #0e1019	book	7	15.24	15.24	ok
+tokens	--rq-text/--rq-bg	—	—	#1d2140 / #f4f2f8	ui	4.5	14.07	14.07	ok
+tokens	--rq-text-2/--rq-bg	—	—	#4f5470 / #f4f2f8	ui	4.5	6.67	6.67	ok
+tokens	--rq-text-2/--rq-surface	—	—	#4f5470 / #ffffff	ui	4.5	7.41	7.41	ok
+tokens	--rq-on-accent/--rq-accent	—	—	#ffffff / #13646c	ui	4.5	6.85	6.85	ok
+tokens	--rq-accent-text/--rq-surface	—	—	#13646c / #ffffff	ui	4.5	6.85	6.85	ok
+tokens	--rq-coin/--rq-surface	—	—	#84480c / #ffffff	ui	4.5	7.21	7.21	ok
+tokens	клевер (успех)/--rq-surface	—	—	#3d6a2c / #ffffff	ui	4.5	6.37	6.37	ok
+tokens	заголовок/перламутр шапки (самый тёмный край)	—	—	#1d2140 / #e2dbf7	ui	4.5	11.69	11.69	ok
+tokens	бирюза крыла (декор)/--rq-surface	—	—	#8fd3d8 / #ffffff	decor	не для текста	1.68	1.68	ok
+tokens	сирень крыла (декор)/--rq-surface	—	—	#b9a7ec / #ffffff	decor	не для текста	2.14	2.14	ok
+tokens	розовый крыла (декор)/--rq-surface	—	—	#f3b4cf / #ffffff	decor	не для текста	1.72	1.72	ok
+tokens	ночь --rq-text/--rq-surface	—	—	#eceef6 / #181b28	ui	4.5	14.78	14.78	ok
+tokens	ночь --rq-text-2/--rq-surface	—	—	#b9bdd4 / #181b28	ui	4.5	9.21	9.21	ok
+tokens	ночь акцент/--rq-surface	—	—	#b5e3c4 / #181b28	ui	4.5	12.03	12.03	ok
+tokens	ночь on-accent/акцент	—	—	#0e1019 / #b5e3c4	ui	4.5	13.33	13.33	ok
+tokens	ночь монеты/--rq-surface	—	—	#f2d38a / #171a2a	ui	4.5	11.88	11.88	ok
+tokens	ночь успех/--rq-surface	—	—	#a9d79a / #181b28	ui	4.5	10.5	10.5	ok

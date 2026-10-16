@@ -60,6 +60,7 @@ const SHOP_CATALOG=(function(){
   sk('dungeon','Подземелье',800,'Каменные своды и факелы',[['base','Подземелье','#1b1a1f'],['emerald','Изумруд','#10261f'],['ice','Лёд','#1a2630']]);
   sk('celestial','Небесный',800,'Солнце, луна и облака',[['base','Небесный','#e6eef7'],['moon','Луна','#1a2236'],['dusk','Сумерки','#3a2e4a']]);
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
+  sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
   return Object.freeze(L.map(Object.freeze));
 })();
@@ -68,7 +69,7 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil'];
+const SHOP_READY=['skin-pencil','skin-ellada'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
@@ -95,14 +96,16 @@ function wear(id){
   const skin=it.type==='skin'?it.id:it.skin, color=it.type==='color'?it.id:shopBundled(it.id);
   const from=skinOf(activeTheme());
   SET.skin=skin;SET.color=color;
-  if(skin==='skin-pencil'){if(SET.theme!=='pencil'&&SET.theme!=='pencil-night')SET.theme='pencil';}
-  else if(SET.theme==='pencil'||SET.theme==='pencil-night')SET.theme='sepia';
+  /* a styled skin = its own reader theme (day kept if already in this skin's night); an unstyled one leaves any skin theme */
+  const key=skin.replace(/^skin-/,''), cur=activeTheme();
+  if(key==='pencil'||SKIN_THEMES[key]){if(cur.skin!==key)SET.theme=key;}
+  else if(cur.skin)SET.theme='sepia';
   saveSet();applySet();logSkinChange(from);return true;
 }
 /** worn skin id (validated): not owned / unknown → default, in memory only */
 function shopWorn(){
-  if(SET.theme==='pencil'||SET.theme==='pencil-night')return 'skin-pencil';
-  return SET.skin&&SET.skin!=='skin-pencil'&&shopOwns(SET.skin)?SET.skin:null;
+  const t=activeTheme();if(t.skin)return 'skin-'+t.skin; /* the skin on screen (pencil, or an owned styled shop skin) */
+  return SET.skin&&SET.skin!=='skin-pencil'&&!SKIN_THEMES[SET.skin.replace(/^skin-/,'')]&&shopOwns(SET.skin)?SET.skin:null;
 }
 /** load/import: migrate «Лес» ids, drop a worn skin/colour that is not owned (memory only, NS_set not rewritten here) */
 function shopFixState(){
@@ -478,48 +481,62 @@ function fmtSize(n){
   if(n<1048576)return (n/1024).toFixed(1)+' КБ';
   return (n/1048576).toFixed(2)+' МБ';
 }
+function bkIc(n){return '<svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
   const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
+  const done=S.finished.includes(id);
   const size=fmtSize(b.size!=null?b.size:(b.text?b.text.length*2:null));
   const words=b.text?b.text.split(/\s+/).length:null;
-  const place=builtin
-    ?'Встроена в приложение (демо-книга)'
-    :b.type==='pdf'
-      ?'Импортирована: <b>'+esc(b.fname||'файл')+'</b><br>Копия хранится в базе браузера (IndexedDB) на этом устройстве'
-      :'Импортирована: <b>'+esc(b.fname||'файл')+'</b><br>Хранится в памяти приложения (localStorage) на этом устройстве';
+  const nq=(S.quotes[id]||[]).length,nm=(S.marks[id]||[]).length;
+  const fav=S.favs.includes(id),want=S.status[id]==='want';
+  const rmin=Math.floor(((S.bookStats[id]||{}).min)||0); /* counted reading minutes for this book (same ones that give XP) */
+  const rtime=rmin>=60?Math.floor(rmin/60)+' ч'+(rmin%60?' '+(rmin%60)+' мин':''):rmin+' мин';
+  const fmt=b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст');
+  const sub=[b.author,b.genre].filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF» */
+  const place=builtin?'Встроена в приложение':(b.type==='pdf'?'На этом устройстве, в браузере':'На этом устройстве, в приложении');
+  const row=(k,v,cls)=>'<div class="bk-row'+(cls?' '+cls:'')+'"><span class="bk-k">'+k+'</span><span class="bk-v">'+v+'</span></div>';
+  const act=(ic,label,fn,on)=>'<button type="button" class="bk-act'+(on?' on':'')+'" onclick="'+fn+'(\''+id+'\')"'+(on!=null?' aria-pressed="'+!!on+'"':'')+'>'+bkIc(ic)+'<span>'+label+'</span></button>';
+  const line=(ic,label,fn,cls,arg)=>'<button type="button" class="bk-line'+(cls?' '+cls:'')+'" onclick="'+fn+'(\''+id+'\''+(arg!=null?','+arg:'')+')">'+bkIc(ic)+'<span>'+label+'</span></button>';
   el('bookSheetBody').innerHTML=
-    '<div class="row"><div class="cover">'+coverHtml(b)+'</div><div style="flex:1;min-width:0"><b>'+esc(b.title)+'</b>'+
-    '<div style="font-size:13px;color:var(--muted)">'+esc(b.author)+' · <span class="chip">'+esc(b.genre)+'</span></div></div></div>'+
-    '<div class="binfo">'+
-    'Формат: <b>'+(b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст'))+'</b><br>'+
-    'Размер: <b>'+size+'</b>'+(words?' · слов: <b>'+words+'</b>':'')+'<br>'+
-    'Расположение: '+place+'<br>'+
-    'Прогресс: <b>'+(S.finished.includes(id)?'прочитано ✅':p+'%')+'</b> · цитат: <b>'+((S.quotes[id]||[]).length)+
-    '</b> · закладок: <b>'+((S.marks[id]||[]).length)+'</b>'+
+    '<div class="bk-head"><div class="cover">'+coverHtml(b)+'</div><div class="bk-ttl"><b>'+esc(b.title)+'</b>'+
+    (sub?'<div class="bk-sub">'+sub+'</div>':'')+'</div></div>'+
+    '<div class="bk-prog" data-rq="prog"><div class="bk-bar"><i style="width:'+(done?100:p)+'%"></i></div>'+
+    '<div class="bk-pl"><span><b data-rq="pct">'+(done?'Прочитано':p+'%')+'</b>'+(done?'':' прочитано')+'</span>'+
+    '<span><b data-rq="time">'+rtime+'</b> за чтением</span></div>'+
+    '<div class="bk-pn">'+nq+' '+plural(nq,'цитата','цитаты','цитат')+' · '+nm+' '+plural(nm,'закладка','закладки','закладок')+'</div></div>'+
+    '<div class="bk-acts">'+
+    act('star',fav?'В избранном':'В избранное','toggleFav',fav)+
+    act('bookmark',want?'В «Хочу»':'Хочу прочитать','toggleWant',want)+
+    act('share-2','Поделиться','shareBook',null)+
     '</div>'+
-    '<div class="bset-row"><div class="bset-lab">⚔️ Сложность<span class="val" id="bsetDiffName">'+(S.bookDiff[id]>0?'':'авто · ')+DIFFS[diffOf(id)].n+' ×'+DIFFS[diffOf(id)].m+'</span></div>'+
-    '<input type="range" class="bslider" id="bsetDiff" min="0" max="5" step="1" value="'+(S.bookDiff[id]||0)+'" oninput="onDiffSlide(\''+id+'\',this.value)">'+
-    '<div style="font-size:11px;color:var(--muted)">0 — авто по объёму и жанру. Сложнее книга — больше опыта и валюты.</div></div>'+
-    '<div class="bset-row"><div class="bset-lab">💰 Важность<span class="val" id="bsetImpVal">'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'%</span></div>'+
-    '<input type="range" class="bslider" id="bsetImp" min="0" max="100" step="10" value="'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'" oninput="onImpSlide(\''+id+'\',this.value)">'+
-    '<div style="font-size:11px;color:var(--muted)">Личная важность книги — повышает награду в валюте.</div></div>'+
-    '<div class="bset-row"><div class="bset-lab">💪 Качает характеристику<span class="val">'+esc(statOf(b))+'</span></div>'+
+    '<div class="bk-h">О файле</div><div class="bk-list">'+
+    row('Формат',fmt)+row('Размер',size+(words?' · '+words+' '+plural(words,'слово','слова','слов'):''))+
+    (builtin?'':row('Файл',esc(b.fname||'файл'),'wrap'))+row('Хранится',place)+
+    '</div>'+
+    (isMvp()?'': /* MVP: XP only per minute, coins only per day/week → difficulty, importance and stat change nothing there; shown outside MVP only */
+    '<div class="bk-h">Игра</div><div class="bk-list">'+
+    '<div class="bset-row"><div class="bset-lab">Сложность<span class="val" id="bsetDiffName">'+(S.bookDiff[id]>0?'':'авто · ')+DIFFS[diffOf(id)].n+' ×'+DIFFS[diffOf(id)].m+'</span></div>'+
+    '<input type="range" class="bslider" id="bsetDiff" min="0" max="5" step="1" value="'+(S.bookDiff[id]||0)+'" oninput="onDiffSlide(\''+id+'\',this.value)" aria-label="Сложность">'+
+    '<div class="bk-note">0 — авто по объёму и жанру. Сложнее книга — больше опыта и монет.</div></div>'+
+    '<div class="bset-row"><div class="bset-lab">Важность<span class="val" id="bsetImpVal">'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'%</span></div>'+
+    '<input type="range" class="bslider" id="bsetImp" min="0" max="100" step="10" value="'+(S.bookImp[id]!=null?S.bookImp[id]:50)+'" oninput="onImpSlide(\''+id+'\',this.value)" aria-label="Важность">'+
+    '<div class="bk-note">Личная важность книги повышает награду в монетах.</div></div>'+
+    '<div class="bset-row"><div class="bset-lab">Качает характеристику<span class="val">'+esc(statOf(b))+'</span></div>'+
     '<div class="chips" style="padding:4px 0">'+
     allStats().map(s2=>'<button class="fchip'+(statOf(b)===s2?' on':'')+'" onclick="setBookStat(\''+id+'\',\''+esc(s2)+'\')">'+esc(s2)+'</button>').join('')+
     '</div></div>'+
-    '<div class="bset-reward" id="bsetReward">'+bookRewardPreview(b)+'</div>'+
-    '<div class="bsheet-actions">'+
-    '<button onclick="pickCover(\''+id+'\')">🖼 Обложка из файла</button>'+
-    '<button onclick="emojiCover(\''+id+'\')">😀 Эмодзи-обложка</button>'+
-    '<button onclick="toggleFav(\''+id+'\')">'+(S.favs.includes(id)?'★ В избранном':'☆ В избранное')+'</button>'+
-    '<button onclick="toggleWant(\''+id+'\')">'+(S.status[id]==='want'?'📌 Убрать из «Хочу»':'📌 Хочу прочитать')+'</button>'+
-    '<button onclick="shareBook(\''+id+'\')">📤 Поделиться</button>'+
-    '<button class="danger" onclick="removeBook(\''+id+'\',false)">🗑 Убрать из приложения</button>'+
-    (b.type==='pdf'?'<button class="danger" onclick="removeBook(\''+id+'\',true)">💥 Удалить файл с устройства</button>':'')+
+    '<div class="bset-reward" id="bsetReward">'+bookRewardPreview(b)+'</div></div>')+
+    '<div class="bk-h">Обложка</div><div class="bk-list">'+
+    line('image','Выбрать картинку','pickCover')+
+    (S.covers[id]?line('rotate-cw','Вернуть стандартную','resetCover'):'')+
     '</div>'+
-    (b.type==='pdf'?'<div style="font-size:11px;color:var(--muted);margin-top:10px">«Удалить файл» стирает копию из хранилища браузера. Исходник в папке загрузок веб-приложение трогать не может — это появится в нативной версии.</div>':'');
+    '<div class="bk-list bk-danger">'+
+    line('x',builtin?'Скрыть из библиотеки':'Убрать из библиотеки','removeBook','danger','false')+
+    (b.type==='pdf'?line('trash-2','Удалить файл с устройства','removeBook','danger','true'):'')+
+    '</div>'+
+    (b.type==='pdf'?'<div class="bk-note">«Удалить файл» стирает копию из хранилища браузера. Исходник в папке загрузок останется на месте.</div>':'');
   el('bookSheet').classList.remove('hidden');
 }
 el('bookSheetClose').onclick=()=>el('bookSheet').classList.add('hidden');
@@ -575,13 +592,7 @@ el('covInp').onchange=e=>{
   img.onerror=()=>alert('Не удалось прочитать изображение');
   img.src=URL.createObjectURL(f);
 };
-function emojiCover(id){
-  const e2=prompt('Эмодзи для обложки (пусто — вернуть стандартную):','📗');
-  if(e2===null)return;
-  if(!e2.trim())delete S.covers[id];
-  else S.covers[id]=e2.trim().slice(0,4);
-  save();renderLibrary();bookInfo(id);
-}
+function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);}
 
 /* --- ИИ-помощник --- */
 el('spAI').onclick=()=>{
@@ -621,14 +632,14 @@ function shareBook(id){
 async function removeBook(id,wipeFile){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
-  if(!confirm(wipeFile?'Удалить книгу и её файл из хранилища устройства?':'Убрать книгу из приложения? Прогресс по ней будет удалён.'))return;
+  if(!confirm(wipeFile?'Удалить книгу и её файл из хранилища устройства?':'Убрать книгу из библиотеки? Прогресс по ней будет удалён.'))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
   delete S.progress[id];delete S.quotes[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   save();el('bookSheet').classList.add('hidden');renderLibrary();
-  flashMsg(wipeFile?'💥 Книга и файл удалены':'🗑 Книга убрана из приложения');
+  flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');
 }
 
 /* ================= СТАТИСТИКА ================= */

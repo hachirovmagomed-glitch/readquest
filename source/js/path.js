@@ -6,23 +6,23 @@
    Rewards: chapter titles only (cosmetic, no coins and no extra XP), shown as «звание за главу». */
 const PATH_CHAPTERS=[
   {id:'ch1',n:'I',t:'Истоки',rank:'Слушатель рапсодов',books:[
-    {id:'aesop',t:'Басни',a:'Эзоп',tr:'пересказ Л. Н. Толстого',h:1,kind:'side'},
-    {id:'oedipus',t:'Царь Эдип',a:'Софокл',tr:'пер. Д. С. Мережковского',h:2},
-    {id:'odyssey',t:'Одиссея',a:'Гомер',tr:'пер. В. А. Жуковского',h:14,kind:'boss'}]},
+    {id:'aesop',t:'Басни',a:'Эзоп',tr:'пересказ Л. Н. Толстого',kb:21,kind:'side'},
+    {id:'oedipus',t:'Царь Эдип',a:'Софокл',tr:'пер. Д. С. Мережковского',kb:104},
+    {id:'odyssey',t:'Одиссея',a:'Гомер',tr:'пер. В. А. Жуковского',kb:1100,kind:'boss'}]},
   {id:'ch2',n:'II',t:'Странники и рыцари',rank:'Странствующий рыцарь',books:[
-    {id:'inferno',t:'Ад',a:'Данте Алигьери',tr:'пер. Д. Е. Мина',h:6},
-    {id:'hamlet',t:'Гамлет',a:'Уильям Шекспир',tr:'пер. К. Р.',h:3},
-    {id:'quixote',t:'Дон Кихот',a:'Мигель де Сервантес',tr:'старый перевод, права проверяем',h:30,kind:'boss'}]},
+    {id:'inferno',t:'Ад',a:'Данте Алигьери',tr:'пер. Д. Е. Мина',kb:358},
+    {id:'hamlet',t:'Гамлет',a:'Уильям Шекспир',tr:'пер. К. Р.',kb:283},
+    {id:'quixote',t:'Дон Кихот',a:'Мигель де Сервантес',tr:'пер. В. А. Карелина',kb:3320,kind:'boss'}]},
   {id:'ch3',n:'III',t:'Век романа',rank:'Знаток века',books:[
-    {id:'overcoat',t:'Шинель',a:'Н. В. Гоголь',h:1,kind:'side'},
-    {id:'captain',t:'Капитанская дочка',a:'А. С. Пушкин',h:4},
-    {id:'carol',t:'Рождественская песнь',a:'Чарльз Диккенс',tr:'старый перевод, права проверяем',h:2,kind:'side'},
-    {id:'crime',t:'Преступление и наказание',a:'Ф. М. Достоевский',h:22,kind:'boss'}]},
+    {id:'overcoat',t:'Шинель',a:'Н. В. Гоголь',kb:115,kind:'side'},
+    {id:'captain',t:'Капитанская дочка',a:'А. С. Пушкин',kb:374},
+    {id:'carol',t:'Рождественская песнь',a:'Чарльз Диккенс',tr:'пер. Н. А. Пушешникова',kb:254,kind:'side'},
+    {id:'crime',t:'Преступление и наказание',a:'Ф. М. Достоевский',kb:1886,kind:'boss'}]},
   {id:'ch4',n:'IV',t:'На пороге нового века',rank:'Хранитель классики',books:[
-    {id:'lapdog',t:'Дама с собачкой',a:'А. П. Чехов',h:0.5,kind:'side'},
-    {id:'timemachine',t:'Машина времени',a:'Герберт Уэллс',tr:'старый перевод, права проверяем',h:3},
-    {id:'dorian',t:'Портрет Дориана Грея',a:'Оскар Уайльд',tr:'старый перевод, права проверяем',h:8},
-    {id:'karenina',t:'Анна Каренина',a:'Л. Н. Толстой',h:30,kind:'boss'}]}
+    {id:'lapdog',t:'Дама с собачкой',a:'А. П. Чехов',kb:54,kind:'side'},
+    {id:'timemachine',t:'Машина времени',a:'Герберт Уэллс',tr:'пер. К. А. Морозовой',kb:313},
+    {id:'dorian',t:'Портрет Дориана Грея',a:'Оскар Уайльд',tr:'пер. М. Ф. Ликиардопуло',kb:752},
+    {id:'karenina',t:'Анна Каренина',a:'Л. Н. Толстой',kb:3002,kind:'boss'}]}
 ];
 function pathAll(){const out=[];PATH_CHAPTERS.forEach(function(c){c.books.forEach(function(b){out.push(b);});});return out;}
 function pathFind(id){let r=null;PATH_CHAPTERS.forEach(function(c){c.books.forEach(function(b){if(b.id===id)r={ch:c,b:b};});});return r;}
@@ -33,7 +33,9 @@ function pathState(pid){
   const done=S.finished.includes(lib.id);
   return {lib:lib,pct:done?100:Math.round(rqPos(lib.id)*100),done:done};
 }
-function pathHours(h){if(h<1)return '≈ '+Math.round(h*60)+' мин';return '≈ '+h+' '+plural(h,'час','часа','часов');}
+/* reading time is an estimate from the file size: ~2400 bytes of Russian UTF-8 per minute */
+function pathHours(kb){const m=Math.max(5,Math.round(kb*1024/2400/5)*5);if(m<60)return '≈ '+m+' мин';const h=Math.round(m/60);return '≈ '+h+' '+plural(h,'час','часа','часов');}
+function pathSize(kb){return kb<1024?kb+' КБ':(kb/1024).toFixed(1).replace('.',',')+' МБ';}
 function pathRank(){let r='';PATH_CHAPTERS.forEach(function(c){if(c.books.every(function(b){return pathState(b.id).done;}))r=c.rank;});return r;}
 
 function renderPath(){
@@ -58,7 +60,7 @@ function renderPath(){
         (st.pct&&!st.done?'<circle cx="'+(r+4)+'" cy="'+(r+4)+'" r="'+r+'" class="pn-fg" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-st.pct/100)).toFixed(1)+'" transform="rotate(-90 '+(r+4)+' '+(r+4)+')"/>':'')+
         '</svg>'+rqIcon(ic,b.kind==='boss'?26:(b.kind==='side'?18:22))+'</span>'+
         '<span class="pn-lab">'+(tag?'<span class="pn-tag">'+tag+'</span>':'')+'<b>'+esc(b.t)+'</b><span class="pn-a">'+esc(b.a)+'</span>'+
-        '<span class="pn-p">'+(st.done?'Прочитано':(st.lib?st.pct+'%':pathHours(b.h)))+'</span></span></button>';
+        '<span class="pn-p">'+(st.done?'Прочитано':(st.lib?st.pct+'%':pathHours(b.kb)))+'</span></span></button>';
     });
     h+='</div></section>';
   });
@@ -91,7 +93,7 @@ function pathOpen(pid){
     '<div class="bk-h">На карте</div><div class="bk-list">'+
     '<div class="bk-row"><span class="bk-k">Глава</span><span class="bk-v">'+c.n+' · '+esc(c.t)+'</span></div>'+
     '<div class="bk-row"><span class="bk-k">Место</span><span class="bk-v">'+tag+'</span></div>'+
-    '<div class="bk-row"><span class="bk-k">Объём</span><span class="bk-v">'+pathHours(b.h)+' чтения</span></div>'+
+    '<div class="bk-row"><span class="bk-k">Объём</span><span class="bk-v">'+pathHours(b.kb)+' чтения</span></div>'+
     '<div class="bk-row"><span class="bk-k">Звание за главу</span><span class="bk-v">«'+esc(c.rank)+'»</span></div></div>'+
     '<div class="bk-note">Книга бесплатная, из общественного достояния. Минуты, опыт и серия считаются как у любой книги.</div>'+
     '<button type="button" class="cta" onclick="pathRead(\''+pid+'\')">'+(st.done?'Открыть':(st.lib?'Продолжить':'Взять в библиотеку и читать'))+'</button>';

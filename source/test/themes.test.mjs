@@ -53,7 +53,7 @@ ok('pencil icons load: no runtime SVG filter on the Lucide strokes (it blanked i
     return { ff, ui: getComputedStyle(document.body).fontFamily, pre: /fonts\/nunito\.woff2/.test(sw) && /fonts\/caveat\.woff2/.test(sw), lic: (await fetch('fonts/OFL.txt')).ok }; });
   ok('pencil: bundled Nunito (UI text) + Caveat loaded from fonts/*.woff2, both in the SW precache, OFL.txt shipped', F.ff.includes('Nunito:loaded') && F.ff.some(x => /^Caveat:/.test(x)) && /^"?Nunito/.test(F.ui) && F.pre && F.lic, F); }
 ok('reader page stays clean (no background image / filter on the page)', !/url|gradient/.test(s.bgImg) && (s.filter === 'none' || !s.filter), { bgImg: s.bgImg, filter: s.filter });
-ok('skin tokens active on #reader (--rq-accent = pencil #1d6464)', s.acc === '#1d6464', s.acc);
+ok('skin tokens active on #reader (--rq-accent = pencil blue #2e48a0)', s.acc === '#2e48a0', s.acc);
 ok('app-wide skin day: html[data-skin=pencil]; settings sheet #fbfaf5, header + bottom bar #f3f0e7, body #f3f0e7, wobbly header line', s.hskin === 'pencil' && !s.htheme && s.sheetBg === 'rgb(251, 250, 245)' && s.headBg === 'rgb(243, 240, 231)' && s.barBg === 'rgb(243, 240, 231)' && s.bodyBg === 'rgb(243, 240, 231)' && /svg/.test(s.headLine), { hskin: s.hskin, sheet: s.sheetBg, head: s.headBg, bar: s.barBg, body: s.bodyBg, line: !!s.headLine });
 await p.screenshot({ path: SHOTS + 'theme-pencil-day-sheet.png' });
 await sheet(false); await p.screenshot({ path: SHOTS + 'theme-pencil-day.png' });
@@ -63,7 +63,7 @@ s = await st();
 ok('Карандашный night: pencil-night, data-theme=night, page #262a31, still the Карандашный swatch', s.theme === 'pencil-night' && s.hskin === 'pencil' && s.htheme === 'night' && s.page === 'night' && s.bg === 'rgb(38, 42, 49)', s);
 await p.screenshot({ path: SHOTS + 'theme-pencil-night.png' });
 await sheet(true); s = await st();
-ok('night: --rq-accent = pencil night #86cbc2, Карандашный swatch on', s.acc === '#86cbc2' && s.on.join() === 'pencil', s);
+ok('night: --rq-accent = pencil night #a9b9f0, Карандашный swatch on', s.acc === '#a9b9f0' && s.on.join() === 'pencil', s);
 ok('app-wide skin night: html data-theme=night; sheet #353b45, header #2b3038', s.hskin === 'pencil' && s.htheme === 'night' && s.sheetBg === 'rgb(53, 59, 69)' && s.headBg === 'rgb(43, 48, 56)', { sheet: s.sheetBg, head: s.headBg });
 await p.screenshot({ path: SHOTS + 'theme-pencil-night-sheet.png' }); await sheet(false);
 await p.evaluate(() => toggleDayNight()); await sleep(300); s = await st();

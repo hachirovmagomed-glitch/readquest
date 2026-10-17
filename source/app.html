@@ -665,12 +665,12 @@ body.pixel .charpanel .cbtn,body.pixel .charpanel .swatch{border-radius:0}
 .mbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
 .mbar i{display:block;width:100%;background:var(--accent);border-radius:2px 2px 0 0;min-height:2px}
 .mbar span{font-size:9px;color:var(--muted);margin-top:2px}
-.yreview{background:linear-gradient(160deg,#3a2f6e,#241a45);border-radius:16px;padding:16px;margin-top:10px;color:#fff}
+.yreview{background:linear-gradient(160deg,var(--card2),var(--card));border-radius:16px;padding:16px;margin-top:10px;color:var(--txt)} /* 17.10: was fixed purple + white under every theme and skin */
 .yr-h{font-size:16px;font-weight:700;margin-bottom:12px}
 .yr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-.yr-cell{background:rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center}
+.yr-cell{background:color-mix(in srgb,var(--card) 70%,transparent);border-radius:12px;padding:10px;text-align:center}
 .yr-cell b{font-size:20px;display:block}
-.yr-cell span{font-size:11px;opacity:.8}
+.yr-cell span{font-size:11px;color:color-mix(in srgb,var(--txt) 78%,var(--card))}
 .yr-line{font-size:13px;margin-top:6px}
 .taltree{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .talbranch{display:flex;flex-direction:column;gap:8px}

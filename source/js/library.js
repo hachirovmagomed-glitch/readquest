@@ -323,6 +323,21 @@ function bbCover(b){
     art='<g transform="translate(0 2) rotate('+((h>>4)%21-10)+' 20 20)">'+bbWings(sh[m%sh.length],(m>>>8)%BB_PAL.length)+'</g>';}
   return '<span class="bb-cover bb-'+K[0]+'"><i>'+bookFmt(b)+'</i><svg viewBox="0 0 40 42" aria-hidden="true" focusable="false">'+art+'</svg></span>';
 }
+/* «Небесный»: emoji cover → night-sky tile in one of five inks with a gold emblem (sun, crescent, star, cloud, comet); light gold format label
+   on the dark ink (contrast ≥ 7). Ink by the id hash (consecutive ids get neighbouring inks), emblem by a mixed hash. */
+const CL_INKS=['plum','blue','green','gold','brick','sky'];
+const CL_EMB={
+ sun:'<circle cx="15" cy="15" r="5.5" fill="#f1d28a"/><path d="M15 3v4M15 23v4M3 15h4M23 15h4M6.5 6.5l2.8 2.8M20.7 20.7l2.8 2.8M6.5 23.5l2.8-2.8M20.7 9.3l2.8-2.8" stroke="#f1d28a" stroke-width="1.6" stroke-linecap="round"/>',
+ moon:'<path d="M18 4a11 11 0 1 0 8 17.5A9 9 0 1 1 18 4z" fill="#f1d28a"/><path d="M24 6l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z" fill="#fff3c4"/>',
+ star:'<path d="M15 3l3.5 8 8.5.7-6.5 5.6 2 8.4L15 21.2l-7.5 4.5 2-8.4L3 11.7l8.5-.7z" fill="#f1d28a"/>',
+ cloud:'<circle cx="21" cy="9" r="4.5" fill="#f1d28a"/><path d="M6 24a5 5 0 0 1 1-9.9A7 7 0 0 1 20 13a5 5 0 0 1 4 9.5V24z" fill="#fff3d1"/>',
+ comet:'<circle cx="21" cy="9" r="4" fill="#f1d28a"/><path d="M18 12L5 25M19.5 14.5L9 25M15.5 10.5L5 21" stroke="#f1d28a" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>'};
+function celCover(b){
+  let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
+  const m=Math.imul(h^(h>>>15),2654435761)>>>0,em=Object.keys(CL_EMB);
+  /* the title and author are printed on the cover (the shelf grid shows them, small covers hide them) */
+  return '<span class="cl-cover cl-'+CL_INKS[h%CL_INKS.length]+'"><i>'+bookFmt(b)+'</i><b class="cl-t">'+esc(b.title||'')+'</b><small class="cl-a">'+esc(b.author||'')+'</small><svg viewBox="0 0 30 30" aria-hidden="true" focusable="false">'+CL_EMB[em[(m>>>8)%em.length]]+'</svg></span>';
+}
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){
   const cv=S.covers[b.id];
@@ -330,6 +345,7 @@ function coverHtml(b){
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
+  if(document.documentElement.dataset.skin==='celestial')return celCover(b);
   return lucideCover(b,'rq-cover'); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) → Lucide + format */
 }
 function renderLibChips(){

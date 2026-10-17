@@ -58,7 +58,7 @@ const SHOP_CATALOG=(function(){
   sk('gravyura','Гравюра',500,'Книжная гравюра: ельник, лиса, облака',[['day','День','#e8e4d6'],['night','Ночь','#1d2a26'],['autumn','Осень','#e9d2b0']]);
   sk('starry','Звёздный',500,'Ночное небо и созвездия',[['base','Звёздный','#121a33'],['chart','Карта неба','#1c2440'],['dawn','Рассвет','#f1d9c8']]);
   sk('dungeon','Подземелье',800,'Каменные своды и факелы',[['base','Подземелье','#1b1a1f'],['emerald','Изумруд','#10261f'],['ice','Лёд','#1a2630']]);
-  sk('celestial','Небесный',800,'Солнце, луна и облака',[['base','Небесный','#e6eef7'],['moon','Луна','#1a2236'],['dusk','Сумерки','#3a2e4a']]);
+  sk('celestial','Небесный',800,'Небо на закате, золотые рамки и звёздная ночь',[['base','Небесный','#f6efe2']]); /* handoff/skins/celestial (17.10, прототип rannie/mockups/celestial); день и ночь внутри скина */
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
   sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   sk('babochkovyi','Бабочковый',500,'Перламутровые крылья, летний луг и мотыльки',[['base','Бабочковый','#f4f2f8']]); /* handoff/skins/babochkovyi (16.10) */
@@ -70,7 +70,7 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi'];
+const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;

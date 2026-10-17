@@ -57,7 +57,7 @@ html[data-skin="ellada"][data-theme="night"] body{background:var(--el-wall);back
 html[data-skin="ellada"]:not([data-theme="night"]) body:has(#library:not(.hidden))::before{content:"";position:fixed;left:0;right:0;bottom:0;height:150px;pointer-events:none;
   background:var(--el-crest) 0 0/38px 10px repeat-x,linear-gradient(#5b93c4,var(--el-sea) 40%,#2f6a9c);opacity:.9}
 /* screen titles: Cormorant Unicase */
-html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h3,#settings h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
+html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h3,#settings h1,#look h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
 html[data-skin="ellada"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
 /* library header = black-glaze frieze: terracotta meander on top, marble running wave below; the title ≥14px from the meander */
 html[data-skin="ellada"] #libHead{position:relative;margin:-20px -18px 18px;padding:30px 14px 22px;background:var(--el-glaze);color:#f6ead6}

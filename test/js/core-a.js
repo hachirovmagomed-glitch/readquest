@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261017-1536'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261017-1612'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -49,7 +49,7 @@ function applyMvpChrome(){
     if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
     if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
     bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
-      const scr={quests:'quests',notes:'quotes',vocab:'vocab',stats:'stats'}[id];b.classList.toggle('on',!onRew&&!!scr&&!!el(scr)&&!el(scr).classList.contains('hidden'));});
+      const scr={quests:['quests'],stats:['stats','quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');

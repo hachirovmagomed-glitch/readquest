@@ -96,6 +96,7 @@ function renderSettings(){
   rqSyncSwitches();
   rqCollapse('appThemeBox','',function(){const t=document.querySelector('#appThemeBox .apptile.on small');return t?t.textContent:'';},'appThemeX',{icon:'sun-moon',title:'Тема',sub:function(){return activeTheme().skin?'Сейчас цвета задаёт скин':S.appTheme==='auto'?'Авто: день с 7:00 до 21:00':'Всегда эта тема';},dot:function(){const b=document.querySelector('#appThemeBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
   rqCollapse('appSkinBox','',function(){const t=document.querySelector('#appSkinBox .apptile.on small');return t?t.textContent:'';},'appSkinX',{icon:'palette',title:'Скин',sub:function(){return 'Свои и купленные';},dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'circle-minus';},dot:function(){const b=document.querySelector('#appSkinBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
+  if(el('lookCfgSub')){const v=function(id){const r=el(id);return r&&r.querySelector('.xv')?r.querySelector('.xv').textContent:'';};const t=activeTheme();el('lookCfgSub').textContent=t.skin?('Скин: '+v('appSkinX')):('Тема: '+v('appThemeX'));} /* the row that leads to «Внешний вид» */
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};

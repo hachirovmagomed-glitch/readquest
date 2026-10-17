@@ -47,6 +47,8 @@
   --rq-skin-daybar:#2e48a0;
   --rq-skin-daybar-track:#dedbd1;
   --rq-skin-hatch:#8f8c84;
+  --rq-skin-grid:#d5dce8;    /* клетка тетради 20px (текст на линии ≥ 4.5: text-2 5.17, accent 5.97) */
+  --rq-skin-margin:#d98a8a;  /* двойная красная линия полей, только декор */
   color-scheme:light;
 }
 [data-skin="pencil"][data-theme="night"],
@@ -95,6 +97,8 @@
   --rq-skin-daybar:#a9b9f0;
   --rq-skin-daybar-track:#454c57;
   --rq-skin-hatch:#7c828c;
+  --rq-skin-grid:#3a414e;    /* text-2 5.11, accent 5.32 */
+  --rq-skin-margin:#a8566a;
   color-scheme:dark;
 }
 /* 17.10 (Джессика: «в скинах всё ещё зелёные»): бирюзовый карандаш → синий, чтобы акцент не совпадал с цветом приложения */

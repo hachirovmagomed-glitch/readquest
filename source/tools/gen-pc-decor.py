@@ -4,14 +4,14 @@ from a token via background-color), so day/night recolour by tokens only. Prints
 handoff/skins/karandashny-tetrad (вариант B: каракули, звёзды, стрелки, гусеница с книгой)."""
 import urllib.parse
 def u(svg): return 'url("data:image/svg+xml,' + urllib.parse.quote(svg, safe=" =:/,.'-()").replace('"', "'") + '")'
-def svg(w, h, body, sw=1.6): return (f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' viewBox='0 0 {w} {h}'><g fill='none' stroke='%23000' "
+def svg(w, h, body, sw=1.6, par=''): return (f"<svg xmlns='http://www.w3.org/2000/svg' width='{w}' height='{h}' viewBox='0 0 {w} {h}'{par}><g fill='none' stroke='%23000' "
                                     f"stroke-width='{sw}' stroke-linecap='round' stroke-linejoin='round'>{body}</g></svg>").replace('%23', '#')
 star = lambda x, y, s: f"<path transform='translate({x} {y}) scale({s})' d='M10 1.5l2.4 6 6.4.4-5 4.1 1.7 6.3L10 14.8l-5.5 3.5 1.7-6.3-5-4.1 6.4-.4z M9.6 1.9l2.6 6.3'/>"
 V = {
  # pencil ellipse drawn twice (the second pass slightly off): the active chip / tab is circled, not filled
- 'pc-ring': svg(100, 44, "<path d='M14 8C34 2 72 2 90 9C99 13 99 31 88 36C70 43 30 43 12 36C2 32 1 15 13 9'/><path d='M20 6C44 1 80 4 93 12' opacity='.7'/>", 1.8),
+ 'pc-ring': svg(100, 44, "<path d='M14 8C34 2 72 2 90 9C99 13 99 31 88 36C70 43 30 43 12 36C2 32 1 15 13 9'/><path d='M20 6C44 1 80 4 93 12' opacity='.7'/>", 1.8, " preserveAspectRatio='none'"),
  # wobbly underline under screen titles
- 'pc-under': svg(160, 10, "<path d='M2 6C20 3 38 8 58 5S98 3 118 6 150 7 158 4'/><path d='M10 8C40 6 80 9 120 7' opacity='.55'/>", 1.6),
+ 'pc-under': svg(160, 10, "<path d='M2 6C20 3 38 8 58 5S98 3 118 6 150 7 158 4'/><path d='M10 8C40 6 80 9 120 7' opacity='.55'/>", 1.6, " preserveAspectRatio='none'"),
  # caterpillar reading an open book (empty corner of the library and the summary)
  'pc-worm': svg(96, 70, "<path d='M14 60C26 54 38 54 48 60C58 54 70 54 82 60V66C70 60 58 60 48 66C38 60 26 60 14 66z'/><path d='M48 60V66'/>"
                 "<circle cx='34' cy='48' r='6'/><circle cx='44' cy='42' r='6'/><circle cx='54' cy='37' r='6'/><circle cx='65' cy='33' r='7.5'/>"

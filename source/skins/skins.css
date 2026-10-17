@@ -530,3 +530,48 @@ html[data-skin="celestial"] #rewSlots .tierseg button.on{background:#fffaf0;colo
 html[data-skin="celestial"] #rewSlots .pcard > .row:last-child{color:var(--cl-on-rar)!important}
 html[data-skin="celestial"] #rewSlots .lnk.danger{color:var(--cl-on-rar);text-decoration:underline}
 @media (max-width:374px){html[data-skin="celestial"] #libTitle{font-size:28px}html[data-skin="celestial"] .wrap > .row > h1{font-size:24px;white-space:nowrap}html[data-skin="celestial"] .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){padding:6px 10px;font-size:12px;flex:none}}
+
+/* ===== 5. «Карандашный» v2 (Джессика 17.10: «невзрачный — клеточки, как в тетради, больше деталей»; пак handoff/skins/karandashny-tetrad):
+   тетрадь в клетку 20px с красными полями, каракули на полях, активное обведено карандашом, прогресс штриховкой, заголовки подчёркнуты от руки.
+   Doodles are masks (tools/gen-pc-decor.py): the colour comes from tokens. Never on the book page (the reader is opaque --r-bg). */
+html[data-skin="pencil"]{
+  --pc-ring:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='44' viewBox='0 0 100 44' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 8C34 2 72 2 90 9C99 13 99 31 88 36C70 43 30 43 12 36C2 32 1 15 13 9'/%3E%3Cpath d='M20 6C44 1 80 4 93 12' opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  --pc-under:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='10' viewBox='0 0 160 10' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6C20 3 38 8 58 5S98 3 118 6 150 7 158 4'/%3E%3Cpath d='M10 8C40 6 80 9 120 7' opacity='.55'/%3E%3C/g%3E%3C/svg%3E");
+  --pc-worm:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='70' viewBox='0 0 96 70'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 60C26 54 38 54 48 60C58 54 70 54 82 60V66C70 60 58 60 48 66C38 60 26 60 14 66z'/%3E%3Cpath d='M48 60V66'/%3E%3Ccircle cx='34' cy='48' r='6'/%3E%3Ccircle cx='44' cy='42' r='6'/%3E%3Ccircle cx='54' cy='37' r='6'/%3E%3Ccircle cx='65' cy='33' r='7.5'/%3E%3Cpath d='M62 26L59 19M69 26L72 19'/%3E%3Ccircle cx='58.5' cy='18' r='1.4'/%3E%3Ccircle cx='72.5' cy='18' r='1.4'/%3E%3Cpath d='M62 34Q65 37 68 34'/%3E%3Cpath d='M28 51l-3 5M40 46l-2 6M51 41l-1 6' opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  --pc-star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath transform='translate(1 1) scale(1)' d='M10 1.5l2.4 6 6.4.4-5 4.1 1.7 6.3L10 14.8l-5.5 3.5 1.7-6.3-5-4.1 6.4-.4z M9.6 1.9l2.6 6.3'/%3E%3C/g%3E%3C/svg%3E");
+  --pc-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6C20 4 32 12 30 28'/%3E%3Cpath d='M24 23L30 30 35 22'/%3E%3C/g%3E%3C/svg%3E");
+  --pc-spiral:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 15c1-2 4-1 4 1 0 3-4 5-7 4-4-1-5-6-3-9 3-4 9-4 12 0 3 4 2 10-2 13-5 4-12 2-15-3'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* paper: squared grid + a double red margin line on the root; app screens transparent over it (the reader keeps its flat page) */
+html[data-skin="pencil"]{background-color:var(--rq-bg);background-image:linear-gradient(90deg,transparent 9px,var(--rq-skin-margin) 9px 10px,transparent 10px 12px,var(--rq-skin-margin) 12px 13px,transparent 13px),
+  linear-gradient(var(--rq-skin-grid) 1px,transparent 1px),linear-gradient(90deg,var(--rq-skin-grid) 1px,transparent 1px);
+  background-size:100% 100%,20px 20px,20px 20px;background-repeat:no-repeat,repeat,repeat;background-attachment:fixed}
+html[data-skin="pencil"] body{background:transparent}
+html[data-skin="pencil"] .screen:not(#reader),html[data-skin="pencil"] #summary{background:transparent}
+html[data-skin="pencil"] #reader{background:var(--r-bg)}
+/* doodles in the margins and empty corners (behind the content): graphite caterpillar with a book, arrow, spiral; accent stars */
+html[data-skin="pencil"] body::before,html[data-skin="pencil"] body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
+html[data-skin="pencil"] body::before{background:var(--rq-skin-hatch);
+  -webkit-mask:var(--pc-worm) right 18px bottom 96px/96px 70px no-repeat,var(--pc-arrow) left 0 top 46%/28px 28px no-repeat,var(--pc-spiral) right 10px top 62%/22px 22px no-repeat;
+  mask:var(--pc-worm) right 18px bottom 96px/96px 70px no-repeat,var(--pc-arrow) left 0 top 46%/28px 28px no-repeat,var(--pc-spiral) right 10px top 62%/22px 22px no-repeat}
+html[data-skin="pencil"] body::after{background:var(--rq-accent);opacity:.8;
+  -webkit-mask:var(--pc-star) left 0 top 30%/16px 16px no-repeat,var(--pc-star) left 1px top 74%/14px 14px no-repeat,var(--pc-star) right 128px bottom 150px/14px 14px no-repeat;
+  mask:var(--pc-star) left 0 top 30%/16px 16px no-repeat,var(--pc-star) left 1px top 74%/14px 14px no-repeat,var(--pc-star) right 128px bottom 150px/14px 14px no-repeat}
+/* titles underlined by hand */
+html[data-skin="pencil"] :is(#libTitle,.wrap > .row > h1,#sumHead){position:relative}
+html[data-skin="pencil"] :is(#libTitle,.wrap > .row > h1,#sumHead)::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:9px;background:var(--rq-accent);pointer-events:none;
+  -webkit-mask:var(--pc-under) 0 0/100% 100% no-repeat;mask:var(--pc-under) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] #sumHead{display:inline-block}
+/* the active filter, bottom-nav tab and price tier are circled in pencil, not filled */
+html[data-skin="pencil"] :is(.fchip.on,#botnav .botnav-btn.on,.tierseg button.on){position:relative;background:transparent;color:var(--rq-accent-text);font-weight:700}
+html[data-skin="pencil"] :is(.fchip.on,#botnav .botnav-btn.on,.tierseg button.on)::after{content:"";position:absolute;inset:-3px -5px;background:var(--rq-accent);pointer-events:none;
+  -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] #botnav .botnav-btn.on::after{inset:0 8px}
+html[data-skin="pencil"] .fchip.on{box-shadow:none}
+/* progress: graphite outline, hatched fill */
+html[data-skin="pencil"] .pbar{height:7px;border-radius:2px;background:var(--rq-surface);box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
+html[data-skin="pencil"] .pbar i{border-radius:2px;background:repeating-linear-gradient(-45deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px)!important;box-shadow:inset 0 0 0 1.2px var(--rq-accent)}
+/* bottom nav on paper: a pencil line above instead of a filled bar */
+html[data-skin="pencil"] #botnav{background:var(--rq-bg);border-top:1.5px solid var(--rq-skin-border)}
+/* text on accent fills (night accent is pale blue: the app paints literal #fff there) */
+html[data-skin="pencil"] :is(.buy:not(.owned),.cta,.seg button.on){color:var(--rq-on-accent)}

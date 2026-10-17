@@ -171,7 +171,7 @@ if (want('confetti') || want('refund') || want('testgold')) {
         confetti(); confettiReward(); confettiSummary();
         const ns = [...document.querySelectorAll('.confetti')];
         const css = getComputedStyle(h), tok = [css.getPropertyValue('--accent'), css.getPropertyValue('--accent2')].map(v => { const d = document.createElement('i'); d.style.color = v.trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
-        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use, svg path, svg circle')).length,
+        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use, svg path, svg circle, svg polygon, svg rect')).length,
           offTok: (sk === 'pencil' || sk === 'babochkovyi' || sk === 'ellada') ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length,
           shapes: [...new Set(ns.map(n => n.dataset.c || ''))].sort().join(' '),
           fills: new Set(ns.map(n => n.dataset.f || '')).size,

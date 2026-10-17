@@ -205,6 +205,7 @@ function shopTestGold(){
   if(window.RQ_NS!=='rqt')return;
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.gold=(S.gold||0)+1000;save();renderRewardsSheet();
+  try{if(window.__rq&&__rq.logAnalyticsEvent)__rq.logAnalyticsEvent({type:'test_gold',amount:1000}).catch(function(){});}catch(e){} /* arch.md 16.10: test coins are marked in events */
 }
 function rqNavH(){const n=el('botnav');return n&&getComputedStyle(n).display!=='none'?n.offsetHeight:0;}
 let shopLast='game';
@@ -275,8 +276,14 @@ function buyReward(i){
 }
 function undoRewardClaim(i){
   const r=S.rewards[i];if(!r||!(r.bought>0))return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне');return;}
   if(!confirm('Отменить последнее получение «'+r.name+'» и вернуть '+r.cost+' монет'+'?'))return;
   r.bought--;S.gold+=r.cost;
+  /* arch.md 16.10: refund record next to the purchase (metrics.py: buys = purchases − refunds) */
+  S.rewardPurchases=S.rewardPurchases||[];S.rewardRefunds=S.rewardRefunds||[];
+  const done={};S.rewardRefunds.forEach(function(x){if(x&&x.purchaseId)done[x.purchaseId]=1;});
+  let pid=null;for(let k=S.rewardPurchases.length-1;k>=0;k--){const pp=S.rewardPurchases[k];if(pp&&pp.title===r.name&&!done[pp.id]){pid=pp.id;break;}}
+  S.rewardRefunds.push({id:'rr_'+Date.now(),purchaseId:pid,title:r.name,price:r.cost,at:new Date().toISOString()});
   save();renderShop();
 }
 function toggleRewardFav(i){const r=S.rewards[i];if(!r)return;r.fav=!r.fav;save();renderShop();}

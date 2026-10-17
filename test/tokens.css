@@ -338,12 +338,14 @@
   --el-terracotta:#c8642c;   /* меандр, фризы, фигуры — 3.9 на мраморе; от текста и контролов ≥12 px */
   --el-terracotta-l:#e08a4e; /* процарапанные линии на чёрном лаке */
   --el-glaze:#15110e;        /* чёрный лак: шапка-фриз, полка, фигуры */
+  --el-gold:#c99a2e; --el-gold-l:#e9c766; --el-blue:#1f5a8c; --el-olive:#5f7a2e; /* конфетти (17.10): золото, Эгейский синий, олива — только декор, не текст */
   --el-sea:#3f7fb5;          /* море внизу фона, капители колонн — 4.2 */
   --el-wall:linear-gradient(135deg,#f8f5ef,#e9e3d8); /* белый мрамор с прожилками */
   --el-decor-opacity:1;      /* меандры, вазы, море, сова — НЕ в читалке */
   --el-leaf-dur:700ms; --el-column-dur:1100ms; --el-owl-dur:900ms; --el-wave-dur:14s; --el-star-dur:4s; --el-coin-dur:600ms;
 }
 [data-skin="ellada"][data-theme="night"]{
+  --el-blue:#4a8cc4; --el-olive:#8aa552; /* конфетти ночью светлее, чтобы читались на чёрном лаке */
   --rq-bg:#0d0a08; --rq-surface:#1c1714; --rq-surface-2:#26201b; --rq-sheet:#1c1714;
   --rq-line:#3a2f27; --rq-border-strong:#6a5c4e;
   --rq-text:#f3e9dc; --rq-text-2:#c9b6a2; --rq-text-disabled:#6a5c4e;

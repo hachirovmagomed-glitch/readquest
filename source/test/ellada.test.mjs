@@ -154,7 +154,7 @@ const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => 
   const sc = document.querySelector('#path .scroll');
   if (!ch || !map) return { sea: false, oneSheet: !!ch };
   return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg/.test(g(map, '::after').backgroundImage),
-    isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
+    isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage) || /img\/ellada\/\w+\.webp/.test(g(dot, '::after').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage) || /img\/ellada\/\w+\.webp/.test(g(dot, '::after').backgroundImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
 ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
 const pst = await p.evaluate(async () => {
   S.userBooks.push({ id: 'elp1', title: 'a', author: '', pathId: 'odyssey' }, { id: 'elp2', title: 'b', author: '', pathId: 'hamlet' }); S.finished.push('elp1'); S.bookStats.elp1 = { min: 200, pages: 900 }; S.progress.elp2 = { ratio: 0.4 }; S.bookStats.elp2 = { min: 200, pages: 900 };
@@ -162,7 +162,7 @@ const pst = await p.evaluate(async () => {
   const vis = (e) => !!e && getComputedStyle(e).display !== 'none';
   const od = document.querySelector('#path .pathnode[data-pid="odyssey"]'), hm = document.querySelector('#path .pathnode[data-pid="hamlet"]');
   let minGap = 1e9; document.querySelectorAll('#path .pathsea').forEach(ch => { const c = ch.getBoundingClientRect(); ch.querySelectorAll('.pn-dot').forEach(d => { const r = d.getBoundingClientRect(), w = r.width * 0.45; minGap = Math.min(minGap, r.left - w - c.left, c.right - (r.right + w)); }); });
-  const laurel = /el-laurel|data:image\/svg.*data:image\/svg/.test(getComputedStyle(od.querySelector('.pn-dot'), '::before').backgroundImage);
+  const laurel = /el-laurel|laurel\.webp|data:image\/svg.*data:image\/svg/.test(getComputedStyle(od.querySelector('.pn-dot'), '::before').backgroundImage);
   S.userBooks = S.userBooks.filter(x => !/^elp/.test(x.id)); S.finished = S.finished.filter(x => x !== 'elp1'); delete S.progress.elp2; renderPath();
   return { ok: vis(od.querySelector('.pn-ok')), bar: vis(hm.querySelector('.pn-bar')), barW: hm.querySelector('.pn-bar b').style.width, minGap: Math.round(minGap), laurel };
 });
@@ -179,6 +179,16 @@ const one = await p.evaluate(async () => { renderPath(); await new Promise(r => 
   return { sea: !!sea, sheets, gaps, road, books: document.querySelectorAll('#path .pathnode').length, labelGap: Math.round(worst), who };
 });
 ok('16c одна карта: главы на одном листе моря без разрывов, одна дорога через все книги; подписи не ближе 6 px к острову', one.sea && one.sheets === 0 && one.gaps.every(g => g === 0) && one.road === one.books - 1 && one.labelGap >= 6, one);
+// 16d. Джессика 17.10 прислала пакет античных стикеров: у каждой книги карты своё место-стикер, у главных книг лавровый венок, в море между главами украшения; картинки есть в сборке
+const stk = await p.evaluate(async () => {
+  const urls = Array.from(document.querySelectorAll('#path .pathnode')).map(n => { const m = getComputedStyle(n.querySelector('.pn-dot'), '::after').backgroundImage.match(/img\/ellada\/([\w-]+)\.webp/); return m ? m[1] : null; });
+  const boss = Array.from(document.querySelectorAll('#path .pathnode.boss')).every(n => /laurel\.webp/.test(getComputedStyle(n.querySelector('.pn-dot'), '::before').backgroundImage));
+  const deco = Array.from(document.querySelectorAll('#path .pathch:not(:last-child)')).map(c => (getComputedStyle(c, '::after').backgroundImage.match(/img\/ellada\/([\w-]+)\.webp/) || [])[1] || null);
+  const all = [...new Set([...urls, ...deco, 'laurel'].filter(Boolean))];
+  const st = await Promise.all(all.map(u => fetch('img/ellada/' + u + '.webp').then(r => r.ok && r.headers.get('content-type') === 'image/webp' ? 1 : 0).catch(() => 0)));
+  return { urls, distinct: new Set(urls).size, boss, deco, loaded: st.reduce((a, b) => a + b, 0), files: all.length };
+});
+ok('16d стикеры: у каждой из 14 книг свой стикер, у главных книг лавровый венок, между главами украшения, все картинки грузятся', stk.urls.every(Boolean) && stk.distinct === stk.urls.length && stk.urls.length === 14 && stk.boss && stk.deco.length === 3 && stk.deco.every(Boolean) && stk.loaded === stk.files, stk);
 await p.evaluate(() => navGo('library'));
 
 ok('no page errors', !errs.length, errs);

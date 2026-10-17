@@ -5,7 +5,7 @@
 // motion: prefers-reduced-motion OR «Анимации» off (S.ux.anim === false) → no confetti, no book fly-in / opening animation, no CSS animations;
 //         default → confetti still runs (sanity).
 // s360: «Общие настройки» at 360 and 390: no word of a row label is split across lines; the last VISIBLE row of a card has no divider.
-// confetti (part 2): in every theme the confetti are Lucide icons (svg), no emoji; colour = theme tokens (--accent / --accent2), «Карандашный» as before.
+// confetti (part 2): in every theme the confetti are icons (svg), no emoji, each skin its own set (CONFETTI_SKIN in js/core-b.js); colour = theme tokens (--accent / --accent2), «Карандашный» as before.
 // refund (part 2): cancelling a real-life reward writes game.rewardRefunds[] {id, purchaseId, title, price, at}; it survives export → import;
 //         an old backup without the field imports with []; junk is dropped; a passive window changes nothing.
 // testgold (part 2): «+1000 монет для теста» logs {type:'test_gold', amount:1000} in events.
@@ -172,11 +172,16 @@ if (want('confetti') || want('refund') || want('testgold')) {
         const ns = [...document.querySelectorAll('.confetti')];
         const css = getComputedStyle(h), tok = [css.getPropertyValue('--accent'), css.getPropertyValue('--accent2')].map(v => { const d = document.createElement('i'); d.style.color = v.trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
         out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use')).length,
-          offTok: sk === 'pencil' ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length };
+          offTok: sk === 'pencil' ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length,
+          icons: [...new Set(ns.map(n => (n.querySelector('use') || { getAttribute: () => '' }).getAttribute('href')))].sort().join(' ') };
         ns.forEach(n => n.remove());
       }
       delete h.dataset.skin; return out;
     });
+    /* own confetti per skin (Джессика 17.10): each skin its own icon set; unknown skin → default set */
+    const SETS = { default: '#i-book-open #i-check #i-sparkles #i-star', pencil: '#i-notebook-pen #i-pencil #i-sparkles #i-star',
+      ellada: '#i-amphora #i-book-open #i-sun #i-trophy', babochkovyi: '#i-flame #i-flower #i-flower-2 #i-star', 'future-skin': '#i-book-open #i-check #i-sparkles #i-star' };
+    for (const k of Object.keys(r)) ok('confetti ' + k + ': its own icon set (' + SETS[k] + ')', r[k].icons === SETS[k], r[k].icons);
     for (const k of Object.keys(r)) ok('confetti ' + k + ': Lucide icons only, no emoji' + (k === 'pencil' ? '' : ', colour from theme tokens'), r[k].n > 0 && r[k].emoji === 0 && r[k].svg === r[k].n && r[k].offTok === 0 && !errs.length, r[k]);
     await ctx.close();
   }

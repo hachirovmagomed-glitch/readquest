@@ -66,7 +66,7 @@ const lib = (w) => p.evaluate(() => { const h = document.getElementById('libHead
     covers: document.querySelectorAll('#shelf .bb-cover').length, svgs: document.querySelectorAll('#shelf .bb-cover svg').length,
     books: document.querySelectorAll('#shelf .bookcard').length, inside: kids.every(k => k.l >= 0 && k.r <= innerWidth), cut: t.scrollWidth > t.clientWidth + 1, kids, sx: document.documentElement.scrollWidth <= innerWidth }; });
 let l390 = await lib();
-ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 130px (grass + clover), every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 1 && l390.meadow[0] === '130px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
+ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 210px of tall grass + clover, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 1 && l390.meadow[0] === '210px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-390.png' });
 await p.evaluate(() => { S.gold = 12345; save(); renderLibrary(); });
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(400);
@@ -110,9 +110,9 @@ const v3 = await p.evaluate(() => { const svg = x => /data:image\/svg/.test(x ||
   const pse = (e, w) => getComputedStyle(e, w);
   __navAllow = true; show('library'); __navAllow = false; renderLibrary();
   const lug = pse(document.body, '::before'), lugLib = { bg: svg(lug.backgroundImage), z: lug.zIndex, pos: lug.position };
-  const masc = svg(pse(document.querySelector('#library .wrap'), '::after').backgroundImage);
+  const mw = pse(document.querySelector('#library .wrap'), '::after'), masc = svg(mw.backgroundImage) && mw.width === '120px' && !/fff8ec/i.test(mw.backgroundImage); /* 17.10: three plain butterflies, not the mascot with eyes (body #fff8ec) */
   __navAllow = true; show('stats'); __navAllow = false; const lugStats = svg(pse(document.body, '::before').backgroundImage);
-  openRewardsSheet(); const rh = svg(pse(document.querySelector('#rewardsSheet .rewhead h3'), '::after').backgroundImage);
+  openRewardsSheet(); const rhs = pse(document.querySelector('#rewardsSheet .rewhead h3'), '::after').backgroundImage, rh = svg(rhs) && !/fff8ec/i.test(rhs);
   const arts = [...document.querySelectorAll('#rewSlots .pcard > .row:last-child')].map(r => (pse(r, '::before').backgroundImage.match(/width='(\d+)'/) || [])[1]);
   closeRewardsSheet && closeRewardsSheet();
   renderSummary({ xp: 180, gold: 30, pages: 14, min: 18, stat: 'Мудрость', statGain: 1, newB: [], lvBefore: level(S.xp), justFinished: false, mult: 1, flipped: 14, cheatFinish: false, dName: DIFFS[0].n, dmul: 1, newAch: [], achNew: [], day: null, quest: 0, title: '' });
@@ -122,7 +122,7 @@ const v3 = await p.evaluate(() => { const svg = x => /data:image\/svg/.test(x ||
   const bar = getComputedStyle(document.querySelector('#sumDailyBox .pbar')).display;
   __navAllow = true; show('library'); __navAllow = false;
   return { lugLib, masc, lugStats, rh, arts, hero, sky, hatch, wk: getComputedStyle(wk).display, wks, bar }; });
-ok('5g scene: meadow under the content on library and stats (z -1, fixed); mascot after the shelf and by «Награды»; «Цветник» vase/hat/can on reward cards',
+ok('5g scene: meadow under the content on library and stats (z -1, fixed); plain butterflies (no mascot with eyes) after the shelf and by «Награды»; «Цветник» vase/hat/can on reward cards',
   v3.lugLib.bg && v3.lugLib.z === '-1' && v3.lugLib.pos === 'fixed' && v3.lugStats && v3.masc && v3.rh && v3.arts.length >= 2 && v3.arts[0] === '56' && v3.arts[1] === '66', v3);
 ok('5h summary: big butterfly, sky over the scene, 10 cocoons instead of the bar, 4 week flowers', v3.hero && v3.sky && v3.hatch === 10 && v3.bar === 'none' && /flex/.test(v3.wk) && v3.wks.length === 4 && v3.wks.every(Boolean), v3);
 

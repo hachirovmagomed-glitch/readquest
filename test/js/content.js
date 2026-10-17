@@ -134,10 +134,11 @@ function shopState(it){
 }
 function renderShopPane(){
   const box=el('shopList');if(!box)return;
+  if(el('lookBalance'))el('lookBalance').textContent=coinsP(S.gold); /* balance as text next to «Магазин скинов» */
   box.innerHTML=SHOP_CATALOG.filter(x=>x.type==='skin').map(function(it){
     const st=shopState(it), sw=(SHOP_CATALOG.find(x=>x.skin===it.id&&x.bundled)||{}).sw||'#ccc';
     const cta=st.k==='buy'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();shopBuyAsk(\''+it.id+'\')">Купить</button>'
-      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');renderShopPane()">Надеть</button>'
+      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');shopRefresh()">Надеть</button>'
       :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
     return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
       '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
@@ -149,13 +150,16 @@ function renderShopPane(){
 }
 let shopListScroll=0; /* list scroll position: memory only, never stored */
 /* skin page: full screen over the shop; try-on lives in memory; ← / system back / сворачивание reset it and write nothing */
-function openShopDetail(id){const rs=el('rewardsSheet');if(shopOpen===null&&rs)shopListScroll=rs.scrollTop;
+/* the shop list scrolls with «Внешний вид» (17.10); after wearing, the «Скин» row above it follows */
+function shopScroller(){const l=el('look');return l&&l.querySelector('.scroll');}
+function shopRefresh(){renderShopPane();try{renderSettings();}catch(e){}}
+function openShopDetail(id){const rs=shopScroller();if(shopOpen===null&&rs)shopListScroll=rs.scrollTop;
   shopOpen=id;shopTrying=null;renderShopDetail();const d=el('shopDetail');if(d){d.hidden=false;const b=d.querySelector('.spbody');if(b)b.scrollTop=0;}
   navPush('shopskin');}
 function shopBack(){const was=shopOpen!==null;closeShopDetail();if(was&&navState()==='shopskin')try{history.back();}catch(e){}}
 window.addEventListener('popstate',function(e){const st=(e.state&&e.state.rq)||null;if(shopOpen!==null&&st!=='shopskin')closeShopDetail();});
 function closeShopDetail(){const was=shopOpen!==null;shopOpen=null;shopTryClear();const d=el('shopDetail');if(d)d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;try{shopConfirmClose();}catch(e){}
-  if(was){const rs=el('rewardsSheet');if(rs)rs.scrollTop=shopListScroll;}}
+  if(was){const rs=shopScroller();if(rs)rs.scrollTop=shopListScroll;}}
 function renderShopDetail(){
   const d=el('shopDetail');if(!d)return;const it=shopItem(shopOpen);if(!it){d.hidden=true;const sc=el('shopDetailScrim');if(sc)sc.hidden=true;return;}
   const owned=shopOwns(it.id), worn=shopWorn()===it.id;
@@ -167,7 +171,7 @@ function renderShopDetail(){
   else if(!owned){btn='Купить скин за '+coinsP(it.price);act='shopBuyAsk(\''+it.id+'\')';}
   else if(selIt&&!selIt.bundled&&!shopOwns(sel)){btn='Купить расцветку за '+coinsP(selIt.price);act='shopBuyAsk(\''+sel+'\')';}
   else if(worn&&(!selIt||SET.color===sel)){btn='Надето';act='';}
-  else {btn='Надеть';act='wear(\''+(selIt?sel:it.id)+'\');renderShopPane()';}
+  else {btn='Надеть';act='wear(\''+(selIt?sel:it.id)+'\');shopRefresh()';}
   const state=worn?'<span class="spst on">Надето</span>':owned?'<span class="spst">'+(it.price?'Куплено':'Бесплатно')+'</span>':'<span class="spst">'+coinsP(it.price)+'</span>';
   const prev=(selIt&&selIt.sw)||'#ccc';
   d.innerHTML='<div class="sphead"><button type="button" id="shopBack" class="spback" onclick="shopBack()" aria-label="Назад">'+rqIcon('arrow-left',22)+'</button>'+
@@ -199,12 +203,12 @@ function shopConfirmOk(){
   const r=buy(id);
   if(r.ok){try{confettiReward();}catch(e){}flashMsg('Куплено: «'+nm+'»');}
   else if(r.reason==='passive')flashMsg('Приложение открыто в другом окне');
-  shopTrying=null;renderRewardsSheet();
+  shopTrying=null;renderRewardsSheet();try{renderSettings();}catch(e){}
 }
 function shopTestGold(){
   if(window.RQ_NS!=='rqt')return;
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
-  S.gold=(S.gold||0)+1000;save();renderRewardsSheet();
+  S.gold=(S.gold||0)+1000;save();renderRewardsSheet();try{renderSettings();}catch(e){}
   try{if(window.__rq&&__rq.logAnalyticsEvent)__rq.logAnalyticsEvent({type:'test_gold',amount:1000}).catch(function(){});}catch(e){} /* arch.md 16.10: test coins are marked in events */
 }
 function rqNavH(){const n=el('botnav');return n&&getComputedStyle(n).display!=='none'?n.offsetHeight:0;}

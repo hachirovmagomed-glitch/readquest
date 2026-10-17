@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261017-1753',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261017-1848',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261017-1753"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261017-1848"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -521,6 +521,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .progtabs{overflow-x:auto;scrollbar-width:none}
 .progtabs::-webkit-scrollbar{display:none}
 .progtabs .progtab{flex:0 0 auto}
+.lookshophead{align-items:center;gap:8px}.lookshophead h2{margin-bottom:8px}
 body.mvp .progtab:is([data-sub="calendar"],[data-sub="achievements"],[data-sub="shelf"]){display:none} /* MVP folds these screens into the library */
 /* ===== 3D пиксельная книжная полка ===== */
 #shelfWrap{perspective:900px;padding:6px 0 24px}
@@ -1072,7 +1073,7 @@ html[data-skin="pencil"] .pc-week{display:flex;align-items:center;gap:8px;justif
 html[data-skin="pencil"] .confetti{color:var(--rq-accent)}
 html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261017-1753"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261017-1848"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter></svg>
@@ -1290,10 +1291,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="settings" class="screen hidden">
   <div class="scroll"><div class="wrap gset">
     <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
-    <h2>Внешний вид</h2>
-    <div class="pcard">
-      <button type="button" class="setrow navrow" id="btnLookCfg"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><div class="lab">Тема, скин, анимации<div class="sub" id="lookCfgSub"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
-    </div>
     <h2>Во время чтения</h2>
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-smartphone"/></svg><div class="lab">Не гасить экран<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn sw" id="uxWake" role="switch">Выкл</button></div>
@@ -1372,6 +1369,11 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="seg" id="appSkinBox"></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
+    </div>
+    <div class="row lookshophead"><h2>Магазин скинов</h2><div class="spacer"></div><span class="chip" id="lookBalance"></span></div><!-- Джессика 17.10: the shop moved here from «Награды» -->
+    <div id="rewPaneShop">
+    <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
+    <div id="shopList"></div>
     </div>
   </div></div>
 </div>
@@ -1485,17 +1487,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="rewardsSheet" role="dialog" aria-label="Награды">
   <button class="closes" id="rewardsClose" type="button" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
   <div class="row rewhead"><h3 style="margin:0">Награды</h3><div class="spacer"></div><span class="chip" id="rewBalance">0 монет</span></div>
-  <div class="rewtabs" role="tablist"><button type="button" role="tab" id="rewTabLife" aria-selected="true" class="on" onclick="setRewardsTab('life')">Из жизни</button><button type="button" role="tab" id="rewTabShop" aria-selected="false" onclick="setRewardsTab('shop')">Магазин</button></div>
-  <div id="rewPaneLife" role="tabpanel">
+    <div id="rewPaneLife" role="tabpanel">
     <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Назначьте себе награды за чтение. Цена только по ступени, монеты дают квесты за чтение.</div>
     <div class="row" style="margin-bottom:10px"><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
     <div id="rewSlots"></div>
     <h2 style="font-size:14px;margin-top:16px">История</h2>
     <ul class="mvp-hist" id="rewHist"></ul>
-  </div>
-  <div id="rewPaneShop" role="tabpanel" hidden>
-    <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
-    <div id="shopList"></div>
   </div>
 </div>
 
@@ -1650,28 +1647,28 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261017-1753"></script>
-<script src="js/books-builtin.js?v=20261017-1753"></script>
-<script src="js/core-b.js?v=20261017-1753"></script>
-<script src="js/library.js?v=20261017-1753"></script>
-<script src="js/reader.js?v=20261017-1753"></script>
-<script src="js/pdf.js?v=20261017-1753"></script>
-<script src="js/reader-ui.js?v=20261017-1753"></script>
-<script src="js/rpg.js?v=20261017-1753"></script>
-<script src="js/content.js?v=20261017-1753"></script>
-<script src="js/settings.js?v=20261017-1753"></script>
-<script src="js/v6-extras.js?v=20261017-1753"></script>
-<script src="js/ach-core.js?v=20261017-1753"></script>
-<script src="js/achievements.js?v=20261017-1753"></script>
-<script src="js/path.js?v=20261017-1753"></script>
-<script src="js/start.js?v=20261017-1753"></script>
+<script src="js/core-a.js?v=20261017-1848"></script>
+<script src="js/books-builtin.js?v=20261017-1848"></script>
+<script src="js/core-b.js?v=20261017-1848"></script>
+<script src="js/library.js?v=20261017-1848"></script>
+<script src="js/reader.js?v=20261017-1848"></script>
+<script src="js/pdf.js?v=20261017-1848"></script>
+<script src="js/reader-ui.js?v=20261017-1848"></script>
+<script src="js/rpg.js?v=20261017-1848"></script>
+<script src="js/content.js?v=20261017-1848"></script>
+<script src="js/settings.js?v=20261017-1848"></script>
+<script src="js/v6-extras.js?v=20261017-1848"></script>
+<script src="js/ach-core.js?v=20261017-1848"></script>
+<script src="js/achievements.js?v=20261017-1848"></script>
+<script src="js/path.js?v=20261017-1848"></script>
+<script src="js/start.js?v=20261017-1848"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261017-1753"></script>
+<script src="js/pwa-lock.js?v=20261017-1848"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1679,9 +1676,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261017-1753';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261017-1753';
-import * as game from './game-awards.js?v=20261017-1753';
+} from './storage/index.js?v=20261017-1848';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261017-1848';
+import * as game from './game-awards.js?v=20261017-1848';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

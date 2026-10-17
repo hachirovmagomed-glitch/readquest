@@ -99,8 +99,8 @@ el('scrim').onclick=closeDrawer;
 let jrnLast='quests';
 /* tabs inside a drawer section: same MVP pass as the drawer item itself (the tabs used to bounce to the library in MVP) */
 function navShowSub(id){const own={quotes:'stats',stats:'stats',vocab:'stats',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
-function openLook(){renderSettings();__navAllow=true;try{show('look');}finally{__navAllow=false;}closeDrawer();}
-if(el('btnLookCfg'))el('btnLookCfg').onclick=openLook;
+function openLook(toShop){try{closeRewardsSheet();}catch(e){}renderSettings();try{renderShopPane();}catch(e){}__navAllow=true;try{show('look');}finally{__navAllow=false;}closeDrawer();
+  if(toShop===true){const h=el('rewPaneShop');if(h)h.scrollIntoView({block:'start'});}}
 function openJournal(sub){
   if(sub!=='quests'){openProgress(sub==='vocab'?'vocab':'quotes');return;} /* 17.10: quotes and vocab live in «Инвентарь» */
   renderQuests();

@@ -171,7 +171,7 @@ if (want('tts')) {
   await ctx.close();
 }
 
-/* ttslook (Джессика 16.10, видео): the «on» state must not repaint the button. Old: solid --accent disc, white icon; in «Эллада»
+/* ttslook (Джессика 16.10, видео; 17.10 «становится круглой»): the «on» state must not repaint the button: no disc at all, only the glyph changes. Old: solid --accent disc, white icon; in «Эллада»
    the disc and the icon were the same blue → an empty circle. Now: same icon colour as «off», only a faint backdrop; icon ≥ 3:1 on the header. */
 if (want('ttslook')) {
   const { ctx, p } = await fresh();
@@ -194,7 +194,7 @@ if (want('ttslook')) {
       b.click(); await new Promise(r => setTimeout(r, 100));
       return out;
     }, k);
-    ok('ttslook ' + k + ': listening keeps the icon colour, faint backdrop (alpha ≤ 0.25), icon ≥ 3:1', r.on && r.icOn === r.icOff && r.bgA <= 0.25 && r.cr >= 3, r);
+    ok('ttslook ' + k + ': listening keeps the icon colour, no disc behind it (Джессика 17.10), icon ≥ 3:1', r.on && r.icOn === r.icOff && r.bgA === 0 && r.cr >= 3, r);
   }
   await ctx.close();
 }
@@ -220,6 +220,37 @@ if (want('ttscorner')) {
   }, bk.id);
   ok('ttscorner: listening → top-right tap shows the bars, no bookmark', r.listen.marks === 0 && r.listen.bars, r);
   ok('ttscorner: not listening → top-right tap still bookmarks', r.idle.marks === 1, r);
+  await ctx.close();
+}
+
+/* dimfull (Джессика 17.10, скрин): «Затемнение» must cover the whole reader screen evenly — not only the text column between the margins,
+   not leave light edges, and it lies over the bars too (it is a brightness control). Text and scroll mode alike; the sheet stays above it. */
+if (want('dimfull')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const shot = async (mode) => p.evaluate(async (mode) => {
+    flipPick('mode', mode); SET.dim = 0.5; applySet(); revealChrome(); await new Promise(r => setTimeout(r, 400));
+    if (mode === 'scroll') { const v = document.getElementById('viewer'); v.scrollTop = v.clientHeight * 1.5; await new Promise(r => setTimeout(r, 300)); }
+    const d = document.getElementById('dimmer'), rd = document.getElementById('reader');
+    const a = d.getBoundingClientRect(), b = rd.getBoundingClientRect(), cs = getComputedStyle(d);
+    const head = document.querySelector('#reader .rhead'), hb = head.getBoundingClientRect();
+    const z = (n) => parseInt(getComputedStyle(n).zIndex, 10) || 0;
+    openReaderSettings('grpPage');
+    await new Promise(r => setTimeout(r, 300));
+    const sh = document.getElementById('sheet'), sb = sh.getBoundingClientRect();
+    /* elementsFromPoint skips pointer-events:none, so order by z-index inside #reader (one stacking context: all three are its children) */
+    const same = d.parentElement === rd && sh.parentElement === rd && head.parentElement.closest('#reader') === rd;
+    const overSheet = !(z(sh) > z(d));
+    sh.classList.add('hidden');
+    return { mode, op: +cs.opacity, rect: [a.left, a.top, a.width, a.height].map(Math.round), screen: [b.left, b.top, b.width, b.height].map(Math.round),
+      overHead: same && z(d) > z(head.closest('#reader > *')), overSheet, same };
+  }, mode);
+  for (const m of ['page', 'scroll']) {
+    const r = await shot(m);
+    ok('dimfull ' + m + ': dimmer = the whole reader screen (no light edges), over the bars, under the settings sheet',
+      r.op === 0.5 && JSON.stringify(r.rect) === JSON.stringify(r.screen) && r.overHead && !r.overSheet, r);
+  }
+  await p.evaluate(() => { SET.dim = 0; applySet(); flipPick('mode', 'page'); });
   await ctx.close();
 }
 

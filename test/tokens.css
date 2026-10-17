@@ -198,28 +198,28 @@
   --rq-text:#2a2a28;
   --rq-text-2:#595853;
   --rq-text-disabled:#97958e;
-  --rq-accent:#1d6464;
-  --rq-accent-pressed:#185252;
-  --rq-accent-text:#1d6464;
+  --rq-accent:#2e48a0;
+  --rq-accent-pressed:#253b85;
+  --rq-accent-text:#2e48a0;
   --rq-on-accent:#fbfaf5;
   --rq-control-on:#fbfaf5;
-  --rq-accent-tint:#e0e8e4;
-  --rq-accent-border:#97b6b4;
+  --rq-accent-tint:#e2e6f3;
+  --rq-accent-border:#9aa6cf;
   --rq-coin:#7a4f10;
   --rq-coin-tint:#e9e2d5;
   --rq-success:#2f6a22;
   --rq-success-tint:#dee6d7;
   --rq-danger:#b3392a;
   --rq-danger-tint:#f1dfd9;
-  --rq-focus:#1d6464;
+  --rq-focus:#2e48a0;
   --rq-scrim:rgba(42,42,40,.45);
   --rq-badge-bg:#2a2a28;
   --rq-badge-text:#f3f0e7;
-  --rq-toast-game-bg:#1d6464;
+  --rq-toast-game-bg:#2e48a0;
   --rq-toast-game-fg:#fbfaf5;
   --rq-toast-info-bg:#fbfaf5;
   --rq-toast-info-fg:#2a2a28;
-  --rq-toast-info-icon:#1d6464;
+  --rq-toast-info-icon:#2e48a0;
   --rq-toast-info-border:#d7d4cc;
   --rq-toast-error-bg:#b3392a;
   --rq-toast-error-fg:#ffffff;
@@ -229,8 +229,8 @@
   /* --- skin extras (--rq-skin-*) --- */
   --rq-skin-border:#3d3d3a;
   --rq-skin-tab:#595853;
-  --rq-skin-tab-active:#1d6464;
-  --rq-skin-daybar:#1d6464;
+  --rq-skin-tab-active:#2e48a0;
+  --rq-skin-daybar:#2e48a0;
   --rq-skin-daybar-track:#dedbd1;
   --rq-skin-hatch:#8f8c84;
   color-scheme:light;
@@ -246,28 +246,28 @@
   --rq-text:#e8e6df;
   --rq-text-2:#b9b7ae;
   --rq-text-disabled:#80817f;
-  --rq-accent:#86cbc2;
-  --rq-accent-pressed:#9ed5ce;
-  --rq-accent-text:#95d1c9;
+  --rq-accent:#a9b9f0;
+  --rq-accent-pressed:#c0ccf4;
+  --rq-accent-text:#b4c2f2;
   --rq-on-accent:#1f2329;
-  --rq-control-on:#44555c;
-  --rq-accent-tint:#44555c;
-  --rq-accent-border:#597c7d;
+  --rq-control-on:#444a5e;
+  --rq-accent-tint:#3f465e;
+  --rq-accent-border:#66719c;
   --rq-coin:#e2b866;
   --rq-coin-tint:#4d4c4a;
   --rq-success:#9fd68c;
   --rq-success-tint:#44514f;
   --rq-danger:#ff9d94;
   --rq-danger-tint:#51464d;
-  --rq-focus:#86cbc2;
+  --rq-focus:#a9b9f0;
   --rq-scrim:rgba(12,14,18,.68);
   --rq-badge-bg:#e8e6df;
   --rq-badge-text:#2b3038;
-  --rq-toast-game-bg:#86cbc2;
+  --rq-toast-game-bg:#a9b9f0;
   --rq-toast-game-fg:#1f2329;
   --rq-toast-info-bg:#434951;
   --rq-toast-info-fg:#e8e6df;
-  --rq-toast-info-icon:#86cbc2;
+  --rq-toast-info-icon:#a9b9f0;
   --rq-toast-info-border:#555a61;
   --rq-toast-error-bg:#ff9d94;
   --rq-toast-error-fg:#2a0d0a;
@@ -277,12 +277,13 @@
   /* --- skin extras (--rq-skin-*) --- */
   --rq-skin-border:#cfccc3;
   --rq-skin-tab:#b9b7ae;
-  --rq-skin-tab-active:#86cbc2;
-  --rq-skin-daybar:#86cbc2;
+  --rq-skin-tab-active:#a9b9f0;
+  --rq-skin-daybar:#a9b9f0;
   --rq-skin-daybar-track:#454c57;
   --rq-skin-hatch:#7c828c;
   color-scheme:dark;
 }
+/* 17.10 (Джессика: «в скинах всё ещё зелёные»): бирюзовый карандаш → синий, чтобы акцент не совпадал с цветом приложения */
 /* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
 [data-skin="pencil"],
 [data-theme="pencil-day"],
@@ -302,8 +303,8 @@
 [data-theme="pencil-night"] [data-page="night"]{--r-bg:#262a31;--r-txt:#e3e0d8;--r-txt-2:#a7a59d;--r-dim:.35;}
 
 /* 1в (Интерфейс, 11.10.2026): новые канонические токены stage1-final */
-[data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
-[data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#a9b9f0;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#a9b9f0;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
 [data-skin="karandashny"] [data-page="night"],[data-theme="karandashny-day"] [data-page="night"],[data-theme="karandashny-night"] [data-page="night"]{--rq-accent:#5fb8ae;--rq-accent-text:#5fb8ae;} /* читалка в скинах чистая: канонический акцент */
 
 /* ReadQuest · скин «Эллада» (вазопись, мрамор, Эгейское море, созвездия). Интерфейс, 10.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
@@ -392,17 +393,17 @@
   --rq-bg:#f4f2f8; --rq-surface:#ffffff; --rq-surface-2:#f3f1f8; --rq-sheet:#ffffff;
   --rq-line:#d3cfe6; --rq-border-strong:#8e8aa8;
   --rq-text:#1d2140; --rq-text-2:#4f5470; --rq-text-disabled:#a29fbd;
-  --rq-accent:#13646c; --rq-accent-pressed:#0d4c53; --rq-accent-text:#13646c;   /* «морфо» — глубокая бирюза */
+  --rq-accent:#5e4bb3; --rq-accent-pressed:#4a3a96; --rq-accent-text:#5e4bb3;   /* сиреневое крыло (17.10, Джессика: бирюза читалась как зелёный цвет приложения) */
   --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
-  --rq-accent-tint:#e1f1f2; --rq-accent-border:#8fc3c7;
+  --rq-accent-tint:#ece8fa; --rq-accent-border:#b9a7ec;
   --rq-coin:#84480c; --rq-coin-tint:#fbf0d8;            /* суммы монет — тёмная пыльца */
   --rq-success:#3d6a2c; --rq-success-tint:#e5f1de;      /* неделя, успех — клевер */
   --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
-  --rq-focus:#13646c;
+  --rq-focus:#5e4bb3;
   --rq-scrim:rgba(29,33,64,.40);
   --rq-badge-bg:#1d2140; --rq-badge-text:#ffffff;
-  --rq-toast-game-bg:#13646c; --rq-toast-game-fg:#ffffff;
-  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#13646c; --rq-toast-info-border:#d3cfe6;
+  --rq-toast-game-bg:#5e4bb3; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#5e4bb3; --rq-toast-info-border:#d3cfe6;
   --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
   --rq-shadow-1:0 2px 8px rgba(60,50,110,.10);
   --rq-shadow-2:0 0 0 1px #ddd7ef,0 6px 18px rgba(60,50,110,.10);
@@ -420,17 +421,17 @@
   --rq-bg:#0e1019; --rq-surface:#181b28; --rq-surface-2:#20243a; --rq-sheet:#181b28;
   --rq-line:#2e3247; --rq-border-strong:#5d6390;
   --rq-text:#eceef6; --rq-text-2:#b9bdd4; --rq-text-disabled:#6a6f92;
-  --rq-accent:#b5e3c4; --rq-accent-pressed:#cdeed7; --rq-accent-text:#b5e3c4;  /* ночью главный — бледная зелень мотылька-лунника */
+  --rq-accent:#c7b8f5; --rq-accent-pressed:#d8cdf8; --rq-accent-text:#c7b8f5;  /* ночью — бледная сирень мотылька */
   --rq-on-accent:#0e1019; --rq-control-on:#0e1019;
-  --rq-accent-tint:#1c2a27; --rq-accent-border:#5c8a72;
+  --rq-accent-tint:#252040; --rq-accent-border:#7d6fc0;
   --rq-coin:#f2d38a; --rq-coin-tint:#2a2618;
   --rq-success:#a9d79a; --rq-success-tint:#1e2a1c;
   --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
-  --rq-focus:#b5e3c4;
+  --rq-focus:#c7b8f5;
   --rq-scrim:rgba(4,5,12,.7);
   --rq-badge-bg:#eceef6; --rq-badge-text:#0e1019;
-  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#b5e3c4;
-  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#b5e3c4; --rq-toast-info-border:#2e3247;
+  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#c7b8f5;
+  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#c7b8f5; --rq-toast-info-border:#2e3247;
   --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
   --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #2e3247,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
   --bb-iridescent:linear-gradient(110deg,#1c2a3a 0,#262447 50%,#2e2238 100%);

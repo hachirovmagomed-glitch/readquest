@@ -182,7 +182,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .pbar{height:6px;background:var(--card2);border-radius:99px;overflow:hidden}
 .pbar i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .bpct{font-size:12px;color:var(--muted);margin-top:5px}
-.addbtn{border:2px dashed #2a5564;border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-size:15px}
+.addbtn{border:2px dashed color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-size:15px}
 @media(min-width:700px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bookcard{margin-bottom:0}}
 
 /* ===== Нижняя навигация ===== */
@@ -209,7 +209,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .badge .bn{font-size:11px;margin-top:5px}
 .badge .bd{font-size:10px;color:var(--muted);margin-top:2px}
 .badge.locked{opacity:.32;filter:grayscale(1)}
-.ghostbtn{border:1px solid #2a5564;border-radius:12px;padding:9px 14px;color:var(--muted);font-size:13px}
+.ghostbtn{border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:12px;padding:9px 14px;color:var(--muted);font-size:13px}
 /* «Скопировать журнал запуска» in settings: same look, tap target ≥ 44 px via an invisible hit area */
 #btnDiagCopy{position:relative}#btnDiagCopy::after{content:'';position:absolute;left:0;right:0;top:50%;height:44px;min-height:100%;transform:translateY(-50%)}
 .stepbtn{width:36px;height:36px;border-radius:10px;background:var(--card2);font-size:18px}
@@ -231,7 +231,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #content{height:100%;column-fill:auto;transition:none;transform:translateX(0)}
 #reader #viewer{touch-action:none} /* text AND pdf: the browser never zooms/scrolls the page; pdf zoom is ours */
 #dayBar{flex:none;height:3px;background:rgba(127,127,127,.16);pointer-events:none}
-#dayBar i{display:block;height:100%;width:0;background:#2bb3c0;opacity:.75}
+#dayBar i{display:block;height:100%;width:0;background:var(--accent);opacity:.75}
 body:not(.mvp) #dayBar{display:none}
 /* no navigator.locks: thin grey line under the session counter, in the flex column (never over the text), no close */
 #rqNoXp{display:none;flex:none;min-height:21px;padding:3px var(--r-margin,24px);font-size:11px;line-height:1.35;color:var(--muted);text-align:center;white-space:normal;overflow:visible;pointer-events:none}
@@ -378,17 +378,17 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .navli .nl{flex:1;min-width:0}.navli .nl small{display:block;color:var(--muted);font-size:11px}.navli button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--txt);border-radius:10px}
 .navli button:disabled{opacity:.35}.navli .navdel{color:#e5604f}.navli .navadd{color:var(--accent)}.navli .navlock{width:44px;display:flex;justify-content:center;color:var(--muted)}
 .navmax{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin:8px 4px}.navrow{width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit}
-.dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid #1d4250;margin-bottom:8px}
+.dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid var(--card2);margin-bottom:8px}
 .dstat{font-size:12px;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:3px;background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
 .dava{width:48px;height:48px;border-radius:50%;flex:none;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--accent)}.dname{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dgold{color:var(--txt);font-weight:600}
-#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:rgba(43,179,192,.16)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
+#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
 #botnav .botnav-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:15px;color:var(--txt);width:100%;text-align:left}
-.ditem.on{background:rgba(43,179,192,.12);color:var(--accent);border-right:3px solid var(--accent)}
+.ditem.on{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border-right:3px solid var(--accent)}
 .ditem .ico{font-size:19px;width:24px;text-align:center}
 .menubtn{font-size:20px;padding:4px 10px 4px 0}
 .infobtn{margin-left:6px;color:var(--muted);font-size:17px;padding:6px;flex:none}
-.setrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #1d4250}
+.setrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--card2)}
 .setrow:last-child{border-bottom:none}
 .setrow .lab{flex:1;font-size:14px}
 .setrow .sub{font-size:12px;color:var(--muted);margin-top:3px}
@@ -423,7 +423,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .bk-note{font-size:12px;color:var(--muted);line-height:1.4;margin-top:6px}
 
 /* ===== Поиск, статистика, трофеи, сетка ===== */
-.searchinp{width:100%;background:var(--card);border:1px solid #2a5564;border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
+.searchinp{width:100%;background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 #libChips{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);padding-right:24px}
 .chips::-webkit-scrollbar{display:none}
@@ -466,8 +466,8 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
 .textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent}
-.textLayer span::selection{background:rgba(43,179,192,.45)}
-.textLayer span::-moz-selection{background:rgba(43,179,192,.45)}
+.textLayer span::selection{background:color-mix(in srgb,var(--accent) 45%,transparent)}
+.textLayer span::-moz-selection{background:color-mix(in srgb,var(--accent) 45%,transparent)}
 
 /* ===== Компактная панель оформления: категории ===== */
 .setcats{display:flex;gap:6px;overflow-x:auto;margin:2px 0 12px;scrollbar-width:none}
@@ -523,7 +523,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 
 /* ===== Редакторы (квесты, характеристики, награды) ===== */
 .editrow{display:flex;align-items:center;gap:8px;background:var(--card2);border-radius:10px;padding:8px 10px;margin-bottom:8px}
-.editrow input,.editrow select{background:var(--bg);border:1px solid #2a5564;border-radius:8px;color:var(--txt);font:inherit;font-size:13px;padding:6px 8px;min-width:0}
+.editrow input,.editrow select{background:var(--bg);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:8px;color:var(--txt);font:inherit;font-size:13px;padding:6px 8px;min-width:0}
 .editrow .grow{flex:1}
 .editrow .x{color:#ff8a80;font-size:17px;padding:2px 6px;flex:none}
 .miniadd{background:var(--card2);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--accent);font-weight:600;width:100%;margin-top:2px}
@@ -803,7 +803,7 @@ html.rq-still *,html.rq-still *::before,html.rq-still *::after{animation:none!im
 /* MVP: a hidden row is often the last one → the last VISIBLE row has no divider */
 body.mvp .setrow:not(.mvp-hide):not(:has(~ .setrow:not(.mvp-hide))){border-bottom:none}
 /* «Общие настройки» on narrow phones (360): controls that do not fit go to their own line, right-aligned; words are never split */
-#settings .pcard .setrow{flex-wrap:wrap}#settings .pcard .setrow>.lab+*{margin-left:auto}#settings .pcard .setrow .lab,#settings .pcard .setrow .lab .sub{overflow-wrap:normal;hyphens:none;-webkit-hyphens:none}#settings .pcard .setrow .lab{min-width:min-content}#settings .pcard .setrow .lab:has(.sub){flex:1 1 150px}.stepgrp{display:flex;align-items:center;gap:10px}
+#settings .pcard .setrow{flex-wrap:wrap}#settings .pcard .setrow>.lab+*{margin-left:auto}#settings .pcard .setrow .lab,#settings .pcard .setrow .lab .sub{overflow-wrap:normal;hyphens:none;-webkit-hyphens:none}#settings .pcard .setrow .lab{min-width:min-content}#settings .pcard .setrow .lab:has(.sub){flex:1 1 150px}.stepgrp{display:flex;align-items:center;gap:10px}#settings .pcard .setrow-time{flex-wrap:nowrap}#settings .pcard .setrow-time .lab{flex:1 1 auto;min-width:0}#settings .pcard .setrow-time .stepgrp{flex:none;gap:6px}@media (max-width:374px){#stats .wrap > .row:first-child{gap:8px}} /* 360: «30 дней» ran 8px past the edge */
 body:not(.dev) .dev-only{display:none!important}
 body.mvp #lvlTxt,body.mvp #dailyCard{display:none!important}
 
@@ -847,7 +847,7 @@ html[data-skin="pencil"] :is(#appThemeBox,#appSkinBox) .appsw{border:1px solid v
 html[data-skin="pencil"] :is(#appThemeBox,#appSkinBox) .appsw.on{border:2px solid var(--rq-accent)}
 html[data-skin="pencil"] body :not(#reader,#reader *){hyphens:none!important;overflow-wrap:normal!important;word-break:normal!important}
 html[data-skin="pencil"] .setrow{border-bottom-color:var(--rq-line)}
-html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}
+html[data-skin="pencil"] #settings .setrow{flex-wrap:wrap}html[data-skin="pencil"] #settings .pcard .setrow-time{flex-wrap:nowrap}
 html[data-skin="pencil"] #settings .setrow>.lab{flex:1 1 120px}
 html[data-skin="pencil"] #settings .setrow>:is(button,.btnpair,b){margin-left:auto}
 /* theme tiles with captions (both skins) */
@@ -1290,7 +1290,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
-      <div class="setrow"><div class="lab" style="padding-left:34px">Время напоминания</div>
+      <div class="setrow setrow-time"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время напоминания</div>
         <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></span></div>
     </div>
     <h2>Управление</h2>

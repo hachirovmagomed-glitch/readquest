@@ -48,7 +48,7 @@ const tokCss = await (await fetch(BASE + 'tokens.css')).text();
 ok('4 tokens: --rq-bg #f4f0e8, accent #1f5a8c, app --bg bridged; no @import in tokens.css', tk.bg === '#f4f0e8' && tk.accent === '#1f5a8c' && /var\(--rq-bg\)|#f4f0e8/.test(tk.appBg) && !/@import/.test(tokCss), { tk, imp: /@import/.test(tokCss) });
 ok('4b fonts: Cormorant Unicase + Alegreya Sans loaded from fonts/ (offline), title in Cormorant', tk.corm && tk.aleg && /Cormorant Unicase/.test(tk.font), tk);
 const sw = await (await fetch(BASE + 'sw.js')).text();
-ok('4c precache: skins/skins.css and the 4 ellada woff2', /"skins\/skins\.css"/.test(sw) && (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []).length === 4, (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []));
+ok('4c precache: skins/skins.css and the 4 ellada woff2', /"skins\/skins\.css(\?v=[^"]+)?"/.test(sw) && (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []).length === 4, (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []));
 
 // 5. library decor: frieze header, vase covers, card frame; nothing overflows at 390 and 360
 await p.evaluate(() => { show('library'); renderLibrary(); }); await sleep(300);

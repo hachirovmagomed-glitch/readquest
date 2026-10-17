@@ -219,6 +219,22 @@ html[data-skin="babochkovyi"] .sheet{border-radius:var(--rq-radius-lg) var(--rq-
 html[data-skin="babochkovyi"] .searchinp{border-radius:var(--rq-radius-sm)}
 /* empty hints: the mascot «Пыльца» (a round silkworm) over the text */
 html[data-skin="babochkovyi"] .emptyhint::before{content:"";display:block;width:96px;height:96px;margin:0 auto 12px;background:var(--bb-silk) center/contain no-repeat}
+/* 17.10 (Джессика: «жутко сырой»): the skin beyond the library — screen headers, session summary, progress tracks */
+/* every screen header (Прогресс, Профиль, Магазин, Настройки…): title in the skin's text colour + a pearl strip with a butterfly at its end */
+html[data-skin="babochkovyi"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){position:relative;padding-bottom:14px;margin-bottom:6px}
+html[data-skin="babochkovyi"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::after{content:"";position:absolute;left:0;right:22px;bottom:4px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--bb-iri-1),var(--bb-iri-2),var(--bb-iri-3),transparent);pointer-events:none}
+html[data-skin="babochkovyi"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{content:"";position:absolute;right:0;bottom:-6px;width:22px;height:22px;background:var(--bb-hatch-on) center/contain no-repeat;pointer-events:none}
+html[data-skin="babochkovyi"][data-theme="night"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-hatch-on-n)}
+html[data-skin="babochkovyi"] .wrap > .row > h1{color:var(--rq-text)}
+/* progress tracks: visible on the white petal cards (card2 = surface-2 is nearly white) */
+html[data-skin="babochkovyi"] .pbar{background:var(--rq-line)}
+/* session summary: butterflies fly up over the result, cells and the daily card are petals */
+html[data-skin="babochkovyi"] #summary .sumbox::before{content:"";display:block;width:150px;height:46px;margin:0 auto 8px;background:var(--bb-hatch-on) 50% 0/40px 40px no-repeat,var(--bb-hatch-on) 0 100%/26px 26px no-repeat,var(--bb-hatch-on) 100% 70%/22px 22px no-repeat}
+html[data-skin="babochkovyi"][data-theme="night"] #summary .sumbox::before{background-image:var(--bb-hatch-on-n),var(--bb-hatch-on-n),var(--bb-hatch-on-n)}
+html[data-skin="babochkovyi"] #summary .sumcell,html[data-skin="babochkovyi"] #sumDailyBox{background:var(--rq-surface)!important;border-radius:var(--rq-radius-md);box-shadow:var(--rq-shadow-2)}
+html[data-skin="babochkovyi"] #summary .sumcell b{font-family:var(--rq-font-num);font-weight:700}
+html[data-skin="babochkovyi"] #sumHead{font-family:var(--rq-font-display);font-size:28px;font-weight:400;color:var(--rq-text);line-height:1.15}
+html[data-skin="babochkovyi"] #summary .bigxp{color:var(--rq-text)}
 .bbhatch{display:none}
 /* covers (bbCover in js/library.js) */
 html[data-skin="babochkovyi"] .cover{border-radius:10px;background:none;box-shadow:0 0 0 1px var(--rq-line)}
@@ -227,4 +243,4 @@ html[data-skin="babochkovyi"] .cover{border-radius:10px;background:none;box-shad
 .bb-cover svg{position:absolute;left:50%;bottom:3px;width:34px;height:36px;margin-left:-17px}
 .bb-b{background:linear-gradient(160deg,#fbe4ee,#f1e9fb)}.bb-c{background:linear-gradient(160deg,#e8f6ec,#dff3f4)}.bb-d{background:linear-gradient(160deg,#ece6fb,#fbe4ee)}
 .bb-cocoon{background:linear-gradient(160deg,#f4f0e6,#e7f1df)}.bb-moon{background:#1b2140}.bb-moon i{color:#f4f2ff}
-@media (max-width:374px){html[data-skin="babochkovyi"] #libTitle{font-size:26px}html[data-skin="babochkovyi"] #libHead{padding-left:10px;padding-right:10px}}
+@media (max-width:374px){html[data-skin="babochkovyi"] #libTitle{font-size:26px}html[data-skin="babochkovyi"] .wrap > .row > h1{font-size:22px;white-space:nowrap}html[data-skin="babochkovyi"] .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){padding:6px 10px;font-size:12px;flex:none}html[data-skin="babochkovyi"] #libHead{padding-left:10px;padding-right:10px}}

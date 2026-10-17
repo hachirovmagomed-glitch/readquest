@@ -214,7 +214,7 @@ async function openBook(id){
   el('viewer').scrollTop=0;el('reader').classList.toggle('scrollmode',rqScrollMode());
   hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
-  if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
+  if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('Полный экран · тап по центру — показать панель');}
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');

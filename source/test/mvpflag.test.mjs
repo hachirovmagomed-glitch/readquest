@@ -7,7 +7,7 @@ const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
-const EXTRA = ['quests', 'look', 'vocab', 'stats'];
+const EXTRA = ['quests', 'look', 'stats'];
 async function run(flag) {
   const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());

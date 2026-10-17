@@ -1,4 +1,4 @@
-// Джессика 17.10: «Внешний вид» (тема, скин, анимации) is its own drawer item; «Статистика» + «Цитаты и заметки» are one item with tabs.
+// Джессика 17.10: «Внешний вид» (тема, скин, анимации) is its own drawer item; «Инвентарь» = статистика, цитаты и заметки, словарь — one item with tabs.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node menu.test.mjs
 import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
@@ -11,7 +11,7 @@ p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.messag
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
 const cur = () => p.evaluate(() => SCREENS.find(s => !el(s).classList.contains('hidden')));
 const items = await p.evaluate(() => { openDrawer(); return [...document.querySelectorAll('#dList .ditem .dlab')].map(x => x.textContent); });
-ok('1 drawer: one «Статистика и цитаты», no separate «Цитаты и заметки» / «Статистика»', items.includes('Статистика и цитаты') && !items.includes('Цитаты и заметки') && !items.includes('Статистика'), items);
+ok('1 drawer: one «Инвентарь», no separate «Цитаты и заметки» / «Словарь» / «Статистика»', items.includes('Инвентарь') && !items.includes('Цитаты и заметки') && !items.includes('Словарь') && !items.includes('Статистика'), items);
 ok('2 drawer: «Внешний вид» right before the separator and «Настройки»', items.slice(-2).join('|') === 'Внешний вид|Настройки', items);
 await p.evaluate(() => document.querySelector('#dList [data-nav="look"]').click()); await sleep(200);
 let r = await p.evaluate(() => ({ th: !!document.querySelector('#look #appThemeX'), sk: !!document.querySelector('#look #appSkinX'), an: !!document.querySelector('#look #uxAnim'), inSet: !!document.querySelector('#settings #appThemeBox'), on: el('dLook').classList.contains('on') }));
@@ -25,14 +25,17 @@ await p.evaluate(() => el('btnLookCfg').click()); await sleep(100);
 ok('6 the row opens «Внешний вид»', (await cur()) === 'look');
 await p.evaluate(() => navGo('stats')); await sleep(100);
 const tabs = await p.evaluate(() => [...document.querySelectorAll('#stats .progtab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.dataset.sub));
-ok('7 «Статистика и цитаты» opens statistics; MVP shows two tabs: Статистика, Цитаты и заметки', (await cur()) === 'stats' && tabs.join() === 'stats,quotes', tabs);
+ok('7 «Инвентарь» opens statistics; MVP shows three tabs: Статистика, Цитаты и заметки, Словарь', (await cur()) === 'stats' && tabs.join() === 'stats,quotes,vocab', tabs);
 await p.evaluate(() => document.querySelector('#stats .progtab[data-sub="quotes"]').click()); await sleep(100);
 r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#quotes .progtab.on')].map(b => b.dataset.sub), di: el('dStats') && el('dStats').classList.contains('on') }));
 ok('8 the quotes tab works in MVP (used to bounce to the library) and is marked', (await cur()) === 'quotes' && r.on.join() === 'quotes', r);
 await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="stats"]').click()); await sleep(100);
 ok('9 and back to statistics', (await cur()) === 'stats');
-const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'profile']; return navGet(); });
-ok('10 a stored «notes» pin becomes «stats», nothing lost', nav.join() === 'library,stats,profile', nav);
+await p.evaluate(() => document.querySelector('#stats .progtab[data-sub="vocab"]').click()); await sleep(100);
+r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), body: !!el('vocabBody').innerHTML, di: el('dStats').classList.contains('on') }));
+ok('9b the «Словарь» tab opens the vocab inside «Инвентарь»', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.body && r.di, r);
+const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'vocab', 'profile']; return navGet(); });
+ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile', nav);
 await p.evaluate(() => { SET.nav = ['library', 'stats', 'profile']; renderNav(); openProgress('quotes'); applyMvpChrome(); });
 ok('11 the pinned «Статистика» tab lights on the quotes tab too', await p.evaluate(() => el('bnStats').classList.contains('on')));
 ok('no page errors', !errs.length, errs);

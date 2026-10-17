@@ -171,8 +171,10 @@ if (want('confetti') || want('refund') || want('testgold')) {
         confetti(); confettiReward(); confettiSummary();
         const ns = [...document.querySelectorAll('.confetti')];
         const css = getComputedStyle(h), tok = [css.getPropertyValue('--accent'), css.getPropertyValue('--accent2')].map(v => { const d = document.createElement('i'); d.style.color = v.trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
-        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use')).length,
-          offTok: sk === 'pencil' ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length,
+        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use, svg path, svg circle')).length,
+          offTok: (sk === 'pencil' || sk === 'babochkovyi') ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length,
+          shapes: [...new Set(ns.map(n => n.dataset.c || ''))].sort().join(' '),
+          fills: new Set(ns.map(n => n.dataset.f || '')).size,
           icons: [...new Set(ns.map(n => (n.querySelector('use') || { getAttribute: () => '' }).getAttribute('href')))].sort().join(' ') };
         ns.forEach(n => n.remove());
       }
@@ -180,7 +182,12 @@ if (want('confetti') || want('refund') || want('testgold')) {
     });
     /* own confetti per skin (Джессика 17.10): each skin its own icon set; unknown skin → default set */
     const SETS = { default: '#i-book-open #i-check #i-sparkles #i-star', pencil: '#i-notebook-pen #i-pencil #i-sparkles #i-star',
-      ellada: '#i-amphora #i-book-open #i-sun #i-trophy', babochkovyi: '#i-flame #i-flower #i-flower-2 #i-star', 'future-skin': '#i-book-open #i-check #i-sparkles #i-star' };
+      ellada: '#i-amphora #i-book-open #i-sun #i-trophy', babochkovyi: '', 'future-skin': '#i-book-open #i-check #i-sparkles #i-star' };
+    /* «Бабочковый» (Джессика 17.10, картинка-образец): filled butterflies (top, side, small) + dots in 6 wing fills: blue, lilac, pink, pearl, gold, silver — all from skin tokens */
+    const bb = r.babochkovyi; const defs = await p.evaluate(() => { const d = document.getElementById('rqConfettiDefs'); return d ? [...d.querySelectorAll('stop')].map(s => s.getAttribute('style') || '') : null; });
+    ok('confetti babochkovyi: butterflies (top, side, small) and dots, 6 fills', bb.shapes === 'butterfly dot side small' && bb.fills === 6 && bb.n > 0, bb);
+    ok('confetti babochkovyi: gradient stops take colours from skin tokens only', Array.isArray(defs) && defs.length >= 6 && defs.every(st => /^stop-color:var\(--[a-z0-9-]+\)$/.test(st)), defs);
+    ok('confetti other skins: icon pieces, not butterflies', ['default', 'pencil', 'ellada', 'future-skin'].every(k => r[k].shapes === ''), Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.shapes])));
     for (const k of Object.keys(r)) ok('confetti ' + k + ': its own icon set (' + SETS[k] + ')', r[k].icons === SETS[k], r[k].icons);
     for (const k of Object.keys(r)) ok('confetti ' + k + ': Lucide icons only, no emoji' + (k === 'pencil' ? '' : ', colour from theme tokens'), r[k].n > 0 && r[k].emoji === 0 && r[k].svg === r[k].n && r[k].offTok === 0 && !errs.length, r[k]);
     await ctx.close();

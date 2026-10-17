@@ -46,7 +46,7 @@ const tk = await p.evaluate(async () => { const cs = getComputedStyle(document.d
     poiret: has('Poiret One'), mul5: has('Mulish', '500'), mul8: has('Mulish', '800'), bell: has('Bellota Text'),
     font: getComputedStyle(document.getElementById('libTitle')).fontFamily }; });
 const tokCss = await (await fetch(BASE + 'tokens.css')).text();
-ok('4 tokens: --rq-bg #f4f2f8, accent #13646c, app --bg bridged; no @import in tokens.css', tk.bg === '#f4f2f8' && tk.accent === '#13646c' && /var\(--rq-bg\)|#f4f2f8/.test(tk.appBg) && !/@import/.test(tokCss), { tk, imp: /@import/.test(tokCss) });
+ok('4 tokens: --rq-bg #f4f2f8, accent lilac #5e4bb3 (Джессика 17.10: «всё ещё зелёные»), app --bg bridged; no @import in tokens.css', tk.bg === '#f4f2f8' && tk.accent === '#5e4bb3' && /var\(--rq-bg\)|#f4f2f8/.test(tk.appBg) && !/@import/.test(tokCss), { tk, imp: /@import/.test(tokCss) });
 ok('4b fonts: Poiret One + Mulish 500/800 + Bellota Text loaded from fonts/ (offline), title in Poiret One', tk.poiret && tk.mul5 && tk.mul8 && tk.bell && /Poiret One/.test(tk.font), tk);
 const sw = await (await fetch(BASE + 'sw.js')).text();
 ok('4c precache: skins/skins.css and the 6 babochkovyi woff2 (+ IBM Plex Serif for the book)', /"skins\/skins\.css(\?v=[^"]+)?"/.test(sw) && (sw.match(/fonts\/babochkovyi-[a-z-]+\.woff2/g) || []).length === 6, (sw.match(/fonts\/babochkovyi-[a-z-]+\.woff2/g) || []));
@@ -186,6 +186,11 @@ ok('9 export → reset → import → reload: balance, owned, theme, worn skin i
 // 9b. own icon set: sprite symbols redrawn while the skin is on (flower-2 for «Награды», flower for trophy, butterfly for the streak, cocoon for the level, silkworm for the profile), same ids
 const ic1 = await p.evaluate(() => { const h = n => document.getElementById('i-' + n).innerHTML; return { gift: h('gift'), trophy: h('trophy'), flame: h('flame'), star: h('star'), user: h('user-round'), nav: [...document.querySelectorAll('#botnav use')].map(u => u.getAttribute('href')) }; });
 ok('9b Бабочковый icons: flower-2, flower, butterfly, cocoon, silkworm; nav keeps the same ids', /M12 10v12/.test(ic1.gift) && /M12 16\.5A4\.5/.test(ic1.trophy) && /M12 9C10 5/.test(ic1.flame) && /M12 5c-4 2/.test(ic1.star) && /cy="14" r="6"/.test(ic1.user) && ic1.nav.includes('#i-gift'), ic1);
+// 9c. Джессика 17.10: reader bar icons stayed Lucide teal → our butterfly set for back, «Слушать», Оглавление, Ночь/День, Фокус, Настройки; accent lilac in the bar
+const rdIc = ['arrow-left', 'volume-2', 'list', 'moon', 'sun', 'focus', 'settings'];
+const icr = await p.evaluate(n => n.map(k => (document.getElementById('i-' + k) || {}).innerHTML || ''), rdIc);
+const icc = await p.evaluate(() => getComputedStyle(document.querySelector('#btnSet .ic')).color);
+ok('9c reader icons: all 7 redrawn with a butterfly mark (data-bb), bar icons not teal', icr.every(h => /data-bb/.test(h)) && !/19, 100, 108|13, 100, 108/.test(icc), { icc, miss: rdIc.filter((k, i) => !/data-bb/.test(icr[i])) });
 // 10. other skins stay «Скоро»; «Карандашный» still free and wearable
 const soon = await p.evaluate(() => SHOP_CATALOG.filter(x => x.type === 'skin' && !shopReady(x.id)).map(x => x.id));
 await p.evaluate(() => wear('skin-pencil')); await sleep(200); s = await st();

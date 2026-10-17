@@ -83,7 +83,7 @@ const h = await p.evaluate(async (id) => { await openBook(id); await new Promise
 ok('5d книга без текста открыта с полки → скачивается заново, без окна «Текст не найден»', h.idbLen > 1000 && h.inReader && fetched === f1 + 1 && dialogs.length === dl0, { ...h, fetched, dialogs: dialogs.slice(dl0) });
 
 // 3. export → reset → import
-const exp = await p.evaluate(async (id) => { S.finished.push(id); save(); await new Promise(r => setTimeout(r, 300)); return JSON.stringify(await __rq.exportBackup(null, SET, { includeTextBodies: false })); }, t.id);
+const exp = await p.evaluate(async (id) => { S.finished.push(id); S.bookStats[id] = { min: 200, pages: 900 }; save(); await new Promise(r => setTimeout(r, 300)); return JSON.stringify(await __rq.exportBackup(null, SET, { includeTextBodies: false })); }, t.id);
 const ej = JSON.parse(exp); const eb = ((ej.library || {}).userBooks || []).find(x => x.id === t.id);
 ok('3a в экспорте карточка книги с pathId «odyssey»', eb && eb.pathId === 'odyssey', eb && { pathId: eb.pathId });
 const roundTrip = async (j) => {
@@ -108,7 +108,7 @@ r = await roundTrip(ej);
 // 4. rank + economy
 const k = await p.evaluate(async () => {
   const before = { gold: S.gold, xp: S.xp };
-  ['aesop', 'oedipus'].forEach(function (pid, i) { const id = 'ptest' + i; S.userBooks.push({ id, title: pid, author: '', pathId: pid, genre: 'Путь читателя' }); S.finished.push(id); });
+  ['aesop', 'oedipus'].forEach(function (pid, i) { const id = 'ptest' + i; S.userBooks.push({ id, title: pid, author: '', pathId: pid, genre: 'Путь читателя' }); S.finished.push(id); S.bookStats[id] = { min: 60, pages: 100 }; });
   navGo('path'); await new Promise(r => setTimeout(r, 300));
   const rank = el('pathBox').querySelector('.pathsum-s').textContent, full = !!document.querySelector('#pathBox .pathch.full[data-ch="ch1"]');
   return { rank, full, before, after: { gold: S.gold, xp: S.xp } };
@@ -117,6 +117,24 @@ ok('4a глава I прочитана целиком → звание «Слу�
 ok('4b монеты и XP картой не меняются', k.before.gold === k.after.gold && k.before.xp === k.after.xp, k);
 const src = await p.evaluate(() => String(renderPath) + String(pathLines) + String(pathOpen) + String(pathState) + String(pathRank));
 ok('4c код карты не пишет: нет save(), saveSet, localStorage, присваиваний S.*', !/save\(|saveSet|localStorage|S\.\w+\s*=[^=]|S\.\w+\.push/.test(src), src.length);
+// 6. anti-cheat (Джессика 17.10: «пробежал книгу на 70% за несколько минут»): the map credits only counted reading minutes
+const ac = await p.evaluate(async () => {
+  const id = 'pcheat'; S.userBooks.push({ id, title: 'Царь Эдип', author: '', pathId: 'oedipus' }); /* 104 КБ */
+  const st0 = S.userBooks.filter(x => x.pathId === 'oedipus'); st0.forEach(x => { if (x.id !== id) x.pathId = 'none'; });
+  S.finished = S.finished.filter(x => !/^ptest1$/.test(x));
+  S.progress[id] = { ratio: 0.7, pos: 0.7 }; S.bookStats[id] = { min: 2, pages: 3 };
+  const fast = pathState('oedipus').pct;
+  navGo('path'); await new Promise(r => setTimeout(r, 300));
+  const lab = document.querySelector('#pathBox .pathnode[data-pid="oedipus"] .pn-p').textContent;
+  pathOpen('oedipus'); const note = el('bookSheetBody').textContent; el('bookSheet').classList.add('hidden');
+  S.bookStats[id] = { min: 30, pages: 60 }; const honest = pathState('oedipus').pct;
+  S.finished.push(id); S.bookStats[id] = { min: 3, pages: 100 }; const cheatDone = pathState('oedipus').done;
+  S.bookStats[id] = { min: 30, pages: 100 }; const realDone = pathState('oedipus').done;
+  return { fast, lab, honest, cheatDone, realDone, noteOk: /пролистанн/i.test(note) };
+});
+ok('6a пролистал «Царя Эдипа» до 70% за 2 минуты → на карте не больше 15% (засчитываются только минуты чтения)', ac.fast <= 15 && /^\d+%$/.test(ac.lab) && parseInt(ac.lab) === ac.fast, ac);
+ok('6b честные 30 минут → засчитаны все 70%', ac.honest === 70, ac);
+ok('6c «прочитано» с 3 минутами чтения на 104 КБ не засчитывается, с 30 минутами засчитывается; в карточке объяснение', !ac.cheatDone && ac.realDone && ac.noteOk, ac);
 ok('нет ошибок страницы', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log('SUMMARY path.test ' + n + '/' + checks.length);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

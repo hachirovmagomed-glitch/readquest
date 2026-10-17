@@ -1,15 +1,15 @@
 'use strict';
 const STATS_BASE=['Интеллект','Мудрость','Харизма','Воображение','Воля'];
 const BADGES=[
- {id:'first',icon:'👣',name:'Первые шаги',desc:'Первая сессия чтения'},
- {id:'owl',icon:'🦉',name:'Ночная сова',desc:'Чтение после 23:00'},
- {id:'lark',icon:'🐦',name:'Жаворонок',desc:'Чтение до 8:00'},
- {id:'marathon',icon:'🏃',name:'Марафонец',desc:'Сессия 30+ минут'},
- {id:'streak3',icon:'🔥',name:'Огонёк',desc:'Стрик 3 дня'},
- {id:'streak7',icon:'⚡',name:'Неделя силы',desc:'Стрик 7 дней'},
- {id:'finisher',icon:'🏁',name:'Финишер',desc:'Дочитать книгу до конца'},
- {id:'lvl5',icon:'🛡️',name:'Ветеран',desc:'Достичь 5 уровня'},
- {id:'collector',icon:'📦',name:'Коллекционер',desc:'Добавить свою книгу'}
+ {id:'first',icon:'👣',ic:'footprints',name:'Первые шаги',desc:'Первая сессия чтения'},
+ {id:'owl',icon:'🦉',ic:'moon',name:'Ночная сова',desc:'Чтение после 23:00'},
+ {id:'lark',icon:'🐦',ic:'sunrise',name:'Жаворонок',desc:'Чтение до 8:00'},
+ {id:'marathon',icon:'🏃',ic:'timer',name:'Марафонец',desc:'Сессия 30+ минут'},
+ {id:'streak3',icon:'🔥',ic:'flame',name:'Огонёк',desc:'Стрик 3 дня'},
+ {id:'streak7',icon:'⚡',ic:'zap',name:'Неделя силы',desc:'Стрик 7 дней'},
+ {id:'finisher',icon:'🏁',ic:'flag',name:'Финишер',desc:'Дочитать книгу до конца'},
+ {id:'lvl5',icon:'🛡️',ic:'shield',name:'Ветеран',desc:'Достичь 5 уровня'},
+ {id:'collector',icon:'📦',ic:'package',name:'Коллекционер',desc:'Добавить свою книгу'}
 ];
 const THEMES={
  light:{name:'Светлая',bg:'#f7f5f0',txt:'#26241f'},
@@ -191,11 +191,11 @@ function save(){
   }
   __rq.saveFlat(S).then(function(r){
     if(r&&r.ok===false){
-      if(!saveWarned){saveWarned=true;try{alert('⚠️ Не удалось сохранить прогресс (rq_v1). Сделайте экспорт в Настройках.');}catch(_){}}
+      if(!saveWarned){saveWarned=true;try{alert('Не удалось сохранить прогресс (rq_v1). Сделайте экспорт в Настройках.');}catch(_){}}
     }else{saveWarned=false;}
   }).catch(function(e){
     console.warn('[rq] saveFlat failed',e);
-    if(!saveWarned){saveWarned=true;try{alert('⚠️ Не удалось сохранить прогресс.');}catch(_){}}
+    if(!saveWarned){saveWarned=true;try{alert('Не удалось сохранить прогресс.');}catch(_){}}
   });
 }
 function allStats(){return STATS_BASE.concat((S.customStats||[]).filter(s=>!STATS_BASE.includes(s)));}
@@ -242,7 +242,7 @@ function equipGear(id){const g=gearById(id);if(!g)return;S.equipped[g.slot]=(S.e
 function gearLayerHtml(){let h='';['aura','body','head','weapon','pet'].forEach(s=>{const id=S.equipped[s],g=id&&gearById(id);if(g)h+='<span class="g-'+s+'">'+g.icon+'</span>';});return h;}
 function renderEquip(){
   const box=el('equipBox');if(!box)return;
-  if(!S.ownedGear.length){box.innerHTML='<div style="color:var(--muted);font-size:13px">Пока ничего не куплено. Магазин → «Игровое» → разделы с предметами 🛍</div>';return;}
+  if(!S.ownedGear.length){box.innerHTML='<div style="color:var(--muted);font-size:13px">Пока ничего не куплено. Магазин → «Игровое» → разделы с предметами</div>';return;}
   box.innerHTML=GEAR_CATS.map(function(cat){
     const items=S.ownedGear.map(gearById).filter(function(g){return g&&catOf(g.slot)===cat[0];});
     if(!items.length)return '';

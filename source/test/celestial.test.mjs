@@ -47,14 +47,14 @@ ok('4b precache: the 6 celestial woff2; tokens.css carries the skin, no @import'
 
 // 5. app screens: sky on the root (body transparent), gold-framed cards, covers, balance coin; 390 and 360 fit
 await p.evaluate(() => { __navAllow = true; show('library'); __navAllow = false; renderLibrary(); }); await sleep(300);
-const lib = () => p.evaluate(() => { const root = getComputedStyle(document.documentElement), card = document.querySelector('#shelf .bookcard'), cs = card && getComputedStyle(card);
+const lib = () => p.evaluate(() => { const root = getComputedStyle(document.documentElement), card = document.querySelector('#shelf .cover'), cs = card && getComputedStyle(card);
   const covers = [...document.querySelectorAll('#shelf .cl-cover')], inks = new Set(covers.map(c => c.className)), emb = new Set(covers.map(c => c.querySelector('svg').innerHTML));
   const kids = [...document.querySelectorAll('#libHead > *, #libHead .row > *')].map(e => e.getBoundingClientRect()).filter(r => r.width);
-  return { sky: /data:image\/svg/.test(root.backgroundImage) && /gradient/.test(root.backgroundImage), body: getComputedStyle(document.body).backgroundColor, frame: cs && /\d+px \d+px 0px 4px/.test(cs.boxShadow),
+  return { sky: /data:image\/svg/.test(root.backgroundImage) && /gradient/.test(root.backgroundImage), body: getComputedStyle(document.body).backgroundColor, frame: cs && /0px 0px 0px 1\.5px/.test(cs.boxShadow) && /0px 0px 0px 3px/.test(cs.boxShadow),
     covers: covers.length, inks: inks.size, emb: emb.size, coin: /data:image\/svg/.test(getComputedStyle(document.getElementById('goldChip'), '::before').backgroundImage),
     inside: kids.every(r => r.left >= 0 && r.right <= innerWidth + 0.5), sx: document.documentElement.scrollWidth <= innerWidth }; });
 const l390 = await lib();
-ok('5 library: sky + star dust on the root, body transparent, gold-framed cards, night-sky covers (≥2 inks, ≥2 emblems), coin, fits 390', l390.sky && l390.body === 'rgba(0, 0, 0, 0)' && l390.frame && l390.covers >= 3 && l390.inks >= 2 && l390.emb >= 2 && l390.coin && l390.inside && l390.sx, l390);
+ok('5 library: sky + star dust on the root, body transparent, gold-framed covers, dusk covers (≥2 inks, ≥2 emblems), coin, fits 390', l390.sky && l390.body === 'rgba(0, 0, 0, 0)' && l390.frame && l390.covers >= 3 && l390.inks >= 2 && l390.emb >= 2 && l390.coin && l390.inside && l390.sx, l390);
 await p.screenshot({ path: SHOTS + 'celestial-library-390.png' });
 const labels = await p.evaluate(() => [...document.querySelectorAll('#shelf .cl-cover')].map(c => { const bg = getComputedStyle(c).backgroundImage.match(/rgb\([^)]+\)/g) || []; return { c: getComputedStyle(c.querySelector('i')).color, bg }; }));
 const lc = labels.flatMap(x => x.bg.map(b => cr(hex(x.c), hex(b))));
@@ -74,6 +74,25 @@ const hd = await p.evaluate(() => { __navAllow = true; show('stats'); __navAllow
   __navAllow = true; show('library'); __navAllow = false; return r; });
 ok('5d screen header: gold line with a diamond; summary: three stars, numbers in Manrope (not old-style Cormorant digits)', hd.div && hd.stars && /Manrope/.test(hd.num), hd);
 
+// 5e. v2 after the prototype (Джессика 17.10: «очень отличным от того, что было в моих скриншотах», «вдохновлялся Геншин Импактом»):
+// covers in a grid of three with the title on the cover; gold corner brackets on panels; a floating framed bottom nav
+const g3 = async () => p.evaluate(() => { const sh = document.getElementById('shelf'), cards = [...sh.querySelectorAll('.bookcard')].slice(0, 3).map(c => c.getBoundingClientRect());
+  const t = sh.querySelector('.cl-cover .cl-t'), cv = sh.querySelector('.cover').getBoundingClientRect();
+  return { cols: getComputedStyle(sh).gridTemplateColumns.split(' ').length, row: cards.length === 3 && cards.every(r => Math.abs(r.top - cards[0].top) < 1), right: cards.length && cards[2].right <= innerWidth,
+    title: t && getComputedStyle(t).display !== 'none' && /Cormorant/.test(getComputedStyle(t).fontFamily) && t.textContent.length > 0, tall: cv.height > cv.width * 1.2 }; });
+const gA = await g3(); await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }); await sleep(300);
+const gB = await g3(); await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }); await sleep(200);
+ok('5e shelf: three covers per row (390 and 360), tall covers with the title in Cormorant on them', [gA, gB].every(x => x.cols === 3 && x.row && x.right && x.title && x.tall), { gA, gB });
+const ct = await p.evaluate(() => [...document.querySelectorAll('#shelf .cl-cover')].map(c => ({ c: getComputedStyle(c.querySelector('.cl-t')).color, bg: getComputedStyle(c).backgroundImage.match(/rgb\([^)]+\)/g) || [] })));
+const ctr = ct.flatMap(x => x.bg.map(b => cr(hex(x.c), hex(b))));
+ok('5f cover title ≥ 4.5 on both ends of every ink', ctr.length && ctr.every(r => r >= 4.5), ctr);
+const fr = await p.evaluate(() => { __navAllow = true; show('summary'); __navAllow = false;
+  const n = s => { const e = document.querySelector(s); return e ? (getComputedStyle(e).backgroundImage.match(/data:image\/svg/g) || []).length : 0; };
+  __navAllow = true; show('library'); __navAllow = false; const bn = document.getElementById('botnav').getBoundingClientRect(); __navAllow = true; show('summary'); __navAllow = false;
+  const r = { goal: n('.goalcard'), sum: n('#summary .sumbox'), nav: n('#botnav'), float: bn.left >= 10 && innerWidth - bn.right >= 10 && innerHeight - bn.bottom >= 8, head: getComputedStyle(document.getElementById('sumHead')).fontSize };
+  __navAllow = true; show('library'); __navAllow = false; return r; });
+ok('5g gold corner brackets (4) on the goal card, summary and bottom nav; the nav floats inside the screen; summary title 30px', fr.goal === 4 && fr.sum === 4 && fr.nav === 4 && fr.float && fr.head === '30px', fr);
+
 // 6. reader: the page is flat paper over the sky, book font Lora, own icons, chrome title in Cormorant
 await p.evaluate(() => { __navAllow = true; openBook(allBooks()[0].id); __navAllow = false; }); await sleep(2500);
 await p.evaluate(() => showChrome()); await sleep(500);
@@ -81,6 +100,8 @@ const rd = await p.evaluate(() => { const r = document.getElementById('reader'),
   return { bg: cs.backgroundColor, opaque: !/rgba\(.*, 0\)$/.test(cs.backgroundColor), font: getComputedStyle(document.getElementById('content')).fontFamily, at: at && r.contains(at),
     title: getComputedStyle(document.getElementById('rTitle')).fontFamily, ic: ['arrow-left', 'list', 'settings'].every(n => document.getElementById('i-' + n).innerHTML.replace(/\s/g, '') !== '' && SKIN_ICONS.celestial[n]),
     seg: (document.querySelector('#fontSeg button') || {}).textContent || '' }; });
+const th = await p.evaluate(() => ({ thumb: [...document.styleSheets].some(sh => { try { return [...sh.cssRules].some(r => /celestial.*#pgSlider::-webkit-slider-thumb/.test(r.selectorText || '') && /--cl-thumb/.test(r.cssText)); } catch (e) { return false; } }), dia: /data:image\/svg/.test(getComputedStyle(document.getElementById('rPage'), '::before').backgroundImage), top: /gradient/.test(getComputedStyle(document.querySelector('#reader .rhead')).backgroundImage) }));
+ok('6c reader chrome: diamond slider thumb, diamonds around the page count, sky gradient over the title', th.thumb && th.dia && th.top, th);
 ok('6 reader: opaque page #fbf6ea over the sky, book in Lora, title in Cormorant, own reader icons', rd.bg === 'rgb(251, 246, 234)' && rd.at && /Lora/.test(rd.font) && /Cormorant/.test(rd.title) && rd.ic, rd);
 await p.screenshot({ path: SHOTS + 'celestial-reader-390.png' });
 await p.evaluate(() => { toggleDayNight(); }); await sleep(500);
@@ -93,6 +114,10 @@ await p.evaluate(() => { __navAllow = true; show('library'); __navAllow = false;
 const nb = await p.evaluate(() => [...document.querySelectorAll('#rewSlots .buy, #rewSlots .tierseg button.on, #libChips .fchip.on, .botnav-btn.on')].filter(e => e.offsetParent)
   .map(e => { const c = getComputedStyle(e); return { t: e.textContent.trim().slice(0, 14), c: c.color, b: c.backgroundColor }; }).filter(x => !/rgba\(0, 0, 0, 0\)/.test(x.b)));
 const nbr = nb.map(x => ({ ...x, r: cr(hex(x.c), hex(x.b)) }));
+const rar = await p.evaluate(async () => { ensureMvpRewards(); while (S.rewards.length < 3) addRewardSlot && addRewardSlot(); ['small', 'mid', 'big'].forEach((t, i) => { if (S.rewards[i]) S.rewards[i].tier = t; }); renderRewardsSheet(); await new Promise(q => setTimeout(q, 100));
+  return [...document.querySelectorAll('#rewSlots .pcard')].slice(0, 3).map(c => ({ bg: getComputedStyle(c).backgroundImage, st: getComputedStyle(c, '::before').width, c: getComputedStyle(c).color })); });
+const rarC = rar.flatMap(x => (x.bg.match(/rgb\([^)]+\)/g) || []).map(b => cr(hex(x.c), hex(b))));
+ok('7c rewards: tiers coloured like rarity (3 different gradients, 3/4/5 stars), card text ≥ 4.5', rar.length === 3 && new Set(rar.map(x => x.bg)).size === 3 && new Set(rar.map(x => x.st)).size === 3 && rarC.every(r => r >= 4.5), { rar: rar.map(x => x.st), rarC });
 ok('7 night: text on accent fills ≥ 4.5 (buy buttons, tiers, active tab)', nbr.length >= 2 && nbr.every(x => x.r >= 4.5), nbr);
 await p.screenshot({ path: SHOTS + 'celestial-rewards-night-390.png' });
 await p.evaluate(() => closeRewardsSheet()); await sleep(300);

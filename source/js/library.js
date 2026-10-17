@@ -326,7 +326,7 @@ function bbCover(b){
 }
 /* «Небесный»: emoji cover → night-sky tile in one of five inks with a gold emblem (sun, crescent, star, cloud, comet); light gold format label
    on the dark ink (contrast ≥ 7). Ink by the id hash (consecutive ids get neighbouring inks), emblem by a mixed hash. */
-const CL_INKS=['plum','blue','green','gold','brick'];
+const CL_INKS=['plum','blue','green','gold','brick','sky'];
 const CL_EMB={
  sun:'<circle cx="15" cy="15" r="5.5" fill="#f1d28a"/><path d="M15 3v4M15 23v4M3 15h4M23 15h4M6.5 6.5l2.8 2.8M20.7 20.7l2.8 2.8M6.5 23.5l2.8-2.8M20.7 9.3l2.8-2.8" stroke="#f1d28a" stroke-width="1.6" stroke-linecap="round"/>',
  moon:'<path d="M18 4a11 11 0 1 0 8 17.5A9 9 0 1 1 18 4z" fill="#f1d28a"/><path d="M24 6l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z" fill="#fff3c4"/>',
@@ -336,7 +336,8 @@ const CL_EMB={
 function celCover(b){
   let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
   const m=Math.imul(h^(h>>>15),2654435761)>>>0,em=Object.keys(CL_EMB);
-  return '<span class="cl-cover cl-'+CL_INKS[h%CL_INKS.length]+'"><i>'+bookFmt(b)+'</i><svg viewBox="0 0 30 30" aria-hidden="true" focusable="false">'+CL_EMB[em[(m>>>8)%em.length]]+'</svg></span>';
+  /* the title and author are printed on the cover (the shelf grid shows them, small covers hide them) */
+  return '<span class="cl-cover cl-'+CL_INKS[h%CL_INKS.length]+'"><i>'+bookFmt(b)+'</i><b class="cl-t">'+esc(b.title||'')+'</b><small class="cl-a">'+esc(b.author||'')+'</small><svg viewBox="0 0 30 30" aria-hidden="true" focusable="false">'+CL_EMB[em[(m>>>8)%em.length]]+'</svg></span>';
 }
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){

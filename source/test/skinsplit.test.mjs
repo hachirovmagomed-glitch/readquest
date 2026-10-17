@@ -35,8 +35,8 @@ r = await rows();
 ok('7 picking a palette while a skin is on takes the skin off', r.dataSkin === '' && r.app === 'auto' && r.skinOn.join() === 'none' && r.themeOn.join() === 'auto', r);
 // Джессика 17.10: no avatar in the library goal card, in any skin (the profile keeps it)
 const av = [], sk = [];
-for (const k of ['none', 'pencil', 'ellada', 'babochkovyi']) {
-  await p.evaluate((k) => { S.gold = 5000; save(); if (k === 'babochkovyi') buy('skin-babochkovyi'); openGeneralSettings(false); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="' + k + '"]').click(); }, k); await sleep(250);
+for (const k of ['none', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  await p.evaluate((k) => { S.gold = 5000; save(); if (k === 'babochkovyi' || k === 'celestial') buy('skin-' + k); openGeneralSettings(false); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="' + k + '"]').click(); }, k); await sleep(250);
   sk.push(await p.evaluate((k) => { const RD = ['arrow-left', 'volume-2', 'list', 'moon', 'sun', 'focus', 'settings'], set = SKIN_ICONS[k] || {};
     const norm = s => { const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.innerHTML = s; return g.innerHTML; };
     const own = RD.filter(n => set[n] && document.getElementById('i-' + n).innerHTML === norm(set[n]));

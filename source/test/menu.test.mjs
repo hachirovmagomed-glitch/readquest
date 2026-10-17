@@ -40,6 +40,11 @@ const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'vocab', 'pr
 ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile', nav);
 await p.evaluate(() => { SET.nav = ['library', 'stats', 'profile']; renderNav(); openProgress('quotes'); applyMvpChrome(); });
 ok('11 the pinned «Статистика» tab lights on the quotes tab too', await p.evaluate(() => el('bnStats').classList.contains('on')));
+await p.evaluate(() => navGo('quests')); await sleep(100);
+r = await p.evaluate(() => ({ tabs: document.querySelectorAll('#quests .jtab, #quests .ptabs').length, h1: el('quests').querySelector('h1').textContent.trim(), box: !!el('questBox').children.length }));
+ok('12 «Квесты» has no «Цитаты» / «Словарь» tabs any more (they live in «Инвентарь»)', (await cur()) === 'quests' && !r.tabs && r.h1 === 'Квесты' && r.box, r);
+await p.evaluate(() => openJournal('vocab')); await sleep(100);
+ok('12b an old journal link to the vocab opens it inside «Инвентарь»', (await cur()) === 'vocab');
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY menu.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

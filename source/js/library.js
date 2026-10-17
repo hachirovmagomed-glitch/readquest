@@ -105,7 +105,6 @@ function openJournal(sub){
   if(sub!=='quests'){openProgress(sub==='vocab'?'vocab':'quotes');return;} /* 17.10: quotes and vocab live in «Инвентарь» */
   renderQuests();
   jrnLast=sub;navShowSub(sub);
-  document.querySelectorAll('.jtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }
 if(el('dJournal'))el('dJournal').onclick=()=>openJournal(jrnLast);
@@ -141,7 +140,7 @@ function gradeCard(i,known){const v=(S.vocab||[])[i];if(!v)return;v.box=known?Ma
 if(el('btnVocabCards'))el('btnVocabCards').onclick=function(){vocabMode=(vocabMode==='cards')?'list':'cards';vcIdx=0;vcFlip=false;renderVocab();};
 if(el('dShop'))el('dShop').onclick=()=>{renderShop();show('shop');closeDrawer();};
 
-/* Квесты живут во вкладке «Дневник» (openJournal) */
+/* Квесты живут на экране «Квесты» (openJournal) */
 let progLast='calendar';
 function openProgress(sub){
   if(isMvp()&&!__navAllow&&['calendar','achievements','shelf'].indexOf(sub)>=0)sub='stats'; /* MVP folds these into the library; their tabs are hidden there */

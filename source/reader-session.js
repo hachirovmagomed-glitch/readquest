@@ -43,7 +43,8 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* quota 
 function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
 
 /** Skip empty sessions: < ~9 s counted and no counted page. */
-function isEmpty(minutes, turns) { return minutes < 0.15 && !turns; }
+/* Empty = no row, no XP: under one counted minute without a single honest page turn (Джессика 17.10: «дают опыт за то, что я просто вошёл в книжку»). */
+function isEmpty(minutes, turns) { return minutes < 1 && !turns; }
 
 /**
  * @param {{ logSession: Function, logReadingEvent: Function, now?: Function, dayFn?: Function }} api

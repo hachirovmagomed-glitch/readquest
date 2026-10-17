@@ -122,6 +122,8 @@ export const GAME_DEF = {
   invHist: [],
   /** Architect: [{id, title, price, at}] ISO at */
   rewardPurchases: [],
+  /** arch.md 16.10: cancelled real-life rewards [{id, purchaseId|null, title, price, at}] ISO at */
+  rewardRefunds: [],
   /** sessions[].id (UUID) already turned into XP — idempotent awards (reload/import safe) */
   awardedSessionIds: [],
   /** Legacy → migrated to rewardPurchases in hydrateGame */
@@ -275,6 +277,9 @@ export function hydrateGame(g) {
   out.invHist = out.invHist || [];
   /* Architect fields + compat */
   out.rewardPurchases = Array.isArray(out.rewardPurchases) ? out.rewardPurchases : [];
+  out.rewardRefunds = Array.isArray(out.rewardRefunds) ? out.rewardRefunds.filter(function (x) {
+    return x && typeof x === 'object' && typeof x.price === 'number' && Number.isFinite(x.price) && typeof x.at === 'string';
+  }) : [];
   out.awardedSessionIds = Array.isArray(out.awardedSessionIds) ? out.awardedSessionIds : [];
   out.dailyPaidDays = Array.isArray(out.dailyPaidDays) ? out.dailyPaidDays : [];
   out.weeklyPaidWeeks = Array.isArray(out.weeklyPaidWeeks) ? out.weeklyPaidWeeks : [];

@@ -110,7 +110,7 @@ r = await roundTrip(ej);
 // 4. rank + economy
 const k = await p.evaluate(async () => {
   const before = { gold: S.gold, xp: S.xp };
-  ['aesop', 'oedipus'].forEach(function (pid, i) { const id = 'ptest' + i; S.userBooks.push({ id, title: pid, author: '', pathId: pid, genre: 'Путь читателя' }); S.finished.push(id); S.bookStats[id] = { min: 60, pages: 100 }; });
+  ['aesop', 'oedipus', 'prometheus', 'antigone', 'medea', 'iliad'].forEach(function (pid, i) { const id = 'ptest' + i; S.userBooks.push({ id, title: pid, author: '', pathId: pid, genre: 'Путь читателя' }); S.finished.push(id); S.bookStats[id] = { min: 300, pages: 100 }; });
   navGo('path'); await new Promise(r => setTimeout(r, 300));
   const rank = el('pathBox').querySelector('.pathsum-s').textContent, full = !!document.querySelector('#pathBox .pathch.full[data-ch="ch1"]');
   return { rank, full, before, after: { gold: S.gold, xp: S.xp } };

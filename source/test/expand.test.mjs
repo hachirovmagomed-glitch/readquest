@@ -42,11 +42,11 @@ async function check(name, boxId, rowId, open, pickSel, valueOf) {
   ok(name + ': picking applies it and collapses, row shows new value', picked && !a.shown && a.label.indexOf(v) >= 0 && a.label.length > 0, { a, v });
   await p.screenshot({ path: '/workspace/out/expand-' + name + '-closed.png' });
 }
-await check('theme', 'appThemeBox', 'appThemeX', () => p.evaluate(() => openGeneralSettings(false)), '#appThemeBox .apptile:nth-child(3) .appsw', () => document.querySelector('#appThemeBox .apptile.on small').textContent);
+await check('theme', 'appThemeBox', 'appThemeX', () => p.evaluate(() => openLook()), '#appThemeBox .apptile:nth-child(3) .appsw', () => document.querySelector('#appThemeBox .apptile.on small').textContent);
 await p.evaluate(async () => { show('library'); openBook(allBooks()[0].id); for (let i = 0; i < 50 && !(R.pageCount > 1); i++) await new Promise(r => setTimeout(r, 200)); });
 await check('font', 'fontSeg', 'fontSegX', () => p.evaluate(() => { el('btnAa').click(); }), '#fontSeg button:nth-child(4)', () => FONTS[SET.font].label);
 // paid shop skins in the theme list: locked (Lucide lock, price as text), tap → skin page, buy() not called
-await p.evaluate(() => { el('sheet') && el('sheet').classList.add('hidden'); window.__buys = 0; const b = window.buy; window.buy = function () { window.__buys++; return b.apply(this, arguments); }; openGeneralSettings(false); });
+await p.evaluate(() => { el('sheet') && el('sheet').classList.add('hidden'); window.__buys = 0; const b = window.buy; window.buy = function () { window.__buys++; return b.apply(this, arguments); }; openLook(); });
 await sleep(300);
 const paid = await p.evaluate(async () => { const out = []; const ids = (typeof SHOP_CATALOG !== 'undefined' ? SHOP_CATALOG : []).filter(x => x.type === 'skin' && x.price > 0 && !shopOwns(x.id)).map(x => x.id);
   for (const t of [...document.querySelectorAll('#appSkinBox .apptile')]) { const k = (t.querySelector('.appsw') || {}).dataset ? t.querySelector('.appsw').dataset.k : ''; if (ids.indexOf(k) < 0) continue;

@@ -17,9 +17,9 @@ const blockM = () => p.evaluate(() => { const r = document.getElementById('appTh
   return { gap: getComputedStyle(r).gap, rowGaps: [...new Set(sr.map(x => getComputedStyle(x).gap))], lead: lead ? Math.round(lead.getBoundingClientRect().width) : 0, rowIcons: [...new Set(sr.map(x => { const i = x.querySelector(':scope > svg'); return i ? Math.round(i.getBoundingClientRect().width) : 0; }).filter(Boolean))],
     tfs: t ? getComputedStyle(t).fontSize : '', labFs: [...new Set(sr.map(x => { const l = x.querySelector('.lab'); return l ? getComputedStyle(l).fontSize : ''; }).filter(Boolean))], dot: d ? Math.round(d.getBoundingClientRect().width) : 0 }; });
 // theme
-await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
+await p.evaluate(() => openLook()); await sleep(300);
 const th = await p.evaluate(() => { const row = document.getElementById('appThemeX'); if (!row) return { row: false };
-  const sec = row.closest('#settings') || document; const titles = [...sec.querySelectorAll('*')].filter(e => e.children.length === 0 && /^Тема$/.test(e.textContent.trim())).length
+  const sec = row.closest('#look') || document; const titles = [...sec.querySelectorAll('*')].filter(e => e.children.length === 0 && /^Тема$/.test(e.textContent.trim())).length
     + [...sec.querySelectorAll('.lab')].filter(e => e.firstChild && /^Тема$/.test(e.firstChild.textContent || '')).length;
   const t = row.querySelector('.xt'), sub = row.querySelector('.xsub'), dot = row.querySelector('.xdot'), v = row.querySelector('.xv');
   const r = row.getBoundingClientRect(), dr = dot ? dot.getBoundingClientRect() : null, vr = v ? v.getBoundingClientRect() : null;

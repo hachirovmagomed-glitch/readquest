@@ -1,7 +1,7 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
-const SCREENS=['library','path','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','reader','summary'];
-const DRAWER={library:'dLib',path:'dPath',quotes:'dNotes',vocab:'dVocab',profile:'dProf',quests:'dQuests',stats:'dStats',settings:'dSet'};
+const SCREENS=['library','path','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','look','reader','summary'];
+const DRAWER={library:'dLib',path:'dPath',quotes:'dStats',vocab:'dStats',profile:'dProf',quests:'dQuests',stats:'dStats',calendar:'dStats',achievements:'dStats',shelfScreen:'dStats',look:'dLook',settings:'dSet'};
 let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
@@ -30,21 +30,21 @@ const NAV_CATALOG=[
   {id:'profile',t:'Профиль',ic:'user-round'},
   {id:'path',t:'Путь читателя',s:'Путь',ic:'map'},
   {id:'quests',t:'Квесты',ic:'target'},
-  {id:'notes',t:'Цитаты и заметки',s:'Цитаты',ic:'notebook-pen'},
-  {id:'vocab',t:'Словарь',ic:'book-marked'},
-  {id:'stats',t:'Статистика',ic:'chart-column'}];
+  {id:'stats',t:'Инвентарь',ic:'package'}, /* Джессика 17.10: «всё, что игрок собрал в путешествии по книгам» — статистика, цитаты и заметки, словарь: one item, tabs inside */
+  {id:'look',t:'Внешний вид',s:'Вид',ic:'palette'}]; /* Джессика 17.10: тема, скин, анимации — own item (was a block in «Общие настройки») */
+const NAV_ALIAS={notes:'stats',vocab:'stats'}; /* stored NS_set.nav from before 17.10 */
 const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
-/* ONE flag: in MVP mode, show the extra sections (quests, «Цитаты и заметки», «Словарь», «Статистика») in the drawer, bottom bar and «Нижняя панель».
+/* ONE flag: in MVP mode, show the extra sections (quests, «Инвентарь», «Внешний вид») in the drawer, bottom bar and «Нижняя панель».
    false → MVP shows only library/rewards/profile (+ settings); stored NS_set.nav is never rewritten by this. Outside MVP they always show. */
 const RQ_MVP_DRAWER_EXTRAS=true;
 function navAvail(id){return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
 function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
-const NAV_BN={library:'bnLib',path:'bnPath',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',notes:'bnNotes',vocab:'bnVocab',stats:'bnStats'};
-const NAV_DI={library:'dLib',path:'dPath',rewards:'dRew',profile:'dProf',quests:'dQuests',notes:'dNotes',vocab:'dVocab',stats:'dStats'};
+const NAV_BN={library:'bnLib',path:'bnPath',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
+const NAV_DI={library:'dLib',path:'dPath',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
   if(!Array.isArray(v))return NAV_DEF.slice();
-  const out=[];v.forEach(function(x){if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
+  const out=[];v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
   if(!out.length)return NAV_DEF.slice();
   const i=out.indexOf('library');if(i>0)out.splice(i,1);if(i!==0)out.unshift('library');
   return out.slice(0,NAV_MAX);
@@ -64,9 +64,10 @@ function navGo(id){
     else if(id==='profile'){renderProfile();show('profile');}
     else if(id==='path'){show('path');renderPath();}
     else if(id==='quests')openJournal('quests');
-    else if(id==='notes')openJournal('quotes');
-    else if(id==='vocab')openJournal('vocab');
+    else if(id==='notes')openProgress('quotes');
+    else if(id==='vocab')openProgress('vocab');
     else if(id==='stats')openProgress('stats');
+    else if(id==='look')openLook();
     else if(id==='settings'){renderSettings();show('settings');}
   }finally{__navAllow=false;}
 }
@@ -93,12 +94,17 @@ function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const 
 function openDrawer(){try{renderDrawerHead();renderNav();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
-['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
+['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath','menuLook'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
 
-let jrnLast='quotes';
+let jrnLast='quests';
+/* tabs inside a drawer section: same MVP pass as the drawer item itself (the tabs used to bounce to the library in MVP) */
+function navShowSub(id){const own={quotes:'stats',stats:'stats',vocab:'stats',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
+function openLook(){renderSettings();__navAllow=true;try{show('look');}finally{__navAllow=false;}closeDrawer();}
+if(el('btnLookCfg'))el('btnLookCfg').onclick=openLook;
 function openJournal(sub){
-  if(sub==='quests'){renderQuests();}else if(sub==='vocab'){renderVocab();}else{sub='quotes';renderQuotes();}
-  jrnLast=sub;show(sub);
+  if(sub!=='quests'){openProgress(sub==='vocab'?'vocab':'quotes');return;} /* 17.10: quotes and vocab live in «Инвентарь» */
+  renderQuests();
+  jrnLast=sub;navShowSub(sub);
   document.querySelectorAll('.jtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }
@@ -138,8 +144,9 @@ if(el('dShop'))el('dShop').onclick=()=>{renderShop();show('shop');closeDrawer();
 /* Квесты живут во вкладке «Дневник» (openJournal) */
 let progLast='calendar';
 function openProgress(sub){
-  if(sub==='stats')renderStats();else if(sub==='achievements')renderAchievements();else if(sub==='shelf')renderShelf();else{sub='calendar';renderCalendar();}
-  progLast=sub;show(sub==='shelf'?'shelfScreen':sub);
+  if(isMvp()&&!__navAllow&&['calendar','achievements','shelf'].indexOf(sub)>=0)sub='stats'; /* MVP folds these into the library; their tabs are hidden there */
+  if(sub==='stats')renderStats();else if(sub==='quotes')renderQuotes();else if(sub==='vocab')renderVocab();else if(sub==='achievements')renderAchievements();else if(sub==='shelf')renderShelf();else{sub='calendar';renderCalendar();}
+  progLast=sub;navShowSub(sub==='shelf'?'shelfScreen':sub);
   document.querySelectorAll('.progtab').forEach(b=>b.classList.toggle('on',b.dataset.sub===sub));
   closeDrawer();
 }

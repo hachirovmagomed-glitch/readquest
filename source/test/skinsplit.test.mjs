@@ -33,6 +33,13 @@ await p.evaluate(() => document.querySelector('#appSkinBox .appsw[data-k="pencil
 await p.evaluate(() => document.querySelector('#appThemeBox .appsw[data-k="auto"]').click()); await sleep(300);
 r = await rows();
 ok('7 picking a palette while a skin is on takes the skin off', r.dataSkin === '' && r.app === 'auto' && r.skinOn.join() === 'none' && r.themeOn.join() === 'auto', r);
+// Джессика 17.10: no avatar in the library goal card, in any skin (the profile keeps it)
+const av = [];
+for (const k of ['none', 'pencil', 'ellada', 'babochkovyi']) {
+  await p.evaluate((k) => { S.gold = 5000; save(); if (k === 'babochkovyi') buy('skin-babochkovyi'); openGeneralSettings(false); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="' + k + '"]').click(); }, k); await sleep(250);
+  av.push(await p.evaluate((k) => { __navAllow = true; show('library'); __navAllow = false; renderLibrary(); const a = document.getElementById('streakAva'); return { k, shown: !!(a && a.offsetParent && a.getBoundingClientRect().width) }; }, k));
+}
+ok('8 library goal card: no avatar in any skin', av.every(x => !x.shown), av);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY skinsplit.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

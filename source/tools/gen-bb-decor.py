@@ -68,3 +68,20 @@ for k,on,n in (('bb-week-on',True,False),('bb-week-off',False,False),('bb-week-o
 v3['bb-edge-n']=uri("<svg "+NS+" width='9' height='6' viewBox='0 0 9 6'><path d='M0 6A4.5 4.5 0 0 1 9 6' fill='none' stroke='#8fb7a0' stroke-width='1.4'/></svg>")
 if '--v3' in sys.argv:
     print('html[data-skin="babochkovyi"]{'); [print(f'  --{k}:{v};') for k,v in v3.items()]; print('}')
+# 17.10 v4 (Джессика: «большее разнообразие бабочек»): species × palettes from tools/bb_species.py; printed with --v4 (block between /*bb-v4*/ markers in skins.css)
+sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+import bb_species as B
+v4={}
+SP=[('morpho',0),('swallow',2),('round',3),('long',1),('scallop',6),('swallow',4),('round',5),('morpho',7),('long',3),('scallop',1)]
+for i,(sh,pl) in enumerate(SP): v4[f'bb-sp-{i}']=uri(f'<svg {NS} viewBox="0 0 40 40">{B.bf(sh,pl,ant=False)}</svg>')
+for i in range(4): v4[f'bb-mo-{i}']=uri(f'<svg {NS} viewBox="0 0 40 40">{B.moth(20,20,1,0,1,i)}</svg>')
+v4['bb-head-fly']=uri(svg(390,108,B.place('swallow',2,206,88,.42,-14,.95)+B.place('round',3,236,82,.3,18,.85)+B.place('long',1,300,13,.32,22,.85)))
+v4['bb-flock']=uri(svg(120,84,B.place('swallow',4,30,54,.95,-16)+B.place('morpho',1,78,30,.8,14)+B.place('scallop',6,102,66,.55,26,.9)))
+v4['bb-flock-n']=uri(svg(120,84,B.moth(30,54,.95,-16,.9,0)+B.moth(78,30,.8,14,.8,1)+B.moth(102,66,.55,26,.7,3)))
+v4['bb-hero']=uri(svg(96,78,'<circle cx="48" cy="38" r="34" fill="#e2dbf7" opacity=".55"/><circle cx="48" cy="38" r="24" fill="#cdeef0" opacity=".6"/>'+B.place('swallow',0,48,38,1.9,0)))
+v4['bb-day']=uri(svg(390,300,B.place('round',3,40,60,.6,-18,.85)+B.place('swallow',2,352,38,.55,22,.85)+B.place('long',4,330,250,.42,-12,.7)))
+v4['bb-lug-fly']=uri(svg(390,60,B.place('round',5,40,30,.5,-20,.9)+B.place('long',3,200,18,.4,12,.8)+B.place('scallop',1,350,36,.45,24,.85)))
+if '--v4' in sys.argv:
+    print('html[data-skin="babochkovyi"]{'); [print(f'  --{k}:{v};') for k,v in v4.items()]; print('}')
+if '--js' in sys.argv:
+    import json; print(json.dumps({k:{'up':v['up'],'lo':v['lo'],'spot':v['spot']} for k,v in B.SHAPES.items()},separators=(',',':'))); print(json.dumps(B.PAL,separators=(',',':')))

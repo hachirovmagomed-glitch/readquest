@@ -66,7 +66,7 @@ const lib = (w) => p.evaluate(() => { const h = document.getElementById('libHead
     covers: document.querySelectorAll('#shelf .bb-cover').length, svgs: document.querySelectorAll('#shelf .bb-cover svg').length,
     books: document.querySelectorAll('#shelf .bookcard').length, inside: kids.every(k => k.l >= 0 && k.r <= innerWidth), cut: t.scrollWidth > t.clientWidth + 1, kids, sx: document.documentElement.scrollWidth <= innerWidth }; });
 let l390 = await lib();
-ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 210px of tall grass + clover, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 1 && l390.meadow[0] === '210px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
+ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 210px of tall grass + clover with butterflies over it, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 2 && l390.meadow[0] === '210px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-390.png' });
 await p.evaluate(() => { S.gold = 12345; save(); renderLibrary(); });
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(400);
@@ -125,6 +125,15 @@ const v3 = await p.evaluate(() => { const svg = x => /data:image\/svg/.test(x ||
 ok('5g scene: meadow under the content on library and stats (z -1, fixed); plain butterflies (no mascot with eyes) after the shelf and by «Награды»; «Цветник» vase/hat/can on reward cards',
   v3.lugLib.bg && v3.lugLib.z === '-1' && v3.lugLib.pos === 'fixed' && v3.lugStats && v3.masc && v3.rh && v3.arts.length >= 2 && v3.arts[0] === '56' && v3.arts[1] === '66', v3);
 ok('5h summary: big butterfly, sky over the scene, 10 cocoons instead of the bar, 4 week flowers', v3.hero && v3.sky && v3.hatch === 10 && v3.bar === 'none' && /flex/.test(v3.wk) && v3.wks.length === 4 && v3.wks.every(Boolean), v3);
+
+// 5i. variety (Джессика 17.10: «большее разнообразие бабочек»): 10 goal butterflies are 10 different drawings, screen headers differ, covers use several wing palettes
+const vr = await p.evaluate(() => { const old = window.minTodaySess; window.minTodaySess = () => 10; __navAllow = true; show('library'); __navAllow = false; renderLibrary();
+  const goal = new Set([...document.querySelectorAll('#bbHatch i.on')].map(i => getComputedStyle(i).backgroundImage)).size; window.minTodaySess = old; renderLibrary();
+  const heads = new Set(['stats', 'profile', 'shop', 'quotes'].map(id => { __navAllow = true; show(id); __navAllow = false; return getComputedStyle(document.querySelector('#' + id + ' .wrap > .row:first-child'), '::before').backgroundImage; })).size;
+  __navAllow = true; show('library'); __navAllow = false;
+  const pals = new Set(allBooks().map(b => { const m = bbCover({ id: b.id + 'x', title: b.title }).match(/fill="(#[0-9a-f]{6})"/g); return m ? m.join() : ''; }).concat(['a1', 'b22', 'c333', 'd4444', 'e55555'].map(id => (bbCover({ id }).match(/fill="(#[0-9a-f]{6})"/g) || []).join()))).size;
+  return { goal, heads, pals }; });
+ok('5i variety: 10 different goal butterflies, 4 screen headers with 4 different ones, covers in several palettes', vr.goal === 10 && vr.heads === 4 && vr.pals >= 4, vr);
 
 // 6. reader: clean page (skin page tokens, no pseudo decor), day/night stays inside the skin
 const bid = await p.evaluate(() => allBooks()[1].id);

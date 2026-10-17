@@ -15,8 +15,8 @@ const has = await p.evaluate(() => typeof navRead === 'function' && typeof navSa
 const R = (v) => has ? p.evaluate((v) => JSON.stringify(navRead(v)), v) : Promise.resolve('n/a');
 // contract: forgiving read
 ok('nav: неизвестные id и дубли отбрасываются', await R(['library', 'bogus', 'rewards', 'rewards', 'profile']) === DEF, await R(['library', 'bogus', 'rewards', 'rewards', 'profile']));
-const seven = ['library', 'rewards', 'profile', 'quests', 'notes', 'vocab', 'stats'];
-ok('nav: сверх 5 обрезается', await R(seven) === '["library","rewards","profile","quests","notes"]', await R(seven));
+const seven = ['library', 'rewards', 'profile', 'quests', 'look', 'vocab', 'stats'];
+ok('nav: сверх 5 обрезается', await R(seven) === '["library","rewards","profile","quests","look"]', await R(seven));
 ok('nav: library всегда первой', await R(['profile', 'quests', 'library']) === '["library","profile","quests"]' && await R(['rewards']) === '["library","rewards"]', [await R(['profile', 'quests', 'library']), await R(['rewards'])]);
 const broken = [await R(null), await R(undefined), await R([]), await R('garbage'), await R({ a: 1 }), await R([1, null, {}]), await R(['bogus'])];
 ok('nav: пустой или битый → ' + DEF, broken.every(x => x === DEF), broken);
@@ -29,10 +29,10 @@ const b = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 const bar = await p.evaluate(() => [...document.querySelectorAll('#botnav .botnav-btn')].filter(x => getComputedStyle(x).display !== 'none').map(x => x.dataset.nav || x.id));
 ok('nav: чтение не пишет (NS_set побайтно равен), панель = library,profile,stats', a === b && JSON.stringify(bar) === '["library","profile","stats"]', { same: a === b, bar });
 // write: one saveSet through the gate; passive window refused
-const w = has ? await p.evaluate(async () => { const r1 = navSave(['library', 'rewards', 'quests', 'notes', 'profile']); await new Promise(r => setTimeout(r, 200));
+const w = has ? await p.evaluate(async () => { const r1 = navSave(['library', 'rewards', 'quests', 'look', 'profile']); await new Promise(r => setTimeout(r, 200));
   const s1 = JSON.parse(localStorage.getItem(RQ_K.set)).nav; const g = window.__rqWriter, m = g.mayWrite; g.mayWrite = () => false; let r2; try { r2 = navSave(['library']); } finally { g.mayWrite = m; }
   const s2 = JSON.parse(localStorage.getItem(RQ_K.set)).nav; const bar = [...document.querySelectorAll('#botnav .botnav-btn')].map(x => x.dataset.nav); return { r1, s1, r2, s2, bar }; }) : {};
-ok('nav: запись в NS_set, панель из 5 вкладок; пассивное окно не пишет', w.r1 === true && JSON.stringify(w.s1) === '["library","rewards","quests","notes","profile"]' && w.r2 === false && JSON.stringify(w.s2) === JSON.stringify(w.s1) && w.bar && w.bar.length === 5, w);
+ok('nav: запись в NS_set, панель из 5 вкладок; пассивное окно не пишет', w.r1 === true && JSON.stringify(w.s1) === '["library","rewards","quests","look","profile"]' && w.r2 === false && JSON.stringify(w.s2) === JSON.stringify(w.s1) && w.bar && w.bar.length === 5, w);
 // old backup without nav → default
 const imp = await p.evaluate(async () => { const e = await __rq.exportBackup(null, SET, { includeTextBodies: false }); const hadNav = !!(e.settings && e.settings.nav); delete e.settings.nav;
   try { await __rq.importBackup(e); } catch (x) { return { err: String(x.message || x) }; } return { hadNav }; });
@@ -44,7 +44,7 @@ await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 
 const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent);
   return { w: Math.round(dr.getBoundingClientRect().width), ava: !!dr.querySelector('.dava'), name: (dr.querySelector('.dname') || {}).textContent || '', items: items.map(x => x.dataset.nav || x.id), pins: items.filter(x => x.querySelector('.dpin')).map(x => x.dataset.nav),
     h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
-ok('drawer: 85% ширины (≈332px), аватар и имя, 8 разделов (с «Путём читателя») + Настройки, пункты 52px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","rewards","profile","path","quests","notes","vocab","stats","settings"]' && d.h === 52 && !d.emoji, d);
+ok('drawer: 85% ширины (≈332px), аватар и имя, 7 разделов (с «Путём читателя») + Настройки, пункты 52px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","rewards","profile","path","quests","stats","look","settings"]' && d.h === 52 && !d.emoji, d);
 ok('drawer: значок pin у закреплённых (library,rewards,profile) и подпись внизу', JSON.stringify(d.pins) === '["library","rewards","profile"]' && d.cap, d.pins);
 await p.evaluate(() => closeDrawer());
 // settings «Нижняя панель»

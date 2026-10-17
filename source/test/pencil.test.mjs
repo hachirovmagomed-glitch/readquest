@@ -21,7 +21,7 @@ let n = await nav();
 ok('bottom nav: 3 items Библиотека/Награды/Профиль', n.map(x => x.t).join('|') === 'Библиотека|Награды|Профиль', n);
 
 // 2. «Общие настройки»: theme tiles captioned, «Карандашный» tile → html[data-skin=pencil]
-await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
+await p.evaluate(() => openLook()); await sleep(300);
 const tiles = await p.evaluate(() => [...document.querySelectorAll('#appThemeBox .appsw, #appSkinBox .appsw')].map(b => ({ cap: (b.closest('.apptile') || b).querySelector('small') ? (b.closest('.apptile') || b).querySelector('small').textContent.trim() : '', k: b.dataset.k || '' })));
 ok('every app theme tile has a caption', tiles.length > 5 && tiles.every(t => t.cap), tiles.map(t => t.cap));
 ok('«Карандашный» tile exists', tiles.some(t => t.cap === 'Карандашный'));
@@ -31,6 +31,7 @@ if (pt) { await pt.evaluate(e => e.scrollIntoView({ block: 'center' })); await s
 else await p.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); renderSettings(); }); /* no tile (red run): still measure the rest in the skin */
 const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', theme: SET.theme, on: [...document.querySelectorAll('#appSkinBox .appsw.on')].map(b => b.dataset.k) }));
 ok('click «Карандашный» → data-skin=pencil, SET.theme=pencil, tile selected', sk.skin === 'pencil' && sk.theme === 'pencil' && sk.on.join() === 'pencil', sk);
+await p.evaluate(() => openGeneralSettings(false)); await sleep(300); /* 17.10: tiles live on «Внешний вид»; the rest is measured on «Общие настройки» */
 n = await nav();
 ok('pencil: nav 3 items, each a Lucide icon', n.length === 3 && n.every(x => /^#i-/.test(x.ic)), n);
 
@@ -106,6 +107,7 @@ await p.evaluate(() => { const h = [...document.querySelectorAll('#settings h2')
 await p.screenshot({ path: SHOTS + 'pencil-data-390.png' });
 
 // 7. another app theme tile leaves the skin (palette would be masked by the skin otherwise)
+await p.evaluate(() => openLook()); await sleep(300);
 await p.evaluate(() => { const b = document.getElementById('appThemeBox'); if (b && b.hidden && document.getElementById('appThemeX')) document.getElementById('appThemeX').click(); }); await sleep(200); /* theme list is collapsed into one row (14.10) */
 const t2 = await p.$('#appThemeBox .appsw[data-k="teal"]'); if (t2) { await t2.evaluate(e => e.scrollIntoView({ block: 'center' })); await sleep(150); await t2.click(); await sleep(300); }
 const sk2 = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', app: S.appTheme, theme: SET.theme }));

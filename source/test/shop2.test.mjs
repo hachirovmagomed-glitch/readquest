@@ -24,9 +24,7 @@ const raw = () => p.evaluate(async () => { await new Promise(r => setTimeout(r, 
 await p.evaluate(async () => { S.gold = 1000; save(); window.__buyCalls = 0; const b = window.buy; window.buy = function () { window.__buyCalls++; return b.apply(this, arguments); }; });
 /* flake 15.10: the rewards sheet slides in (--rq-dur-sheet); after a fixed 300 ms the «Магазин» tab was sometimes still below
    the viewport (y 896 of 844) → wait until it is fully on screen before clicking */
-await p.waitForSelector('#bnRew', { visible: true, timeout: 10000 }); await p.click('#bnRew');
-await p.waitForFunction(() => { const t = document.getElementById('rewTabShop'); if (!t) return false; const r = t.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight; }, { timeout: 10000 });
-await sleep(150); await p.click('#rewTabShop'); await sleep(300);
+await p.evaluate(() => navGo('look')); await sleep(300); /* 17.10: the skin shop lives on «Внешний вид» */
 
 // 5a. cards: «Купить» button on buyable cards
 const cards = await p.evaluate(() => [...document.querySelectorAll('#rewPaneShop .shopcard')].map(c => ({ id: c.dataset.id, cta: ((c.querySelector('.shopcta') || {}).textContent || '').trim(), tag: (c.querySelector('.shopcta') || {}).tagName })));
@@ -34,8 +32,8 @@ ok('cards: «Купить» button on buyable skins (Гравюра at 1000)', c
 await p.screenshot({ path: SHOTS + 'shop2-shop-390.png' });
 
 // 5b. skin page: full screen (← back, large preview, colours, button pinned at the bottom); list scroll remembered in memory only
-await p.evaluate(() => { document.getElementById('rewardsSheet').scrollTop = 260; }); await sleep(150);
-const listScroll = await p.evaluate(() => document.getElementById('rewardsSheet').scrollTop);
+await p.evaluate(() => { document.querySelector('#look .scroll').scrollTop = 260; }); await sleep(150);
+const listScroll = await p.evaluate(() => document.querySelector('#look .scroll').scrollTop);
 const setBefore = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 await p.evaluate(() => openShopDetail('skin-gravyura')); await sleep(400);
 const sh = await p.evaluate(() => { const d = document.getElementById('shopDetail'), r = d.getBoundingClientRect(), b = d.querySelector('.shopbuy').getBoundingClientRect(), pv = d.querySelector('.spprev');
@@ -47,13 +45,13 @@ await p.evaluate(() => shopTryOn('color-gravyura-night')); await sleep(200);
 const tried = await p.evaluate(() => shopTry());
 await p.screenshot({ path: SHOTS + 'shop2-skin-page-tryon-390.png' });
 await p.click('#shopBack'); await sleep(500);
-let bk = await p.evaluate(() => ({ open: !document.getElementById('shopDetail').hidden, tr: shopTry(), set: localStorage.getItem(RQ_K.set), skin: SET.skin || null, color: SET.color || null, scroll: document.getElementById('rewardsSheet').scrollTop, nav: history.state && history.state.rq }));
+let bk = await p.evaluate(() => ({ open: !document.getElementById('shopDetail').hidden, tr: shopTry(), set: localStorage.getItem(RQ_K.set), skin: SET.skin || null, color: SET.color || null, scroll: document.querySelector('#look .scroll').scrollTop, nav: history.state && history.state.rq }));
 ok('← back: page closed, try-on reset, NS_set skin/color unchanged', tried === 'color-gravyura-night' && !bk.open && bk.tr === null && bk.set === setBefore && bk.nav !== 'shopskin', { tried, ...bk, same: bk.set === setBefore });
 ok('← back: shop list scroll restored', listScroll > 0 && Math.abs(bk.scroll - listScroll) <= 2, { listScroll, now: bk.scroll });
 // system back (popstate)
 await p.evaluate(() => openShopDetail('skin-gravyura')); await sleep(300); await p.evaluate(() => shopTryOn('color-gravyura-autumn')); await sleep(150);
 await p.goBack().catch(() => null); await sleep(600);
-bk = await p.evaluate(() => ({ open: !document.getElementById('shopDetail').hidden, tr: shopTry(), set: localStorage.getItem(RQ_K.set), scroll: document.getElementById('rewardsSheet').scrollTop, rew: document.getElementById('rewardsSheet').classList.contains('open') }));
+bk = await p.evaluate(() => ({ open: !document.getElementById('shopDetail').hidden, tr: shopTry(), set: localStorage.getItem(RQ_K.set), scroll: document.querySelector('#look .scroll').scrollTop, rew: !document.getElementById('look').classList.contains('hidden') }));
 ok('system back: page closed, try-on reset, NS_set unchanged, still in the shop', !bk.open && bk.tr === null && bk.set === setBefore && bk.rew, bk);
 ok('system back: shop list scroll restored', Math.abs(bk.scroll - listScroll) <= 2, { listScroll, now: bk.scroll });
 // сворачивание
@@ -93,7 +91,7 @@ await p.evaluate(() => closeShopDetail()); await sleep(300);
 // 4. «+1000 монет для теста» (rqt only): normal write, no devMoney, buy deducts normally
 const tg = await p.evaluate(() => { const b = document.getElementById('btnTestGold'); return b ? { vis: !!b.offsetParent, t: b.textContent.trim() } : null; });
 ok('rqt: «+1000 монет для теста» visible in the shop', tg && tg.vis && tg.t === '+1000 монет для теста', tg);
-if (tg) await p.click('#btnTestGold'); await sleep(400);
+if (tg) { await p.evaluate(() => clearToasts()); await p.click('#btnTestGold'); } await sleep(400); /* the «Куплено» toast may sit over the button on «Внешний вид» */
 const tg2 = await p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); const g = JSON.parse(localStorage.getItem(RQ_K.v1) || '{}'); return { gold: S.gold, stored: (g.game || g).gold, dev: S.devMoney !== false, bal: document.getElementById('rewBalance').textContent }; });
 ok('+1000: S.gold 500 → 1500, stored, balance «1500 монет», no devMoney', tg2.gold === 1500 && tg2.stored === 1500 && !tg2.dev && tg2.bal === '1500 монет', tg2);
 const b2 = await p.evaluate(() => { const r = buy('skin-krik'); return { r, gold: S.gold }; });
@@ -109,10 +107,9 @@ ok('rewards reopen scrolled to the top', rs.top === 0, rs);
 ok('rewards sheet ends above the bottom nav', rs.nav !== 'none' && rs.bottom <= rs.navTop + 1, rs);
 
 // 2. «Из жизни» tap targets ≥ 44
-await p.click('#rewTabLife'); await sleep(300);
 const tt = await p.evaluate(() => [...document.querySelectorAll('#rewardsSheet [role=tab], #rewSlots button, #btnAddRewardSlot, #rewSlots input')].filter(e => e.offsetParent).map(e => { const r = e.getBoundingClientRect(); return { e: e.id || e.className || e.tagName, t: (e.textContent || e.value || '').trim().slice(0, 14), w: Math.round(r.width), h: Math.round(r.height) }; }));
 const ttBad = tt.filter(x => x.h < 44 || x.w < 44);
-ok('«Из жизни»: tabs, price, levels, «＋ Слот», «удалить» ≥ 44×44', tt.length >= 8 && !ttBad.length, ttBad.length ? ttBad : tt.length);
+ok('«Из жизни»: price, levels, «＋ Слот», «удалить» ≥ 44×44', tt.length >= 8 && !ttBad.length, ttBad.length ? ttBad : tt.length);
 await p.screenshot({ path: SHOTS + 'shop2-life-390.png' });
 
 // 5d. pencil: hand-drawn frame on shop cards

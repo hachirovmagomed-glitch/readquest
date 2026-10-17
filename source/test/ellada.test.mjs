@@ -149,9 +149,10 @@ ok('15 meander 8px at 40% under the header and over the bottom nav; amphora 96px
 
 // 16. «Путь читателя» in Ellada = an old Aegean sea chart (Джессика 16.10): sea sheet with waves, islands under books, dotted course, wind rose, trireme
 const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => setTimeout(r, 500));
-  const ch = document.querySelector('#path .pathch'), dot = document.querySelector('#path .pn-dot'), map = document.querySelector('#path .pathmap'), line = document.querySelector('#path .pathline path:not(.on)');
+  const ch = document.querySelector('#path .pathsea'), dot = document.querySelector('#path .pn-dot'), map = document.querySelector('#path .pathch:last-child .pathmap'), line = document.querySelector('#path .pathline path:not(.on)');
   const g = (e, ps) => getComputedStyle(e, ps);
   const sc = document.querySelector('#path .scroll');
+  if (!ch || !map) return { sea: false, oneSheet: !!ch };
   return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg/.test(g(map, '::after').backgroundImage),
     isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
 ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
@@ -160,12 +161,24 @@ const pst = await p.evaluate(async () => {
   renderPath(); await new Promise(r => setTimeout(r, 400));
   const vis = (e) => !!e && getComputedStyle(e).display !== 'none';
   const od = document.querySelector('#path .pathnode[data-pid="odyssey"]'), hm = document.querySelector('#path .pathnode[data-pid="hamlet"]');
-  let minGap = 1e9; document.querySelectorAll('#path .pathch').forEach(ch => { const c = ch.getBoundingClientRect(); ch.querySelectorAll('.pn-dot').forEach(d => { const r = d.getBoundingClientRect(), w = r.width * 0.62; minGap = Math.min(minGap, r.left - w - c.left, c.right - (r.right + w)); }); });
+  let minGap = 1e9; document.querySelectorAll('#path .pathsea').forEach(ch => { const c = ch.getBoundingClientRect(); ch.querySelectorAll('.pn-dot').forEach(d => { const r = d.getBoundingClientRect(), w = r.width * 0.45; minGap = Math.min(minGap, r.left - w - c.left, c.right - (r.right + w)); }); });
   const laurel = /el-laurel|data:image\/svg.*data:image\/svg/.test(getComputedStyle(od.querySelector('.pn-dot'), '::before').backgroundImage);
   S.userBooks = S.userBooks.filter(x => !/^elp/.test(x.id)); S.finished = S.finished.filter(x => x !== 'elp1'); delete S.progress.elp2; renderPath();
   return { ok: vis(od.querySelector('.pn-ok')), bar: vis(hm.querySelector('.pn-bar')), barW: hm.querySelector('.pn-bar b').style.width, minGap: Math.round(minGap), laurel };
 });
 ok('16b статус не только цветом: у прочитанной книги значок-галочка, у начатой полоска прогресса; у главной книги лавровый венок; острова не ближе 16 px к краю листа', pst.ok && pst.bar && pst.barW === "40%" && pst.laurel && pst.minGap >= 16, pst);
+// 16c. Джессика 17.10: подписи не налезают на острова; карта одна (главы на одном листе моря, одна дорога через все книги)
+const one = await p.evaluate(async () => { renderPath(); await new Promise(r => setTimeout(r, 400));
+  const sea = document.querySelector('#path .pathsea'), chs = Array.from(document.querySelectorAll('#path .pathch'));
+  let worst = 1e9, who = '';
+  document.querySelectorAll('#path .pathnode').forEach(n => { const d = n.querySelector('.pn-dot').getBoundingClientRect(), w = d.width * 0.45, lb = n.querySelector('.pn-lab').getBoundingClientRect();
+    const gap = n.classList.contains('r') ? (d.left - w) - lb.right : lb.left - (d.right + w); if (gap < worst) { worst = gap; who = n.dataset.pid; } });
+  const sheets = chs.filter(c => { const g = getComputedStyle(c); return g.backgroundImage !== 'none' || g.boxShadow !== 'none'; }).length;
+  const gaps = chs.slice(1).map((c, i) => Math.round(c.getBoundingClientRect().top - chs[i].getBoundingClientRect().bottom));
+  const road = sea ? sea.querySelectorAll(':scope > .pathline path').length : 0;
+  return { sea: !!sea, sheets, gaps, road, books: document.querySelectorAll('#path .pathnode').length, labelGap: Math.round(worst), who };
+});
+ok('16c одна карта: главы на одном листе моря без разрывов, одна дорога через все книги; подписи не ближе 6 px к острову', one.sea && one.sheets === 0 && one.gaps.every(g => g === 0) && one.road === one.books - 1 && one.labelGap >= 6, one);
 await p.evaluate(() => navGo('library'));
 
 ok('no page errors', !errs.length, errs);

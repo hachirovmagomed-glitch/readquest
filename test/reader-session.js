@@ -10,6 +10,7 @@
  *   - each page contributes at most `capMs` (default 3 min) — a forgotten open book
  *     can never add more than one cap, including the last page of the session;
  *   - `pageTurns` = forward turns where the page was visible ≥ `minSecMs` (default 12 s).
+ *   - a page left by a turn after less than `minSecMs` credits no time at all (Джессика 17.10: no XP for flipping);
  *   - optional per-page cap EXTENSION (PDF only, Product 2026-10-06): a qualifying activity
  *     (zoom change, or a pan of more than `minFraction` of the screen) raises THIS page's cap by
  *     `stepMs`, at most once per `everyMs`, never above `maxMs`. Text passes no extension → flat cap.
@@ -32,7 +33,7 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261017-0936';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261017-0937';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -42,7 +43,8 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* quota 
 function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
 
 /** Skip empty sessions: < ~9 s counted and no counted page. */
-function isEmpty(minutes, turns) { return minutes < 0.15 && !turns; }
+/* Empty = no row, no XP: under one counted minute without a single honest page turn (Джессика 17.10: «дают опыт за то, что я просто вошёл в книжку»). */
+function isEmpty(minutes, turns) { return minutes < 1 && !turns; }
 
 /**
  * @param {{ logSession: Function, logReadingEvent: Function, now?: Function, dayFn?: Function }} api
@@ -95,11 +97,13 @@ export function createSessionTracker(api) {
     if (dwellClock) { dwellAcc += now() - dwellClock; dwellClock = 0; }
   }
   function dwellLive() { return dwellAcc + (dwellClock ? now() - dwellClock : 0); }
-  /** Close the current page: add min(dwell, cap); returns raw dwell. */
-  function creditPage() {
+  /** Close the current page: add min(dwell, cap); returns raw dwell.
+   *  Anti-cheat 17.10 (Джессика: flipping gave XP): a page left by a turn after less than `floorMs` (= minSec, 12 s)
+   *  credits nothing — fast flipping adds no minutes, XP, streak or map progress. The last page of a session is not floored. */
+  function creditPage(floorMs) {
     dwellPause();
     const raw = dwellAcc;
-    creditedMs += Math.min(raw, pageCapMs);
+    if (!(floorMs > 0 && raw < floorMs)) creditedMs += Math.min(raw, pageCapMs);
     dwellAcc = 0;
     return raw;
   }
@@ -281,7 +285,7 @@ export function createSessionTracker(api) {
       if (newPage === page && !pendingTurn) return;
       flushEvent(via === 'tts' ? 'tts' : 'turn'); /* 1в: read-aloud auto-advance is marked, never a reading turn */
       if (via === 'tts') pendingTurn = 0;
-      const raw = creditPage();
+      const raw = creditPage(via === 'tts' ? 0 : minSecMs);
       if (pendingTurn > 0) {
         turns += 1;
         if (counting && raw >= minSecMs) pagesRead += 1;
@@ -325,7 +329,7 @@ export function createSessionTracker(api) {
       pendingTurn = 0;
       if (newPage === page) return;
       flushEvent('jump');
-      creditPage();
+      creditPage(minSecMs); /* jumping on after a few seconds is flipping too */
       page = newPage;
       newPageCap();
       startClock();

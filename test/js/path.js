@@ -26,12 +26,19 @@ const PATH_CHAPTERS=[
 ];
 function pathAll(){const out=[];PATH_CHAPTERS.forEach(function(c){c.books.forEach(function(b){out.push(b);});});return out;}
 function pathFind(id){let r=null;PATH_CHAPTERS.forEach(function(c){c.books.forEach(function(b){if(b.id===id)r={ch:c,b:b};});});return r;}
-/* read-only view of one path book: {lib, pct, done} */
+/* Anti-cheat (Джессика 17.10: «пробежал книгу на 70% за несколько минут»): the map credits a book only as far as the counted
+   reading minutes allow. Counted minutes = S.bookStats[id].min (reader tracker: visible time, per-page cap, fast flips give ~0).
+   Even a very fast reader needs kb*1024/PATH_FAST_BPM minutes for the whole book (3× the ~2400 bytes/min average).
+   Credited part = min(position, minutes / needed); «прочитано» on the map also needs ≥70 % of that time. Pure read, nothing stored. */
+const PATH_FAST_BPM=7200;
+function pathCredit(lib,kb){const bs=(S.bookStats||{})[lib.id]||{},m=Number(bs.min)||0;return Math.max(0,Math.min(1,m/Math.max(1,kb*1024/PATH_FAST_BPM)));}
+/* read-only view of one path book: {lib, pct, done, pos} */
 function pathState(pid){
   const lib=allBooks().find(function(x){return x&&typeof x.pathId==='string'&&x.pathId===pid;})||null; /* unknown or broken pathId = an ordinary book */
-  if(!lib)return {lib:null,pct:0,done:false};
-  const done=S.finished.includes(lib.id);
-  return {lib:lib,pct:done?100:Math.round(rqPos(lib.id)*100),done:done};
+  if(!lib)return {lib:null,pct:0,done:false,pos:0};
+  const f=pathFind(pid),cr=pathCredit(lib,f?f.b.kb:0),pos=rqPos(lib.id);
+  const done=S.finished.includes(lib.id)&&cr>=0.7;
+  return {lib:lib,pct:done?100:Math.round(Math.min(pos,cr)*100),done:done,pos:Math.round(pos*100)};
 }
 /* reading time is an estimate from the file size: ~2400 bytes of Russian UTF-8 per minute */
 function pathHours(kb){const m=Math.max(5,Math.round(kb*1024/2400/5)*5);if(m<60)return '≈ '+m+' мин';const h=Math.round(m/60);return '≈ '+h+' '+plural(h,'час','часа','часов');}
@@ -90,6 +97,7 @@ function pathOpen(pid){
   el('bookSheetBody').innerHTML=
     '<div class="bk-head"><div class="cover">'+rqIcon(b.kind==='boss'?'castle':(b.kind==='side'?'scroll-text':'book-open'),28)+'</div><div class="bk-ttl"><b>'+esc(b.t)+'</b>'+
     '<div class="bk-sub">'+esc(b.a)+(b.tr?' · '+esc(b.tr):'')+'</div></div></div>'+
+    (st.lib&&!st.done&&st.pos>st.pct?'<div class="bk-note">Открыто на '+st.pos+'%, засчитано '+st.pct+'%. На карте засчитываются только минуты чтения, пролистанные страницы не в счёт.</div>':'')+
     (st.lib?'<div class="bk-prog"><div class="bk-bar"><i style="width:'+st.pct+'%"></i></div><div class="bk-pl"><span><b>'+(st.done?'Прочитано':st.pct+'%')+'</b>'+(st.done?'':' прочитано')+'</span></div></div>':'')+
     '<div class="bk-h">На карте</div><div class="bk-list">'+
     '<div class="bk-row"><span class="bk-k">Глава</span><span class="bk-v">'+c.n+' · '+esc(c.t)+'</span></div>'+

@@ -26,7 +26,7 @@ await run('1: 2 мин, 3 продления', PDF, async (t, adv, cap) => { t.u
 await run('2: потолок 5, вперёд, 10 мин на новой', PDF, async (t, adv, cap) => { t.userActive('zoom'); adv(M); t.userActive('zoom'); cap(); t.pageTurned(true); t.pageShown(91); cap(); adv(10*M); }, 4, '5,3');
 await run('3: потолок 5, назад на 5 с (быстрее 12 с — не в счёт, Джессика 17.10) и обратно, 10 мин', PDF, async (t, adv, cap) => { t.userActive('zoom'); adv(M); t.userActive('zoom'); cap(); t.pageTurned(false); t.pageShown(89); adv(5*S); t.pageTurned(true); t.pageShown(90); cap(); adv(10*M); }, 4, '5,3');
 // Античит 17.10 (Джессика: «пробежал книгу на 70% за несколько минут», «слишком быстро дали опыт»): время страницы, перелистнутой быстрее minSec (12 с), не засчитывается
-await run('м: листание по 2 с, 90 страниц (3 мин) → 0 мин', TXT, async (t, adv) => { for (let i=0;i<90;i++){ adv(2*S); t.pageTurned(true); t.pageShown(91+i); } }, 0.0);
+await run('м: листание по 2 с, 90 страниц (3 мин) → 0 мин, пустая сессия без строки', TXT, async (t, adv) => { for (let i=0;i<90;i++){ adv(2*S); t.pageTurned(true); t.pageShown(91+i); } }, null);
 await run('н: 30 с чтения, потом 10 страниц по 3 с, потом 40 с на последней', TXT, async (t, adv) => { adv(30*S); t.pageTurned(true); t.pageShown(91); for (let i=0;i<10;i++){ adv(3*S); t.pageTurned(true); t.pageShown(92+i); } adv(40*S); }, +(70/60).toFixed(4));
 await run('о: ровно 12 с на странице засчитываются', TXT, async (t, adv) => { adv(12*S); t.pageTurned(true); t.pageShown(91); adv(20*S); }, +(32/60).toFixed(4));
 await run('4: пан ровно 20%', PDF, async (t, adv, cap) => { t.userActive('pan',{fraction:0.2}); cap(); adv(10*M); }, 3, '3');

@@ -51,6 +51,7 @@ function renderPath(){
   let h='<div class="pathsum"><div class="pathsum-t"><b>'+done+' из '+all.length+'</b> '+plural(all.length,'книга','книги','книг')+' прочитано</div>'+
     '<div class="bk-bar"><i style="width:'+Math.round(done/all.length*100)+'%"></i></div>'+
     '<div class="pathsum-s">'+(rank?'Звание: <b>'+esc(rank)+'</b>':'Читайте в любом порядке. Карта отмечает то, что вы дочитали.')+'</div></div>';
+  h+='<div class="pathsea"><svg class="pathline pathsea-line" aria-hidden="true"></svg>'; /* one sheet for skins that join the chapters (--path-joined:1, Эллада) */
   PATH_CHAPTERS.forEach(function(c){
     const cd=c.books.filter(function(b){return pathState(b.id).done;}).length,full=cd===c.books.length;
     h+='<section class="pathch'+(full?' full':'')+'" data-ch="'+c.id+'">'+
@@ -72,22 +73,31 @@ function renderPath(){
     });
     h+='</div></section>';
   });
+  h+='</div>';
   el('pathBox').innerHTML=h;
   requestAnimationFrame(pathLines);
 }
-/* the road between nodes: one smooth S-curve per pair, drawn after layout (view only) */
+/* the road between nodes: one smooth S-curve per pair, drawn after layout (view only).
+   A skin may join the chapters into one sheet (--path-joined:1 on #pathBox): then one road runs through the whole map
+   and passes under the chapter cartouches; otherwise each chapter card has its own road. */
+function pathRoad(box,svg,list){
+  const W=box.clientWidth,H=box.clientHeight,br=box.getBoundingClientRect();
+  const nodes=list.map(function(n){const d=n.querySelector('.pn-dot').getBoundingClientRect(),r=n.getBoundingClientRect();
+    return {x:d.left-br.left+d.width/2,y:d.top-br.top+d.height/2,top:r.top-br.top,bot:r.bottom-br.top,done:n.classList.contains('done'),ch:n.closest('.pathch')};});
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width',W);svg.setAttribute('height',H);
+  let s='';
+  /* road: down from a dot, across in the gap between rows (never through a label), down into the next dot;
+     between chapters it turns right under the last book, above the next chapter's cartouche */
+  for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i],my=a.ch===b.ch?(a.bot+b.top)/2:a.bot+22,dir=b.x>a.x?1:-1,R=Math.max(0,Math.min(18,Math.abs(b.x-a.x)/2,(my-a.y),(b.y-my)));
+    s+='<path d="M'+a.x+' '+a.y+' V'+(my-R)+' Q'+a.x+' '+my+' '+(a.x+dir*R)+' '+my+' H'+(b.x-dir*R)+' Q'+b.x+' '+my+' '+b.x+' '+(my+R)+' V'+b.y+'" class="'+(a.done&&b.done?'on':'')+'"/>';}
+  svg.innerHTML=s;
+}
 function pathLines(){
-  document.querySelectorAll('#pathBox .pathmap').forEach(function(m){
-    const svg=m.querySelector('.pathline'),W=m.clientWidth,H=m.clientHeight,mr=m.getBoundingClientRect();
-    const nodes=Array.from(m.querySelectorAll('.pathnode')).map(function(n){const d=n.querySelector('.pn-dot').getBoundingClientRect(),r=n.getBoundingClientRect();
-      return {x:d.left-mr.left+d.width/2,y:d.top-mr.top+d.height/2,top:r.top-mr.top,bot:r.bottom-mr.top,done:n.classList.contains('done')};});
-    svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width',W);svg.setAttribute('height',H);
-    let s='';
-    /* road: down from a dot, across in the gap between rows (never through a label), down into the next dot */
-    for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i],my=(a.bot+b.top)/2,dir=b.x>a.x?1:-1,R=Math.min(18,Math.abs(b.x-a.x)/2,(my-a.y),(b.y-my));
-      s+='<path d="M'+a.x+' '+a.y+' V'+(my-R)+' Q'+a.x+' '+my+' '+(a.x+dir*R)+' '+my+' H'+(b.x-dir*R)+' Q'+b.x+' '+my+' '+b.x+' '+(my+R)+' V'+b.y+'" class="'+(a.done&&b.done?'on':'')+'"/>';}
-    svg.innerHTML=s;
-  });
+  const sea=document.querySelector('#pathBox .pathsea');if(!sea)return;
+  const joined=getComputedStyle(el('pathBox')).getPropertyValue('--path-joined').trim()==='1';
+  sea.querySelector('.pathsea-line').innerHTML='';
+  sea.querySelectorAll('.pathmap').forEach(function(m){const svg=m.querySelector('.pathline');if(joined)svg.innerHTML='';else pathRoad(m,svg,Array.from(m.querySelectorAll('.pathnode')));});
+  if(joined)pathRoad(sea,sea.querySelector('.pathsea-line'),Array.from(sea.querySelectorAll('.pathnode')));
 }
 window.addEventListener('resize',function(){if(el('path')&&!el('path').classList.contains('hidden'))pathLines();});
 

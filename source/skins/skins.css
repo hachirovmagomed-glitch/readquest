@@ -88,11 +88,17 @@ html[data-skin="ellada"]{--el-temple:url("data:image/svg+xml,%3Csvg xmlns='http:
 html[data-skin="ellada"] #path .pathsum{position:relative;padding-top:30px;border-radius:var(--rq-radius-sm);background:var(--rq-surface);box-shadow:var(--rq-shadow-2);margin:10px 0 12px}
 html[data-skin="ellada"] #path .pathsum::before{content:"";position:absolute;left:10px;right:10px;top:6px;height:10px;background:var(--el-meander) 0 0/10px 10px repeat-x;pointer-events:none}
 html[data-skin="ellada"] #path .pathsum-t b{font-family:var(--rq-font-num);font-weight:800}
-html[data-skin="ellada"] #path .pathch{position:relative;isolation:isolate;margin-top:28px;padding:30px 12px 70px;border-radius:var(--rq-radius-sm);background:var(--el-waves) 0 0/120px 96px repeat,var(--rq-accent-tint);box-shadow:var(--rq-shadow-2)}
-html[data-skin="ellada"][data-theme="night"] #path .pathch{background:var(--el-waves) 0 0/120px 96px repeat,var(--rq-surface)}
-html[data-skin="ellada"] #path .pathch::before{content:"";position:absolute;left:10px;right:10px;top:6px;height:10px;background:var(--el-meander) 0 0/10px 10px repeat-x;pointer-events:none}
-html[data-skin="ellada"] #path .pathch::after{content:"";position:absolute;right:12px;bottom:12px;width:48px;height:48px;background:var(--el-compass) center/contain no-repeat;pointer-events:none}
-html[data-skin="ellada"] #path .pathmap::after{content:"";position:absolute;left:4px;bottom:-62px;width:72px;height:34px;background:var(--el-ship) center/contain no-repeat;pointer-events:none;animation:el-ship 6s ease-in-out infinite alternate}
+/* 17.10 Джессика: одна карта, а не карточка на главу. Главы лежат на одном листе моря, дорога идёт через всю карту (path.js --path-joined) и проходит под картушами глав */
+html[data-skin="ellada"] #pathBox{--path-joined:1}
+html[data-skin="ellada"] #path .pathsea{position:relative;isolation:isolate;margin-top:16px;padding:30px 12px 100px;border-radius:var(--rq-radius-sm);background:var(--el-waves) 0 0/120px 96px repeat,var(--rq-accent-tint);box-shadow:var(--rq-shadow-2)}
+html[data-skin="ellada"][data-theme="night"] #path .pathsea{background:var(--el-waves) 0 0/120px 96px repeat,var(--rq-surface)}
+html[data-skin="ellada"] #path .pathsea::before{content:"";position:absolute;left:10px;right:10px;top:6px;height:10px;background:var(--el-meander) 0 0/10px 10px repeat-x;pointer-events:none}
+html[data-skin="ellada"] #path .pathsea::after{content:"";position:absolute;right:12px;bottom:14px;width:52px;height:52px;background:var(--el-compass) center/contain no-repeat;pointer-events:none}
+html[data-skin="ellada"] #path .pathsea > .pathline{z-index:0}
+html[data-skin="ellada"] #path .pathch{position:relative;margin-top:0;padding:0 0 56px}
+html[data-skin="ellada"] #path .pathch:last-child{padding-bottom:0}
+html[data-skin="ellada"] #path .pathch-h{position:relative;z-index:4;margin:0 0 4px;padding:10px 12px;border-radius:var(--rq-radius-sm);background:var(--rq-surface);box-shadow:0 0 0 1px var(--el-glaze),0 0 0 4px var(--rq-surface),0 0 0 5px var(--el-terracotta)}
+html[data-skin="ellada"] #path .pathch:last-child .pathmap::after{content:"";position:absolute;left:4px;bottom:-74px;width:72px;height:34px;background:var(--el-ship) center/contain no-repeat;pointer-events:none;animation:el-ship 6s ease-in-out infinite alternate}
 @keyframes el-ship{0%{transform:translate(0,0) rotate(-1.5deg)}100%{transform:translate(10px,-2px) rotate(1.5deg)}}
 html[data-skin="ellada"] #path .pathch-h b{font-family:var(--rq-font-display);font-weight:700;font-size:20px;letter-spacing:.02em}
 html[data-skin="ellada"] #path .pathch-n{border-radius:var(--rq-radius-sm);background:var(--el-glaze);color:var(--rq-toast-game-fg);font-family:var(--rq-font-display);box-shadow:0 0 0 2px var(--rq-surface),0 0 0 3px var(--el-terracotta)}
@@ -109,14 +115,17 @@ html[data-skin="ellada"] #path .pathnode.done .pn-dot::after{-webkit-mask-image:
 html[data-skin="ellada"] #path .pathnode.side.done .pn-dot::after{-webkit-mask-image:var(--el-temple-side-done);mask-image:var(--el-temple-side-done)}
 html[data-skin="ellada"] #path .pathnode.boss.done .pn-dot::after{-webkit-mask-image:var(--el-temple-boss-done);mask-image:var(--el-temple-boss-done)}
 html[data-skin="ellada"][data-theme="night"] #path .pn-dot{color:var(--rq-text)}
-html[data-skin="ellada"] #path .pn-dot::before{content:"";position:absolute;left:-62%;right:-62%;top:-36%;bottom:-36%;z-index:1;background:var(--el-isle1) center/100% 100% no-repeat;pointer-events:none}
+html[data-skin="ellada"] #path .pn-dot::before{content:"";position:absolute;left:-45%;right:-45%;top:-30%;bottom:-30%;z-index:1;background:var(--el-isle1) center/100% 100% no-repeat;pointer-events:none}
 html[data-skin="ellada"] #path .pathnode:nth-child(3n) .pn-dot::before{background-image:var(--el-isle2)}
 html[data-skin="ellada"] #path .pathnode:nth-child(3n+1) .pn-dot::before{background-image:var(--el-isle3)}
 html[data-skin="ellada"] #path .pathnode.started .pn-dot{color:var(--rq-accent)}
 html[data-skin="ellada"] #path .pathnode.done .pn-dot{color:var(--el-terracotta)}
 html[data-skin="ellada"][data-theme="night"] #path .pathnode.done .pn-dot{color:var(--rq-accent)}
-html[data-skin="ellada"] #path .pathnode.l{padding-left:52px}
-html[data-skin="ellada"] #path .pathnode.r{padding-right:52px}
+html[data-skin="ellada"] #path .pathnode.l{padding-left:40px}
+html[data-skin="ellada"] #path .pathnode.r{padding-right:40px}
+html[data-skin="ellada"] #path .pathnode{gap:38px}
+html[data-skin="ellada"] #path .pathnode.boss{gap:42px}
+html[data-skin="ellada"] #path .pathnode.side{gap:34px}
 html[data-skin="ellada"] #path .pathnode.boss .pn-dot::before{background-image:var(--el-laurel),var(--el-isle1)}
 html[data-skin="ellada"] #path .pathnode.boss:nth-child(3n) .pn-dot::before{background-image:var(--el-laurel),var(--el-isle2)}
 html[data-skin="ellada"] #path .pathnode.boss:nth-child(3n+1) .pn-dot::before{background-image:var(--el-laurel),var(--el-isle3)}

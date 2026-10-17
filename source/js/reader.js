@@ -57,7 +57,8 @@ function applySet(){
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   const c=el('content');
-  c.style.fontFamily=FONTS[SET.font].v;
+  {const sf=SET.font===0&&skinBookFont();c.style.fontFamily=sf?sf.v:FONTS[SET.font].v;
+   const b0=document.querySelector('#fontSeg button'),f0=skinBookFont()||FONTS[0];if(b0){const xn=b0.querySelector('.xn'),xs=b0.querySelector('.xs');if(xn&&xn.textContent!==f0.label){xn.textContent=f0.label;xn.style.fontFamily=f0.v;if(xs)xs.style.fontFamily=f0.v;}}}
   c.style.fontSize=SET.size+'px';
   c.style.lineHeight=SET.lh;
   rqTextAlign();
@@ -106,7 +107,7 @@ FONTS.forEach((f,i)=>{
   b.onclick=()=>{SET.font=i;rqSaveSetGated();applySet();relayout();}; /* one saveSet, through the write gate (deferred until ready) */
   el('fontSeg').appendChild(b);
 });
-rqCollapse('fontSeg','Шрифт',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return (FONTS[SET.font]||FONTS[0]).v;}});
+rqCollapse('fontSeg','Шрифт',function(){return ((SET.font===0&&skinBookFont())||FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return ((SET.font===0&&skinBookFont())||FONTS[SET.font]||FONTS[0]).v;}});
 function renderThemeSeg(){
   const seg=el('themeSeg');seg.innerHTML='';
   const add=(key,bg,name,locked,yours)=>{

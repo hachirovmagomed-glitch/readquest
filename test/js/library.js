@@ -212,11 +212,12 @@ function renderLibrary(){
 function coinsP(n){return n+' '+(typeof n==='number'?plural(n,'монета','монеты','монет'):'монет');}
 /* «Бабочковый» goal row: 10 cocoons, each tenth of the goal wakes a butterfly; newly woken ones play bb-hatch once (off with reduced motion) */
 let __bbHatched=-1;
-function bbHatchRender(pct){const h=el('bbHatch');if(!h)return;
-  if(document.documentElement.dataset.skin!=='babochkovyi'){if(h.firstChild)h.innerHTML='';__bbHatched=-1;return;}
-  const n=Math.min(10,Math.floor(pct*10+1e-9)),was=__bbHatched<0?n:__bbHatched;let s='';
+/** «Бабочковый» goal row: 10 cocoons, each tenth of pct hatches a butterfly. id 'bbHatch' = library goal card (new ones animate), 'sumHatch' = session summary (static) */
+function bbHatchRender(pct,id){const lib=!id||id==='bbHatch',h=el(id||'bbHatch');if(!h)return;
+  if(document.documentElement.dataset.skin!=='babochkovyi'){if(h.firstChild)h.innerHTML='';if(lib)__bbHatched=-1;return;}
+  const n=Math.min(10,Math.floor(pct*10+1e-9)),was=!lib||__bbHatched<0?n:__bbHatched;let s='';
   for(let k=0;k<10;k++)s+='<i class="'+(k<n?'on'+(k>=was?' new':''):'')+'"></i>';
-  h.innerHTML=s;__bbHatched=n;
+  h.innerHTML=s;if(!lib)return;__bbHatched=n;
   if(n>=10)el('goalSub').textContent='Все бабочки проснулись';}
 function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)return a;if(m>=2&&m<=4)return b;return c;}
 /* --- поиск и фильтры библиотеки --- */

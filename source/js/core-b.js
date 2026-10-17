@@ -66,6 +66,11 @@ const SKIN_ICONS_BB={
  'user-round':'<circle cx="12" cy="14" r="6"/><path d="M10 8.5 7.5 3.5M14 8.5l2.5-5"/><path d="M6.5 3.5h2M15.5 3.5h2"/><path d="M4 12c-2-1-2.5-4 0-5 1.5.5 2.5 2 2.8 3.5M20 12c2-1 2.5-4 0-5-1.5.5-2.5 2-2.8 3.5"/>' /* маскот «Пыльца» */
 };
 SKIN_ICONS.babochkovyi=SKIN_ICONS_BB; /* «Бабочковый»: цветник, цветок, бабочка, кокон, шелкопряд (flower/flower-2 = Lucide, the rest our drawings) */
+/* Confetti per skin (Джессика 17.10): sprite symbol names; unknown skin / no skin → default. A new skin adds its line here.
+   «Эллада»: амфора, свиток, Гелиос, венок; «Бабочковый»: бабочка, цветы, кокон; «Карандашный»: карандаш, тетрадь. */
+const CONFETTI_SKIN={'':['sparkles','star','book-open','check'],pencil:['pencil','notebook-pen','star','sparkles'],
+ ellada:['amphora','book-open','sun','trophy'],babochkovyi:['flame','flower','flower-2','star']};
+function confettiIcons(){const k=document.documentElement.dataset.skin||'';return CONFETTI_SKIN[k]||CONFETTI_SKIN[''];}
 const SKIN_ICONS_ORIG={};
 function applySkinIcons(skin){
   const set=SKIN_ICONS[skin]||{};

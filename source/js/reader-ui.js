@@ -644,7 +644,7 @@ function confetti(opts){
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
-  const ic=['sparkles','star','book-open','check']; /* Lucide in every theme, no emoji; colour = theme tokens (app.html .confetti) */
+  const ic=confettiIcons(); /* own icon set per skin (CONFETTI_SKIN, js/core-b.js), no emoji; colour = theme tokens (app.html .confetti) */
   for(let i=0;i<count;i++){
     const s=document.createElement('div');s.className='confetti';
     s.innerHTML=rqIcon(ic[i%ic.length],16);

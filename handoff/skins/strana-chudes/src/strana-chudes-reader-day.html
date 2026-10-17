@@ -1,0 +1,38 @@
+<html lang="ru"><head><meta charset="utf-8"><style>*{box-sizing:border-box;margin:0;padding:0}body{width:390px;height:844px;overflow:hidden;position:relative;font-family:"Fira Sans",sans-serif;color:#1c1a17;background:#f4ecd9}
+.abs{position:absolute;pointer-events:none}
+.H{font-family:"Playfair Display SC",serif;font-weight:700;letter-spacing:.4px}.os{font-family:"Old Standard TT",serif;font-style:italic}
+.bg{position:absolute;inset:0;background:radial-gradient(100% 70% at 50% 30%,#f8f1e0 0,#f4ecd9 55%,#e9dcbe 100%)}
+.bg:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(28,26,23,0.035) 0 .7px,transparent .7px 3px)}
+.plate{position:relative;background:#fbf6ea;border:1.2px solid #1c1a17;box-shadow:0 0 0 3px #fbf6ea,0 0 0 4px #1c1a17,0 8px 18px rgba(60,40,10,.12)}
+.cn{position:absolute;width:26px;height:26px;line-height:0}.cn.tl{left:2px;top:2px}.cn.tr{right:2px;top:2px;transform:scaleX(-1)}.cn.br{right:2px;bottom:2px;transform:scale(-1)}.cn.bl{left:2px;bottom:2px;transform:scaleY(-1)}
+.hdr{position:absolute;top:0;left:0;right:0;padding:52px 20px 0;display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-size:30px}
+.bal{display:flex;align-items:center;gap:5px;padding:4px 12px 4px 4px;font-weight:600;font-size:14px;background:#fbf6ea;border:1.2px solid #1c1a17;box-shadow:0 0 0 2px #fbf6ea,0 0 0 3px #1c1a17;border-radius:16px}
+.nav{position:absolute;left:12px;right:12px;bottom:14px;height:66px;display:flex;align-items:center;padding:0 10px;isolation:isolate}
+.nav .t{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:500;color:#4d4536;position:relative;padding:6px 0}
+.nav .on{color:#fff;font-weight:600}.nav .on:before{content:"";position:absolute;inset:3px 10px;z-index:-1;background:#a3202a;border:1px solid #1c1a17;box-shadow:inset 0 0 0 2px #fbf6ea}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;height:52px;font-family:"Playfair Display SC",serif;font-weight:700;letter-spacing:1px;font-size:18px;color:#fff;background:#a3202a;border:1.2px solid #1c1a17;box-shadow:inset 0 0 0 3px #a3202a,inset 0 0 0 4px #f4d8c8,3px 3px 0 #1c1a17}
+.bar{height:8px;border:1px solid #1c1a17;background:#fbf6ea}.bar i{display:block;height:100%;background:repeating-linear-gradient(45deg,rgba(0,0,0,0.0) 0 .7px,transparent .7px 3px),#a3202a}
+.cap{font-size:12px;color:#4d4536}
+/* читалка: страница чистая */
+.rd{position:absolute;inset:0;background:#f8f3e6;color:#1c1a17}
+.page{position:absolute;top:96px;bottom:150px;left:0;right:0;overflow:hidden;padding:20px 26px 0;font-family:"EB Garamond",serif;font-size:18px;line-height:1.55;text-align:left}
+.page h3{font-family:"Playfair Display SC",serif;font-size:19px;font-weight:700;margin-bottom:12px;letter-spacing:.3px}.page p{text-indent:1.4em;margin-bottom:6px}
+.page p:first-of-type::first-letter{font-size:1em}
+.rtop{position:absolute;top:0;left:0;right:0;height:96px;padding:44px 8px 0;display:flex;align-items:center;background:#efe5cd;border-bottom:1.2px solid #1c1a17;box-shadow:0 3px 0 #efe5cd,0 4px 0 #1c1a17}
+.rtop .t{flex:1;text-align:center;font-family:"Playfair Display SC",serif;font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:42px;height:42px;display:flex;align-items:center;justify-content:center;color:#1c1a17}
+.rbot{position:absolute;left:0;right:0;bottom:0;height:150px;background:#efe5cd;border-top:1.2px solid #1c1a17;box-shadow:0 -3px 0 #efe5cd,0 -4px 0 #1c1a17;padding:16px 22px 0}
+.pg{display:flex;justify-content:center;align-items:center;gap:10px;font-size:14px;margin-bottom:10px;font-weight:500}
+.sl{position:relative;height:22px}.sl .tr{position:absolute;top:10px;left:0;right:0;height:3px;background:#c9b994}.sl .fi{position:absolute;top:10px;left:0;height:3px;background:#a3202a}
+.sl .th{position:absolute;top:2px;margin-left:-9px;width:18px;height:18px;border-radius:50%;background:#fbf6ea;border:1.5px solid #1c1a17;box-shadow:inset 0 0 0 3px #fbf6ea,inset 0 0 0 9px #a3202a}
+.tools{display:flex;justify-content:space-around;margin-top:14px;font-size:12px;font-weight:500}.tools div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.night{background:#0d0f1c}.night .rd{background:#0f1120;color:#e2dccb}
+.night .rtop,.night .rbot{background:#161a2e;border-color:#3a4270;box-shadow:none;color:#ece4d2}
+.night .rtop .t,.night .pg,.night .tools{color:#ece4d2}.night .ib,.night .tools svg{color:#a9bcff}
+.night .sl .tr{background:#2f3658}.night .sl .fi{background:#ff6b6b}.night .sl .th{background:#161a2e;border-color:#ece4d2;box-shadow:inset 0 0 0 3px #161a2e,inset 0 0 0 9px #ff6b6b}
+</style></head><body class=""><div class="rd"><div class="page"><h3>Глава 7. Безумный вечер</h3><p>Чай остыл, а гости всё не расходились. Хозяйка дома то и дело поглядывала на часы над камином, но стрелки, казалось, совсем не двигались. За окном моросил дождь, и в саду темнели мокрые кусты роз. Маленькая Лиза сидела на подоконнике с книгой и думала, что самое интересное всегда случается, когда взрослые заняты разговором. Чай остыл, а гости всё не расходились. Хозяйка дома то и дело поглядывала на часы над камином, но стрелки, казалось, совсем не двигались. За окном моросил дождь, и в саду темнели мокрые кусты роз. Маленькая Лиза сидела на подоконнике с книгой и думала, что самое интересное всегда случается, когда взрослые заняты разговором. </p><p>Чай остыл, а гости всё не расходились. Хозяйка дома то и дело поглядывала на часы над камином, но стрелки, казалось, совсем не двигались. За окном моросил дождь, и в саду темнели мокрые кусты роз. Маленькая Лиза сидела на подоконнике с книгой и думала, что самое интересное всегда случается, когда взрослые заняты разговором. </p></div>
+<div class="rtop"><div class="ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="t">Сад за стеной</div><div class="ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></div><div class="ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></div></div>
+<div class="rbot"><div class="pg"><span>98 из 185</span></div>
+<div class="sl"><div class="tr"></div><div class="fi" style="width:52.71739130434783%"></div><div class="th" style="left:52.71739130434783%"></div></div>
+<div class="tools"><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg>Оглавление</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>Текст</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Ночь</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/><path d="M12 7v6M9 10h6"/></svg>Закладка</div></div></div></div></body></html>

@@ -20,19 +20,67 @@ const THEMES={
 };
 /* day/night variants that have no swatch of their own (toggleDayNight swaps within the skin) */
 const THEME_VARIANTS={'pencil-night':{name:'Карандашный',bg:'#262a31',txt:'#e3e0d8',skin:'pencil',night:true,base:'pencil'}};
-function themeBase(k){const v=THEME_VARIANTS[k];return v?v.base:k;}
+/* shop skins with app styling (handoff/skins/<dir>/tokens.css → tokens.css, decor → skins/skins.css). Theme key = skin key, night = key+'-night'.
+   bg/txt = the clean book page of the skin ([data-page] tokens). Rendered only while the skin is owned (else sepia, rq_set not rewritten). */
+const SKIN_THEMES={
+ ellada:{name:'Эллада',bg:'#fcf9f3',txt:'#1a1410',skin:'ellada',shop:'skin-ellada',icon:'amphora'},
+ 'ellada-night':{name:'Эллада',bg:'#100d0b',txt:'#ebe0d2',skin:'ellada',shop:'skin-ellada',icon:'amphora',night:true,base:'ellada'},
+ babochkovyi:{name:'Бабочковый',bg:'#fcfbf8',txt:'#1d2140',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2'},
+ 'babochkovyi-night':{name:'Бабочковый',bg:'#0e1019',txt:'#e4e6ef',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2',night:true,base:'babochkovyi'}
+};
+function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base?v.base:k;}
+/** owned shop skin theme for a saved key, else null (unknown / not bought / not styled yet) */
+function skinTheme(k){const t=SKIN_THEMES[k];return t&&typeof shopOwns==='function'&&shopOwns(t.shop)&&shopReady(t.shop)?t:null;}
+/** day/night key of the same skin: 'pencil' ↔ 'pencil-night', 'ellada' ↔ 'ellada-night' */
+function skinThemeKey(skin,night){return night?skin+'-night':skin;}
 /** old (formerly paid) theme saved in rq_set — free since the shop build */
 function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.find(x=>x.id===k))||null;} /* shop build: the 9 old themes are free */
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
 /** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
     any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
 function syncThemeColor(){try{const c=getComputedStyle(document.body).backgroundColor,m=c.match(/\d+/g),mt=document.querySelector('meta[name=theme-color]');if(mt&&m&&m.length>=3)mt.content='#'+m.slice(0,3).map(function(x){return (+x).toString(16).padStart(2,'0');}).join('');}catch(e){}}
+/* skin icon sets: the sprite symbols (#i-*) are redrawn for the worn skin, so every rqIcon/<use> on every screen follows it;
+   leaving the skin restores the Lucide originals (cached on first swap). Same names = same meaning, layout untouched.
+   «Эллада»: свиток, амфора, шлем, лира (настройки), копьё (назад), факел (серия), венок, Гелиос / Селена — our drawings, 24×24 stroke like Lucide. */
+const SKIN_ICONS={ellada:{
+ 'book-open':'<path d="M6 4v16M18 4v16"/><path d="M4 4h4M4 20h4M16 4h4M16 20h4"/><path d="M6 7h12M6 17h12"/><path d="M9 10.5h6M9 13.5h4"/>',
+ 'library':'<path d="M6 4v16M18 4v16"/><path d="M4 4h4M4 20h4M16 4h4M16 20h4"/><path d="M6 7h12M6 17h12"/><path d="M9 10.5h6M9 13.5h4"/>',
+ 'gift':'<path d="M10 2v5.632c0 .424-.272.795-.653.982A6 6 0 0 0 6 14c.006 4 3 7 5 8"/><path d="M10 5H8a2 2 0 0 0 0 4h.68"/><path d="M14 2v5.632c0 .424.272.795.652.982A6 6 0 0 1 18 14c0 4-3 7-5 8"/><path d="M14 5h2a2 2 0 0 1 0 4h-.68"/><path d="M18 22H6"/><path d="M9 2h6"/>',
+ 'user-round':'<path d="M5 20v-8a7 7 0 0 1 14 0v2h-5v6"/><path d="M14 14v-2.5"/><path d="M7 5.5c2.5-3 7.5-3 10 0"/><path d="M5 20h9"/>',
+ 'settings':'<path d="M7 21h10"/><path d="M8 21c-3-4-3-9-1-13 .6-1.3.3-2.6-1-3.5"/><path d="M16 21c3-4 3-9 1-13-.6-1.3-.3-2.6 1-3.5"/><path d="M7 8h10"/><path d="M10 8v11M12 8v11M14 8v11"/>',
+ 'menu':'<path d="M4 6h16M4 12h16M4 18h16"/><path d="M4 4.5v3M20 4.5v3M4 16.5v3M20 16.5v3"/>',
+ 'search':'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 13h5v-4H9.5v2"/>',
+ 'sun':'<circle cx="12" cy="12" r="4"/><path d="M12 1.5l1.3 3h-2.6zM12 22.5l1.3-3h-2.6zM1.5 12l3 1.3v-2.6zM22.5 12l-3 1.3v-2.6z"/><path d="M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
+ 'moon':'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 2.5v4M17 4.5h4"/>',
+ 'bookmark':'<path d="M6 3h12v18l-6-4-6 4z"/><path d="M12 6.5c2 1.2 2 4 0 6-2-2-2-4.8 0-6z"/>',
+ 'list':'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 4.5h3v3h-3zM3.5 10.5h3v3h-3zM3.5 16.5h3v3h-3z"/>',
+ 'flame':'<path d="M12 2c3 3 3.5 5.5 2.5 7.5h-5C8.5 7.5 9 5 12 2z"/><path d="M8.5 9.5h7"/><path d="M9.5 9.5 11 22h2l1.5-12.5"/>',
+ 'trophy':'<path d="M12 21c-5 0-8-4-8-9 0-2 .5-4 1.5-5.5M12 21c5 0 8-4 8-9 0-2-.5-4-1.5-5.5"/><path d="M5 12 3 11M5.5 16l-2 .5M19 12l2-1M18.5 16l2 .5M6 8.5 4.2 7M18 8.5 19.8 7"/><path d="M10 21l2 2 2-2"/>',
+ 'arrow-left':'<path d="M21 12H8"/><path d="M3 12l5-3.5c-.7 2.3-.7 4.7 0 7z"/>'
+}};
+const SKIN_ICONS_BB={
+ 'gift':'<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"/>', /* «Цветник» */
+ 'trophy':'<circle cx="12" cy="12" r="3"/><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/><path d="M12 7.5V9"/><path d="M7.5 12H9"/><path d="M16.5 12H15"/><path d="M12 16.5V15"/><path d="m8 8 1.88 1.88"/><path d="M14.12 9.88 16 8"/><path d="m8 16 1.88-1.88"/><path d="M14.12 14.12 16 16"/>',
+ 'flame':'<path d="M12 8v12"/><path d="M12 9C10 5 6.5 3 4.5 4.5 2.8 6 3.6 10 7 11.5 4.6 12.6 4.2 16 6.6 17.4 9 18.8 11 16 12 13"/><path d="M12 9c2-4 5.5-6 7.5-4.5 1.7 1.5.9 5.5-2.5 7 2.4 1.1 2.8 4.5.4 5.9-2.4 1.4-4.4-1.4-5.4-4.4"/><path d="M12 8 10.5 4.5M12 8l1.5-3.5"/>', /* серия = бабочка */
+ 'star':'<path d="M12 2v3"/><path d="M12 5c-4 2-4.5 11 0 17 4.5-6 4-15 0-17z"/><path d="M9.2 10.5Q12 12 14.8 10.5M8.8 14.5Q12 16 15.2 14.5"/>', /* уровень = кокон */
+ 'user-round':'<circle cx="12" cy="14" r="6"/><path d="M10 8.5 7.5 3.5M14 8.5l2.5-5"/><path d="M6.5 3.5h2M15.5 3.5h2"/><path d="M4 12c-2-1-2.5-4 0-5 1.5.5 2.5 2 2.8 3.5M20 12c2-1 2.5-4 0-5-1.5.5-2.5 2-2.8 3.5"/>' /* маскот «Пыльца» */
+};
+SKIN_ICONS.babochkovyi=SKIN_ICONS_BB; /* «Бабочковый»: цветник, цветок, бабочка, кокон, шелкопряд (flower/flower-2 = Lucide, the rest our drawings) */
+const SKIN_ICONS_ORIG={};
+function applySkinIcons(skin){
+  const set=SKIN_ICONS[skin]||{};
+  Object.keys(SKIN_ICONS).forEach(function(k){Object.keys(SKIN_ICONS[k]).forEach(function(n){
+    const sym=document.getElementById('i-'+n);if(!sym)return;
+    if(!(n in SKIN_ICONS_ORIG))SKIN_ICONS_ORIG[n]=sym.innerHTML;
+    const want=set[n]||SKIN_ICONS_ORIG[n];if(sym.innerHTML!==want)sym.innerHTML=want;});});
+}
 function applySkin(){setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
+  applySkinIcons(t.skin||'');
   const lt=document.getElementById('libTitle');if(lt)lt.textContent='Библиотека'; /* «Карандашный»: mockup title */
-  const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{const lib=document.getElementById('library');if(lib&&!lib.classList.contains('hidden')&&typeof renderLibrary==='function')renderLibrary();}catch(e){}}
+  const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{if(typeof renderLibrary==='function')renderLibrary();}catch(e){} /* covers are skin-drawn: re-render even when the library is behind settings / the reader */}
   applySkin._last=sk;
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }
@@ -41,7 +89,7 @@ function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
 function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&window.__rqWriter&&__rqWriter.mayWrite())__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
-function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||ownedShopTheme(SET.theme)||THEMES.sepia;}
+function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||skinTheme(SET.theme)||ownedShopTheme(SET.theme)||THEMES.sepia;}
 const FONTS=[
  {label:'Georgia',v:'Georgia, serif'},
  {label:'Times',v:'"Times New Roman", Times, serif'},
@@ -51,7 +99,7 @@ const FONTS=[
  {label:'Verdana',v:'Verdana,Geneva,sans-serif'},
  {label:'Trebuchet',v:'"Trebuchet MS",sans-serif'},
  {label:'Tahoma',v:'Tahoma,sans-serif'},
- {label:'Comic',v:'"Comic Sans MS","Segoe UI",cursive'},
+ {label:'Comic',v:'"Comic Sans MS","Comic Neue","Segoe UI",system-ui,sans-serif'}, /* 16.10: no «cursive» — on Android it is a Latin-only face: punctuation from it, Cyrillic from another font */
  {label:'Mono',v:'"Courier New",monospace'}
 ];
 

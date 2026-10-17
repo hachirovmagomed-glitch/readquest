@@ -104,8 +104,9 @@ function weeklyPaid(wk){return (S.weeklyPaidWeeks||[]).indexOf(wk||weekKey(today
 function mvpDailyProg(day){const g=goalMin();return Math.min(1,dayMin(day||today())/g);}
 /** ONE function for whole counted minutes of a day (summary, quests, reader counter «7 / 10 мин»). */
 function dayMinFloor(day,live){return Math.floor(dayMin(day||today(),live));}
-/** Streak threshold (Boss/Product): a day keeps the streak at ≥ 2 counted minutes. atRisk + hint use the same number. */
-const STREAK_MIN=2;
+/** Streak soft floor (Маня 15.10: 3 min, was 2): a day keeps the streak at ≥ 3 counted minutes; the daily goal (10) is separate.
+    atRisk + hint use the same number. */
+const STREAK_MIN=3;
 function streakAtRisk(day){const k=day||today();const m=isMvp()?dayMin(k):(((S.hist||{})[k]||{}).min||0);return S.streak>0&&m<STREAK_MIN;}
 function mvpDailyInfo(day,live){return dayMinFloor(day,live)+' / '+goalMin()+' мин';} /* floor: never «10 / 10» before the goal is met */
 function mvpWeeklyProg(wk){const w=daysInWeekAtGoal(goalMin(),wk);return Math.min(1,w.count/4);}

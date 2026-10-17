@@ -16,7 +16,7 @@ const hook = (mode) => {
     if (v && !window.__picked && mode !== 'none') { window.__picked = 1;
       try { if (mode === 'closed') { window.__rqWriter.mayWrite = () => false; }
         const fs = document.querySelectorAll('#fontSeg button'); fs[2].onclick(); fs[5].onclick(); fs[3].onclick(); /* several picks before ready */
-        renderSettings(); const pt = document.querySelector('#appThemeBox .appsw[data-k="pencil"]'); pt && pt.onclick();
+        renderSettings(); const pt = document.querySelector('#appSkinBox .appsw[data-k="pencil"]'); pt && pt.onclick();
         window.__mem = { font: SET.font, theme: SET.theme }; window.__wBefore = window.__w.length; } catch (e) { window.__hookErr = String(e); } }
     r = v; window.__rqR = v; } });
 };

@@ -6,14 +6,23 @@ try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}')
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
    SET.nav is never deleted or rewritten here; flipping already wiped by the old bug is not restored. Writes: rqSaveSetGated only. */
-const FLIP_DEF={btns:false,tap:true,invert:false,swipe:true},FLIP_KEYS=['btns','tap','invert','swipe'];
-function flipFrom(o){const f={};FLIP_KEYS.forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:FLIP_DEF[k];});return f;}
+const FLIP_DEF={btns:false,tap:true,invert:false,swipe:true,mode:'page',anim:'none'},FLIP_KEYS=['btns','tap','invert','swipe'];
+/* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings in the same object; junk → default */
+const FLIP_STR={mode:['page','scroll'],anim:['none','slide','fade']};
+function flipFrom(o){const f={};FLIP_KEYS.forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:FLIP_DEF[k];});
+  Object.keys(FLIP_STR).forEach(function(k){f[k]=FLIP_STR[k].indexOf(o[k])>=0?o[k]:FLIP_DEF[k];});return f;}
 function flipNorm(s){
   if(s.flip!=null&&(typeof s.flip!=='object'||Array.isArray(s.flip)))s.flip=null;
   if(s.flip)s.flip=flipFrom(s.flip);
   else if(s.nav&&typeof s.nav==='object'&&!Array.isArray(s.nav)&&FLIP_KEYS.some(function(k){return k in s.nav;})){s.flip=flipFrom(s.nav);return true;}
   return false;}
 function flipGet(){return SET&&SET.flip?SET.flip:FLIP_DEF;}
+/** Vertical scroll is for text only; PDF stays paged (arch.md). */
+function rqScrollMode(){return typeof R!=='undefined'&&R&&R.mode==='text'&&flipGet().mode==='scroll';}
+/** The page-turn animation that may run now: null when «Нет», when «Анимации» are off in general settings, or with prefers-reduced-motion. */
+function rqAnimKind(){const a=flipGet().anim;if(!a||a==='none')return null;
+  if(typeof rqStill==='function'&&rqStill())return null; /* wave 2: «Анимации» off or prefers-reduced-motion */
+  return a;}
 /* 1б settings contract (same rules as storage/schema.js hydrateSettings) */
 function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
@@ -44,11 +53,9 @@ function applySet(){
   /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
-  r.style.setProperty('--rq-pdf-dim',String(SET.pdfDim)); /* 1б: night PDF layer */
   {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
-  if(el('pdfDimRange')){const pc=Math.round(SET.pdfDim*100);el('pdfDimRange').value=pc;el('pdfDimVal').textContent=pc+' %';}
   const c=el('content');
   c.style.fontFamily=FONTS[SET.font].v;
   c.style.fontSize=SET.size+'px';
@@ -60,13 +67,14 @@ function applySet(){
   c.style.webkitHyphens=SET.hyph===false?'none':'auto';
   c.classList.toggle('noind',SET.indent===false);
   c.style.transition='none'; /* Android: never animate the giant column strip (blank-page bug) */
-  el('szVal').textContent=SET.size+'px';
+  el('szVal').textContent=SET.size;
   el('lhVal').textContent=SET.lh.toFixed(2);
-  el('lsVal').textContent=(SET.ls||0)+'px';
+  el('lsVal').textContent=(SET.ls||0);
+  if(el('mgVal'))el('mgVal').textContent=SET.margin;
   el('alignJ').classList.toggle('on',SET.align!=='l');
   el('alignL').classList.toggle('on',SET.align==='l');
-  el('hyphTgl').classList.toggle('on',SET.hyph!==false);
-  el('indTgl').classList.toggle('on',SET.indent!==false);
+  rqSw('hyphTgl',SET.hyph!==false);
+  rqSw('indTgl',SET.indent!==false);
   el('wLight').classList.toggle('on',SET.weight===300);
   el('wNorm').classList.toggle('on',!SET.weight||SET.weight===400);
   el('wBold').classList.toggle('on',SET.weight===600);
@@ -74,15 +82,22 @@ function applySet(){
   try{rqCollapseSync('fontSeg');}catch(e){}
   document.querySelectorAll('#themeSeg .swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt));
   const nv=flipGet();
-  el('navBtns').classList.toggle('on',!!nv.btns);
-  el('navTap').classList.toggle('on',nv.tap!==false);
-  el('navInvert').classList.toggle('on',!!nv.invert);
-  el('navSwipe').classList.toggle('on',nv.swipe!==false);
+  rqSw('navBtns',!!nv.btns);
+  rqSw('navTap',nv.tap!==false);
+  rqSw('navInvert',!!nv.invert);
+  rqSw('navSwipe',nv.swipe!==false);
+  {const pdf=R&&R.mode==='pdf';
+   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===(pdf?'page':nv.mode));b.disabled=pdf&&b.dataset.v==='scroll';});
+   const mn=el('flipModeNote');if(mn){mn.hidden=!pdf;mn.textContent=pdf?'В PDF пока только постранично, прокрутка работает в TXT, FB2 и EPUB.':'';}
+   document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.anim);});
+   const an=el('flipAnimNote');if(an){let t='';if(nv.anim!=='none'&&!rqAnimKind())t=(S.ux&&S.ux.anim===false)?'Сейчас не видно: анимации выключены в общих настройках.':'Сейчас не видно: в телефоне включено «Убрать анимацию».';
+     else if(nv.anim!=='none'&&nv.mode==='scroll'&&!pdf)t='В прокрутке тап по краю прокручивает плавно.';an.hidden=!t;an.textContent=t;}
+   el('reader').classList.toggle('scrollmode',rqScrollMode());}
   el('navPrev').classList.toggle('hidden',!nv.btns);
   el('navNext').classList.toggle('hidden',!nv.btns);
 }
-el('pdfDimRange').oninput=e=>{const v=Math.round((parseInt(e.target.value,10)||0)/5)*5/100;SET.pdfDim=Math.max(0,Math.min(0.5,v));applySet();};
-el('pdfDimRange').onchange=()=>saveSet();
+/* switch rows in «Настройки чтения» (16.10): state = aria-checked (+ class on for older code) */
+function rqSw(id,on){const b=el(id);if(!b)return;b.classList.toggle('on',!!on);b.setAttribute('aria-checked',on?'true':'false');}
 FONTS.forEach((f,i)=>{
   /* list row (mockup sf-1g-fonts): sample + name in that font, check on the current one; ≥44px */
   const b=document.createElement('button');b.type='button';b.className='xopt';b.dataset.k=String(i);
@@ -100,6 +115,7 @@ function renderThemeSeg(){
     b.style.background=bg;b.style.boxShadow='inset 0 0 0 1px rgba(255,255,255,.15)';
     if(locked){b.style.opacity=.35;b.innerHTML=rqIcon('lock',14);}
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
+    else if(SKIN_THEMES[key]){b.classList.add('sw-pencil');b.style.color=SKIN_THEMES[key].txt;b.innerHTML=rqIcon(SKIN_THEMES[key].icon,15);b.setAttribute('aria-label',name);} /* bought shop skin */
     b.onclick=()=>{
       if(locked){alert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
       const from=skinOf(activeTheme());
@@ -110,6 +126,7 @@ function renderThemeSeg(){
     seg.appendChild(b);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
+  Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>add(k,SKIN_THEMES[k].bg,SKIN_THEMES[k].name,false)); /* bought shop skins */
   /* 1в: a bought paid theme that is saved as the current one stays, as a highlighted «Ваша тема» swatch */
   {const o=ownedShopTheme(SET.theme);if(o)add(o.id,o.bg,o.name,false,true);}
   seg.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('on',b.dataset.t===themeBase(SET.theme)&&!SET.cBg&&!SET.cTxt)); /* rebuilt swatches keep the current mark */
@@ -162,6 +179,12 @@ el('navBtns').onclick=()=>flipSet('btns');
 el('navTap').onclick=()=>flipSet('tap');
 el('navInvert').onclick=()=>flipSet('invert');
 el('navSwipe').onclick=()=>flipSet('swipe');
+/* 16.10: «Как листать» / «Анимация» — strings in SET.flip, through the gate; switching the mode re-lays the text at the same place */
+function flipPick(k,v){if(flipGet()[k]===v)return;const anchor=(k==='mode'&&R&&R.mode==='text'&&R.book)?readingAnchor():null;
+  SET.flip=Object.assign({},flipGet());SET.flip[k]=v;rqSaveSetGated();applySet();
+  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});}
+document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.onclick=function(){if(!b.disabled)flipPick('mode',b.dataset.v);};});
+document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.onclick=function(){flipPick('anim',b.dataset.v);};});
 
 /* ================= ЧИТАЛКА ================= */
 let R={book:null,page:0,pageCount:1,step:0,start:0,turned:0,maxRatio:0,mode:'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0};
@@ -175,6 +198,7 @@ async function openBook(id){
   if(b.type!=='pdf'&&!b.text&&__rq&&__rq.idb){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
+  if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
   if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
@@ -187,6 +211,7 @@ async function openBook(id){
   c.classList.toggle('hidden',R.mode==='pdf');
   el('reader').classList.toggle('pdfmode',R.mode==='pdf');
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
+  el('viewer').scrollTop=0;el('reader').classList.toggle('scrollmode',rqScrollMode());
   hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
@@ -252,7 +277,7 @@ function hyphWaitRun(h,p){
       layout();
       let np=pageOfOffset(txtNodes(),off);if(np<0)np=R.page;
       np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;
-      el('content').style.transform='translateX('+(-np*R.step)+'px)';
+      rqShowPage(np,null);
       el('rPage').textContent=el('pgNum').textContent=(np+1)+' / '+R.pageCount;
       const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;if(typeof pgArtSync==='function')pgArtSync();
       HY.off=off;HY.relayouts++; /* silent: no goPage → R.pos / R.maxRatio / persist / tracker untouched */

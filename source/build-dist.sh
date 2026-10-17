@@ -40,6 +40,14 @@ cp "$TOK" "$DIST/tokens.css"
 SKTOK="${RQ_SKIN_TOKENS:-$ROOT/../handoff/skins/karandashny/tokens.rq.css}"
 [ -f "$SKTOK" ] || { echo "build-dist: karandashny tokens.rq.css not found at $SKTOK" >&2; exit 1; }
 { printf '\n'; cat "$SKTOK"; } >> "$DIST/tokens.css"
+# Shop skins with app styling: handoff/skins/<dir>/tokens.css appended the same way. The pack's Google Fonts @import is dropped
+# (offline PWA, and @import is invalid mid-file): the fonts ship as woff2 in fonts/, @font-face in skins/skins.css.
+for SK in ${RQ_SHOP_SKINS:-ellada babochkovyi}; do
+  F="${RQ_SKINS_DIR:-$ROOT/../handoff/skins}/$SK/tokens.css"; [ -f "$F" ] || { echo "build-dist: skin tokens not found: $F" >&2; exit 1; }
+  { printf '\n'; grep -v '^@import' "$F"; } >> "$DIST/tokens.css"
+done
+if grep -q '@import' "$DIST/tokens.css"; then echo "build-dist: @import left in tokens.css" >&2; exit 1; fi
+mkdir -p "$DIST/skins"; cp "$ROOT/skins/"*.css "$DIST/skins/"
 
 # Stage 1a: classic scripts cut out of app.html live in js/ (copied for both rq and rqt; only *.js, no notes/dotfiles).
 # Each gets ?v=BUILD in the HTML (below) and in the SW precache, so a new HTML never gets an old file from SW/HTTP cache.
@@ -88,8 +96,10 @@ cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
+# «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB
+if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
-PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE | sed 's#^\./##' | sort | while read -r f; do
+PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' | sed 's#^\./##' | sort | while read -r f; do
   case "$f" in vendor/*) echo "\"$f\"";; *.js) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
 sed -i "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#__RQ_PRECACHE__#[\"./\",$PRE]#" "$DIST/sw.js"
 

@@ -13,7 +13,7 @@ Entry point for testers: **`app.html`** (not `v6.html`).
 | Crash safety | page change / hidden / pagehide / 15 s | draft in `localStorage.rq_session_draft` → `recoverDraft()` on next boot |
 | Page visibility | page change / visibility hidden / every 15s | `logReadingEvent({ bookId, pageVisibleMs, page })` → IDB `events` |
 | Session day | `tracker.begin()` | `date` = **local** day the session started (`localDay()`, never UTC); 23:50–00:15 = one row on the first day |
-| Soft streak | end of session | streak updates when the session day's minutes ≥ 2 (daily quest still needs goal, default **10**) |
+| Soft streak | end of session | streak updates when the session day's minutes ≥ 3 (`STREAK_MIN`) (daily quest still needs goal, default **10**) |
 | Hero stub | profile «Создать героя» | `logAnalyticsEvent({ type: 'hero_create_tapped', date, at })` → IDB `events` (toast «Скоро ✨»). **Not** written to `sessions`. |
 
 ## Boot path (single writer)

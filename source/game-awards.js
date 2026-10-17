@@ -113,7 +113,7 @@ export function minutesOnDay(rows, day) {
 
 /**
  * THE day-minutes rule (1б, team decision A): whole minutes of a local day = Math.floor(sum of that day's
- * sessions[].minutes). Streak (≥ 2), daily «N / 10», week, gold, quests, XP and metrics.py all use this —
+ * sessions[].minutes). Streak (≥ 3, STREAK_MIN), daily «N / 10», week, gold, quests, XP and metrics.py all use this —
  * no second formula. EPS only absorbs float noise of the sum (1.4 + 0.6 = 1.9999999999999998 → 2).
  */
 export const DAY_MIN_EPS = 1e-9;

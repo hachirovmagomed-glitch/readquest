@@ -1,0 +1,55 @@
+# Runs the full test suite (source/test/run-all.sh) on every push. A PR shows the result of the push run on its head,
+# so there is no separate pull_request run. main holds only built pages (no source/), so it is skipped.
+name: tests
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # scriptv archives an old commit, importskin serves origin/main
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Fonts for the test PDFs
+        run: sudo apt-get install -y -qq fonts-dejavu-core
+
+      - name: Prepare test environment
+        run: bash .github/ci/setup.sh
+
+      - name: Run all tests
+        working-directory: source/test
+        run: ./run-all.sh
+
+      - name: Show failed checks
+        if: failure()
+        run: grep -H '^FAIL' /tmp/rq-runall/*/*.log | cut -c1-1500 || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-logs
+          path: /tmp/rq-runall/
+          retention-days: 14

@@ -89,6 +89,8 @@ export async function logAnalyticsEvent(entry) {
   if (entry.type === 'theme_changed') { rec.from = String(entry.from || '').slice(0, 32); rec.to = String(entry.to || '').slice(0, 32); }
   // purchase (shop): catalog id + price paid
   if (entry.type === 'purchase') { rec.id = String(entry.id || '').slice(0, 48); rec.price = Math.max(0, Math.round(Number(entry.price) || 0)); }
+  // test_gold (rqt only): «+1000 монет для теста», amount = coins added
+  if (entry.type === 'test_gold') rec.amount = Math.max(0, Math.round(Number(entry.amount) || 0));
   return addEvent(rec);
 }
 

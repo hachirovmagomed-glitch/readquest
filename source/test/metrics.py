@@ -3,7 +3,7 @@
 
 Usage: python3 metrics.py --start 2026-10-12 exports/*.json
 Each file = one tester's export (sessions[] rows may carry an `id` — ignored here). Sessions under ~10 s with 0 pages are never logged
-by app.html, so "fake" = sat in a book without turning pages. Purchases: game.rewardPurchases[]. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Skins: theme_changed events (from, to = data-skin values; day/night toggles must NOT emit it); "kept" = last `to` differs from first `from`. Week 1 = start..start+6, week 2 = start+7..start+13.
+by app.html, so "fake" = sat in a book without turning pages. Real-life rewards: game.rewardPurchases[] minus game.rewardRefunds[] (a refund removes its purchaseId; without one, the last purchase with that title). Skin buys: purchase events, counted apart. Test coins (+1000 button, rqt only): test_gold events, reported, never counted. Only exports with ns="rq" (main build) count; ns="rqt" (test build) and exports without ns are skipped with a warning. --start must be a Monday. Skins: theme_changed events (from, to = data-skin values; day/night toggles must NOT emit it); "kept" = last `to` differs from first `from`. Week 1 = start..start+6, week 2 = start+7..start+13.
 """
 import argparse, json, math, statistics, sys
 from collections import defaultdict
@@ -17,8 +17,12 @@ def d(s): return date.fromisoformat(s[:10])
 def tester(path, start):
     data = json.load(open(path, encoding="utf-8"))
     ns = data.get("ns")
+    ev = data.get("events", []) or []
+    test_gold = sum(int(e.get("amount") or 0) for e in ev if e.get("type") == "test_gold")
     if ns != "rq":
         why = "test build (ns=rqt)" if ns == "rqt" else f"no/unknown ns ({ns!r}), export predates ns/build fields"
+        if test_gold:
+            why += f", test coins: {test_gold}"
         print(f"! skipped {path}: {why}", file=sys.stderr)
         return None
     if data.get("schemaVersion") != 1:
@@ -43,8 +47,22 @@ def tester(path, start):
     # Free 2nd skin: events[] {type:"theme_changed", from, to} with data-skin values (not day/night). "kept" = ended on a theme other than the starting one.
     th = [e for e in data.get("events", []) if e.get("type") == "theme_changed"]
     theme_kept = bool(th) and th[-1].get("to") != th[0].get("from")
-    buys = len((data.get("game") or {}).get("rewardPurchases") or [])
-    return {"buys": buys, "file": path, "w1_days10": w1_ok, "w2_days10": w2_ok, "w2_any": w2_any,
+    if test_gold:
+        print(f"! {path}: main build export has test_gold events (test coins: {test_gold}) — counted anyway", file=sys.stderr)
+    game = data.get("game") or {}
+    purchases = [p for p in (game.get("rewardPurchases") or []) if isinstance(p, dict)]
+    left = list(purchases)
+    for r in (game.get("rewardRefunds") or []):
+        if not isinstance(r, dict):
+            continue
+        hit = next((p for p in left if r.get("purchaseId") and p.get("id") == r.get("purchaseId")), None)
+        if hit is None and not r.get("purchaseId"):
+            hit = next((p for p in reversed(left) if p.get("title") == r.get("title")), None)
+        if hit is not None:
+            left.remove(hit)
+    buys = len(left)
+    skin_buys = sum(1 for e in ev if e.get("type") == "purchase")
+    return {"buys": buys, "skin_buys": skin_buys, "file": path, "w1_days10": w1_ok, "w2_days10": w2_ok, "w2_any": w2_any,
             "sessions": len(sessions), "fake": fake, "hero_taps": hero, "build": data.get("build", "?"), "pdf_stalls": stalls, "theme_changed": len(th) > 0, "theme_kept": theme_kept}
 
 def main():
@@ -58,9 +76,9 @@ def main():
     rows = [r for r in (tester(f, start) for f in a.files) if r]
     if not rows:
         sys.exit("no main-build (ns=rq) exports to count")
-    print("file | build | w1 days>=10 | w2 days>=10 | w2 active days | sessions | fake | hero taps | reward buys")
+    print("file | build | w1 days>=10 | w2 days>=10 | w2 active days | sessions | fake | hero taps | reward buys | skin buys")
     for r in rows:
-        print(f"{r['file']} | {r['build']} | {r['w1_days10']} | {r['w2_days10']} | {r['w2_any']} | {r['sessions']} | {r['fake']} | {r['hero_taps']} | {r['buys']}")
+        print(f"{r['file']} | {r['build']} | {r['w1_days10']} | {r['w2_days10']} | {r['w2_any']} | {r['sessions']} | {r['fake']} | {r['hero_taps']} | {r['buys']} | {r['skin_buys']}")
     n = len(rows); tot = sum(r["sessions"] for r in rows) or 1
     med = statistics.median(r["w2_days10"] for r in rows)
     ret = sum(1 for r in rows if r["w2_any"] > 0) / n
@@ -73,6 +91,8 @@ def main():
     print(f"Fake sessions (>=1 min, 0 page turns): {fake:.0%}  (alarm > 10%)")
     print(f"Tapped 'Создать героя': {hero:.0%}  (build AI hero if > 33%)")
     print(f"Bought at least one real reward: {buy:.0%}")
+    skin = sum(1 for r in rows if r["skin_buys"] > 0) / n
+    print(f"Bought a skin: {skin:.0%}")
     th_ch = sum(1 for r in rows if r["theme_changed"]) / n
     th_kept = sum(1 for r in rows if r["theme_kept"]) / n
     print(f"Changed theme: {th_ch:.0%}; kept a non-starting theme: {th_kept:.0%}  (sell skins for coins if kept > 33%)")

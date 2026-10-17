@@ -156,7 +156,7 @@ const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => 
     isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
 ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
 const pst = await p.evaluate(async () => {
-  S.userBooks.push({ id: 'elp1', title: 'a', author: '', pathId: 'odyssey' }, { id: 'elp2', title: 'b', author: '', pathId: 'hamlet' }); S.finished.push('elp1'); S.progress.elp2 = { ratio: 0.4 };
+  S.userBooks.push({ id: 'elp1', title: 'a', author: '', pathId: 'odyssey' }, { id: 'elp2', title: 'b', author: '', pathId: 'hamlet' }); S.finished.push('elp1'); S.bookStats.elp1 = { min: 200, pages: 900 }; S.progress.elp2 = { ratio: 0.4 }; S.bookStats.elp2 = { min: 200, pages: 900 };
   renderPath(); await new Promise(r => setTimeout(r, 400));
   const vis = (e) => !!e && getComputedStyle(e).display !== 'none';
   const od = document.querySelector('#path .pathnode[data-pid="odyssey"]'), hm = document.querySelector('#path .pathnode[data-pid="hamlet"]');

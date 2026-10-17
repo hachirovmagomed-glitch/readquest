@@ -153,7 +153,7 @@ const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => 
   const g = (e, ps) => getComputedStyle(e, ps);
   const sc = document.querySelector('#path .scroll');
   if (!ch || !map) return { sea: false, oneSheet: !!ch };
-  return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg/.test(g(map, '::after').backgroundImage),
+  return { skin: document.documentElement.dataset.skin, sea: /data:image\/svg/.test(g(ch).backgroundImage), rose: /data:image\/svg|img\/ellada\/d-chart/.test(g(ch, '::after').backgroundImage), ship: /data:image\/svg|img\/ellada\/d-trireme/.test(g(map, '::after').backgroundImage),
     isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage) || /img\/ellada\/\w+\.webp/.test(g(dot, '::after').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage) || /img\/ellada\/\w+\.webp/.test(g(dot, '::after').backgroundImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
 ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
 const pst = await p.evaluate(async () => {

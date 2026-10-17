@@ -93,6 +93,8 @@ mkdir -p "$DIST/vendor/pdfjs"
 cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT/vendor/pdfjs/LICENSE" "$DIST/vendor/pdfjs/"
 
 # «Карандашный» fonts: Caveat (headings) + Nunito (UI text), SIL OFL 1.1, subset Latin+Cyrillic woff2 — precached like every other file in dist
+# 17.10 картинки скинов (стикеры карты Эллады): webp, precached like fonts
+if [ -d "$ROOT/img" ]; then mkdir -p "$DIST/img"; cp -r "$ROOT/img/." "$DIST/img/"; fi
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 

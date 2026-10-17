@@ -26,7 +26,7 @@ function renderCalendar(){
     if(read)cls.push('read');
     if(planned&&!read)cls.push('planned');
     cells+='<button class="'+cls.join(' ')+'" onclick="calPick(\''+k+'\')">'+d+
-      (planned?'<span class="pin">📌</span>':'')+
+      (planned?'<span class="pin">'+rqIcon('pin',10)+'</span>':'')+
       (goalMet?'<span class="dot"></span>':'')+'</button>';
   }
   el('calGrid').innerHTML=cells;
@@ -34,8 +34,8 @@ function renderCalendar(){
   el('calNotifTime').textContent=S.notif.time;
   const atRisk=streakAtRisk(tk); /* STREAK_MIN (3 min), same as the streak */
   const sm=monthSummary(calY,calM);
-  el('calTop').innerHTML='<div class="pcard" style="margin-bottom:10px"><div class="row"><b style="font-size:16px">🔥 '+S.streak+' '+plural(S.streak,'день','дня','дней')+' подряд</b>'+
-    (atRisk?'<div class="spacer"></div><span class="chip" style="background:rgba(255,184,76,.18);color:var(--accent2)">⚠️ серия под угрозой</span>':'')+'</div>'+
+  el('calTop').innerHTML='<div class="pcard" style="margin-bottom:10px"><div class="row"><b style="font-size:16px;display:inline-flex;align-items:center;gap:6px">'+rqIcon('flame',18)+S.streak+' '+plural(S.streak,'день','дня','дней')+' подряд</b>'+
+    (atRisk?'<div class="spacer"></div><span class="chip" style="background:rgba(255,184,76,.18);color:var(--accent2)">'+rqIcon('circle-alert',14)+' серия под угрозой</span>':'')+'</div>'+
     '<div style="font-size:12px;color:var(--muted);margin-top:6px">За '+MON[calM]+': '+sm.days+' '+plural(sm.days,'день','дня','дней')+' · '+sm.mn+' мин · '+sm.pg+' стр'+(sm.bestD?' · лучший день: '+sm.bestD+' ('+sm.bestM+' мин)':'')+'</div></div>';
   el('calYear').innerHTML='<div style="font-size:12px;color:var(--muted);margin:14px 0 6px">Год чтения</div>'+yearHeatmap();
   calRenderDay(calSel||tk);
@@ -80,14 +80,14 @@ function calRenderDay(k){
   const future=k>=today();
   let books='';
   if(h.books){
-    const list=Object.keys(h.books).map(id=>{const b=allBooks().find(x=>x.id===id);return '📖 '+(b?esc(b.title):'книга')+' · '+Math.round(h.books[id])+' мин';});
+    const list=Object.keys(h.books).map(id=>{const b=allBooks().find(x=>x.id===id);return (b?esc(b.title):'книга')+' · '+Math.round(h.books[id])+' мин';});
     if(list.length)books='<div style="font-size:12px;color:var(--muted);margin-top:6px">'+list.join('<br>')+'</div>';
   }
   box.innerHTML='<div class="pcard"><b>'+k+(k===today()?' · сегодня':'')+'</b>'+
     '<div style="font-size:13px;color:var(--muted);margin-top:6px">'+
-    (((h.min||0)>=1||(h.pages||0)>=1)?'✅ Прочитано '+Math.round(h.min)+' мин · '+(h.pages||0)+' стр · +'+Math.round(h.xp||0)+' XP':'Чтения не было')+'</div>'+
+    (((h.min||0)>=1||(h.pages||0)>=1)?'Прочитано '+Math.round(h.min)+' мин · '+(h.pages||0)+' стр · +'+Math.round(h.xp||0)+' XP':'Чтения не было')+'</div>'+
     books+
-    (future?'<div style="font-size:13px;margin-top:8px;color:'+(planned?'var(--accent2)':'var(--muted)')+'">'+(planned?'📌 Запланировано · цель '+goalMin()+' мин (нажмите ещё раз, чтобы снять)':'Нажмите на день, чтобы запланировать чтение')+'</div>':'')+
+    (future?'<div style="font-size:13px;margin-top:8px;color:'+(planned?'var(--accent2)':'var(--muted)')+'">'+(planned?rqIcon('pin',14)+' Запланировано · цель '+goalMin()+' мин (нажмите ещё раз, чтобы снять)':'Нажмите на день, чтобы запланировать чтение')+'</div>':'')+
     '</div>';
 }
 el('calPrev').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCalendar();};
@@ -122,7 +122,7 @@ setInterval(()=>{
   if(hm===notifTime()&&lastNotifDay!==tk){
     lastNotifDay=tk;
     const h=S.hist[tk];
-    if(!h||(h.min||0)<1){try{new Notification('ReadQuest 📚',{body:'Время почитать! Не теряй свою серию 🔥'});}catch(e){}}
+    if(!h||(h.min||0)<1){try{new Notification('ReadQuest',{body:'Время почитать! Не теряй свою серию'});}catch(e){}}
   }
 },30000);
 
@@ -140,7 +140,7 @@ const METRIC_KEYS=Object.keys(QUEST_METRICS);
 function customQuestObjs(){
   return (S.customQuests||[]).map(q=>{
     const M=QUEST_METRICS[q.metric]||QUEST_METRICS.minutesTotal;
-    return {id:q.id,name:'🎯 '+q.name,reward:q.reward,custom:true,
+    return {id:q.id,name:q.name,reward:q.reward,custom:true,
       period:()=>q.metric+':'+M.period(),
       prog:()=>Math.min(1,M.val()/Math.max(1,q.target)),
       info:()=>M.val()+' / '+q.target+' '+M.unit};
@@ -236,7 +236,7 @@ function renderSkillBox(){
     const lv2=skillLevel(pts);
     const lo2=xpForLevel(lv2),hi2=xpForLevel(lv2+1);
     return '<div class="statrow"><div class="row"><span>'+esc(k)+'</span><div class="spacer"></div>'+
-      '<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="editSkillLinks(\''+esc(k)+'\')">✏</button>'+
+      '<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="editSkillLinks(\''+esc(k)+'\')">'+rqIcon('pencil',14)+'</button>'+
       (DEFAULT_SKILLS.includes(k)?'':'<button class="x" onclick="delSkill(\''+esc(k)+'\')">✕</button>')+
       '<b>ур. '+lv2+'</b></div>'+
       '<div style="font-size:11px;color:var(--muted);margin:2px 0 4px">→ '+skillLinksText(k)+'</div>'+
@@ -339,15 +339,15 @@ function renderAchievements(){
   const def=DEFAULT_ACH.map(a=>{
     const got=isUnlocked(a.id);
     if(achTab==='got'&&!got)return '';
-    return '<div class="achitem'+(got?' got':'')+'"'+(got?' onclick="badgeFromId(\''+a.id+'\')"':'')+'><div class="row"><b>'+(got?'🏅 ':'🔒 ')+esc(a.name)+'</b><div class="spacer"></div>'+(achPays()?'<span class="chip">+'+Math.round(a.mult*100)+'% XP</span>':'')+'</div>'+
+    return '<div class="achitem'+(got?' got':'')+'"'+(got?' onclick="badgeFromId(\''+a.id+'\')"':'')+'><div class="row"><b class="achn">'+rqIcon(got?'medal':'lock',16)+' '+esc(a.name)+'</b><div class="spacer"></div>'+(achPays()?'<span class="chip">+'+Math.round(a.mult*100)+'% XP</span>':'')+'</div>'+
       '<div class="achd">'+esc(a.desc)+(got?'':' · '+a.now())+'</div></div>';
   }).join('');
   const cus=(S.customAch||[]).map(a=>{
     const got=isUnlocked(a.id);
     if(achTab==='got'&&!got)return '';
     const prize=!achPays()?'':[a.xp?'+'+a.xp+' XP':'',a.gold?'+'+a.gold+' монет':''].filter(Boolean).join(' · ');
-    const conds=a.conds.map(c=>{const ok=condValue(c)>=c.target;return '<div class="achd">'+(ok?'✅ ':'▫️ ')+esc(condLabel(c))+' ('+condValue(c)+')</div>';}).join('');
-    return '<div class="achitem'+(got?' got':'')+'"'+(got?' onclick="badgeFromId(\''+a.id+'\')"':'')+'><div class="row"><b>'+(got?'🏅 ':'🎯 ')+esc(a.title)+'</b><div class="spacer"></div>'+
+    const conds=a.conds.map(c=>{const ok=condValue(c)>=c.target;return '<div class="achd">'+rqIcon(ok?'check':'circle',14)+' '+esc(condLabel(c))+' ('+condValue(c)+')</div>';}).join('');
+    return '<div class="achitem'+(got?' got':'')+'"'+(got?' onclick="badgeFromId(\''+a.id+'\')"':'')+'><div class="row"><b class="achn">'+rqIcon(got?'medal':'target',16)+' '+esc(a.title)+'</b><div class="spacer"></div>'+
       (prize?'<span class="chip">'+prize+'</span>':'')+
       '<button style="color:var(--muted);font-size:12px;padding:0 4px" onclick="event.stopPropagation();editCustomAch(\''+a.id+'\')">изм.</button>'+
       '<button class="x" onclick="event.stopPropagation();delCustomAch(\''+a.id+'\')">✕</button></div>'+
@@ -356,7 +356,7 @@ function renderAchievements(){
   el('achBox').innerHTML='<h2 style="margin-top:4px">Системные</h2>'+(def||'<div class="pempty">—</div>')+
     '<h2>Свои</h2>'+(cus||'<div class="pempty">Пока нет своих достижений</div>')+
     '<button class="miniadd" onclick="addCustomAch()">＋ Добавить достижение</button>'+
-    '<h2>🎖 Бейджи</h2><div class="badges">'+BADGES.map(function(b){var got=S.badges.includes(b.id);return '<div class="badge'+(got?'':' locked')+'"><div class="bi">'+b.icon+'</div><div class="bn">'+esc(b.name)+'</div><div class="bd">'+esc(b.desc)+'</div></div>';}).join('')+'</div>';
+    '<h2>Бейджи</h2><div class="badges">'+BADGES.map(function(b){var got=S.badges.includes(b.id);return '<div class="badge'+(got?'':' locked')+'"><div class="bi">'+rqIcon(b.ic||'medal',28)+'</div><div class="bn">'+esc(b.name)+'</div><div class="bd">'+esc(b.desc)+'</div></div>';}).join('')+'</div>';
 }
 function pickCondType(){
   const i=parseInt(prompt('Тип условия:\n1) метрика чтения (минуты, книги, цитаты…)\n2) уровень навыка\n3) уровень характеристики','1'),10);
@@ -419,7 +419,7 @@ el('achTabGot').onclick=()=>{achTab='got';renderAchievements();};
 let b3d={rotY:0,rotX:-8,auto:true,drag:null,raf:0};
 function applyCoin(){const c=el('badgeCoin');if(c)c.style.transform='rotateX('+b3d.rotX+'deg) rotateY('+b3d.rotY+'deg)';}
 function openBadge3D(icon,title,sub){
-  el('badgeFace').textContent=icon||'';el('badgeBack').textContent='⭐';
+  el('badgeFace').innerHTML=rqIcon(icon||'medal',64);el('badgeBack').innerHTML=rqIcon('star',64);
   el('badgeTitle').textContent=title||'';el('badgeSub').textContent=sub||'';
   el('badgeModal').classList.remove('hidden');
   b3d.rotY=0;b3d.rotX=-8;b3d.auto=true;b3d.drag=null;
@@ -430,9 +430,9 @@ function openBadge3D(icon,title,sub){
 function closeBadge3D(){b3d.auto=false;cancelAnimationFrame(b3d.raf);el('badgeModal').classList.add('hidden');}
 function badgeFromId(id){
   let a=DEFAULT_ACH.find(x=>x.id===id);
-  if(a){openBadge3D('🏅',a.name,a.desc);return;}
+  if(a){openBadge3D('medal',a.name,a.desc);return;}
   a=(S.customAch||[]).find(x=>x.id===id);
-  if(a)openBadge3D('🏆',a.title,a.desc||'');
+  if(a)openBadge3D('trophy',a.title,a.desc||'');
 }
 el('badgeClose').onclick=closeBadge3D;
 el('badgeCoin').addEventListener('pointerdown',e=>{b3d.drag={x:e.clientX,y:e.clientY,ry:b3d.rotY,rx:b3d.rotX};b3d.auto=false;});
@@ -449,12 +449,12 @@ function renderProfSetup(){
   const box=el('profSetupBox');if(!box)return;
   box.innerHTML=
     '<div class="setrow"><div class="lab">Имя героя<div class="sub">'+esc(S.heroName||'Читатель')+'</div></div><button class="ghostbtn" onclick="setHeroName()">Изменить</button></div>'+
-    '<div class="setrow"><div class="lab">Аватар<div class="sub">меняется тапом по аватару в профиле</div></div><span style="font-size:26px">'+(S.avatar||'📖')+'</span></div>'+
+    '<div class="setrow"><div class="lab">Аватар<div class="sub">меняется тапом по аватару в профиле</div></div><span style="font-size:26px">'+(S.avatar||rqIcon('book-open',26))+'</span></div>'+
     '<h2 style="margin-top:14px">Статусы по уровням</h2>'+
     '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Звание героя меняется при достижении уровня. Если для уровня статуса нет — берётся ближайший снизу.</div>'+
     curStatuses().slice().sort((a,b)=>a[0]-b[0]).map(p=>
       '<div class="editrow"><span class="chip">ур. '+p[0]+'+</span><span class="grow">'+esc(p[1])+'</span>'+
-      '<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="editStatus('+p[0]+')">✏</button>'+
+      '<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="editStatus('+p[0]+')">'+rqIcon('pencil',14)+'</button>'+
       '<button class="x" onclick="delStatus('+p[0]+')">✕</button></div>'
     ).join('')+
     '<button class="miniadd" onclick="addStatus()">＋ Добавить статус</button>';
@@ -478,14 +478,14 @@ function delStatus(lv){
 /* ============ СТАТИСТИКА: счётчики ============ */
 function statCountersHtml(){
   const cells=[
-    ['📚 '+S.sessions,'сессий выполнено'],
-    ['➕ '+(S.userBooks?S.userBooks.length:0),'книг добавлено'],
-    ['✅ '+S.finished.length,'книг дочитано'],
-    ['🪙 '+goldAll(),'валюты за всё время'],
-    ['⭐ '+S.xp,'XP за всё время'],
-    ['💪 '+skillsXpAll(),'XP по навыкам'],
-    ['🏅 '+S.achUnlocked.length,'достижений'],
-    achPays()?['✖️ '+(S.xpMult||1).toFixed(2),'множитель XP']:null
+    [''+S.sessions,'сессий выполнено'],
+    [''+(S.userBooks?S.userBooks.length:0),'книг добавлено'],
+    [''+S.finished.length,'книг дочитано'],
+    [''+goldAll(),'монет за всё время'],
+    [''+S.xp,'XP за всё время'],
+    [''+skillsXpAll(),'XP по навыкам'],
+    [''+S.achUnlocked.length,'достижений'],
+    achPays()?['×'+(S.xpMult||1).toFixed(2),'множитель XP']:null
   ];
   return '<div class="kpis" style="grid-template-columns:repeat(2,1fr)">'+
     cells.filter(Boolean).map(c=>'<div class="kpi"><b style="font-size:17px">'+c[0]+'</b><span>'+c[1]+'</span></div>').join('')+'</div>';
@@ -509,7 +509,7 @@ function applyPixel(){
   else document.body.classList.remove('pixel');
 }
 function pixelShopHtml(){
-  return '<div class="shopitem"><div class="tprev" style="font-size:22px">🧙</div>'+
+  return '<div class="shopitem"><div class="tprev" style="font-size:22px">'+rqIcon('sparkles',22)+'</div>'+
     '<div style="flex:1;min-width:0"><b>Пиксельный режим</b><div style="font-size:12px;color:var(--muted)">Игровой пиксельный скин «про волшебников» для всего приложения. Включается в Настройках.</div></div>'+
     (S.pixelOwned
       ?'<button class="buy owned" onclick="show(\'settings\');renderSettings();">'+(S.pixelOn?'Активен':'Куплено')+'</button>'
@@ -520,12 +520,12 @@ function buyPixel(){
   if(S.pixelOwned)return;
   if(!canAfford(PIXEL_COST)){alert('Не хватает '+'монет'+' (нужно '+PIXEL_COST+')');return;}
   spend(PIXEL_COST);S.pixelOwned=true;S.pixelOn=true;save();applyPixel();confetti();renderShop();
-  alert('🧙 Пиксельный режим куплен и включён! Выключить можно в Настройках.');
+  alert('Пиксельный режим куплен и включён! Выключить можно в Настройках.');
 }
 function togglePixel(){
   if(!S.pixelOwned){if(confirm('Пиксельный режим покупается в Магазине за '+PIXEL_COST+' '+'монет'+'. Перейти в Магазин?')){renderShop();show('shop');}return;}
   S.pixelOn=!S.pixelOn;save();applyPixel();renderSettings();
-  flashMsg(S.pixelOn?'🧙 Пиксельный режим включён':'Пиксельный режим выключен');
+  flashMsg(S.pixelOn?'Пиксельный режим включён':'Пиксельный режим выключен');
 }
 el('pixelTgl').onclick=togglePixel;
 
@@ -577,10 +577,12 @@ const I18N={
  'Январь':'January','Февраль':'February','Март':'March','Апрель':'April','Май':'May','Июнь':'June',
  'Июль':'July','Август':'August','Сентябрь':'September','Октябрь':'October','Ноябрь':'November','Декабрь':'December',
  'Пн':'Mo','Вт':'Tu','Ср':'We','Чт':'Th','Пт':'Fr','Сб':'Sa','Вс':'Su',
- 'Сессия завершена':'Session complete','страниц':'pages','минут':'minutes','характеристика':'characteristic','Продолжить':'Continue','золота':'gold',
+ 'Сессия завершена':'Session complete','Календарь':'Calendar','Статистика':'Statistics','Достижения':'Achievements','Полка':'Shelf',
+ 'Минуты чтения':'Reading minutes','Страницы':'Pages','Когда я читаю':'When I read','По жанрам':'By genre','Книги по месяцам':'Books by month','Год в чтении':'Year in reading',
+ 'читал(а)':'read','запланировано':'planned','цель дня выполнена':'daily goal met','серия под угрозой':'streak at risk','Бейджи':'Badges','стрик':'streak','Карточки':'Cards','Список':'List','страниц':'pages','минут':'minutes','характеристика':'characteristic','Продолжить':'Continue','золота':'gold',
  'страниц всего':'pages total','стр/час':'pg/hour','По книгам':'By book',
  'сессий выполнено':'sessions done','книг добавлено':'books added','книг дочитано':'books finished',
- 'валюты за всё время':'currency all-time','XP за всё время':'XP all-time','XP по навыкам':'skills XP','достижений':'achievements','множитель XP':'XP multiplier',
+ 'монет за всё время':'coins all-time','XP за всё время':'XP all-time','XP по навыкам':'skills XP','достижений':'achievements','множитель XP':'XP multiplier',
  /* 1в: reader bar, «Настройки чтения», «Общие настройки», library/profile without emoji */
  'Настройки чтения':'Reading settings','Текст':'Text','Страница':'Page','Листание':'Page turning','Фокус':'Focus','Оглавление':'Contents','Ночь':'Night','День':'Day','Шрифт':'Font','Вид':'View','Общие настройки':'General settings','Тема приложения, язык, экран, данные':'App theme, language, screen, data','Размер текста':'Text size','Интервал':'Spacing','Буквы':'Letters','Насыщенность':'Weight','Выравнивание':'Alignment','По ширине':'Justify','Влево':'Left','Переносы':'Hyphens','Отступ':'Indent','Тонкий':'Light','Обычный':'Regular','Жирный':'Bold','Тема':'Theme','Цвета':'Colours','текст':'text','фон':'background','Сбросить':'Reset','Поля':'Margins','Затемнение':'Dimming','Кнопки':'Buttons','Кнопки ‹ › на экране':'On-screen ‹ › buttons','Тап':'Tap','Тап по краям':'Tap the edges','Инверсия':'Invert','Свайп':'Swipe','Листать свайпом':'Swipe to turn','Тап по центру — панели; тап у верхних углов — день/ночь и закладка.':'Tap the centre for panels; top corners: day/night and bookmark.','Режим фокуса':'Focus mode','Выкл':'Off','Вкл':'On','Кнопкой':'Button','Авто':'Auto','Остаётся только текст. Выход — тап в центр':'Only the text stays. Tap the centre to exit','Счётчик':'Counter','«7 / 10 мин» в углу в режиме фокуса':'«7 / 10 min» in the corner in focus mode','Затемнение PDF':'PDF dimming','работает в ночной теме':'works with the night page','Внешний вид':'Appearance','Тема приложения':'App theme','Авто: день с 7:00 до 21:00':'Auto: day from 7:00 to 21:00','Размер интерфейса':'Interface size','Анимации':'Animations','Во время чтения':'While reading','Не гасить экран':'Keep screen on','Если поддерживается браузером':'If the browser supports it','Вибрация':'Vibration','При наградах и отметках':'On rewards and marks','Язык и напоминание':'Language and reminder','Язык интерфейса':'Interface language','Напоминание почитать':'Reading reminder','Уведомление от браузера, пока приложение открыто':'Browser notification while the app is open','Время напоминания':'Reminder time','Данные':'Data','Экспорт и импорт':'Export and import','Резервная копия в файл (JSON)':'Backup to a file (JSON)','Сохранить':'Save','Загрузить':'Load','Журнал запуска':'Startup log','Пришлите его, если приложение долго открывалось':'Send it if the app was slow to open','Скопировать журнал запуска':'Copy startup log','О приложении':'About','Если тут старая дата — обновите страницу':'If the date is old, reload the page','Режим':'Mode','Профиль':'Profile','Профиль ':'Profile ','монеты':'coins','стрик':'streak','Награды из жизни':'Real-life rewards','Читаю':'Reading','Хочу':'Want','Прочитано':'Read','Избранное':'Favorites','Поиск по названию и автору':'Search by title and author','Цитата':'Quote','Заметка':'Note','Вернуть удалённые демо-книги':'Restore removed demo books','Вернуть':'Restore','Сбросить весь прогресс':'Reset all progress','Сброс':'Reset'
 };
@@ -676,7 +678,7 @@ function renderShelf(){
     }
     html+='<div class="plank"></div></div>';
   }
-  if(!order.length)html='<div class="shelfEmpty">🏆 Трофейная полка пуста.<br>Дочитайте книгу до конца — она встанет сюда как трофей.</div><div class="shelfRow"><div class="plank"></div></div><div class="shelfRow"><div class="plank"></div></div><div class="shelfRow"><div class="plank"></div></div>';
+  if(!order.length)html='<div class="shelfEmpty">Трофейная полка пуста.<br>Дочитайте книгу до конца — она встанет сюда как трофей.</div><div class="shelfRow"><div class="plank"></div></div><div class="shelfRow"><div class="plank"></div></div><div class="shelfRow"><div class="plank"></div></div>';
   el('shelfArea').innerHTML=html;
   shelfJustAdded=null;
 }

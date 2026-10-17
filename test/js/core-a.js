@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261017-0937'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261017-1038'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
@@ -59,8 +59,8 @@ function applyMvpChrome(){
       try{
         if(typeof isPencil==='function'&&isPencil())ava.innerHTML=rqIcon('user-round',18);
         else if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
-        else ava.textContent=S.avatar||'📖';
-      }catch(e){ava.textContent='📖';}
+        else if(S.avatar)ava.textContent=S.avatar;else ava.innerHTML=rqIcon('user-round',18);
+      }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
 }
@@ -219,7 +219,7 @@ function buyRewardTier(i){
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];
   S.rewardPurchases.push({id:'rp_'+Date.now()+'_'+i, title:r.name, price:r.cost, at:new Date().toISOString()});
-  save();try{confettiReward();}catch(e){}flashMsg('🎉 «'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
+  save();try{confettiReward();}catch(e){}flashMsg('«'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
   if(!isMvp())renderShop();
 }
 function addRewardSlot(){

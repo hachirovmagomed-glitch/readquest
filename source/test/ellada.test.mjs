@@ -188,7 +188,7 @@ const stk = await p.evaluate(async () => {
   const st = await Promise.all(all.map(u => fetch('img/ellada/' + u + '.webp').then(r => r.ok && r.headers.get('content-type') === 'image/webp' ? 1 : 0).catch(() => 0)));
   return { urls, distinct: new Set(urls).size, boss, deco, loaded: st.reduce((a, b) => a + b, 0), files: all.length };
 });
-ok('16d стикеры: у каждой из 14 книг свой стикер, у главных книг лавровый венок, между главами украшения, все картинки грузятся', stk.urls.every(Boolean) && stk.distinct === stk.urls.length && stk.urls.length === 14 && stk.boss && stk.deco.length === 3 && stk.deco.every(Boolean) && stk.loaded === stk.files, stk);
+ok('16d стикеры: у каждой из 18 книг свой стикер, у главных книг лавровый венок, между главами украшения, все картинки грузятся', stk.urls.every(Boolean) && stk.distinct === stk.urls.length && stk.urls.length === 18 && stk.boss && stk.deco.length === 3 && stk.deco.every(Boolean) && stk.loaded === stk.files, stk);
 await p.evaluate(() => navGo('library'));
 
 ok('no page errors', !errs.length, errs);

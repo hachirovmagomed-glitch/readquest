@@ -34,8 +34,10 @@ const m = await p.evaluate(async () => { navGo('path'); await new Promise(r => s
   pathOpen('odyssey'); const sheet = !el('bookSheet').classList.contains('hidden'); const cta = el('bookSheetBody').querySelector('.cta').textContent; el('bookSheet').classList.add('hidden');
   pathOpen('crime'); el('bookSheet').classList.add('hidden');
   const roads = document.querySelectorAll('#pathBox .pathline path').length;
-  return { nodes, ch, sheet, roads, cta, vis: !el('path').classList.contains('hidden') }; });
-ok('1a карта: 4 главы, 14 книг, дорога между книгами (10 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 14 && m.roads === 10 && m.sheet, m);
+  const ch1 = Array.from(document.querySelectorAll('#pathBox .pathch[data-ch="ch1"] .pathnode')).map(n => n.dataset.pid).join(' ');
+  return { nodes, ch, sheet, roads, cta, ch1, vis: !el('path').classList.contains('hidden') }; });
+ok('1b «Истоки» (Джессика 17.10): Басни, Прометей, Антигона, Царь Эдип, Медея, Илиада, Одиссея', m.ch1 === 'aesop prometheus antigone oedipus medea iliad odyssey', m.ch1);
+ok('1a карта: 4 главы, 18 книг, дорога между книгами (14 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 18 && m.roads === 14 && m.sheet, m);
 const b = await snap(); const w = await p.evaluate(() => window.__lsW.filter(k => k === RQ_K.v1 || k === RQ_K.set));
 ok('1c до кнопки ничего не скачано: кнопка «Скачать на телефон и читать · 1,1 МБ», запросов к books/ нет', /^Скачать на телефон и читать · 1,1 МБ$/.test(m.cta) && fetched === 0, { cta: m.cta, fetched });
 ok('1b карта и карточка ничего не пишут (NS и NS_set равны, setItem 0)', a.ns === b.ns && a.set === b.set && w.length === 0, { writes: w });
@@ -94,14 +96,14 @@ const roundTrip = async (j) => {
     return { done: n && n.classList.contains('done'), sum: el('pathBox').querySelector('.pathsum-t').textContent, err: 0 }; });
 };
 let r = await roundTrip(ej);
-ok('3b импорт: «Одиссея» отмечена прочитанной, «1 из 14»', r.done && /^1 из 14/.test(r.sum), r);
+ok('3b импорт: «Одиссея» отмечена прочитанной, «1 из 18»', r.done && /^1 из 18/.test(r.sum), r);
 const old = JSON.parse(exp); old.library.userBooks.forEach(x => { delete x.pathId; });
 r = await roundTrip(old);
-ok('3c старый бэкап без pathId: импорт проходит, книга обычная, «0 из 14»', !r.done && /^0 из 14/.test(r.sum), r);
+ok('3c старый бэкап без pathId: импорт проходит, книга обычная, «0 из 18»', !r.done && /^0 из 18/.test(r.sum), r);
 for (const bad of [42, 'atlantis', null, { x: 1 }]) {
   const j = JSON.parse(exp); j.library.userBooks.forEach(x => { if (x.id === t.id) x.pathId = bad; });
   r = await roundTrip(j);
-  ok('3d битый pathId ' + JSON.stringify(bad) + ' → обычная книга, карта без ошибок', !r.done && /^0 из 14/.test(r.sum), r);
+  ok('3d битый pathId ' + JSON.stringify(bad) + ' → обычная книга, карта без ошибок', !r.done && /^0 из 18/.test(r.sum), r);
 }
 r = await roundTrip(ej);
 

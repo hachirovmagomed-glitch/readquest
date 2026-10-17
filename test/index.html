@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261017-0338',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261017-0936',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -441,7 +441,9 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .pgrid button{background:var(--card2);border-radius:8px;padding:9px 2px;font-size:11px;color:var(--muted);position:relative}
 .pgrid button.cur{background:var(--accent);color:#fff}
 .pgrid button .m{position:absolute;top:0;right:2px;font-size:9px}
-#dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30}
+/* «Затемнение» = screen brightness (Джессика 17.10): the whole reader screen, bars included, evenly — a child of #reader, not of
+   #viewer (that one is inset by the margins and scrolls in scroll mode). Above the bars (30), under the settings sheet (50). */
+#dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}
 .imm .rhead,.imm .rfoot{display:none}
 .quest.locked{opacity:.45}
 #content.noind p{text-indent:0;margin-bottom:.7em}
@@ -924,9 +926,8 @@ html[data-skin="pencil"] #sheet .rstep,html[data-skin="pencil"] #sheet .rseg,htm
 html[data-skin="pencil"] #sheet .rseg button.on{background:var(--rq-accent);color:var(--rq-on-accent)}
 html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::before{background:var(--rq-accent);border-color:var(--rq-accent)}
 html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(--rq-surface)}
-/* read-aloud on: pause icon on a faint backdrop of the header's own colour (16.10). No filled accent disc: in skins the icon
-   is the accent colour, so a disc of the same accent hid it («Эллада»); the icon keeps the colour it has when off. */
-.rhead #btnTts.on{background:color-mix(in srgb,currentColor 16%,transparent);border-radius:50%}
+/* read-aloud on (Джессика 16–17.10): only the glyph changes (speaker → pause) — no disc, no other colour; a disc of the accent hid
+   the accent icon in «Эллада», a grey disc read as a stray circle. State for assistive tech: aria-pressed. */
 /* 16.10 (Джессика, «как в ReadEra»): the bars lie OVER the text and slide/fade in and out. The text never moves:
    #viewer keeps its size whether the bars are shown or not (no relayout, no fullscreen exit on the centre tap).
    Hidden = transform + opacity + visibility (delayed so the slide-out is seen), never display:none. */
@@ -1515,7 +1516,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="content"></div>
     <div id="txtBack" class="hidden" aria-live="polite"><span class="pdfSpin" aria-hidden="true"></span><span id="txtBackN"></span></div>
     <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span class="pdfSpin" aria-hidden="true"></span><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
-    <div id="dimmer"></div>
     <div id="timerHint" class="hidden"></div>
     <button id="navPrev" class="navbtn hidden">‹</button>
     <button id="navNext" class="navbtn hidden">›</button>
@@ -1528,6 +1528,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <button id="spCopy" aria-label="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
     </div>
   </div>
+  <div id="dimmer"></div>
   <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
@@ -1625,28 +1626,28 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261017-0338"></script>
-<script src="js/books-builtin.js?v=20261017-0338"></script>
-<script src="js/core-b.js?v=20261017-0338"></script>
-<script src="js/library.js?v=20261017-0338"></script>
-<script src="js/reader.js?v=20261017-0338"></script>
-<script src="js/pdf.js?v=20261017-0338"></script>
-<script src="js/reader-ui.js?v=20261017-0338"></script>
-<script src="js/rpg.js?v=20261017-0338"></script>
-<script src="js/content.js?v=20261017-0338"></script>
-<script src="js/settings.js?v=20261017-0338"></script>
-<script src="js/v6-extras.js?v=20261017-0338"></script>
-<script src="js/ach-core.js?v=20261017-0338"></script>
-<script src="js/achievements.js?v=20261017-0338"></script>
-<script src="js/path.js?v=20261017-0338"></script>
-<script src="js/start.js?v=20261017-0338"></script>
+<script src="js/core-a.js?v=20261017-0936"></script>
+<script src="js/books-builtin.js?v=20261017-0936"></script>
+<script src="js/core-b.js?v=20261017-0936"></script>
+<script src="js/library.js?v=20261017-0936"></script>
+<script src="js/reader.js?v=20261017-0936"></script>
+<script src="js/pdf.js?v=20261017-0936"></script>
+<script src="js/reader-ui.js?v=20261017-0936"></script>
+<script src="js/rpg.js?v=20261017-0936"></script>
+<script src="js/content.js?v=20261017-0936"></script>
+<script src="js/settings.js?v=20261017-0936"></script>
+<script src="js/v6-extras.js?v=20261017-0936"></script>
+<script src="js/ach-core.js?v=20261017-0936"></script>
+<script src="js/achievements.js?v=20261017-0936"></script>
+<script src="js/path.js?v=20261017-0936"></script>
+<script src="js/start.js?v=20261017-0936"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261017-0338"></script>
+<script src="js/pwa-lock.js?v=20261017-0936"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1654,9 +1655,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261017-0338';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261017-0338';
-import * as game from './game-awards.js?v=20261017-0338';
+} from './storage/index.js?v=20261017-0936';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261017-0936';
+import * as game from './game-awards.js?v=20261017-0936';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

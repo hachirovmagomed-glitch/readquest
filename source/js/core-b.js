@@ -229,6 +229,8 @@ function goldSync(){
   try{if(typeof libGoldRender==='function')libGoldRender();}catch(e){}
   const t=coinsP(goldDisp());[['rewBalance',t],['shopGold',t],['dGold',t]].forEach(function(x){const e=el(x[0]);if(e)e.textContent=x[1];});
   const mg=el('mvpGold');if(mg){mg.textContent=goldDisp();const gl=el('mvpGoldLbl');if(gl)gl.textContent=t.replace(/^\S+ /,'');}
+  const q=el('qstGold');if(q)q.textContent=goldDisp()+' монет';
+  const k=el('kGold');if(k)k.textContent=goldDisp();
 }
 function save(){
   goldSync();

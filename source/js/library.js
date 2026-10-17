@@ -309,15 +309,19 @@ function elladaCover(b){
 /* «Бабочковый»: emoji cover → pastel iridescent tile with a butterfly (handoff/skins/babochkovyi; our curves, no real species);
    «moon» = night cover with a pale moth and the moon, «cocoon» = a cocoon. Kind by a hash of the id; format label in ink on the pastel. */
 const BB_KINDS=[['a','#8fd3d8','#b9a7ec'],['b','#f3b4cf','#c5b3f1'],['moon'],['cocoon'],['c','#8fd3d8','#b5e3c4'],['d','#a996e6','#f3b4cf']];
-function bbWings(c1,c2,edge){const up='M20 19C23 8 33 3 37 8C40 14 33 20 21 21z',lo='M21 22C29 22 35 27 32 33C29 37 23 32 21 24z';
-  const half='<path d="'+up+'" fill="'+c1+'" stroke="'+edge+'" stroke-width=".9"/><path d="'+lo+'" fill="'+c2+'" stroke="'+edge+'" stroke-width=".9"/><circle cx="31" cy="11" r="2.2" fill="#fff" opacity=".85"/>';
+/* 17.10 (Джессика: «большее разнообразие бабочек»): 5 wing shapes × 8 palettes, same drawings as tools/bb_species.py (python3 tools/gen-bb-decor.py --js) */
+const BB_SP={"morpho":{"up":"M20 19C23 8 33 3 37 8C40 14 33 20 21 21z","lo":"M21 22C29 22 35 27 32 33C29 37 23 32 21 24z","spot":[31,11,2.2]},"swallow":{"up":"M20 18C23 7 34 3 38 6C39 11 33 19 21 21z","lo":"M21 22C28 21 33 25 31 30L33 38 28.5 32.5C25 31 22 27 21 24z","spot":[32,9,1.8]},"round":{"up":"M20 19C20 10 29 6 34 10C37 15 31 20 21 21z","lo":"M21 22C28 21 33 26 30 31C27 34 22 29 21 24z","spot":[29,12,2.4]},"long":{"up":"M20 19C25 12 35 8 39 10C39 15 30 19 21 21z","lo":"M21 22C26 22 31 25 29 29C26 31 22 27 21 24z","spot":[34,11,1.6]},"scallop":{"up":"M20 19C22 9 30 4 35 6Q38 8 37 11Q39 14 36 16Q35 19 21 21z","lo":"M21 22C27 21 33 24 33 28Q33 31 30 31Q29 35 25 33C23 31 21 27 21 24z","spot":[30,10,2]}};
+const BB_PAL=[["#8fd3d8","#b9a7ec","#ffffff","#3a3f6a"],["#f3b4cf","#c5b3f1","#ffffff","#5b4f7a"],["#f6e27a","#f9f0b8","#f2a65a","#6b5a2a"],["#8ec5f2","#cfe6fb","#ffffff","#2f4f7a"],["#9fdcb6","#d6f2c8","#ffffff","#2f5a44"],["#f7c39b","#fbe0c8","#ffffff","#7a4a2a"],["#f0a04b","#f6c27a","#5b3a1e","#5b3a1e"],["#a996e6","#e2dbf7","#8fd3d8","#3a3f6a"]];
+function bbWings(shape,pal){const S=BB_SP[shape]||BB_SP.morpho,P=BB_PAL[pal]||BB_PAL[0],sp=S.spot;
+  const half='<path d="'+S.up+'" fill="'+P[0]+'" stroke="'+P[3]+'" stroke-width=".9"/><path d="'+S.lo+'" fill="'+P[1]+'" stroke="'+P[3]+'" stroke-width=".9"/><circle cx="'+sp[0]+'" cy="'+sp[1]+'" r="'+sp[2]+'" fill="'+P[2]+'" opacity=".85"/>';
   return half+'<g transform="translate(40 0) scale(-1 1)">'+half+'</g><path d="M20 15Q18 9 15 7M20 15Q22 9 25 7" fill="none" stroke="#2b2f4f" stroke-width=".9"/><ellipse cx="20" cy="22" rx="1.6" ry="7" fill="#2b2f4f"/>';}
 function bbCover(b){
   let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
   const K=BB_KINDS[h%BB_KINDS.length];let art;
   if(K[0]==='moon')art='<circle cx="30" cy="9" r="6" fill="#f1ecd2"/><g transform="translate(4 8) scale(.9)"><path d="M20 19C24 10 34 8 37 12C38 17 31 21 21 21zM21 22C27 23 31 28 30 33L33 39 28 34C25 31 22 27 21 24z" fill="#dfeee4" stroke="#8fb7a0" stroke-width=".9"/><g transform="translate(40 0) scale(-1 1)"><path d="M20 19C24 10 34 8 37 12C38 17 31 21 21 21zM21 22C27 23 31 28 30 33L33 39 28 34C25 31 22 27 21 24z" fill="#dfeee4" stroke="#8fb7a0" stroke-width=".9"/></g><ellipse cx="20" cy="22" rx="2" ry="6.5" fill="#f3f6ee"/></g>';
   else if(K[0]==='cocoon')art='<path d="M20 2V9" stroke="#6b5a3e"/><path d="M20 9C11 15 12 33 20 40C28 33 29 15 20 9z" fill="#e7d9a6" stroke="#8a6a2c" stroke-width="1.2"/><path d="M14 18Q20 21 26 18M13 25Q20 28 27 25M14 32Q20 35 26 32" stroke="#b39a5a" fill="none" stroke-width=".8"/>';
-  else art='<g transform="translate(0 2) rotate('+((h>>4)%21-10)+' 20 20)">'+bbWings(K[1],K[2],'#3a3f6a')+'</g>';
+  else{const sh=Object.keys(BB_SP),m=Math.imul(h^(h>>>15),2654435761)>>>0; /* mixed: similar ids still get different kinds */
+    art='<g transform="translate(0 2) rotate('+((h>>4)%21-10)+' 20 20)">'+bbWings(sh[m%sh.length],(m>>>8)%BB_PAL.length)+'</g>';}
   return '<span class="bb-cover bb-'+K[0]+'"><i>'+bookFmt(b)+'</i><svg viewBox="0 0 40 42" aria-hidden="true" focusable="false">'+art+'</svg></span>';
 }
 function statOf(b){return S.bookStat[b.id]||b.stat;}

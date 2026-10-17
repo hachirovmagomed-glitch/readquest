@@ -106,14 +106,14 @@ if(el('dJournal'))el('dJournal').onclick=()=>openJournal(jrnLast);
 /* ===== Словарь-копилка + флешкарты ===== */
 let vocabMode='list',vcIdx=0,vcFlip=false;
 function renderVocab(){
-  if(el('btnVocabCards'))el('btnVocabCards').textContent=(vocabMode==='cards')?'📃 Список':'🃏 Карточки';
+  if(el('btnVocabCards'))el('btnVocabCards').innerHTML=(vocabMode==='cards')?rqIcon('list',16)+' Список':rqIcon('layers',16)+' Карточки';
   const box=el('vocabBody');if(!box)return;
   const list=S.vocab||[];
-  if(!list.length){vocabMode='list';box.innerHTML='<div style="color:var(--muted);text-align:center;padding:46px 0">Пока пусто.<br>Выделите слово в книге и нажмите «📖» — оно попадёт сюда.<br><br>Потом повторяйте карточками 🃏</div>';return;}
+  if(!list.length){vocabMode='list';box.innerHTML='<div style="color:var(--muted);text-align:center;padding:46px 0">Пока пусто.<br>Выделите слово в книге и нажмите '+rqIcon('book-open',16)+' «В словарь» — оно попадёт сюда.<br><br>Потом повторяйте карточками</div>';return;}
   if(vocabMode==='cards'){renderVocabCards();return;}
   const known=list.filter(v=>(v.box||0)>=4).length;
   box.innerHTML='<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Слов: <b>'+list.length+'</b> · выучено: <b>'+known+'</b></div>'+
-    list.map(function(v,i){return '<div class="qcard"><div class="row"><b style="font-size:15px">'+esc(v.w)+'</b><div class="spacer"></div><span class="chip">'+(((v.box||0)>=4)?'✅':'🔁 '+(v.box||0)+'/4')+'</span><button class="lnk danger" style="margin-left:8px" onclick="delWord('+i+')">✕</button></div>'+
+    list.map(function(v,i){return '<div class="qcard"><div class="row"><b style="font-size:15px">'+esc(v.w)+'</b><div class="spacer"></div><span class="chip">'+(((v.box||0)>=4)?rqIcon('check',14):(v.box||0)+'/4')+'</span><button class="lnk danger" style="margin-left:8px" onclick="delWord('+i+')">✕</button></div>'+
       (v.ctx?'<div class="qnote">«'+esc(v.ctx)+'»</div>':'')+
       '<div class="qmeta"><span>'+esc(v.book||'')+'</span><div class="spacer"></div><span>'+(v.date||'')+'</span></div></div>';}).join('');
 }
@@ -121,7 +121,7 @@ function delWord(i){if(!S.vocab||!S.vocab[i])return;S.vocab.splice(i,1);save();r
 function dueCards(){return (S.vocab||[]).map(function(v,i){return {v:v,i:i};}).filter(function(o){return (o.v.box||0)<5;});}
 function renderVocabCards(){
   const box=el('vocabBody');const due=dueCards();
-  if(!due.length){box.innerHTML='<div style="text-align:center;padding:50px 0">🎉 Все карточки повторены!<br><br><button class="buy" onclick="vocabMode=\'list\';renderVocab()">К списку</button></div>';return;}
+  if(!due.length){box.innerHTML='<div style="text-align:center;padding:50px 0">Все карточки повторены!<br><br><button class="buy" onclick="vocabMode=\'list\';renderVocab()">К списку</button></div>';return;}
   if(vcIdx>=due.length)vcIdx=0;
   const o=due[vcIdx],v=o.v;
   box.innerHTML='<div style="text-align:center;font-size:12px;color:var(--muted);margin:6px 0 12px">Карточка '+(vcIdx+1)+' из '+due.length+'</div>'+
@@ -129,7 +129,7 @@ function renderVocabCards(){
     (vcFlip?'<div class="fc-back">'+(v.ctx?'«'+esc(v.ctx)+'»':'<span style="color:var(--muted)">нет контекста — добавьте перевод сами</span>')+'<div style="font-size:12px;color:var(--muted);margin-top:12px">'+esc(v.book||'')+'</div></div>'
            :'<div class="fc-front">'+esc(v.w)+'<div style="font-size:12px;color:var(--muted);font-weight:400;margin-top:12px">тап — показать контекст</div></div>')+
     '</div>'+
-    '<div class="row" style="gap:10px;margin-top:14px"><button class="buy" style="flex:1;background:#e0445b" onclick="gradeCard('+o.i+',false)">🔁 Повторить</button><button class="buy owned" style="flex:1" onclick="gradeCard('+o.i+',true)">✅ Знаю</button></div>';
+    '<div class="row" style="gap:10px;margin-top:14px"><button class="buy" style="flex:1;background:#e0445b" onclick="gradeCard('+o.i+',false)">Повторить</button><button class="buy owned" style="flex:1" onclick="gradeCard('+o.i+',true)">Знаю</button></div>';
 }
 function gradeCard(i,known){const v=(S.vocab||[])[i];if(!v)return;v.box=known?Math.min(5,(v.box||0)+1):0;save();vcFlip=false;vcIdx++;renderVocabCards();}
 if(el('btnVocabCards'))el('btnVocabCards').onclick=function(){vocabMode=(vocabMode==='cards')?'list':'cards';vcIdx=0;vcFlip=false;renderVocab();};
@@ -174,10 +174,10 @@ function renderLibrary(){
   const cc=el('continueCard');
   if(cc){const lid=S.lastRead,lb=lid&&allBooks().find(x=>x.id===lid);
     if(lb&&!S.finished.includes(lid)){const pr=Math.round(rqPos(lid)*100);
-      cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">▶ ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
+      cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
     else cc.innerHTML='';}
   const dc=el('dailyCard');
-  if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">🎁<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
+  if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">'+rqIcon('gift',18)+'<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
   const shelf=el('shelf');shelf.innerHTML='';
   let list=allBooks();
   if(LIB.q)list=list.filter(b=>(b.title+' '+b.author).toLowerCase().includes(LIB.q));
@@ -196,7 +196,7 @@ function renderLibrary(){
     card.innerHTML='<div class="cover">'+coverHtml(b)+'</div><div class="bmeta">'+
       '<div class="btitle">'+(S.favs.includes(b.id)?'<span style="color:var(--accent2)">★</span> ':'')+esc(b.title)+'</div><div class="bauthor">'+esc(b.author)+'</div>'+
       '<div class="pbar"><i style="width:'+Math.round((done?1:p.ratio)*100)+'%;'+(done?'background:#4cd97b':'')+'"></i></div>'+
-      '<div class="bpct">'+(done?'✅ Прочитано':Math.round(p.ratio*100)+'%')+' · качает '+statOf(b)+'</div></div>'+
+      '<div class="bpct">'+(done?'Прочитано':Math.round(p.ratio*100)+'%')+' · качает '+statOf(b)+'</div></div>'+
       '<span class="infobtn" onclick="event.stopPropagation();bookInfo(\''+b.id+'\')">ⓘ</span>';
     card.onclick=()=>openBook(b.id);
     shelf.appendChild(card);
@@ -274,11 +274,12 @@ function diffOf(id){
 }
 /* «Карандашный»: emoji cover → hatched tile with a Lucide icon and the format on a clean plate (picture covers stay pictures) */
 const PC_COVER_ICONS=['book-open','moon','star','heart','compass','sparkles','flame','gift'];
-function pencilCover(b){
+function pencilCover(b){return lucideCover(b,'pc-cover');}
+function lucideCover(b,cls){
   const fmt=b.type==='pdf'?'PDF':(/\.fb2$/i.test(b.fname||'')||b.genre==='FB2'?'FB2':(/\.epub$/i.test(b.fname||'')?'EPUB':'TXT'));
   let ic=fmt==='PDF'?'file-text':fmt==='FB2'?'book-marked':null;
   if(!ic){let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;ic=PC_COVER_ICONS[h%PC_COVER_ICONS.length];}
-  return '<span class="pc-cover">'+rqIcon(ic,20)+'<i>'+fmt+'</i></span>';
+  return '<span class="'+cls+'">'+rqIcon(ic,20)+'<i>'+fmt+'</i></span>';
 }
 /* «Эллада»: emoji cover → vase-painting tile (handoff/skins/ellada, our own profile figures). Kind and figure by a hash of the id.
    red = black glaze + terracotta figure, black = light label over a terracotta field with a black figure, marble, aegean.
@@ -318,8 +319,7 @@ function coverHtml(b){
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
-  if(cv)return cv;
-  return b.cover||rqIcon('book-open',22); /* no emoji cover (path books) → Lucide */
+  return lucideCover(b,'rq-cover'); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) → Lucide + format */
 }
 function renderLibChips(){
   const box=el('libChips');box.innerHTML='';

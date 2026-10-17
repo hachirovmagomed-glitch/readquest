@@ -59,8 +59,8 @@ function applyMvpChrome(){
       try{
         if(typeof isPencil==='function'&&isPencil())ava.innerHTML=rqIcon('user-round',18);
         else if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
-        else ava.textContent=S.avatar||'📖';
-      }catch(e){ava.textContent='📖';}
+        else if(S.avatar)ava.textContent=S.avatar;else ava.innerHTML=rqIcon('user-round',18);
+      }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
 }
@@ -219,7 +219,7 @@ function buyRewardTier(i){
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];
   S.rewardPurchases.push({id:'rp_'+Date.now()+'_'+i, title:r.name, price:r.cost, at:new Date().toISOString()});
-  save();try{confettiReward();}catch(e){}flashMsg('🎉 «'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
+  save();try{confettiReward();}catch(e){}flashMsg('«'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
   if(!isMvp())renderShop();
 }
 function addRewardSlot(){

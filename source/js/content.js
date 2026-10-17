@@ -7,7 +7,7 @@ function renderQuotes(){
     parts.push('<h2>'+esc(b.title)+'</h2>');
     qs.forEach((q,i)=>{
       parts.push('<div class="qcard"><div class="qtext">«'+esc(q.text)+'»</div>'+
-        (q.note?'<div class="qnote">📝 '+esc(q.note)+'</div>':'')+
+        (q.note?'<div class="qnote">'+rqIcon('notebook-pen',14)+' '+esc(q.note)+'</div>':'')+
         '<div class="qmeta"><span>'+q.date+'</span><div class="spacer"></div>'+
         '<button onclick="copyQuote(\''+b.id+'\','+i+')">копировать</button>'+
         '<button onclick="delQuote(\''+b.id+'\','+i+')">удалить</button></div></div>');
@@ -18,7 +18,7 @@ function renderQuotes(){
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;
-  copyText('«'+q.text+'»'+(q.note?'\n📝 '+q.note:'')+'\n— '+b.title+', '+b.author);
+  copyText('«'+q.text+'»'+(q.note?'\n'+q.note:'')+'\n— '+b.title+', '+b.author);
 }
 function delQuote(bid,i){
   const qs=S.quotes[bid]||[];const rm=qs.splice(i,1)[0];
@@ -205,6 +205,7 @@ function shopTestGold(){
   if(window.RQ_NS!=='rqt')return;
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.gold=(S.gold||0)+1000;save();renderRewardsSheet();
+  try{if(window.__rq&&__rq.logAnalyticsEvent)__rq.logAnalyticsEvent({type:'test_gold',amount:1000}).catch(function(){});}catch(e){} /* arch.md 16.10: test coins are marked in events */
 }
 function rqNavH(){const n=el('botnav');return n&&getComputedStyle(n).display!=='none'?n.offsetHeight:0;}
 let shopLast='game';
@@ -241,7 +242,7 @@ function renderShop(){
 }
 function useTheme(id){
   SET.theme=id;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
-  alert('Тема применена! Откройте любую книгу 📖');
+  alert('Тема применена! Откройте любую книгу');
 }
 function renderRewards(){
   el('shopRewards').innerHTML=S.rewards.map((r,i)=>({r:r,i:i}))
@@ -252,8 +253,8 @@ function renderRewards(){
       const remain=infinite?'∞':Math.max(0,(r.qty||0)-(r.bought||0));
       const sold=!infinite&&remain<=0;
       const canBuy=canAfford(r.cost)&&!sold;
-      return '<div class="shopitem"><div class="tprev">🎁</div>'+
-        '<div style="flex:1;min-width:0"><b>'+(r.fav?'⭐ ':'')+esc(r.name)+'</b>'+
+      return '<div class="shopitem"><div class="tprev">'+rqIcon('gift',22)+'</div>'+
+        '<div style="flex:1;min-width:0"><b>'+(r.fav?rqIcon('star',14)+' ':'')+esc(r.name)+'</b>'+
         '<div style="font-size:12px;color:var(--muted)">'+
           (infinite?'∞ · получено '+(r.bought||0):'осталось '+remain+' · получено '+(r.bought||0))+
           ' · <button class="lnk" onclick="toggleRewardFav('+i+')">'+(r.fav?'★':'☆')+'</button>'+
@@ -271,12 +272,18 @@ function buyReward(i){
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];S.rewardPurchases.push({id:'rp_'+Date.now(),title:r.name,price:r.cost,at:new Date().toISOString()});
   save();confetti();renderShop();
-  alert('🎉 Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
+  alert('Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
 }
 function undoRewardClaim(i){
   const r=S.rewards[i];if(!r||!(r.bought>0))return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне');return;}
   if(!confirm('Отменить последнее получение «'+r.name+'» и вернуть '+r.cost+' монет'+'?'))return;
   r.bought--;S.gold+=r.cost;
+  /* arch.md 16.10: refund record next to the purchase (metrics.py: buys = purchases − refunds) */
+  S.rewardPurchases=S.rewardPurchases||[];S.rewardRefunds=S.rewardRefunds||[];
+  const done={};S.rewardRefunds.forEach(function(x){if(x&&x.purchaseId)done[x.purchaseId]=1;});
+  let pid=null;for(let k=S.rewardPurchases.length-1;k>=0;k--){const pp=S.rewardPurchases[k];if(pp&&pp.title===r.name&&!done[pp.id]){pid=pp.id;break;}}
+  S.rewardRefunds.push({id:'rr_'+Date.now(),purchaseId:pid,title:r.name,price:r.cost,at:new Date().toISOString()});
   save();renderShop();
 }
 function toggleRewardFav(i){const r=S.rewards[i];if(!r)return;r.fav=!r.fav;save();renderShop();}
@@ -305,10 +312,10 @@ const QUESTS=[
  {id:'genre3',name:'Качнуть 3 разные характеристики',reward:100,period:()=>'once',prog:()=>Math.min(1,distinctStats()/3),info:()=>distinctStats()+' / 3'},
  {id:'finish2',name:'Дочитать 2 книги',reward:200,period:()=>'once',prog:()=>Math.min(1,S.finished.length/2),info:()=>S.finished.length+' / 2'},
  {id:'streak7q',name:'Удержать стрик 7 дней',reward:150,period:()=>'once',prog:()=>Math.min(1,S.streak/7),info:()=>S.streak+' / 7'},
- {id:'chain1',name:'📖 Путь читателя I: дочитать книгу',reward:100,period:()=>'once',prog:()=>Math.min(1,S.finished.length/1),info:()=>S.finished.length+' / 1'},
- {id:'chain2',name:'📖 Путь читателя II: 3 книги',reward:250,period:()=>'once',prog:()=>Math.min(1,S.finished.length/3),info:()=>S.finished.length+' / 3',need:'chain1'},
- {id:'chain3',name:'📖 Путь читателя III: 5 книг',reward:500,period:()=>'once',prog:()=>Math.min(1,S.finished.length/5),info:()=>S.finished.length+' / 5',need:'chain2'},
- {id:'month10',name:'🏆 Сезонный: 10 дней чтения в этом месяце',reward:300,period:()=>today().slice(0,7),prog:()=>Math.min(1,monthDays()/10),info:()=>monthDays()+' / 10'}
+ {id:'chain1',name:'Путь читателя I: дочитать книгу',reward:100,period:()=>'once',prog:()=>Math.min(1,S.finished.length/1),info:()=>S.finished.length+' / 1'},
+ {id:'chain2',name:'Путь читателя II: 3 книги',reward:250,period:()=>'once',prog:()=>Math.min(1,S.finished.length/3),info:()=>S.finished.length+' / 3',need:'chain1'},
+ {id:'chain3',name:'Путь читателя III: 5 книг',reward:500,period:()=>'once',prog:()=>Math.min(1,S.finished.length/5),info:()=>S.finished.length+' / 5',need:'chain2'},
+ {id:'month10',name:'Сезонный: 10 дней чтения в этом месяце',reward:300,period:()=>today().slice(0,7),prog:()=>Math.min(1,monthDays()/10),info:()=>monthDays()+' / 10'}
 ];
 function monthDays(){
   const m=today().slice(0,7);
@@ -328,8 +335,8 @@ function renderQuests(){
     const p=locked?0:q.prog();
     const edit=q.custom?'<button style="color:var(--muted);text-decoration:underline;font-size:11px;padding:0 6px" onclick="editCustomQuest(\''+q.id+'\')">изм.</button><button class="x" onclick="delCustomQuest(\''+q.id+'\')">✕</button>':'';
     return '<div class="pcard quest'+(locked?' locked':'')+'"><div class="row"><span style="font-size:14px">'+q.name+'</span><div class="spacer"></div>'+
-      (locked?'<span class="chip">🔒</span>'
-        :done?'<span class="chip">✅ получено</span>'
+      (locked?'<span class="chip" aria-label="Закрыто">'+rqIcon('lock',14)+'</span>'
+        :done?'<span class="chip">'+rqIcon('check',14)+' получено</span>'
         :p>=1?(questPays()?'<button class="buy" onclick="claimQuest(\''+q.id+'\')">Забрать +'+q.reward+' монет'+'</button>':'<span class="chip">Выполнено</span>')
         :'<span class="chip">'+q.info()+'</span>')+
       edit+
@@ -599,7 +606,7 @@ function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);
 el('spAI').onclick=()=>{
   const t=selText();if(!t)return;
   if(!S.ai||!S.ai.key){
-    alert('Чтобы ✨ работал, вставьте API-ключ в Настройках → ИИ-помощник');
+    alert('Чтобы «Объяснить» работало, вставьте API-ключ в Настройках → ИИ-помощник');
     return;
   }
   aiAsk('Объясни этот фрагмент из книги «'+((R.book||{}).title||'')+'» простым языком, 2–4 предложения, по-русски:\n\n«'+t.slice(0,800)+'»');
@@ -607,7 +614,7 @@ el('spAI').onclick=()=>{
   el('selpop').classList.add('hidden');
 };
 async function aiAsk(promptTxt){
-  el('aiBody').innerHTML='<div class="pempty">✨ Думаю...</div>';
+  el('aiBody').innerHTML='<div class="pempty">Думаю...</div>';
   el('aiSheet').classList.remove('hidden');
   try{
     const resp=await fetch('https://api.openai.com/v1/chat/completions',{
@@ -626,7 +633,7 @@ el('aiSheetClose').onclick=()=>el('aiSheet').classList.add('hidden');
 function shareBook(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
-  const txt='Читаю «'+b.title+'» ('+b.author+') в ReadQuest — прогресс '+p+'% 📚🔥';
+  const txt='Читаю «'+b.title+'» ('+b.author+') в ReadQuest — прогресс '+p+'%';
   if(navigator.share){navigator.share({title:b.title,text:txt}).catch(function(){});}
   else{copyText(txt);alert('Текст для шаринга скопирован в буфер');}
 }
@@ -692,14 +699,14 @@ function renderYearReview(){
   const gm=genreMin();let favG='—',fv=0;Object.keys(gm).forEach(g=>{if(gm[g]>fv){fv=gm[g];favG=g;}});
   const hh=S.hourHist||[];let peak=0;for(let h=0;h<24;h++)if((hh[h]||0)>(hh[peak]||0))peak=h;
   let topB='—',tv=0;allBooks().forEach(b=>{const s=S.bookStats[b.id];if(s&&s.min>tv){tv=s.min;topB=b.title;}});
-  box.innerHTML='<div class="yreview"><div class="yr-h">🎉 Год в чтении · '+y+'</div><div class="yr-grid">'+
+  box.innerHTML='<div class="yreview"><div class="yr-h">Год в чтении · '+y+'</div><div class="yr-grid">'+
     '<div class="yr-cell"><b>'+Math.round(min)+'</b><span>минут</span></div>'+
     '<div class="yr-cell"><b>'+books+'</b><span>книг дочитано</span></div>'+
     '<div class="yr-cell"><b>'+days+'</b><span>дней с чтением</span></div>'+
-    '<div class="yr-cell"><b>🔥 '+(S.streak||0)+'</b><span>стрик сейчас</span></div></div>'+
-    '<div class="yr-line">📚 Любимый жанр: <b>'+esc(favG)+'</b></div>'+
-    '<div class="yr-line">🕐 Любимое время: <b>'+peak+':00</b></div>'+
-    '<div class="yr-line">🏆 Больше всего читал(а): <b>'+esc(topB)+'</b></div></div>';
+    '<div class="yr-cell"><b>'+(S.streak||0)+'</b><span>стрик сейчас</span></div></div>'+
+    '<div class="yr-line">Любимый жанр: <b>'+esc(favG)+'</b></div>'+
+    '<div class="yr-line">Любимое время: <b>'+peak+':00</b></div>'+
+    '<div class="yr-line">Больше всего читал(а): <b>'+esc(topB)+'</b></div></div>';
 }
 if(el('btnYearReview'))el('btnYearReview').onclick=renderYearReview;
 function renderStats(){
@@ -720,9 +727,9 @@ function renderStats(){
   el('bookStatBox').innerHTML=rows.length
     ?rows.sort((x,y)=>y.s.min-x.s.min).map(x=>{
       const pr=Math.round((((S.progress[x.b.id]||{}).ratio)||0)*100);
-      return '<div class="shopitem"><div class="tprev">'+x.b.cover+'</div>'+
+      return '<div class="shopitem"><div class="cover">'+coverHtml(x.b)+'</div>'+
         '<div style="flex:1;min-width:0"><b style="font-size:14px">'+esc(x.b.title)+'</b>'+
-        '<div style="font-size:12px;color:var(--muted)">⏱ '+Math.round(x.s.min)+' мин · 📄 '+x.s.pages+' стр · '+(S.finished.includes(x.b.id)?'✅ прочитано':pr+'%')+'</div>'+
+        '<div style="font-size:12px;color:var(--muted)">'+Math.round(x.s.min)+' мин · '+x.s.pages+' стр · '+(S.finished.includes(x.b.id)?'прочитано':pr+'%')+'</div>'+
         '<div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div></div>';
     }).join('')
     :'<div class="pempty">Почитайте — здесь появится разбивка по книгам</div>';

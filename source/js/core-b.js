@@ -26,7 +26,9 @@ const SKIN_THEMES={
  ellada:{name:'Эллада',bg:'#fcf9f3',txt:'#1a1410',skin:'ellada',shop:'skin-ellada',icon:'amphora'},
  'ellada-night':{name:'Эллада',bg:'#100d0b',txt:'#ebe0d2',skin:'ellada',shop:'skin-ellada',icon:'amphora',night:true,base:'ellada'},
  babochkovyi:{name:'Бабочковый',bg:'#fcfbf8',txt:'#1d2140',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2'},
- 'babochkovyi-night':{name:'Бабочковый',bg:'#0e1019',txt:'#e4e6ef',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2',night:true,base:'babochkovyi'}
+ 'babochkovyi-night':{name:'Бабочковый',bg:'#0e1019',txt:'#e4e6ef',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2',night:true,base:'babochkovyi'},
+ celestial:{name:'Небесный',bg:'#fbf6ea',txt:'#2b2742',skin:'celestial',shop:'skin-celestial',icon:'moon'},
+ 'celestial-night':{name:'Небесный',bg:'#14172a',txt:'#e7dcc6',skin:'celestial',shop:'skin-celestial',icon:'moon',night:true,base:'celestial'}
 };
 function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base?v.base:k;}
 /** owned shop skin theme for a saved key, else null (unknown / not bought / not styled yet) */
@@ -92,6 +94,19 @@ SKIN_ICONS.pencil={
  'focus':'<path d="M3 7.5V3.2h4.5M16.5 3h4.5v4.5M21 16.5V21h-4.3M7.5 21H3v-4.5"/><circle cx="12" cy="12" r="3"/><path d="M10.6 12.8l2-2"/>',
  'settings':'<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'
 };
+/* «Небесный» (17.10): читалка — назад с искрой, «Слушать» с полумесяцем-волной, оглавление звёздочками, ночь = месяц со звездой, день = солнце-лучи,
+   фокус = рамка со звездой, настройки = солнце-шестерёнка; награды = подарок со звездой, серия = солнце, уровень = звезда, профиль = лунный серп */
+SKIN_ICONS.celestial={
+ 'arrow-left':'<path d="M20 12H5"/><path d="M11 6l-6 6 6 6"/><path d="M19 4.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/>',
+ 'volume-2':'<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 4.5q1 .2 1.4 1.1.4-.9 1.4-1.1-1-.2-1.4-1.1-.4.9-1.4 1.1z"/><path d="M18.5 7.5a8 8 0 0 1 0 9"/>',
+ 'list':'<path d="M10 6h11M10 12h11M10 18h11"/><path d="M5 3.8l.8 1.4 1.5.3-1.1 1.1.3 1.5L5 7.4l-1.5.7.3-1.5-1.1-1.1 1.5-.3zM5 9.8l.8 1.4 1.5.3-1.1 1.1.3 1.5L5 13.4l-1.5.7.3-1.5-1.1-1.1 1.5-.3zM5 15.8l.8 1.4 1.5.3-1.1 1.1.3 1.5L5 19.4l-1.5.7.3-1.5-1.1-1.1 1.5-.3z"/>',
+ 'moon':'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 2.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7z"/>',
+ 'sun':'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6" stroke-dasharray="1 1.6"/>',
+ 'focus':'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M12 7.5l1.3 3.2 3.2 1.3-3.2 1.3-1.3 3.2-1.3-3.2-3.2-1.3 3.2-1.3z"/>',
+ 'settings':'<circle cx="12" cy="12" r="3"/><path d="M12 2.5l1.6 3.1 3.4-.9-.9 3.4 3.1 1.6-3.1 1.6.9 3.4-3.4-.9L12 21.5l-1.6-3.1-3.4.9.9-3.4L4.8 14.3l3.1-1.6-.9-3.4 3.4.9z"/>',
+ 'gift':'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M12 8C10.5 4 7.5 3.5 7 5.5S9 8 12 8zM12 8c1.5-4 4.5-4.5 5-2.5S15 8 12 8z"/><path d="M20 2l.5 1.2 1.2.5-1.2.5L20 5.4l-.5-1.2-1.2-.5 1.2-.5z"/>',
+ 'user-round':'<path d="M15 3a8 8 0 1 0 6 11.5A6.5 6.5 0 1 1 15 3z"/><path d="M8.5 9.5v.01M11 13.5q-1.5 1-3 0"/>'
+};
 SKIN_ICONS.babochkovyi=SKIN_ICONS_BB; /* «Бабочковый»: цветник, цветок, бабочка, кокон, шелкопряд (flower/flower-2 = Lucide, the rest our drawings) */
 /* Confetti per skin (Джессика 17.10): sprite symbol names; unknown skin / no skin → default. A new skin adds its line here.
    «Эллада»: амфора, свиток, Гелиос, венок; «Бабочковый»: бабочка, цветы, кокон; «Карандашный»: карандаш, тетрадь. */
@@ -122,7 +137,17 @@ const CONFETTI_ART={
    meander:{sz:18,f:['blue'],svg:'<rect x="2" y="2" width="20" height="20" rx="1"/><path d="M6.5 17.5v-11h11v11h-7v-7h3.5v3.5" style="fill:none;stroke:var(--el-gold-l)" stroke-width="1.8"/>'},
    bolt:{sz:24,f:['goldg','gold'],svg:'<path d="M14 2 5 13.5h6L9 22l10-12.5h-6.2Z"/>'},
    ribbon:{sz:28,f:['blue'],svg:'<path d="M2 9c4-4 7 2 11-1s6-4 9-2v6c-3-2-5-1-9 2s-7-3-11 1Z"/>'},
-   dot:{sz:7,f:['gold','blue'],svg:'<circle cx="12" cy="12" r="3.2"/>'}}}
+   dot:{sz:7,f:['gold','blue'],svg:'<circle cx="12" cy="12" r="3.2"/>'}}},
+ celestial:{ /* «Небесный»: звёзды, искры, месяц, солнце, кружки — золото, чернильная синева, сирень заката */
+  seq:['star','spark','moon','star','dot','sun','spark','star','dot','moon'],
+  fills:{gold:'var(--cl-gold)',goldg:'url(#rqcClGold)',ink:'var(--rq-accent)',lilac:'var(--cl-lilac)'},
+  grads:{rqcClGold:['--cl-gold-l','--cl-gold','--cl-gold-l']},
+  shapes:{
+   star:{sz:22,f:['goldg','gold','lilac'],svg:'<path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/>'},
+   spark:{sz:18,f:['goldg','lilac','ink'],svg:'<path d="M12 1Q13.6 10.4 23 12Q13.6 13.6 12 23Q10.4 13.6 1 12Q10.4 10.4 12 1z"/>'},
+   moon:{sz:22,f:['goldg','gold'],svg:'<path d="M15 3a9 9 0 1 0 6 14A7.5 7.5 0 1 1 15 3z"/>'},
+   sun:{sz:22,f:['goldg','gold'],svg:'<circle cx="12" cy="12" r="5"/><path d="M12 1l1.4 4h-2.8zM12 23l1.4-4h-2.8zM1 12l4 1.4v-2.8zM23 12l-4 1.4v-2.8z"/>'},
+   dot:{sz:7,f:['gold','ink','lilac'],svg:'<circle cx="12" cy="12" r="3.2"/>'}}}
 };
 function confettiDefs(){if(document.getElementById('rqConfettiDefs'))return;
   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.id='rqConfettiDefs';svg.setAttribute('width','0');svg.setAttribute('height','0');svg.setAttribute('aria-hidden','true');svg.style.position='absolute';
@@ -156,7 +181,8 @@ function applySkin(){setTimeout(syncThemeColor,0);
 }
 /** «Карандашный» active (app-wide skin) — UI only: covers / avatar / summary / confetti draw Lucide instead of emoji */
 /** «Бабочковый» sets its own book face (IBM Plex Serif, skins/skins.css) in place of the first «Шрифт» tile; any other tile the reader picks wins */
-function skinBookFont(){const sk=document.documentElement.dataset.skin;return sk==='babochkovyi'?{label:'IBM Plex Serif',v:'"IBM Plex Serif",Georgia,serif'}:null;}
+const SKIN_BOOK_FONT={babochkovyi:{label:'IBM Plex Serif',v:'"IBM Plex Serif",Georgia,serif'},celestial:{label:'Lora',v:'Lora,Georgia,serif'}};
+function skinBookFont(){return SKIN_BOOK_FONT[document.documentElement.dataset.skin]||null;}
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */

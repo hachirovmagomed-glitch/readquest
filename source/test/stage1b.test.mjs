@@ -257,7 +257,7 @@ if (want('pay')) {
   const c1 = await read([174000, 174000, 174000, 66000]); /* 9.8 counted min */
   const g1 = await g();
   ok('pay: 9.8 min → counter «9 / 10 мин», no +30 (balance unchanged, no daily row)', c1 === '9 / 10 мин' && g1.raw >= 9.8 && g1.raw < 9.9 && g1.day === 9 && g1.gold === g0.gold && g1.paid === 0, { c1, g0, g1 });
-  const c2 = await read([12000]); /* +0.2 → 10.0 */
+  const c2 = await read([12000, 1000]); /* +0.2 with one honest turn → 10.0 (since 17.10 a session under a minute without an honest turn is empty: no row, no XP) */
   const g2 = await g();
   ok('pay: 10.0 min → counter «10 / 10 мин», +30 paid once', c2 === '10 / 10 мин' && g2.raw >= 10 && g2.raw < 10.1 && g2.day === 10 && g2.gold === g0.gold + 30 && g2.paid === 1, { c2, g2 });
   await p.evaluate(() => { awardPendingSessions(); awardPendingSessions(); }); await sleep(300);

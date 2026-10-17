@@ -165,7 +165,7 @@ if (want('confetti') || want('refund') || want('testgold')) {
     const r = await p.evaluate(() => {
       const h = document.documentElement, out = {};
       const EMO = /\p{Extended_Pictographic}/u;
-      for (const sk of ['', 'pencil', 'future-skin']) {
+      for (const sk of ['', 'pencil', 'ellada', 'babochkovyi', 'future-skin']) {
         if (sk) h.dataset.skin = sk; else delete h.dataset.skin;
         document.querySelectorAll('.confetti').forEach(n => n.remove());
         confetti(); confettiReward(); confettiSummary();

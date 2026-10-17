@@ -33,7 +33,7 @@ const m = await p.evaluate(async () => { navGo('path'); await new Promise(r => s
   const nodes = document.querySelectorAll('#pathBox .pathnode').length, ch = document.querySelectorAll('#pathBox .pathch').length;
   pathOpen('odyssey'); const sheet = !el('bookSheet').classList.contains('hidden'); const cta = el('bookSheetBody').querySelector('.cta').textContent; el('bookSheet').classList.add('hidden');
   pathOpen('crime'); el('bookSheet').classList.add('hidden');
-  const roads = document.querySelectorAll('#pathBox .pathline path').length;
+  const roads = document.querySelectorAll('#pathBox .pathline path:not(.pl2):not(.pl3)').length;
   return { nodes, ch, sheet, roads, cta, vis: !el('path').classList.contains('hidden') }; });
 ok('1a карта: 4 главы, 14 книг, дорога между книгами (10 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 14 && m.roads === 10 && m.sheet, m);
 const b = await snap(); const w = await p.evaluate(() => window.__lsW.filter(k => k === RQ_K.v1 || k === RQ_K.set));

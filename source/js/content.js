@@ -62,6 +62,10 @@ const SHOP_CATALOG=(function(){
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
   sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   sk('babochkovyi','Бабочковый',500,'Перламутровые крылья, летний луг и мотыльки',[['base','Бабочковый','#f4f2f8']]); /* handoff/skins/babochkovyi (16.10) */
+  /* chapter skins of «Путь читателя» (Джессика 16–17.10: a skin of its own for every roadmap): price 0, not sold — owned once every book of the chapter is read */
+  sk('lamancha','Ламанча',0,'Гравюра о странствующих рыцарях: башни, мельницы и замок',[['base','Ламанча','#efe6d2']]);L[L.length-2].chapter='ch2';
+  sk('peterburg','Петербург',0,'План города: Нева, мостовые, газовые фонари и шпиль',[['base','Петербург','#e6bd62']]);L[L.length-2].chapter='ch3';
+  sk('modern','Модерн',0,'Ирисы, павлинье перо и железная дорога с вокзалами',[['base','Модерн','#0f5e63']]);L[L.length-2].chapter='ch4';
   const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
   return Object.freeze(L.map(Object.freeze));
 })();
@@ -70,13 +74,17 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi'];
+const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-lamancha','skin-peterburg','skin-modern'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
-  if(it.type==='skin')return it.price===0||(S.owned||[]).indexOf(id)>=0;
+  if(it.type==='skin'){if(it.chapter)return shopChapterDone(it.chapter);return it.price===0||(S.owned||[]).indexOf(id)>=0;}
   if(it.bundled)return shopOwns(it.skin);
   return (S.owned||[]).indexOf(id)>=0;}
+/** chapter skin: every book of the chapter is read (a pure read of the library, like the map; nothing stored) */
+function shopChapterDone(chId){if(typeof PATH_CHAPTERS==='undefined'||typeof pathState!=='function')return false;
+  const c=PATH_CHAPTERS.find(function(x){return x.id===chId;});return !!c&&c.books.every(function(b){return pathState(b.id).done;});}
+function shopChapterOf(it){return it&&it.chapter&&typeof PATH_CHAPTERS!=='undefined'?PATH_CHAPTERS.find(function(x){return x.id===it.chapter;})||null:null;}
 function shopBundled(skinId){return (SHOP_CATALOG.find(x=>x.type==='color'&&x.skin===skinId&&x.bundled)||{}).id||null;}
 /** buy(id): one function, one NS_v1 write, idempotent; devMoney has no effect. → {ok, reason?} */
 function buy(id){
@@ -126,7 +134,8 @@ function shopState(it){
   if(it.type==='skin'){
     if(!shopReady(it.id))return {k:'soon',t:'Скоро'};
     if(shopWorn()===it.id)return {k:'worn',t:'Надето'};
-    if(shopOwns(it.id))return {k:'owned',t:it.price?'Куплено':'Бесплатно'};
+    if(shopOwns(it.id))return {k:'owned',t:it.price?'Куплено':(it.chapter?'Открыт':'Бесплатно')};
+    if(it.chapter){const c=shopChapterOf(it);return {k:'chapter',t:'За главу '+(c?c.n:'')};}
     if(S.gold>=it.price)return {k:'buy',t:'Купить'};
     return {k:'short',t:'Не хватает '+(it.price-S.gold)};
   }
@@ -141,7 +150,7 @@ function renderShopPane(){
       :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
     return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
       '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
-      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
+      '<span class="shopprice">'+(it.price?coinsP(it.price):it.chapter?'За главу '+((shopChapterOf(it)||{}).n||''):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
   }).join('');
   /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
   if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
@@ -163,24 +172,26 @@ function renderShopDetail(){
   const sel=shopTrying&&shopItem(shopTrying)&&shopItem(shopTrying).skin===it.id?shopTrying:(worn&&SET.color)||shopBundled(it.id);
   const selIt=shopItem(sel);
   let btn,act;const ready=shopReady(it.id);
+  const chap=shopChapterOf(it);
   if(!ready){btn='Скоро';act='';} /* audit 15.10: no styling yet → nothing to buy or wear */
+  else if(!owned&&chap){btn='Откроется за главу '+chap.n;act='';}
   else if(!owned){btn='Купить скин за '+coinsP(it.price);act='shopBuyAsk(\''+it.id+'\')';}
   else if(selIt&&!selIt.bundled&&!shopOwns(sel)){btn='Купить расцветку за '+coinsP(selIt.price);act='shopBuyAsk(\''+sel+'\')';}
   else if(worn&&(!selIt||SET.color===sel)){btn='Надето';act='';}
   else {btn='Надеть';act='wear(\''+(selIt?sel:it.id)+'\');renderShopPane()';}
-  const state=worn?'<span class="spst on">Надето</span>':owned?'<span class="spst">'+(it.price?'Куплено':'Бесплатно')+'</span>':'<span class="spst">'+coinsP(it.price)+'</span>';
+  const state=worn?'<span class="spst on">Надето</span>':owned?'<span class="spst">'+(it.price?'Куплено':chap?'Открыт':'Бесплатно')+'</span>':'<span class="spst">'+(chap?'За главу '+chap.n:coinsP(it.price))+'</span>';
   const prev=(selIt&&selIt.sw)||'#ccc';
   d.innerHTML='<div class="sphead"><button type="button" id="shopBack" class="spback" onclick="shopBack()" aria-label="Назад">'+rqIcon('arrow-left',22)+'</button>'+
       '<b class="shopdh">'+esc(it.name)+'</b><div class="spacer"></div><span class="chip">'+coinsP(S.gold)+'</span></div>'+
     '<div class="spbody"><div class="spprev"><span class="spphone" style="background:'+prev+'"></span><span class="spphone" style="background:'+prev+'"></span></div>'+
     '<div class="row sptitle"><b>'+esc(it.name)+'</b><div class="spacer"></div>'+state+'</div>'+
     '<div class="spdesc">'+esc(it.desc||'')+'</div>'+
-    '<div class="row shopcols-h"><span>Расцветки</span><div class="spacer"></div><small>'+(owned?'первая — со скином':'сначала купите скин')+'</small></div><div class="shopcols">'+
+    '<div class="row shopcols-h"><span>Расцветки</span><div class="spacer"></div><small>'+(owned?'первая — со скином':chap?'откроется со скином':'сначала купите скин')+'</small></div><div class="shopcols">'+
     cols.map(function(c){return '<button type="button" class="shopcol'+(c.id===sel?' on':'')+'" data-id="'+c.id+'" onclick="shopTryOn(\''+c.id+'\')">'+
       '<span class="shopcov" style="background:'+c.sw+'"></span><small>'+esc(c.name)+'</small><small class="shopcp">'+(c.bundled?'Со скином':shopOwns(c.id)?'Куплено':coinsP(c.price))+'</small></button>';}).join('')+'</div>'+
-    '<div class="spdesc" style="font-size:12px">'+(!ready?'Оформление этого скина появится в одной из следующих сборок.':owned?'Нажмите на расцветку, чтобы примерить её на экранах выше.':'Расцветки можно примерить сейчас, купить — после покупки скина.')+'</div></div>'+
+    '<div class="spdesc" style="font-size:12px">'+(!ready?'Оформление этого скина появится в одной из следующих сборок.':owned?'Нажмите на расцветку, чтобы примерить её на экранах выше.':chap?'Скин главы не продаётся: он открывается, когда прочитаны все книги главы.':'Расцветки можно примерить сейчас, купить — после покупки скина.')+'</div></div>'+
     '<div class="spfoot"><button type="button" class="buy shopbuy"'+(act?' onclick="'+act+'"':' disabled')+(ready&&!owned&&S.gold<it.price?' disabled':'')+'>'+btn+'</button>'+
-    '<div class="spcap">'+(!ready?(owned?'Куплено · наденете, когда выйдет оформление':'Купить можно будет, когда выйдет оформление'):worn?'Этот скин сейчас на вас':owned?'Куплено · можно сменить в любой момент':'Монеты дают квесты за чтение')+'</div></div>';
+    '<div class="spcap">'+(chap&&!owned?'Дочитайте все книги главы '+chap.n+' «'+esc(chap.t)+'» на карте Пути читателя':!ready?(owned?'Куплено · наденете, когда выйдет оформление':'Купить можно будет, когда выйдет оформление'):worn?'Этот скин сейчас на вас':owned?'Куплено · можно сменить в любой момент':'Монеты дают квесты за чтение')+'</div></div>';
 }
 let shopPending=null; /* id waiting in the confirm dialog; buy() runs only from «Купить», once */
 function shopBuyAsk(id){

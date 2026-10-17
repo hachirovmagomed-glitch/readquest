@@ -3,7 +3,8 @@
    Open map of world classics (decision 16.10: everything open, any order, no locks, no fog).
    The catalog lives in code. Progress is a pure read of the library: a path book is the library book whose pathId
    equals the catalog id; «done» = S.finished, percent = rqPos (same as the shelf). Opening the map writes nothing.
-   Rewards: chapter titles only (cosmetic, no coins and no extra XP), shown as «звание за главу». */
+   Rewards: chapter titles only (cosmetic, no coins and no extra XP), shown as «звание за главу»; chapters II–IV also open their own skin
+   (Джессика 17.10: free, once the chapter is read; ownership is derived from the library, nothing new is stored). */
 const PATH_CHAPTERS=[
   {id:'ch1',n:'I',t:'Истоки',rank:'Слушатель рапсодов',books:[
     {id:'aesop',t:'Басни',a:'Эзоп',tr:'пересказ Л. Н. Толстого',kb:21,kind:'side'},
@@ -48,7 +49,7 @@ function renderPath(){
     const cd=c.books.filter(function(b){return pathState(b.id).done;}).length,full=cd===c.books.length;
     h+='<section class="pathch'+(full?' full':'')+'" data-ch="'+c.id+'">'+
       '<div class="pathch-h"><span class="pathch-n">'+c.n+'</span><div><b>'+esc(c.t)+'</b>'+
-      '<div class="pathch-s">'+cd+' из '+c.books.length+' · звание «'+esc(c.rank)+'»</div></div></div>'+
+      '<div class="pathch-s">'+cd+' из '+c.books.length+' · звание «'+esc(c.rank)+'»</div></div></div>'+pathSkinLine(c,full)+
       '<div class="pathmap"><svg class="pathline" aria-hidden="true"></svg>';
     c.books.forEach(function(b,i){
       const st=pathState(b.id),side=i%2?'r':'l';
@@ -68,6 +69,13 @@ function renderPath(){
   el('pathBox').innerHTML=h;
   requestAnimationFrame(pathLines);
 }
+/* the chapter's own skin (catalog field chapter, js/content.js): free once every book of the chapter is read; «Надеть» right here */
+function pathSkinOf(c){return typeof SHOP_CATALOG!=='undefined'?SHOP_CATALOG.find(function(x){return x.type==='skin'&&x.chapter===c.id;})||null:null;}
+function pathSkinLine(c,full){const it=pathSkinOf(c);if(!it)return '';
+  if(!full)return '<div class="pathch-sk">Скин за главу: <b>«'+esc(it.name)+'»</b></div>';
+  const worn=typeof shopWorn==='function'&&shopWorn()===it.id;
+  return '<div class="pathch-sk">Скин <b>«'+esc(it.name)+'»</b> открыт'+(worn?' · <span class="on">надет</span>':'<button type="button" onclick="pathWear(\''+it.id+'\')">Надеть</button>')+'</div>';}
+function pathWear(id){if(typeof wear==='function'&&wear(id)){renderPath();try{flashMsg('Скин «'+shopItem(id).name+'» надет','info');}catch(e){}}}
 /* the road between nodes: one smooth S-curve per pair, drawn after layout (view only) */
 function pathLines(){
   document.querySelectorAll('#pathBox .pathmap').forEach(function(m){
@@ -78,7 +86,9 @@ function pathLines(){
     let s='';
     /* road: down from a dot, across in the gap between rows (never through a label), down into the next dot */
     for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i],my=(a.bot+b.top)/2,dir=b.x>a.x?1:-1,R=Math.min(18,Math.abs(b.x-a.x)/2,(my-a.y),(b.y-my));
-      s+='<path d="M'+a.x+' '+a.y+' V'+(my-R)+' Q'+a.x+' '+my+' '+(a.x+dir*R)+' '+my+' H'+(b.x-dir*R)+' Q'+b.x+' '+my+' '+b.x+' '+(my+R)+' V'+b.y+'" class="'+(a.done&&b.done?'on':'')+'"/>';}
+      const d='M'+a.x+' '+a.y+' V'+(my-R)+' Q'+a.x+' '+my+' '+(a.x+dir*R)+' '+my+' H'+(b.x-dir*R)+' Q'+b.x+' '+my+' '+b.x+' '+(my+R)+' V'+b.y,on=a.done&&b.done?'on':'';
+      /* three strokes of one road: the base one everywhere; pl2/pl3 are hidden unless a chapter skin draws a street or rails with them */
+      s+='<path d="'+d+'" class="'+on+'"/><path d="'+d+'" class="pl2 '+on+'"/><path d="'+d+'" class="pl3 '+on+'"/>';}
     svg.innerHTML=s;
   });
 }
@@ -95,7 +105,8 @@ function pathOpen(pid){
     '<div class="bk-row"><span class="bk-k">Глава</span><span class="bk-v">'+c.n+' · '+esc(c.t)+'</span></div>'+
     '<div class="bk-row"><span class="bk-k">Место</span><span class="bk-v">'+tag+'</span></div>'+
     '<div class="bk-row"><span class="bk-k">Объём</span><span class="bk-v">'+pathHours(b.kb)+' чтения</span></div>'+
-    '<div class="bk-row"><span class="bk-k">Звание за главу</span><span class="bk-v">«'+esc(c.rank)+'»</span></div></div>'+
+    '<div class="bk-row"><span class="bk-k">Звание за главу</span><span class="bk-v">«'+esc(c.rank)+'»</span></div>'+
+    (pathSkinOf(c)?'<div class="bk-row"><span class="bk-k">Скин за главу</span><span class="bk-v">«'+esc(pathSkinOf(c).name)+'»</span></div>':'')+'</div>'+
     '<div class="bk-note">'+(has?'Книга лежит на телефоне и читается без интернета. Её можно удалить, прогресс останется.':
       (st.lib?'Текст удалён с телефона, прогресс сохранён. Скачайте книгу снова, чтобы продолжить.':
       'Книга бесплатная, из общественного достояния. Скачивается один раз и дальше читается без интернета. Минуты, опыт и серия считаются как у любой книги.'))+'</div>'+

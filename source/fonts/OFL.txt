@@ -18,3 +18,11 @@ skin pack (handoff/skins/babochkovyi/src/fonts); Mulish instanced at wght 500 an
 Poiret One — Copyright (c) 2011, Denis Masharov (denis.masharov@gmail.com)
 Mulish — Copyright 2016 The Mulish Project Authors (https://github.com/googlefonts/mulish)
 Bellota Text — Copyright 2019 The Bellota Project Authors (https://github.com/kemie/Bellota-Font)
+Bona Nova, Bona Nova SC — Copyright 2017 The Bona Nova Project Authors (https://github.com/kosmynkab/Bona-Nova)  [skin «Ламанча»]
+Spectral, Spectral SC — Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/spectral)  [skin «Ламанча»]
+Sofia Sans Extra Condensed — Copyright 2019 The Sofia Sans Project Authors (https://github.com/lettersoup/Sofia-Sans)  [skin «Петербург»]
+Onest — Copyright 2021 The Onest Project Authors (https://github.com/simpals/onest)  [skin «Петербург»]
+Noto Serif Display — Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)  [skin «Петербург»]
+Ysabeau Infant, Ysabeau SC — Copyright 2022 The Ysabeau Project Authors (https://github.com/CatharsisFonts/Ysabeau)  [skin «Модерн»]
+Jura — Copyright 2019 The Jura Project Authors (https://github.com/ossobuffo/jura)  [skin «Модерн»]
+All of the above: SIL Open Font License 1.1, subset Latin + Cyrillic (fontTools pyftsubset), woff2.

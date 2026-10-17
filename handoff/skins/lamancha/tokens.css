@@ -1,0 +1,44 @@
+/* ReadQuest · скин «Ламанча» (глава II «Странники и рыцари»): раскрашенная от руки гравюра — чернила, ультрамарин, охра, киноварь. Скин главы «Пути читателя»: открывается бесплатно, когда глава дочитана (16–17.10.2026).
+   Генерируется source/tools/gen-chapter-skins.py — правьте там. Имена токенов = stage1-final/tokens.css. Шрифты (OFL) — source/fonts/lamancha-*.woff2. */
+[data-skin="lamancha"]{
+  --rq-font-ui:"Spectral",Georgia,serif; --rq-font-display:"Bona Nova SC","Spectral",Georgia,serif; --rq-font-num:"Spectral SC","Spectral",Georgia,serif; --rq-font-read:Georgia,serif;
+  --rq-radius-xs:0; --rq-radius-sm:2px; --rq-radius-md:2px; --rq-radius-lg:4px; --rq-icon-stroke:1.8;
+  --rq-bg:#efe6d2; --rq-surface:#fbf6ea; --rq-surface-2:#f3ead6; --rq-sheet:#fbf6ea;
+  --rq-line:#cbbd9f; --rq-border-strong:#6b5a44;
+  --rq-text:#1d1a17; --rq-text-2:#55483a; --rq-text-disabled:#a3957c;
+  --rq-accent:#9e2a1c; --rq-accent-pressed:#7f2015; --rq-accent-text:#9e2a1c;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#f5ddd5; --rq-accent-border:#d48b7e;
+  --rq-coin:#7a4a10; --rq-coin-tint:#f6e7c8;
+  --rq-success:#3d5a2a; --rq-success-tint:#e3ebd6;
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#9e2a1c; --rq-scrim:rgba(29,26,23,.45);
+  --rq-badge-bg:#1d1a17; --rq-badge-text:#fbf6ea;
+  --rq-toast-game-bg:#1d1a17; --rq-toast-game-fg:#fbf6ea;
+  --rq-toast-info-bg:#fbf6ea; --rq-toast-info-fg:#1d1a17; --rq-toast-info-icon:#9e2a1c; --rq-toast-info-border:#6b5a44;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(0,0,0,.12); --rq-shadow-2:0 0 0 2px #1d1a17,0 0 0 5px #fbf6ea,0 0 0 6px #1d1a17,0 8px 18px rgba(29,26,23,.14); --rq-shadow-3:0 14px 40px rgba(0,0,0,.28);
+}
+[data-skin="lamancha"][data-theme="night"]{
+  --rq-bg:#11141f; --rq-surface:#1b1f2d; --rq-surface-2:#242a3b; --rq-sheet:#1b1f2d;
+  --rq-line:#333a4f; --rq-border-strong:#6d7590;
+  --rq-text:#efe6d2; --rq-text-2:#bfb5a2; --rq-text-disabled:#5f6680;
+  --rq-accent:#f08a6e; --rq-accent-pressed:#f6a58e; --rq-accent-text:#f08a6e;
+  --rq-on-accent:#1d1a17; --rq-control-on:#1d1a17;
+  --rq-accent-tint:#2c2226; --rq-accent-border:#a0503f;
+  --rq-coin:#f2c76a; --rq-coin-tint:#2c2818;
+  --rq-success:#b7d39a; --rq-success-tint:#1f2a1c;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a1c;
+  --rq-focus:#f08a6e; --rq-scrim:rgba(5,6,10,.7);
+  --rq-badge-bg:#efe6d2; --rq-badge-text:#11141f;
+  --rq-toast-game-bg:#242a3b; --rq-toast-game-fg:#f08a6e;
+  --rq-toast-info-bg:#242a3b; --rq-toast-info-fg:#efe6d2; --rq-toast-info-icon:#f08a6e; --rq-toast-info-border:#333a4f;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 2px #d8cdb6,0 0 0 5px #1b1f2d,0 0 0 6px #4a5268,0 12px 32px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+}
+/* Страница книги: чистая, без декора. */
+[data-skin="lamancha"] [data-page="day"]{--r-bg:#fbf7ee;--r-txt:#1d1a17;--r-txt-2:#55483a;--r-dim:0;}
+[data-skin="lamancha"] [data-page="night"]{--r-bg:#10131c;--r-txt:#e6dcc8;--r-txt-2:#a99f8c;--r-dim:.35;}
+@media (prefers-reduced-motion:reduce){
+  [data-skin="lamancha"] *,[data-skin="lamancha"] *::before,[data-skin="lamancha"] *::after{animation:none!important;transition:none!important}
+}

@@ -1,0 +1,44 @@
+/* ReadQuest · скин «Петербург» (глава III «Век романа»): гравированный план города, охристый фасад, чугунная решётка, газовый свет. Скин главы «Пути читателя»: открывается бесплатно, когда глава дочитана (16–17.10.2026).
+   Генерируется source/tools/gen-chapter-skins.py — правьте там. Имена токенов = stage1-final/tokens.css. Шрифты (OFL) — source/fonts/peterburg-*.woff2. */
+[data-skin="peterburg"]{
+  --rq-font-ui:"Onest",system-ui,sans-serif; --rq-font-display:"Sofia Sans Extra Condensed","Onest",sans-serif; --rq-font-num:"Sofia Sans Extra Condensed","Onest",sans-serif; --rq-font-read:Georgia,serif; --pb-font-title:"Noto Serif Display",Georgia,serif;
+  --rq-radius-xs:0; --rq-radius-sm:2px; --rq-radius-md:2px; --rq-radius-lg:4px; --rq-icon-stroke:1.8;
+  --rq-bg:#eceae4; --rq-surface:#fbfaf6; --rq-surface-2:#f1efe8; --rq-sheet:#fbfaf6;
+  --rq-line:#cfcac0; --rq-border-strong:#5d646c;
+  --rq-text:#1b1f24; --rq-text-2:#4c535c; --rq-text-disabled:#a3a7ab;
+  --rq-accent:#1d5a5b; --rq-accent-pressed:#164748; --rq-accent-text:#1d5a5b;
+  --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
+  --rq-accent-tint:#dde9e8; --rq-accent-border:#8fb5b5;
+  --rq-coin:#7b4a1e; --rq-coin-tint:#f5e8d6;
+  --rq-success:#2f6a3a; --rq-success-tint:#e0ecdf;
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#1d5a5b; --rq-scrim:rgba(27,31,36,.45);
+  --rq-badge-bg:#1b1f24; --rq-badge-text:#fbfaf6;
+  --rq-toast-game-bg:#1d5a5b; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#fbfaf6; --rq-toast-info-fg:#1b1f24; --rq-toast-info-icon:#1d5a5b; --rq-toast-info-border:#5d646c;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(0,0,0,.12); --rq-shadow-2:0 0 0 1.2px #1b1f24,0 -3px 0 0 #fbfaf6,0 -4.2px 0 0 #1b1f24,0 8px 18px rgba(27,31,36,.10); --rq-shadow-3:0 14px 40px rgba(0,0,0,.28);
+}
+[data-skin="peterburg"][data-theme="night"]{
+  --rq-bg:#0e1419; --rq-surface:#18212a; --rq-surface-2:#212c37; --rq-sheet:#18212a;
+  --rq-line:#2c3844; --rq-border-strong:#5f7080;
+  --rq-text:#eef0f1; --rq-text-2:#b6bec6; --rq-text-disabled:#5a6672;
+  --rq-accent:#f2c14e; --rq-accent-pressed:#f7d47c; --rq-accent-text:#f2c14e;
+  --rq-on-accent:#1b1f24; --rq-control-on:#1b1f24;
+  --rq-accent-tint:#2a2616; --rq-accent-border:#8c7230;
+  --rq-coin:#f2c14e; --rq-coin-tint:#2a2616;
+  --rq-success:#a8d5a0; --rq-success-tint:#1c2a1f;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a1c;
+  --rq-focus:#f2c14e; --rq-scrim:rgba(4,6,8,.7);
+  --rq-badge-bg:#eef0f1; --rq-badge-text:#0e1419;
+  --rq-toast-game-bg:#212c37; --rq-toast-game-fg:#f2c14e;
+  --rq-toast-info-bg:#212c37; --rq-toast-info-fg:#eef0f1; --rq-toast-info-icon:#f2c14e; --rq-toast-info-border:#2c3844;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1.2px #c9d1d8,0 -3px 0 0 #18212a,0 -4.2px 0 0 #c9d1d8,0 12px 32px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+}
+/* Страница книги: чистая, без декора. */
+[data-skin="peterburg"] [data-page="day"]{--r-bg:#fbfaf6;--r-txt:#1b1f24;--r-txt-2:#4c535c;--r-dim:0;}
+[data-skin="peterburg"] [data-page="night"]{--r-bg:#0f151a;--r-txt:#e3e7ea;--r-txt-2:#a9b2ba;--r-dim:.35;}
+@media (prefers-reduced-motion:reduce){
+  [data-skin="peterburg"] *,[data-skin="peterburg"] *::before,[data-skin="peterburg"] *::after{animation:none!important;transition:none!important}
+}

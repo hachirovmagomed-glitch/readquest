@@ -311,6 +311,10 @@ function bbCover(b){
   else art='<g transform="translate(0 2) rotate('+((h>>4)%21-10)+' 20 20)">'+bbWings(K[1],K[2],'#3a3f6a')+'</g>';
   return '<span class="bb-cover bb-'+K[0]+'"><i>'+bookFmt(b)+'</i><svg viewBox="0 0 40 42" aria-hidden="true" focusable="false">'+art+'</svg></span>';
 }
+/* chapter skins («Ламанча», «Петербург», «Модерн»): a coloured panel with the format on top and the skin's drawing at the bottom (skins.css block 4) */
+const CS_SKINS=['lamancha','peterburg','modern'];
+function chapterCover(b){let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
+  return '<span class="cs-cover cs-k'+(h%6)+'"><i>'+bookFmt(b)+'</i></span>';}
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){
   const cv=S.covers[b.id];
@@ -318,6 +322,7 @@ function coverHtml(b){
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
+  if(CS_SKINS.indexOf(document.documentElement.dataset.skin)>=0)return chapterCover(b);
   if(cv)return cv;
   return b.cover||rqIcon('book-open',22); /* no emoji cover (path books) → Lucide */
 }

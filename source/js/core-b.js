@@ -223,7 +223,15 @@ function hydrateS(raw){
 hydrateS({});
 let saveWarned=false;
 /** Single writer → rq_v1 via saveFlat (envelope only; book bodies are written once on add/import/migration). Never touches legacy `readquest`. */
+/* one balance everywhere (bug 17.10: header 1800 while «Награды» said 600): every visible coin count is redrawn from S.gold
+   on every save(), so no spend / gain path can leave the library header or the profile behind. Display only, no writes. */
+function goldSync(){
+  try{if(typeof libGoldRender==='function')libGoldRender();}catch(e){}
+  const t=coinsP(goldDisp());[['rewBalance',t],['shopGold',t],['dGold',t]].forEach(function(x){const e=el(x[0]);if(e)e.textContent=x[1];});
+  const mg=el('mvpGold');if(mg){mg.textContent=goldDisp();const gl=el('mvpGoldLbl');if(gl)gl.textContent=t.replace(/^\S+ /,'');}
+}
 function save(){
+  goldSync();
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return; /* passive window: never write */
   if(!__rq||!__rq.saveFlat){
     console.warn('[rq] save() before boot — skipped');

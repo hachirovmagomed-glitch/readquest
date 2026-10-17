@@ -645,10 +645,9 @@ function confetti(opts){
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
-  const ic=['sparkles','star','book-open','check']; /* Lucide in every theme, no emoji; colour = theme tokens (app.html .confetti) */
-  for(let i=0;i<count;i++){
+  for(let i=0;i<count;i++){ /* own pieces per skin (CONFETTI_SKIN / confettiPiece, js/core-b.js), no emoji; colours = theme tokens */
     const s=document.createElement('div');s.className='confetti';
-    s.innerHTML=rqIcon(ic[i%ic.length],16);
+    const pc=confettiPiece(i);s.innerHTML=pc.html;if(pc.c){s.dataset.c=pc.c;s.dataset.f=pc.f;}
     s.style.left=(8+Math.random()*84)+'vw';
     /* start well below heading when avoidTop */
     s.style.top=avoidTop?((32+Math.random()*40)+'vh'):'-30px';

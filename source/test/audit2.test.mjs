@@ -5,7 +5,7 @@
 // motion: prefers-reduced-motion OR «Анимации» off (S.ux.anim === false) → no confetti, no book fly-in / opening animation, no CSS animations;
 //         default → confetti still runs (sanity).
 // s360: «Общие настройки» at 360 and 390: no word of a row label is split across lines; the last VISIBLE row of a card has no divider.
-// confetti (part 2): in every theme the confetti are Lucide icons (svg), no emoji; colour = theme tokens (--accent / --accent2), «Карандашный» as before.
+// confetti (part 2): in every theme the confetti are icons (svg), no emoji, each skin its own set (CONFETTI_SKIN in js/core-b.js); colour = theme tokens (--accent / --accent2), «Карандашный» as before.
 // refund (part 2): cancelling a real-life reward writes game.rewardRefunds[] {id, purchaseId, title, price, at}; it survives export → import;
 //         an old backup without the field imports with []; junk is dropped; a passive window changes nothing.
 // testgold (part 2): «+1000 монет для теста» logs {type:'test_gold', amount:1000} in events.
@@ -171,12 +171,31 @@ if (want('confetti') || want('refund') || want('testgold')) {
         confetti(); confettiReward(); confettiSummary();
         const ns = [...document.querySelectorAll('.confetti')];
         const css = getComputedStyle(h), tok = [css.getPropertyValue('--accent'), css.getPropertyValue('--accent2')].map(v => { const d = document.createElement('i'); d.style.color = v.trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
-        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use')).length,
-          offTok: sk === 'pencil' ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length };
+        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use, svg path, svg circle, svg polygon, svg rect')).length,
+          offTok: (sk === 'pencil' || sk === 'babochkovyi' || sk === 'ellada') ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length,
+          shapes: [...new Set(ns.map(n => n.dataset.c || ''))].sort().join(' '),
+          fills: new Set(ns.map(n => n.dataset.f || '')).size,
+          /* every colour inside a piece: a token var(), a token gradient url(#rqc…), currentColor (icon pieces) or none */
+          rawCol: ns.flatMap(n => [...n.querySelectorAll('svg, path, circle, rect, polygon')].flatMap(e => [e.getAttribute('fill'), e.getAttribute('stroke'), e.style.fill, e.style.stroke]))
+            .filter(v => v && !/^(var\(--[a-z0-9-]+\)|url\("?#rqc[A-Za-z]+"?\)|none|currentColor)$/.test(v)),
+          icons: [...new Set(ns.map(n => (n.querySelector('use') || { getAttribute: () => '' }).getAttribute('href')))].sort().join(' ') };
         ns.forEach(n => n.remove());
       }
       delete h.dataset.skin; return out;
     });
+    /* own confetti per skin (Джессика 17.10): each skin its own icon set; unknown skin → default set */
+    const SETS = { default: '#i-book-open #i-check #i-sparkles #i-star', pencil: '#i-notebook-pen #i-pencil #i-sparkles #i-star',
+      ellada: '', babochkovyi: '', 'future-skin': '#i-book-open #i-check #i-sparkles #i-star' };
+    /* «Бабочковый» (Джессика 17.10, картинка-образец): filled butterflies (top, side, small) + dots in 6 wing fills: blue, lilac, pink, pearl, gold, silver — all from skin tokens */
+    const bb = r.babochkovyi; const defs = await p.evaluate(() => { const d = document.getElementById('rqConfettiDefs'); return d ? [...d.querySelectorAll('stop')].map(s => s.getAttribute('style') || '') : null; });
+    ok('confetti babochkovyi: butterflies (top, side, small) and dots, 6 fills', bb.shapes === 'butterfly dot side small' && bb.fills === 6 && bb.n > 0, bb);
+    ok('confetti babochkovyi: gradient stops take colours from skin tokens only', Array.isArray(defs) && defs.length >= 6 && defs.every(st => /^stop-color:var\(--[a-z0-9-]+\)$/.test(st)), defs);
+    /* «Эллада» (Джессика 17.10, лист-образец): лавр, олива, звезда, ромб, меандр, молния, лента, кружок — золото, Эгейский синий, олива */
+    const el = r.ellada;
+    ok('confetti ellada: laurel, leaf, star, diamond, meander, bolt, ribbon, dot in gold / blue / olive', el.shapes === 'bolt diamond dot laurel leaf meander ribbon star' && el.fills >= 3 && el.n > 0, el);
+    ok('confetti: every colour in every skin comes from tokens (var / token gradient)', Object.values(r).every(v => !v.rawCol.length), Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.rawCol.slice(0, 5)])));
+    ok('confetti other skins: icon pieces, not butterflies', ['default', 'pencil', 'future-skin'].every(k => r[k].shapes === ''), Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.shapes])));
+    for (const k of Object.keys(r)) ok('confetti ' + k + ': its own icon set (' + SETS[k] + ')', r[k].icons === SETS[k], r[k].icons);
     for (const k of Object.keys(r)) ok('confetti ' + k + ': Lucide icons only, no emoji' + (k === 'pencil' ? '' : ', colour from theme tokens'), r[k].n > 0 && r[k].emoji === 0 && r[k].svg === r[k].n && r[k].offTok === 0 && !errs.length, r[k]);
     await ctx.close();
   }

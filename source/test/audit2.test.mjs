@@ -9,6 +9,7 @@
 // refund (part 2): cancelling a real-life reward writes game.rewardRefunds[] {id, purchaseId, title, price, at}; it survives export → import;
 //         an old backup without the field imports with []; junk is dropped; a passive window changes nothing.
 // testgold (part 2): «+1000 монет для теста» logs {type:'test_gold', amount:1000} in events.
+// balance (17.10): one balance everywhere — header, «Награды», profile follow S.gold after every change.
 // metrics (part 2): metrics.py — reward buys = purchases − refunds; skin buys (purchase events) separate; test_gold reported.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/ node audit2.test.mjs   [RQ_ONLY=gate,static,…]
 import puppeteer from 'puppeteer-core';
@@ -242,6 +243,29 @@ if (want('confetti') || want('refund') || want('testgold')) {
       ok('testgold: main build (rq) adds no coins and logs no test_gold', r.ns === 'rq' && r.add === 0 && r.ev.length === 0 && !errs.length, { r, errs }); await ctx.close(); }
   }
   await browser.close();
+}
+
+if (want('balance')) {
+  /* bug 17.10 (Джессика, /test/ 20261017-1324): library header 1800 / 600 while the open «Награды» sheet says 600 / 300 —
+     the header was not redrawn after a spend in «Из жизни». Every visible balance = S.gold after buy / +1000. */
+  const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+  await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await p.goto(BASE.replace(/\/?$/, '/') + (/\/test\/?$/.test(BASE) ? '' : 'test/'), { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(600);
+  const r = await p.evaluate(async () => {
+    const num = (id) => { const e = document.getElementById(id); return e ? parseInt((e.textContent || '').replace(/\D/g, ''), 10) : null; };
+    S.gold = 1800; save(); show('library'); await new Promise(r => setTimeout(r, 200));
+    const before = num('goldChip');
+    openRewardsSheet('life'); await new Promise(r => setTimeout(r, 200));
+    S.rewards[0].name = 'Кофе'; buyRewardTier(0); await new Promise(r => setTimeout(r, 200));
+    const afterBuy = { gold: S.gold, chip: num('goldChip'), sheet: num('rewBalance') };
+    shopTestGold(); await new Promise(r => setTimeout(r, 200));
+    const afterTest = { gold: S.gold, chip: num('goldChip'), sheet: num('rewBalance') };
+    return { before, afterBuy, afterTest };
+  });
+  ok('balance: header and «Награды» show the same coins after a spend in «Из жизни» (sheet open over the library)', r.before === 1800 && r.afterBuy.gold < 1800 && r.afterBuy.chip === r.afterBuy.gold && r.afterBuy.sheet === r.afterBuy.gold && !errs.length, { r, errs });
+  ok('balance: header follows «+1000 монет для теста» too', r.afterTest.gold === r.afterBuy.gold + 1000 && r.afterTest.chip === r.afterTest.gold && r.afterTest.sheet === r.afterTest.gold, r.afterTest);
+  await ctx.close(); await browser.close();
 }
 
 if (want('metrics')) {

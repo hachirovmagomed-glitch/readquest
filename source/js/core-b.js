@@ -69,8 +69,29 @@ SKIN_ICONS.babochkovyi=SKIN_ICONS_BB; /* «Бабочковый»: цветни�
 /* Confetti per skin (Джессика 17.10): sprite symbol names; unknown skin / no skin → default. A new skin adds its line here.
    «Эллада»: амфора, свиток, Гелиос, венок; «Бабочковый»: бабочка, цветы, кокон; «Карандашный»: карандаш, тетрадь. */
 const CONFETTI_SKIN={'':['sparkles','star','book-open','check'],pencil:['pencil','notebook-pen','star','sparkles'],
- ellada:['amphora','book-open','sun','trophy'],babochkovyi:['flame','flower','flower-2','star']};
+ ellada:['amphora','book-open','sun','trophy']}; /* «Бабочковый» — свои фигуры, confettiPiece() */
 function confettiIcons(){const k=document.documentElement.dataset.skin||'';return CONFETTI_SKIN[k]||CONFETTI_SKIN[''];}
+/* «Бабочковый» (Джессика 17.10, образец — лист бабочек-конфетти): залитые бабочки (сверху, сбоку, маленькие) и кружки
+   в шести заливках крыла: голубая, сиреневая, розовая, перламутр, золото, серебро. Цвета — только токены скина. */
+const CONFETTI_BB_FILLS=[['blue','var(--bb-iri-1)'],['lilac','var(--bb-iri-2)'],['pink','var(--bb-iri-3)'],['pearl','url(#rqcPearl)'],['gold','url(#rqcGold)'],['silver','url(#rqcSilver)']];
+const CONFETTI_BB_GRAD={rqcPearl:['--bb-iri-1','--bb-iri-2','--bb-iri-3'],rqcGold:['--bb-pollen','--rq-coin','--bb-pollen'],rqcSilver:['--rq-surface-2','--rq-border-strong','--rq-line']};
+const CONFETTI_BB_SHAPE={
+ butterfly:'<path d="M12 7.5C10.6 3.8 6.6 1.6 3.6 2.6 1.2 3.5 1.4 7.4 3.6 9.4c1.2 1.1 2.7 1.6 4.1 1.8-2.1.7-3.6 2.4-3.3 4.4.4 2.5 3.4 3.4 5.4 1.8 1.1-.9 1.8-2.9 2.2-4.8.4 1.9 1.1 3.9 2.2 4.8 2 1.6 5 .7 5.4-1.8.3-2-1.2-3.7-3.3-4.4 1.4-.2 2.9-.7 4.1-1.8 2.2-2 2.4-5.9 0-6.8-3-1-7 1.2-8.4 4.9Z"/>',
+ side:'<path d="M10.5 15.5C8.6 10.6 9.6 4.2 15.6 2c-.3 4.3-1.7 9.1-4.3 13.5Z"/><path d="M10.9 15.6C7.2 13.9 3.9 10 4.4 5.6c3.2 1.7 5.7 5.3 6.9 9.6Z" opacity=".8"/><path d="M4 16.6c3.4-.9 9.4-1.4 15.6-.4-.1.6-.4.9-.9.9-4.6-.3-9.8-.1-14.4.4Z"/>',
+ small:'<path d="M12 9.5C11 6.8 8 5.3 5.9 6c-1.7.6-1.5 3.4 0 4.8.9.8 1.9 1.1 2.9 1.3-1.5.5-2.5 1.7-2.3 3.1.3 1.8 2.4 2.4 3.8 1.3.8-.7 1.3-2.1 1.7-3.4.4 1.3.9 2.7 1.7 3.4 1.4 1.1 3.5.5 3.8-1.3.2-1.4-.8-2.6-2.3-3.1 1-.2 2-.5 2.9-1.3 1.5-1.4 1.7-4.2 0-4.8-2.1-.7-5.1.8-6.1 3.5Z"/>',
+ dot:'<circle cx="12" cy="12" r="3.2"/>'};
+function confettiDefs(){if(document.getElementById('rqConfettiDefs'))return;
+  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.id='rqConfettiDefs';svg.setAttribute('width','0');svg.setAttribute('height','0');svg.setAttribute('aria-hidden','true');svg.style.position='absolute';
+  svg.innerHTML='<defs>'+Object.keys(CONFETTI_BB_GRAD).map(function(id){const st=CONFETTI_BB_GRAD[id];
+    return '<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1">'+st.map(function(t,i){return '<stop offset="'+(i/(st.length-1))+'" style="stop-color:var('+t+')"/>';}).join('')+'</linearGradient>';}).join('')+'</defs>';
+  document.body.appendChild(svg);}
+/** one confetti piece for the current skin: {html, c (shape, '' for icon pieces), f (fill name)} */
+function confettiPiece(i){
+  if((document.documentElement.dataset.skin||'')==='babochkovyi'){confettiDefs();
+    const c=['butterfly','butterfly','butterfly','side','small','small','butterfly','side','small','dot'][i%10],f=CONFETTI_BB_FILLS[(i*5+Math.floor(i/6))%6];
+    const sz=c==='dot'?8:c==='small'?16:c==='side'?20:24;
+    return {c:c,f:f[0],html:'<svg class="bbc" width="'+sz+'" height="'+sz+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="fill:'+f[1]+';stroke:none">'+CONFETTI_BB_SHAPE[c]+'</svg>'};}
+  const ic=confettiIcons();return {c:'',f:'',html:rqIcon(ic[i%ic.length],16)};}
 const SKIN_ICONS_ORIG={};
 function applySkinIcons(skin){
   const set=SKIN_ICONS[skin]||{};

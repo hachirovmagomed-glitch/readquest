@@ -11,6 +11,7 @@ for(const w of [360,390]){
   await p.evaluate(()=>{navGo(typeof NAV_CATALOG!=='undefined'&&NAV_CATALOG.find(x=>x.id==='look')?'look':'settings');});await shot('look');
   await p.evaluate(()=>{navGo('stats');});await shot('stats');
   await p.evaluate(()=>{const t=document.querySelector('#stats .progtab[data-sub="quotes"]');if(t)t.click();else navGo('notes');});await shot('notes');
+  await p.evaluate(()=>{const t=document.querySelector('#stats .progtab[data-sub="vocab"]');if(t){(S.vocab=S.vocab||[]).push({w:'ахеец',ctx:'ахейцы пришли под Трою',book:'Илиада',date:'17.10.2026',box:1});save();navGo('stats');document.querySelector('#stats .progtab[data-sub="vocab"]').click();}});await shot('vocab');
   await p.evaluate(()=>{openGeneralSettings(false);});await shot('settings');
   await p.close();
 }

@@ -19,10 +19,12 @@ ok('3 «Внешний вид» opens a screen with Тема, Скин, Аним
 await p.evaluate(() => { S.gold = 600; save(); buy('skin-ellada'); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="ellada"]').click(); }); await sleep(300);
 ok('4 picking a skin on «Внешний вид» wears it', await p.evaluate(() => document.documentElement.dataset.skin) === 'ellada');
 await p.evaluate(() => { openGeneralSettings(false); }); await sleep(100);
-r = await p.evaluate(() => el('lookCfgSub').textContent);
-ok('5 «Общие настройки» keeps a row that says what is on and leads to «Внешний вид»', /Эллада/.test(r), r);
-await p.evaluate(() => el('btnLookCfg').click()); await sleep(100);
-ok('6 the row opens «Внешний вид»', (await cur()) === 'look');
+r = await p.evaluate(() => ({ row: !!el('btnLookCfg'), skin: !!document.querySelector('#settings #appSkinBox, #settings .shopcard'), txt: /Внешний вид|скин/i.test(el('settings').textContent) }));
+ok('5 «Общие настройки» have nothing about skins any more (17.10)', !r.row && !r.skin && !r.txt, r);
+r = await p.evaluate(() => { const pane = el('rewPaneShop'); return { inLook: !!pane && !!pane.closest('#look'), cards: document.querySelectorAll('#look .shopcard').length, tab: !!el('rewTabShop') }; });
+ok('6 the skin shop is on «Внешний вид», «Награды» has no «Магазин» tab', r.inLook && r.cards >= 7 && !r.tab, r);
+await p.evaluate(() => openRewardsSheet('shop')); await sleep(200);
+ok('6b an old «shop» link opens «Внешний вид»', (await cur()) === 'look' && await p.evaluate(() => !el('rewardsSheet').classList.contains('open')));
 await p.evaluate(() => navGo('stats')); await sleep(100);
 const tabs = await p.evaluate(() => [...document.querySelectorAll('#stats .progtab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.dataset.sub));
 ok('7 «Инвентарь» opens statistics; MVP shows three tabs: Статистика, Цитаты и заметки, Словарь', (await cur()) === 'stats' && tabs.join() === 'stats,quotes,vocab', tabs);

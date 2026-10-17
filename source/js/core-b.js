@@ -128,6 +128,8 @@ function applySkin(){setTimeout(syncThemeColor,0);
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }
 /** «Карандашный» active (app-wide skin) — UI only: covers / avatar / summary / confetti draw Lucide instead of emoji */
+/** «Бабочковый» sets its own book face (IBM Plex Serif, skins/skins.css) in place of the first «Шрифт» tile; any other tile the reader picks wins */
+function skinBookFont(){const sk=document.documentElement.dataset.skin;return sk==='babochkovyi'?{label:'IBM Plex Serif',v:'"IBM Plex Serif",Georgia,serif'}:null;}
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */

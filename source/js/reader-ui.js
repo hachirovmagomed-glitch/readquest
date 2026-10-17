@@ -620,6 +620,7 @@ function renderSummary(r){
   const sday=r.day||today();
   if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
   if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg(sday)*100)+'%';
+  if(typeof bbHatchRender==='function')bbHatchRender(mvpDailyProg(sday),'sumHatch');
   if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo(weekKey(sday))+(weeklyPaid(weekKey(sday))?' · ✓ неделя выполнена':'');
   /* gold lines ONLY for what was paid by THIS session (re-render with no `quest` → no lines) */
   const qp=r.quest||{daily:[],weekly:[]},ql=[];

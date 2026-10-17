@@ -66,7 +66,7 @@ done
 # Every relative ES-module specifier gets the SAME ?v=BUILD, so module identity stays consistent.
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 for f in "$DIST/index.html" "$DIST/app.html"; do
-  sed -i -E "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g; s#(<script src=\")(js/[^\"?]+\.js)\"#\1\2?v=$BUILD\"#g" "$f"
+  sed -i -E "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#(from ')(\./[^']+\.js)'#\1\2?v=$BUILD'#g; s#(<script src=\")(js/[^\"?]+\.js)\"#\1\2?v=$BUILD\"#g; s#(<link rel=\"stylesheet\" href=\")([^\"?:]+\.css)\"#\1\2?v=$BUILD\"#g" "$f"
 done
 # Guard: every local <script src> in the pages carries ?v=<this build> and points to a file in dist (else: mixed builds / 404 → watchdog).
 for f in "$DIST/index.html" "$DIST/app.html"; do
@@ -100,7 +100,11 @@ cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
 PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' | sed 's#^\./##' | sort | while read -r f; do
-  case "$f" in vendor/*) echo "\"$f\"";; *.js) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
+  case "$f" in vendor/*) echo "\"$f\"";; *.js|*.css) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
+# 17.10: stylesheets are versioned like scripts (a page under the old SW got new JS + old skins.css: half a skin). Guard: no bare local <link rel=stylesheet>.
+for f in "$DIST/index.html" "$DIST/app.html"; do [ -f "$f" ] || continue
+  bare=$(grep -oE '<link rel="stylesheet" href="[^"]+"' "$f" | sed -E 's/.*href="([^"]+)"/\1/' | grep -vE '^https?:' | grep -v "?v=$BUILD" || true)
+  if [ -n "$bare" ]; then echo "build-dist: stylesheet without ?v=$BUILD in $(basename "$f"): $bare" >&2; exit 1; fi; done
 sed -i "s/__RQ_NS__/$NS/g; s/__RQ_BUILD__/$BUILD/g; s#__RQ_PRECACHE__#[\"./\",$PRE]#" "$DIST/sw.js"
 
 # Tiny README for deployers

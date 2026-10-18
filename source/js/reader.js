@@ -88,8 +88,8 @@ function applySet(){
   rqSw('navInvert',!!nv.invert);
   rqSw('navSwipe',nv.swipe!==false);
   {const pdf=R&&R.mode==='pdf';
-   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===(pdf?'page':nv.mode));b.disabled=pdf&&b.dataset.v==='scroll';});
-   const mn=el('flipModeNote');if(mn){mn.hidden=!pdf;mn.textContent=pdf?'В PDF пока только постранично, прокрутка работает в TXT, FB2 и EPUB.':'';}
+   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.mode);b.disabled=false;});
+   const mn=el('flipModeNote');if(mn){const t=pdf&&nv.mode==='scroll'?'В PDF при прокрутке масштаб не меняется; чтобы приблизить страницу, выберите «Страницы».':'';mn.hidden=!t;mn.textContent=t;}
    document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.anim);});
    const an=el('flipAnimNote');if(an){let t='';if(nv.anim!=='none'&&!rqAnimKind())t=(S.ux&&S.ux.anim===false)?'Сейчас не видно: анимации выключены в общих настройках.':'Сейчас не видно: в телефоне включено «Убрать анимацию».';
      else if(nv.anim!=='none'&&nv.mode==='scroll'&&!pdf)t='В прокрутке тап по краю прокручивает плавно.';an.hidden=!t;an.textContent=t;}
@@ -183,7 +183,8 @@ el('navSwipe').onclick=()=>flipSet('swipe');
 /* 16.10: «Как листать» / «Анимация» — strings in SET.flip, through the gate; switching the mode re-lays the text at the same place */
 function flipPick(k,v){if(flipGet()[k]===v)return;const anchor=(k==='mode'&&R&&R.mode==='text'&&R.book)?readingAnchor():null;
   SET.flip=Object.assign({},flipGet());SET.flip[k]=v;rqSaveSetGated();applySet();
-  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});}
+  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});
+  if(k==='mode'&&R&&R.book&&R.mode==='pdf'&&typeof psSwitch==='function')psSwitch();}
 document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.onclick=function(){if(!b.disabled)flipPick('mode',b.dataset.v);};});
 document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.onclick=function(){flipPick('anim',b.dataset.v);};});
 

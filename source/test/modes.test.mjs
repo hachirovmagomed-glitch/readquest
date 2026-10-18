@@ -128,17 +128,56 @@ if (want('scroll')) {
   await ctx.close();
 }
 
-/* scrollpdf: PDF stays paged even with «Прокрутка» chosen; the choice is shown as unavailable for PDF */
+/* scrollpdf (18.10, Джессика «все 4 по очереди»): PDF scrolls vertically too. Fit-width page slots in #pdfScroll, canvases only near the
+   screen, the page under the upper third is the current one; a settled scroll to the next page = a turn, farther = a jump; the slider jumps;
+   the choice is saved and the paged view comes back with «Страницы» on the same page. */
 if (want('scrollpdf')) {
   const { ctx, p } = await fresh();
   const inp = await p.$('#fileInp');
   await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); });
   await inp.uploadFile(PDF); await sleep(2500);
-  await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); openBook(b.id); await new Promise(r => setTimeout(r, 2500)); openReaderSettings('grpNav'); });
-  await sleep(300);
-  const r = await p.evaluate(() => { const v = document.getElementById('viewer'), s = document.querySelector('#flipModeSeg [data-v="scroll"]');
-    return { mode: R.mode, ovf: getComputedStyle(v).overflowY, cls: document.getElementById('reader').classList.contains('scrollmode'), dis: !!(s && s.disabled), note: (document.getElementById('flipModeNote') || {}).textContent || '' }; });
-  ok('scrollpdf: PDF stays paged (no vertical scroll), «Прокрутка» disabled with a note', r.mode === 'pdf' && r.ovf === 'hidden' && !r.cls && r.dis && /PDF/.test(r.note), r);
+  await p.evaluate(async () => {
+    window.__ev = []; const t = __tracker; ['pageTurned', 'pageShown', 'jumped'].forEach(k => { const f = t[k] && t[k].bind(t); if (f) t[k] = function () { __ev.push([k, ...arguments]); return f.apply(null, arguments); }; });
+    const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000));
+  });
+  const a = await p.evaluate(() => { const s = document.getElementById('pdfScroll'), w = document.getElementById('pdfWrap');
+    return { on: !!(window.__rqPdfScroll && __rqPdfScroll.on), shown: !s.classList.contains('hidden') && s.scrollHeight > s.clientHeight * 3, wrap: w.classList.contains('hidden'),
+      slots: s.querySelectorAll('.psl').length, pc: R.pageCount, canv: s.querySelectorAll('canvas').length, sw: s.querySelector('.psl').getBoundingClientRect().width, vw: s.clientWidth, page: R.page }; });
+  ok('scrollpdf: PDF opens as one vertical strip, a slot per page, fit to width, page 1', a.on && a.shown && a.wrap && a.slots === a.pc && Math.abs(a.sw - a.vw) < 1 && a.page === 0, a);
+  ok('scrollpdf: only pages near the screen have a canvas (≤ 6 of ' + a.pc + ')', a.canv >= 1 && a.canv <= 6, a);
+  /* user scroll to page 2 → a turn; then far → a jump */
+  const b = await p.evaluate(async () => {
+    const s = document.getElementById('pdfScroll'), P2 = __rqPdfScroll; __ev.length = 0;
+    s.scrollTop = P2.tops[1] - 8; await new Promise(r => setTimeout(r, 450));
+    const t1 = { page: R.page, ev: __ev.map(e => e[0]).join(','), num: document.getElementById('rPage').textContent };
+    __ev.length = 0; s.scrollTop = P2.tops[20] - 8; await new Promise(r => setTimeout(r, 450));
+    const t2 = { page: R.page, ev: __ev.map(e => e[0]).join(','), canv: s.querySelectorAll('canvas').length,
+      far: [...s.querySelectorAll('canvas')].map(c => +c.parentElement.dataset.n) };
+    return { t1, t2 };
+  });
+  ok('scrollpdf: a settled scroll to the next page = turn (pageTurned + pageShown), page number follows', b.t1.page === 1 && b.t1.ev === 'pageTurned,pageShown' && /^2 \//.test(b.t1.num), b.t1);
+  ok('scrollpdf: a long scroll = one jump, far canvases freed', b.t2.page === 20 && b.t2.ev === 'jumped' && b.t2.canv <= 6 && b.t2.far.every(n => Math.abs(n - 20) <= 3), b.t2);
+  /* slider / contents jump; tap on the right edge scrolls down */
+  const c = await p.evaluate(async () => {
+    const s = document.getElementById('pdfScroll'); __ev.length = 0;
+    jumpTo(5); await new Promise(r => setTimeout(r, 400));
+    const j = { page: R.page, ev: __ev.map(e => e[0]).join(','), top: Math.round(s.scrollTop), slot: __rqPdfScroll.tops[5] - 8 };
+    const top0 = s.scrollTop, vr = document.getElementById('viewer').getBoundingClientRect();
+    __ev.length = 0; pdfSingleTap(0.9, 0.5); await new Promise(r => setTimeout(r, 900));
+    return { j, tap: { moved: Math.round(s.scrollTop - top0), h: s.clientHeight, ev: __ev.map(e => e[0]).join(',') } };
+  });
+  ok('scrollpdf: jumpTo (contents / bookmark) scrolls to the page top and reports one jump', c.j.page === 5 && c.j.ev === 'jumped' && Math.abs(c.j.top - c.j.slot) <= 1, c.j);
+  ok('scrollpdf: tap on the right edge scrolls about one screen down and counts as a turn', c.tap.moved > c.tap.h * 0.5 && c.tap.moved <= c.tap.h && c.tap.ev === 'pageTurned,pageShown', c.tap);
+  /* settings: no disabled button; back to pages on the same page */
+  const d = await p.evaluate(async () => {
+    openReaderSettings('grpNav'); await new Promise(r => setTimeout(r, 200));
+    const btn = document.querySelector('#flipModeSeg [data-v="scroll"]'), on = btn.classList.contains('on'), dis = btn.disabled;
+    const pg = R.page; document.querySelector('#flipModeSeg [data-v="page"]').click(); await new Promise(r => setTimeout(r, 1500));
+    document.getElementById('sheet').classList.add('hidden');
+    return { on, dis, pg, page: R.page, shown: __rqPdf.shown, wrap: !document.getElementById('pdfWrap').classList.contains('hidden'), scroll: !document.getElementById('pdfScroll').classList.contains('hidden'), saved: JSON.parse(localStorage.getItem(RQ_K.set)).flip.mode };
+  });
+  ok('scrollpdf: «Прокрутка» is available for PDF; «Страницы» brings the paged view back on the same page, saved', d.on && !d.dis && d.wrap && !d.scroll && d.shown === d.pg && d.page === d.pg && d.saved === 'page', d);
+  ok('scrollpdf: no page errors', !errs.length, errs);
   await ctx.close();
 }
 

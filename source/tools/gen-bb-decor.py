@@ -85,3 +85,16 @@ if '--v4' in sys.argv:
     print('html[data-skin="babochkovyi"]{'); [print(f'  --{k}:{v};') for k,v in v4.items()]; print('}')
 if '--js' in sys.argv:
     import json; print(json.dumps({k:{'up':v['up'],'lo':v['lo'],'spot':v['spot']} for k,v in B.SHAPES.items()},separators=(',',':'))); print(json.dumps(B.PAL,separators=(',',':')))
+# 18.10 v5 (Джессика: «верхняя плашка слишком большая»): compact 390×72 header band; butterflies and moths in the strip under the row (54–64), stars above and below, a small moon top right. Printed with --v5
+v5={}
+r=random.Random(9); st5=''
+for _ in range(30):
+    y=r.choice([r.uniform(2,8),r.uniform(56,64)]); x=r.uniform(0,340)
+    st5+=f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r.uniform(.5,1):.1f}" fill="#eef0ff" opacity="{r.uniform(.35,.8):.2f}"/>'
+moon5=('<defs><radialGradient id="m"><stop offset="0" stop-color="#fffbe9"/><stop offset=".7" stop-color="#f1ecd2"/><stop offset="1" stop-color="#f1ecd2" stop-opacity="0"/></radialGradient>'
+       '<radialGradient id="h"><stop offset="0" stop-color="#fffbe9" stop-opacity=".2"/><stop offset="1" stop-color="#fffbe9" stop-opacity="0"/></radialGradient></defs>'
+       '<circle cx="372" cy="60" r="18" fill="url(#h)"/><circle cx="372" cy="60" r="6" fill="url(#m)"/>')
+v5['bb-sky-n']=uri(svg(390,72,moon5+st5+B.moth(150,59,.3,-20,.9,0)+B.moth(326,59,.24,25,.75,1)+B.moth(70,60,.2,10,.6,3)))
+v5['bb-head-fly']=uri(svg(390,72,B.place('swallow',2,150,59,.32,-14,.95)+B.place('round',3,178,58,.24,18,.85)+B.place('long',1,326,59,.26,22,.85)))
+if '--v5' in sys.argv:
+    [print(f'--{k}:{v};') for k,v in v5.items()]

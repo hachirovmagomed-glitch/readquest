@@ -26,14 +26,15 @@ ok('6 the skin shop is on «Внешний вид», «Награды» has no �
 await p.evaluate(() => openRewardsSheet('shop')); await sleep(200);
 ok('6b an old «shop» link opens «Внешний вид»', (await cur()) === 'look' && await p.evaluate(() => !el('rewardsSheet').classList.contains('open')));
 await p.evaluate(() => navGo('stats')); await sleep(100);
-const tabs = await p.evaluate(() => [...document.querySelectorAll('#stats .progtab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.dataset.sub));
-ok('7 «Инвентарь» opens statistics; MVP shows three tabs: Статистика, Цитаты и заметки, Словарь', (await cur()) === 'stats' && tabs.join() === 'stats,quotes,vocab', tabs);
-await p.evaluate(() => document.querySelector('#stats .progtab[data-sub="quotes"]').click()); await sleep(100);
-r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#quotes .progtab.on')].map(b => b.dataset.sub), di: el('dStats') && el('dStats').classList.contains('on') }));
-ok('8 the quotes tab works in MVP (used to bounce to the library) and is marked', (await cur()) === 'quotes' && r.on.join() === 'quotes', r);
-await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="stats"]').click()); await sleep(100);
-ok('9 and back to statistics', (await cur()) === 'stats');
-await p.evaluate(() => document.querySelector('#stats .progtab[data-sub="vocab"]').click()); await sleep(100);
+const tabs = await p.evaluate(() => [...document.querySelectorAll('#quotes .progtab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.dataset.sub));
+ok('7 «Инвентарь» opens quotes; MVP shows two tabs: Цитаты и заметки, Словарь (statistics moved to «Профиль», 18.10)', (await cur()) === 'quotes' && tabs.join() === 'quotes,vocab', tabs);
+await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"]').click()); await sleep(100);
+r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), di: el('dStats') && el('dStats').classList.contains('on') }));
+ok('8 the vocab tab works in MVP and is marked', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.di, r);
+await p.evaluate(() => { navGo('profile'); el('statCard').click(); applyMvpChrome(); }); await sleep(150);
+r = await p.evaluate(() => ({ h1: el('stats').querySelector('h1').textContent.trim(), tabs: el('stats').querySelectorAll('.progtab').length, prof: el('bnProf').classList.contains('on'), di: el('dProf').classList.contains('on') || !el('dProf') }));
+ok('9 «Статистика» opens from «Профиль»: own header, no inventory tabs, «Профиль» lit', (await cur()) === 'stats' && r.h1 === 'Статистика' && !r.tabs && r.prof, r);
+await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"]').click()); await sleep(100);
 r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), body: !!el('vocabBody').innerHTML, di: el('dStats').classList.contains('on') }));
 ok('9b the «Словарь» tab opens the vocab inside «Инвентарь»', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.body && r.di, r);
 const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'vocab', 'profile']; return navGet(); });
@@ -67,6 +68,25 @@ for (const sk of ['default', 'ellada', 'babochkovyi', 'celestial', 'pencil']) {
 const L = Object.values(lay);
 ok('16 «Профиль» one layout in every skin: «Квесты» and the goal card at the same height, both quests above the bottom bar (18.10)',
   L.every(v => v.qh === L[0].qh && v.goal === L[0].goal && v.end <= v.nav), lay);
+await p.evaluate(() => { wear(''); navGo('library'); }); await sleep(150);
+r = await p.evaluate(() => { const out = {}; const views = [...document.querySelectorAll('#libSortMenu .lso[data-v]')].map(b => b.dataset.v);
+  for (const v of ['covers', 'short', 'full', 'grid']) { libViewPick(v); const sh = el('shelf'), c = sh.querySelector('.bookcard');
+    out[v] = sh.className.includes('v-' + v) + ' ' + getComputedStyle(sh).display + ' ' + (c ? getComputedStyle(c).flexDirection : ''); }
+  return { views, out, saved: SET.libView, sorts: [...document.querySelectorAll('#libSortMenu .lso[data-k]')].map(b => b.dataset.k) }; });
+ok('17 shelf view in the sort menu (ReadEra): Сетка, Эскизы, Краткий, Полный; lists are rows, grid back by default; «По автору» sort (18.10)',
+  r.views.join() === 'grid,covers,short,full' && r.out.covers.startsWith('true grid') && r.out.short === 'true flex row' && r.out.full === 'true flex row' && r.out.grid === 'true grid column' && r.saved === 'grid' && r.sorts.includes('author'), r);
+r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
+  const out = {}; try {
+    el('libShelfAdd').click(); out.chipOn = !!document.querySelector('#libChips .fshelf.on'); out.bar = !el('libShelfBar').hidden; out.empty = /пока нет книг/.test(el('shelf').textContent);
+    const id = S.shelves[0].id, b1 = allBooks()[0].id, b2 = allBooks()[1].id;
+    bookInfo(b1); document.querySelector('.bk-shelves .fchip:not(.fshelfadd)').click(); shelfToggle(b2, id);
+    ans = 'Чехов'; shelfNew(b1); out.two = S.shelves.length === 2 && S.shelves.every(x => x.b.includes(b1));
+    LIB.f = 'sh:' + id; renderLibrary(); out.shown = [...el('shelf').querySelectorAll('.bookcard')].length;
+    ans = 'Классика'; shelfRename(id); out.renamed = shelfById(id).n === 'Классика' && /Классика/.test(el('libShelfBar').textContent);
+    shelfDelete(id); out.left = S.shelves.map(x => x.n).join(); out.back = LIB.f === 'all' && el('libShelfBar').hidden; out.books = allBooks().length >= 2;
+  } finally { window.prompt = P; window.confirm = C; } return out; });
+ok('18 own shelves (ReadEra «Коллекции»): create from «+ Полка», put books from ⓘ, one book on two shelves, rename, delete keeps books (18.10)',
+  r.chipOn && r.bar && r.empty && r.two && r.shown === 2 && r.renamed && r.left === 'Чехов' && r.back && r.books, r);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY menu.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

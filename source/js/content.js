@@ -523,6 +523,9 @@ function bookInfo(id){
     act('bookmark',want?'В «Хочу»':'Хочу прочитать','toggleWant',want)+
     act('share-2','Поделиться','shareBook',null)+
     '</div>'+
+    '<div class="bk-h">Мои полки</div><div class="chips bk-shelves">'+ /* 18.10: свои полки (library.js shelf*) */
+    shelvesGet().map(sh=>'<button type="button" class="fchip'+(sh.b.indexOf(id)>=0?' on':'')+'" aria-pressed="'+(sh.b.indexOf(id)>=0)+'" onclick="shelfToggle(\''+id+'\',\''+sh.id+'\')">'+(sh.b.indexOf(id)>=0?rqIcon('check',14):'')+esc(sh.n)+'</button>').join('')+
+    '<button type="button" class="fchip fshelfadd" onclick="shelfNew(\''+id+'\')">'+rqIcon('plus',14)+'Новая полка</button></div>'+
     '<div class="bk-h">О файле</div><div class="bk-list">'+
     row('Формат',fmt)+row('Размер',size+(words?' · '+words+' '+plural(words,'слово','слова','слов'):''))+
     (builtin?'':row('Файл',esc(b.fname||'файл'),'wrap'))+row('Хранится',place)+

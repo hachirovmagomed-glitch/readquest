@@ -240,6 +240,7 @@ function bbHatchRender(pct,id){const lib=!id||id==='bbHatch',h=el(id||'bbHatch')
   if(document.documentElement.dataset.skin!=='babochkovyi'){if(h.firstChild)h.innerHTML='';if(lib)__bbHatched=-1;return;}
   const n=Math.min(10,Math.floor(pct*10+1e-9)),was=!lib||__bbHatched<0?n:__bbHatched;let s='';
   for(let k=0;k<10;k++)s+='<i class="'+(k<n?'on'+(k>=was?' new':''):'')+'"></i>';
+  s+='<b class="bbcap">'+n+' из 10 бабочек</b>'; /* 18.10 (отзыв): the cocoons are labelled */
   h.innerHTML=s;if(!lib)return;__bbHatched=n;
   if(n>=10)el('goalSub').textContent='Все бабочки проснулись';}
 function plural(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=14)return c;if(m===1)return a;if(m>=2&&m<=4)return b;return c;}

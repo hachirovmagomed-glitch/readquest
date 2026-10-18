@@ -222,6 +222,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #profile .mvp-quest .row{height:26px}
 #profile .mvp-quest .row > span{font-size:14px!important;line-height:20px!important}
 #profile .mvp-quest .chip{box-sizing:border-box;height:22px;font-size:12px!important;line-height:16px!important;padding:2px 10px!important}
+/* 18.10 (отзыв, п. 7): the «0 / 10 мин» plate is the same soft filled pill in every skin, never framed */
+#profile .mvp-quest .chip{border:0!important;box-shadow:none!important;border-radius:11px!important;background:color-mix(in srgb,var(--txt) 9%,transparent)!important;color:var(--txt)!important}
+#profile .mvp-quest .chip::before,#profile .mvp-quest .chip::after{display:none!important}
 #profile .mvp-quest .pbar{height:6px!important;margin-top:8px!important}
 #profile .mvp-quest .mvp-qsub{font-size:12px!important;line-height:16px!important;margin-top:6px!important}
 #profile #mvpDailyCard{height:64px;overflow:hidden}

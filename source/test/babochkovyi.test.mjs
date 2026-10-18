@@ -76,7 +76,7 @@ await p.screenshot({ path: SHOTS + 'babochkovyi-library-360.png' });
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
 // 5c. goal of the day: ring hidden, 10 cocoons, 6 of 10 min → 6 butterflies; full goal → all 10 and «Все бабочки проснулись»
 const goal = (m) => p.evaluate((m) => { window.__mt0 = window.__mt0 || minTodaySess; window.minTodaySess = () => m; renderLibrary();
-  const h = document.getElementById('bbHatch'); return { ring: getComputedStyle(document.querySelector('.goalcard .ring')).display, n: h.children.length, on: h.querySelectorAll('i.on').length, sub: document.getElementById('goalSub').textContent, aria: h.getAttribute('aria-hidden') }; }, m);
+  const h = document.getElementById('bbHatch'); return { ring: getComputedStyle(document.querySelector('.goalcard .ring')).display, n: h.querySelectorAll("i").length, on: h.querySelectorAll('i.on').length, sub: document.getElementById('goalSub').textContent, aria: h.getAttribute('aria-hidden') }; }, m);
 const g6 = await goal(6), g10 = await goal(10);
 ok('5c goal: ring hidden, 10 cocoons, 6 min → 6 butterflies; 10 min → 10 and «Все бабочки проснулись»', g6.ring === 'none' && g6.n === 10 && g6.on === 6 && g6.aria === 'true' && g10.on === 10 && g10.sub === 'Все бабочки проснулись', { g6, g10 });
 await p.evaluate(() => { window.minTodaySess = window.__mt0; renderLibrary(); });

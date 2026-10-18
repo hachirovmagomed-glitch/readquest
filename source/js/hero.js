@@ -35,7 +35,7 @@ function heroSvg(on){
       '<rect x="5" y="62.4" width="62" height="2.6"/><rect x="3" y="65.4" width="66" height="2.6"/><rect x="1" y="68.4" width="70" height="2.6"/></g>'+
       '<path d="M14 24.4 L36 15 L58 24.4 Z" fill="'+T2+'"/>';}
   s+='<ellipse cx="36" cy="74.5" rx="17" ry="2.2" fill="'+HI+'" opacity=".12"/>';
-  if(has('gr-dory')){const c=A('gr-dory');s+='<rect x="18.7" y="8" width="1.9" height="66" rx=".9" fill="'+HI+'"/><path d="M19.65 -5 Q23 2 19.65 9 Q16.3 2 19.65 -5 Z" fill="'+c+'"'+gap(0.7)+'/><path d="M19.65 -2.5 V7" stroke="'+D('gr-dory')+'" stroke-width=".6"/><rect x="18.2" y="8.6" width="2.9" height="1.8" rx=".5" fill="'+c+'"/><path d="M18.5 72 H20.8 L19.65 77 Z" fill="'+c+'"/>';}
+  if(has('gr-dory')){const c=A('gr-dory');s+='<rect x="24.45" y="8" width="1.9" height="66" rx=".9" fill="'+HI+'"/><path d="M25.4 -5 Q28.75 2 25.4 9 Q22.05 2 25.4 -5 Z" fill="'+c+'"'+gap(0.7)+'/><path d="M25.4 -2.5 V7" stroke="'+D('gr-dory')+'" stroke-width=".6"/><rect x="23.95" y="8.6" width="2.9" height="1.8" rx=".5" fill="'+c+'"/><path d="M24.25 72 H26.55 L25.4 77 Z" fill="'+c+'"/>';}
   /* стикмен: голова, руки, корпус, ноги; щели между ними — фон */
   s+='<g fill="'+HI+'"'+gap(0.9)+'>'+
     '<rect x="29" y="46" width="6.6" height="27" rx="3.3"/><rect x="36.4" y="46" width="6.6" height="27" rx="3.3"/>'+
@@ -50,11 +50,11 @@ function heroSvg(on){
     s+='<path d="M27.4 22.6 Q30 20.4 36.5 20.8 Q46.5 21 49.6 24.2 L51.8 40 L53 63 Q49.8 65 46.6 63 L45.6 47.4 Q37.6 40.6 29.6 27 Z" fill="'+c+'"'+gap(1.1)+'/>'+
       '<path d="M32.4 26.6 Q39 36 45.4 41 M35.6 24.2 Q42 31 46.6 33.6 M48.6 30 L49.6 61.6 M50.8 44 L51.4 62" stroke="'+d+'" stroke-width=".8" fill="none" stroke-linecap="round"/>'+
       '<circle cx="29.8" cy="24.4" r="2.4" fill="'+c+'" stroke="'+d+'" stroke-width=".9"/><circle cx="29.8" cy="24.4" r=".9" fill="'+d+'"/>';}
-  if(has('gr-dory'))s+='<circle cx="22.2" cy="45" r="3.1" fill="'+HI+'"'+gap(0.9)+'/>';
+  if(has('gr-dory'))s+='<rect x="24.45" y="48" width="1.9" height="26" rx=".9" fill="'+HI+'"'+gap(0.8)+'/><path d="M24.25 72 H26.55 L25.4 77 Z" fill="'+A('gr-dory')+'"/><circle cx="25.4" cy="46" r="3.3" fill="'+HI+'"'+gap(0.9)+'/>';
   if(has('gr-scroll')){const c=A('gr-scroll'),d=D('gr-scroll');
-    s+='<g transform="rotate(-24 22 44)"><rect x="19.6" y="34.4" width="4.8" height="16.4" rx="2" fill="'+c+'"'+gap(0.8)+'/><path d="M21 36.6 V48.6 M23 36.6 V48.6" stroke="'+d+'" stroke-width=".6"/>'+
+    s+='<g transform="translate(3.4 1.4) rotate(-24 22 44)"><rect x="19.6" y="34.4" width="4.8" height="16.4" rx="2" fill="'+c+'"'+gap(0.8)+'/><path d="M21 36.6 V48.6 M23 36.6 V48.6" stroke="'+d+'" stroke-width=".6"/>'+
       '<rect x="20.6" y="32.4" width="2.8" height="2.4" rx=".8" fill="'+d+'"/><rect x="20.6" y="50.4" width="2.8" height="2.4" rx=".8" fill="'+d+'"/></g>'+
-      '<circle cx="24.6" cy="45.2" r="3" fill="'+HI+'"'+gap(0.9)+'/>';}
+      '<circle cx="25.4" cy="46" r="3.3" fill="'+HI+'"'+gap(0.9)+'/>';}
   if(has('gr-helm')){const c=A('gr-helm'),d=D('gr-helm');
     s+='<g transform="translate(0 2.6)"><rect x="34.9" y="-0.6" width="2.2" height="3.6" fill="'+d+'"/>'+
       '<path d="M26.6 0.2 Q36 -9.4 45.4 0.2 Q41 2 36 2 Q31 2 26.6 0.2 Z" fill="'+c+'"'+gap(0.8)+'/>'+
@@ -68,7 +68,7 @@ function heroSvg(on){
         l+='<ellipse cx="'+ox.toFixed(2)+'" cy="'+oy.toFixed(2)+'" rx="2.1" ry=".95" transform="rotate('+a.toFixed(1)+' '+ox.toFixed(2)+' '+oy.toFixed(2)+')"/>';});});});
     s+='<g fill="'+c+'"'+gap(0.5)+'>'+l+'</g>';}
   if(has('gr-hoplon')){const c=A('gr-hoplon'),d=D('gr-hoplon');
-    s+='<circle cx="50.5" cy="42" r="12.6" fill="'+c+'"'+gap(1.4)+'/><circle cx="50.5" cy="42" r="10.2" fill="'+HI+'"/>'+
+    s+='<circle cx="50.5" cy="42" r="12.6" fill="'+c+'"'+gap(0.9)+'/><circle cx="50.5" cy="42" r="10.2" fill="'+HI+'"/>'+
       '<circle cx="50.5" cy="42" r="8.3" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-dasharray="1.6 1"/><circle cx="50.5" cy="42" r="2.8" fill="'+c+'"/><circle cx="50.5" cy="42" r="1.1" fill="'+d+'"/>';}
   if(has('gr-owl')){const c=A('gr-owl');
     s+='<path d="M53 75.4 Q51 67 54.5 62 L53.8 57.4 L56.6 59.9 Q58.2 59.3 59.8 59.9 L62.6 57.4 L61.9 62 Q65.4 67 63.4 75.4 Z" fill="'+HI+'"'+gap(0.9)+'/>'+

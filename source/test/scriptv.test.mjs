@@ -82,8 +82,9 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
        left out of the order comparison; the 1a files keep exactly their 1a order. Достижения v2 (15.10, arch.md): ach-core.js
        (pure catalog) + achievements.js (UI), both after v6-extras.js and before start.js.
        «Путь читателя» (16.10, arch.md): path.js (map screen), after achievements.js and before start.js.
-       «Приключения» (18.10, arch.md): adv.js (free books from open libraries), after path.js and before start.js. */
-    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js'];
+       «Приключения» (18.10, arch.md): adv.js (free books from open libraries), after path.js and before start.js.
+       Герой-стикмен (18.10): hero.js (stickman + Greek gear shop), after content.js and before settings.js. */
+    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero.js'];
     const hOld = ht.filter(f => NEW_JS.indexOf(f) < 0);
     ok(`(split HEAD) <script src="js/…"> order in app.html = the 1a order of ${SPLIT_TREE} (${tt.length} tags; new since then: ${NEW_JS.join(', ')}), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(hOld) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
     const STR = "'use strict';\n", strictBad = [];

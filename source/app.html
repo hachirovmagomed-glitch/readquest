@@ -1201,7 +1201,7 @@ html[data-skin="pencil"] .cover{background:none;border-radius:4px;box-shadow:ins
 html[data-skin="pencil"] .botnav-btn .ic{width:22px;height:22px}
 html[data-skin="pencil"] .tinyava{display:inline-flex;align-items:center;justify-content:center;color:var(--rq-text-2);background:none}
 html[data-skin="pencil"] #avatarFrame{width:72px;height:72px;border-radius:50%;background:var(--rq-surface)!important;box-shadow:inset 0 0 0 1.8px var(--rq-skin-border)!important}
-html[data-skin="pencil"] #avatarFrame>.avatar,html[data-skin="pencil"] #avatarFrame>.gearlayer,html[data-skin="pencil"] .avatarframe.weak::after{display:none!important}
+html[data-skin="pencil"] #avatarFrame>.gearlayer,html[data-skin="pencil"] #avatarFrame>.pc-ava,html[data-skin="pencil"] .avatarframe.weak::after{display:none!important}
 html[data-skin="pencil"] .pc-ava{color:var(--rq-text)}
 /* session summary (mockup pencil-session-summary): drawing, Caveat title, subtitle, 2 boxed cells (минуты, страницы), daily row, week dots */
 html[data-skin="pencil"] #sumArt{margin:0 auto 6px}
@@ -1217,6 +1217,28 @@ html[data-skin="pencil"] .pc-week{display:flex;align-items:center;gap:8px;justif
 #sumWeekDots svg{margin-left:4px;vertical-align:middle}
 html[data-skin="pencil"] .confetti{color:var(--rq-accent)}
 html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
+
+/* герой-стикмен (js/hero.js): рамка = цвет щелей силуэта */
+#avatarFrame,.heroframe,.tinyava{--hero-bg:var(--rq-surface)} /* js/hero.js ставит точный цвет плашки под героем */
+html #avatarFrame.avatarframe{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:106px;height:136px}
+#profile .herocard{height:168px} /* герой на постаменте: плашка выше во всех скинах */
+#avatarFrame .avatar{filter:none}
+#avatarFrame .gearlayer,#avatarFrame .pc-ava,#avatarFrame.weak::after{display:none!important}
+html[data-skin="pencil"] #avatarFrame>.avatar{display:flex!important}
+.tinyava{background:var(--hero-bg)}
+.heroframe{display:block;width:100%;aspect-ratio:72/92;background:transparent}
+.heroframe svg{display:block;width:100%;height:100%}
+.heroprev{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;background:var(--card);margin-bottom:10px}
+.heroprev .heroframe.big{width:112px;flex:none}
+.heroprevtx{display:flex;flex-direction:column;gap:4px;min-width:0}.heroprevtx span{font-size:13px;color:var(--muted)}
+.herogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.heroitem{padding:8px}.heroitem .shopname{font-size:14px;line-height:1.2}.heroitem .shopprice{font-size:12px}.heroitem .shopcta{width:100%;padding-left:4px;padding-right:4px}
+.herocolrow{display:flex;align-items:center;gap:6px;margin:2px 0 4px;font-size:13px;color:var(--muted);cursor:pointer}
+.herocolpick{position:relative;width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 0 0 2px var(--card),0 0 0 3px var(--muted);overflow:hidden}
+.herocolpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.heroitem.trying{box-shadow:inset 0 0 0 2px var(--rq-accent)}
+#heroShop[hidden],#shopList[hidden]{display:none}
+.shopkinds .fchip{margin:0}
 </style>
 <link rel="stylesheet" href="skins/skins.css"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
@@ -1351,7 +1373,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="row" style="margin-bottom:14px"><button class="menubtn" id="menuProf" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><span class="mvp-hide">Персонаж</span><span class="mvp-only-i">Профиль</span></h1><div class="spacer"></div><button class="ghostbtn" id="btnProfSetup"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg> Профиль</button></div>
     <div class="herocard">
       <div class="herotop">
-        <div class="avatarframe" id="avatarFrame"><div class="avatar" id="avatar"><svg class="ic" width="34" height="34" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></div><div class="gearlayer" id="gearLayer"></div><span class="pc-ava pc-only"><svg class="ic" width="34" height="34" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg></span></div>
+        <div class="avatarframe" id="avatarFrame"><div class="avatar" id="avatar"></div><!-- пусто до загрузки: герой рисуется из js/hero.js (раньше на миг мигала книга на фиолетовом квадрате) --><div class="gearlayer" id="gearLayer"></div><span class="pc-ava pc-only"><svg class="ic" width="34" height="34" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg></span></div>
         <div class="herobars">
           <b id="pName">Читатель</b>
           <div class="lvl" id="pAchTitle" hidden></div>
@@ -1532,7 +1554,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>
-    <div class="row lookshophead"><h2>Магазин скинов</h2><div class="spacer"></div><span class="chip" id="lookBalance"></span></div><!-- Джессика 17.10: the shop moved here from «Награды» -->
+    <div class="row lookshophead"><h2>Магазин</h2><div class="spacer"></div><span class="chip" id="lookBalance"></span></div><!-- Джессика 17.10: the shop moved here from «Награды» -->
     <div id="rewPaneShop">
     <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
     <div id="shopList"></div>
@@ -1817,6 +1839,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/reader-ui.js"></script>
 <script src="js/rpg.js"></script>
 <script src="js/content.js"></script>
+<script src="js/hero.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>
 <script src="js/ach-core.js"></script>

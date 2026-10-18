@@ -91,7 +91,11 @@ function renderNav(){
 function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:goldDisp(S.gold)};}
 function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const nm=(S.heroName||'Читатель');el('dName').textContent=nm;el('dAva').textContent=nm.trim().charAt(0).toUpperCase()||'Ч';
   el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);try{libGoldRender();}catch(e){}return d;}
-function openDrawer(){try{renderDrawerHead();renderNav();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
+function openDrawer(){try{renderDrawerHead();renderNav();syncNightSwitch();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
+/* the menu's day/night switch mirrors the page: night = the skin's own night (or the dark page in the default look) */
+function syncNightSwitch(){const b=el('dNight');if(!b)return;const nt=!isLightBg(activeTheme().bg);
+  b.setAttribute('aria-checked',nt?'true':'false');el('dNightL').textContent='Ночной режим';b.querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');}
+if(el('dNight'))el('dNight').onclick=()=>{toggleDayNight();syncNightSwitch();};
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
 ['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath','menuLook'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});

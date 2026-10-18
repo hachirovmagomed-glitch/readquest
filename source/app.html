@@ -188,7 +188,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #goalCard{margin:12px 0 0}
 /* 18.10 (Джессика: «разная вёрстка, «Квесты» то посередине, то у меню»): «Профиль» одной сетки во всех скинах.
    Шапка, высоты карточек, отступы и кегль общие; скин меняет цвет, рамку, декор и гарнитуру. !important: скиновые правила шапок и карточек сильнее по селектору */
-#profile .wrap > .row:first-child{box-sizing:border-box;height:52px!important;min-height:0!important;margin:0 0 12px!important;padding:0 0 10px!important;align-items:center!important}
+/* 18.10 (Джессика: «верхняя плашка слишком большая… сделать плюс-минус одинаковыми»): one compact screen header in every skin and screen:
+   a 36px title row + an 8px strip for the skin's line or ornament, 8px to the first block (skins keep their face and decor) */
+.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){box-sizing:border-box;height:44px!important;min-height:0!important;margin:0 0 8px!important;padding:0 0 8px!important;align-items:center!important}
+.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1) > h1{line-height:36px!important;margin:0!important;min-width:0}
+.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){box-sizing:border-box;min-height:0!important;height:34px;padding-top:0!important;padding-bottom:0!important;display:inline-flex;align-items:center}
 #profile .wrap > .row:first-child h1{font-size:24px!important;line-height:30px!important;margin:0!important}
 #profile .herocard{box-sizing:border-box;height:132px;padding:16px!important;margin:0!important;overflow:hidden}
 #profile #pName{font-size:17px!important;line-height:22px!important}
@@ -482,7 +486,14 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid var(--card2);margin-bottom:8px}
 .dstat{font-size:12px;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:3px;background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
 .dava{width:48px;height:48px;border-radius:50%;flex:none;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--accent)}.dname{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dgold{color:var(--txt);font-weight:600}
-#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
+#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}/* 18.10 (Джессика: «нет кнопки для перехода в ночной режим»): day/night switch at the bottom of the left menu, every skin */
+#dNight{margin:0 10px 8px;width:auto;height:52px;padding:0 12px;border-radius:12px;font:inherit;font-size:15px;color:var(--txt);background:color-mix(in srgb,var(--txt) 6%,transparent);border:0;cursor:pointer}
+#dNight .dsw{flex:none;position:relative;width:40px;height:24px;border-radius:12px;background:color-mix(in srgb,var(--txt) 22%,transparent);transition:background .2s}
+#dNight .dsw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .2s}
+#dNight[aria-checked="true"] .dsw{background:var(--accent)}
+#dNight[aria-checked="true"] .dsw i{transform:translateX(16px)}
+@media (prefers-reduced-motion:reduce){#dNight .dsw,#dNight .dsw i{transition:none}}
+.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
 #botnav .botnav-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:15px;color:var(--txt);width:100%;text-align:left}
 .ditem.on{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border-right:3px solid var(--accent)}
@@ -1601,6 +1612,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div class="dhead"><div class="dava" id="dAva" aria-hidden="true">Ч</div><div style="flex:1;min-width:0"><b class="dname" id="dName">Читатель</b><div class="dstat"><span id="dLvl">Уровень 1</span> · <span id="dXp">0 / 100 XP</span></div><div class="dbar"><i id="dXpBar"></i></div><div class="dstat dgold" id="dGold">0 монет</div></div></div>
   <div id="dList"></div>
   <div class="spacer"></div>
+  <button class="ditem dnight" id="dNight" type="button" role="switch" aria-checked="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><span class="dlab" id="dNightL">Ночной режим</span><span class="dsw" aria-hidden="true"><i></i></span></button>
   <div class="dcap"><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg>закреплено в нижней панели</div>
 </aside>
 

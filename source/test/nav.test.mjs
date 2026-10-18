@@ -44,7 +44,7 @@ await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 
 const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent);
   return { w: Math.round(dr.getBoundingClientRect().width), ava: !!dr.querySelector('.dava'), name: (dr.querySelector('.dname') || {}).textContent || '', items: items.map(x => x.dataset.nav || x.id), pins: items.filter(x => x.querySelector('.dpin')).map(x => x.dataset.nav),
     h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
-ok('drawer: 85% ширины (≈332px), аватар и имя, 7 разделов (с «Путём читателя») + Настройки, пункты 52px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","rewards","profile","path","quests","stats","look","settings"]' && d.h === 52 && !d.emoji, d);
+ok('drawer: 85% ширины (≈332px), аватар и имя, 8 разделов (с «Путём читателя» и «Приключениями») + Настройки, пункты 52px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","rewards","profile","path","adv","quests","stats","look","settings"]' && d.h === 52 && !d.emoji, d);
 ok('drawer: значок pin у закреплённых (library,rewards,profile) и подпись внизу', JSON.stringify(d.pins) === '["library","rewards","profile"]' && d.cap, d.pins);
 await p.evaluate(() => closeDrawer());
 // settings «Нижняя панель»

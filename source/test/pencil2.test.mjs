@@ -20,7 +20,10 @@ const pg = await p.evaluate(() => { const r = getComputedStyle(document.document
   const m = e => (getComputedStyle(document.body, e).webkitMaskImage || getComputedStyle(document.body, e).maskImage || '').match(/data:image\/svg/g) || [];
   return { skin: document.documentElement.dataset.skin, grads: (r.backgroundImage.match(/linear-gradient/g) || []).length, size: r.backgroundSize, body: b.backgroundColor, lib: lib.backgroundColor, d1: m('::before').length, d2: m('::after').length }; });
 ok('1 paper: squared grid 20px + margin on the root, body and library transparent', pg.skin === 'pencil' && pg.grads === 3 && /20px 20px/.test(pg.size) && pg.body === 'rgba(0, 0, 0, 0)' && pg.lib === 'rgba(0, 0, 0, 0)', pg);
-ok('2 doodles: graphite caterpillar/arrow/spiral and accent stars as masks', pg.d1 === 3 && pg.d2 === 3, pg);
+ok('2 doodles: graphite caterpillar/spiral and two accent stars as masks', pg.d1 === 2 && pg.d2 === 2, pg);
+// 18.10 (Джессика): fewer stars, at the edge, never on the red margin or over the shelf text
+const dz = await p.evaluate(() => { const c = e => getComputedStyle(document.body, e).webkitMaskPosition || getComputedStyle(document.body, e).maskPosition || ''; return { a: c('::before'), b: c('::after') }; });
+ok('2b doodles: nothing on the left margin (all anchored to the right edge)', !/left|^0px|, 0px|^1px|, 1px/.test(dz.a + ',' + dz.b), dz);
 const ac = await p.evaluate(() => { const c = document.querySelector('#libChips .fchip.on') || document.querySelector('.fchip.on'), n = document.querySelector('#botnav .botnav-btn.on');
   const ring = e => /data:image\/svg/.test(getComputedStyle(e, '::after').webkitMaskImage || ''), t = document.getElementById('libTitle');
   return { chipBg: getComputedStyle(c).backgroundColor, chipRing: ring(c), navBg: getComputedStyle(n).backgroundColor, navRing: ring(n), under: /data:image\/svg/.test(getComputedStyle(t, '::after').webkitMaskImage || '') }; });
@@ -28,6 +31,27 @@ ok('3 active filter and tab circled in pencil (no fill), library title underline
 const hb = await p.evaluate(() => { const i = document.createElement('i'), b = document.createElement('div'); b.className = 'pbar'; i.style.width = '50%'; b.appendChild(i); document.getElementById('shelf').prepend(b);
   const r = { bg: getComputedStyle(i).backgroundImage, line: getComputedStyle(b).boxShadow }; b.remove(); return r; });
 ok('4 progress: hatched fill, graphite outline', /repeating-linear-gradient/.test(hb.bg) && /inset/.test(hb.line), hb);
+// 18.10 (Джессика): generated covers, «Не начато», two-line titles, chip fade, «Добавь книгу» in the empty grid
+const sh = await p.evaluate(() => { const cards = [...document.querySelectorAll('#shelf .bookcard')], c = cards[0].querySelector('.pc-cover'), t = c && c.querySelector('.pc-t'), a = c && c.querySelector('.pc-a');
+  const b0 = cards.find(x => /Не начато/.test(x.querySelector('.bpct').textContent)), z = b0 && b0.querySelector('.pbar'), zs = z && getComputedStyle(z);
+  const ti = [...document.querySelectorAll('#shelf .btitle')].find(x => /Последний/.test(x.textContent)), ts = ti && getComputedStyle(ti);
+  const pct = cards.map(x => x.querySelector('.bpct').textContent);
+  return { t: t && t.textContent, tv: t && getComputedStyle(t).display !== 'none' && t.getBoundingClientRect().height > 8, a: a && a.textContent, title: cards[0].querySelector('.btitle').textContent,
+    tbg: t && getComputedStyle(t).backgroundImage, pct, zero: zs && { bg: zs.backgroundColor, sh: zs.boxShadow, bt: zs.borderTopStyle },
+    clamp: ts && ts.webkitLineClamp, ws: ts && ts.whiteSpace, lines: ti && Math.round(ti.getBoundingClientRect().height / parseFloat(ts.lineHeight)) }; });
+ok('11 covers: title and author printed on the shelf cover, on clean paper (no hatching under the text)', sh.t && sh.title.includes(sh.t) && sh.tv && sh.a && sh.tbg === 'none', sh);
+ok('12 0 %: «Не начато» instead of «0%», no grey box (a dashed pencil line)', !sh.pct.includes('0%') && sh.zero && sh.zero.bt === 'dashed' && sh.zero.sh === 'none' && sh.zero.bg === 'rgba(0, 0, 0, 0)', sh);
+ok('13 long titles wrap to two lines', sh.clamp === '2' && sh.ws === 'normal' && sh.lines === 2, sh);
+const fd = await p.evaluate(async () => { const c = document.getElementById('libChips'), m = () => getComputedStyle(c).webkitMaskImage || getComputedStyle(c).maskImage;
+  const r = { over: c.scrollWidth > c.clientWidth, start: m() }; c.scrollLeft = c.scrollWidth; c.dispatchEvent(new Event('scroll')); await new Promise(q => setTimeout(q, 80)); r.end = m(); c.scrollLeft = 0; c.dispatchEvent(new Event('scroll')); return r; });
+ok('14 filter row fades at the right edge while more chips are hidden, no fade at the end', fd.over && /gradient/.test(fd.start) && fd.end === 'none', fd);
+const ad = await p.evaluate(async () => { const h = document.querySelector('#shelf .addhint'); if (!h) return null; const r = h.getBoundingClientRect(), cv = document.querySelector('#shelf .cover').getBoundingClientRect();
+  h.click(); await new Promise(q => setTimeout(q, 100)); const open = !document.getElementById('addMenu').hidden; document.getElementById('addMenu').hidden = true;
+  return { txt: h.textContent.trim(), w: Math.round(r.width), cw: Math.round(cv.width), open }; });
+ok('15 «Добавь книгу» tile in the grid opens the add menu', ad && /Добавь книгу/.test(ad.txt) && Math.abs(ad.w - ad.cw) <= 2 && ad.open, ad);
+const wm = await p.evaluate(async () => { const n = () => ((getComputedStyle(document.body, '::before').webkitMaskImage || '').match(/data:image\/svg/g) || []).length, sh = document.getElementById('shelf'), r = { short: n() };
+  for (let k = 0; k < 4; k++) sh.appendChild(document.createElement('div')); await new Promise(q => setTimeout(q, 50)); r.long = n(); renderLibrary(); return r; });
+ok('16 long shelf: the caterpillar steps aside (only the spiral stays in the gutter)', wm.short === 2 && wm.long === 1, wm);
 await p.evaluate(() => { openRewardsSheet(); }); await sleep(400);
 const tier = await p.evaluate(() => { const e = document.querySelector('#rewSlots .tierseg button.on'); return { bg: getComputedStyle(e).backgroundColor, ring: /data:image\/svg/.test(getComputedStyle(e, '::after').webkitMaskImage || '') }; });
 ok('5 rewards: the chosen price tier is circled', tier.bg === 'rgba(0, 0, 0, 0)' && tier.ring, tier);

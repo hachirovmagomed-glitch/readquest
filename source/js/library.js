@@ -188,16 +188,21 @@ function renderLibrary(){
   if(!list.length)shelf.innerHTML='<div class="pempty" style="grid-column:1/-1">Ничего не найдено</div>';
   list.forEach(b=>{
     const p={ratio:rqPos(b.id)}; /* card % = current position (farthest stays for finish / stats) */
-    const done=S.finished.includes(b.id);
+    const done=S.finished.includes(b.id),zero=!done&&Math.round(p.ratio*100)===0; /* 18.10: 0 % reads «Не начато» */
     const card=document.createElement('button');card.className='bookcard';
     card.innerHTML='<div class="cover">'+coverHtml(b)+'</div><div class="bmeta">'+
       '<div class="btitle">'+(S.favs.includes(b.id)?'<span style="color:var(--accent2)">★</span> ':'')+esc(b.title)+'</div><div class="bauthor">'+esc(b.author)+'</div>'+
-      '<div class="pbar"><i style="width:'+Math.round((done?1:p.ratio)*100)+'%;'+(done?'background:#4cd97b':'')+'"></i></div>'+
-      '<div class="bpct">'+(done?'Прочитано':Math.round(p.ratio*100)+'%')+' · качает '+statOf(b)+'</div></div>'+
+      '<div class="pbar'+(zero?' pbar0':'')+'"><i style="width:'+Math.round((done?1:p.ratio)*100)+'%;'+(done?'background:#4cd97b':'')+'"></i></div>'+
+      '<div class="bpct">'+(done?'Прочитано':zero?'Не начато':Math.round(p.ratio*100)+'%')+' · качает '+statOf(b)+'</div></div>'+
       '<span class="infobtn" onclick="event.stopPropagation();bookInfo(\''+b.id+'\')">ⓘ</span>';
     card.onclick=()=>openBook(b.id);
     shelf.appendChild(card);
   });
+  /* 18.10 (Джессика, «Карандашный»): the empty grid under a short shelf gets an «Добавь книгу» tile (shown by the skin CSS) */
+  if(LIB.f==='all'&&!LIB.q&&!LIB.author){const a=document.createElement('button');a.type='button';a.className='addhint';
+    a.innerHTML='<span class="cover">'+rqIcon('plus',22)+'</span><span>Добавь книгу</span>';
+    a.onclick=e=>{e.stopPropagation();el('btnAdd').click();};shelf.appendChild(a);}
+  libChipsFade();
   if(isMvp()){
     document.querySelectorAll('#shelf .bpct').forEach(function(n){
       n.textContent=n.textContent.replace(/\s·\sкачает.*$/,'');
@@ -287,7 +292,18 @@ function diffOf(id){
 }
 /* «Карандашный»: emoji cover → hatched tile with a Lucide icon and the format on a clean plate (picture covers stay pictures) */
 const PC_COVER_ICONS=['book-open','moon','star','heart','compass','sparkles','flame','gift'];
-function pencilCover(b){return lucideCover(b,'pc-cover');}
+/* 18.10 (Джессика: «сгенерированные обложки из названия и автора»): on the shelf the cover is a sketched title page,
+   a hatched band in one of three pencil inks, the title in handwriting and the author on clean paper; small covers keep icon + format */
+const PC_INKS=['accent','margin','hatch'];
+function pencilCover(b){
+  let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
+  return lucideCover(b,'pc-cover pc-'+PC_INKS[h%PC_INKS.length]).replace('<span class="pc-cover pc-'+PC_INKS[h%PC_INKS.length]+'">',
+    '$&<b class="pc-t">'+esc(b.title||'')+'</b><small class="pc-a">'+esc(b.author||'')+'</small>');
+}
+/* the filter row fades at the right edge while chips are hidden past it */
+function libChipsFade(){const c=el('libChips');if(!c)return;
+  if(!c.dataset.fade){c.dataset.fade='1';c.addEventListener('scroll',libChipsFade,{passive:true});addEventListener('resize',libChipsFade);}
+  c.classList.toggle('more',c.scrollLeft+c.clientWidth<c.scrollWidth-2);}
 function lucideCover(b,cls){
   const fmt=b.type==='pdf'?'PDF':(/\.fb2$/i.test(b.fname||'')||b.genre==='FB2'?'FB2':(/\.epub$/i.test(b.fname||'')?'EPUB':'TXT'));
   let ic=fmt==='PDF'?'file-text':fmt==='FB2'?'book-marked':null;

@@ -449,6 +449,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .searchinp{width:100%;background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 #libChips{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);padding-right:24px}
+#libChips:not(.more){-webkit-mask-image:none;mask-image:none} /* 18.10: no fade once the last chip is in view (libChipsFade) */
 .chips::-webkit-scrollbar{display:none}
 .fchip{flex:none;background:var(--card2);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted)}
 .fchip.on{background:var(--accent);color:#fff}

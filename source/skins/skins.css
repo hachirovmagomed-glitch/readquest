@@ -553,14 +553,16 @@ html[data-skin="pencil"]{background-color:var(--rq-bg);background-image:linear-g
 html[data-skin="pencil"] body{background:transparent}
 html[data-skin="pencil"] .screen:not(#reader),html[data-skin="pencil"] #summary{background:transparent}
 html[data-skin="pencil"] #reader{background:var(--r-bg)}
-/* doodles in the margins and empty corners (behind the content): graphite caterpillar with a book, arrow, spiral; accent stars */
+/* doodles in the empty corners at the right edge (behind the content, never on the red margin): graphite caterpillar with a book, spiral; two accent stars */
 html[data-skin="pencil"] body::before,html[data-skin="pencil"] body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
 html[data-skin="pencil"] body::before{background:var(--rq-skin-hatch);
-  -webkit-mask:var(--pc-worm) right 18px bottom 96px/96px 70px no-repeat,var(--pc-arrow) left 0 top 46%/28px 28px no-repeat,var(--pc-spiral) right 10px top 62%/22px 22px no-repeat;
-  mask:var(--pc-worm) right 18px bottom 96px/96px 70px no-repeat,var(--pc-arrow) left 0 top 46%/28px 28px no-repeat,var(--pc-spiral) right 10px top 62%/22px 22px no-repeat}
+  -webkit-mask:var(--pc-worm) right 18px bottom 96px/96px 70px no-repeat,var(--pc-spiral) right 2px top 64%/14px 14px no-repeat;
+  mask:var(--pc-worm) right 18px bottom 96px/96px 70px no-repeat,var(--pc-spiral) right 2px top 64%/14px 14px no-repeat}
 html[data-skin="pencil"] body::after{background:var(--rq-accent);opacity:.8;
-  -webkit-mask:var(--pc-star) left 0 top 30%/16px 16px no-repeat,var(--pc-star) left 1px top 74%/14px 14px no-repeat,var(--pc-star) right 128px bottom 150px/14px 14px no-repeat;
-  mask:var(--pc-star) left 0 top 30%/16px 16px no-repeat,var(--pc-star) left 1px top 74%/14px 14px no-repeat,var(--pc-star) right 128px bottom 150px/14px 14px no-repeat}
+  -webkit-mask:var(--pc-star) right 3px top 52%/12px 12px no-repeat,var(--pc-star) right 3px bottom 190px/11px 11px no-repeat;
+  mask:var(--pc-star) right 3px top 52%/12px 12px no-repeat,var(--pc-star) right 3px bottom 190px/11px 11px no-repeat}
+/* a long shelf reaches the corner: the caterpillar steps aside so it never sits under the book titles (stars and spiral stay in the right gutter) */
+html[data-skin="pencil"]:has(#library:not(.hidden) #shelf > :nth-child(7)) body::before{-webkit-mask:var(--pc-spiral) right 2px top 64%/14px 14px no-repeat;mask:var(--pc-spiral) right 2px top 64%/14px 14px no-repeat}
 /* titles underlined by hand */
 html[data-skin="pencil"] :is(#libTitle,.wrap > .row > h1,#sumHead){position:relative}
 html[data-skin="pencil"] :is(#libTitle,.wrap > .row > h1,#sumHead)::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:9px;background:var(--rq-accent);pointer-events:none;
@@ -575,6 +577,31 @@ html[data-skin="pencil"] .fchip.on{box-shadow:none}
 /* progress: graphite outline, hatched fill */
 html[data-skin="pencil"] .pbar{height:7px;border-radius:2px;background:var(--rq-surface);box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
 html[data-skin="pencil"] .pbar i{border-radius:2px;background:repeating-linear-gradient(-45deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px)!important;box-shadow:inset 0 0 0 1.2px var(--rq-accent)}
+/* 18.10 (Джессика): the shelf. Generated covers: hatched ink band on top, handwritten title and author on clean paper, format at the foot */
+.pc-t,.pc-a{display:none}
+html[data-skin="pencil"] #shelf .pc-cover{justify-content:flex-start;gap:0;padding:0 7px 6px;background:var(--rq-surface);overflow:hidden;text-align:center}
+html[data-skin="pencil"] #shelf .pc-cover::before{content:"";align-self:stretch;flex:none;height:20%;margin:0 -7px 8px;border-bottom:1.2px solid var(--rq-skin-border);
+  background:repeating-linear-gradient(-45deg,transparent 0 3px,var(--pc-ink) 3px 4.4px)}
+html[data-skin="pencil"] #shelf .pc-accent{--pc-ink:var(--rq-accent)}
+html[data-skin="pencil"] #shelf .pc-margin{--pc-ink:var(--rq-skin-margin)}
+html[data-skin="pencil"] #shelf .pc-hatch{--pc-ink:var(--rq-skin-hatch)}
+html[data-skin="pencil"] #shelf .pc-t{display:-webkit-box;align-self:stretch;word-break:break-word;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;font:700 17px/1.05 var(--rq-skin-font-heading);color:var(--rq-text);overflow-wrap:anywhere}
+html[data-skin="pencil"] #shelf .pc-a{display:block;max-width:100%;margin-top:5px;padding-top:4px;border-top:1px solid var(--rq-skin-border);font:9.5px/1.2 var(--rq-font-ui);color:var(--rq-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-skin="pencil"] #shelf .pc-cover .ic{display:none}
+html[data-skin="pencil"] #shelf .pc-t{margin-top:auto}
+html[data-skin="pencil"] #shelf .infobtn{background:radial-gradient(circle,var(--rq-surface) 0 10px,transparent 10.5px);color:var(--rq-text-2)}
+html[data-skin="pencil"] #shelf .pc-cover i{margin-top:auto}
+/* long titles wrap to two lines; 0 % is a dashed pencil line, not an empty box */
+html[data-skin="pencil"] #shelf .btitle{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}
+html[data-skin="pencil"] #shelf .pbar.pbar0{height:0;margin-top:9px;background:transparent;box-shadow:none;border-radius:0;border-top:1.5px dashed var(--rq-skin-border)}
+html[data-skin="pencil"] #shelf .pbar.pbar0 i{display:none}
+/* «Добавь книгу»: a dashed sketched tile in the next grid cell */
+.addhint{display:none}
+html[data-skin="pencil"] #shelf .addhint{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:0;margin:0;border:0;background:none;color:var(--rq-text-2);font:600 12.5px/1.3 var(--rq-font-ui);text-align:left;cursor:pointer;min-width:0}
+html[data-skin="pencil"] #shelf .addhint .cover{display:flex;align-items:center;justify-content:center;box-shadow:none;border:1.5px dashed var(--rq-skin-border);border-radius:6px;color:var(--rq-accent-text);background:color-mix(in srgb,var(--rq-surface) 60%,transparent)}
+/* the filter row fades at the right edge while more chips hide past it */
+html[data-skin="pencil"] #libChips.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+html[data-skin="pencil"] .fchip{padding:7px 12px}
 /* bottom nav on paper: a pencil line above instead of a filled bar */
 html[data-skin="pencil"] #botnav{background:var(--rq-bg);border-top:1.5px solid var(--rq-skin-border)}
 /* text on accent fills (night accent is pale blue: the app paints literal #fff there) */

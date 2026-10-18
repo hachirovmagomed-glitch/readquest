@@ -18,11 +18,11 @@ const HERO_GEAR=[
 function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||null;}
 function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){if(heroItem(eq[k]))on[k]=eq[k];});return on;}
 const HI='var(--txt)',HB='var(--hero-bg)'; /* --txt: и скины, и тема по умолчанию */
-/* цвет вещи выбирает игрок (Джессика 18.10); по умолчанию бронза */
-const HERO_COLORS=[['bronze','Бронза','#c8952f'],['skin','Цвет скина','var(--accent)'],['purple','Пурпур','#8e3363'],['azure','Лазурь','#2f74b5'],['olive','Олива','#7d8a2a']];
+/* цвет вещи игрок выбирает сам, любой (Джессика 18.10: «дать человеку выбрать и настроить цвет самому»); по умолчанию бронза */
+const HERO_BRONZE='#c8952f';
 let heroTryCol={}; /* примерка цвета — только в памяти */
-function heroColKey(id){const k=heroTryCol[id]||(S.char&&S.char.gearColor&&S.char.gearColor[id]);return HERO_COLORS.some(function(c){return c[0]===k;})?k:'bronze';}
-function heroCol(id){const k=heroColKey(id);return HERO_COLORS.find(function(c){return c[0]===k;})[2];}
+function heroHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v.toLowerCase():null;}
+function heroCol(id){return heroHex(heroTryCol[id])||heroHex(S.char&&S.char.gearColor&&S.char.gearColor[id])||HERO_BRONZE;}
 /** heroSvg(on): on = {slot:id}; без аргумента — то, что надето. viewBox 0 -6 72 84: сверху место под гребень шлема */
 function heroSvg(on){
   on=on||heroOn();const has=function(id){return Object.keys(on).some(function(k){return on[k]===id;});};
@@ -35,11 +35,16 @@ function heroSvg(on){
       '<rect x="5" y="62.4" width="62" height="2.6"/><rect x="3" y="65.4" width="66" height="2.6"/><rect x="1" y="68.4" width="70" height="2.6"/></g>'+
       '<path d="M14 24.4 L36 15 L58 24.4 Z" fill="'+T2+'"/>';}
   s+='<ellipse cx="36" cy="74.5" rx="17" ry="2.2" fill="'+HI+'" opacity=".12"/>';
-  if(has('gr-dory')){const c=A('gr-dory');s+='<rect x="24.45" y="8" width="1.9" height="66" rx=".9" fill="'+HI+'"/><path d="M25.4 -5 Q28.75 2 25.4 9 Q22.05 2 25.4 -5 Z" fill="'+c+'"'+gap(0.7)+'/><path d="M25.4 -2.5 V7" stroke="'+D('gr-dory')+'" stroke-width=".6"/><rect x="23.95" y="8.6" width="2.9" height="1.8" rx=".5" fill="'+c+'"/><path d="M24.25 72 H26.55 L25.4 77 Z" fill="'+c+'"/>';}
+  if(has('gr-dory')){const c=A('gr-dory');s+='<rect x="19.65" y="8" width="1.9" height="66" rx=".9" fill="'+HI+'"/><path d="M20.6 -5 Q23.95 2 20.6 9 Q17.25 2 20.6 -5 Z" fill="'+c+'"'+gap(0.7)+'/><path d="M20.6 -2.5 V7" stroke="'+D('gr-dory')+'" stroke-width=".6"/><rect x="19.15" y="8.6" width="2.9" height="1.8" rx=".5" fill="'+c+'"/><path d="M19.45 72 H21.75 L20.6 77 Z" fill="'+c+'"/>';}
+  /* поза зависит от того, что в руке (Джессика 18.10): копьё — рука отведена к древку, свиток — рука у груди, читает */
+  const pose=has('gr-dory')?'spear':has('gr-scroll')?'scroll':'down';
+  const limb=function(d){return '<path d="'+d+'" fill="none" stroke="'+HB+'" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round"/><path d="'+d+'" fill="none" stroke="'+HI+'" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>';};
+  if(pose==='spear')s+=limb('M25.4 24.4 L21.4 43.6');
+  if(pose==='scroll')s+=limb('M25.4 24.4 L25.2 37.6');
   /* стикмен: голова, руки, корпус, ноги; щели между ними — фон */
   s+='<g fill="'+HI+'"'+gap(0.9)+'>'+
     '<rect x="29" y="46" width="6.6" height="27" rx="3.3"/><rect x="36.4" y="46" width="6.6" height="27" rx="3.3"/>'+
-    '<rect x="23" y="22" width="4.8" height="24.5" rx="2.4"/><rect x="44.2" y="22" width="4.8" height="24.5" rx="2.4"/>'+
+    (pose==='down'?'<rect x="23" y="22" width="4.8" height="24.5" rx="2.4"/>':'')+'<rect x="44.2" y="22" width="4.8" height="24.5" rx="2.4"/>'+
     '<rect x="28.2" y="21" width="15.6" height="28" rx="4.5"/>'+
     '<circle cx="36" cy="12" r="7"/></g>';
   if(has('gr-chiton')){const c=A('gr-chiton'),d=D('gr-chiton');
@@ -50,11 +55,12 @@ function heroSvg(on){
     s+='<path d="M27.4 22.6 Q30 20.4 36.5 20.8 Q46.5 21 49.6 24.2 L51.8 40 L53 63 Q49.8 65 46.6 63 L45.6 47.4 Q37.6 40.6 29.6 27 Z" fill="'+c+'"'+gap(1.1)+'/>'+
       '<path d="M32.4 26.6 Q39 36 45.4 41 M35.6 24.2 Q42 31 46.6 33.6 M48.6 30 L49.6 61.6 M50.8 44 L51.4 62" stroke="'+d+'" stroke-width=".8" fill="none" stroke-linecap="round"/>'+
       '<circle cx="29.8" cy="24.4" r="2.4" fill="'+c+'" stroke="'+d+'" stroke-width=".9"/><circle cx="29.8" cy="24.4" r=".9" fill="'+d+'"/>';}
-  if(has('gr-dory'))s+='<rect x="24.45" y="48" width="1.9" height="26" rx=".9" fill="'+HI+'"'+gap(0.8)+'/><path d="M24.25 72 H26.55 L25.4 77 Z" fill="'+A('gr-dory')+'"/><circle cx="25.4" cy="46" r="3.3" fill="'+HI+'"'+gap(0.9)+'/>';
+  if(has('gr-dory'))s+='<circle cx="20.6" cy="44.2" r="3.2" fill="'+HI+'"'+gap(0.9)+'/>';
   if(has('gr-scroll')){const c=A('gr-scroll'),d=D('gr-scroll');
-    s+='<g transform="translate(3.4 1.4) rotate(-24 22 44)"><rect x="19.6" y="34.4" width="4.8" height="16.4" rx="2" fill="'+c+'"'+gap(0.8)+'/><path d="M21 36.6 V48.6 M23 36.6 V48.6" stroke="'+d+'" stroke-width=".6"/>'+
-      '<rect x="20.6" y="32.4" width="2.8" height="2.4" rx=".8" fill="'+d+'"/><rect x="20.6" y="50.4" width="2.8" height="2.4" rx=".8" fill="'+d+'"/></g>'+
-      '<circle cx="25.4" cy="46" r="3.3" fill="'+HI+'"'+gap(0.9)+'/>';}
+    s+=limb('M25.2 37.6 L31 33.4')+
+      '<rect x="31" y="27.4" width="9.6" height="8.4" fill="'+c+'"'+gap(0.8)+'/><path d="M33 30 H38.6 M33 32 H38.6 M33 34 H37" stroke="'+d+'" stroke-width=".6"/>'+
+      '<rect x="29.4" y="25.6" width="2.8" height="12" rx="1.4" fill="'+d+'"'+gap(0.6)+'/><rect x="39.4" y="25.6" width="2.8" height="12" rx="1.4" fill="'+d+'"'+gap(0.6)+'/>'+
+      '<circle cx="30.8" cy="33.6" r="3" fill="'+HI+'"'+gap(0.9)+'/>';}
   if(has('gr-helm')){const c=A('gr-helm'),d=D('gr-helm');
     s+='<g transform="translate(0 2.6)"><rect x="34.9" y="-0.6" width="2.2" height="3.6" fill="'+d+'"/>'+
       '<path d="M26.6 0.2 Q36 -9.4 45.4 0.2 Q41 2 36 2 Q31 2 26.6 0.2 Z" fill="'+c+'"'+gap(0.8)+'/>'+
@@ -89,12 +95,16 @@ if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}he
 /* ===== Магазин: «Внешний вид» → Скины / Одежда / Снаряжение ===== */
 let heroTab='skins',heroTry=null; /* примерка — только в памяти */
 function heroShopTab(t){heroTab=t;heroTry=null;heroTryCol={};renderHeroShop();}
-/* цвет вещи: купленной — сохраняется сразу (бесплатно), некупленной — только примерка */
-function heroSetCol(id,k){if(!heroItem(id))return;
-  if(!heroOwns(id)){heroTryCol[id]=k;heroTry=id;renderHeroShop();return;}
-  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
-  S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[id]=k;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroTryOn(id){heroTry=heroTry===id?null:id;renderHeroShop();}
+/* палитра: пока крутят — только примерка (перерисовываются картинки, не магазин); отпустили — купленной вещи цвет сохраняется */
+function heroColLive(id,v){v=heroHex(v);if(!v)return;heroTryCol[id]=v;heroTry=heroOwns(id)?heroTry:id;
+  const box=el('heroShop');if(!box)return;const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
+  const big=box.querySelector('.heroprev .heroframe');if(big)big.innerHTML=heroSvg(on);
+  const card=box.querySelector('.herocard[data-id="'+id+'"]');if(card){const one={};one[heroItem(id).slot]=id;card.querySelector('.heroframe').innerHTML=heroSvg(one);card.querySelector('.herocolpick').style.background=v;}}
+function heroSetCol(id,v){v=heroHex(v);if(!v||!heroItem(id))return;
+  if(!heroOwns(id)){heroTryCol[id]=v;heroTry=id;renderHeroShop();return;}
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
+  S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[id]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){return (S.ownedGear||[]).indexOf(id)>=0;}
 function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.equipped=S.equipped||{};S.equipped[g.slot]=S.equipped[g.slot]===id?null:id;heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
@@ -132,10 +142,10 @@ function renderHeroShop(){
       const cta=worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
         :own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Надеть</button>'
         :'<button type="button" class="buy shopcta"'+(S.gold>=g.price?'':' disabled')+' onclick="event.stopPropagation();heroBuyAsk(\''+g.id+'\')">'+(S.gold>=g.price?'Купить':'Не хватает '+(g.price-S.gold))+'</button>';
-      return '<div role="button" tabindex="0" class="shopcard herocard'+(heroTry===g.id?' trying':'')+'" onclick="heroTryOn(\''+g.id+'\')">'+
+      return '<div role="button" tabindex="0" class="shopcard herocard'+(heroTry===g.id?' trying':'')+'" data-id="'+g.id+'" onclick="heroTryOn(\''+g.id+'\')">'+
         '<span class="heroframe">'+heroSvg(one)+'</span><span class="shopname">'+esc(g.name)+'</span>'+
         '<span class="shopprice">'+(own?(worn?'Надето':'Куплено'):coinsP(g.price))+' · '+HERO_SLOTS[g.slot].toLowerCase()+'</span>'+
-        '<span class="herocols">'+HERO_COLORS.map(function(c){return '<button type="button" class="herocol'+(heroColKey(g.id)===c[0]?' on':'')+'" style="background:'+c[2]+'" aria-label="'+c[1]+'" title="'+c[1]+'" onclick="event.stopPropagation();heroSetCol(\''+g.id+'\',\''+c[0]+'\')"></button>';}).join('')+'</span>'+cta+'</div>';
+        '<label class="herocolrow" onclick="event.stopPropagation()"><span class="herocolpick" style="background:'+heroCol(g.id)+'"><input type="color" value="'+heroCol(g.id)+'" aria-label="Цвет: '+esc(g.name)+'" oninput="heroColLive(\''+g.id+'\',this.value)" onchange="heroSetCol(\''+g.id+'\',this.value)"></span>Цвет</label>'+cta+'</div>';
     }).join('')+'</div>';
   heroBgFix(box);
 }

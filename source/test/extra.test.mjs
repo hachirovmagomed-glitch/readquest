@@ -42,7 +42,8 @@ const v = await p.evaluate(async () => { wear('skin-pencil'); show('library'); a
   return { html: cs(document.documentElement).backgroundColor, body: cs(document.body).backgroundColor, meta: (document.querySelector('meta[name=theme-color]') || {}).content,
     sortW: l ? l.clientWidth : 0, need: l ? l.scrollWidth : 1, mask: cs(el('libChips')).maskImage || cs(el('libChips')).webkitMaskImage }; });
 const rgb = (h) => h && h[0] === '#' ? 'rgb(' + [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(', ') + ')' : h;
-ok('3a «Карандашный»: html и body одного цвета бумаги (без чёрной полосы), theme-color = фон', v.html === v.body && v.html !== 'rgba(0, 0, 0, 0)' && rgb(v.meta) === v.body, v);
+const paper = v.body === 'rgba(0, 0, 0, 0)' ? v.html : v.body; /* v2 (18.10): the grid paper sits on the root, body transparent over it */
+ok('3a «Карандашный»: бумага на html (body прозрачный или того же цвета, без чёрной полосы), theme-color = фон', (v.html === v.body || v.body === 'rgba(0, 0, 0, 0)') && v.html !== 'rgba(0, 0, 0, 0)' && rgb(v.meta) === paper, v);
 ok('3b «Недавние» не обрезано в обычной теме и в «Карандашном» (ширина ≥ текст + отступы + стрелка)', v.sortW >= v.need && sf0.w >= sf0.need, { sf0, pencil: [v.sortW, v.need] });
 ok('3c у ряда фильтров затухание справа', /gradient/.test(v.mask || ''), v.mask);
 ok('no page errors', errs.length === 0, errs);

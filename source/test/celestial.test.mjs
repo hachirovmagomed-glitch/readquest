@@ -103,6 +103,8 @@ const sd = await p.evaluate(async () => { const t = document.getElementById('lib
   t.style.fontSize = ''; S.gold = g0; save(); renderLibrary(); return r; });
 ok('5h wide header (230 монет, big title): coin chip stays on screen, the library never scrolls sideways', sd.chipIn && sd.ox === 'hidden' && sd.sw, sd);
 
+const tc = await p.evaluate(() => { syncThemeColor(); return (document.querySelector('meta[name=theme-color]') || {}).content; });
+ok('5i browser bar (theme-color) = the skin paper #f6efe2, not black (body is transparent over the sky)', tc === '#f6efe2', tc);
 // 6. reader: the page is flat paper over the sky, book font Lora, own icons, chrome title in Cormorant
 await p.evaluate(() => { __navAllow = true; openBook(allBooks()[0].id); __navAllow = false; }); await sleep(2500);
 await p.evaluate(() => showChrome()); await sleep(500);

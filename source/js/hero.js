@@ -19,7 +19,7 @@ function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||nul
 function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){if(heroItem(eq[k]))on[k]=eq[k];});return on;}
 const HI='var(--txt)',HB='var(--hero-bg)'; /* --txt: и скины, и тема по умолчанию */
 /* цвет вещи игрок выбирает сам, любой (Джессика 18.10: «дать человеку выбрать и настроить цвет самому»); по умолчанию бронза */
-const HERO_BRONZE='#c8952f';
+const HERO_BRONZE='#b5822a'; /* темнее, чтобы не сливаться с кремовыми плашками */
 let heroTryCol={}; /* примерка цвета — только в памяти */
 function heroHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v.toLowerCase():null;}
 function heroCol(id){return heroHex(heroTryCol[id])||heroHex(S.char&&S.char.gearColor&&S.char.gearColor[id])||HERO_BRONZE;}

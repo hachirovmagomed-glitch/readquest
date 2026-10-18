@@ -178,7 +178,10 @@ function renderLibrary(){
   const shelf=el('shelf');shelf.innerHTML='';shelf.className='grid v-'+libViewGet();
   let list=allBooks();
   if(LIB.q)list=list.filter(b=>(b.title+' '+b.author).toLowerCase().includes(LIB.q));
-  if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
+  const shCur=LIB.f.indexOf('sh:')===0?shelvesGet().find(x=>'sh:'+x.id===LIB.f):null;if(LIB.f.indexOf('sh:')===0&&!shCur)LIB.f='all';
+  shelfBarRender(shCur);
+  if(shCur)list=list.filter(b=>shCur.b.indexOf(b.id)>=0);
+  else if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   LIB.sort=libSortGet();
@@ -186,7 +189,7 @@ function renderLibrary(){
   else if(LIB.sort==='author')list.sort((a,b)=>(a.author||'').localeCompare(b.author||'')||a.title.localeCompare(b.title));
   else if(LIB.sort==='progress')list.sort((a,b)=>rqPos(b.id)-rqPos(a.id)); /* 1б-144: by current position */
   else{const lo=S.lastOpen||{};list.sort((a,b)=>(lo[b.id]||0)-(lo[a.id]||0));}
-  if(!list.length)shelf.innerHTML='<div class="pempty" style="grid-column:1/-1">Ничего не найдено</div>';
+  if(!list.length)shelf.innerHTML='<div class="pempty" style="grid-column:1/-1">'+(shCur&&!LIB.q&&!LIB.author?'На этой полке пока нет книг. Положить книгу можно через ⓘ на её обложке.':'Ничего не найдено')+'</div>';
   list.forEach(b=>{
     const p={ratio:rqPos(b.id)}; /* card % = current position (farthest stays for finish / stats) */
     const done=S.finished.includes(b.id),zero=!done&&Math.round(p.ratio*100)===0; /* 18.10: 0 % reads «Не начато» */
@@ -385,6 +388,10 @@ function renderLibChips(){
     b.onclick=()=>{LIB.f=k;LIB.author=null;renderLibrary();};
     box.appendChild(b);
   });
+  /* 18.10: свои полки после «Избранного», потом «+ Полка», потом авторы (собираются сами) */
+  shelvesGet().forEach(sh=>{const b=document.createElement('button');b.className='fchip fshelf'+(LIB.f==='sh:'+sh.id&&!LIB.author?' on':'');b.dataset.shelf=sh.id;
+    b.innerHTML=rqIcon('library',14)+'<span></span>';b.lastChild.textContent=sh.n;b.onclick=()=>{LIB.f='sh:'+sh.id;LIB.author=null;renderLibrary();};box.appendChild(b);});
+  {const b=document.createElement('button');b.className='fchip fshelfadd';b.id='libShelfAdd';b.innerHTML=rqIcon('plus',14)+'<span>Полка</span>';b.onclick=()=>shelfNew();box.appendChild(b);}
   Array.from(new Set(allBooks().map(b=>b.author))).forEach(a=>{
     const b=document.createElement('button');
     b.className='fchip'+(LIB.author===a?' on':'');b.textContent=a;
@@ -392,6 +399,22 @@ function renderLibChips(){
     box.appendChild(b);
   });
 }
+/* 18.10 (Джессика): свои полки, как «Коллекции» в ReadEra: темы, авторы, жанры. S.shelves=[{id,n,b:[id книги]}];
+   поля нет, пока не создана первая полка. Книга может лежать на нескольких полках; кладётся из ⓘ книги */
+function shelvesGet(){return Array.isArray(S.shelves)?S.shelves:[];}
+function shelfById(id){return shelvesGet().find(function(x){return x.id===id;})||null;}
+function shelfNew(bookId){const n=prompt('Название полки (тема, автор, жанр…):');if(!n||!n.trim())return null;
+  if(!Array.isArray(S.shelves))S.shelves=[];
+  const sh={id:'sh'+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36),n:n.trim().slice(0,40),b:bookId?[bookId]:[]};S.shelves.push(sh);save();
+  if(bookId)bookInfo(bookId);else{LIB.f='sh:'+sh.id;LIB.author=null;}
+  renderLibrary();return sh;}
+function shelfRename(id){const sh=shelfById(id);if(!sh)return;const n=prompt('Новое название полки:',sh.n);if(!n||!n.trim())return;sh.n=n.trim().slice(0,40);save();renderLibrary();}
+function shelfDelete(id){const sh=shelfById(id);if(!sh)return;if(!confirm('Удалить полку «'+sh.n+'»? Книги останутся в библиотеке.'))return;
+  S.shelves=shelvesGet().filter(function(x){return x.id!==id;});save();if(LIB.f==='sh:'+id)LIB.f='all';renderLibrary();}
+function shelfToggle(bookId,id){const sh=shelfById(id);if(!sh)return;const i=sh.b.indexOf(bookId);if(i>-1)sh.b.splice(i,1);else sh.b.push(bookId);save();bookInfo(bookId);renderLibrary();}
+function shelfBarRender(sh){const bar=el('libShelfBar');if(!bar)return;bar.hidden=!sh;if(!sh){bar.innerHTML='';return;}
+  bar.innerHTML=rqIcon('library',18)+'<b></b><span class="spacer"></span><button type="button" class="shbtn" aria-label="Переименовать полку" title="Переименовать" onclick="shelfRename(\''+sh.id+'\')">'+rqIcon('pencil',18)+'</button><button type="button" class="shbtn" aria-label="Удалить полку" title="Удалить" onclick="shelfDelete(\''+sh.id+'\')">'+rqIcon('trash-2',18)+'</button>';
+  bar.querySelector('b').textContent=sh.n+' · '+sh.b.filter(function(x){return allBooks().some(function(k){return k.id===x;});}).length;}
 function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 
 /* Добавление книг (Джессика 15.10): несколько файлов за раз, папка (Android Chrome), «Поделиться → ReadQuest» (share target в sw.js).

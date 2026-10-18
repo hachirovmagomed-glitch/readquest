@@ -266,6 +266,13 @@ html[data-skin] #library #shelf:is(.v-short,.v-full) .bookcard{background:var(--
 #library #shelf:is(.v-short,.v-full) .pc-cover i{margin-top:2px}
 #library #shelf:is(.v-short,.v-full) .addhint{flex-direction:row;align-items:center}
 #library #shelf:is(.v-short,.v-full) .addhint .cover{width:40px;height:54px;aspect-ratio:auto}
+.libshelfbar{align-items:center;gap:8px;margin:-2px 0 10px;padding:8px 10px;border-radius:12px;background:var(--card2);color:var(--txt);font-size:14px}
+.libshelfbar[hidden]{display:none!important}
+.libshelfbar b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.libshelfbar .shbtn{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:none;color:var(--muted)}
+.libshelfbar{padding:4px 4px 4px 12px}
+.fchip .ic,.bk-shelves .fchip .ic{vertical-align:-2px;margin-right:4px}
+.bk-shelves{flex-wrap:wrap;padding:6px 0 0}
 .lsortmenu .lsoh{padding:10px 14px 4px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--rq-text-2,var(--muted))}
 .lsortmenu .lsosep{margin-top:4px;border-top:1px solid var(--rq-line,var(--line));padding-top:12px}
 
@@ -1256,6 +1263,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
     <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="lsortbtn" id="libSortBtn" type="button" aria-haspopup="menu" aria-controls="libSortMenu" aria-expanded="false"><span class="lsl">Недавние</span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button><div class="lsortmenu" id="libSortMenu" role="menu" hidden></div></div><div class="lsortwrap"><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf" aria-haspopup="menu" aria-controls="addMenu" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button><div class="lsortmenu addmenu" id="addMenu" role="menu" hidden></div></div></div>
+    <div class="row libshelfbar" id="libShelfBar" hidden></div>
     <div class="grid" id="shelf"></div>
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" multiple style="display:none">
     <input type="file" id="dirInp" webkitdirectory multiple style="display:none">

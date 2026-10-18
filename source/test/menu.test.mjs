@@ -75,6 +75,18 @@ r = await p.evaluate(() => { const out = {}; const views = [...document.querySel
   return { views, out, saved: SET.libView, sorts: [...document.querySelectorAll('#libSortMenu .lso[data-k]')].map(b => b.dataset.k) }; });
 ok('17 shelf view in the sort menu (ReadEra): Сетка, Эскизы, Краткий, Полный; lists are rows, grid back by default; «По автору» sort (18.10)',
   r.views.join() === 'grid,covers,short,full' && r.out.covers.startsWith('true grid') && r.out.short === 'true flex row' && r.out.full === 'true flex row' && r.out.grid === 'true grid column' && r.saved === 'grid' && r.sorts.includes('author'), r);
+r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
+  const out = {}; try {
+    el('libShelfAdd').click(); out.chipOn = !!document.querySelector('#libChips .fshelf.on'); out.bar = !el('libShelfBar').hidden; out.empty = /пока нет книг/.test(el('shelf').textContent);
+    const id = S.shelves[0].id, b1 = allBooks()[0].id, b2 = allBooks()[1].id;
+    bookInfo(b1); document.querySelector('.bk-shelves .fchip:not(.fshelfadd)').click(); shelfToggle(b2, id);
+    ans = 'Чехов'; shelfNew(b1); out.two = S.shelves.length === 2 && S.shelves.every(x => x.b.includes(b1));
+    LIB.f = 'sh:' + id; renderLibrary(); out.shown = [...el('shelf').querySelectorAll('.bookcard')].length;
+    ans = 'Классика'; shelfRename(id); out.renamed = shelfById(id).n === 'Классика' && /Классика/.test(el('libShelfBar').textContent);
+    shelfDelete(id); out.left = S.shelves.map(x => x.n).join(); out.back = LIB.f === 'all' && el('libShelfBar').hidden; out.books = allBooks().length >= 2;
+  } finally { window.prompt = P; window.confirm = C; } return out; });
+ok('18 own shelves (ReadEra «Коллекции»): create from «+ Полка», put books from ⓘ, one book on two shelves, rename, delete keeps books (18.10)',
+  r.chipOn && r.bar && r.empty && r.two && r.shown === 2 && r.renamed && r.left === 'Чехов' && r.back && r.books, r);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY menu.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

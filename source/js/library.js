@@ -34,6 +34,8 @@ const NAV_CATALOG=[
   {id:'quests',t:'Квесты',ic:'target'},
   {id:'stats',t:'Инвентарь',ic:'package'}, /* Джессика 17.10: «всё, что игрок собрал в путешествии по книгам» — статистика, цитаты и заметки, словарь: one item, tabs inside */
   {id:'look',t:'Внешний вид',s:'Вид',ic:'palette'}]; /* Джессика 17.10: тема, скин, анимации — own item (was a block in «Общие настройки») */
+/* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
+const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path']},{t:'Герой',ids:['profile','quests','stats']},{t:'Магазины',ids:['rewards','look']}];
 const NAV_ALIAS={notes:'stats',vocab:'stats'}; /* stored NS_set.nav from before 17.10 */
 const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
 /* ONE flag: in MVP mode, show the extra sections (quests, «Инвентарь», «Внешний вид») in the drawer, bottom bar and «Нижняя панель».
@@ -84,7 +86,12 @@ function renderNav(){
     try{applyMvpChrome();}catch(e){}}
   const list=el('dList');
   if(list){
-    list.innerHTML=NAV_CATALOG.filter(function(it){return navAvail(it.id);}).map(function(it){return '<button class="ditem" type="button" id="'+NAV_DI[it.id]+'" data-nav="'+it.id+'">'+rqIcon(it.ic,22)+'<span class="dlab">'+esc(it.t)+'</span>'+(nav.indexOf(it.id)>=0?'<span class="dpin" title="В нижней панели">'+rqIcon('pin',16)+'</span>':'')+'</button>';}).join('')+
+    const di=function(it){return '<button class="ditem" type="button" id="'+NAV_DI[it.id]+'" data-nav="'+it.id+'">'+rqIcon(it.ic,22)+'<span class="dlab">'+esc(it.t)+'</span>'+(nav.indexOf(it.id)>=0?'<span class="dpin" title="В нижней панели">'+rqIcon('pin',16)+'</span>':'')+'</button>';};
+    const seen={};let h='';
+    DRAWER_SECTIONS.forEach(function(sec){const its=sec.ids.map(navItem).filter(function(it){return it&&navAvail(it.id);});if(!its.length)return;
+      h+='<div class="dsec" role="presentation">'+esc(sec.t)+'</div>'+its.map(function(it){seen[it.id]=1;return di(it);}).join('');});
+    h+=NAV_CATALOG.filter(function(it){return !seen[it.id]&&navAvail(it.id);}).map(di).join(''); /* anything new and unsorted still shows */
+    list.innerHTML=h+
       '<div class="dsep"></div><button class="ditem" type="button" id="dSet" data-nav="settings">'+rqIcon('settings',22)+'<span class="dlab">Настройки</span></button>';
     list.querySelectorAll('.ditem').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
     const cur=SCREENS.find(function(s){return el(s)&&!el(s).classList.contains('hidden');});const tgt=DRAWER[cur];if(tgt&&el(tgt))el(tgt).classList.add('on');
@@ -92,7 +99,8 @@ function renderNav(){
 }
 /* drawer header: read-only view of the SAME sources as «Награды» and toasts — S.gold (coinsP) and S.xp (10 × floor dayMinutes via applySessionAwards), level()/lvlBounds(). No own counter, no save(). */
 function drawerStats(){const xp=S.xp||0,lv=level(xp),b=lvlBounds(lv);return {lv:lv,xp:xp,lo:b[0],hi:b[1],gold:goldDisp(S.gold)};}
-function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const nm=(S.heroName||'Читатель');el('dName').textContent=nm;el('dAva').textContent=nm.trim().charAt(0).toUpperCase()||'Ч';
+function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const nm=(S.heroName||'Читатель');el('dName').textContent=nm;{const a=el('dAva');let hs='';try{if(typeof heroSvg==='function')hs=heroSvg();}catch(e){} /* 18.10: the hero in the menu header, as in Habitica */
+    if(hs){a.innerHTML=hs;a.classList.add('dhero');}else{a.classList.remove('dhero');a.textContent=nm.trim().charAt(0).toUpperCase()||'Ч';}}
   el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';if(el('dGold'))el('dGold').textContent=coinsP(d.gold); /* 18.10 (Джессика): balance only in «Профиль» and the shops, not in the drawer / library header */try{libGoldRender();}catch(e){}return d;}
 function openDrawer(){try{renderDrawerHead();renderNav();syncNightSwitch();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 /* the menu's day/night switch mirrors the page: night = the skin's own night (or the dark page in the default look) */

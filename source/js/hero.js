@@ -5,18 +5,23 @@
    Вещи хранятся в S.ownedGear / S.equipped (поля уже в схеме) с id «gr-…»; старые вещи v6 стикмен не рисует. */
 const HERO_SLOTS={head:'Голова',body:'Одежда',cloak:'Плащ',hand:'В руке',shield:'Щит',pet:'Спутник',bg:'Фон'};
 const HERO_GEAR=[
- {id:'gr-helm',slot:'head',kind:'wear',name:'Коринфский шлем',price:300,desc:'Бронзовый шлем с гребнем'},
- {id:'gr-laurel',slot:'head',kind:'wear',name:'Лавровый венок',price:150,desc:'Награда победителю'},
- {id:'gr-chiton',slot:'body',kind:'wear',name:'Хитон',price:150,desc:'Туника с поясом'},
- {id:'gr-chlamys',slot:'cloak',kind:'wear',name:'Хламида',price:200,desc:'Плащ с фибулой на плече'},
- {id:'gr-dory',slot:'hand',kind:'gear',name:'Копьё',price:200,desc:'Дори гоплита'},
- {id:'gr-scroll',slot:'hand',kind:'gear',name:'Свиток',price:100,desc:'Для того, кто читает'},
- {id:'gr-hoplon',slot:'shield',kind:'gear',name:'Гоплон',price:250,desc:'Круглый щит с лямбдой'},
- {id:'gr-owl',slot:'pet',kind:'gear',name:'Сова Афины',price:350,desc:'Спутник мудрых'},
- {id:'gr-temple',slot:'bg',kind:'gear',name:'Акрополь',price:400,desc:'Храм за спиной героя'}
+ {id:'gr-helm',slot:'head',kind:'wear',name:'Коринфский шлем',skin:'ellada',price:300,desc:'Бронзовый шлем с гребнем'},
+ {id:'gr-laurel',slot:'head',kind:'wear',name:'Лавровый венок',skin:'ellada',price:150,desc:'Награда победителю'},
+ {id:'gr-chiton',slot:'body',kind:'wear',name:'Хитон',skin:'ellada',price:150,desc:'Туника с поясом'},
+ {id:'gr-chlamys',slot:'cloak',kind:'wear',name:'Хламида',skin:'ellada',price:200,desc:'Плащ с фибулой на плече'},
+ {id:'gr-dory',slot:'hand',kind:'gear',name:'Копьё',skin:'ellada',price:200,desc:'Дори гоплита'},
+ {id:'gr-scroll',slot:'hand',kind:'gear',name:'Свиток',skin:'ellada',price:100,desc:'Для того, кто читает'},
+ {id:'gr-hoplon',slot:'shield',kind:'gear',name:'Гоплон',skin:'ellada',price:250,desc:'Круглый щит с лямбдой'},
+ {id:'gr-owl',slot:'pet',kind:'gear',name:'Сова Афины',skin:'ellada',price:350,desc:'Спутник мудрых'},
+ {id:'gr-temple',slot:'bg',kind:'gear',name:'Акрополь',skin:'ellada',price:400,desc:'Храм за спиной героя'}
 ];
 function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||null;}
-function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){if(heroItem(eq[k]))on[k]=eq[k];});return on;}
+/* вещи привязаны к скину (Джессика 18.10): купить можно, только если куплен скин; на герое видны только в этом скине */
+const HERO_SKIN_NAME={ellada:'Эллада'};
+function heroSkin(){try{return activeTheme().skin||'';}catch(e){return document.documentElement.dataset.skin||'';}}
+function heroFits(g){return !!g&&(!g.skin||g.skin===heroSkin());}
+function heroSkinOwned(g){return !g.skin||shopOwns('skin-'+g.skin);}
+function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){const g=heroItem(eq[k]);if(g&&heroFits(g))on[k]=eq[k];});return on;}
 const HI='var(--txt)',HB='var(--hero-bg)'; /* --txt: и скины, и тема по умолчанию */
 /* цвет вещи игрок выбирает сам, любой (Джессика 18.10: «дать человеку выбрать и настроить цвет самому»); по умолчанию бронза */
 const HERO_BRONZE='#b5822a'; /* темнее, чтобы не сливаться с кремовыми плашками */
@@ -108,13 +113,16 @@ function heroSetCol(id,v){v=heroHex(v);if(!v||!heroItem(id))return;
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[id]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){return (S.ownedGear||[]).indexOf(id)>=0;}
-function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
+function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id)||!heroFits(g))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.equipped=S.equipped||{};S.equipped[g.slot]=S.equipped[g.slot]===id?null:id;heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
+/* в чужом скине кнопка вещи надевает её скин */
+function heroWearSkin(id){const g=heroItem(id);if(!g||!g.skin)return;wear('skin-'+g.skin);try{renderShopPane();}catch(e){}try{renderProfile();}catch(e){}}
 let heroPending=null;
 function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id))return;
+  if(!heroSkinOwned(g)){flashMsg('Сначала купите скин «'+HERO_SKIN_NAME[g.skin]+'»');return;}
   if(S.gold<g.price){flashMsg('Не хватает '+coinsP(g.price-S.gold));return;}
   heroPending=id;el('scTitle').textContent='Купить «'+g.name+'» за '+coinsP(g.price)+'?';
-  el('scText').textContent='Останется '+coinsP(S.gold-g.price)+'. Вещь сразу наденется на героя.';
+  el('scText').textContent='Останется '+coinsP(S.gold-g.price)+'. '+(heroFits(g)?'Вещь сразу наденется на героя.':'Вещь видна на герое только в скине «'+HERO_SKIN_NAME[g.skin]+'».');
   el('shopConfirmScrim').hidden=false;el('shopConfirm').hidden=false;}
 const _shopConfirmOk=shopConfirmOk,_shopConfirmClose=shopConfirmClose;
 shopConfirmClose=function(){heroPending=null;_shopConfirmClose();};
@@ -122,7 +130,7 @@ shopConfirmOk=function(){
   const id=heroPending;if(!id)return _shopConfirmOk();
   shopConfirmClose();const g=heroItem(id);
   if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне');return;}
-  if(!g||heroOwns(id)||!(S.gold>=g.price))return;
+  if(!g||heroOwns(id)||!heroSkinOwned(g)||!(S.gold>=g.price))return;
   S.gold-=g.price;S.ownedGear=(S.ownedGear||[]).concat(id);S.equipped=S.equipped||{};S.equipped[g.slot]=id;heroTry=null;save();
   try{confettiReward();}catch(e){}flashMsg('Куплено: «'+g.name+'»');renderHeroShop();try{renderProfile();}catch(e){}
 };
@@ -137,11 +145,16 @@ function renderHeroShop(){
   if(skins)return;
   const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
   const items=HERO_GEAR.filter(function(g){return g.kind===heroTab;});
+  const sk=(items[0]||{}).skin,skName=HERO_SKIN_NAME[sk]||'',skOn=sk===heroSkin(),skOwn=!sk||shopOwns('skin-'+sk);
+  const note=sk?'<p class="heroskinnote">Вещи скина «'+skName+'»: '+(skOn?'видны на герое только в этом скине.':skOwn?'на герое они видны, только когда надет этот скин.':'купить их можно после покупки скина.')+'</p>':'';
   box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroSvg(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
-      '<span>'+(tr?'Примерка: '+esc(tr.name):'Нажмите на вещь, чтобы примерить')+'</span></div></div>'+
+      '<span>'+(tr?'Примерка: '+esc(tr.name):'Нажмите на вещь, чтобы примерить')+'</span></div></div>'+note+
     '<div class="herogrid">'+items.map(function(g){
-      const own=heroOwns(g.id),worn=(S.equipped||{})[g.slot]===g.id,one={};one[g.slot]=g.id;
-      const cta=worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
+      const own=heroOwns(g.id),worn=heroFits(g)&&(S.equipped||{})[g.slot]===g.id,one={};one[g.slot]=g.id;
+      const fits=heroFits(g),skinOwn=heroSkinOwned(g);
+      const cta=!skinOwn?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();heroShopTab(\'skins\')">Нужен скин</button>'
+        :own&&!fits?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWearSkin(\''+g.id+'\')">Надеть скин</button>'
+        :worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
         :own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Надеть</button>'
         :'<button type="button" class="buy shopcta"'+(S.gold>=g.price?'':' disabled')+' onclick="event.stopPropagation();heroBuyAsk(\''+g.id+'\')">'+(S.gold>=g.price?'Купить':'Не хватает '+(g.price-S.gold))+'</button>';
       return '<div role="button" tabindex="0" class="shopcard heroitem'+(heroTry===g.id?' trying':'')+'" data-id="'+g.id+'" onclick="heroTryOn(\''+g.id+'\')">'+

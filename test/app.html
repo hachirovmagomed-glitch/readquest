@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261018-0611',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261018-1246',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261018-0611"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261018-1246"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -184,6 +184,101 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .bpct{font-size:12px;color:var(--muted);margin-top:5px}
 .addbtn{border:2px dashed color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-size:15px}
 @media(min-width:700px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bookcard{margin-bottom:0}}
+/* 17.10 (Джессика): «Моя полка» in every skin = covers three across (as «Небесный»), title, author and a thin bar under the cover */
+#goalCard{margin:12px 0 0}
+/* 18.10 (Джессика: «разная вёрстка, «Квесты» то посередине, то у меню»): «Профиль» одной сетки во всех скинах.
+   Шапка, высоты карточек, отступы и кегль общие; скин меняет цвет, рамку, декор и гарнитуру. !important: скиновые правила шапок и карточек сильнее по селектору */
+/* 18.10 (Джессика: «верхняя плашка слишком большая… сделать плюс-минус одинаковыми»): one compact screen header in every skin and screen:
+   a 36px title row + an 8px strip for the skin's line or ornament, 8px to the first block (skins keep their face and decor) */
+.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){box-sizing:border-box;height:44px!important;min-height:0!important;margin:0 0 8px!important;padding:0 0 8px!important;align-items:center!important}
+.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1) > h1{line-height:36px!important;margin:0!important;min-width:0}
+.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){box-sizing:border-box;min-height:0!important;height:34px;padding-top:0!important;padding-bottom:0!important;display:inline-flex;align-items:center}
+#profile .wrap > .row:first-child h1{font-size:24px!important;line-height:30px!important;margin:0!important}
+#profile .herocard{box-sizing:border-box;height:132px;padding:16px!important;margin:0!important;overflow:hidden}
+#profile #pName{font-size:17px!important;line-height:22px!important}
+#profile #xpTxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#profile .herocard .lvl{font-size:12px!important;line-height:16px!important}
+#profile #goalCard{box-sizing:border-box;height:108px;padding:14px 16px!important;margin:10px 0 0!important;overflow:hidden}
+#profile #goalCard::before{top:4px!important}
+#profile #goalTitle{font-size:16px!important;line-height:20px!important}
+#profile #goalCard .sub{font-size:13px!important;line-height:17px!important;margin-top:2px!important}
+#profile #goalCard .streakline{font-size:14px!important;line-height:20px!important;margin-top:4px!important}
+#profile #goalCard .bbhatch{margin:2px 0 0!important}
+#profile #goalCard .bbhatch i{width:18px;height:18px}
+#profile .profrow{display:flex;gap:10px;margin:10px 0 0}
+#profile .profrow > .achv-card{flex:1;min-width:0;box-sizing:border-box;height:62px;min-height:0;padding-top:0!important;padding-bottom:0!important;margin:0!important;gap:10px}
+#profile .profrow > .achv-card > .ic{display:none}
+#profile .profrow > .achv-card{padding-left:12px!important;padding-right:10px!important;gap:8px}
+#profile .profrow .achv-ic{width:30px;height:30px;border-radius:9px}
+#profile .profrow .achv-ic .ic{width:18px;height:18px}
+#profile .profrow .achv-name{font-size:14px!important;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+#profile .profrow .achv-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#profile #mvpProfileBlock .kpis{height:56px;margin:10px 0 0!important}
+#profile #mvpProfileBlock .kpi{box-sizing:border-box;height:56px;padding:7px 6px!important}
+#profile #mvpProfileBlock .kpi b{font-size:18px!important;line-height:24px!important}
+#profile #mvpProfileBlock .kpi span{font-size:11px!important;line-height:14px!important}
+#profile #mvpQuestH{box-sizing:border-box;height:24px;font-size:18px!important;line-height:24px!important;margin:16px 0 8px!important;padding:0!important}
+#profile .mvp-quest{box-sizing:border-box;padding:12px 16px!important;margin:0 0 8px!important}
+#profile .mvp-quest .row{height:26px}
+#profile .mvp-quest .row > span{font-size:14px!important;line-height:20px!important}
+#profile .mvp-quest .chip{box-sizing:border-box;height:22px;font-size:12px!important;line-height:16px!important;padding:2px 10px!important}
+#profile .mvp-quest .pbar{height:6px!important;margin-top:8px!important}
+#profile .mvp-quest .mvp-qsub{font-size:12px!important;line-height:16px!important;margin-top:6px!important}
+#profile #mvpDailyCard{height:64px;overflow:hidden}
+#profile #mvpWeeklyCard{height:86px;overflow:hidden}
+/* one apparent text size: skin fonts differ in x-height (Alegreya Sans reads smaller than Manrope at the same px), so the cards align it to the system font; headings keep the skin's display face */
+#profile :is(.herocard,#goalCard,.profrow,#mvpProfileBlock){font-size-adjust:.53}
+#shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;padding-top:4px}
+#shelf .bookcard{position:relative;flex-direction:column;align-items:stretch;gap:0;padding:0;margin:0;background:transparent;border:0;border-radius:0;box-shadow:none;min-width:0}
+#shelf .bookcard::before,#shelf .bookcard::after{display:none}
+#shelf .cover{width:100%;height:auto;aspect-ratio:3/4;font-size:34px}
+#shelf .bmeta{min-width:0;margin-top:9px}
+#shelf :is(.btitle,.bauthor,.bpct){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#shelf .btitle{font-size:12.5px;line-height:1.3}
+#shelf .bauthor{font-size:11px;margin:1px 0 0}
+#shelf .pbar{height:6px;margin-top:6px;border-radius:3px}
+#shelf .bpct{font-size:11px;margin-top:3px}
+#shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:15px}
+#shelf .bfmt{display:none}
+/* 18.10 (Джессика, как в ReadEra): вид полки в меню у «Недавние»: Сетка (по умолчанию), Эскизы (крупно по две, без подписей), Краткий и Полный (списком).
+   #library #shelf перебивает сеточные правила скинов («Небесный», «Карандашный»), надписи на обложке остаются только в сетке */
+#library #shelf.v-covers{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#library #shelf.v-covers .bmeta{display:none}
+#library #shelf:is(.v-short,.v-full){display:flex;flex-direction:column;gap:10px;padding-top:2px}
+#library #shelf:is(.v-short,.v-full) .bookcard{flex-direction:row;align-items:center;gap:14px;padding:10px 6px 10px 12px;margin:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:none}
+html[data-skin] #library #shelf:is(.v-short,.v-full) .bookcard{background:var(--rq-surface);border-color:var(--rq-line);border-radius:var(--rq-radius-sm)}
+#library #shelf:is(.v-short,.v-full) .cover{flex:none;aspect-ratio:auto}
+#library #shelf.v-short .cover{width:40px;height:54px;font-size:20px}
+#library #shelf.v-full .cover{width:68px;height:92px;font-size:28px}
+#library #shelf:is(.v-short,.v-full) .bmeta{flex:1;min-width:0;margin:0}
+#library #shelf.v-short .btitle{font-size:15px;line-height:20px}
+#library #shelf.v-short .bauthor{font-size:12.5px;line-height:17px}
+#library #shelf.v-short .pbar{display:none}
+#library #shelf.v-full .btitle{font-size:16px;line-height:21px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+#library #shelf.v-full .bauthor{font-size:13px;line-height:18px;margin-top:2px}
+#library #shelf.v-full .bfmt{display:block;font-size:12px;line-height:16px;color:var(--muted);margin-top:2px}
+#library #shelf.v-full .pbar{margin-top:8px}
+#library #shelf:is(.v-short,.v-full) .bpct{font-size:12px}
+#library #shelf:is(.v-short,.v-full) .infobtn{position:static;flex:none;width:40px;height:40px;color:var(--rq-text-2,var(--muted));background:none}
+#library #shelf:is(.v-short,.v-full) :is(.cl-t,.cl-a,.pc-t,.pc-a){display:none!important}
+#library #shelf:is(.v-short,.v-full) .cl-cover{justify-content:center;padding:0}
+#library #shelf:is(.v-short,.v-full) .cl-cover svg{display:block;width:22px;height:22px;margin-left:-11px}
+#library #shelf:is(.v-short,.v-full) .cl-cover i{padding-top:5px;font-size:7px}
+#library #shelf:is(.v-short,.v-full) .pc-cover{justify-content:center;padding:0}
+#library #shelf:is(.v-short,.v-full) .pc-cover::before{display:none}
+#library #shelf:is(.v-short,.v-full) .pc-cover .ic{display:inline-block!important}
+#library #shelf:is(.v-short,.v-full) .pc-cover i{margin-top:2px}
+#library #shelf:is(.v-short,.v-full) .addhint{flex-direction:row;align-items:center}
+#library #shelf:is(.v-short,.v-full) .addhint .cover{width:40px;height:54px;aspect-ratio:auto}
+.libshelfbar{align-items:center;gap:8px;margin:-2px 0 10px;padding:8px 10px;border-radius:12px;background:var(--card2);color:var(--txt);font-size:14px}
+.libshelfbar[hidden]{display:none!important}
+.libshelfbar b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.libshelfbar .shbtn{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:none;color:var(--muted)}
+.libshelfbar{padding:4px 4px 4px 12px}
+.fchip .ic,.bk-shelves .fchip .ic{vertical-align:-2px;margin-right:4px}
+.bk-shelves{flex-wrap:wrap;padding:6px 0 0}
+.lsortmenu .lsoh{padding:10px 14px 4px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--rq-text-2,var(--muted))}
+.lsortmenu .lsosep{margin-top:4px;border-top:1px solid var(--rq-line,var(--line));padding-top:12px}
 
 /* ===== Нижняя навигация ===== */
 #bottomNav{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--card2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:40}
@@ -391,7 +486,14 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid var(--card2);margin-bottom:8px}
 .dstat{font-size:12px;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:3px;background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
 .dava{width:48px;height:48px;border-radius:50%;flex:none;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--accent)}.dname{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dgold{color:var(--txt);font-weight:600}
-#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
+#dList{display:flex;flex-direction:column;padding:0 10px}#dList .ditem{height:52px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}/* 18.10 (Джессика: «нет кнопки для перехода в ночной режим»): day/night switch at the bottom of the left menu, every skin */
+#dNight{margin:0 10px 8px;width:auto;height:52px;padding:0 12px;border-radius:12px;font:inherit;font-size:15px;color:var(--txt);background:color-mix(in srgb,var(--txt) 6%,transparent);border:0;cursor:pointer}
+#dNight .dsw{flex:none;position:relative;width:40px;height:24px;border-radius:12px;background:color-mix(in srgb,var(--txt) 22%,transparent);transition:background .2s}
+#dNight .dsw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .2s}
+#dNight[aria-checked="true"] .dsw{background:var(--accent)}
+#dNight[aria-checked="true"] .dsw i{transform:translateX(16px)}
+@media (prefers-reduced-motion:reduce){#dNight .dsw,#dNight .dsw i{transition:none}}
+.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
 #botnav .botnav-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:15px;color:var(--txt);width:100%;text-align:left}
 .ditem.on{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border-right:3px solid var(--accent)}
@@ -436,6 +538,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .searchinp{width:100%;background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 #libChips{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);padding-right:24px}
+#libChips:not(.more){-webkit-mask-image:none;mask-image:none} /* 18.10: no fade once the last chip is in view (libChipsFade) */
 .chips::-webkit-scrollbar{display:none}
 .fchip{flex:none;background:var(--card2);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted)}
 .fchip.on{background:var(--accent);color:#fff}
@@ -1073,7 +1176,7 @@ html[data-skin="pencil"] .pc-week{display:flex;align-items:center;gap:8px;justif
 html[data-skin="pencil"] .confetti{color:var(--rq-accent)}
 html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261018-0611"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261018-1246"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter></svg>
@@ -1166,23 +1269,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div class="scroll"><div class="wrap">
     <div class="row libhead" id="libHead"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">Библиотека</h1><div class="spacer"></div><button class="iconbtn44" id="libSearchBtn" type="button" aria-label="Поиск" aria-controls="libSearchBar" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><span class="libgold" id="goldChip" aria-label="Баланс">0 монет</span></div>
     <div class="row libsearchbar" id="libSearchBar" hidden><input id="libSearch" class="searchinp" type="search" placeholder="Поиск по названию и автору" aria-label="Поиск по названию и автору"><button class="iconbtn44" id="libSearchClose" type="button" aria-label="Закрыть поиск"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
-    <div class="goalcard">
-      <svg class="ring" viewBox="0 0 80 80">
-        <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
-        <circle id="ringFg" cx="40" cy="40" r="33" fill="none" stroke="#2bb3c0" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" transform="rotate(-90 40 40)"/>
-        <text id="ringTxt" x="40" y="45" text-anchor="middle">0%</text>
-      </svg>
-      <div>
-        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
-        <div class="sub" id="goalSub">Сегодня: 0 мин</div><div class="bbhatch" id="bbHatch" aria-hidden="true"></div>
-        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg><span>0 дней</span></span><span id="lvlTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span>Ур. 1</span></span></div>
-      </div>
-    </div>
     <div id="libGoldLine" class="hidden" role="status"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
     <div id="continueCard"></div>
     <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="lsortbtn" id="libSortBtn" type="button" aria-haspopup="menu" aria-controls="libSortMenu" aria-expanded="false"><span class="lsl">Недавние</span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button><div class="lsortmenu" id="libSortMenu" role="menu" hidden></div></div><div class="lsortwrap"><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf" aria-haspopup="menu" aria-controls="addMenu" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button><div class="lsortmenu addmenu" id="addMenu" role="menu" hidden></div></div></div>
+    <div class="row libshelfbar" id="libShelfBar" hidden></div>
     <div class="grid" id="shelf"></div>
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" multiple style="display:none">
     <input type="file" id="dirInp" webkitdirectory multiple style="display:none">
@@ -1219,7 +1311,22 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div id="avaPal" class="emojigrid hidden mvp-full"></div>
       <button class="ghostbtn mvp-hide" id="btnHeroCreate" style="margin-top:12px;width:100%"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Создать героя</button>
     </div>
-    <button type="button" class="pcard achv-card hidden" id="achCard" onclick="openAchPage()"><span class="achv-ic"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg></span><span class="achv-txt"><span class="achv-name">Достижения</span><span class="achv-sub"><span id="achCardNum"></span> · <span id="achCardPts"></span></span></span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+    <div class="goalcard" id="goalCard"> <!-- 17.10: moved from the library (Джессика) -->
+      <svg class="ring" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
+        <circle id="ringFg" cx="40" cy="40" r="33" fill="none" stroke="#2bb3c0" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" transform="rotate(-90 40 40)"/>
+        <text id="ringTxt" x="40" y="45" text-anchor="middle">0%</text>
+      </svg>
+      <div>
+        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
+        <div class="sub" id="goalSub">Сегодня: 0 мин</div><div class="bbhatch" id="bbHatch" aria-hidden="true"></div>
+        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg><span>0 дней</span></span><span id="lvlTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span>Ур. 1</span></span></div>
+      </div>
+    </div>
+    <div class="profrow" id="profRow"> <!-- 18.10 (Джессика): статистика персонажа в «Профиле», рядом с «Достижениями» -->
+      <button type="button" class="pcard achv-card hidden" id="achCard" onclick="openAchPage()"><span class="achv-ic"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg></span><span class="achv-txt"><span class="achv-name">Достижения</span><span class="achv-sub"><span id="achCardNum"></span> · <span id="achCardPts"></span></span></span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="pcard achv-card" id="statCard" onclick="openProgress('stats')"><span class="achv-ic"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg></span><span class="achv-txt"><span class="achv-name">Статистика</span><span class="achv-sub" id="statCardSub">персонажа</span></span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+    </div>
 
     <div id="mvpProfileBlock">
       <div class="kpis" style="margin-top:12px">
@@ -1254,7 +1361,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="quotes" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQuotes" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Инвентарь</h1><div class="spacer"></div><button class="ghostbtn" id="btnCopyAll">Скопировать все</button></div>
-    <div class="ptabs progtabs"><button class="progtab" data-sub="stats" onclick="openProgress('stats')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg> Статистика</button><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
+    <div class="ptabs progtabs"><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
     <div id="quoteBox"></div>
   </div></div>
 </div>
@@ -1380,10 +1487,9 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 
 <div id="stats" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuStats" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Инвентарь</h1><div class="spacer"></div>
+    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuStats" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Статистика</h1><div class="spacer"></div>
       <button class="fchip on" id="stP7">7 дней</button><button class="fchip" id="stP30">30 дней</button></div>
-    <div class="ptabs progtabs"><button class="progtab" data-sub="stats" onclick="openProgress('stats')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg> Статистика</button><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
-    <div id="statCounters"></div>
+        <div id="statCounters"></div>
     <div class="kpis">
       <div class="kpi"><b id="stkMin">0</b><span>минут всего</span></div>
       <div class="kpi"><b id="stkPages">0</b><span>страниц всего</span></div>
@@ -1407,7 +1513,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="calendar" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:6px"><button class="menubtn" id="menuCal" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Прогресс</h1></div>
-    <div class="ptabs progtabs"><button class="progtab" data-sub="stats" onclick="openProgress('stats')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg> Статистика</button><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
+    <div class="ptabs progtabs"><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
     <div id="calTop"></div>
     <div class="calhead"><button class="calnav" id="calPrev">‹</button><b id="calTitle" style="flex:1;text-align:center;font-size:16px"></b><button class="calnav" id="calNext">›</button></div>
     <div class="calgrid" id="calDow"></div>
@@ -1422,7 +1528,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="achievements" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuAch" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Прогресс</h1><div class="spacer"></div><span class="chip">множ. XP <b id="achMult">×1.00</b></span></div>
-    <div class="ptabs progtabs"><button class="progtab" data-sub="stats" onclick="openProgress('stats')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg> Статистика</button><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
+    <div class="ptabs progtabs"><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
     <div class="ptabs"><button id="achTabAll" class="on">Все</button><button id="achTabGot">Полученные</button></div>
     <div id="achBox"></div>
   </div></div>
@@ -1432,7 +1538,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="shelfScreen" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuShelf" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Прогресс</h1></div>
-    <div class="ptabs progtabs"><button class="progtab" data-sub="stats" onclick="openProgress('stats')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg> Статистика</button><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
+    <div class="ptabs progtabs"><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Трофейный зал: каждая дочитанная книга встаёт на полку. Долистайте книгу до конца — трофей прилетит сюда.</div>
     <div id="shelfWrap"><div id="shelfArea"></div></div>
   </div></div>
@@ -1441,8 +1547,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <!-- КВЕСТЫ -->
 <div id="quests" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><svg class="ic" width="24" height="24" aria-hidden="true" focusable="false"><use href="#i-notebook"/></svg> Дневник</h1><div class="spacer"></div><span class="chip" id="qstGold">0 монет</span></div>
-    <div class="ptabs"><button class="jtab" data-sub="quotes" onclick="openJournal('quotes')"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты</button><button class="jtab" data-sub="quests" onclick="openJournal('quests')"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-target"/></svg> Квесты</button><button class="jtab" data-sub="vocab" onclick="openJournal('vocab')"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg> Словарь</button></div>
+    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuQst" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><svg class="ic" width="24" height="24" aria-hidden="true" focusable="false"><use href="#i-target"/></svg> Квесты</h1><div class="spacer"></div><span class="chip" id="qstGold">0 монет</span></div>
     <div id="qstHint" style="font-size:13px;color:var(--muted);margin-bottom:10px">Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.</div>
     <div id="questBox"></div>
   </div></div>
@@ -1452,7 +1557,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="vocab" class="screen hidden">
   <div class="scroll"><div class="wrap">
     <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuVocab" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Инвентарь</h1><div class="spacer"></div><button class="ghostbtn" id="btnVocabCards"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg> Карточки</button></div>
-    <div class="ptabs progtabs"><button class="progtab" data-sub="stats" onclick="openProgress('stats')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chart-column"/></svg> Статистика</button><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
+    <div class="ptabs progtabs"><button class="progtab" data-sub="quotes" onclick="openProgress('quotes')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg> Цитаты и заметки</button><button class="progtab" data-sub="vocab" onclick="openProgress('vocab')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg> Словарь</button><button class="progtab" data-sub="calendar" onclick="openProgress('calendar')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg> Календарь</button><button class="progtab" data-sub="achievements" onclick="openProgress('achievements')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg> Достижения</button><button class="progtab" data-sub="shelf" onclick="openProgress('shelf')"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-library"/></svg> Полка</button></div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Выделяйте незнакомые слова при чтении (кнопка <svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg>) и повторяйте их карточками.</div>
     <div id="vocabBody"></div>
   </div></div>
@@ -1507,6 +1612,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div class="dhead"><div class="dava" id="dAva" aria-hidden="true">Ч</div><div style="flex:1;min-width:0"><b class="dname" id="dName">Читатель</b><div class="dstat"><span id="dLvl">Уровень 1</span> · <span id="dXp">0 / 100 XP</span></div><div class="dbar"><i id="dXpBar"></i></div><div class="dstat dgold" id="dGold">0 монет</div></div></div>
   <div id="dList"></div>
   <div class="spacer"></div>
+  <button class="ditem dnight" id="dNight" type="button" role="switch" aria-checked="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><span class="dlab" id="dNightL">Ночной режим</span><span class="dsw" aria-hidden="true"><i></i></span></button>
   <div class="dcap"><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg>закреплено в нижней панели</div>
 </aside>
 
@@ -1647,28 +1753,28 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261018-0611"></script>
-<script src="js/books-builtin.js?v=20261018-0611"></script>
-<script src="js/core-b.js?v=20261018-0611"></script>
-<script src="js/library.js?v=20261018-0611"></script>
-<script src="js/reader.js?v=20261018-0611"></script>
-<script src="js/pdf.js?v=20261018-0611"></script>
-<script src="js/reader-ui.js?v=20261018-0611"></script>
-<script src="js/rpg.js?v=20261018-0611"></script>
-<script src="js/content.js?v=20261018-0611"></script>
-<script src="js/settings.js?v=20261018-0611"></script>
-<script src="js/v6-extras.js?v=20261018-0611"></script>
-<script src="js/ach-core.js?v=20261018-0611"></script>
-<script src="js/achievements.js?v=20261018-0611"></script>
-<script src="js/path.js?v=20261018-0611"></script>
-<script src="js/start.js?v=20261018-0611"></script>
+<script src="js/core-a.js?v=20261018-1246"></script>
+<script src="js/books-builtin.js?v=20261018-1246"></script>
+<script src="js/core-b.js?v=20261018-1246"></script>
+<script src="js/library.js?v=20261018-1246"></script>
+<script src="js/reader.js?v=20261018-1246"></script>
+<script src="js/pdf.js?v=20261018-1246"></script>
+<script src="js/reader-ui.js?v=20261018-1246"></script>
+<script src="js/rpg.js?v=20261018-1246"></script>
+<script src="js/content.js?v=20261018-1246"></script>
+<script src="js/settings.js?v=20261018-1246"></script>
+<script src="js/v6-extras.js?v=20261018-1246"></script>
+<script src="js/ach-core.js?v=20261018-1246"></script>
+<script src="js/achievements.js?v=20261018-1246"></script>
+<script src="js/path.js?v=20261018-1246"></script>
+<script src="js/start.js?v=20261018-1246"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261018-0611"></script>
+<script src="js/pwa-lock.js?v=20261018-1246"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1676,9 +1782,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261018-0611';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261018-0611';
-import * as game from './game-awards.js?v=20261018-0611';
+} from './storage/index.js?v=20261018-1246';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261018-1246';
+import * as game from './game-awards.js?v=20261018-1246';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

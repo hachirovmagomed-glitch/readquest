@@ -250,7 +250,7 @@ function renderTalents(){
   }).join('')+'</div>';
 }
 function renderProfile(){
-  rollDay();
+  rollDay();renderGoalCard(); /* 17.10: the goal card moved here from the library */
   const lv=level(S.xp);const[lo,hi]=lvlBounds(lv);
   if(S.useChar===false){el('avatar').textContent=S.avatar||(lv>=10?'🧙':lv>=5?'🦸':lv>=3?'🤓':'📖');if(el('gearLayer'))el('gearLayer').innerHTML=gearLayerHtml();}
   else{el('avatar').innerHTML=avatarSvg();if(el('gearLayer'))el('gearLayer').innerHTML='';}

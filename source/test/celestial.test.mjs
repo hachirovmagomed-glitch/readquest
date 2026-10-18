@@ -93,6 +93,14 @@ const fr = await p.evaluate(() => { __navAllow = true; show('summary'); __navAll
   __navAllow = true; show('library'); __navAllow = false; return r; });
 ok('5g gold corner brackets (4) on the goal card, summary and bottom nav; the nav floats inside the screen; summary title 30px', fr.goal === 4 && fr.sum === 4 && fr.nav === 4 && fr.float && fr.head === '30px', fr);
 
+// 5h. «скин небесный едет в разные стороны» (Джессика 17.10, видео с телефона 411px): the library header overflowed («230 монет» + Cormorant title),
+// the screen scroller became sideways-scrollable and slid under a diagonal swipe. Now the title gives way and screens never scroll sideways.
+const sd = await p.evaluate(async () => { const t = document.getElementById('libTitle'), g0 = S.gold; S.gold = 230; save(); renderLibrary(); t.style.fontSize = '44px'; /* ≈ Android text scaling 130 % */
+  await new Promise(q => setTimeout(q, 150)); const s = document.querySelector('#library > .scroll'), chip = document.getElementById('goldChip').getBoundingClientRect();
+  s.scrollLeft = 40; const r = { chipIn: chip.right <= innerWidth + 0.5, ox: getComputedStyle(s).overflowX, left: s.scrollLeft, sw: document.documentElement.scrollWidth <= innerWidth };
+  t.style.fontSize = ''; S.gold = g0; save(); renderLibrary(); return r; });
+ok('5h wide header (230 монет, big title): coin chip stays on screen, the library never scrolls sideways', sd.chipIn && sd.ox === 'hidden' && sd.sw, sd);
+
 // 6. reader: the page is flat paper over the sky, book font Lora, own icons, chrome title in Cormorant
 await p.evaluate(() => { __navAllow = true; openBook(allBooks()[0].id); __navAllow = false; }); await sleep(2500);
 await p.evaluate(() => showChrome()); await sleep(500);

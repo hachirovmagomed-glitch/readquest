@@ -34,10 +34,12 @@ const m = await p.evaluate(async () => { navGo('path'); await new Promise(r => s
   pathOpen('odyssey'); const sheet = !el('bookSheet').classList.contains('hidden'); const cta = el('bookSheetBody').querySelector('.cta').textContent; el('bookSheet').classList.add('hidden');
   pathOpen('crime'); el('bookSheet').classList.add('hidden');
   const roads = document.querySelectorAll('#pathBox .pathline path').length;
+  const card = {}; [['pr', 'prometheus'], ['ae', 'aesop'], ['an', 'antigone'], ['oe', 'oedipus'], ['me', 'medea'], ['il', 'iliad']].forEach(function (x) { pathOpen(x[1]); card[x[0]] = el('bookSheetBody').textContent; el('bookSheet').classList.add('hidden'); });
   const ch1 = Array.from(document.querySelectorAll('#pathBox .pathch[data-ch="ch1"] .pathnode')).map(n => n.dataset.pid).join(' ');
   return { nodes, ch, sheet, roads, cta, ch1, vis: !el('path').classList.contains('hidden') }; });
-ok('1b «Истоки» (Джессика 17.10): Басни, Прометей, Антигона, Царь Эдип, Медея, Илиада, Одиссея', m.ch1 === 'aesop prometheus antigone oedipus medea iliad odyssey', m.ch1);
-ok('1a карта: 4 главы, 18 книг, дорога между книгами (14 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 18 && m.roads === 14 && m.sheet, m);
+ok('1b глава I «Древняя Греция» по хронологии (Джессика 18.10): эпос, лирика, басня, трагедия, философия, роман', m.ch1 === 'iliad odyssey hesiod lyrics aesop prometheus antigone medea oedipus apology poetics daphnis', m.ch1);
+ok('1d карточка книги: эпоха и время; спорное авторство и примерные даты помечены (Джессика 18.10)', /Эпоха\s*Трагедия/.test(m.card.pr) && /ок\. 460 до н\. э\./.test(m.card.pr) && /авторство спорное/i.test(m.card.pr) && /дата примерная/i.test(m.card.pr) && /Эпоха\s*Басня/.test(m.card.ae) && /дата примерная/i.test(m.card.an) && /дата примерная/i.test(m.card.oe) && !/дата примерная/i.test(m.card.me) && /Эпоха\s*Эпос/.test(m.card.il), m.card);
+ok('1a карта: 4 главы, 23 книги, дорога между книгами (19 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 23 && m.roads === 19 && m.sheet, m);
 const b = await snap(); const w = await p.evaluate(() => window.__lsW.filter(k => k === RQ_K.v1 || k === RQ_K.set));
 ok('1c до кнопки ничего не скачано: кнопка «Скачать на телефон и читать · 1,1 МБ», запросов к books/ нет', /^Скачать на телефон и читать · 1,1 МБ$/.test(m.cta) && fetched === 0, { cta: m.cta, fetched });
 ok('1b карта и карточка ничего не пишут (NS и NS_set равны, setItem 0)', a.ns === b.ns && a.set === b.set && w.length === 0, { writes: w });
@@ -96,21 +98,21 @@ const roundTrip = async (j) => {
     return { done: n && n.classList.contains('done'), sum: el('pathBox').querySelector('.pathsum-t').textContent, err: 0 }; });
 };
 let r = await roundTrip(ej);
-ok('3b импорт: «Одиссея» отмечена прочитанной, «1 из 18»', r.done && /^1 из 18/.test(r.sum), r);
+ok('3b импорт: «Одиссея» отмечена прочитанной, «1 из 23»', r.done && /^1 из 23/.test(r.sum), r);
 const old = JSON.parse(exp); old.library.userBooks.forEach(x => { delete x.pathId; });
 r = await roundTrip(old);
-ok('3c старый бэкап без pathId: импорт проходит, книга обычная, «0 из 18»', !r.done && /^0 из 18/.test(r.sum), r);
+ok('3c старый бэкап без pathId: импорт проходит, книга обычная, «0 из 23»', !r.done && /^0 из 23/.test(r.sum), r);
 for (const bad of [42, 'atlantis', null, { x: 1 }]) {
   const j = JSON.parse(exp); j.library.userBooks.forEach(x => { if (x.id === t.id) x.pathId = bad; });
   r = await roundTrip(j);
-  ok('3d битый pathId ' + JSON.stringify(bad) + ' → обычная книга, карта без ошибок', !r.done && /^0 из 18/.test(r.sum), r);
+  ok('3d битый pathId ' + JSON.stringify(bad) + ' → обычная книга, карта без ошибок', !r.done && /^0 из 23/.test(r.sum), r);
 }
 r = await roundTrip(ej);
 
 // 4. rank + economy
 const k = await p.evaluate(async () => {
   const before = { gold: S.gold, xp: S.xp };
-  ['aesop', 'oedipus', 'prometheus', 'antigone', 'medea', 'iliad'].forEach(function (pid, i) { const id = 'ptest' + i; S.userBooks.push({ id, title: pid, author: '', pathId: pid, genre: 'Путь читателя' }); S.finished.push(id); S.bookStats[id] = { min: 300, pages: 100 }; });
+  ['aesop', 'oedipus', 'prometheus', 'antigone', 'medea', 'iliad', 'hesiod', 'lyrics', 'apology', 'poetics', 'daphnis'].forEach(function (pid, i) { const id = 'ptest' + i; S.userBooks.push({ id, title: pid, author: '', pathId: pid, genre: 'Путь читателя' }); S.finished.push(id); S.bookStats[id] = { min: 300, pages: 100 }; });
   navGo('path'); await new Promise(r => setTimeout(r, 300));
   const rank = el('pathBox').querySelector('.pathsum-s').textContent, full = !!document.querySelector('#pathBox .pathch.full[data-ch="ch1"]');
   return { rank, full, before, after: { gold: S.gold, xp: S.xp } };

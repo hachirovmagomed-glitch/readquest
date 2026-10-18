@@ -186,9 +186,9 @@ const stk = await p.evaluate(async () => {
   const deco = Array.from(document.querySelectorAll('#path .pathch:not(:last-child)')).map(c => (getComputedStyle(c, '::after').backgroundImage.match(/img\/ellada\/([\w-]+)\.webp/) || [])[1] || null);
   const all = [...new Set([...urls, ...deco, 'laurel'].filter(Boolean))];
   const st = await Promise.all(all.map(u => fetch('img/ellada/' + u + '.webp').then(r => r.ok && r.headers.get('content-type') === 'image/webp' ? 1 : 0).catch(() => 0)));
-  return { urls, distinct: new Set(urls).size, boss, deco, loaded: st.reduce((a, b) => a + b, 0), files: all.length };
+  return { urls, distinct: new Set(urls.filter(Boolean)).size, boss, deco, loaded: st.reduce((a, b) => a + b, 0), files: all.length };
 });
-ok('16d стикеры: у каждой из 18 книг свой стикер, у главных книг лавровый венок, между главами украшения, все картинки грузятся', stk.urls.every(Boolean) && stk.distinct === stk.urls.length && stk.urls.length === 18 && stk.boss && stk.deco.length === 3 && stk.deco.every(Boolean) && stk.loaded === stk.files, stk);
+ok('16d стикеры: у 18 книг из пакета свой стикер, новые книги главы I пока на острове с храмом, у главных книг лавровый венок, между главами украшения, все картинки грузятся', stk.urls.filter(Boolean).length === 18 && stk.distinct === 18 && stk.urls.length === 23 && stk.boss && stk.deco.length === 3 && stk.deco.every(Boolean) && stk.loaded === stk.files, stk);
 await p.evaluate(() => navGo('library'));
 
 ok('no page errors', !errs.length, errs);

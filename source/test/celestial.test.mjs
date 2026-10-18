@@ -65,6 +65,8 @@ const hov = await p.evaluate(() => { const bad = []; for (const id of ['stats', 
     const row = document.querySelector('#' + id + ' .wrap > .row:first-child'), h = row && row.querySelector('h1'); if (!h) continue;
     if (row.scrollWidth > row.clientWidth + 1 || h.getBoundingClientRect().height > 44) bad.push(id + ':' + (row.scrollWidth - row.clientWidth) + '/' + Math.round(h.getBoundingClientRect().height)); }
   __navAllow = true; show('library'); __navAllow = false; return { bad, sx: document.documentElement.scrollWidth <= innerWidth }; });
+const tt = await p.evaluate(() => { libGoldRender(); const t = document.getElementById('libTitle'); return { full: t.scrollWidth <= t.clientWidth + 1, chip: document.getElementById('goldChip').textContent }; });
+ok('5c2 360: the title «Библиотека» stays whole (the coins shorten to the number instead)', tt.full, tt);
 ok('5c 360: library header inside, every screen title on one line, no horizontal scroll', l360.inside && l360.sx && !hov.bad.length && hov.sx, { l360, hov });
 await p.screenshot({ path: SHOTS + 'celestial-library-360.png' });
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }); await sleep(200);

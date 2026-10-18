@@ -1178,22 +1178,23 @@ html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 
 /* герой-стикмен (js/hero.js): рамка = цвет щелей силуэта */
 #avatarFrame,.heroframe,.tinyava{--hero-bg:var(--rq-surface)} /* js/hero.js ставит точный цвет плашки под героем */
-html #avatarFrame.avatarframe{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:112px;height:131px}
+html #avatarFrame.avatarframe{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:106px;height:136px}
+#profile .herocard{height:168px} /* герой на постаменте: плашка выше во всех скинах */
 #avatarFrame .avatar{filter:none}
 #avatarFrame .gearlayer,#avatarFrame .pc-ava,#avatarFrame.weak::after{display:none!important}
 html[data-skin="pencil"] #avatarFrame>.avatar{display:flex!important}
 .tinyava{background:var(--hero-bg)}
-.heroframe{display:block;width:100%;aspect-ratio:72/84;background:transparent}
+.heroframe{display:block;width:100%;aspect-ratio:72/92;background:transparent}
 .heroframe svg{display:block;width:100%;height:100%}
 .heroprev{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;background:var(--card);margin-bottom:10px}
 .heroprev .heroframe.big{width:112px;flex:none}
 .heroprevtx{display:flex;flex-direction:column;gap:4px;min-width:0}.heroprevtx span{font-size:13px;color:var(--muted)}
 .herogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.herocard{padding:8px}.herocard .shopname{font-size:14px;line-height:1.2}.herocard .shopprice{font-size:12px}.herocard .shopcta{width:100%;padding-left:4px;padding-right:4px}
+.heroitem{padding:8px}.heroitem .shopname{font-size:14px;line-height:1.2}.heroitem .shopprice{font-size:12px}.heroitem .shopcta{width:100%;padding-left:4px;padding-right:4px}
 .herocolrow{display:flex;align-items:center;gap:6px;margin:2px 0 4px;font-size:13px;color:var(--muted);cursor:pointer}
 .herocolpick{position:relative;width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 0 0 2px var(--card),0 0 0 3px var(--muted);overflow:hidden}
 .herocolpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
-.herocard.trying{box-shadow:inset 0 0 0 2px var(--rq-accent)}
+.heroitem.trying{box-shadow:inset 0 0 0 2px var(--rq-accent)}
 #heroShop[hidden],#shopList[hidden]{display:none}
 .shopkinds .fchip{margin:0}
 </style>

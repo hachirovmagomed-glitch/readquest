@@ -23,7 +23,7 @@ const HERO_BRONZE='#c8952f';
 let heroTryCol={}; /* примерка цвета — только в памяти */
 function heroHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v.toLowerCase():null;}
 function heroCol(id){return heroHex(heroTryCol[id])||heroHex(S.char&&S.char.gearColor&&S.char.gearColor[id])||HERO_BRONZE;}
-/** heroSvg(on): on = {slot:id}; без аргумента — то, что надето. viewBox 0 -6 72 84: сверху место под гребень шлема */
+/** heroSvg(on): on = {slot:id}; без аргумента — то, что надето. viewBox 0 -6 72 92: сверху место под гребень шлема */
 function heroSvg(on){
   on=on||heroOn();const has=function(id){return Object.keys(on).some(function(k){return on[k]===id;});};
   const gap=function(w){return ' stroke="'+HB+'" stroke-width="'+(w||1.2)+'" stroke-linejoin="round"';};
@@ -34,8 +34,12 @@ function heroSvg(on){
       [9.5,19.5,29.5,38.5,48.5,58.5].map(function(x){return '<rect x="'+(x-0.6)+'" y="33.6" width="5.2" height="1.6"/><rect x="'+x+'" y="35.2" width="4" height="25.6"/><rect x="'+(x-0.6)+'" y="60.6" width="5.2" height="1.4"/>';}).join('')+
       '<rect x="5" y="62.4" width="62" height="2.6"/><rect x="3" y="65.4" width="66" height="2.6"/><rect x="1" y="68.4" width="70" height="2.6"/></g>'+
       '<path d="M14 24.4 L36 15 L58 24.4 Z" fill="'+T2+'"/>';}
-  s+='<ellipse cx="36" cy="74.5" rx="17" ry="2.2" fill="'+HI+'" opacity=".12"/>';
-  if(has('gr-dory')){const c=A('gr-dory');s+='<rect x="19.65" y="8" width="1.9" height="66" rx=".9" fill="'+HI+'"/><path d="M20.6 -5 Q23.95 2 20.6 9 Q17.25 2 20.6 -5 Z" fill="'+c+'"'+gap(0.7)+'/><path d="M20.6 -2.5 V7" stroke="'+D('gr-dory')+'" stroke-width=".6"/><rect x="19.15" y="8.6" width="2.9" height="1.8" rx=".5" fill="'+c+'"/><path d="M19.45 72 H21.75 L20.6 77 Z" fill="'+c+'"/>';}
+  /* постамент, как у статуи (Джессика 18.10: «чего-то не хватает») */
+  const P='color-mix(in srgb,'+HI+' 16%,'+HB+')',P2='color-mix(in srgb,'+HI+' 30%,'+HB+')';
+  s+='<rect x="14" y="73.4" width="44" height="2.4" rx=".6" fill="'+P2+'"/><rect x="16.5" y="76.2" width="39" height="6.2" fill="'+P+'"/>'+
+    '<path d="M19 80.6 V78 H22 V80.6 H25 V78 H28 V80.6 H31 V78 H34 V80.6 H37 V78 H40 V80.6 H43 V78 H46 V80.6 H49 V78 H52 V80.6" fill="none" stroke="'+P2+'" stroke-width=".8"/>'+
+    '<rect x="14" y="82.8" width="44" height="2.2" rx=".6" fill="'+P2+'"/>';
+  if(has('gr-dory')){const c=A('gr-dory');s+='<rect x="19.65" y="8" width="1.9" height="65.4" rx=".9" fill="'+HI+'"/><path d="M20.6 -5 Q23.95 2 20.6 9 Q17.25 2 20.6 -5 Z" fill="'+c+'"'+gap(0.7)+'/><path d="M20.6 -2.5 V7" stroke="'+D('gr-dory')+'" stroke-width=".6"/><rect x="19.15" y="8.6" width="2.9" height="1.8" rx=".5" fill="'+c+'"/>';}
   /* поза зависит от того, что в руке (Джессика 18.10): копьё — рука отведена к древку, свиток — рука у груди, читает */
   const pose=has('gr-dory')?'spear':has('gr-scroll')?'scroll':'down';
   const limb=function(d){return '<path d="'+d+'" fill="none" stroke="'+HB+'" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round"/><path d="'+d+'" fill="none" stroke="'+HI+'" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>';};
@@ -75,10 +79,10 @@ function heroSvg(on){
     s+='<circle cx="50.5" cy="42" r="12.6" fill="'+c+'"'+gap(0.9)+'/><circle cx="50.5" cy="42" r="10.2" fill="'+HI+'"/>'+
       '<circle cx="50.5" cy="42" r="8.3" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-dasharray="1.6 1"/><circle cx="50.5" cy="42" r="2.8" fill="'+c+'"/><circle cx="50.5" cy="42" r="1.1" fill="'+d+'"/>';}
   if(has('gr-owl')){const c=A('gr-owl');
-    s+='<path d="M53 75.4 Q51 67 54.5 62 L53.8 57.4 L56.6 59.9 Q58.2 59.3 59.8 59.9 L62.6 57.4 L61.9 62 Q65.4 67 63.4 75.4 Z" fill="'+HI+'"'+gap(0.9)+'/>'+
+    s+='<g transform="translate(0 -2)"><path d="M53 75.4 Q51 67 54.5 62 L53.8 57.4 L56.6 59.9 Q58.2 59.3 59.8 59.9 L62.6 57.4 L61.9 62 Q65.4 67 63.4 75.4 Z" fill="'+HI+'"'+gap(0.9)+'/>'+
       '<circle cx="56.4" cy="62.6" r="1.5" fill="none" stroke="'+c+'" stroke-width=".9"/><circle cx="60" cy="62.6" r="1.5" fill="none" stroke="'+c+'" stroke-width=".9"/><path d="M57.6 64.4 L58.2 65.8 L58.8 64.4 Z" fill="'+c+'"/>'+
-      '<path d="M54.6 66.6 Q55.6 71 58.2 73.4 M61.8 66.6 Q62 70 61 73" stroke="'+c+'" stroke-width=".8" fill="none" stroke-linecap="round"/><path d="M55.4 75.4 V77 M57 75.4 V77 M59.6 75.4 V77 M61.2 75.4 V77" stroke="'+c+'" stroke-width=".8" stroke-linecap="round"/>';}
-  return '<svg class="herosvg" viewBox="0 -6 72 84" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
+      '<path d="M54.6 66.6 Q55.6 71 58.2 73.4 M61.8 66.6 Q62 70 61 73" stroke="'+c+'" stroke-width=".8" fill="none" stroke-linecap="round"/><path d="M55.4 75.4 V77 M57 75.4 V77 M59.6 75.4 V77 M61.2 75.4 V77" stroke="'+c+'" stroke-width=".8" stroke-linecap="round"/>'+'</g>';}
+  return '<svg class="herosvg" viewBox="0 -6 72 92" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
 /* герой стоит прямо на плашке: щели силуэта = цвет плашки под ним (первый непрозрачный фон вверх по дереву) */
 function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){f.style.removeProperty('--hero-bg');});return;} /* у карандаша бумага плашки в ::before */
@@ -98,7 +102,7 @@ function heroTryOn(id){heroTry=heroTry===id?null:id;renderHeroShop();}
 function heroColLive(id,v){v=heroHex(v);if(!v)return;heroTryCol[id]=v;heroTry=heroOwns(id)?heroTry:id;
   const box=el('heroShop');if(!box)return;const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
   const big=box.querySelector('.heroprev .heroframe');if(big)big.innerHTML=heroSvg(on);
-  const card=box.querySelector('.herocard[data-id="'+id+'"]');if(card){const one={};one[heroItem(id).slot]=id;card.querySelector('.heroframe').innerHTML=heroSvg(one);card.querySelector('.herocolpick').style.background=v;}}
+  const card=box.querySelector('.heroitem[data-id="'+id+'"]');if(card){const one={};one[heroItem(id).slot]=id;card.querySelector('.heroframe').innerHTML=heroSvg(one);card.querySelector('.herocolpick').style.background=v;}}
 function heroSetCol(id,v){v=heroHex(v);if(!v||!heroItem(id))return;
   if(!heroOwns(id)){heroTryCol[id]=v;heroTry=id;renderHeroShop();return;}
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
@@ -140,7 +144,7 @@ function renderHeroShop(){
       const cta=worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
         :own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Надеть</button>'
         :'<button type="button" class="buy shopcta"'+(S.gold>=g.price?'':' disabled')+' onclick="event.stopPropagation();heroBuyAsk(\''+g.id+'\')">'+(S.gold>=g.price?'Купить':'Не хватает '+(g.price-S.gold))+'</button>';
-      return '<div role="button" tabindex="0" class="shopcard herocard'+(heroTry===g.id?' trying':'')+'" data-id="'+g.id+'" onclick="heroTryOn(\''+g.id+'\')">'+
+      return '<div role="button" tabindex="0" class="shopcard heroitem'+(heroTry===g.id?' trying':'')+'" data-id="'+g.id+'" onclick="heroTryOn(\''+g.id+'\')">'+
         '<span class="heroframe">'+heroSvg(one)+'</span><span class="shopname">'+esc(g.name)+'</span>'+
         '<span class="shopprice">'+(own?(worn?'Надето':'Куплено'):coinsP(g.price))+' · '+HERO_SLOTS[g.slot].toLowerCase()+'</span>'+
         '<label class="herocolrow" onclick="event.stopPropagation()"><span class="herocolpick" style="background:'+heroCol(g.id)+'"><input type="color" value="'+heroCol(g.id)+'" aria-label="Цвет: '+esc(g.name)+'" oninput="heroColLive(\''+g.id+'\',this.value)" onchange="heroSetCol(\''+g.id+'\',this.value)"></span>Цвет</label>'+cta+'</div>';

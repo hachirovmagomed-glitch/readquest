@@ -91,6 +91,43 @@ function heroSvg(on){
       '<path d="M54.6 66.6 Q55.6 71 58.2 73.4 M61.8 66.6 Q62 70 61 73" stroke="'+c+'" stroke-width=".8" fill="none" stroke-linecap="round"/><path d="M55.4 75.4 V77 M57 75.4 V77 M59.6 75.4 V77 M61.2 75.4 V77" stroke="'+c+'" stroke-width=".8" stroke-linecap="round"/>'+'</g>';}
   return '<svg class="herosvg" viewBox="0 -6 72 92" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
+/* ===== Карандашный: свой герой — манекен, нарисованный карандашом (Джессика 18.10, набросок Грока).
+   Линии в 2–3 прохода с дрожью (детерминированно), штриховка тени справа, зерно графита фильтром. Заливка = бумага плашки. */
+function heroPencilSvg(){
+  let seed=7;const rnd=function(){seed=(seed*16807)%2147483647;return seed/2147483647;};
+  const J=function(d,a){return d.replace(/-?\d+(\.\d+)?/g,function(n){return (parseFloat(n)+(rnd()-.5)*2*a).toFixed(2);});};
+  const line=function(d,w,n){let o='';for(let i=0;i<(n||2);i++)o+='<path d="'+(i?J(d,.32):d)+'" stroke-width="'+((w||1)*(i?.7:1)).toFixed(2)+'" opacity="'+(i?.55:.95)+'"/>';return o;};
+  const part=function(d){return '<path d="'+d+'" fill="'+HB+'" stroke="none"/>'+line(d+' Z');};
+  const hatch=function(x0,y0,x1,y1){let o='';for(let y=y0;y<y1;y+=1.5)o+='M'+x0+' '+y.toFixed(1)+' L'+x1+' '+(y-1.4).toFixed(1)+' ';return '<path d="'+o+'" stroke-width=".4" opacity=".45"/>';};
+  let s='';
+  /* ступни */
+  s+=part('M30.6 77.4 L33.8 77.4 L34.4 82.8 Q29.8 83.6 25.8 82.8 Q27.6 80.6 30.6 77.4')+part('M38.2 77.4 L41.4 77.4 Q44.4 80.6 46.2 82.8 Q42.2 83.6 37.6 82.8 L38.2 77.4');
+  /* голени, колени, бёдра */
+  s+=part('M30.2 60 L34.4 60 L34.1 77.6 L30.8 77.6 Q29.8 68 30.2 60')+part('M37.6 60 L41.8 60 Q42.2 68 41.2 77.6 L37.9 77.6 L37.6 60');
+  s+=part('M29.9 56.6 Q32.3 55.6 34.7 56.6 L34.5 60.6 Q32.3 61.6 30.1 60.6 Z')+part('M37.3 56.6 Q39.7 55.6 42.1 56.6 L41.9 60.6 Q39.7 61.6 37.5 60.6 Z');
+  s+=part('M27.8 39.4 L35.4 40.6 L34.8 56.8 L29.8 56.8 Q28 48 27.8 39.4')+part('M36.6 40.6 L44.2 39.4 Q44 48 42.2 56.8 L37.2 56.8 L36.6 40.6');
+  /* руки: плечо, локоть, предплечье, кулак */
+  s+=part('M23.4 15.4 Q25 13.6 27.4 14.4 L27.6 29 L23.4 29 Q22.8 22 23.4 15.4')+part('M44.6 14.4 Q47 13.6 48.6 15.4 Q49.2 22 48.6 29 L44.4 29 L44.6 14.4');
+  s+=part('M23.2 29 L27.6 29 L27.6 30.6 L23.2 30.6 Z')+part('M44.4 29 L48.8 29 L48.8 30.6 L44.4 30.6 Z');
+  s+=part('M23.2 30.6 L27.6 30.6 Q27.8 36 27.2 41.4 L23.8 41.4 Q23 36 23.2 30.6')+part('M44.4 30.6 L48.8 30.6 Q49 36 48.2 41.4 L44.8 41.4 Q44.2 36 44.4 30.6');
+  s+=part('M23.6 41.4 L27.4 41.4 Q28.4 43.6 27.4 45.4 Q25.4 46.4 23.6 45.4 Q22.6 43.4 23.6 41.4')+part('M44.6 41.4 L48.4 41.4 Q49.4 43.4 48.4 45.4 Q46.6 46.4 44.6 45.4 Q43.6 43.6 44.6 41.4');
+  /* корпус и таз */
+  s+=part('M27.4 14.6 Q31 12.4 33.8 12.6 L38.2 12.6 Q41 12.4 44.6 14.6 Q45.2 22 43.6 31 Q36 32.6 28.4 31 Q26.8 22 27.4 14.6');
+  s+=part('M28.4 31 Q36 32.6 43.6 31 L44.2 39.4 Q40 39.8 37.4 42.4 L34.6 42.4 Q32 39.8 27.8 39.4 Z');
+  /* шея, голова, уши */
+  s+=part('M34 8.6 L38 8.6 L38.2 12.8 L33.8 12.8 Z');
+  s+=part('M30.2 6.4 Q29.6 6 29.4 4.6 Q29.6 3.4 30.6 3.8 Z')+part('M41.8 6.4 Q42.4 6 42.6 4.6 Q42.4 3.4 41.4 3.8 Z');
+  s+=part('M36 -3.4 Q41.6 -3.4 41.6 3 Q41.4 7.6 38.8 9.2 Q36 10.4 33.2 9.2 Q30.6 7.6 30.4 3 Q30.4 -3.4 36 -3.4');
+  /* контуры груди и пояса, тень штрихом */
+  s+=line('M29.6 22.2 Q36 20.6 42.4 22.2',.6,1)+line('M36 15 V30.4',.4,1)+line('M30.2 34 Q32.6 37.8 35.2 41.6 M41.8 34 Q39.4 37.8 36.8 41.6',.5,1);
+  s+=hatch(41.6,16,44.4,30)+hatch(46.4,17,48.4,28)+hatch(46.4,32,48.4,40)+hatch(40.4,44,42.6,55)+hatch(39.8,62,41.4,76)+hatch(39.4,0,41.2,8);
+  return '<svg class="herosvg heropencil" viewBox="0 -6 72 92" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<defs><filter id="rqHeroGraphite" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="5" result="n"/>'+
+    '<feDisplacementMap in="SourceGraphic" in2="n" scale="0.35" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.8 1.15" result="m"/><feComposite in="d" in2="m" operator="in"/></filter></defs>'+
+    '<g filter="url(#rqHeroGraphite)" stroke="'+HI+'" fill="none" stroke-linecap="round" stroke-linejoin="round">'+s+'</g></svg>';
+}
+const HERO_FIGURES={pencil:heroPencilSvg}; /* свой герой скина; без записи — стикмен */
+function heroFigure(){const f=HERO_FIGURES[heroSkin()];return f?f():heroSvg();}
 /* герой стоит прямо на плашке: щели силуэта = цвет плашки под ним (первый непрозрачный фон вверх по дереву) */
 function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){f.style.removeProperty('--hero-bg');});return;} /* у карандаша бумага плашки в ::before */
   (root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){
@@ -98,7 +135,7 @@ function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(r
   if(c)f.style.setProperty('--hero-bg',c);});}
 const _renderProfile=renderProfile;renderProfile=function(){_renderProfile.apply(this,arguments);try{heroBgFix(el('profile'));}catch(e){}};
 /* профиль и мини-аватар в библиотеке рисуют героя через avatarSvg() — подменяем на стикмена */
-avatarSvg=function(){return heroSvg();};
+avatarSvg=function(){return heroFigure();};
 if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}heroShopTab(heroGearHere().length?'wear':'skins');};
 
 /* ===== Магазин: «Внешний вид» → Скины / Одежда / Снаряжение ===== */

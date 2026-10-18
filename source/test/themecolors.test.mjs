@@ -27,8 +27,8 @@ for (const k of [...keys, 'auto']) {
   await p.evaluate((k) => { S.appTheme = k; save(); applyAppTheme(); renderLibrary(); }, k); await sleep(60);
   const r = await probe();
   const leak = HARD.filter(h => k !== 'teal' && (r.gcBg.includes(h) || r.track === h || r.navLine === h || r.onBg === h));
-  ok(`${k}: goal card from --card2/--card, ring track and tab line from the theme, active tab on --card2`,
-    r.gcBg.includes(r.card2) && r.gcBg.includes(r.card) && r.navLine === r.card2 && r.onBg === r.card2 && r.fg === r.accent && r.track !== r.card2 && leak.length === 0, { r, leak });
+  ok(`${k}: goal card flat on --card (18.10 Джессика: «Цель 10 мин» уже и в цветах скина), ring track and tab line from the theme, active tab on --card2`,
+    /^none /.test(r.gcBg) && r.gcBg.includes(r.card) && r.navLine === r.card2 && r.onBg === r.card2 && r.fg === r.accent && r.track !== r.card2 && leak.length === 0, { r, leak });
 }
 // full goal → ring turns --good (was a hard-coded #4cd97b inline)
 await p.evaluate(() => { S.appTheme = 'crimson'; save(); applyAppTheme(); });

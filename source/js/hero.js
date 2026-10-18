@@ -21,6 +21,8 @@ const HERO_SKIN_NAME={ellada:'Эллада'};
 function heroSkin(){try{return activeTheme().skin||'';}catch(e){return document.documentElement.dataset.skin||'';}}
 function heroFits(g){return !!g&&(!g.skin||g.skin===heroSkin());}
 function heroSkinOwned(g){return !g.skin||shopOwns('skin-'+g.skin);}
+/* вещи текущего скина; в чужом скине чужих вещей не видно нигде (Джессика 18.10: «вообще нельзя было там увидеть») */
+function heroGearHere(){return HERO_GEAR.filter(heroFits);}
 function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){const g=heroItem(eq[k]);if(g&&heroFits(g))on[k]=eq[k];});return on;}
 const HI='var(--txt)',HB='var(--hero-bg)'; /* --txt: и скины, и тема по умолчанию */
 /* цвет вещи игрок выбирает сам, любой (Джессика 18.10: «дать человеку выбрать и настроить цвет самому»); по умолчанию бронза */
@@ -97,32 +99,29 @@ function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(r
 const _renderProfile=renderProfile;renderProfile=function(){_renderProfile.apply(this,arguments);try{heroBgFix(el('profile'));}catch(e){}};
 /* профиль и мини-аватар в библиотеке рисуют героя через avatarSvg() — подменяем на стикмена */
 avatarSvg=function(){return heroSvg();};
-if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}heroShopTab('wear');};
+if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}heroShopTab(heroGearHere().length?'wear':'skins');};
 
 /* ===== Магазин: «Внешний вид» → Скины / Одежда / Снаряжение ===== */
 let heroTab='skins',heroTry=null; /* примерка — только в памяти */
 function heroShopTab(t){heroTab=t;heroTry=null;heroTryCol={};renderHeroShop();}
-function heroTryOn(id){heroTry=heroTry===id?null:id;renderHeroShop();}
+function heroTryOn(id){if(!heroFits(heroItem(id)))return;heroTry=heroTry===id?null:id;renderHeroShop();}
 /* палитра: пока крутят — только примерка (перерисовываются картинки, не магазин); отпустили — купленной вещи цвет сохраняется */
-function heroColLive(id,v){v=heroHex(v);if(!v)return;heroTryCol[id]=v;heroTry=heroOwns(id)?heroTry:id;
+function heroColLive(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;heroTryCol[id]=v;heroTry=heroOwns(id)?heroTry:id;
   const box=el('heroShop');if(!box)return;const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
   const big=box.querySelector('.heroprev .heroframe');if(big)big.innerHTML=heroSvg(on);
   const card=box.querySelector('.heroitem[data-id="'+id+'"]');if(card){const one={};one[heroItem(id).slot]=id;card.querySelector('.heroframe').innerHTML=heroSvg(one);card.querySelector('.herocolpick').style.background=v;}}
-function heroSetCol(id,v){v=heroHex(v);if(!v||!heroItem(id))return;
+function heroSetCol(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;
   if(!heroOwns(id)){heroTryCol[id]=v;heroTry=id;renderHeroShop();return;}
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[id]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){return (S.ownedGear||[]).indexOf(id)>=0;}
 function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id)||!heroFits(g))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.equipped=S.equipped||{};S.equipped[g.slot]=S.equipped[g.slot]===id?null:id;heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
-/* в чужом скине кнопка вещи надевает её скин */
-function heroWearSkin(id){const g=heroItem(id);if(!g||!g.skin)return;wear('skin-'+g.skin);try{renderShopPane();}catch(e){}try{renderProfile();}catch(e){}}
 let heroPending=null;
-function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id))return;
-  if(!heroSkinOwned(g)){flashMsg('Сначала купите скин «'+HERO_SKIN_NAME[g.skin]+'»');return;}
+function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g))return;
   if(S.gold<g.price){flashMsg('Не хватает '+coinsP(g.price-S.gold));return;}
   heroPending=id;el('scTitle').textContent='Купить «'+g.name+'» за '+coinsP(g.price)+'?';
-  el('scText').textContent='Останется '+coinsP(S.gold-g.price)+'. '+(heroFits(g)?'Вещь сразу наденется на героя.':'Вещь видна на герое только в скине «'+HERO_SKIN_NAME[g.skin]+'».');
+  el('scText').textContent='Останется '+coinsP(S.gold-g.price)+'. '+'Вещь сразу наденется на героя.';
   el('shopConfirmScrim').hidden=false;el('shopConfirm').hidden=false;}
 const _shopConfirmOk=shopConfirmOk,_shopConfirmClose=shopConfirmClose;
 shopConfirmClose=function(){heroPending=null;_shopConfirmClose();};
@@ -130,13 +129,14 @@ shopConfirmOk=function(){
   const id=heroPending;if(!id)return _shopConfirmOk();
   shopConfirmClose();const g=heroItem(id);
   if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне');return;}
-  if(!g||heroOwns(id)||!heroSkinOwned(g)||!(S.gold>=g.price))return;
+  if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g)||!(S.gold>=g.price))return;
   S.gold-=g.price;S.ownedGear=(S.ownedGear||[]).concat(id);S.equipped=S.equipped||{};S.equipped[g.slot]=id;heroTry=null;save();
   try{confettiReward();}catch(e){}flashMsg('Куплено: «'+g.name+'»');renderHeroShop();try{renderProfile();}catch(e){}
 };
 function renderHeroShop(){
   const kinds=document.querySelector('#look .shopkinds');if(!kinds)return;
-  kinds.innerHTML=[['skins','Скины'],['wear','Одежда'],['gear','Снаряжение']].map(function(k){
+  const here=heroGearHere();if(heroTab!=='skins'&&!here.some(function(g){return g.kind===heroTab;}))heroTab='skins';
+  kinds.innerHTML=[['skins','Скины'],['wear','Одежда'],['gear','Снаряжение']].filter(function(k){return k[0]==='skins'||here.some(function(g){return g.kind===k[0];});}).map(function(k){
     return '<button type="button" class="fchip'+(heroTab===k[0]?' on':'')+'" onclick="heroShopTab(\''+k[0]+'\')">'+k[1]+'</button>';}).join('');
   const list=el('shopList');let box=el('heroShop');
   if(!box){box=document.createElement('div');box.id='heroShop';list.parentNode.insertBefore(box,list.nextSibling);}
@@ -144,17 +144,13 @@ function renderHeroShop(){
   const tb=el('btnTestGold');if(tb)tb.hidden=false;
   if(skins)return;
   const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
-  const items=HERO_GEAR.filter(function(g){return g.kind===heroTab;});
-  const sk=(items[0]||{}).skin,skName=HERO_SKIN_NAME[sk]||'',skOn=sk===heroSkin(),skOwn=!sk||shopOwns('skin-'+sk);
-  const note=sk?'<p class="heroskinnote">Вещи скина «'+skName+'»: '+(skOn?'видны на герое только в этом скине.':skOwn?'на герое они видны, только когда надет этот скин.':'купить их можно после покупки скина.')+'</p>':'';
+  const items=here.filter(function(g){return g.kind===heroTab;});
+  const sk=(items[0]||{}).skin,note=sk?'<p class="heroskinnote">Вещи скина «'+HERO_SKIN_NAME[sk]+'» есть только в этом скине.</p>':'';
   box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroSvg(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
       '<span>'+(tr?'Примерка: '+esc(tr.name):'Нажмите на вещь, чтобы примерить')+'</span></div></div>'+note+
     '<div class="herogrid">'+items.map(function(g){
-      const own=heroOwns(g.id),worn=heroFits(g)&&(S.equipped||{})[g.slot]===g.id,one={};one[g.slot]=g.id;
-      const fits=heroFits(g),skinOwn=heroSkinOwned(g);
-      const cta=!skinOwn?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();heroShopTab(\'skins\')">Нужен скин</button>'
-        :own&&!fits?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWearSkin(\''+g.id+'\')">Надеть скин</button>'
-        :worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
+      const own=heroOwns(g.id),worn=(S.equipped||{})[g.slot]===g.id,one={};one[g.slot]=g.id;
+      const cta=worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
         :own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Надеть</button>'
         :'<button type="button" class="buy shopcta"'+(S.gold>=g.price?'':' disabled')+' onclick="event.stopPropagation();heroBuyAsk(\''+g.id+'\')">'+(S.gold>=g.price?'Купить':'Не хватает '+(g.price-S.gold))+'</button>';
       return '<div role="button" tabindex="0" class="shopcard heroitem'+(heroTry===g.id?' trying':'')+'" data-id="'+g.id+'" onclick="heroTryOn(\''+g.id+'\')">'+

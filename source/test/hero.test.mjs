@@ -18,14 +18,15 @@ ok('static HTML: the avatar is empty until hero.js draws it (no book flash)', /<
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
 await p.evaluate(() => { S.gold = 999999; save(); });
 
-// Greek items belong to the Эллада skin: not buyable without the skin, invisible on the hero in other skins
+// Greek items exist only inside the Эллада skin: other skins show no clothes/gear tabs and cannot buy them
 const lock = await p.evaluate(async () => {
   openLook(true); heroShopTab('wear'); await new Promise(q => setTimeout(q, 150));
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
   const g0 = S.gold; heroBuyAsk('gr-helm'); const noBuy = el('shopConfirm').hidden && S.gold === g0 && !(S.ownedGear || []).includes('gr-helm');
-  const cta = el('heroShop').querySelector('.heroitem[data-id="gr-helm"] .shopcta').textContent, note = (el('heroShop').querySelector('.heroskinnote') || {}).textContent || '';
-  buy('skin-ellada'); wear('skin-ellada'); renderShopPane(); return { noBuy, cta, note, all: HERO_GEAR.every(g => g.skin === 'ellada') };
+  const none = !el('heroShop') || el('heroShop').hidden || !el('heroShop').querySelector('.heroitem');
+  buy('skin-ellada'); wear('skin-ellada'); renderShopPane(); return { tabs, noBuy, none, all: HERO_GEAR.every(g => g.skin === 'ellada') };
 });
-ok('without the Эллада skin: no purchase, card says «Нужен скин», note explains', lock.noBuy && lock.cta === 'Нужен скин' && /Эллада/.test(lock.note) && lock.all, lock);
+ok('outside Эллада: only the «Скины» tab, no Greek item cards, no purchase', lock.tabs === 'Скины' && lock.noBuy && lock.none && lock.all, lock);
 
 const base = await p.evaluate(() => ({ gear: HERO_GEAR.length, ids: HERO_GEAR.map(g => g.id), svg: typeof heroSvg === 'function' && avatarSvg() === heroSvg() }));
 ok('9 Greek items, avatarSvg() draws the stickman', base.gear === 9 && base.ids.every(i => /^gr-/.test(i)) && base.svg, base);
@@ -52,16 +53,16 @@ ok('owned item: Снять / Надеть toggles the slot; «Скины» tab s
 const skinBuy = await p.evaluate(() => { const g = S.gold; shopBuyAsk('skin-celestial'); shopConfirmOk(); return { owned: shopOwns('skin-celestial'), spent: g - S.gold }; });
 ok('skin purchase still works through the shared confirm dialog', skinBuy.owned && skinBuy.spent === 800, skinBuy);
 
-// another skin: owned gear stays equipped but is not drawn; the card offers to put the skin on
+// another skin: owned gear stays saved but is nowhere to be seen; back in Эллада it is on again
 const other = await p.evaluate(async () => {
   wear('skin-celestial'); renderShopPane(); heroShopTab('wear'); await new Promise(q => setTimeout(q, 100));
   const hidden = S.equipped.head === 'gr-helm' && !Object.keys(heroOn()).length && heroSvg() === heroSvg({});
-  const cta = el('heroShop').querySelector('.heroitem[data-id="gr-helm"] .shopcta').textContent;
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), shopHidden = el('heroShop').hidden;
   heroWear('gr-helm'); const kept = S.equipped.head === 'gr-helm';
-  heroWearSkin('gr-helm'); const back = document.documentElement.dataset.skin === 'ellada' && heroOn().head === 'gr-helm';
-  return { hidden, cta, kept, back };
+  wear('skin-ellada'); renderShopPane(); const back = heroOn().head === 'gr-helm';
+  return { hidden, tabs, shopHidden, kept, back };
 });
-ok('in another skin the gear is hidden, «Надеть скин» puts Эллада back on and the gear shows again', other.hidden && other.cta === 'Надеть скин' && other.kept && other.back, other);
+ok('in another skin the Greek gear is not drawn and not listed; in Эллада it is back', other.hidden && other.tabs === 'Скины' && other.shopHidden && other.kept && other.back, other);
 
 // colour: any hex; owned = saved, not owned = try-on only
 const col = await p.evaluate(() => {
@@ -96,8 +97,8 @@ for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {
   const gapOk = r.skin === 'pencil' ? !!r.gap : r.gap === r.cardBg;
   ok((sk || 'default') + ': profile hero drawn, ≥100px, inside its card, no frame, gaps = card colour', r.svg && r.inside && r.noFrame && gapOk, r);
 }
-const tap = await p.evaluate(async () => { el('avatar').click(); await new Promise(q => setTimeout(q, 300)); return !el('look').classList.contains('hidden') && heroTab === 'wear'; });
-ok('tap on the hero opens «Внешний вид» → «Одежда»', tap);
+const tap = await p.evaluate(async () => { wear('skin-ellada'); el('avatar').click(); await new Promise(q => setTimeout(q, 300)); return !el('look').classList.contains('hidden') && heroTab === 'wear'; });
+ok('tap on the hero (Эллада) opens «Внешний вид» → «Одежда»', tap);
 ok('no page errors', !errs.length, errs);
 console.log(`SUMMARY hero.test ${checks.filter(Boolean).length}/${checks.length}`);
 await browser.close();

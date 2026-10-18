@@ -216,13 +216,23 @@ a.cta{display:flex;align-items:center;justify-content:center;gap:8px;text-decora
 #profile #pName{font-size:17px!important;line-height:22px!important}
 #profile #xpTxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #profile .herocard .lvl{font-size:12px!important;line-height:16px!important}
-#profile #goalCard{box-sizing:border-box;height:108px;padding:14px 16px!important;margin:10px 0 0!important;overflow:hidden}
-#profile #goalCard::before{top:4px!important}
+/* 18.10 (Джессика: «цель 10 минут сделать намного уже… сочеталась с другими цветами во всех скинах»): a 72px strip in the card colour of the skin;
+   small ring, title with the streak on the right, «Сегодня» under it (Бабочковый: cocoons instead of the ring, on the third line) */
+#profile #goalCard{box-sizing:border-box;height:72px;padding:12px 16px!important;margin:10px 0 0!important;overflow:hidden;gap:12px!important}
+:root:is(:not([data-skin]),[data-skin=""]) #profile #goalCard{background:var(--card)} /* default look: the card colour, no grey gradient; skins keep their surface and ornaments */
+#profile #goalCard .ring{width:48px;height:48px}
+#profile #goalCard .ring text{font-size:17px}
+#profile #goalCard > div:last-child{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px}
+#profile #goalCard > div:last-child > .row{grid-column:1;grid-row:1;min-width:0}
+#profile #goalCard > div:last-child > .streakline{grid-column:2;grid-row:1;margin:0!important;white-space:nowrap}
+#profile #goalCard > div:last-child > .sub{grid-column:1/-1;grid-row:2}
+#profile #goalCard > div:last-child > .bbhatch{grid-column:1/-1;grid-row:3}
+#profile #goalCard::before{top:3px!important;height:6px!important;background-size:6px 6px!important}
 #profile #goalTitle{font-size:16px!important;line-height:20px!important}
 #profile #goalCard .sub{font-size:13px!important;line-height:17px!important;margin-top:2px!important}
 #profile #goalCard .streakline{font-size:14px!important;line-height:20px!important;margin-top:4px!important}
-#profile #goalCard .bbhatch{margin:2px 0 0!important}
-#profile #goalCard .bbhatch i{width:18px;height:18px}
+#profile #goalCard .bbhatch{margin:1px 0 0!important}
+#profile #goalCard .bbhatch i{width:14px;height:14px}
 #profile .profrow{display:flex;gap:10px;margin:10px 0 0}
 #profile .profrow > .achv-card{flex:1;min-width:0;box-sizing:border-box;height:62px;min-height:0;padding-top:0!important;padding-bottom:0!important;margin:0!important;gap:10px}
 #profile .profrow > .achv-card > .ic{display:none}

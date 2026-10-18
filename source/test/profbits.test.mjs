@@ -22,6 +22,22 @@ const bb = await p.evaluate(async () => { renderGoalCard(); await new Promise(q 
   return { cocoons: h ? h.querySelectorAll('i').length : 0, cap: cap && cap.textContent.trim(), capVis: !!cap && cap.getBoundingClientRect().height > 8, size: parseFloat(ts.fontSize), stroke: parseFloat(ts.webkitTextStrokeWidth) || 0 }; });
 ok('Бабочковый: the cocoon row under the goal is labelled', bb.cocoons === 10 && /из 10/.test(bb.cap || '') && bb.capVis, bb);
 ok('Бабочковый: «Профиль» title is bigger and not hairline-thin', bb.size >= 26 && bb.stroke >= 0.4, bb);
+// 18.10 (Джессика: «табличку цель 10 минут сделать намного уже… сочеталась гармонично с другими цветами во всех скинах»)
+const gc = {};
+for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {
+  await p.evaluate(sk => { if (sk) wear('skin-' + sk); else { const t = SET; } }, sk);
+  if (!sk) await p.evaluate(() => { localStorage.clear(); }), await p.reload({ waitUntil: 'load' }), await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }), await p.evaluate(() => { S.gold = 5000; save(); ['pencil', 'celestial', 'ellada', 'babochkovyi'].forEach(k => buy('skin-' + k)); });
+  gc[sk || 'default'] = await p.evaluate(async () => { navGo('profile'); await new Promise(q => setTimeout(q, 300)); const g = document.getElementById('goalCard'), h = document.querySelector('#profile .herocard'), gs = getComputedStyle(g), hs = getComputedStyle(h);
+    const ov = [...g.querySelectorAll('#goalTitle,#goalSub,#streakTxt')].filter(e => e.offsetParent).some(e => { const r = e.getBoundingClientRect(), R = g.getBoundingClientRect(); return r.bottom > R.bottom + 1 || r.right > R.right + 1; });
+    return { h: Math.round(g.getBoundingClientRect().height), bgImg: gs.backgroundImage, bg: gs.backgroundColor, hero: hs.backgroundColor, ov }; });
+}
+const G = Object.values(gc);
+ok('goal card: compact (≤ 76 px, was 108), the same height in every skin, nothing cut off', G.every(g => g.h <= 76 && g.h === G[0].h && !g.ov), gc);
+ok('goal card: plain card colour like the other profile cards (no grey gradient in the default look)', gc.default.bgImg === 'none' && gc.default.bg === gc.default.hero, gc.default);
+// the quests under the profile are drawn however the profile is reached (back from «Настройки» used to show an empty «Квесты»)
+const qb = await p.evaluate(async () => { wear('skin-pencil'); __navAllow = true; show('library'); __navAllow = false; el('mvpQuestBox').innerHTML = ''; navGo('settings'); await new Promise(q => setTimeout(q, 200)); el('setBack').click(); await new Promise(q => setTimeout(q, 300));
+  return { onProf: !el('profile').classList.contains('hidden'), cards: document.querySelectorAll('#mvpQuestBox .mvp-quest').length }; });
+ok('back from «Настройки» to «Профиль»: the quests are there', qb.onProf && qb.cards === 2, qb);
 ok('no page errors', !errs.length, errs);
 console.log(`SUMMARY profbits.test ${checks.filter(Boolean).length}/${checks.length}`);
 await browser.close();

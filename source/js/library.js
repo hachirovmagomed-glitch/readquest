@@ -9,6 +9,7 @@ function show(id){
   if(id!=='summary')clearConfetti();
   try{hidePinchHint();if(id!=='reader'){pinch0=null;pinchTarget=0;}}catch(e){} /* «Aa N» never survives a screen change */
   if(id==='library'){try{libGoldRender();}catch(e){}} /* balance is a pure read of S.gold on every visit */
+  if(id==='profile'){try{renderGoalCard();renderMvpProfile();}catch(e){}} /* 18.10: the goal and quests are drawn however «Профиль» is reached (back from «Настройки» left «Квесты» empty) */
   if(id!=='library'&&__bootGold){__bootGold=0;const gl=el('libGoldLine');if(gl)gl.classList.add('hidden');}
   if(isMvp() && !__navAllow && ['quotes','vocab','shop','quests','stats','calendar','achievements','shelfScreen'].indexOf(id)>=0){
     id = 'library';
@@ -95,9 +96,21 @@ function renderDrawerHead(){const d=drawerStats();if(!el('dLvl'))return d;const 
   el('dLvl').textContent='Уровень '+d.lv;el('dXp').textContent=(d.xp-d.lo)+' / '+(d.hi-d.lo)+' XP';el('dXpBar').style.width=Math.max(0,Math.min(100,(d.xp-d.lo)/(d.hi-d.lo)*100))+'%';el('dGold').textContent=coinsP(d.gold);try{libGoldRender();}catch(e){}return d;}
 function openDrawer(){try{renderDrawerHead();renderNav();syncNightSwitch();}catch(e){console.warn('[rq] drawer',e);}el('drawer').classList.add('open');el('scrim').classList.remove('hidden');}
 /* the menu's day/night switch mirrors the page: night = the skin's own night (or the dark page in the default look) */
-function syncNightSwitch(){const b=el('dNight');if(!b)return;const nt=!isLightBg(activeTheme().bg);
+/* 18.10 (Джессика: «ночной режим не работает»): in the default look the switch only flipped the book page, the light app screens stayed light.
+   Night = a skin's own night, or (no skin) a dark app theme together with a dark page; day brings back the light app theme it came from. */
+function appIsNight(){const t=activeTheme();if(t.skin)return !isLightBg(t.bg);const a=APP_THEMES[resolveAppTheme()]||APP_THEMES.teal;return !isLightBg(a.bg);}
+function toggleAppNight(){
+  if(activeTheme().skin){toggleDayNight();return;}
+  const nt=!appIsNight(),lt=k=>!!(APP_THEMES[k]&&isLightBg(APP_THEMES[k].bg));
+  if(nt){S.dayAppTheme=S.appTheme||'auto';S.appTheme='dark';}
+  else{const d=S.dayAppTheme;S.appTheme=(d==='auto'&&lt(((h)=>(h>=7&&h<21)?'light':'dark')(new Date().getHours())))||lt(d)?d:'light';}
+  save();applyAppTheme();
+  if(isLightBg(activeTheme().bg)===nt)toggleDayNight();
+  else flashMsg(nt?'Ночной режим':'Дневной режим',{kind:'info',icon:nt?'moon':'sun'});
+}
+function syncNightSwitch(){const b=el('dNight');if(!b)return;const nt=appIsNight();
   b.setAttribute('aria-checked',nt?'true':'false');el('dNightL').textContent='Ночной режим';b.querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');}
-if(el('dNight'))el('dNight').onclick=()=>{toggleDayNight();syncNightSwitch();};
+if(el('dNight'))el('dNight').onclick=()=>{toggleAppNight();syncNightSwitch();};
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
 ['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath','menuLook','menuAdv'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});

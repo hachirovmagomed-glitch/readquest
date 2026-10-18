@@ -1,0 +1,32 @@
+# Temporary: what Wikisource search returns and which licence categories pages carry (thread «Приключения»). Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          cat > p.py <<'PY'
+          import json,urllib.request,urllib.parse
+          A='https://ru.wikisource.org/w/api.php?'
+          def g(**q):
+              q.update(format='json',formatversion=2,origin='*')
+              r=urllib.request.Request(A+urllib.parse.urlencode(q),headers={'User-Agent':'readquest-probe/1.0 (github actions)'})
+              return json.load(urllib.request.urlopen(r,timeout=30))
+          for s in ['Гомер','Шекспир','Толстой','Война и мир','Пушкин','Диккенс','Жюль Верн','Андерсен','Дон Кихот','Одиссея']:
+              d=g(action='query',list='search',srsearch=s,srnamespace=0,srlimit=40)
+              roots=[]
+              for h in d['query']['search']:
+                  r=h['title'].split('/')[0]
+                  if r not in roots: roots.append(r)
+              print('\n=== Q',s,len(roots))
+              c=g(action='query',prop='categories|info|pageprops',cllimit='max',titles='|'.join(roots[:20]))
+              for p in c['query']['pages']:
+                  cats=[x['title'].replace('Категория:','') for x in p.get('categories',[])]
+                  lic=[x for x in cats if any(k in x for k in ('PD','CC','GFDL','достояни','Свободн','лиценз','Лиценз','умерших','Авторы'))]
+                  print(' ', p['title'],'| len',p.get('length'),'| disamb' if 'disambiguation' in (p.get('pageprops') or {}) else '','| LIC',lic,'| ALL',cats[:12])
+          PY
+          python3 p.py

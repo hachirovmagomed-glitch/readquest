@@ -43,9 +43,9 @@ ok('nav: экспорт несёт nav; старый бэкап без nav → '
 await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 'rewards', 'profile']); openDrawer(); }); await sleep(400);
 const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent && x.id !== 'dNight'); /* 18.10: ночная кнопка внизу меню — не раздел */
   return { w: Math.round(dr.getBoundingClientRect().width), ava: !!dr.querySelector('.dava'), name: (dr.querySelector('.dname') || {}).textContent || '', items: items.map(x => x.dataset.nav || x.id), pins: items.filter(x => x.querySelector('.dpin')).map(x => x.dataset.nav),
-    h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
-ok('drawer: 85% ширины (≈332px), аватар и имя, 8 разделов (с «Путём читателя» и «Приключениями») + Настройки, пункты 52px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","rewards","profile","path","adv","quests","stats","look","settings"]' && d.h === 52 && !d.emoji, d);
-ok('drawer: значок pin у закреплённых (library,rewards,profile) и подпись внизу', JSON.stringify(d.pins) === '["library","rewards","profile"]' && d.cap, d.pins);
+    h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), secs: [...dr.querySelectorAll('#dList .dsec')].map(x => x.textContent).join('|'), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
+ok('drawer: 85% ширины (≈332px), аватар и имя, 8 пунктов по разделам Чтение / Герой / Магазины (18.10, как в Habitica) + Настройки, пункты 48px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","adv","path","profile","quests","stats","rewards","look","settings"]' && d.secs === 'Чтение|Герой|Магазины' && d.h === 48 && !d.emoji, d);
+ok('drawer: значок pin у закреплённых (library,rewards,profile) и подпись внизу', JSON.stringify(d.pins.slice().sort()) === '["library","profile","rewards"]' && d.cap, d.pins);
 await p.evaluate(() => closeDrawer());
 // settings «Нижняя панель»
 const c = has ? await p.evaluate(async () => { openGeneralSettings(false); const row = document.getElementById('btnNavCfg'); if (!row) return { row: false }; row.click(); await new Promise(r => setTimeout(r, 300));

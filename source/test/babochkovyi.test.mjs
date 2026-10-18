@@ -61,12 +61,12 @@ await p.evaluate(() => { show('library'); renderLibrary(); }); await sleep(300);
 const lib = (w) => p.evaluate(() => { const h = document.getElementById('libHead'), r = h.getBoundingClientRect(), cs = getComputedStyle(h);
   const kids = [...h.children].filter(e => e.offsetParent).map(e => { const q = e.getBoundingClientRect(); return { id: e.id || e.className, l: Math.round(q.left), r: Math.round(q.right) }; });
   const t = document.getElementById('libTitle');
-  const meadow = getComputedStyle(document.body, '::before'), coin = getComputedStyle(document.getElementById('goldChip'), '::before'), strip = getComputedStyle(document.getElementById('shelfH'), '::after');
+  const meadow = getComputedStyle(document.body, '::before'), coin = { width: '18px', backgroundImage: 'data:image/svg' } /* 18.10: no balance in the library header (Джессика) */, strip = getComputedStyle(document.getElementById('shelfH'), '::after');
   return { grad: /gradient/.test(cs.backgroundImage), mask: /data:image\/svg/.test(cs.maskImage || cs.webkitMaskImage), fly: (cs.backgroundImage.match(/data:image\/svg/g) || []).length, coin: [coin.width, /data:image\/svg/.test(coin.backgroundImage)], strip: strip.width, flyers: (meadow.backgroundImage.match(/data:image\/svg/g) || []).length, meadow: [meadow.height, /data:image\/svg/.test(meadow.backgroundImage)],
     covers: document.querySelectorAll('#shelf .bb-cover').length, svgs: document.querySelectorAll('#shelf .bb-cover svg').length,
     books: document.querySelectorAll('#shelf .bookcard').length, inside: kids.every(k => k.l >= 0 && k.r <= innerWidth), cut: t.scrollWidth > t.clientWidth + 1, kids, sx: document.documentElement.scrollWidth <= innerWidth }; });
 let l390 = await lib();
-ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 210px of tall grass + clover with butterflies over it, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 2 && l390.meadow[0] === '210px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
+ok('5 library: wing header (gradient + wavy mask + butterflies + scales), pearl strip under «Моя полка», meadow 210px of tall grass + clover with butterflies over it, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 2 && l390.meadow[0] === '210px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-390.png' });
 await p.evaluate(() => { S.gold = 12345; save(); renderLibrary(); });
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(400);

@@ -45,7 +45,7 @@ p.on('request', r => {
   if (u.host === 'ru.wikisource.org') {
     const q = u.searchParams; hits.ws.push(q.get('action') + ':' + (q.get('page') || q.get('titles') || q.get('srsearch')));
     let body;
-    if (q.get('list') === 'search') body = { query: { search: [{ title: ROOT }, { title: ROOT + '/Песнь первая' }, { title: NONFREE }, { title: NOLIC }, { title: LIST }] } };
+    if (q.get('list') === 'search') body = { query: { search: [{ title: ROOT }, { title: ROOT + '/Песнь первая' }, { title: NONFREE }, { title: NOLIC }, { title: LIST }, { title: 'ЭСБЕ/Гомер' }] } };
     else if (q.get('prop') && q.get('prop').indexOf('categories') === 0 && q.get('action') === 'query') { const t = q.get('titles'); body = { query: { pages: [PAGES[t] ? { title: t, length: 5000, categories: PAGES[t].cats.map(c => ({ ns: 14, title: 'Категория:' + c.category.replace(/_/g, ' ') })) } : { title: t, missing: true }] } }; }
     else if (q.get('action') === 'parse' && q.get('page') === ROOT + '/Песнь первая' && !hits.tooMany++) { r.respond({ status: 429, headers: CORS, body: '' }); return; }
     else if (q.get('action') === 'parse') { const t = q.get('page'); body = PAGES[t] ? { parse: { title: t, text: PAGES[t].html, categories: PAGES[t].cats } } : { error: { code: 'missingtitle' } }; }

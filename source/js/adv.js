@@ -13,7 +13,7 @@
 const ADV_PROXY=''; /* own CORS proxy for Gutenberg files, '' = none yet (needs Джессика's word: it is a server) */
 const ADV_GUT='https://www.gutenberg.org';
 const ADV_WS='https://ru.wikisource.org/w/api.php';
-const ADV_WS_MAX=400; /* pages per book: «Война и мир» is ~370 chapter pages */
+const ADV_WS_MAX=800; /* pages per book: «Война и мир» is ~370 chapter pages */
 const ADV={src:'wikisource',q:'',lang:'ru',items:[],more:null,busy:false,err:'',seq:0,dl:false};
 const ADV_LANGS=[['ru','Русские'],['en','English'],['de','Deutsch'],['fr','Français'],['','Все языки']];
 const ADV_WS_HINTS=['Гомер','Шекспир','Данте','Сервантес','Диккенс','Гёте','Жюль Верн','Андерсен'];
@@ -46,7 +46,9 @@ const ADV_SRC={
       const off=more||0;
       const d=await advJson(ADV_WS+'?action=query&format=json&formatversion=2&origin=*&list=search&srnamespace=0&srlimit=40&srsearch='+encodeURIComponent(q)+'&sroffset='+off);
       const seen={},out=[];
-      ((d.query&&d.query.search)||[]).forEach(function(h){const root=String(h.title).split('/')[0];if(seen[root])return;seen[root]=1;
+      ((d.query&&d.query.search)||[]).forEach(function(h){const root=String(h.title).split('/')[0];if(seen[root])return;
+        if(root!==h.title&&root.indexOf('(')<0)return; /* «ЭСБЕ/Гомер», «РБС/…»: an article of an encyclopedia or journal, not a book */
+        seen[root]=1;
         const n=advWsName(root);out.push({sid:'wikisource:'+root,page:root,t:n.t,a:n.a,tr:n.tr,lang:'ru'});});
       return {items:out,more:d.continue&&d.continue.sroffset?d.continue.sroffset:null};},
     async info(it){

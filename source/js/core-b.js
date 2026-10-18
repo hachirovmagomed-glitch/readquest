@@ -40,7 +40,12 @@ function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.f
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
 /** 1в: «Карандашный» is an APP-WIDE skin: all tokens.rq.css (--rq-*) on :root (html[data-skin=pencil], night: data-theme=night);
     any other reader theme removes both → app back to its own palette. Called at boot and from applySet. */
-function syncThemeColor(){try{const c=getComputedStyle(document.body).backgroundColor,m=c.match(/\d+/g),mt=document.querySelector('meta[name=theme-color]');if(mt&&m&&m.length>=3)mt.content='#'+m.slice(0,3).map(function(x){return (+x).toString(16).padStart(2,'0');}).join('');}catch(e){}}
+/* the browser bar = the paper under the page: body, else the root (skins paint the root and keep body transparent), else the --rq-bg token */
+function rqPaperColor(){const clear=function(c){return !c||/^rgba\(.*,\s*0\)$/.test(c)||c==='transparent';};
+  let c=getComputedStyle(document.body).backgroundColor;if(clear(c))c=getComputedStyle(document.documentElement).backgroundColor;
+  if(clear(c)){const t=getComputedStyle(document.documentElement).getPropertyValue('--rq-bg').trim();if(t){const d=document.createElement('i');d.style.color=t;document.body.appendChild(d);c=getComputedStyle(d).color;d.remove();}}
+  return c;}
+function syncThemeColor(){try{const c=rqPaperColor(),m=c.match(/\d+/g),mt=document.querySelector('meta[name=theme-color]');if(mt&&m&&m.length>=3)mt.content='#'+m.slice(0,3).map(function(x){return (+x).toString(16).padStart(2,'0');}).join('');}catch(e){}}
 /* skin icon sets: the sprite symbols (#i-*) are redrawn for the worn skin, so every rqIcon/<use> on every screen follows it;
    leaving the skin restores the Lucide originals (cached on first swap). Same names = same meaning, layout untouched.
    «Эллада»: свиток, амфора, шлем, лира (настройки), копьё (назад), факел (серия), венок, Гелиос / Селена — our drawings, 24×24 stroke like Lucide. */

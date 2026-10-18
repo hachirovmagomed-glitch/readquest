@@ -255,16 +255,16 @@ if (want('balance')) {
   const r = await p.evaluate(async () => {
     const num = (id) => { const e = document.getElementById(id); return e ? parseInt((e.textContent || '').replace(/\D/g, ''), 10) : null; };
     S.gold = 1800; save(); show('library'); await new Promise(r => setTimeout(r, 200));
-    const before = num('goldChip');
+    const before = num('shopGold'); /* 18.10: no balance in the library header; the shop chip follows the same sync */
     openRewardsSheet('life'); await new Promise(r => setTimeout(r, 200));
     S.rewards[0].name = 'Кофе'; buyRewardTier(0); await new Promise(r => setTimeout(r, 200));
-    const afterBuy = { gold: S.gold, chip: num('goldChip'), sheet: num('rewBalance') };
+    const afterBuy = { gold: S.gold, chip: num('shopGold'), sheet: num('rewBalance') };
     shopTestGold(); await new Promise(r => setTimeout(r, 200));
-    const afterTest = { gold: S.gold, chip: num('goldChip'), sheet: num('rewBalance'), diary: num('qstGold'), stats: num('kGold') };
+    const afterTest = { gold: S.gold, chip: num('shopGold'), sheet: num('rewBalance'), diary: num('qstGold'), stats: num('kGold') };
     return { before, afterBuy, afterTest };
   });
-  ok('balance: header and «Награды» show the same coins after a spend in «Из жизни» (sheet open over the library)', r.before === 1800 && r.afterBuy.gold < 1800 && r.afterBuy.chip === r.afterBuy.gold && r.afterBuy.sheet === r.afterBuy.gold && !errs.length, { r, errs });
-  ok('balance: header follows «+1000 монет для теста» too', r.afterTest.gold === r.afterBuy.gold + 1000 && r.afterTest.chip === r.afterTest.gold && r.afterTest.sheet === r.afterTest.gold, r.afterTest);
+  ok('balance: shop and «Награды» show the same coins after a spend in «Из жизни» (sheet open over the library)', r.before === 1800 && r.afterBuy.gold < 1800 && r.afterBuy.chip === r.afterBuy.gold && r.afterBuy.sheet === r.afterBuy.gold && !errs.length, { r, errs });
+  ok('balance: shop follows «+1000 монет для теста» too', r.afterTest.gold === r.afterBuy.gold + 1000 && r.afterTest.chip === r.afterTest.gold && r.afterTest.sheet === r.afterTest.gold, r.afterTest);
   ok('balance: «Дневник» and «Статистика» chips follow too (no stale coins on other screens)', r.afterTest.diary === r.afterTest.gold && r.afterTest.stats === r.afterTest.gold, r.afterTest);
   await ctx.close(); await browser.close();
 }

@@ -12,7 +12,7 @@ const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
-const head = () => p.evaluate(() => ({ lvl: el('dLvl').textContent, xp: el('dXp').textContent, gold: el('dGold').textContent, bar: el('dXpBar').style.width }));
+const head = () => p.evaluate(() => ({ lvl: el('dLvl').textContent, xp: el('dXp').textContent, gold: el('dGold') ? el('dGold').textContent : null, bar: el('dXpBar').style.width }));
 const expect = () => p.evaluate(() => { renderRewardsSheet(); const lv = level(S.xp), b = lvlBounds(lv);
   return { lvl: 'Уровень ' + lv, xp: (S.xp - b[0]) + ' / ' + (b[1] - b[0]) + ' XP', gold: el('rewBalance').textContent, sumRowXp: SESS.reduce((a, r) => a + (r && r.xp || 0), 0), Sxp: S.xp }; });
 const open = () => p.evaluate(() => { el('menuLib').click(); return el('drawer').classList.contains('open'); });
@@ -20,11 +20,11 @@ const close = () => p.evaluate(() => { el('scrim').click(); return !el('drawer')
 
 // 1. sources
 let o = await open(); let h = await head(); let e = await expect();
-ok('1a шапка = «Награды»/тосты (S.gold, level(S.xp), lvlBounds)', o && h.lvl === e.lvl && h.xp === e.xp && h.gold === e.gold, { h, e });
+ok('1a шапка = «Награды»/тосты (level(S.xp), lvlBounds); монет в меню нет (18.10, Джессика)', o && h.lvl === e.lvl && h.xp === e.xp && h.gold === null, { h, e });
 await close();
 await p.evaluate(async () => { S.gold = 1234; S.xp = 437; }); // memory only — must show on next open, no cache
 await open(); h = await head(); e = await expect();
-ok('1b нет своего счётчика: после смены S.gold/S.xp шапка = «Награды» (1234 монеты, Уровень 3)', h.gold === e.gold && h.gold === '1234 монеты' && h.lvl === 'Уровень 3' && h.xp === e.xp, { h, e });
+ok('1b нет своего счётчика: после смены S.xp шапка = «Награды» (Уровень 3)', h.gold === null && h.lvl === 'Уровень 3' && h.xp === e.xp, { h, e });
 await close();
 const src = await p.evaluate(() => String(drawerStats) + String(renderDrawerHead));
 ok('1c drawerStats/renderDrawerHead читают только S.gold/S.xp, без save() и своих полей', /S\.gold/.test(src) && /S\.xp/.test(src) && !/save\(|S\.\w+\s*=[^=]|localStorage/.test(src), src.length);

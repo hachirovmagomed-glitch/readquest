@@ -39,7 +39,7 @@ async function openPdf(b){
 }
 function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
 function pdfReset(){
-  P.seq++;pdfCancel();if(typeof psReset==='function')psReset();
+  P.seq++;pdfCancel();if(typeof psReset==='function')psReset();if(typeof rqCurlStop==='function')rqCurlStop();
   const sh=el('pdfSheet');
   sh.querySelectorAll('canvas').forEach(c=>{c.remove();c.width=0;c.height=0;});
   el('pdfText').textContent='';
@@ -131,7 +131,9 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   cv.addEventListener('contextlost',function(e){if(P.front===cv)pdfLost('contextlost');});
   cv.addEventListener('contextrestored',function(){if(P.front===cv)pdfResume('restored');});
   P.badTry=0;pdfRemember(cv);
-  if(old&&old!==cv){old.remove();old.width=0;old.height=0;}
+  /* «Загиб»: the old page is copied while its canvas still exists (same conditions as pdfTurnAnim below) */
+  const curl=(isNew&&P.flipDir&&n===P.target&&!P.sliding&&old&&old!==cv&&rqAnimKind()==='curl')?rqCurlSnapPdf(old):null;
+  if(old&&old!==cv&&!curl){old.remove();old.width=0;old.height=0;} /* «Загиб» moved it into its copy; freed when the peel ends */
   P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
   el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
@@ -147,7 +149,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
     else if(!P.sliding)pdfReach(n); /* 1б-144: a slider preview page is not «reached»; only the settled page counts */
     pdfNumbers(P.sliding?P.target:n);
     const fd=P.flipDir;P.flipDir=0;
-    if(fd&&n===P.target&&!P.sliding&&P.z===1)pdfTurnAnim(fd);
+    if(fd&&n===P.target&&!P.sliding&&P.z===1){if(curl)rqPeel(el('pdfWrap'),curl,fd);else pdfTurnAnim(fd);}
     if(P.jump){if(!P.sliding){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(n);}} /* mid-drag pages are not written */
     else if(__tracker&&__tracker.pageShown)__tracker.pageShown(n,tts?'tts':undefined); /* the page is on screen now */
     updDayBar();
@@ -319,7 +321,7 @@ function pdfTouchStart(e){
   if(P.g&&(P.g.type==='pinch'||P.g.type==='quiet')){pdfLog({ev:'start-blocked',g:P.g.type,n:e.touches.length});return;}
   const t=e.touches[0],G=pdfGeom();
   P.g={type:'one',x0:t.clientX,y0:t.clientY,t0:performance.now(),tx0:P.tx,ty0:P.ty,atL:G.atL,atR:G.atR,pannable:G.pannable,moved:false,
-    bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.dim||0}:null};
+    bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.bright==null?1:SET.bright}:null};
 }
 function pdfTouchMove(e){
   if(PS.on){psTouchMove(e);return;}
@@ -340,7 +342,7 @@ function pdfTouchMove(e){
   if(g.type!=='one'||e.touches.length!==1)return;
   const t=e.touches[0],dx=t.clientX-g.x0,dy=t.clientY-g.y0;
   if(!g.moved&&Math.hypot(dx,dy)>10)g.moved=true;
-  if(g.bright){SET.dim=Math.max(0,Math.min(0.7,g.bright.d0+dy/400));el('dimmer').style.opacity=SET.dim;return;}
+  if(g.bright){SET.bright=Math.round(Math.max(0.3,Math.min(1,g.bright.d0-dy/400))*100)/100;rqLightApply();return;}
   if(g.pannable&&g.moved){P.tx=g.tx0+dx;P.ty=g.ty0+dy;pdfApplySoon();}
 }
 function pdfLog(o){P.log.push(o);if(P.log.length>40)P.log.shift();} /* gesture decisions (tests / diagnostics) */
@@ -361,7 +363,7 @@ function pdfTouchEnd(e){
   if(e.touches.length)return;
   P.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
-  if(g.bright&&g.moved){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});return;}
+  if(g.bright&&g.moved){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}
   const swipeOn=flipGet().swipe!==false;
   const inv=flipGet().invert?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
@@ -507,7 +509,9 @@ function rqShowPage(np,anim,prev){
   rqAnimStop();
   const x=-np*R.step;
   if(anim==='slide'&&prev!=null){rqSlide(-prev*R.step,x);return;}
+  const curl=anim==='curl'&&prev!=null&&np!==prev?rqTextPageCopy(prev):null; /* the old page, copied before the strip jumps */
   c.style.transform='translateX('+x+'px)';
+  if(curl)rqPeel(v,curl,np>prev?1:-1);
   if(anim==='fade'&&v.animate){__rqAnim.n++;__rqAnim.last='fade';
     try{R.anim=v.animate([{opacity:0.45},{opacity:1}],{duration:180,easing:'ease-out'});}catch(e){}}
 }
@@ -526,6 +530,7 @@ function rqSlide(from,to){
 function rqAnimStop(){
   if(R.slide){cancelAnimationFrame(R.slide.raf);el('content').style.transform='translateX('+R.slide.to+'px)';R.slide=null;}
   if(R.anim){try{R.anim.finish();}catch(e){}R.anim=null;}
+  rqCurlStop();
 }
 /** Scroll mode: one screen minus a line (taps, keys, swipe, ‹ › buttons). Smooth only when animations are allowed. */
 function rqScrollStep(d){

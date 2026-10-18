@@ -265,8 +265,7 @@ el('libSearch').oninput=e=>{LIB.q=e.target.value.toLowerCase().trim();renderLibr
 /* balance: «N монет»; if the header overflows, the number alone */
 function libGoldRender(){const c=el('goldChip');if(!c)return;const g=goldDisp();c.textContent=coinsP(g);
   const h=el('libHead'),t=el('libTitle');if(!h||!h.offsetParent)return;
-  const whole=getComputedStyle(h).getPropertyValue('--rq-title-whole').trim()==='1'; /* a skin that keeps the title whole (17.10 «Небесный»): a clipped title → the bare number */
-  if(h.scrollWidth>h.clientWidth+1||(whole&&t&&t.scrollWidth>t.clientWidth+1))c.textContent=String(g);} /* else only a real header overflow; a squeezed title is the skin's job (16.10: «104» bare on other fonts) */ /* only a real header overflow; a squeezed title is the skin's job (16.10: «104» bare on other fonts) */
+  if(h.scrollWidth>h.clientWidth+1||(t&&t.scrollWidth>t.clientWidth+1))c.textContent=String(g);} /* 18.10: «⋮» joined the header — a clipped title (any skin) also drops the word */ /* else only a real header overflow; a squeezed title is the skin's job (16.10: «104» bare on other fonts) */ /* only a real header overflow; a squeezed title is the skin's job (16.10: «104» bare on other fonts) */
 addEventListener('resize',function(){if(!el('library').classList.contains('hidden'))libGoldRender();});
 if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',function(){libGoldRender();}); /* skin fonts arrive later and widen the header */
 /* sort (15.10): NS_set.libSort = string id from LIB_SORTS. Read is forgiving and never writes; a DIFFERENT pick → one gated saveSet
@@ -282,15 +281,41 @@ function libSortGet(){return libSortRead(typeof SET!=='undefined'&&SET?SET.libSo
 function libSortLabel(k){return (LIB_SORTS.find(function(o){return o.k===k;})||LIB_SORTS[0]).t;}
 function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet()){LIB.sort=k;return false;}
   SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
-function libSortSync(){const b=el('libSortBtn');if(!b)return;const k=libSortGet();b.querySelector('.lsl').textContent=libSortLabel(k);
-  const v=libViewGet(),m=el('libSortMenu');if(m)m.querySelectorAll('.lso').forEach(function(o){o.setAttribute('aria-checked',(o.dataset.v?o.dataset.v===v:o.dataset.k===k)?'true':'false');});}
-function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;m.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');if(open)libSortSync();}
-(function(){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;
-  const it=function(a,o){return '<button type="button" class="lso" role="menuitemradio" data-'+a+'="'+o.k+'" aria-checked="false"><span>'+esc(o.t)+'</span>'+rqIcon('check',20)+'</button>';};
-  m.innerHTML='<div class="lsoh">Сортировка</div>'+LIB_SORTS.map(function(o){return it('k',o);}).join('')+'<div class="lsoh lsosep">Вид</div>'+LIB_VIEWS.map(function(o){return it('v',o);}).join('');
-  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(o){e.stopPropagation();if(o.dataset.v)libViewPick(o.dataset.v);else libSortPick(o.dataset.k);}});
+/* 18.10 (Джессика, как в ReadEra): фильтр живёт в «⋮» шапки, а не строкой под ней. LIB.f: all|reading|want|done|fav|sh:<id>; LIB.author — автор.
+   Заголовок экрана называет активный фильтр («Читаю сейчас», имя полки, автор), «Библиотека» — когда показаны все книги. */
+const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'}];
+function libFilterLabel(){if(LIB.author)return LIB.author;
+  if(LIB.f.indexOf('sh:')===0){const sh=shelvesGet().find(function(x){return 'sh:'+x.id===LIB.f;});return sh?sh.n:'Библиотека';}
+  if(LIB.f==='all')return 'Библиотека';return (LIB_FILTERS.find(function(o){return o.k===LIB.f;})||{t:'Библиотека'}).t;}
+function libTitleSync(){const t=el('libTitle');if(t)t.textContent=libFilterLabel();}
+function libFilterPick(f,a){libSortMenu(false);LIB.f=f||'all';LIB.author=a||null;renderLibrary();}
+function libFilterItems(){const it=function(attr,v,t,on){return '<button type="button" class="lso" role="menuitemradio" data-'+attr+'="'+esc(v)+'" aria-checked="'+(on?'true':'false')+'"><span>'+esc(t)+'</span>'+rqIcon('check',20)+'</button>';};
+  let h=LIB_FILTERS.map(function(o){return it('f',o.k,o.t,!LIB.author&&LIB.f===o.k);}).join('');
+  h+='<div class="lsoh lsosep">Мои полки</div>'+shelvesGet().map(function(sh){return it('f','sh:'+sh.id,sh.n,!LIB.author&&LIB.f==='sh:'+sh.id);}).join('')+
+    '<button type="button" class="lso lsoadd" role="menuitem" id="libShelfAdd"><span>Новая полка</span>'+rqIcon('plus',20)+'</button>';
+  const au=Array.from(new Set(allBooks().map(function(b){return b.author;}).filter(Boolean))).sort(function(x,y){return x.localeCompare(y);});
+  if(au.length)h+='<div class="lsoh lsosep">Авторы</div>'+au.map(function(a){return it('a',a,a,LIB.author===a);}).join('');
+  return h;}
+let __libPane='root';
+function libMenuRender(){const m=el('libSortMenu');if(!m)return;const k=libSortGet(),v=libViewGet();
+  const it=function(a,o,on){return '<button type="button" class="lso" role="menuitemradio" data-'+a+'="'+o.k+'" aria-checked="'+(on?'true':'false')+'"><span>'+esc(o.t)+'</span>'+rqIcon('check',20)+'</button>';};
+  const nav=function(p,t,val){return '<button type="button" class="lso lsonav" role="menuitem" data-pane="'+p+'"><span>'+t+'</span><span class="lsov">'+esc(val)+'</span>'+rqIcon('chevron-right',18)+'</button>';};
+  const back=function(t){return '<button type="button" class="lso lsoback" data-pane="root">'+rqIcon('chevron-left',18)+'<span>'+t+'</span></button>';};
+  const fl=LIB.author||LIB.f!=='all'?libFilterLabel():'Все книги';
+  m.innerHTML='<div class="lsopane" data-p="root"'+(__libPane==='root'?'':' hidden')+'>'+nav('f','Фильтр',fl)+nav('s','Сортировка',libSortLabel(k))+nav('v','Вид',(LIB_VIEWS.find(function(o){return o.k===v;})||LIB_VIEWS[0]).t)+'</div>'+
+    '<div class="lsopane" data-p="f"'+(__libPane==='f'?'':' hidden')+'>'+back('Фильтр')+libFilterItems()+'</div>'+
+    '<div class="lsopane" data-p="s"'+(__libPane==='s'?'':' hidden')+'>'+back('Сортировка')+LIB_SORTS.map(function(o){return it('k',o,o.k===k);}).join('')+'</div>'+
+    '<div class="lsopane" data-p="v"'+(__libPane==='v'?'':' hidden')+'>'+back('Вид')+LIB_VIEWS.map(function(o){return it('v',o,o.k===v);}).join('')+'</div>';}
+function libSortSync(){libTitleSync();libMenuRender();}
+function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;if(open){__libPane='root';libMenuRender();
+  const w=m.offsetParent||m.parentElement,wr=w.getBoundingClientRect(),br=b.getBoundingClientRect();m.style.top=Math.round(br.bottom-wr.top+4)+'px';m.style.right=Math.max(0,Math.round(wr.right-br.right))+'px';}m.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');}
+(function(){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;libMenuRender();
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();
+    if(o.dataset.pane){__libPane=o.dataset.pane;libMenuRender();m.scrollTop=0;return;}
+    if(o.id==='libShelfAdd'){libSortMenu(false);shelfNew();return;}
+    if(o.dataset.a!==undefined)libFilterPick('all',o.dataset.a);else if(o.dataset.f)libFilterPick(o.dataset.f);else if(o.dataset.v)libViewPick(o.dataset.v);else if(o.dataset.k)libSortPick(o.dataset.k);});
   b.onclick=function(e){e.stopPropagation();libSortMenu(m.hidden);};
-  document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)libSortMenu(false);});
+  document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&!b.contains(e.target))libSortMenu(false);});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)libSortMenu(false);});})();
 /* search: hidden by default; the icon swaps the header for the field (focus); ✕ closes and clears */
 function libSearchOpen(open){const bar=el('libSearchBar'),h=el('libHead'),i=el('libSearch');if(!bar||!h)return;bar.hidden=!open;h.hidden=!!open;el('libSearchBtn').setAttribute('aria-expanded',open?'true':'false');
@@ -400,25 +425,8 @@ function coverHtml(b){
   if(document.documentElement.dataset.skin==='celestial')return celCover(b);
   return lucideCover(b,'rq-cover'); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) → Lucide + format */
 }
-function renderLibChips(){
-  const box=el('libChips');box.innerHTML='';
-  [['all','Все'],['reading','Читаю'],['want','Хочу'],['done','Прочитано'],['fav','Избранное']].forEach(([k,t])=>{
-    const b=document.createElement('button');
-    b.className='fchip'+(LIB.f===k&&!LIB.author?' on':'');b.textContent=t;
-    b.onclick=()=>{LIB.f=k;LIB.author=null;renderLibrary();};
-    box.appendChild(b);
-  });
-  /* 18.10: свои полки после «Избранного», потом «+ Полка», потом авторы (собираются сами) */
-  shelvesGet().forEach(sh=>{const b=document.createElement('button');b.className='fchip fshelf'+(LIB.f==='sh:'+sh.id&&!LIB.author?' on':'');b.dataset.shelf=sh.id;
-    b.innerHTML=rqIcon('library',14)+'<span></span>';b.lastChild.textContent=sh.n;b.onclick=()=>{LIB.f='sh:'+sh.id;LIB.author=null;renderLibrary();};box.appendChild(b);});
-  {const b=document.createElement('button');b.className='fchip fshelfadd';b.id='libShelfAdd';b.innerHTML=rqIcon('plus',14)+'<span>Полка</span>';b.onclick=()=>shelfNew();box.appendChild(b);}
-  Array.from(new Set(allBooks().map(b=>b.author))).forEach(a=>{
-    const b=document.createElement('button');
-    b.className='fchip'+(LIB.author===a?' on':'');b.textContent=a;
-    b.onclick=()=>{LIB.author=LIB.author===a?null:a;renderLibrary();};
-    box.appendChild(b);
-  });
-}
+/* 18.10: the filter row under the header is gone (filters live in «⋮», libFilterItems); #libChips stays empty and hidden */
+function renderLibChips(){const box=el('libChips');if(box){box.innerHTML='';box.hidden=true;}}
 /* 18.10 (Джессика): свои полки, как «Коллекции» в ReadEra: темы, авторы, жанры. S.shelves=[{id,n,b:[id книги]}];
    поля нет, пока не создана первая полка. Книга может лежать на нескольких полках; кладётся из ⓘ книги */
 function shelvesGet(){return Array.isArray(S.shelves)?S.shelves:[];}

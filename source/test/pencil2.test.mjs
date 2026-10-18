@@ -42,9 +42,8 @@ const sh = await p.evaluate(() => { const cards = [...document.querySelectorAll(
 ok('11 covers: title and author printed on the shelf cover, on clean paper (no hatching under the text)', sh.t && sh.title.includes(sh.t) && sh.tv && sh.a && sh.tbg === 'none', sh);
 ok('12 0 %: «Не начато» instead of «0%», no grey box (a dashed pencil line)', !sh.pct.includes('0%') && sh.zero && sh.zero.bt === 'dashed' && sh.zero.sh === 'none' && sh.zero.bg === 'rgba(0, 0, 0, 0)', sh);
 ok('13 long titles wrap to two lines', sh.clamp === '2' && sh.ws === 'normal' && sh.lines === 2, sh);
-const fd = await p.evaluate(async () => { const c = document.getElementById('libChips'), m = () => getComputedStyle(c).webkitMaskImage || getComputedStyle(c).maskImage;
-  const r = { over: c.scrollWidth > c.clientWidth, start: m() }; c.scrollLeft = c.scrollWidth; c.dispatchEvent(new Event('scroll')); await new Promise(q => setTimeout(q, 80)); r.end = m(); c.scrollLeft = 0; c.dispatchEvent(new Event('scroll')); return r; });
-ok('14 filter row fades at the right edge while more chips are hidden, no fade at the end', fd.over && /gradient/.test(fd.start) && fd.end === 'none', fd);
+const fd = await p.evaluate(() => ({ gone: document.getElementById('libChips').hidden, menu: !!document.querySelector('#libSortMenu [data-f="want"]') }));
+ok('14 no filter row under the header; filters live in «⋮» (18.10)', fd.gone && fd.menu, fd);
 const ad = await p.evaluate(async () => { const h = document.querySelector('#shelf .addhint'); if (!h) return null; const r = h.getBoundingClientRect(), cv = document.querySelector('#shelf .cover').getBoundingClientRect();
   h.click(); await new Promise(q => setTimeout(q, 100)); const open = !document.getElementById('addMenu').hidden; document.getElementById('addMenu').hidden = true;
   return { txt: h.textContent.trim(), w: Math.round(r.width), cw: Math.round(cv.width), open }; });

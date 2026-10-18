@@ -179,7 +179,7 @@ function applySkin(){setTimeout(syncThemeColor,0);
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
   applySkinIcons(t.skin||'');
-  const lt=document.getElementById('libTitle');if(lt)lt.textContent='Библиотека'; /* «Карандашный»: mockup title */
+  if(typeof libTitleSync==='function')libTitleSync(); /* 18.10: the title names the active filter («Библиотека» for all books) */
   const sk=t.skin||'';if(applySkin._last!==undefined&&applySkin._last!==sk){try{if(typeof renderLibrary==='function')renderLibrary();}catch(e){} /* covers are skin-drawn: re-render even when the library is behind settings / the reader */}
   applySkin._last=sk;
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}

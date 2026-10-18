@@ -35,7 +35,8 @@ ok('balance: rendering header writes nothing', await W(p) === 0, await W(p));
 const sq = await p.evaluate(async () => { const st = document.createElement('style'); st.textContent = '#libTitle{font-size:40px!important;letter-spacing:.05em}'; document.head.appendChild(st);
   S.gold = 104.5; renderLibrary(); await new Promise(r => setTimeout(r, 50)); const t = el('libTitle'), h = el('libHead');
   const out = { chip: el('goldChip').textContent.trim(), squeezed: t.scrollWidth > t.clientWidth + 1, overflow: h.scrollWidth > h.clientWidth + 1 }; st.remove(); renderLibrary(); return out; });
-ok('balance: title squeezed by its font but header fits → still «104 монеты»', sq.squeezed && !sq.overflow && sq.chip === '104 монеты', sq);
+/* 18.10: «⋮» joined the header — a clipped title (any skin) drops the word, the number stays */
+ok('balance: title squeezed by its font → the bare number «104»', sq.squeezed && sq.chip === '104', sq);
 // 3 shop purchase + daily payout → header and drawer identical
 const pd = await p.evaluate(async () => { window.__w.length = 0; const out = {};
   /* audit 15.10: skins without styling are «Скоро» → mark all ready to exercise a real purchase */
@@ -51,16 +52,17 @@ ok('after a daily payout: header = drawer = floor(S.gold)', pd.daily.gold > pd.d
 // 4 search
 const se = await safe(() => p.evaluate(async () => { const bar = el('libSearchBar'), hd = el('libHead'); const vis = (e) => !!e && e.offsetParent !== null && !e.hidden;
   const o = { hidden0: bar ? !vis(bar) : false, input0: !vis(el('libSearch')) }; el('libSearchBtn').click(); await new Promise(r => setTimeout(r, 200));
-  o.open = vis(bar) && !vis(hd) && document.activeElement === el('libSearch') && vis(el('libChips'));
+  o.open = vis(bar) && !vis(hd) && document.activeElement === el('libSearch');
   const inp = el('libSearch'); inp.value = 'zzzz-nothing'; inp.dispatchEvent(new Event('input')); await new Promise(r => setTimeout(r, 200)); o.filtered = document.querySelectorAll('#shelf > *').length;
   const x = el('libSearchClose'); o.xIcon = !!(x && x.querySelector('use[href="#i-x"]')); x.click(); await new Promise(r => setTimeout(r, 200));
-  o.closed = !vis(bar) && vis(hd) && inp.value === '' && LIB.q === '' && vis(el('libChips')); o.after = document.querySelectorAll('#shelf > *').length; return o; }));
-ok('search: hidden by default; icon opens it in place of the header with focus; chips stay; ✕ closes and clears', se.hidden0 && se.input0 && se.open && se.xIcon && se.closed && se.after > se.filtered, se);
+  o.closed = !vis(bar) && vis(hd) && inp.value === '' && LIB.q === ''; o.after = document.querySelectorAll('#shelf > *').length; return o; }));
+ok('search: hidden by default; icon opens it in place of the header with focus; ✕ closes and clears', se.hidden0 && se.input0 && se.open && se.xIcon && se.closed && se.after > se.filtered, se);
 await p.screenshot({ path: '/workspace/out/libhead-test-top.png' });
 // 5 sort menu + add
+await p.evaluate(() => { window.SL = () => { const v = document.querySelector('#libSortMenu [data-pane="s"] .lsov'); return v ? v.textContent.trim() : ''; }; });
 const sm = await safe(() => p.evaluate(async () => { window.__w.length = 0; const b = el('libSortBtn'), m = el('libSortMenu'); if (!b || !m) return { missing: true, select: !!document.querySelector('#library select') };
-  const vis = (e) => e.offsetParent !== null && !e.hidden; const o = { select: !!document.querySelector('#library select'), closed0: !vis(m), label: b.textContent.trim() };
-  b.click(); await new Promise(r => setTimeout(r, 200)); const rows = [...m.querySelectorAll('[role=menuitemradio][data-k]')]; o.views = m.querySelectorAll('[role=menuitemradio][data-v]').length; /* 18.10: + «Вид» */
+  const vis = (e) => e.offsetParent !== null && !e.hidden; const o = { select: !!document.querySelector('#library select'), closed0: !vis(m), label: SL() };
+  b.click(); await new Promise(r => setTimeout(r, 200)); m.querySelector('[data-pane="s"]').click(); await new Promise(r => setTimeout(r, 100)); /* 18.10: «⋮» → Сортировка */ const rows = [...m.querySelectorAll('[role=menuitemradio][data-k]')]; o.views = m.querySelectorAll('[role=menuitemradio][data-v]').length; /* 18.10: + «Вид» */
   o.open = vis(m); o.under = Math.round(m.getBoundingClientRect().top) >= Math.round(b.getBoundingClientRect().bottom) - 1; o.n = rows.length; o.h = rows.map(r => Math.round(r.getBoundingClientRect().height));
   o.checks = rows.filter(r => { const c = r.querySelector('use[href="#i-check"]'); return c && getComputedStyle(c.closest('svg')).visibility !== 'hidden'; }).map(r => r.dataset.k); o.cur = LIB.sort;
   o.bg = getComputedStyle(m).backgroundColor; o.card = (() => { const t = document.createElement('div'); t.style.background = 'var(--card)'; document.body.appendChild(t); const c = getComputedStyle(t).backgroundColor; t.remove(); return c; })();
@@ -68,17 +70,17 @@ const sm = await safe(() => p.evaluate(async () => { window.__w.length = 0; cons
   b.click(); await new Promise(r => setTimeout(r, 150)); m.querySelector('[data-k="' + LIB.sort + '"]').click(); await new Promise(r => setTimeout(r, 200)); o.repickClosed = !vis(m);
   o.writes = window.__w.filter(x => x.k === RQ_K.set).length;
   const a = el('btnAdd'), ar = a.getBoundingClientRect(); o.add = [Math.round(ar.width), Math.round(ar.height), !!a.querySelector('use[href="#i-plus"]'), a.textContent.trim(), a.getAttribute('aria-label')]; return o; }), { missing: true, add: [] });
-ok('sort: no native select; button with current label; small menu under it, 4 sort rows (+ «По автору») and 4 view rows × 44px, check only on current, card colour', !sm.missing && !sm.select && sm.label === 'Недавние' && sm.closed0 && sm.open && sm.under && sm.n === 4 && sm.views === 4 && sm.h.every(x => x === 44) && sm.checks.length === 1 && sm.checks[0] === sm.cur && sm.bg === sm.card, sm);
+ok('sort: no native select; «⋮» in the header, «Сортировка» row shows the current one; menu under the button, 4 sort rows (+ «По автору») and 4 view rows × 44px, check only on current, card colour', !sm.missing && !sm.select && sm.label === 'Недавние' && sm.closed0 && sm.open && sm.under && sm.n === 4 && sm.views === 4 && sm.h.every(x => x === 44) && sm.checks.length === 1 && sm.checks[0] === sm.cur && sm.bg === sm.card, sm);
 ok('sort: open/close, outside tap, re-picking the current option → 0 NS_set writes', !sm.missing && sm.toggledClosed && sm.outsideClosed && sm.repickClosed && sm.writes === 0, sm);
 ok('add: 44×44 icon button, Lucide plus, no text, aria-label', !sm.missing && sm.add[0] === 44 && sm.add[1] === 44 && sm.add[2] && sm.add[3] === '' && !!sm.add[4], sm.add);
 // 6 different pick → exactly one write, reload keeps it; rq namespace untouched
 const pk = await safe(() => p.evaluate(async () => { const main = RQ_K.set.replace(/^rqt_/, 'rq_'); const m0 = localStorage.getItem(main); window.__w.length = 0;
   el('libSortBtn').click(); await new Promise(r => setTimeout(r, 150)); el('libSortMenu').querySelector('[data-k="title"]').click(); await new Promise(r => setTimeout(r, 300));
-  const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}'); return { writes: window.__w.filter(x => x.k === RQ_K.set).length, stored: st.libSort, label: el('libSortBtn').textContent.trim(), ns: RQ_K.set, mainSame: localStorage.getItem(main) === m0, mainKey: main }; }));
+  const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}'); return { writes: window.__w.filter(x => x.k === RQ_K.set).length, stored: st.libSort, label: SL(), ns: RQ_K.set, mainSame: localStorage.getItem(main) === m0, mainKey: main }; }));
 ok('pick a different option → exactly 1 saveSet, NS_set.libSort = "title" (string id), label «По названию»; rq namespace untouched', pk.writes === 1 && pk.stored === 'title' && pk.label === 'По названию' && pk.ns.startsWith('rqt_') && pk.mainSame, pk);
 await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(400);
 const rl = await p.evaluate(() => { show('library'); const t = [...document.querySelectorAll('#shelf [data-title], #shelf .bt, #shelf b')].map(e => e.dataset.title || e.textContent.trim()).filter(Boolean);
-  return { sort: LIB.sort, label: el('libSortBtn') && el('libSortBtn').textContent.trim(), writes: window.__w.filter(x => x.k === RQ_K.set).length }; });
+  return { sort: LIB.sort, label: (document.querySelector('#libSortMenu [data-pane="s"] .lsov') || {}).textContent, writes: window.__w.filter(x => x.k === RQ_K.set).length }; });
 ok('reload keeps the choice (LIB.sort = title, label «По названию»), boot writes nothing', rl.sort === 'title' && rl.label === 'По названию' && rl.writes === 0, rl);
 // 7 forgiving read: broken stored values → default in memory, no write
 const br = [];

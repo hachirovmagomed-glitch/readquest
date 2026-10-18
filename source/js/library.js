@@ -175,7 +175,7 @@ function renderLibrary(){
     else cc.innerHTML='';}
   const dc=el('dailyCard');
   if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">'+rqIcon('gift',18)+'<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
-  const shelf=el('shelf');shelf.innerHTML='';
+  const shelf=el('shelf');shelf.innerHTML='';shelf.className='grid v-'+libViewGet();
   let list=allBooks();
   if(LIB.q)list=list.filter(b=>(b.title+' '+b.author).toLowerCase().includes(LIB.q));
   if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
@@ -183,6 +183,7 @@ function renderLibrary(){
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   LIB.sort=libSortGet();
   if(LIB.sort==='title')list.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(LIB.sort==='author')list.sort((a,b)=>(a.author||'').localeCompare(b.author||'')||a.title.localeCompare(b.title));
   else if(LIB.sort==='progress')list.sort((a,b)=>rqPos(b.id)-rqPos(a.id)); /* 1б-144: by current position */
   else{const lo=S.lastOpen||{};list.sort((a,b)=>(lo[b.id]||0)-(lo[a.id]||0));}
   if(!list.length)shelf.innerHTML='<div class="pempty" style="grid-column:1/-1">Ничего не найдено</div>';
@@ -191,7 +192,7 @@ function renderLibrary(){
     const done=S.finished.includes(b.id),zero=!done&&Math.round(p.ratio*100)===0; /* 18.10: 0 % reads «Не начато» */
     const card=document.createElement('button');card.className='bookcard';
     card.innerHTML='<div class="cover">'+coverHtml(b)+'</div><div class="bmeta">'+
-      '<div class="btitle">'+(S.favs.includes(b.id)?'<span style="color:var(--accent2)">★</span> ':'')+esc(b.title)+'</div><div class="bauthor">'+esc(b.author)+'</div>'+
+      '<div class="btitle">'+(S.favs.includes(b.id)?'<span style="color:var(--accent2)">★</span> ':'')+esc(b.title)+'</div><div class="bauthor">'+esc(b.author)+'</div><div class="bfmt">'+bookFmt(b)+'</div>'+
       '<div class="pbar'+(zero?' pbar0':'')+'"><i style="width:'+Math.round((done?1:p.ratio)*100)+'%;'+(done?'background:#4cd97b':'')+'"></i></div>'+
       '<div class="bpct">'+(done?'Прочитано':zero?'Не начато':Math.round(p.ratio*100)+'%')+' · качает '+statOf(b)+'</div></div>'+
       '<span class="infobtn" onclick="event.stopPropagation();bookInfo(\''+b.id+'\')">ⓘ</span>';
@@ -247,18 +248,24 @@ addEventListener('resize',function(){if(!el('library').classList.contains('hidde
 if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',function(){libGoldRender();}); /* skin fonts arrive later and widen the header */
 /* sort (15.10): NS_set.libSort = string id from LIB_SORTS. Read is forgiving and never writes; a DIFFERENT pick → one gated saveSet
    (rqSaveSetGated: deferred until __rqReady, only if the gate allows). Opening / closing / re-picking the current one writes nothing. */
-const LIB_SORTS=[{k:'recent',t:'Недавние'},{k:'title',t:'По названию'},{k:'progress',t:'По прогрессу'}];
+const LIB_SORTS=[{k:'recent',t:'Недавние'},{k:'title',t:'По названию'},{k:'author',t:'По автору'},{k:'progress',t:'По прогрессу'}];
+/* 18.10 (Джессика, как в ReadEra): вид полки. NS_set.libView, по умолчанию сетка по три */
+const LIB_VIEWS=[{k:'grid',t:'Сетка'},{k:'covers',t:'Эскизы'},{k:'short',t:'Краткий'},{k:'full',t:'Полный'}];
+function libViewGet(){const v=typeof SET!=='undefined'&&SET?SET.libView:null;return LIB_VIEWS.some(function(o){return o.k===v;})?v:'grid';}
+function libViewPick(k){libSortMenu(false);if(!LIB_VIEWS.some(function(o){return o.k===k;})||k===libViewGet())return false;
+  SET.libView=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
 function libSortRead(v){return (typeof v==='string'&&LIB_SORTS.some(function(o){return o.k===v;}))?v:'recent';}
 function libSortGet(){return libSortRead(typeof SET!=='undefined'&&SET?SET.libSort:null);}
 function libSortLabel(k){return (LIB_SORTS.find(function(o){return o.k===k;})||LIB_SORTS[0]).t;}
 function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet()){LIB.sort=k;return false;}
   SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
 function libSortSync(){const b=el('libSortBtn');if(!b)return;const k=libSortGet();b.querySelector('.lsl').textContent=libSortLabel(k);
-  const m=el('libSortMenu');if(m)m.querySelectorAll('.lso').forEach(function(o){o.setAttribute('aria-checked',o.dataset.k===k?'true':'false');});}
+  const v=libViewGet(),m=el('libSortMenu');if(m)m.querySelectorAll('.lso').forEach(function(o){o.setAttribute('aria-checked',(o.dataset.v?o.dataset.v===v:o.dataset.k===k)?'true':'false');});}
 function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;m.hidden=!open;b.setAttribute('aria-expanded',open?'true':'false');if(open)libSortSync();}
 (function(){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!b)return;
-  m.innerHTML=LIB_SORTS.map(function(o){return '<button type="button" class="lso" role="menuitemradio" data-k="'+o.k+'" aria-checked="false"><span>'+esc(o.t)+'</span>'+rqIcon('check',20)+'</button>';}).join('');
-  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(o){e.stopPropagation();libSortPick(o.dataset.k);}});
+  const it=function(a,o){return '<button type="button" class="lso" role="menuitemradio" data-'+a+'="'+o.k+'" aria-checked="false"><span>'+esc(o.t)+'</span>'+rqIcon('check',20)+'</button>';};
+  m.innerHTML='<div class="lsoh">Сортировка</div>'+LIB_SORTS.map(function(o){return it('k',o);}).join('')+'<div class="lsoh lsosep">Вид</div>'+LIB_VIEWS.map(function(o){return it('v',o);}).join('');
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(o){e.stopPropagation();if(o.dataset.v)libViewPick(o.dataset.v);else libSortPick(o.dataset.k);}});
   b.onclick=function(e){e.stopPropagation();libSortMenu(m.hidden);};
   document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)libSortMenu(false);});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)libSortMenu(false);});})();

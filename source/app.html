@@ -228,6 +228,39 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #shelf .pbar{height:6px;margin-top:6px;border-radius:3px}
 #shelf .bpct{font-size:11px;margin-top:3px}
 #shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:15px}
+#shelf .bfmt{display:none}
+/* 18.10 (Джессика, как в ReadEra): вид полки в меню у «Недавние»: Сетка (по умолчанию), Эскизы (крупно по две, без подписей), Краткий и Полный (списком).
+   #library #shelf перебивает сеточные правила скинов («Небесный», «Карандашный»), надписи на обложке остаются только в сетке */
+#library #shelf.v-covers{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#library #shelf.v-covers .bmeta{display:none}
+#library #shelf:is(.v-short,.v-full){display:flex;flex-direction:column;gap:10px;padding-top:2px}
+#library #shelf:is(.v-short,.v-full) .bookcard{flex-direction:row;align-items:center;gap:14px;padding:10px 6px 10px 12px;margin:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:none}
+html[data-skin] #library #shelf:is(.v-short,.v-full) .bookcard{background:var(--rq-surface);border-color:var(--rq-line);border-radius:var(--rq-radius-sm)}
+#library #shelf:is(.v-short,.v-full) .cover{flex:none;aspect-ratio:auto}
+#library #shelf.v-short .cover{width:40px;height:54px;font-size:20px}
+#library #shelf.v-full .cover{width:68px;height:92px;font-size:28px}
+#library #shelf:is(.v-short,.v-full) .bmeta{flex:1;min-width:0;margin:0}
+#library #shelf.v-short .btitle{font-size:15px;line-height:20px}
+#library #shelf.v-short .bauthor{font-size:12.5px;line-height:17px}
+#library #shelf.v-short .pbar{display:none}
+#library #shelf.v-full .btitle{font-size:16px;line-height:21px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+#library #shelf.v-full .bauthor{font-size:13px;line-height:18px;margin-top:2px}
+#library #shelf.v-full .bfmt{display:block;font-size:12px;line-height:16px;color:var(--muted);margin-top:2px}
+#library #shelf.v-full .pbar{margin-top:8px}
+#library #shelf:is(.v-short,.v-full) .bpct{font-size:12px}
+#library #shelf:is(.v-short,.v-full) .infobtn{position:static;flex:none;width:40px;height:40px;color:var(--rq-text-2,var(--muted));background:none}
+#library #shelf:is(.v-short,.v-full) :is(.cl-t,.cl-a,.pc-t,.pc-a){display:none!important}
+#library #shelf:is(.v-short,.v-full) .cl-cover{justify-content:center;padding:0}
+#library #shelf:is(.v-short,.v-full) .cl-cover svg{display:block;width:22px;height:22px;margin-left:-11px}
+#library #shelf:is(.v-short,.v-full) .cl-cover i{padding-top:5px;font-size:7px}
+#library #shelf:is(.v-short,.v-full) .pc-cover{justify-content:center;padding:0}
+#library #shelf:is(.v-short,.v-full) .pc-cover::before{display:none}
+#library #shelf:is(.v-short,.v-full) .pc-cover .ic{display:inline-block!important}
+#library #shelf:is(.v-short,.v-full) .pc-cover i{margin-top:2px}
+#library #shelf:is(.v-short,.v-full) .addhint{flex-direction:row;align-items:center}
+#library #shelf:is(.v-short,.v-full) .addhint .cover{width:40px;height:54px;aspect-ratio:auto}
+.lsortmenu .lsoh{padding:10px 14px 4px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--rq-text-2,var(--muted))}
+.lsortmenu .lsosep{margin-top:4px;border-top:1px solid var(--rq-line,var(--line));padding-top:12px}
 
 /* ===== Нижняя навигация ===== */
 #bottomNav{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--card2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:40}

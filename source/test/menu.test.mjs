@@ -67,6 +67,13 @@ for (const sk of ['default', 'ellada', 'babochkovyi', 'celestial', 'pencil']) {
 const L = Object.values(lay);
 ok('16 «Профиль» one layout in every skin: «Квесты» and the goal card at the same height, both quests above the bottom bar (18.10)',
   L.every(v => v.qh === L[0].qh && v.goal === L[0].goal && v.end <= v.nav), lay);
+await p.evaluate(() => { wear(''); navGo('library'); }); await sleep(150);
+r = await p.evaluate(() => { const out = {}; const views = [...document.querySelectorAll('#libSortMenu .lso[data-v]')].map(b => b.dataset.v);
+  for (const v of ['covers', 'short', 'full', 'grid']) { libViewPick(v); const sh = el('shelf'), c = sh.querySelector('.bookcard');
+    out[v] = sh.className.includes('v-' + v) + ' ' + getComputedStyle(sh).display + ' ' + (c ? getComputedStyle(c).flexDirection : ''); }
+  return { views, out, saved: SET.libView, sorts: [...document.querySelectorAll('#libSortMenu .lso[data-k]')].map(b => b.dataset.k) }; });
+ok('17 shelf view in the sort menu (ReadEra): Сетка, Эскизы, Краткий, Полный; lists are rows, grid back by default; «По автору» sort (18.10)',
+  r.views.join() === 'grid,covers,short,full' && r.out.covers.startsWith('true grid') && r.out.short === 'true flex row' && r.out.full === 'true flex row' && r.out.grid === 'true grid column' && r.saved === 'grid' && r.sorts.includes('author'), r);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY menu.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

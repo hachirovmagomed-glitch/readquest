@@ -17,7 +17,7 @@ const HERO_GEAR=[
 ];
 function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||null;}
 function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){if(heroItem(eq[k]))on[k]=eq[k];});return on;}
-const HI='var(--rq-text)',HB='var(--hero-bg)',HA='var(--rq-accent)',HC='color-mix(in srgb,var(--rq-accent) 60%,var(--rq-text))';
+const HI='var(--txt)',HB='var(--hero-bg)',HA='var(--accent)',HC='color-mix(in srgb,var(--accent) 60%,var(--txt))'; /* --txt/--accent: и скины, и тема по умолчанию */
 /** heroSvg(on): on = {slot:id}; без аргумента — то, что надето */
 function heroSvg(on){
   on=on||heroOn();const has=function(id){return Object.keys(on).some(function(k){return on[k]===id;});};
@@ -53,6 +53,12 @@ function heroSvg(on){
     '<path d="M10 63 Q11.2 69 14.6 71.6 M15 63.4 Q16 67 15.4 70" stroke="'+HB+'" stroke-width=".9" fill="none" stroke-linecap="round"/>';
   return '<svg class="herosvg" viewBox="0 0 72 78" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
+/* герой стоит прямо на плашке: щели силуэта = цвет плашки под ним (первый непрозрачный фон вверх по дереву) */
+function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){f.style.removeProperty('--hero-bg');});return;} /* у карандаша бумага плашки в ::before */
+  (root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){
+  let n=f,c='';while(n&&n.nodeType===1){const b=getComputedStyle(n).backgroundColor;if(b&&!/rgba\([^)]*,\s*0\)|transparent/.test(b)){c=b;break;}n=n.parentElement;}
+  if(c)f.style.setProperty('--hero-bg',c);});}
+const _renderProfile=renderProfile;renderProfile=function(){_renderProfile.apply(this,arguments);try{heroBgFix(el('profile'));}catch(e){}};
 /* профиль и мини-аватар в библиотеке рисуют героя через avatarSvg() — подменяем на стикмена */
 avatarSvg=function(){return heroSvg();};
 if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}heroShopTab('wear');};
@@ -102,6 +108,7 @@ function renderHeroShop(){
         '<span class="heroframe">'+heroSvg(one)+'</span><span class="shopname">'+esc(g.name)+'</span>'+
         '<span class="shopprice">'+(own?(worn?'Надето':'Куплено'):coinsP(g.price))+' · '+HERO_SLOTS[g.slot].toLowerCase()+'</span>'+cta+'</div>';
     }).join('')+'</div>';
+  heroBgFix(box);
 }
 const _renderShopPane=renderShopPane;
 renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroShop();}catch(e){console.warn('[rq] hero shop',e);}};

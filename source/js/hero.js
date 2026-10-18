@@ -39,7 +39,7 @@ function heroSvg(on){
   /* поза зависит от того, что в руке (Джессика 18.10): копьё — рука отведена к древку, свиток — рука у груди, читает */
   const pose=has('gr-dory')?'spear':has('gr-scroll')?'scroll':'down';
   const limb=function(d){return '<path d="'+d+'" fill="none" stroke="'+HB+'" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round"/><path d="'+d+'" fill="none" stroke="'+HI+'" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>';};
-  if(pose==='spear')s+=limb('M25.4 24.4 L21.4 43.6');
+  if(pose==='spear')s+=limb('M25.4 24.4 L21 43.6');
   if(pose==='scroll')s+=limb('M25.4 24.4 L25.2 37.6');
   /* стикмен: голова, руки, корпус, ноги; щели между ними — фон */
   s+='<g fill="'+HI+'"'+gap(0.9)+'>'+
@@ -55,12 +55,10 @@ function heroSvg(on){
     s+='<path d="M27.4 22.6 Q30 20.4 36.5 20.8 Q46.5 21 49.6 24.2 L51.8 40 L53 63 Q49.8 65 46.6 63 L45.6 47.4 Q37.6 40.6 29.6 27 Z" fill="'+c+'"'+gap(1.1)+'/>'+
       '<path d="M32.4 26.6 Q39 36 45.4 41 M35.6 24.2 Q42 31 46.6 33.6 M48.6 30 L49.6 61.6 M50.8 44 L51.4 62" stroke="'+d+'" stroke-width=".8" fill="none" stroke-linecap="round"/>'+
       '<circle cx="29.8" cy="24.4" r="2.4" fill="'+c+'" stroke="'+d+'" stroke-width=".9"/><circle cx="29.8" cy="24.4" r=".9" fill="'+d+'"/>';}
-  if(has('gr-dory'))s+='<circle cx="20.6" cy="44.2" r="3.2" fill="'+HI+'"'+gap(0.9)+'/>';
   if(has('gr-scroll')){const c=A('gr-scroll'),d=D('gr-scroll');
     s+=limb('M25.2 37.6 L31 33.4')+
       '<rect x="31" y="27.4" width="9.6" height="8.4" fill="'+c+'"'+gap(0.8)+'/><path d="M33 30 H38.6 M33 32 H38.6 M33 34 H37" stroke="'+d+'" stroke-width=".6"/>'+
-      '<rect x="29.4" y="25.6" width="2.8" height="12" rx="1.4" fill="'+d+'"'+gap(0.6)+'/><rect x="39.4" y="25.6" width="2.8" height="12" rx="1.4" fill="'+d+'"'+gap(0.6)+'/>'+
-      '<circle cx="30.8" cy="33.6" r="3" fill="'+HI+'"'+gap(0.9)+'/>';}
+      '<rect x="29.4" y="25.6" width="2.8" height="12" rx="1.4" fill="'+d+'"'+gap(0.6)+'/><rect x="39.4" y="25.6" width="2.8" height="12" rx="1.4" fill="'+d+'"'+gap(0.6)+'/>';}
   if(has('gr-helm')){const c=A('gr-helm'),d=D('gr-helm');
     s+='<g transform="translate(0 2.6)"><rect x="34.9" y="-0.6" width="2.2" height="3.6" fill="'+d+'"/>'+
       '<path d="M26.6 0.2 Q36 -9.4 45.4 0.2 Q41 2 36 2 Q31 2 26.6 0.2 Z" fill="'+c+'"'+gap(0.8)+'/>'+

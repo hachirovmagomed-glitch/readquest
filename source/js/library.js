@@ -164,17 +164,8 @@ function renderLibrary(){
     if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
   }
   libSortSync();libGoldRender(); /* balance as text, floor(S.gold), same source as the drawer; no writes */
-  el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
-  const _mt=isMvp()?minTodaySess():S.minToday;
-  el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
   const gl=el('libGoldLine');if(gl){gl.textContent='';if(__bootGold)gl.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
-  el('streakTxt').innerHTML=rqIcon('flame',16)+'<span></span>';el('streakTxt').lastChild.textContent=S.streak+' '+plural(S.streak,'день','дня','дней');
-  el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
-  const pct=Math.min(1,_mt/goalMin());
-  el('ringFg').style.strokeDashoffset=207*(1-pct);
-  el('ringFg').style.stroke=pct>=1?'var(--good)':'var(--accent)';
-  el('ringTxt').textContent=Math.floor(pct*100)+'%';
-  bbHatchRender(pct);
+  renderGoalCard();
   renderLibChips();
   // карточка «Продолжить чтение»
   const cc=el('continueCard');
@@ -213,6 +204,19 @@ function renderLibrary(){
     });
   }
   applyMvpChrome();
+}
+/* 17.10: the day goal card (ring, today, streak) lives in «Профиль»; drawn from the library and the profile */
+function renderGoalCard(){if(!el('ringFg'))return;
+  el('goalTitle').textContent=isMvp()?('Цель '+goalMin()+' мин'):('Цель дня: '+S.goal+' мин');
+  const _mt=isMvp()?minTodaySess():S.minToday;
+  el('goalSub').textContent='Сегодня: '+Math.floor(_mt)+' мин';
+  el('streakTxt').innerHTML=rqIcon('flame',16)+'<span></span>';el('streakTxt').lastChild.textContent=S.streak+' '+plural(S.streak,'день','дня','дней');
+  el('lvlTxt').innerHTML=rqIcon('star',16)+'<span></span>';el('lvlTxt').lastChild.textContent='Ур. '+level(S.xp);
+  const pct=Math.min(1,_mt/goalMin());
+  el('ringFg').style.strokeDashoffset=207*(1-pct);
+  el('ringFg').style.stroke=pct>=1?'var(--good)':'var(--accent)';
+  el('ringTxt').textContent=Math.floor(pct*100)+'%';
+  bbHatchRender(pct);
 }
 /* 1в: «N монет» — число и слово из одного n; '∞' (devMoney) → «монет» */
 function coinsP(n){return n+' '+(typeof n==='number'?plural(n,'монета','монеты','монет'):'монет');}

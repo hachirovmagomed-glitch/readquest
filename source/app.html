@@ -184,6 +184,19 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .bpct{font-size:12px;color:var(--muted);margin-top:5px}
 .addbtn{border:2px dashed color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-size:15px}
 @media(min-width:700px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bookcard{margin-bottom:0}}
+/* 17.10 (Джессика): «Моя полка» in every skin = covers three across (as «Небесный»), title, author and a thin bar under the cover */
+#goalCard{margin:12px 0 0}
+#shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;padding-top:4px}
+#shelf .bookcard{position:relative;flex-direction:column;align-items:stretch;gap:0;padding:0;margin:0;background:transparent;border:0;border-radius:0;box-shadow:none;min-width:0}
+#shelf .bookcard::before,#shelf .bookcard::after{display:none}
+#shelf .cover{width:100%;height:auto;aspect-ratio:3/4;font-size:34px}
+#shelf .bmeta{min-width:0;margin-top:9px}
+#shelf :is(.btitle,.bauthor,.bpct){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#shelf .btitle{font-size:12.5px;line-height:1.3}
+#shelf .bauthor{font-size:11px;margin:1px 0 0}
+#shelf .pbar{height:6px;margin-top:6px;border-radius:3px}
+#shelf .bpct{font-size:11px;margin-top:3px}
+#shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:15px}
 
 /* ===== Нижняя навигация ===== */
 #bottomNav{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--card2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:40}
@@ -1166,18 +1179,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div class="scroll"><div class="wrap">
     <div class="row libhead" id="libHead"><button class="menubtn" id="menuLib" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1 id="libTitle">Библиотека</h1><div class="spacer"></div><button class="iconbtn44" id="libSearchBtn" type="button" aria-label="Поиск" aria-controls="libSearchBar" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><span class="libgold" id="goldChip" aria-label="Баланс">0 монет</span></div>
     <div class="row libsearchbar" id="libSearchBar" hidden><input id="libSearch" class="searchinp" type="search" placeholder="Поиск по названию и автору" aria-label="Поиск по названию и автору"><button class="iconbtn44" id="libSearchClose" type="button" aria-label="Закрыть поиск"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
-    <div class="goalcard">
-      <svg class="ring" viewBox="0 0 80 80">
-        <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
-        <circle id="ringFg" cx="40" cy="40" r="33" fill="none" stroke="#2bb3c0" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" transform="rotate(-90 40 40)"/>
-        <text id="ringTxt" x="40" y="45" text-anchor="middle">0%</text>
-      </svg>
-      <div>
-        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
-        <div class="sub" id="goalSub">Сегодня: 0 мин</div><div class="bbhatch" id="bbHatch" aria-hidden="true"></div>
-        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg><span>0 дней</span></span><span id="lvlTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span>Ур. 1</span></span></div>
-      </div>
-    </div>
     <div id="libGoldLine" class="hidden" role="status"></div>
     <div id="libChips" class="chips"></div>
     <div id="dailyCard"></div>
@@ -1218,6 +1219,18 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="mvp-full" style="font-size:11px;color:var(--muted);margin-top:8px">Тап по аватару — сменить облик</div>
       <div id="avaPal" class="emojigrid hidden mvp-full"></div>
       <button class="ghostbtn mvp-hide" id="btnHeroCreate" style="margin-top:12px;width:100%"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Создать героя</button>
+    </div>
+    <div class="goalcard" id="goalCard"> <!-- 17.10: moved from the library (Джессика) -->
+      <svg class="ring" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="33" fill="none" stroke="#2a5564" stroke-width="8"/>
+        <circle id="ringFg" cx="40" cy="40" r="33" fill="none" stroke="#2bb3c0" stroke-width="8" stroke-linecap="round" stroke-dasharray="207" stroke-dashoffset="207" transform="rotate(-90 40 40)"/>
+        <text id="ringTxt" x="40" y="45" text-anchor="middle">0%</text>
+      </svg>
+      <div>
+        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
+        <div class="sub" id="goalSub">Сегодня: 0 мин</div><div class="bbhatch" id="bbHatch" aria-hidden="true"></div>
+        <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg><span>0 дней</span></span><span id="lvlTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span>Ур. 1</span></span></div>
+      </div>
     </div>
     <button type="button" class="pcard achv-card hidden" id="achCard" onclick="openAchPage()"><span class="achv-ic"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg></span><span class="achv-txt"><span class="achv-name">Достижения</span><span class="achv-sub"><span id="achCardNum"></span> · <span id="achCardPts"></span></span></span><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
 

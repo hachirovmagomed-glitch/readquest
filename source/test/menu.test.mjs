@@ -45,6 +45,19 @@ r = await p.evaluate(() => ({ tabs: document.querySelectorAll('#quests .jtab, #q
 ok('12 «Квесты» has no «Цитаты» / «Словарь» tabs any more (they live in «Инвентарь»)', (await cur()) === 'quests' && !r.tabs && r.h1 === 'Квесты' && r.box, r);
 await p.evaluate(() => openJournal('vocab')); await sleep(100);
 ok('12b an old journal link to the vocab opens it inside «Инвентарь»', (await cur()) === 'vocab');
+await p.evaluate(() => navGo('library')); await sleep(150);
+r = await p.evaluate(() => ({ inLib: !!document.querySelector('#library .goalcard'), inProf: !!document.querySelector('#profile #goalCard') }));
+ok('13 the day goal card left the library and lives in «Профиль»', !r.inLib && r.inProf, r);
+const cols = {};
+for (const sk of ['default', 'ellada', 'babochkovyi', 'celestial', 'pencil']) {
+  cols[sk] = await p.evaluate(sk => { S.gold = 9999; if (sk === 'default') { const w = (S.skin || ''); if (w) wear(w); } else { buy('skin-' + sk); wear('skin-' + sk); } navGo('library'); renderLibrary();
+    const g = getComputedStyle(el('shelf')), c = el('shelf').querySelector('.bookcard .cover');
+    return g.display + ' ' + g.gridTemplateColumns.split(' ').length + ' ' + (c ? Math.round(c.getBoundingClientRect().height / c.getBoundingClientRect().width * 100) : 0); }, sk);
+}
+ok('14 «Моя полка» is a grid of covers three across (3:4) in every skin', Object.values(cols).every(v => v === 'grid 3 133'), cols);
+await p.evaluate(() => navGo('profile')); await sleep(150);
+r = await p.evaluate(() => ({ ring: el('ringTxt').textContent, sub: el('goalSub').textContent }));
+ok('15 the goal card in «Профиль» is drawn (ring and today)', /%$/.test(r.ring) && /Сегодня/.test(r.sub), r);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY menu.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

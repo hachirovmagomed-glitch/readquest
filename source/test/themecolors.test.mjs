@@ -14,8 +14,8 @@ await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.
 const probe = () => p.evaluate(() => {
   const rgb = (h) => { const d = document.createElement('div'); d.style.color = h; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; };
   const cs = getComputedStyle(document.documentElement), v = (n) => rgb(cs.getPropertyValue(n).trim());
-  const gc = getComputedStyle(document.querySelector('#library .goalcard'));
-  const track = getComputedStyle(document.querySelector('#library .goalcard circle:not(#ringFg)')).stroke;
+  const gc = getComputedStyle(document.querySelector('#goalCard'));
+  const track = getComputedStyle(document.querySelector('#goalCard circle:not(#ringFg)')).stroke;
   const fg = getComputedStyle(document.getElementById('ringFg')).stroke;
   const nav = getComputedStyle(document.getElementById('botnav')), on = getComputedStyle(document.querySelector('#botnav .botnav-btn.on'));
   return { card: v('--card'), card2: v('--card2'), accent: v('--accent'), good: v('--good'), gcBg: gc.backgroundImage + ' ' + gc.backgroundColor, track, fg,

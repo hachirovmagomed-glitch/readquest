@@ -51,10 +51,10 @@ const lib = () => p.evaluate(() => { const root = getComputedStyle(document.docu
   const covers = [...document.querySelectorAll('#shelf .cl-cover')], inks = new Set(covers.map(c => c.className)), emb = new Set(covers.map(c => c.querySelector('svg').innerHTML));
   const kids = [...document.querySelectorAll('#libHead > *, #libHead .row > *')].map(e => e.getBoundingClientRect()).filter(r => r.width);
   return { sky: /data:image\/svg/.test(root.backgroundImage) && /gradient/.test(root.backgroundImage), body: getComputedStyle(document.body).backgroundColor, frame: cs && /0px 0px 0px 1\.5px/.test(cs.boxShadow) && /0px 0px 0px 3px/.test(cs.boxShadow),
-    covers: covers.length, inks: inks.size, emb: emb.size, coin: /data:image\/svg/.test(getComputedStyle(document.getElementById('goldChip'), '::before').backgroundImage),
+    covers: covers.length, inks: inks.size, emb: emb.size, coin: !document.getElementById('goldChip') /* 18.10: no balance in the library header */,
     inside: kids.every(r => r.left >= 0 && r.right <= innerWidth + 0.5), sx: document.documentElement.scrollWidth <= innerWidth }; });
 const l390 = await lib();
-ok('5 library: sky + star dust on the root, body transparent, gold-framed covers, dusk covers (≥2 inks, ≥2 emblems), coin, fits 390', l390.sky && l390.body === 'rgba(0, 0, 0, 0)' && l390.frame && l390.covers >= 3 && l390.inks >= 2 && l390.emb >= 2 && l390.coin && l390.inside && l390.sx, l390);
+ok('5 library: sky + star dust on the root, body transparent, gold-framed covers, dusk covers (≥2 inks, ≥2 emblems), no balance chip, fits 390', l390.sky && l390.body === 'rgba(0, 0, 0, 0)' && l390.frame && l390.covers >= 3 && l390.inks >= 2 && l390.emb >= 2 && l390.coin && l390.inside && l390.sx, l390);
 await p.screenshot({ path: SHOTS + 'celestial-library-390.png' });
 const labels = await p.evaluate(() => [...document.querySelectorAll('#shelf .cl-cover')].map(c => { const bg = getComputedStyle(c).backgroundImage.match(/rgb\([^)]+\)/g) || []; return { c: getComputedStyle(c.querySelector('i')).color, bg }; }));
 const lc = labels.flatMap(x => x.bg.map(b => cr(hex(x.c), hex(b))));
@@ -65,7 +65,7 @@ const hov = await p.evaluate(() => { const bad = []; for (const id of ['stats', 
     const row = document.querySelector('#' + id + ' .wrap > .row:first-child'), h = row && row.querySelector('h1'); if (!h) continue;
     if (row.scrollWidth > row.clientWidth + 1 || h.getBoundingClientRect().height > 44) bad.push(id + ':' + (row.scrollWidth - row.clientWidth) + '/' + Math.round(h.getBoundingClientRect().height)); }
   __navAllow = true; show('library'); __navAllow = false; return { bad, sx: document.documentElement.scrollWidth <= innerWidth }; });
-const tt = await p.evaluate(() => { libGoldRender(); const t = document.getElementById('libTitle'); return { full: t.scrollWidth <= t.clientWidth + 1, chip: document.getElementById('goldChip').textContent }; });
+const tt = await p.evaluate(() => { libGoldRender(); const t = document.getElementById('libTitle'); return { full: t.scrollWidth <= t.clientWidth + 1, chip: null }; });
 ok('5c2 360: the title «Библиотека» stays whole (the coins shorten to the number instead)', tt.full, tt);
 ok('5c 360: library header inside, every screen title on one line, no horizontal scroll', l360.inside && l360.sx && !hov.bad.length && hov.sx, { l360, hov });
 await p.screenshot({ path: SHOTS + 'celestial-library-360.png' });
@@ -98,10 +98,10 @@ ok('5g gold corner brackets (4) on the goal card, summary and bottom nav; the na
 // 5h. «скин небесный едет в разные стороны» (Джессика 17.10, видео с телефона 411px): the library header overflowed («230 монет» + Cormorant title),
 // the screen scroller became sideways-scrollable and slid under a diagonal swipe. Now the title gives way and screens never scroll sideways.
 const sd = await p.evaluate(async () => { const t = document.getElementById('libTitle'), g0 = S.gold; S.gold = 230; save(); renderLibrary(); t.style.fontSize = '44px'; /* ≈ Android text scaling 130 % */
-  await new Promise(q => setTimeout(q, 150)); const s = document.querySelector('#library > .scroll'), chip = document.getElementById('goldChip').getBoundingClientRect();
+  await new Promise(q => setTimeout(q, 150)); const s = document.querySelector('#library > .scroll'), chip = { right: 0 } /* 18.10: no balance chip */;
   s.scrollLeft = 40; const r = { chipIn: chip.right <= innerWidth + 0.5, ox: getComputedStyle(s).overflowX, left: s.scrollLeft, sw: document.documentElement.scrollWidth <= innerWidth };
   t.style.fontSize = ''; S.gold = g0; save(); renderLibrary(); return r; });
-ok('5h wide header (230 монет, big title): coin chip stays on screen, the library never scrolls sideways', sd.chipIn && sd.ox === 'hidden' && sd.sw, sd);
+ok('5h wide header (big title): the library never scrolls sideways', sd.chipIn && sd.ox === 'hidden' && sd.sw, sd);
 
 const tc = await p.evaluate(() => { syncThemeColor(); return (document.querySelector('meta[name=theme-color]') || {}).content; });
 ok('5i browser bar (theme-color) = the skin paper #f6efe2, not black (body is transparent over the sky)', tc === '#f6efe2', tc);

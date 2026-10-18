@@ -77,7 +77,7 @@ ok('17 shelf view in the sort menu (ReadEra): Сетка, Эскизы, Крат
   r.views.join() === 'grid,covers,short,full' && r.out.covers.startsWith('true grid') && r.out.short === 'true flex row' && r.out.full === 'true flex row' && r.out.grid === 'true grid column' && r.saved === 'grid' && r.sorts.includes('author'), r);
 r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
   const out = {}; try {
-    el('libShelfAdd').click(); out.chipOn = !!document.querySelector('#libChips .fshelf.on'); out.bar = !el('libShelfBar').hidden; out.empty = /пока нет книг/.test(el('shelf').textContent);
+    el('libShelfAdd').click(); out.chipOn = LIB.f === 'sh:' + S.shelves[0].id && el('libTitle').textContent === 'Русская классика'; /* 18.10: filter in «⋮», title names the shelf */ out.bar = !el('libShelfBar').hidden; out.empty = /пока нет книг/.test(el('shelf').textContent);
     const id = S.shelves[0].id, b1 = allBooks()[0].id, b2 = allBooks()[1].id;
     bookInfo(b1); document.querySelector('.bk-shelves .fchip:not(.fshelfadd)').click(); shelfToggle(b2, id);
     ans = 'Чехов'; shelfNew(b1); out.two = S.shelves.length === 2 && S.shelves.every(x => x.b.includes(b1));

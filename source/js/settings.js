@@ -49,7 +49,7 @@ function renderSettings(){
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
   if(el('readCntTgl')){const b=el('readCntTgl');b.classList.toggle('on',!!SET.readCounter);b.setAttribute('aria-checked',SET.readCounter?'true':'false');}
-  el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'🛍 Купить';
+  el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'Купить';
   el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */
   const ls=el('langSeg');ls.innerHTML='';
   [['ru','Русский'],['en','English']].forEach(o=>{
@@ -133,7 +133,7 @@ el('btnExport').onclick=async ()=>{
   a.href=URL.createObjectURL(blob);a.download='readquest-backup.json';
   document.body.appendChild(a);a.click();a.remove();
   S.lastBackup=today();save();
-  flashMsg('💾 Резервная копия сохранена');
+  flashMsg('Резервная копия сохранена');
 };
 el('btnImport').onclick=()=>el('impInp').click();
 el('impInp').onchange=async e=>{
@@ -156,7 +156,7 @@ function fmtClock(sec){sec=Math.max(0,Math.floor(sec));const m=Math.floor(sec/60
 function timerElapsed(){return (R.timerAccum||0)+(R.timerOn?(Date.now()-(R.timerOnAt||Date.now())):0);}
 function updTimerBtn(){
   const b=el('btnTimer');if(!b)return;
-  if(R.timerOn){b.classList.add('on');b.textContent='⏸ '+fmtClock(timerElapsed()/1000);}
+  if(R.timerOn){b.classList.add('on');b.textContent=fmtClock(timerElapsed()/1000);}
   else{b.classList.remove('on');b.textContent=(R.timerAccum>0?'▶ '+fmtClock(timerElapsed()/1000):'▶');}
 }
 function startTimerTick(){stopTimerTick();timerIv=setInterval(updTimerBtn,1000);}
@@ -177,7 +177,7 @@ function toggleTimer(){
   if(!R.book||isMvp())return; /* MVP: counting can't be switched off */
   if(R.timerOn){
     R.timerAccum=timerElapsed();R.timerOn=false;stopTimerTick();if(__tracker)__tracker.setCounting(false);
-    flashMsg('⏸ Таймер на паузе — опыт не начисляется');
+    flashMsg('Таймер на паузе — опыт не начисляется');
   }else{
     R.timerOn=true;R.timerOnAt=Date.now();R.lastTurn=Date.now();startTimerTick();if(__tracker)__tracker.setCounting(true);
     el('timerHint').classList.add('hidden');
@@ -188,7 +188,7 @@ function toggleTimer(){
 function timerNudge(){
   if(isMvp())return;
   const now=Date.now();if(now-nudgeT<8000)return;nudgeT=now;
-  const h=el('timerHint');h.textContent='⏸ Таймер выключен — листание не идёт в опыт. Нажмите ▶ вверху';
+  const h=el('timerHint');h.textContent='Таймер выключен — листание не идёт в опыт. Включите его вверху';
   h.classList.remove('hidden');clearTimeout(R._hintT);R._hintT=setTimeout(()=>h.classList.add('hidden'),2800);
 }
 el('btnTimer').onclick=toggleTimer;

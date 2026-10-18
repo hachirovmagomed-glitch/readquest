@@ -14,8 +14,8 @@ await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.
 const probe = () => p.evaluate(() => {
   const rgb = (h) => { const d = document.createElement('div'); d.style.color = h; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; };
   const cs = getComputedStyle(document.documentElement), v = (n) => rgb(cs.getPropertyValue(n).trim());
-  const gc = getComputedStyle(document.querySelector('#library .goalcard'));
-  const track = getComputedStyle(document.querySelector('#library .goalcard circle:not(#ringFg)')).stroke;
+  const gc = getComputedStyle(document.querySelector('#goalCard'));
+  const track = getComputedStyle(document.querySelector('#goalCard circle:not(#ringFg)')).stroke;
   const fg = getComputedStyle(document.getElementById('ringFg')).stroke;
   const nav = getComputedStyle(document.getElementById('botnav')), on = getComputedStyle(document.querySelector('#botnav .botnav-btn.on'));
   return { card: v('--card'), card2: v('--card2'), accent: v('--accent'), good: v('--good'), gcBg: gc.backgroundImage + ' ' + gc.backgroundColor, track, fg,
@@ -40,6 +40,25 @@ for (const sk of ['pencil', 'ellada']) {
     const cs = getComputedStyle(document.documentElement); return { skin: document.documentElement.dataset.skin, line: cs.getPropertyValue('--rq-line').trim() }; }, sk);
   const q = await probe();
   ok(`${sk}: skin is on, active tab and goal card not teal`, r.skin === sk && !HARD.includes(q.onBg) && !HARD.some(h => q.gcBg.includes(h)), { r, q });
+}
+// Джессика 17.10: «Год в чтении» stayed purple (#3a2f6e → #241a45, white text) under every theme and skin → card colours from the theme, text ≥ 4.5
+const yr = () => p.evaluate(() => { const b = el('yearReview'); b._open = false; renderYearReview();
+  const rgb = (h) => { const d = document.createElement('div'); d.style.color = h; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; };
+  const cs = getComputedStyle(document.documentElement), y = b.querySelector('.yreview'), ys = getComputedStyle(y), cell = getComputedStyle(y.querySelector('.yr-cell')), lab = getComputedStyle(y.querySelector('.yr-cell span'));
+  const L = (c) => { const k = /^color\(srgb/.test(c) ? 1 : 255; const m = c.replace(/^color\(srgb/, '').match(/[\d.]+/g).map(Number).slice(0, 3).map(v => v / k).map(v => v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4); return .2126 * m[0] + .7152 * m[1] + .0722 * m[2]; };
+  const cr = (a, b) => { const [x, z] = [L(a), L(b)].sort((m, n) => n - m); return +((x + .05) / (z + .05)).toFixed(2); };
+  const card = rgb(cs.getPropertyValue('--card').trim()), card2 = rgb(cs.getPropertyValue('--card2').trim());
+  const out = { bg: ys.backgroundImage, card, card2, color: ys.color, txt: rgb(cs.getPropertyValue('--txt').trim()), cTxt: Math.min(cr(ys.color, card), cr(ys.color, card2)), cLab: Math.min(cr(lab.color, card), cr(lab.color, card2)), cellBg: cell.backgroundColor };
+  b._open = false; b.innerHTML = ''; return out; });
+for (const k of ['teal', 'crimson', 'light']) {
+  await p.evaluate((k) => { wear && SET.skin && 0; SET.theme = 'sepia'; saveSet(); applySet(); S.appTheme = k; save(); applyAppTheme(); }, k); await sleep(80);
+  const r = await yr();
+  ok(`«Год в чтении» on ${k}: card from --card2/--card, text --txt, contrast ≥ 4.5`, r.bg.includes(r.card2) && r.bg.includes(r.card) && r.color === r.txt && r.cTxt >= 4.5 && r.cLab >= 4.5 && !/58, 47, 110|36, 26, 69/.test(r.bg), r);
+}
+for (const sk of ['pencil', 'ellada', 'babochkovyi']) {
+  await p.evaluate(async (sk) => { S.gold = 5000; save(); const id = 'skin-' + sk; if (!shopOwns(id)) buy(id); wear(id); await new Promise(r => setTimeout(r, 300)); }, sk);
+  const r = await yr();
+  ok(`«Год в чтении» in ${sk}: card from the skin, contrast ≥ 4.5, no purple`, r.bg.includes(r.card) && r.cTxt >= 4.5 && r.cLab >= 4.5 && !/58, 47, 110|36, 26, 69/.test(r.bg), r);
 }
 ok('no page errors', errs.length === 0, errs);
 await browser.close();

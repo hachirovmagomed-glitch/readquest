@@ -1,0 +1,40 @@
+// 18.10 (Джессика: «нет кнопки для перехода в ночной режим»): a visible day/night switch at the bottom of the left menu, in every skin,
+// (default look: the app screens go dark too, not only the book page — Джессика 18.10 «ночной режим не работает»), plus the «Ночь» button in the reader bar. One tap = night (skin's own night), again = day; the label and aria-checked follow.
+// Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node nightbtn.test.mjs
+import puppeteer from 'puppeteer-core';
+const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
+const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+const errs = []; const p = await (await browser.createBrowserContext()).newPage();
+await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
+await p.evaluate(() => { S.gold = 999999; save(); });
+const night = () => !isLightBg(activeTheme().bg);
+for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {
+  const r = await p.evaluate(async (sk, nightSrc) => { const night = new Function('return (' + nightSrc + ')()');
+    if (sk) { buy('skin-' + sk); wear('skin-' + sk); } else { S.appTheme = 'light'; save(); applyAppTheme(); } __navAllow = true; show('library'); __navAllow = false; if (night()) toggleDayNight();
+    openDrawer(); await new Promise(q => setTimeout(q, 350));
+    const b = document.getElementById('dNight'), d = document.getElementById('drawer'); if (!b) return null;
+    const br = b.getBoundingClientRect(), dr = d.getBoundingClientRect(), cs = getComputedStyle(b);
+    const o = { skin: document.documentElement.dataset.skin || '', vis: br.height >= 44 && br.left >= dr.left && br.right <= dr.right + 1 && br.bottom <= innerHeight && cs.visibility === 'visible', label0: b.textContent.trim(), aria0: b.getAttribute('aria-checked') };
+    o.app0 = sk ? null : isLightBg(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+    b.click(); await new Promise(q => setTimeout(q, 150));
+    const tc = () => { const t = document.querySelector('.rq-toast'); if (!t) return null; const cs = getComputedStyle(t);
+      const L = c => { const m = c.match(/[\d.]+/g).map(Number).slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * m[0] + .7152 * m[1] + .0722 * m[2]; };
+      const a = L(cs.color), b = L(cs.backgroundColor); return { t: t.textContent.trim(), cr: +((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toFixed(2) }; };
+    o.toast1 = tc();
+    const appDark = () => !isLightBg(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+    o.n1 = night(); o.app1 = sk ? null : appDark(); o.label1 = b.textContent.trim(); o.aria1 = b.getAttribute('aria-checked'); o.theme1 = document.documentElement.dataset.theme || '';
+    b.click(); await new Promise(q => setTimeout(q, 150)); o.toast2 = tc(); o.n2 = night(); o.app2 = sk ? null : !appDark(); closeDrawer(); return o; }, sk, night.toString());
+  ok((sk || 'default') + ': the switch toast reads «Ночной режим» then «Дневной режим», text readable (contrast ≥4.5)', r && r.toast1 && r.toast1.t === 'Ночной режим' && r.toast1.cr >= 4.5 && r.toast2 && r.toast2.t === 'Дневной режим' && r.toast2.cr >= 4.5, r && [r.toast1, r.toast2]);
+  ok((sk || 'default') + ': left menu has a day/night switch at the bottom; tap = night, tap again = day', r && r.vis && /Ночн/.test(r.label0) && r.aria0 === 'false' && r.n1 && /Ночн/.test(r.label1) && r.aria1 === 'true' && !r.n2 && (!sk || r.theme1 === 'night') && (!!sk || (r.app0 && r.app1 && r.app2)), r);
+}
+await p.evaluate(() => { __navAllow = true; openBook(allBooks()[0].id); __navAllow = false; }); await sleep(2500);
+await p.evaluate(() => showChrome()); await sleep(600);
+const rd = await p.evaluate(() => { const b = document.getElementById('btnDayNight'), r = b.getBoundingClientRect(); return { vis: r.width > 0 && r.height > 0 && r.bottom <= innerHeight, l: b.textContent.trim() }; });
+ok('reader bar: the «Ночь» button is visible', rd.vis && /Ночь|День/.test(rd.l), rd);
+ok('no page errors', !errs.length, errs);
+console.log(`SUMMARY nightbtn.test ${checks.filter(Boolean).length}/${checks.length}`);
+await browser.close();

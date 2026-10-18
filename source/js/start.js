@@ -89,6 +89,6 @@ document.addEventListener('click',function(ev){
     /* fallback if analytics helper missing */
     __rq.logReadingEvent({bookId:'_ui', pageVisibleMs:0, type:'hero_create_tapped'}).catch(function(){});
   }
-  flashMsg('Скоро ✨');
+  flashMsg('Скоро');
 });
 /* UI blocked until module boot calls __rqStart */

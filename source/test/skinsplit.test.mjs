@@ -33,6 +33,21 @@ await p.evaluate(() => document.querySelector('#appSkinBox .appsw[data-k="pencil
 await p.evaluate(() => document.querySelector('#appThemeBox .appsw[data-k="auto"]').click()); await sleep(300);
 r = await rows();
 ok('7 picking a palette while a skin is on takes the skin off', r.dataSkin === '' && r.app === 'auto' && r.skinOn.join() === 'none' && r.themeOn.join() === 'auto', r);
+// Джессика 17.10: no avatar in the library goal card, in any skin (the profile keeps it)
+const av = [], sk = [];
+for (const k of ['none', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  await p.evaluate((k) => { S.gold = 5000; save(); if (k === 'babochkovyi' || k === 'celestial') buy('skin-' + k); openGeneralSettings(false); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="' + k + '"]').click(); }, k); await sleep(250);
+  sk.push(await p.evaluate((k) => { const RD = ['arrow-left', 'volume-2', 'list', 'moon', 'sun', 'focus', 'settings'], set = SKIN_ICONS[k] || {};
+    const norm = s => { const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.innerHTML = s; return g.innerHTML; };
+    const own = RD.filter(n => set[n] && document.getElementById('i-' + n).innerHTML === norm(set[n]));
+    const hx = getComputedStyle(document.documentElement).getPropertyValue('--rq-accent').trim(), c = hx.match(/[0-9a-f]{2}/gi).map(x => parseInt(x, 16) / 255);
+    const mx = Math.max(...c), mn = Math.min(...c), d = mx - mn; let h = d < .08 ? -1 : mx === c[0] ? ((c[1] - c[2]) / d) % 6 : mx === c[1] ? (c[2] - c[0]) / d + 2 : (c[0] - c[1]) / d + 4; h = h < 0 && h !== -1 ? h + 6 : h;
+    return { k, own: own.length, accent: hx, teal: h >= 2.5 && h <= 3.4 }; }, k));
+  av.push(await p.evaluate((k) => { __navAllow = true; show('library'); __navAllow = false; renderLibrary(); const a = document.getElementById('streakAva'); return { k, shown: !!(a && a.offsetParent && a.getBoundingClientRect().width) }; }, k));
+}
+ok('8 library goal card: no avatar in any skin', av.every(x => !x.shown), av);
+// Джессика 17.10: «в скинах всё ещё зелёные, иконки читалки не меняются — во всех скинах»: each skin has its own 7 reader icons and a non-teal accent
+ok('9 every skin: own reader icons (back, «Слушать», оглавление, ночь, день, фокус, настройки) and an accent that is not the app teal', sk.filter(x => x.k !== 'none').every(x => x.own === 7 && !x.teal), sk);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY skinsplit.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

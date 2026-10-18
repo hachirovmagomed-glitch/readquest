@@ -21,9 +21,11 @@ async function fresh() {
   p.__bid = await p.evaluate(() => S.userBooks[0].id); p.__ctx = ctx; return p;
 }
 /* one session of `min` counted minutes: ≤ 2.9 min per page (page cap 3), then turn */
-async function session(p, min) {
+async function session(p, min, honest = true) {
   await p.evaluate(id => openBook(id), p.__bid); await p.waitForFunction(() => R.pageCount > 1, { timeout: 10000 }); await sleep(300);
   let left = Math.round(min * 60000);
+  /* античит 17.10: сессия < 1 мин без честного листания (≥ 12 с на странице) пустая — короткие сессии листают одну страницу после 15 с */
+  if (honest && min < 1) { await p.evaluate(() => { window.__rqTimeOffset += 15000; goPage(R.page + 1, true); }); left -= 15000; await sleep(60); }
   while (left > 0) { const step = Math.min(left, 174000); left -= step; await p.evaluate((ms, more) => { window.__rqTimeOffset += ms; if (more) goPage(R.page + 1, true); }, step, left > 0); await sleep(60); }
   await p.evaluate(() => closeReader()); await sleep(1300);
   return p.evaluate(async () => {
@@ -47,6 +49,14 @@ const done = async (p) => { await p.evaluate(() => { const b = document.getEleme
   ok('0.9 #3: +10 XP; total +20 XP, «2 / 10», streak 0 (2 min < soft floor 3)', c.summary && c.rowXp === 10 && c.xp === 20 && /^2 \/ 10/.test(c.daily) && c.streak === 0 && c.n === 3, c); await done(p);
   const d = await session(p, 0.9);
   ok('0.9 #4: day 3.6 min → «3 / 10», streak 1 (soft floor 3 min reached; daily goal 10 still not met, no +30)', d.summary && d.rowXp === 10 && d.xp === 30 && /^3 \/ 10/.test(d.daily) && d.streak === 1 && d.gold === c.gold && d.n === 4, d); await done(p);
+  await p.__ctx.close(); }
+// античит 17.10: 0.9 мин на одной странице без листания — пустая сессия: ни строки, ни XP, ни итога
+{ const p = await fresh();
+  await p.evaluate(id => openBook(id), p.__bid); await p.waitForFunction(() => R.pageCount > 1, { timeout: 10000 }); await sleep(300);
+  await p.evaluate(() => { window.__rqTimeOffset += 54000; }); await sleep(60);
+  await p.evaluate(() => closeReader()); await sleep(1300);
+  const a = await p.evaluate(async () => ({ n: (await __rq.listSessions({})).length, sess: SESS.length, xp: S.xp, summary: !document.getElementById('summary').classList.contains('hidden') }));
+  ok('0.9 without a page turn: empty session — no row, +0 XP, no summary', a.n === 0 && a.sess === 0 && a.xp === 0 && !a.summary, a);
   await p.__ctx.close(); }
 // single 0.71
 { const p = await fresh();

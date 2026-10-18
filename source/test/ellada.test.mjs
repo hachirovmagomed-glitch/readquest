@@ -48,7 +48,7 @@ const tokCss = await (await fetch(BASE + 'tokens.css')).text();
 ok('4 tokens: --rq-bg #f4f0e8, accent #1f5a8c, app --bg bridged; no @import in tokens.css', tk.bg === '#f4f0e8' && tk.accent === '#1f5a8c' && /var\(--rq-bg\)|#f4f0e8/.test(tk.appBg) && !/@import/.test(tokCss), { tk, imp: /@import/.test(tokCss) });
 ok('4b fonts: Cormorant Unicase + Alegreya Sans loaded from fonts/ (offline), title in Cormorant', tk.corm && tk.aleg && /Cormorant Unicase/.test(tk.font), tk);
 const sw = await (await fetch(BASE + 'sw.js')).text();
-ok('4c precache: skins/skins.css and the 4 ellada woff2', /"skins\/skins\.css"/.test(sw) && (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []).length === 4, (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []));
+ok('4c precache: skins/skins.css and the 4 ellada woff2', /"skins\/skins\.css(\?v=[^"]+)?"/.test(sw) && (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []).length === 4, (sw.match(/fonts\/ellada-[a-z-]+\.woff2/g) || []));
 
 // 5. library decor: frieze header, vase covers, card frame; nothing overflows at 390 and 360
 await p.evaluate(() => { show('library'); renderLibrary(); }); await sleep(300);
@@ -118,7 +118,7 @@ ok('9b Эллада icons: «Награды» amphora, «Библиотека» 
 // 10. other skins stay «Скоро»; «Карандашный» still free and wearable
 const soon = await p.evaluate(() => SHOP_CATALOG.filter(x => x.type === 'skin' && !shopReady(x.id)).map(x => x.id));
 await p.evaluate(() => wear('skin-pencil')); await sleep(200); s = await st();
-ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 6 && s.skin === 'pencil' && s.set === 'pencil', { soon, s });
+ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 5 && s.skin === 'pencil' && s.set === 'pencil', { soon, s });
 const ic2 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, el: document.querySelectorAll('#shelf .el-cover').length, pc: document.querySelectorAll('#shelf .pc-cover').length }));
 ok('10b leaving the skin: Lucide icons back, covers redrawn for the new skin', !/M10 2v5\.632/.test(ic2.gift) && ic2.el === 0 && ic2.pc > 0, ic2);
 
@@ -156,7 +156,7 @@ const pm = await p.evaluate(async () => { navGo('path'); await new Promise(r => 
     isle: /data:image\/svg/.test(g(dot, '::before').backgroundImage), dash: line ? g(line).strokeDasharray : '', ring: g(dot.querySelector('.pn-ring')).display, temple: /data:image\/svg/.test(g(dot, '::after').maskImage || g(dot, '::after').webkitMaskImage), wide: sc.scrollWidth > sc.clientWidth + 1 }; });
 ok('16 Путь читателя в Элладе: море с волнами, острова с храмами вместо кружков, пунктир курса, роза ветров и трирема, без горизонтальной прокрутки', pm.skin === 'ellada' && pm.sea && pm.rose && pm.ship && pm.isle && pm.ring === 'none' && pm.temple && /8/.test(pm.dash) && !pm.wide, pm);
 const pst = await p.evaluate(async () => {
-  S.userBooks.push({ id: 'elp1', title: 'a', author: '', pathId: 'odyssey' }, { id: 'elp2', title: 'b', author: '', pathId: 'hamlet' }); S.finished.push('elp1'); S.progress.elp2 = { ratio: 0.4 };
+  S.userBooks.push({ id: 'elp1', title: 'a', author: '', pathId: 'odyssey' }, { id: 'elp2', title: 'b', author: '', pathId: 'hamlet' }); S.finished.push('elp1'); S.bookStats.elp1 = { min: 200, pages: 900 }; S.progress.elp2 = { ratio: 0.4 }; S.bookStats.elp2 = { min: 200, pages: 900 };
   renderPath(); await new Promise(r => setTimeout(r, 400));
   const vis = (e) => !!e && getComputedStyle(e).display !== 'none';
   const od = document.querySelector('#path .pathnode[data-pid="odyssey"]'), hm = document.querySelector('#path .pathnode[data-pid="hamlet"]');

@@ -213,7 +213,7 @@ function dealBossDamage(min,pages,finished){
   const bo=ensureBoss();const dmg=Math.round((min*10+pages*2+(finished?150:0))*talVal('boss'));if(dmg<=0)return;
   bo.hp-=dmg;
   if(bo.hp<=0){const cur=bo.n,rew=isMvp()?0:(80+cur*40),xpr=isMvp()?0:(40+cur*20);if(!isMvp()){S.gold+=rew;S.goldAllTime=(S.goldAllTime||0)+rew;S.xp+=xpr;}bo.n=cur+1;bo.hp=bossMax(bo.n);
-    try{confetti();}catch(e){}try{flashMsg('⚔️ Повержен «'+bossInfo(cur).name+'»! +'+rew+' монет'+', +'+xpr+' XP');}catch(e){}}
+    try{confetti();}catch(e){}try{flashMsg('Повержен «'+bossInfo(cur).name+'»! +'+rew+' монет'+', +'+xpr+' XP');}catch(e){}}
 }
 /* ===== Ежедневный бонус ===== */
 function dailyReward(){return Math.round((20+Math.min(10,S.streak||0)*10)*talVal('daily'));}
@@ -250,7 +250,7 @@ function renderTalents(){
   }).join('')+'</div>';
 }
 function renderProfile(){
-  rollDay();
+  rollDay();renderGoalCard(); /* 17.10: the goal card moved here from the library */
   const lv=level(S.xp);const[lo,hi]=lvlBounds(lv);
   if(S.useChar===false){el('avatar').textContent=S.avatar||(lv>=10?'🧙':lv>=5?'🦸':lv>=3?'🤓':'📖');if(el('gearLayer'))el('gearLayer').innerHTML=gearLayerHtml();}
   else{el('avatar').innerHTML=avatarSvg();if(el('gearLayer'))el('gearLayer').innerHTML='';}
@@ -280,7 +280,7 @@ function renderProfile(){
     const v=S.stats[s]||0;
     const custom=!STATS_BASE.includes(s);
     return '<div class="statrow"><div class="row"><span>'+esc(s)+(custom?' <span style="font-size:10px;color:var(--muted)">своя</span>':'')+'</span><div class="spacer"></div>'+
-      (custom?'<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="renStat(\''+esc(s)+'\')">✏</button><button class="x" onclick="delStat(\''+esc(s)+'\')">✕</button>':'')+
+      (custom?'<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="renStat(\''+esc(s)+'\')">'+rqIcon('pencil',14)+'</button><button class="x" onclick="delStat(\''+esc(s)+'\')">✕</button>':'')+
       '<b>'+v+'</b></div>'+
     '<div class="pbar"><i style="width:'+Math.round(v/maxS*100)+'%;background:'+(v?'var(--accent2)':'var(--card2)')+'"></i></div></div>';
   }).join('')+'<button class="miniadd" onclick="addStat()">＋ Добавить характеристику</button>';

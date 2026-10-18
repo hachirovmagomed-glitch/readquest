@@ -23,7 +23,7 @@ const id = await p.evaluate(() => S.userBooks[0].id);
 const open = async () => { await p.evaluate(id => openBook(id), id); await p.waitForFunction(() => R.pageCount > 1 && (!el('txtBack') || el('txtBack').classList.contains('hidden')), { timeout: 15000 }); await sleep(500); };
 const st = () => p.evaluate(() => { const r = el('reader'), cs = getComputedStyle(r), pg = document.querySelector('#viewer') ; const sw = [...document.querySelectorAll('#themeSeg .swatch')];
   return { theme: SET.theme, ls: (JSON.parse(localStorage.getItem(RQ_K.set) || '{}')).theme, skin: r.dataset.skin || '', dtheme: r.dataset.theme || '', page: r.dataset.page, bg: cs.backgroundColor,
-    bgImg: cs.backgroundImage + '|' + (pg ? getComputedStyle(pg).backgroundImage : ''), filter: pg ? getComputedStyle(pg).filter : '', acc: getComputedStyle(r).getPropertyValue('--rq-accent').trim(), hskin: document.documentElement.dataset.skin || '', htheme: document.documentElement.dataset.theme || '', sheetBg: getComputedStyle(el('sheet')).backgroundColor, headBg: getComputedStyle(document.querySelector('.rhead')).backgroundColor, barBg: getComputedStyle(document.querySelector('.rbar')).backgroundColor, bodyBg: getComputedStyle(document.body).backgroundColor, icFilter: getComputedStyle(document.querySelector('#btnBack .ic')).filter, headLine: getComputedStyle(document.querySelector('.rhead'), '::after').maskImage || getComputedStyle(document.querySelector('.rhead'), '::after').webkitMaskImage || '',
+    bgImg: cs.backgroundImage + '|' + (pg ? getComputedStyle(pg).backgroundImage : ''), filter: pg ? getComputedStyle(pg).filter : '', acc: getComputedStyle(r).getPropertyValue('--rq-accent').trim(), hskin: document.documentElement.dataset.skin || '', htheme: document.documentElement.dataset.theme || '', sheetBg: getComputedStyle(el('sheet')).backgroundColor, headBg: getComputedStyle(document.querySelector('.rhead')).backgroundColor, barBg: getComputedStyle(document.querySelector('.rbar')).backgroundColor, bodyBg: ((c) => c === 'rgba(0, 0, 0, 0)' ? getComputedStyle(document.documentElement).backgroundColor : c)(getComputedStyle(document.body).backgroundColor) /* paper may sit on the root (v2 grid) */, icFilter: getComputedStyle(document.querySelector('#btnBack .ic')).filter, headLine: getComputedStyle(document.querySelector('.rhead'), '::after').maskImage || getComputedStyle(document.querySelector('.rhead'), '::after').webkitMaskImage || '',
     sw: sw.map(b => b.dataset.t), on: sw.filter(b => b.classList.contains('on')).map(b => b.dataset.t), yours: sw.filter(b => b.classList.contains('yours')).map(b => b.dataset.t),
     cap: [...document.querySelectorAll('#themeSeg .yourwrap small')].map(x => x.textContent) }; });
 const sheet = async (on) => { await p.evaluate((on) => { if (on) openReaderSettings('grpPage'); else el('sheet').classList.add('hidden'); }, on); await sleep(400); };
@@ -53,7 +53,7 @@ ok('pencil icons load: no runtime SVG filter on the Lucide strokes (it blanked i
     return { ff, ui: getComputedStyle(document.body).fontFamily, pre: /fonts\/nunito\.woff2/.test(sw) && /fonts\/caveat\.woff2/.test(sw), lic: (await fetch('fonts/OFL.txt')).ok }; });
   ok('pencil: bundled Nunito (UI text) + Caveat loaded from fonts/*.woff2, both in the SW precache, OFL.txt shipped', F.ff.includes('Nunito:loaded') && F.ff.some(x => /^Caveat:/.test(x)) && /^"?Nunito/.test(F.ui) && F.pre && F.lic, F); }
 ok('reader page stays clean (no background image / filter on the page)', !/url|gradient/.test(s.bgImg) && (s.filter === 'none' || !s.filter), { bgImg: s.bgImg, filter: s.filter });
-ok('skin tokens active on #reader (--rq-accent = pencil #1d6464)', s.acc === '#1d6464', s.acc);
+ok('skin tokens active on #reader (--rq-accent = pencil blue #2e48a0)', s.acc === '#2e48a0', s.acc);
 ok('app-wide skin day: html[data-skin=pencil]; settings sheet #fbfaf5, header + bottom bar #f3f0e7, body #f3f0e7, wobbly header line', s.hskin === 'pencil' && !s.htheme && s.sheetBg === 'rgb(251, 250, 245)' && s.headBg === 'rgb(243, 240, 231)' && s.barBg === 'rgb(243, 240, 231)' && s.bodyBg === 'rgb(243, 240, 231)' && /svg/.test(s.headLine), { hskin: s.hskin, sheet: s.sheetBg, head: s.headBg, bar: s.barBg, body: s.bodyBg, line: !!s.headLine });
 await p.screenshot({ path: SHOTS + 'theme-pencil-day-sheet.png' });
 await sheet(false); await p.screenshot({ path: SHOTS + 'theme-pencil-day.png' });
@@ -63,7 +63,7 @@ s = await st();
 ok('Карандашный night: pencil-night, data-theme=night, page #262a31, still the Карандашный swatch', s.theme === 'pencil-night' && s.hskin === 'pencil' && s.htheme === 'night' && s.page === 'night' && s.bg === 'rgb(38, 42, 49)', s);
 await p.screenshot({ path: SHOTS + 'theme-pencil-night.png' });
 await sheet(true); s = await st();
-ok('night: --rq-accent = pencil night #86cbc2, Карандашный swatch on', s.acc === '#86cbc2' && s.on.join() === 'pencil', s);
+ok('night: --rq-accent = pencil night #a9b9f0, Карандашный swatch on', s.acc === '#a9b9f0' && s.on.join() === 'pencil', s);
 ok('app-wide skin night: html data-theme=night; sheet #353b45, header #2b3038', s.hskin === 'pencil' && s.htheme === 'night' && s.sheetBg === 'rgb(53, 59, 69)' && s.headBg === 'rgb(43, 48, 56)', { sheet: s.sheetBg, head: s.headBg });
 await p.screenshot({ path: SHOTS + 'theme-pencil-night-sheet.png' }); await sheet(false);
 await p.evaluate(() => toggleDayNight()); await sleep(300); s = await st();
@@ -77,7 +77,7 @@ ok('another theme → skin fully reverted (no html data-skin/theme; sheet, heade
 // boot: the skin is applied app-wide before any book is opened (library)
 await p.evaluate(() => { el('sheet').classList.add('hidden'); SET.theme = 'pencil'; saveSet(); closeReader(); }); await sleep(500);
 await p.reload({ waitUntil: 'load' }); await boot();
-const lib = await p.evaluate(() => ({ hskin: document.documentElement.dataset.skin || '', bodyBg: getComputedStyle(document.body).backgroundColor }));
+const lib = await p.evaluate(() => ({ hskin: document.documentElement.dataset.skin || '', bodyBg: ((c) => c === 'rgba(0, 0, 0, 0)' ? getComputedStyle(document.documentElement).backgroundColor : c)(getComputedStyle(document.body).backgroundColor) /* paper may sit on the root (v2 grid) */ }));
 ok('after reload, library already in the skin (boot applySkin)', lib.hskin === 'pencil' && lib.bodyBg === 'rgb(243, 240, 231)', lib);
 await p.screenshot({ path: SHOTS + 'theme-pencil-library-day.png' });
 await open(); await sheet(true); await p.click('#themeSeg .swatch[data-t="light"]'); await sleep(300); await sheet(false);
@@ -115,7 +115,7 @@ for (const mode of ['day', 'night']) {
   await p.screenshot({ path: SHOTS + `pencil-${mode}-summary.png` });
   await p.evaluate(() => { const b = el('btnDone'); if (b) b.click(); renderProfile(); show('profile'); }); await sleep(500);
   await p.screenshot({ path: SHOTS + `pencil-${mode}-profile.png` });
-  const sk = await p.evaluate(() => ({ h: document.documentElement.dataset.skin || '', t: document.documentElement.dataset.theme || '', body: getComputedStyle(document.body).backgroundColor }));
+  const sk = await p.evaluate(() => ({ h: document.documentElement.dataset.skin || '', t: document.documentElement.dataset.theme || '', body: ((c) => c === 'rgba(0, 0, 0, 0)' ? getComputedStyle(document.documentElement).backgroundColor : c)(getComputedStyle(document.body).backgroundColor) /* paper may sit on the root (v2 grid) */ }));
   ok(`all screens shot in Карандашный ${mode} (summary shown, skin on profile)`, sm && sk.h === 'pencil' && (mode === 'day' ? !sk.t && sk.body === 'rgb(243, 240, 231)' : sk.t === 'night' && sk.body === 'rgb(43, 48, 56)'), { sm, sk });
 }
 ok('no page errors', !errs.length, errs);

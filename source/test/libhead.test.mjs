@@ -60,7 +60,7 @@ await p.screenshot({ path: '/workspace/out/libhead-test-top.png' });
 // 5 sort menu + add
 const sm = await safe(() => p.evaluate(async () => { window.__w.length = 0; const b = el('libSortBtn'), m = el('libSortMenu'); if (!b || !m) return { missing: true, select: !!document.querySelector('#library select') };
   const vis = (e) => e.offsetParent !== null && !e.hidden; const o = { select: !!document.querySelector('#library select'), closed0: !vis(m), label: b.textContent.trim() };
-  b.click(); await new Promise(r => setTimeout(r, 200)); const rows = [...m.querySelectorAll('[role=menuitemradio]')];
+  b.click(); await new Promise(r => setTimeout(r, 200)); const rows = [...m.querySelectorAll('[role=menuitemradio][data-k]')]; o.views = m.querySelectorAll('[role=menuitemradio][data-v]').length; /* 18.10: + «Вид» */
   o.open = vis(m); o.under = Math.round(m.getBoundingClientRect().top) >= Math.round(b.getBoundingClientRect().bottom) - 1; o.n = rows.length; o.h = rows.map(r => Math.round(r.getBoundingClientRect().height));
   o.checks = rows.filter(r => { const c = r.querySelector('use[href="#i-check"]'); return c && getComputedStyle(c.closest('svg')).visibility !== 'hidden'; }).map(r => r.dataset.k); o.cur = LIB.sort;
   o.bg = getComputedStyle(m).backgroundColor; o.card = (() => { const t = document.createElement('div'); t.style.background = 'var(--card)'; document.body.appendChild(t); const c = getComputedStyle(t).backgroundColor; t.remove(); return c; })();
@@ -68,7 +68,7 @@ const sm = await safe(() => p.evaluate(async () => { window.__w.length = 0; cons
   b.click(); await new Promise(r => setTimeout(r, 150)); m.querySelector('[data-k="' + LIB.sort + '"]').click(); await new Promise(r => setTimeout(r, 200)); o.repickClosed = !vis(m);
   o.writes = window.__w.filter(x => x.k === RQ_K.set).length;
   const a = el('btnAdd'), ar = a.getBoundingClientRect(); o.add = [Math.round(ar.width), Math.round(ar.height), !!a.querySelector('use[href="#i-plus"]'), a.textContent.trim(), a.getAttribute('aria-label')]; return o; }), { missing: true, add: [] });
-ok('sort: no native select; button with current label; small menu under it, 3 rows × 44px, check only on current, card colour', !sm.missing && !sm.select && sm.label === 'Недавние' && sm.closed0 && sm.open && sm.under && sm.n === 3 && sm.h.every(x => x === 44) && sm.checks.length === 1 && sm.checks[0] === sm.cur && sm.bg === sm.card, sm);
+ok('sort: no native select; button with current label; small menu under it, 4 sort rows (+ «По автору») and 4 view rows × 44px, check only on current, card colour', !sm.missing && !sm.select && sm.label === 'Недавние' && sm.closed0 && sm.open && sm.under && sm.n === 4 && sm.views === 4 && sm.h.every(x => x === 44) && sm.checks.length === 1 && sm.checks[0] === sm.cur && sm.bg === sm.card, sm);
 ok('sort: open/close, outside tap, re-picking the current option → 0 NS_set writes', !sm.missing && sm.toggledClosed && sm.outsideClosed && sm.repickClosed && sm.writes === 0, sm);
 ok('add: 44×44 icon button, Lucide plus, no text, aria-label', !sm.missing && sm.add[0] === 44 && sm.add[1] === 44 && sm.add[2] && sm.add[3] === '' && !!sm.add[4], sm.add);
 // 6 different pick → exactly one write, reload keeps it; rq namespace untouched

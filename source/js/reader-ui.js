@@ -167,7 +167,7 @@ function flashMsg(t,o){
   d.className='rq-toast';
   d.setAttribute('role',kind==='error'?'alert':'status');
   if(opt.icon){d.innerHTML=rqIcon(opt.icon,20)+'<span></span>';d.lastChild.textContent=t;}else d.textContent=t;
-  d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:#fff;padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
+  d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:var(--txt);padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
   if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');if(pg==='night')d.dataset.theme='night';} /* night page → night toast tokens */
   d.onclick=function(){d.remove();};
   document.body.appendChild(d);
@@ -230,7 +230,7 @@ function addWord(){
   try{const sel=window.getSelection();const full=(sel&&sel.anchorNode&&sel.anchorNode.textContent)||'';const i=full.indexOf(word);
     if(i>=0){let a=Math.max(full.lastIndexOf('.',i),full.lastIndexOf('!',i),full.lastIndexOf('?',i));let b=full.indexOf('.',i+word.length);ctx=full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,160);}}catch(e){}
   S.vocab=S.vocab||[];
-  if(!S.vocab.some(v=>v.w.toLowerCase()===word.toLowerCase())){S.vocab.push({w:word,ctx:ctx,book:(R.book||{}).title||'',date:today(),box:0});save();flashMsg('📖 «'+word+'» — в словарь');}
+  if(!S.vocab.some(v=>v.w.toLowerCase()===word.toLowerCase())){S.vocab.push({w:word,ctx:ctx,book:(R.book||{}).title||'',date:today(),box:0});save();flashMsg('«'+word+'» — в словарь');}
   else flashMsg('Уже в словаре');
   if(window.getSelection)window.getSelection().removeAllRanges();
   el('selpop').classList.add('hidden');
@@ -364,7 +364,7 @@ function doFind(){
 }
 async function pdfFind(q,res){
   const token=++FINDTOKEN;
-  res.innerHTML='<div class="pempty">🔍 Ищу по страницам…</div>';
+  res.innerHTML='<div class="pempty">Ищу по страницам…</div>';
   const out=[];
   for(let n=0;n<R.pageCount;n++){
     if(token!==FINDTOKEN)return;
@@ -391,7 +391,7 @@ function renderPanel(tab){
   const body=el('panelBody');const b=R.book;
   if(!b){body.innerHTML='<div class="pempty">Откройте книгу</div>';return;}
   if(tab==='find'){
-    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="🔍 Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
+    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
     el('bookFind').oninput=e=>{FINDQ=e.target.value;doFind();};
     doFind();return;
   }
@@ -400,7 +400,7 @@ function renderPanel(tab){
     const mk={};(S.marks[b.id]||[]).forEach(m=>mk[m.page-1]=1);
     let html='<div class="pgrid">';
     for(let i=0;i<n;i++){
-      html+='<button class="'+(i===R.page?'cur':'')+'" onclick="jumpRatio('+(R.pageCount>1?(i/(R.pageCount-1)).toFixed(4):0)+')">'+(i+1)+(mk[i]?'<span class="m">🔖</span>':'')+'</button>';
+      html+='<button class="'+(i===R.page?'cur':'')+'" onclick="jumpRatio('+(R.pageCount>1?(i/(R.pageCount-1)).toFixed(4):0)+')">'+(i+1)+(mk[i]?'<span class="m">'+rqIcon('bookmark',10)+'</span>':'')+'</button>';
     }
     body.innerHTML=html+'</div>'+(R.pageCount>400?'<div class="pempty">Показаны первые 400 страниц</div>':'');
     return;
@@ -413,7 +413,7 @@ function renderPanel(tab){
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">＋ Закладка на текущей странице</button>'+
-      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">🔖 Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
+      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
     const qs=S.quotes[b.id]||[];
     body.innerHTML=qs.length
@@ -443,7 +443,7 @@ function ttsSay(t,onend){
 function ttsTextNext(){
   if(!ttsOn||!R.book||R.mode==='pdf')return;
   const b=R.book;
-  if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('🔊 Книга озвучена до конца');return;}
+  if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('Книга озвучена до конца');return;}
   let end=Math.min(b.text.length,(R.ttsPos||0)+1500);
   const tail=b.text.slice(end,end+220).search(/[.!?…\n]/);
   if(tail>=0)end+=tail+1;
@@ -456,7 +456,7 @@ function ttsPdfNext(){
   R.pdf.getPage(R.page+1).then(p=>p.getTextContent()).then(tc=>{
     if(!ttsOn)return;
     const t=tc.items.map(i=>i.str).join(' ').trim();
-    const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('🔊 Конец документа');}};
+    const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('Конец документа');}};
     if(t)ttsSay(t,advance);else advance();
   }).catch(()=>ttsStop());
 }
@@ -599,27 +599,28 @@ function renderSummary(r){
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
-  if(r.flipped>r.pages)notes.push('🛡️ '+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
-  if(r.cheatFinish)notes.push('📵 Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
+  if(r.flipped>r.pages)notes.push(''+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
+  if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));
-  if(r.mult>1)el('luckLbl').textContent='🍀 Удача! Все награды ×'+r.mult;
+  if(r.mult>1)el('luckLbl').textContent='Удача! Все награды ×'+r.mult;
   const lvNow=level(S.xp);
   el('lvlUp').classList.toggle('hidden',lvNow<=r.lvBefore);
-  if(lvNow>r.lvBefore)el('lvlUp').textContent='🎉 Новый уровень: '+lvNow+'!';
-  el('sumStreak').textContent='🔥 Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
-    (r.dmul>1&&!isMvp()?' · ⚔️ '+r.dName+' ×'+r.dmul:'')+
-    (r.justFinished?' · 🏁 Книга прочитана, бонус!':'');
+  if(lvNow>r.lvBefore)el('lvlUp').textContent='Новый уровень: '+lvNow+'!';
+  el('sumStreak').textContent='Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
+    (r.dmul>1&&!isMvp()?' · '+r.dName+' ×'+r.dmul:'')+
+    (r.justFinished?' · Книга прочитана, бонус!':'');
   const bb=el('sumBadges');bb.innerHTML='';
-  r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
-  (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
+  r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
+  (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
   /* achievements v2: at most two lines + «и ещё N»; visible in MVP (#sumBadges is not) */
   const sa=el('sumAch');if(sa){const an=r.achNew||[];sa.innerHTML=an.slice(0,2).map(function(a){return '<div>'+rqIcon('trophy',14)+'<span>Новое достижение: «'+esc(a.name)+'»</span></div>';}).join('')+(an.length>2?'<div class="more">и ещё '+(an.length-2)+'</div>':'');sa.classList.toggle('hidden',!an.length);}
   /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
   const sday=r.day||today();
   if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
   if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg(sday)*100)+'%';
+  if(typeof bbHatchRender==='function')bbHatchRender(mvpDailyProg(sday),'sumHatch');
   if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo(weekKey(sday))+(weeklyPaid(weekKey(sday))?' · ✓ неделя выполнена':'');
   /* gold lines ONLY for what was paid by THIS session (re-render with no `quest` → no lines) */
   const qp=r.quest||{daily:[],weekly:[]},ql=[];
@@ -644,10 +645,9 @@ function confetti(opts){
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
-  const ic=['sparkles','star','book-open','check']; /* Lucide in every theme, no emoji; colour = theme tokens (app.html .confetti) */
-  for(let i=0;i<count;i++){
+  for(let i=0;i<count;i++){ /* own pieces per skin (CONFETTI_SKIN / confettiPiece, js/core-b.js), no emoji; colours = theme tokens */
     const s=document.createElement('div');s.className='confetti';
-    s.innerHTML=rqIcon(ic[i%ic.length],16);
+    const pc=confettiPiece(i);s.innerHTML=pc.html;if(pc.c){s.dataset.c=pc.c;s.dataset.f=pc.f;}
     s.style.left=(8+Math.random()*84)+'vw';
     /* start well below heading when avoidTop */
     s.style.top=avoidTop?((32+Math.random()*40)+'vh'):'-30px';

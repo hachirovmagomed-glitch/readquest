@@ -25,9 +25,9 @@ const skins = Array.isArray(cat) ? cat.filter(x => x.type === 'skin') : [];
 ok('catalog: paid skins + prices 500 (Пергамент/Гравюра/Звёздный) / 800 (Подземелье/Небесный/Крик), Карандашный free', Array.isArray(cat) && Object.keys(want).every(k => (skins.find(s => s.id === k) || {}).price === want[k]) && (skins.find(s => s.id === 'skin-pencil') || {}).price === 0, Array.isArray(cat) ? skins.map(s => s.id + ':' + s.price) : cat);
 ok('catalog: «Лес» renamed «Гравюра» (skin-gravyura), no skin-les/forest id', Array.isArray(cat) && (skins.find(s => s.id === 'skin-gravyura') || {}).name === 'Гравюра' && !cat.some(x => /skin-(les|forest)|color-(les|forest)-/.test(x.id)), Array.isArray(cat) ? skins.map(s => s.name) : cat);
 const colBad = Array.isArray(cat) ? skins.filter(s => s.price > 0).map(s => { const c = cat.filter(x => x.type === 'color' && x.skin === s.id);
-  return { s: s.id, b: c.filter(x => x.bundled).length, paid: c.filter(x => !x.bundled).length, prices: [...new Set(c.filter(x => !x.bundled).map(x => x.price))].join(), ids: c.every(x => x.id.startsWith('color-' + s.id.slice(5) + '-')) }; }).filter(x => x.b !== 1 || x.paid < (['skin-ellada', 'skin-babochkovyi'].includes(x.s) ? 0 : 1) || x.paid > 3 || (x.paid > 0 && x.prices !== '150') || !x.ids) : ['no catalog'];
+  return { s: s.id, b: c.filter(x => x.bundled).length, paid: c.filter(x => !x.bundled).length, prices: [...new Set(c.filter(x => !x.bundled).map(x => x.price))].join(), ids: c.every(x => x.id.startsWith('color-' + s.id.slice(5) + '-')) }; }).filter(x => x.b !== 1 || x.paid < (['skin-ellada', 'skin-celestial', 'skin-babochkovyi'].includes(x.s) ? 0 : 1) || x.paid > 3 || (x.paid > 0 && x.prices !== '150') || !x.ids) : ['no catalog'];
 /* 15.10 (Клод): бриф магазина — «до 3 доп. по 150»; у пака «Эллады» одна палитра, доп. расцветок нет → 0 платных допустимо только ей */
-ok('catalog: each paid skin = 1 bundled colour + 1–3 paid at 150 («Эллада»: 0–3), id color-<skin>-<name>', !colBad.length, colBad);
+ok('catalog: each paid skin = 1 bundled colour + 1–3 paid at 150 («Эллада», «Бабочковый», «Небесный»: 0–3), id color-<skin>-<name>', !colBad.length, colBad);
 const ids = Array.isArray(cat) ? cat.map(x => x.id) : []; ok('catalog: no duplicate ids', ids.length && new Set(ids).size === ids.length);
 /* audit 15.10 (plan, wave 2 → 1): old fields are never deleted — S.devMoney stays, always false; S.cur stays as stored, unused */
 const gone = await p.evaluate(() => ({ SHOP_THEMES: typeof SHOP_THEMES, buyTheme: typeof buyTheme, devMoney: S.devMoney }));
@@ -38,7 +38,7 @@ await p.evaluate(() => { S.gold = 640; save(); }); await sleep(200);
 await p.click('#bnRew'); await sleep(400);
 const hdr = await p.evaluate(() => { const sh = document.getElementById('rewardsSheet'); const t = [...sh.querySelectorAll('[role=tab]')].map(b => b.textContent.trim());
   const bal = document.getElementById('rewBalance'); return { tabs: t, bal: bal ? bal.textContent.trim() : null, h: (sh.querySelector('h3') || {}).textContent }; });
-ok('«Награды»: header «Награды», tabs «Из жизни» / «Магазин»', hdr.h === 'Награды' && hdr.tabs.join('|') === 'Из жизни|Магазин', hdr);
+ok('«Награды»: header «Награды», only «Из жизни» (17.10: the shop moved to «Внешний вид»)', hdr.h === 'Награды' && hdr.tabs.length === 0, hdr);
 ok('header balance reads S.gold as text «640 монет»', hdr.bal === '640 монет', hdr.bal);
 const lifeOk = await p.evaluate(() => { const life = document.getElementById('rewPaneLife'); return !!life && !life.hidden && !!life.querySelector('#rewSlots') && getComputedStyle(life).display !== 'none'; });
 ok('tab «Из жизни» holds the life rewards (slots)', lifeOk);
@@ -47,11 +47,11 @@ const icons = () => p.evaluate(() => { const sh = document.getElementById('rewar
   const uses = [...sh.querySelectorAll('use')].filter(u => /coin/.test(u.getAttribute('href') || '') && u.closest('svg').getBoundingClientRect().width > 0).length;
   return { uses, emoji: /🪙|💰/.test(sh.textContent) }; });
 let ic = await icons(); ok('«Из жизни»: no coin icon / emoji', !ic.uses && !ic.emoji, ic);
-const tabShop = await p.$('#rewTabShop'); if (tabShop) { await tabShop.click(); await sleep(400); }
+await p.evaluate(() => navGo('look')); await sleep(400);
 const shop = await p.evaluate(() => { const pane = document.getElementById('rewPaneShop'); if (!pane) return null;
-  return { vis: !pane.hidden && getComputedStyle(pane).display !== 'none', lifeHidden: document.getElementById('rewPaneLife').hidden,
+  return { vis: !pane.hidden && !!pane.offsetParent && !!pane.closest('#look'), lifeHidden: !document.getElementById('rewardsSheet').classList.contains('open'),
     cards: [...pane.querySelectorAll('.shopcard')].map(c => ({ id: c.dataset.id, t: c.textContent.replace(/\s+/g, ' ').trim() })) }; });
-ok('tab «Магазин» shows skin cards', shop && shop.vis && shop.lifeHidden && shop.cards.length >= 7, shop);
+ok('«Внешний вид» shows the skin shop cards', shop && shop.vis && shop.lifeHidden && shop.cards.length >= 7, shop);
 const card = (id) => (shop && shop.cards.find(c => c.id === id) || {}).t || '';
 ok('shop prices as text: «Гравюра 500 монет», «Крик 800 монет», Карандашный «Бесплатно»', /Гравюра.*500 монет/.test(card('skin-gravyura')) && /Крик.*800 монет/.test(card('skin-krik')) && /Бесплатно/.test(card('skin-pencil')), shop && shop.cards.map(c => c.t));
 ok('not enough: «Не хватает 160» on 800-coin skins at 640', /Не хватает 160/.test(card('skin-krik')), card('skin-krik'));

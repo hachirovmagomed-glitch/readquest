@@ -5,10 +5,11 @@
 // motion: prefers-reduced-motion OR «Анимации» off (S.ux.anim === false) → no confetti, no book fly-in / opening animation, no CSS animations;
 //         default → confetti still runs (sanity).
 // s360: «Общие настройки» at 360 and 390: no word of a row label is split across lines; the last VISIBLE row of a card has no divider.
-// confetti (part 2): in every theme the confetti are Lucide icons (svg), no emoji; colour = theme tokens (--accent / --accent2), «Карандашный» as before.
+// confetti (part 2): in every theme the confetti are icons (svg), no emoji, each skin its own set (CONFETTI_SKIN in js/core-b.js); colour = theme tokens (--accent / --accent2), «Карандашный» as before.
 // refund (part 2): cancelling a real-life reward writes game.rewardRefunds[] {id, purchaseId, title, price, at}; it survives export → import;
 //         an old backup without the field imports with []; junk is dropped; a passive window changes nothing.
 // testgold (part 2): «+1000 монет для теста» logs {type:'test_gold', amount:1000} in events.
+// balance (17.10): one balance everywhere — header, «Награды», profile follow S.gold after every change.
 // metrics (part 2): metrics.py — reward buys = purchases − refunds; skin buys (purchase events) separate; test_gold reported.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/ node audit2.test.mjs   [RQ_ONLY=gate,static,…]
 import puppeteer from 'puppeteer-core';
@@ -171,12 +172,31 @@ if (want('confetti') || want('refund') || want('testgold')) {
         confetti(); confettiReward(); confettiSummary();
         const ns = [...document.querySelectorAll('.confetti')];
         const css = getComputedStyle(h), tok = [css.getPropertyValue('--accent'), css.getPropertyValue('--accent2')].map(v => { const d = document.createElement('i'); d.style.color = v.trim(); document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
-        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use')).length,
-          offTok: sk === 'pencil' ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length };
+        out[sk || 'default'] = { n: ns.length, emoji: ns.filter(n => EMO.test(n.textContent)).length, svg: ns.filter(n => n.querySelector('svg use, svg path, svg circle, svg polygon, svg rect')).length,
+          offTok: (sk === 'pencil' || sk === 'babochkovyi' || sk === 'ellada') ? 0 : ns.filter(n => !tok.includes(getComputedStyle(n).color)).length,
+          shapes: [...new Set(ns.map(n => n.dataset.c || ''))].sort().join(' '),
+          fills: new Set(ns.map(n => n.dataset.f || '')).size,
+          /* every colour inside a piece: a token var(), a token gradient url(#rqc…), currentColor (icon pieces) or none */
+          rawCol: ns.flatMap(n => [...n.querySelectorAll('svg, path, circle, rect, polygon')].flatMap(e => [e.getAttribute('fill'), e.getAttribute('stroke'), e.style.fill, e.style.stroke]))
+            .filter(v => v && !/^(var\(--[a-z0-9-]+\)|url\("?#rqc[A-Za-z]+"?\)|none|currentColor)$/.test(v)),
+          icons: [...new Set(ns.map(n => (n.querySelector('use') || { getAttribute: () => '' }).getAttribute('href')))].sort().join(' ') };
         ns.forEach(n => n.remove());
       }
       delete h.dataset.skin; return out;
     });
+    /* own confetti per skin (Джессика 17.10): each skin its own icon set; unknown skin → default set */
+    const SETS = { default: '#i-book-open #i-check #i-sparkles #i-star', pencil: '#i-notebook-pen #i-pencil #i-sparkles #i-star',
+      ellada: '', babochkovyi: '', 'future-skin': '#i-book-open #i-check #i-sparkles #i-star' };
+    /* «Бабочковый» (Джессика 17.10, картинка-образец): filled butterflies (top, side, small) + dots in 6 wing fills: blue, lilac, pink, pearl, gold, silver — all from skin tokens */
+    const bb = r.babochkovyi; const defs = await p.evaluate(() => { const d = document.getElementById('rqConfettiDefs'); return d ? [...d.querySelectorAll('stop')].map(s => s.getAttribute('style') || '') : null; });
+    ok('confetti babochkovyi: butterflies (top, side, small) and dots, 6 fills', bb.shapes === 'butterfly dot side small' && bb.fills === 6 && bb.n > 0, bb);
+    ok('confetti babochkovyi: gradient stops take colours from skin tokens only', Array.isArray(defs) && defs.length >= 6 && defs.every(st => /^stop-color:var\(--[a-z0-9-]+\)$/.test(st)), defs);
+    /* «Эллада» (Джессика 17.10, лист-образец): лавр, олива, звезда, ромб, меандр, молния, лента, кружок — золото, Эгейский синий, олива */
+    const el = r.ellada;
+    ok('confetti ellada: laurel, leaf, star, diamond, meander, bolt, ribbon, dot in gold / blue / olive', el.shapes === 'bolt diamond dot laurel leaf meander ribbon star' && el.fills >= 3 && el.n > 0, el);
+    ok('confetti: every colour in every skin comes from tokens (var / token gradient)', Object.values(r).every(v => !v.rawCol.length), Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.rawCol.slice(0, 5)])));
+    ok('confetti other skins: icon pieces, not butterflies', ['default', 'pencil', 'future-skin'].every(k => r[k].shapes === ''), Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.shapes])));
+    for (const k of Object.keys(r)) ok('confetti ' + k + ': its own icon set (' + SETS[k] + ')', r[k].icons === SETS[k], r[k].icons);
     for (const k of Object.keys(r)) ok('confetti ' + k + ': Lucide icons only, no emoji' + (k === 'pencil' ? '' : ', colour from theme tokens'), r[k].n > 0 && r[k].emoji === 0 && r[k].svg === r[k].n && r[k].offTok === 0 && !errs.length, r[k]);
     await ctx.close();
   }
@@ -223,6 +243,30 @@ if (want('confetti') || want('refund') || want('testgold')) {
       ok('testgold: main build (rq) adds no coins and logs no test_gold', r.ns === 'rq' && r.add === 0 && r.ev.length === 0 && !errs.length, { r, errs }); await ctx.close(); }
   }
   await browser.close();
+}
+
+if (want('balance')) {
+  /* bug 17.10 (Джессика, /test/ 20261017-1324): library header 1800 / 600 while the open «Награды» sheet says 600 / 300 —
+     the header was not redrawn after a spend in «Из жизни». Every visible balance = S.gold after buy / +1000. */
+  const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+  await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await p.goto(BASE.replace(/\/?$/, '/') + (/\/test\/?$/.test(BASE) ? '' : 'test/'), { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(600);
+  const r = await p.evaluate(async () => {
+    const num = (id) => { const e = document.getElementById(id); return e ? parseInt((e.textContent || '').replace(/\D/g, ''), 10) : null; };
+    S.gold = 1800; save(); show('library'); await new Promise(r => setTimeout(r, 200));
+    const before = num('goldChip');
+    openRewardsSheet('life'); await new Promise(r => setTimeout(r, 200));
+    S.rewards[0].name = 'Кофе'; buyRewardTier(0); await new Promise(r => setTimeout(r, 200));
+    const afterBuy = { gold: S.gold, chip: num('goldChip'), sheet: num('rewBalance') };
+    shopTestGold(); await new Promise(r => setTimeout(r, 200));
+    const afterTest = { gold: S.gold, chip: num('goldChip'), sheet: num('rewBalance'), diary: num('qstGold'), stats: num('kGold') };
+    return { before, afterBuy, afterTest };
+  });
+  ok('balance: header and «Награды» show the same coins after a spend in «Из жизни» (sheet open over the library)', r.before === 1800 && r.afterBuy.gold < 1800 && r.afterBuy.chip === r.afterBuy.gold && r.afterBuy.sheet === r.afterBuy.gold && !errs.length, { r, errs });
+  ok('balance: header follows «+1000 монет для теста» too', r.afterTest.gold === r.afterBuy.gold + 1000 && r.afterTest.chip === r.afterTest.gold && r.afterTest.sheet === r.afterTest.gold, r.afterTest);
+  ok('balance: «Дневник» and «Статистика» chips follow too (no stale coins on other screens)', r.afterTest.diary === r.afterTest.gold && r.afterTest.stats === r.afterTest.gold, r.afterTest);
+  await ctx.close(); await browser.close();
 }
 
 if (want('metrics')) {

@@ -12,17 +12,17 @@
   --rq-bg:#f4f2f8; --rq-surface:#ffffff; --rq-surface-2:#f3f1f8; --rq-sheet:#ffffff;
   --rq-line:#d3cfe6; --rq-border-strong:#8e8aa8;
   --rq-text:#1d2140; --rq-text-2:#4f5470; --rq-text-disabled:#a29fbd;
-  --rq-accent:#13646c; --rq-accent-pressed:#0d4c53; --rq-accent-text:#13646c;   /* «морфо» — глубокая бирюза */
+  --rq-accent:#5e4bb3; --rq-accent-pressed:#4a3a96; --rq-accent-text:#5e4bb3;   /* сиреневое крыло (17.10, Джессика: бирюза читалась как зелёный цвет приложения) */
   --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
-  --rq-accent-tint:#e1f1f2; --rq-accent-border:#8fc3c7;
+  --rq-accent-tint:#ece8fa; --rq-accent-border:#b9a7ec;
   --rq-coin:#84480c; --rq-coin-tint:#fbf0d8;            /* суммы монет — тёмная пыльца */
   --rq-success:#3d6a2c; --rq-success-tint:#e5f1de;      /* неделя, успех — клевер */
   --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
-  --rq-focus:#13646c;
+  --rq-focus:#5e4bb3;
   --rq-scrim:rgba(29,33,64,.40);
   --rq-badge-bg:#1d2140; --rq-badge-text:#ffffff;
-  --rq-toast-game-bg:#13646c; --rq-toast-game-fg:#ffffff;
-  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#13646c; --rq-toast-info-border:#d3cfe6;
+  --rq-toast-game-bg:#5e4bb3; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#5e4bb3; --rq-toast-info-border:#d3cfe6;
   --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
   --rq-shadow-1:0 2px 8px rgba(60,50,110,.10);
   --rq-shadow-2:0 0 0 1px #ddd7ef,0 6px 18px rgba(60,50,110,.10);
@@ -40,17 +40,17 @@
   --rq-bg:#0e1019; --rq-surface:#181b28; --rq-surface-2:#20243a; --rq-sheet:#181b28;
   --rq-line:#2e3247; --rq-border-strong:#5d6390;
   --rq-text:#eceef6; --rq-text-2:#b9bdd4; --rq-text-disabled:#6a6f92;
-  --rq-accent:#b5e3c4; --rq-accent-pressed:#cdeed7; --rq-accent-text:#b5e3c4;  /* ночью главный — бледная зелень мотылька-лунника */
+  --rq-accent:#c7b8f5; --rq-accent-pressed:#d8cdf8; --rq-accent-text:#c7b8f5;  /* ночью — бледная сирень мотылька */
   --rq-on-accent:#0e1019; --rq-control-on:#0e1019;
-  --rq-accent-tint:#1c2a27; --rq-accent-border:#5c8a72;
+  --rq-accent-tint:#252040; --rq-accent-border:#7d6fc0;
   --rq-coin:#f2d38a; --rq-coin-tint:#2a2618;
   --rq-success:#a9d79a; --rq-success-tint:#1e2a1c;
   --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
-  --rq-focus:#b5e3c4;
+  --rq-focus:#c7b8f5;
   --rq-scrim:rgba(4,5,12,.7);
   --rq-badge-bg:#eceef6; --rq-badge-text:#0e1019;
-  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#b5e3c4;
-  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#b5e3c4; --rq-toast-info-border:#2e3247;
+  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#c7b8f5;
+  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#c7b8f5; --rq-toast-info-border:#2e3247;
   --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
   --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #2e3247,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
   --bb-iridescent:linear-gradient(110deg,#1c2a3a 0,#262447 50%,#2e2238 100%);

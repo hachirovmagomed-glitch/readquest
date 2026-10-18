@@ -12,28 +12,28 @@
   --rq-text:#2a2a28;
   --rq-text-2:#595853;
   --rq-text-disabled:#97958e;
-  --rq-accent:#1d6464;
-  --rq-accent-pressed:#185252;
-  --rq-accent-text:#1d6464;
+  --rq-accent:#2e48a0;
+  --rq-accent-pressed:#253b85;
+  --rq-accent-text:#2e48a0;
   --rq-on-accent:#fbfaf5;
   --rq-control-on:#fbfaf5;
-  --rq-accent-tint:#e0e8e4;
-  --rq-accent-border:#97b6b4;
+  --rq-accent-tint:#e2e6f3;
+  --rq-accent-border:#9aa6cf;
   --rq-coin:#7a4f10;
   --rq-coin-tint:#e9e2d5;
   --rq-success:#2f6a22;
   --rq-success-tint:#dee6d7;
   --rq-danger:#b3392a;
   --rq-danger-tint:#f1dfd9;
-  --rq-focus:#1d6464;
+  --rq-focus:#2e48a0;
   --rq-scrim:rgba(42,42,40,.45);
   --rq-badge-bg:#2a2a28;
   --rq-badge-text:#f3f0e7;
-  --rq-toast-game-bg:#1d6464;
+  --rq-toast-game-bg:#2e48a0;
   --rq-toast-game-fg:#fbfaf5;
   --rq-toast-info-bg:#fbfaf5;
   --rq-toast-info-fg:#2a2a28;
-  --rq-toast-info-icon:#1d6464;
+  --rq-toast-info-icon:#2e48a0;
   --rq-toast-info-border:#d7d4cc;
   --rq-toast-error-bg:#b3392a;
   --rq-toast-error-fg:#ffffff;
@@ -43,10 +43,12 @@
   /* --- skin extras (--rq-skin-*) --- */
   --rq-skin-border:#3d3d3a;
   --rq-skin-tab:#595853;
-  --rq-skin-tab-active:#1d6464;
-  --rq-skin-daybar:#1d6464;
+  --rq-skin-tab-active:#2e48a0;
+  --rq-skin-daybar:#2e48a0;
   --rq-skin-daybar-track:#dedbd1;
   --rq-skin-hatch:#8f8c84;
+  --rq-skin-grid:#d5dce8;    /* клетка тетради 20px (текст на линии ≥ 4.5: text-2 5.17, accent 5.97) */
+  --rq-skin-margin:#d98a8a;  /* двойная красная линия полей, только декор */
   color-scheme:light;
 }
 [data-skin="pencil"][data-theme="night"],
@@ -60,28 +62,28 @@
   --rq-text:#e8e6df;
   --rq-text-2:#b9b7ae;
   --rq-text-disabled:#80817f;
-  --rq-accent:#86cbc2;
-  --rq-accent-pressed:#9ed5ce;
-  --rq-accent-text:#95d1c9;
+  --rq-accent:#a9b9f0;
+  --rq-accent-pressed:#c0ccf4;
+  --rq-accent-text:#b4c2f2;
   --rq-on-accent:#1f2329;
-  --rq-control-on:#44555c;
-  --rq-accent-tint:#44555c;
-  --rq-accent-border:#597c7d;
+  --rq-control-on:#444a5e;
+  --rq-accent-tint:#3f465e;
+  --rq-accent-border:#66719c;
   --rq-coin:#e2b866;
   --rq-coin-tint:#4d4c4a;
   --rq-success:#9fd68c;
   --rq-success-tint:#44514f;
   --rq-danger:#ff9d94;
   --rq-danger-tint:#51464d;
-  --rq-focus:#86cbc2;
+  --rq-focus:#a9b9f0;
   --rq-scrim:rgba(12,14,18,.68);
   --rq-badge-bg:#e8e6df;
   --rq-badge-text:#2b3038;
-  --rq-toast-game-bg:#86cbc2;
+  --rq-toast-game-bg:#a9b9f0;
   --rq-toast-game-fg:#1f2329;
   --rq-toast-info-bg:#434951;
   --rq-toast-info-fg:#e8e6df;
-  --rq-toast-info-icon:#86cbc2;
+  --rq-toast-info-icon:#a9b9f0;
   --rq-toast-info-border:#555a61;
   --rq-toast-error-bg:#ff9d94;
   --rq-toast-error-fg:#2a0d0a;
@@ -91,12 +93,15 @@
   /* --- skin extras (--rq-skin-*) --- */
   --rq-skin-border:#cfccc3;
   --rq-skin-tab:#b9b7ae;
-  --rq-skin-tab-active:#86cbc2;
-  --rq-skin-daybar:#86cbc2;
+  --rq-skin-tab-active:#a9b9f0;
+  --rq-skin-daybar:#a9b9f0;
   --rq-skin-daybar-track:#454c57;
   --rq-skin-hatch:#7c828c;
+  --rq-skin-grid:#3a414e;    /* text-2 5.11, accent 5.32 */
+  --rq-skin-margin:#a8566a;
   color-scheme:dark;
 }
+/* 17.10 (Джессика: «в скинах всё ещё зелёные»): бирюзовый карандаш → синий, чтобы акцент не совпадал с цветом приложения */
 /* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
 [data-skin="pencil"],
 [data-theme="pencil-day"],
@@ -116,6 +121,6 @@
 [data-theme="pencil-night"] [data-page="night"]{--r-bg:#262a31;--r-txt:#e3e0d8;--r-txt-2:#a7a59d;--r-dim:.35;}
 
 /* 1в (Интерфейс, 11.10.2026): новые канонические токены stage1-final */
-[data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
-[data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#a9b9f0;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#a9b9f0;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
 [data-skin="karandashny"] [data-page="night"],[data-theme="karandashny-day"] [data-page="night"],[data-theme="karandashny-night"] [data-page="night"]{--rq-accent:#5fb8ae;--rq-accent-text:#5fb8ae;} /* читалка в скинах чистая: канонический акцент */

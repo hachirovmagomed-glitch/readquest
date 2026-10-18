@@ -46,11 +46,16 @@ const tk = await p.evaluate(async () => { const cs = getComputedStyle(document.d
     poiret: has('Poiret One'), mul5: has('Mulish', '500'), mul8: has('Mulish', '800'), bell: has('Bellota Text'),
     font: getComputedStyle(document.getElementById('libTitle')).fontFamily }; });
 const tokCss = await (await fetch(BASE + 'tokens.css')).text();
-ok('4 tokens: --rq-bg #f4f2f8, accent #13646c, app --bg bridged; no @import in tokens.css', tk.bg === '#f4f2f8' && tk.accent === '#13646c' && /var\(--rq-bg\)|#f4f2f8/.test(tk.appBg) && !/@import/.test(tokCss), { tk, imp: /@import/.test(tokCss) });
+ok('4 tokens: --rq-bg #f4f2f8, accent lilac #5e4bb3 (Джессика 17.10: «всё ещё зелёные»), app --bg bridged; no @import in tokens.css', tk.bg === '#f4f2f8' && tk.accent === '#5e4bb3' && /var\(--rq-bg\)|#f4f2f8/.test(tk.appBg) && !/@import/.test(tokCss), { tk, imp: /@import/.test(tokCss) });
 ok('4b fonts: Poiret One + Mulish 500/800 + Bellota Text loaded from fonts/ (offline), title in Poiret One', tk.poiret && tk.mul5 && tk.mul8 && tk.bell && /Poiret One/.test(tk.font), tk);
 const sw = await (await fetch(BASE + 'sw.js')).text();
-ok('4c precache: skins/skins.css and the 4 babochkovyi woff2', /"skins\/skins\.css"/.test(sw) && (sw.match(/fonts\/babochkovyi-[a-z-]+\.woff2/g) || []).length === 4, (sw.match(/fonts\/babochkovyi-[a-z-]+\.woff2/g) || []));
+ok('4c precache: skins/skins.css and the 6 babochkovyi woff2 (+ IBM Plex Serif for the book)', /"skins\/skins\.css(\?v=[^"]+)?"/.test(sw) && (sw.match(/fonts\/babochkovyi-[a-z-]+\.woff2/g) || []).length === 6, (sw.match(/fonts\/babochkovyi-[a-z-]+\.woff2/g) || []));
 
+// 4d. Джессика 17.10 (phone): new JS + OLD skins.css → butterflies and icons, but no wing, fonts, cocoons or skin colours. The stylesheets had no ?v=
+// like the scripts, so the old SW cache (cache-first) kept serving them. Every local stylesheet carries ?v=<build>, and the SW precaches exactly that URL.
+const css = await p.evaluate(() => { const b = (navigator.serviceWorker && 0) || (document.querySelector('script[src*="?v="]') || {}).src || '';
+  const v = (b.match(/\?v=([\w-]+)/) || [])[1]; return { v, links: [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.getAttribute('href')).filter(h => !/^https?:/.test(h)) }; });
+ok('4d stylesheets: tokens.css and skins/skins.css requested with ?v=<build>, precached under the same URL', css.v && css.links.length >= 2 && css.links.every(h => h.endsWith('?v=' + css.v) && sw.includes('"' + h + '"')), css);
 // 5. library decor: wing header (iridescent + wavy mask), butterfly pair after the title, butterfly covers, meadow; nothing overflows at 390 and 360
 await p.evaluate(() => { show('library'); renderLibrary(); }); await sleep(300);
 const lib = (w) => p.evaluate(() => { const h = document.getElementById('libHead'), r = h.getBoundingClientRect(), cs = getComputedStyle(h);
@@ -61,7 +66,7 @@ const lib = (w) => p.evaluate(() => { const h = document.getElementById('libHead
     covers: document.querySelectorAll('#shelf .bb-cover').length, svgs: document.querySelectorAll('#shelf .bb-cover svg').length,
     books: document.querySelectorAll('#shelf .bookcard').length, inside: kids.every(k => k.l >= 0 && k.r <= innerWidth), cut: t.scrollWidth > t.clientWidth + 1, kids, sx: document.documentElement.scrollWidth <= innerWidth }; });
 let l390 = await lib();
-ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 110px with flyers, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 2 && l390.meadow[0] === '110px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
+ok('5 library: wing header (gradient + wavy mask + butterflies + scales), coin «пыльца» 18px, pearl strip under «Моя полка», meadow 210px of tall grass + clover with butterflies over it, every cover a butterfly tile', l390.grad && l390.mask && l390.fly >= 2 && l390.coin[0] === '18px' && l390.coin[1] && l390.strip === '56px' && l390.flyers === 2 && l390.meadow[0] === '210px' && l390.meadow[1] && l390.covers === l390.books && l390.svgs === l390.books && l390.books > 0, l390);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-390.png' });
 await p.evaluate(() => { S.gold = 12345; save(); renderLibrary(); });
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(400);
@@ -71,7 +76,7 @@ await p.screenshot({ path: SHOTS + 'babochkovyi-library-360.png' });
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
 // 5c. goal of the day: ring hidden, 10 cocoons, 6 of 10 min → 6 butterflies; full goal → all 10 and «Все бабочки проснулись»
 const goal = (m) => p.evaluate((m) => { window.__mt0 = window.__mt0 || minTodaySess; window.minTodaySess = () => m; renderLibrary();
-  const h = document.getElementById('bbHatch'); return { ring: getComputedStyle(document.querySelector('.goalcard .ring')).display, n: h.children.length, on: h.querySelectorAll('i.on').length, sub: document.getElementById('goalSub').textContent, aria: h.getAttribute('aria-hidden') }; }, m);
+  const h = document.getElementById('bbHatch'); return { ring: getComputedStyle(document.querySelector('.goalcard .ring')).display, n: h.querySelectorAll("i").length, on: h.querySelectorAll('i.on').length, sub: document.getElementById('goalSub').textContent, aria: h.getAttribute('aria-hidden') }; }, m);
 const g6 = await goal(6), g10 = await goal(10);
 ok('5c goal: ring hidden, 10 cocoons, 6 min → 6 butterflies; 10 min → 10 and «Все бабочки проснулись»', g6.ring === 'none' && g6.n === 10 && g6.on === 6 && g6.aria === 'true' && g10.on === 10 && g10.sub === 'Все бабочки проснулись', { g6, g10 });
 await p.evaluate(() => { window.minTodaySess = window.__mt0; renderLibrary(); });
@@ -81,6 +86,54 @@ const nh = await p.evaluate(() => { const cs = getComputedStyle(document.getElem
 ok('5d night header: moon sky, no white scales, no shimmer', nh.theme === 'night' && !nh.scales && nh.moon && nh.anim === 'none', nh);
 await p.screenshot({ path: SHOTS + 'babochkovyi-library-night-390.png' });
 await p.evaluate(() => toggleDayNight()); await sleep(300);
+// 5e. beyond the library (Джессика 17.10 «жутко сырой»): every screen header gets the pearl strip + butterfly; summary has butterflies and petal cells
+const sx = await p.evaluate(() => { const out = {}; for (const id of ['stats', 'profile', 'shop', 'quotes']) { __navAllow = true; show(id); __navAllow = false;
+    const row = document.querySelector('#' + id + ' .wrap > .row:first-child'), a = getComputedStyle(row, '::after'), b = getComputedStyle(row, '::before');
+    out[id] = { strip: /gradient/.test(a.backgroundImage) && a.content !== 'none', fly: /data:image\/svg/.test(b.backgroundImage) }; }
+  renderSummary({ xp: 42, gold: 12, pages: 8, min: 11, stat: 'Мудрость', statGain: 1, newB: [], lvBefore: level(S.xp), justFinished: false, mult: 1, flipped: 8, cheatFinish: false, dName: DIFFS[0].n, dmul: 1, newAch: [], achNew: [], day: null, quest: 0, title: '' });
+  __navAllow = true; show('summary'); __navAllow = false;
+  const bx = getComputedStyle(document.querySelector('#summary .sumbox'), '::before'), cell = getComputedStyle(document.querySelector('#summary .sumcell')), daily = getComputedStyle(document.getElementById('sumDailyBox'));
+  out.summary = { fly: /data:image\/svg/.test(bx.backgroundImage), cell: cell.backgroundColor, daily: daily.backgroundColor, surf: getComputedStyle(document.documentElement).getPropertyValue('--rq-surface').trim() };
+  __navAllow = true; show('library'); __navAllow = false; return out; });
+ok('5e screen headers: pearl strip + butterfly; summary: butterflies, cells and daily card on the petal surface', ['stats', 'profile', 'shop', 'quotes'].every(k => sx[k].strip && sx[k].fly) && sx.summary.fly && sx.summary.cell === 'rgb(255, 255, 255)' && sx.summary.daily === 'rgb(255, 255, 255)', sx);
+await p.setViewport({ width: 360, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }); await sleep(200);
+const hov = await p.evaluate(() => { const bad = []; for (const id of ['stats', 'profile', 'shop', 'quotes', 'achievements', 'calendar', 'path']) { __navAllow = true; show(id); __navAllow = false;
+    const row = document.querySelector('#' + id + ' .wrap > .row:first-child'), h = row && row.querySelector('h1'); if (!h) continue;
+    if (row.scrollWidth > row.clientWidth + 1 || h.getBoundingClientRect().height > 40) bad.push(id + ':' + (row.scrollWidth - row.clientWidth) + '/' + Math.round(h.getBoundingClientRect().height)); }
+  __navAllow = true; show('library'); __navAllow = false; return bad; });
+ok('5f 360: every screen title on one line, header row inside the screen', hov.length === 0, hov);
+await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }); await sleep(200);
+
+// 5g. v3 (Джессика 17.10: «думал, будет больше похож на этот» + overview): meadow under every screen but the reader, mascot after the shelf and by «Награды»,
+// summary card with the big butterfly, 10 cocoons and 4 week flowers, «Цветник» drawings on the reward cards
+const v3 = await p.evaluate(() => { const svg = x => /data:image\/svg/.test(x || '');
+  const pse = (e, w) => getComputedStyle(e, w);
+  __navAllow = true; show('library'); __navAllow = false; renderLibrary();
+  const lug = pse(document.body, '::before'), lugLib = { bg: svg(lug.backgroundImage), z: lug.zIndex, pos: lug.position };
+  const mw = pse(document.querySelector('#library .wrap'), '::after'), masc = svg(mw.backgroundImage) && mw.width === '120px' && !/fff8ec/i.test(mw.backgroundImage); /* 17.10: three plain butterflies, not the mascot with eyes (body #fff8ec) */
+  __navAllow = true; show('stats'); __navAllow = false; const lugStats = svg(pse(document.body, '::before').backgroundImage);
+  openRewardsSheet(); const rhs = pse(document.querySelector('#rewardsSheet .rewhead h3'), '::after').backgroundImage, rh = svg(rhs) && !/fff8ec/i.test(rhs);
+  const arts = [...document.querySelectorAll('#rewSlots .pcard > .row:last-child')].map(r => (pse(r, '::before').backgroundImage.match(/width='(\d+)'/) || [])[1]);
+  closeRewardsSheet && closeRewardsSheet();
+  renderSummary({ xp: 180, gold: 30, pages: 14, min: 18, stat: 'Мудрость', statGain: 1, newB: [], lvBefore: level(S.xp), justFinished: false, mult: 1, flipped: 14, cheatFinish: false, dName: DIFFS[0].n, dmul: 1, newAch: [], achNew: [], day: null, quest: 0, title: '' });
+  __navAllow = true; show('summary'); __navAllow = false;
+  const hero = svg(pse(document.querySelector('#summary .sumbox'), '::before').backgroundImage), sky = svg(pse(document.body, '::after').backgroundImage);
+  const hatch = document.querySelectorAll('#sumHatch i').length, wk = document.getElementById('sumWeekDots'), wks = [...wk.querySelectorAll('svg')].map(x => svg(getComputedStyle(x).backgroundImage));
+  const bar = getComputedStyle(document.querySelector('#sumDailyBox .pbar')).display;
+  __navAllow = true; show('library'); __navAllow = false;
+  return { lugLib, masc, lugStats, rh, arts, hero, sky, hatch, wk: getComputedStyle(wk).display, wks, bar }; });
+ok('5g scene: meadow under the content on library and stats (z -1, fixed); plain butterflies (no mascot with eyes) after the shelf and by «Награды»; «Цветник» vase/hat/can on reward cards',
+  v3.lugLib.bg && v3.lugLib.z === '-1' && v3.lugLib.pos === 'fixed' && v3.lugStats && v3.masc && v3.rh && v3.arts.length >= 2 && v3.arts[0] === '56' && v3.arts[1] === '66', v3);
+ok('5h summary: big butterfly, sky over the scene, 10 cocoons instead of the bar, 4 week flowers', v3.hero && v3.sky && v3.hatch === 10 && v3.bar === 'none' && /flex/.test(v3.wk) && v3.wks.length === 4 && v3.wks.every(Boolean), v3);
+
+// 5i. variety (Джессика 17.10: «большее разнообразие бабочек»): 10 goal butterflies are 10 different drawings, screen headers differ, covers use several wing palettes
+const vr = await p.evaluate(() => { const old = window.minTodaySess; window.minTodaySess = () => 10; __navAllow = true; show('library'); __navAllow = false; renderLibrary();
+  const goal = new Set([...document.querySelectorAll('#bbHatch i.on')].map(i => getComputedStyle(i).backgroundImage)).size; window.minTodaySess = old; renderLibrary();
+  const heads = new Set(['stats', 'profile', 'shop', 'quotes'].map(id => { __navAllow = true; show(id); __navAllow = false; return getComputedStyle(document.querySelector('#' + id + ' .wrap > .row:first-child'), '::before').backgroundImage; })).size;
+  __navAllow = true; show('library'); __navAllow = false;
+  const pals = new Set(allBooks().map(b => { const m = bbCover({ id: b.id + 'x', title: b.title }).match(/fill="(#[0-9a-f]{6})"/g); return m ? m.join() : ''; }).concat(['a1', 'b22', 'c333', 'd4444', 'e55555'].map(id => (bbCover({ id }).match(/fill="(#[0-9a-f]{6})"/g) || []).join()))).size;
+  return { goal, heads, pals }; });
+ok('5i variety: 10 different goal butterflies, 4 screen headers with 4 different ones, covers in several palettes', vr.goal === 10 && vr.heads === 4 && vr.pals >= 4, vr);
 
 // 6. reader: clean page (skin page tokens, no pseudo decor), day/night stays inside the skin
 const bid = await p.evaluate(() => allBooks()[1].id);
@@ -90,6 +143,9 @@ const rd = () => p.evaluate(() => { const r = document.getElementById('reader'),
     return [a, b].some(x => /data:image\/svg/.test(x.backgroundImage) && x.content !== 'none'); });
   return { page: r.dataset.page, bg: cs.backgroundColor, color: cs.color, deco, sea: getComputedStyle(document.body, '::before').content, skin: document.documentElement.dataset.skin, theme: document.documentElement.dataset.theme || '' }; });
 let r1 = await rd();
+const bf = await p.evaluate(() => { const c = document.getElementById('content'), f0 = getComputedStyle(c).fontFamily; const was = SET.font; SET.font = 1; applySet(); const f1 = getComputedStyle(c).fontFamily; SET.font = was; applySet();
+  return { f0, f1, tile: (document.querySelector('#fontSeg button .xn') || {}).textContent, loaded: document.fonts.check('16px "IBM Plex Serif"') }; });
+ok('6e book face: IBM Plex Serif in place of the first «Шрифт» tile (tile named so); another tile wins', /IBM Plex Serif/.test(bf.f0) && /Times/.test(bf.f1) && bf.tile === 'IBM Plex Serif', bf);
 ok('6 reader day: page #fcfbf8 / #1d2140, no wings/meadow next to the text', r1.bg === 'rgb(252, 251, 248)' && r1.color === 'rgb(29, 33, 64)' && !r1.deco && (r1.sea === 'none' || r1.sea === 'normal') && r1.skin === 'babochkovyi', r1);
 await p.evaluate(() => toggleDayNight()); await sleep(400);
 let r2 = await rd(); s = await st();
@@ -130,10 +186,15 @@ ok('9 export → reset → import → reload: balance, owned, theme, worn skin i
 // 9b. own icon set: sprite symbols redrawn while the skin is on (flower-2 for «Награды», flower for trophy, butterfly for the streak, cocoon for the level, silkworm for the profile), same ids
 const ic1 = await p.evaluate(() => { const h = n => document.getElementById('i-' + n).innerHTML; return { gift: h('gift'), trophy: h('trophy'), flame: h('flame'), star: h('star'), user: h('user-round'), nav: [...document.querySelectorAll('#botnav use')].map(u => u.getAttribute('href')) }; });
 ok('9b Бабочковый icons: flower-2, flower, butterfly, cocoon, silkworm; nav keeps the same ids', /M12 10v12/.test(ic1.gift) && /M12 16\.5A4\.5/.test(ic1.trophy) && /M12 9C10 5/.test(ic1.flame) && /M12 5c-4 2/.test(ic1.star) && /cy="14" r="6"/.test(ic1.user) && ic1.nav.includes('#i-gift'), ic1);
+// 9c. Джессика 17.10: reader bar icons stayed Lucide teal → our butterfly set for back, «Слушать», Оглавление, Ночь/День, Фокус, Настройки; accent lilac in the bar
+const rdIc = ['arrow-left', 'volume-2', 'list', 'moon', 'sun', 'focus', 'settings'];
+const icr = await p.evaluate(n => n.map(k => (document.getElementById('i-' + k) || {}).innerHTML || ''), rdIc);
+const icc = await p.evaluate(() => getComputedStyle(document.querySelector('#btnSet .ic')).color);
+ok('9c reader icons: all 7 redrawn with a butterfly mark (data-bb), bar icons not teal', icr.every(h => /data-bb/.test(h)) && !/19, 100, 108|13, 100, 108/.test(icc), { icc, miss: rdIc.filter((k, i) => !/data-bb/.test(icr[i])) });
 // 10. other skins stay «Скоро»; «Карандашный» still free and wearable
 const soon = await p.evaluate(() => SHOP_CATALOG.filter(x => x.type === 'skin' && !shopReady(x.id)).map(x => x.id));
 await p.evaluate(() => wear('skin-pencil')); await sleep(200); s = await st();
-ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 6 && s.skin === 'pencil' && s.set === 'pencil', { soon, s });
+ok('10 the rest stay «Скоро», pencil wear still works', soon.length === 5 && s.skin === 'pencil' && s.set === 'pencil', { soon, s });
 const ic2 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, flame: document.getElementById('i-flame').innerHTML, el: document.querySelectorAll('#shelf .bb-cover').length, pc: document.querySelectorAll('#shelf .pc-cover').length }));
 ok('10b leaving the skin: Lucide icons back, covers redrawn for the new skin', !/M12 10v12/.test(ic2.gift) && !/M12 9C10 5/.test(ic2.flame) && ic2.el === 0 && ic2.pc > 0, ic2);
 

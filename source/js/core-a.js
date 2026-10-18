@@ -42,14 +42,14 @@ function applyMvpChrome(){
   const bn=el('botnav');
   if(bn){
     const onLib=!el('library').classList.contains('hidden');
-    const onProf=!el('profile').classList.contains('hidden');
+    const onProf=!el('profile').classList.contains('hidden')||!!(el('stats')&&!el('stats').classList.contains('hidden')); /* 18.10: statistics belong to «Профиль» */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
     const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
     if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
     if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
     if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
     bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
-      const scr={quests:'quests',notes:'quotes',vocab:'vocab',stats:'stats'}[id];b.classList.toggle('on',!onRew&&!!scr&&!!el(scr)&&!el(scr).classList.contains('hidden'));});
+      const scr={quests:['quests'],stats:['quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -59,8 +59,8 @@ function applyMvpChrome(){
       try{
         if(typeof isPencil==='function'&&isPencil())ava.innerHTML=rqIcon('user-round',18);
         else if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
-        else ava.textContent=S.avatar||'📖';
-      }catch(e){ava.textContent='📖';}
+        else if(S.avatar)ava.textContent=S.avatar;else ava.innerHTML=rqIcon('user-round',18);
+      }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
 }
@@ -137,16 +137,12 @@ function clearConfetti(){
 function clearToasts(){
   document.querySelectorAll('.rq-toast').forEach(function(n){try{n.remove();}catch(e){}});
 }
-let rewTab='life';
-function setRewardsTab(t){rewTab=t==='shop'?'shop':'life';
-  if(rewTab!=='shop')try{closeShopDetail();}catch(e){}
-  [['life','rewTabLife','rewPaneLife'],['shop','rewTabShop','rewPaneShop']].forEach(function(x){const on=x[0]===rewTab,b=el(x[1]),p=el(x[2]);
-    if(b){b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');}if(p)p.hidden=!on;});
-  renderRewardsSheet();}
+/* 17.10: «Награды» = «Из жизни» only; the skin shop lives on «Внешний вид». 'shop' → that screen */
+function setRewardsTab(t){if(t==='shop'){closeRewardsSheet();openLook(true);return;}renderRewardsSheet();}
 function openRewardsSheet(tab){
-  if(tab)rewTab=tab==='shop'?'shop':'life';
+  if(tab==='shop'){openLook(true);return;}
   clearConfetti();clearToasts();
-  setRewardsTab(rewTab);
+  renderRewardsSheet();
   {const rs=el('rewardsSheet'),nh=(typeof rqNavH==='function'?rqNavH():0);rs.style.bottom=nh+'px';rs.scrollTop=0;el('rewardsScrim').style.bottom=nh+'px';} /* scrim stops above the bottom nav: tabs stay tappable */
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
@@ -219,7 +215,7 @@ function buyRewardTier(i){
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];
   S.rewardPurchases.push({id:'rp_'+Date.now()+'_'+i, title:r.name, price:r.cost, at:new Date().toISOString()});
-  save();try{confettiReward();}catch(e){}flashMsg('🎉 «'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
+  save();try{confettiReward();}catch(e){}flashMsg('«'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
   if(!isMvp())renderShop();
 }
 function addRewardSlot(){

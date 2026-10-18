@@ -41,7 +41,7 @@ const impNav = has ? await p.evaluate(() => JSON.stringify(navGet())) : 'n/a';
 ok('nav: экспорт несёт nav; старый бэкап без nav → ' + DEF, imp.hadNav && impNav === DEF, { imp, impNav });
 // drawer per mockup
 await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 'rewards', 'profile']); openDrawer(); }); await sleep(400);
-const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent);
+const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent && x.id !== 'dNight'); /* 18.10: ночная кнопка внизу меню — не раздел */
   return { w: Math.round(dr.getBoundingClientRect().width), ava: !!dr.querySelector('.dava'), name: (dr.querySelector('.dname') || {}).textContent || '', items: items.map(x => x.dataset.nav || x.id), pins: items.filter(x => x.querySelector('.dpin')).map(x => x.dataset.nav),
     h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
 ok('drawer: 85% ширины (≈332px), аватар и имя, 7 разделов (с «Путём читателя») + Настройки, пункты 52px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","rewards","profile","path","quests","stats","look","settings"]' && d.h === 52 && !d.emoji, d);

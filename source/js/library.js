@@ -1,7 +1,7 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
 const SCREENS=['library','path','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','look','reader','summary'];
-const DRAWER={library:'dLib',path:'dPath',quotes:'dStats',vocab:'dStats',profile:'dProf',quests:'dQuests',stats:'dStats',calendar:'dStats',achievements:'dStats',shelfScreen:'dStats',look:'dLook',settings:'dSet'};
+const DRAWER={library:'dLib',path:'dPath',quotes:'dStats',vocab:'dStats',profile:'dProf',quests:'dQuests',stats:'dProf',calendar:'dStats',achievements:'dStats',shelfScreen:'dStats',look:'dLook',settings:'dSet'};
 let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
@@ -66,7 +66,7 @@ function navGo(id){
     else if(id==='quests')openJournal('quests');
     else if(id==='notes')openProgress('quotes');
     else if(id==='vocab')openProgress('vocab');
-    else if(id==='stats')openProgress('stats');
+    else if(id==='stats')openProgress('quotes'); /* 18.10: «Инвентарь» = цитаты и словарь; статистика в «Профиле» */
     else if(id==='look')openLook();
     else if(id==='settings'){renderSettings();show('settings');}
   }finally{__navAllow=false;}
@@ -98,7 +98,7 @@ el('scrim').onclick=closeDrawer;
 
 let jrnLast='quests';
 /* tabs inside a drawer section: same MVP pass as the drawer item itself (the tabs used to bounce to the library in MVP) */
-function navShowSub(id){const own={quotes:'stats',stats:'stats',vocab:'stats',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
+function navShowSub(id){const own={quotes:'stats',stats:'profile',vocab:'stats',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
 function openLook(toShop){try{closeRewardsSheet();}catch(e){}renderSettings();try{renderShopPane();}catch(e){}__navAllow=true;try{show('look');}finally{__navAllow=false;}closeDrawer();
   if(toShop===true){const h=el('rewPaneShop');if(h)h.scrollIntoView({block:'start'});}}
 function openJournal(sub){

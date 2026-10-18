@@ -42,14 +42,14 @@ function applyMvpChrome(){
   const bn=el('botnav');
   if(bn){
     const onLib=!el('library').classList.contains('hidden');
-    const onProf=!el('profile').classList.contains('hidden');
+    const onProf=!el('profile').classList.contains('hidden')||!!(el('stats')&&!el('stats').classList.contains('hidden')); /* 18.10: statistics belong to «Профиль» */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
     const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
     if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
     if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
     if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
     bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
-      const scr={quests:['quests'],stats:['stats','quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
+      const scr={quests:['quests'],stats:['quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');

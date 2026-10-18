@@ -36,7 +36,7 @@ const m = await p.evaluate(async () => { navGo('path'); await new Promise(r => s
   const roads = document.querySelectorAll('#pathBox .pathline path').length;
   const card = {}; [['pr', 'prometheus'], ['ae', 'aesop'], ['an', 'antigone'], ['oe', 'oedipus'], ['me', 'medea'], ['il', 'iliad']].forEach(function (x) { pathOpen(x[1]); card[x[0]] = el('bookSheetBody').textContent; el('bookSheet').classList.add('hidden'); });
   const ch1 = Array.from(document.querySelectorAll('#pathBox .pathch[data-ch="ch1"] .pathnode')).map(n => n.dataset.pid).join(' ');
-  return { nodes, ch, sheet, roads, cta, ch1, vis: !el('path').classList.contains('hidden') }; });
+  return { nodes, ch, sheet, roads, cta, ch1, card, vis: !el('path').classList.contains('hidden') }; });
 ok('1b глава I «Древняя Греция» по хронологии (Джессика 18.10): эпос, лирика, басня, трагедия, философия, роман', m.ch1 === 'iliad odyssey hesiod lyrics aesop prometheus antigone medea oedipus apology poetics daphnis', m.ch1);
 ok('1d карточка книги: эпоха и время; спорное авторство и примерные даты помечены (Джессика 18.10)', /Эпоха\s*Трагедия/.test(m.card.pr) && /ок\. 460 до н\. э\./.test(m.card.pr) && /авторство спорное/i.test(m.card.pr) && /дата примерная/i.test(m.card.pr) && /Эпоха\s*Басня/.test(m.card.ae) && /дата примерная/i.test(m.card.an) && /дата примерная/i.test(m.card.oe) && !/дата примерная/i.test(m.card.me) && /Эпоха\s*Эпос/.test(m.card.il), m.card);
 ok('1a карта: 4 главы, 23 книги, дорога между книгами (19 отрезков), карточка открывается', m.vis && m.ch === 4 && m.nodes === 23 && m.roads === 19 && m.sheet, m);

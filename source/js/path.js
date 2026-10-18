@@ -5,14 +5,21 @@
    equals the catalog id; «done» = S.finished, percent = rqPos (same as the shelf). Opening the map writes nothing.
    Rewards: chapter titles only (cosmetic, no coins and no extra XP), shown as «звание за главу». */
 const PATH_CHAPTERS=[
-  {id:'ch1',n:'I',t:'Истоки',rank:'Слушатель рапсодов',books:[
-    {id:'aesop',t:'Басни',a:'Эзоп',tr:'пересказ Л. Н. Толстого',kb:21,kind:'side'},
-    {id:'prometheus',t:'Скованный Прометей',a:'Эсхил',tr:'пер. Д. С. Мережковского',kb:64},
-    {id:'antigone',t:'Антигона',a:'Софокл',tr:'пер. Д. С. Мережковского',kb:85},
-    {id:'oedipus',t:'Царь Эдип',a:'Софокл',tr:'пер. Д. С. Мережковского',kb:104},
-    {id:'medea',t:'Медея',a:'Еврипид',tr:'пер. И. Ф. Анненского',kb:103},
-    {id:'iliad',t:'Илиада',a:'Гомер',tr:'пер. Н. И. Гнедича',kb:1397},
-    {id:'odyssey',t:'Одиссея',a:'Гомер',tr:'пер. В. А. Жуковского',kb:1100,kind:'boss'}]},
+  /* Джессика 18.10: глава I = греческая литература по хронологии (эпос, лирика, басня, трагедия, философия, роман).
+     e = эпоха, y = время, note = пометка в карточке (спорное авторство, примерная дата) */
+  {id:'ch1',n:'I',t:'Древняя Греция',rank:'Слушатель рапсодов',books:[
+    {id:'iliad',t:'Илиада',a:'Гомер',tr:'пер. Н. И. Гнедича',kb:1397,e:'Эпос',y:'VIII в. до н. э.'},
+    {id:'odyssey',t:'Одиссея',a:'Гомер',tr:'пер. В. А. Жуковского',kb:1100,kind:'boss',e:'Эпос',y:'VIII в. до н. э.'},
+    {id:'hesiod',t:'Труды и дни',a:'Гесиод',tr:'пер. В. В. Вересаева',kb:74,e:'Эпос',y:'ок. 700 до н. э.'},
+    {id:'lyrics',t:'Греческие лирики',a:'Сапфо, Алкей, Анакреонт',tr:'пер. Вяч. Иванова, Л. А. Мея, В. В. Вересаева',kb:27,kind:'side',tag:'Стихи',e:'Лирика',y:'VII–VI в. до н. э.'},
+    {id:'aesop',t:'Басни',a:'Эзоп',tr:'пересказ Л. Н. Толстого',kb:21,kind:'side',tag:'Басни',e:'Басня',y:'VI в. до н. э.',note:'Эзоп для историков полулегенда, а сборник его басен собран намного позже.'},
+    {id:'prometheus',t:'Скованный Прометей',a:'Эсхил',tr:'пер. Д. С. Мережковского',kb:64,e:'Трагедия',y:'ок. 460 до н. э.',note:'Авторство спорное: многие филологи считают пьесу более поздней, чем Эсхил. Дата примерная.'},
+    {id:'antigone',t:'Антигона',a:'Софокл',tr:'пер. Д. С. Мережковского',kb:85,e:'Трагедия',y:'ок. 442 до н. э.',note:'Дата примерная.'},
+    {id:'medea',t:'Медея',a:'Еврипид',tr:'пер. И. Ф. Анненского',kb:103,e:'Трагедия',y:'431 до н. э.'},
+    {id:'oedipus',t:'Царь Эдип',a:'Софокл',tr:'пер. Д. С. Мережковского',kb:104,e:'Трагедия',y:'ок. 429 до н. э.',note:'Дата примерная.'},
+    {id:'apology',t:'Апология Сократа',a:'Платон',tr:'пер. М. С. Соловьёва',kb:104,e:'Философия',y:'после 399 до н. э.'},
+    {id:'poetics',t:'Поэтика',a:'Аристотель',tr:'пер. Н. И. Новосадского',kb:133,e:'Философия',y:'ок. 335 до н. э.'},
+    {id:'daphnis',t:'Дафнис и Хлоя',a:'Лонг',tr:'пер. Д. С. Мережковского',kb:243,e:'Роман',y:'II–III в. н. э.'}]},
   {id:'ch2',n:'II',t:'Странники и рыцари',rank:'Странствующий рыцарь',books:[
     {id:'inferno',t:'Ад',a:'Данте Алигьери',tr:'пер. Д. Е. Мина',kb:358},
     {id:'hamlet',t:'Гамлет',a:'Уильям Шекспир',tr:'пер. К. Р.',kb:283},
@@ -66,7 +73,7 @@ function renderPath(){
       const st=pathState(b.id),side=i%2?'r':'l';
       const r=b.kind==='boss'?30:(b.kind==='side'?20:25),C=2*Math.PI*r;
       const ic=st.done?'circle-check':(b.kind==='boss'?'castle':(b.kind==='side'?'scroll-text':'book-open'));
-      const tag=b.kind==='boss'?'Главная книга главы':(b.kind==='side'?'Рассказ':'');
+      const tag=b.kind==='boss'?'Главная книга главы':(b.kind==='side'?(b.tag||'Рассказ'):'');
       h+='<button type="button" class="pathnode '+side+(b.kind?' '+b.kind:'')+(st.done?' done':(st.lib?' started':''))+'" data-pid="'+b.id+'" onclick="pathOpen(\''+b.id+'\')">'+
         '<span class="pn-dot"><svg viewBox="0 0 '+(2*r+8)+' '+(2*r+8)+'" class="pn-ring"><circle cx="'+(r+4)+'" cy="'+(r+4)+'" r="'+r+'" class="pn-bg"/>'+
         (st.pct&&!st.done?'<circle cx="'+(r+4)+'" cy="'+(r+4)+'" r="'+r+'" class="pn-fg" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-st.pct/100)).toFixed(1)+'" transform="rotate(-90 '+(r+4)+' '+(r+4)+')"/>':'')+
@@ -107,7 +114,7 @@ window.addEventListener('resize',function(){if(el('path')&&!el('path').classList
 
 function pathOpen(pid){
   const f=pathFind(pid);if(!f)return;const b=f.b,c=f.ch,st=pathState(pid),has=!!(st.lib&&st.lib.text);
-  const tag=b.kind==='boss'?'Главная книга главы':(b.kind==='side'?'Рассказ':'Книга главы');
+  const tag=b.kind==='boss'?'Главная книга главы':(b.kind==='side'?(b.tag||'Рассказ'):'Книга главы');
   el('bookSheetBody').innerHTML=
     '<div class="bk-head"><div class="cover">'+rqIcon(b.kind==='boss'?'castle':(b.kind==='side'?'scroll-text':'book-open'),28)+'</div><div class="bk-ttl"><b>'+esc(b.t)+'</b>'+
     '<div class="bk-sub">'+esc(b.a)+(b.tr?' · '+esc(b.tr):'')+'</div></div></div>'+
@@ -115,9 +122,12 @@ function pathOpen(pid){
     (st.lib?'<div class="bk-prog"><div class="bk-bar"><i style="width:'+st.pct+'%"></i></div><div class="bk-pl"><span><b>'+(st.done?'Прочитано':st.pct+'%')+'</b>'+(st.done?'':' прочитано')+'</span></div></div>':'')+
     '<div class="bk-h">На карте</div><div class="bk-list">'+
     '<div class="bk-row"><span class="bk-k">Глава</span><span class="bk-v">'+c.n+' · '+esc(c.t)+'</span></div>'+
+    (b.e?'<div class="bk-row"><span class="bk-k">Эпоха</span><span class="bk-v">'+esc(b.e)+'</span></div>':'')+
+    (b.y?'<div class="bk-row"><span class="bk-k">Время</span><span class="bk-v">'+esc(b.y)+'</span></div>':'')+
     '<div class="bk-row"><span class="bk-k">Место</span><span class="bk-v">'+tag+'</span></div>'+
     '<div class="bk-row"><span class="bk-k">Объём</span><span class="bk-v">'+pathHours(b.kb)+' чтения</span></div>'+
     '<div class="bk-row"><span class="bk-k">Звание за главу</span><span class="bk-v">«'+esc(c.rank)+'»</span></div></div>'+
+    (b.note?'<div class="bk-note">'+esc(b.note)+'</div>':'')+
     '<div class="bk-note">'+(has?'Книга лежит на телефоне и читается без интернета. Её можно удалить, прогресс останется.':
       (st.lib?'Текст удалён с телефона, прогресс сохранён. Скачайте книгу снова, чтобы продолжить.':
       'Книга бесплатная, из общественного достояния. Скачивается один раз и дальше читается без интернета. Минуты, опыт и серия считаются как у любой книги.'))+'</div>'+

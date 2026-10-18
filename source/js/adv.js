@@ -19,7 +19,12 @@ const ADV_LANGS=[['ru','Русские'],['en','English'],['de','Deutsch'],['fr'
 const ADV_WS_HINTS=['Гомер','Шекспир','Данте','Сервантес','Диккенс','Гёте','Жюль Верн','Андерсен'];
 
 function advOnShelf(sid){return (S.userBooks||[]).find(function(b){return b&&b.srcId===sid;})||null;}
-async function advJson(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+/* Wikisource answers 429 when a long book is fetched page by page: wait and retry instead of failing the whole download */
+async function advJson(url){
+  for(let i=0;;i++){const r=await fetch(url,{cache:'no-store'});
+    if(r.ok)return r.json();
+    if((r.status===429||r.status===503)&&i<4){await new Promise(function(f){setTimeout(f,(+r.headers.get('Retry-After')||0)*1000||800*(i+1)*(i+1));});continue;}
+    throw new Error('HTTP '+r.status);}}
 async function advXml(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return new DOMParser().parseFromString(await r.text(),'application/xml');}
 function advNetErr(e){return navigator.onLine===false?'Нет сети. Каталог открывается только с интернетом, скачанные книги читаются без него':'Библиотека не ответила. Попробуйте ещё раз';}
 
@@ -27,7 +32,13 @@ function advNetErr(e){return navigator.onLine===false?'Нет сети. Ката
 /* «Гамлет (Шекспир; Кронеберг)» → title «Гамлет», author «Шекспир», translator «Кронеберг» */
 function advWsName(page){const root=String(page).split('/')[0],m=root.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
   if(!m)return {t:root,a:'',tr:''};const p=m[2].split(';').map(function(s){return s.trim();});return {t:m[1],a:p[0]||'',tr:p[1]||''};}
-function advWsFree(cats){return (cats||[]).some(function(c){const n=String(c&&c.category||c||'');return /^PD[-_]|^CC[-_]|^GFDL|Общественное_достояние|Свободн/i.test(n);});}
+/* categories come as {title:'Категория:PD-old-70'} from action=query and as {category:'PD-old-70'} from action=parse */
+function advWsCat(c){return String(c&&(c.title||c.category)||c||'').replace(/^Категория:/,'').replace(/_/g,' ');}
+function advWsFree(cats){return (cats||[]).some(function(c){return /^PD[- ]|^CC[- ]|^GFDL|Общественное достояние|Свободн/i.test(advWsCat(c));});}
+/* Wikisource keeps only free texts and marks the doubtful ones; many old poems carry no licence template at all */
+function advWsBad(cats){return (cats||[]).some(function(c){return /нарушени|копивио|copyvio|к удалению|удаляем|несвобод|не свобод|авторск/i.test(advWsCat(c));});}
+/* a list of editions or translations, a disambiguation page, a service list, an author page: not a book, the reader picks one of its links */
+function advWsList(cats,props){return !!(props&&props.disambiguation!==undefined)||(cats||[]).some(function(c){return /^Списки |Служебные списки|Неоднозначн|Многозначн|^Авторы|^Персоналии/i.test(advWsCat(c));});}
 function advWsOld(sub){return /(^|\/|\(|\s)ДО(\)|\/|$|\s)/.test(sub);} /* «/ДО», «(ДО)» = pre-1918 spelling: the modern one is preferred */
 const ADV_SRC={
   wikisource:{t:'Викитека',kind:'text',
@@ -39,13 +50,16 @@ const ADV_SRC={
         const n=advWsName(root);out.push({sid:'wikisource:'+root,page:root,t:n.t,a:n.a,tr:n.tr,lang:'ru'});});
       return {items:out,more:d.continue&&d.continue.sroffset?d.continue.sroffset:null};},
     async info(it){
-      const d=await advJson(ADV_WS+'?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=categories|info&cllimit=max&titles='+encodeURIComponent(it.page));
+      const d=await advJson(ADV_WS+'?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=categories|info|pageprops&ppprop=disambiguation&cllimit=max&titles='+encodeURIComponent(it.page));
       const p=(d.query&&d.query.pages||[])[0]||{};
-      return {free:advWsFree(p.categories),size:p.length||0,missing:!!p.missing};},
+      if(p.missing)return {missing:true};
+      const lic=advWsFree(p.categories),bad=advWsBad(p.categories);
+      if(advWsList(p.categories,p.pageprops))return {list:await advWsLinks(p.title||it.page)};
+      return {free:lic||!bad,lic:lic,size:p.length||0};},
     rows(it,inf){return [['Источник','Викитека'],['Автор',it.a||'не указан'],it.tr?['Перевод',it.tr]:null,['Язык','русский'],
-      ['Права',inf.free?'Общественное достояние':'Викитека не отметила, что текст свободен']];},
+      ['Права',inf.lic?'Общественное достояние':inf.free?'Свободный текст Викитеки':'Викитека отметила, что права на текст под вопросом']];},
     note(inf){return inf.free?'Книга бесплатная. Скачивается один раз и дальше читается без интернета. Минуты, опыт и серия считаются как у любой книги.':
-      'Без отметки о свободной лицензии скачать нельзя: так мы не берём книги, на которые ещё действует авторское право.';},
+      'Скачать нельзя: так мы не берём книги, на которые ещё может действовать авторское право.';},
     canGet(inf){return !!inf.free;},
     async get(it,prog){return advWsBook(it,prog);}},
   gutenberg:{t:'Гутенберг',kind:'text',
@@ -99,6 +113,17 @@ async function advWsParse(page){
   const d=await advJson(ADV_WS+'?action=parse&format=json&formatversion=2&origin=*&redirects=1&prop=text|categories&page='+encodeURIComponent(page));
   if(d.error)throw new Error(d.error.info||d.error.code);
   return {html:d.parse.text||'',cats:d.parse.categories||[],title:d.parse.title||page};
+}
+/* the texts a list page links to, in page order: «Евгений Онегин (Пушкин)» → its editions, «Шекспир» → the works */
+async function advWsLinks(page){
+  const p=await advWsParse(page),doc=advWsDoc(p.html),out=[],seen={};
+  doc.getElementById('advroot').querySelectorAll('a[title]').forEach(function(a){
+    if(out.length>=60||a.classList.contains('new')||a.closest('#headertemplate,.ws-noexport,.navbox'))return;
+    const href=a.getAttribute('href')||'',t=a.getAttribute('title');
+    if(href.indexOf('/wiki/')!==0||/^[^:]+:/.test(t)&&!/^[^:]+: /.test(t)||t===p.title||seen[t])return;
+    seen[t]=1;const n=advWsName(t);
+    out.push({sid:'wikisource:'+t,page:t,t:n.t,ed:t.indexOf('/')>0?t.slice(t.indexOf('/')+1):'',a:n.a,tr:n.tr,lang:'ru'});});
+  return out;
 }
 /* a book is the page itself, or (when it links to its own subpages: volumes, chapters) the subpages in their order, depth ≤ 4 */
 async function advWsBook(it,prog){
@@ -186,6 +211,7 @@ async function advOpen(it){
   if(!el('bookSheet').classList.contains('hidden'))advSheet(it,src,inf);
 }
 function advSheet(it,src,inf){
+  if(inf&&inf.list){advListSheet(it,inf.list);return;}
   const own=advOnShelf(it.sid),rows=inf&&!inf.err&&!inf.missing?src.rows(it,inf).filter(Boolean):[];
   let act='';
   if(own)act='<button type="button" class="cta" onclick="advRead()">Читать</button>';
@@ -195,10 +221,18 @@ function advSheet(it,src,inf){
     '<a class="cta" href="'+esc(inf.epub)+'" target="_blank" rel="noopener">'+rqIcon('download',18)+' Скачать файл'+(inf.size?' · '+advSize(inf.size):'')+'</a>';
   else if(src.canGet(inf))act='<button type="button" class="cta" id="advGet" onclick="advGet()">'+rqIcon('download',18)+' Скачать на телефон и читать</button>';
   el('bookSheetBody').innerHTML=
-    '<div class="bk-head"><div class="cover">'+advCover(it)+'</div><div class="bk-ttl"><b>'+esc(it.t)+'</b><div class="bk-sub">'+esc(it.a||'')+(it.tr?' · пер. '+esc(it.tr):'')+'</div></div></div>'+
+    '<div class="bk-head"><div class="cover">'+advCover(it)+'</div><div class="bk-ttl"><b>'+esc(it.t+(it.ed?' · '+it.ed:''))+'</b><div class="bk-sub">'+esc(it.a||'')+(it.tr?' · пер. '+esc(it.tr):'')+'</div></div></div>'+
     (inf&&inf.summary?'<div class="bk-note advsum" lang="en">'+esc(inf.summary)+'</div>':'')+
     (rows.length?'<div class="bk-h">О книге</div><div class="bk-list">'+rows.map(function(r){return '<div class="bk-row"><span class="bk-k">'+esc(r[0])+'</span><span class="bk-v">'+esc(r[1])+'</span></div>';}).join('')+'</div>':'')+
     (inf&&!inf.err&&!inf.missing&&!own&&!inf.nocors?'<div class="bk-note">'+esc(src.note(inf))+'</div>':'')+act;
+}
+function advListSheet(it,list){
+  el('bookSheetBody').innerHTML=
+    '<div class="bk-head"><div class="cover">'+advCover(it)+'</div><div class="bk-ttl"><b>'+esc(it.t)+'</b><div class="bk-sub">'+esc(it.a||'')+'</div></div></div>'+
+    (list.length?'<div class="bk-note">Здесь несколько изданий или произведений. Выберите нужное.</div><div class="advlist">'+list.map(function(x,i){
+      return '<button type="button" class="advrow" data-i="'+i+'"><span class="advmeta"><b>'+esc(x.t+(x.ed?' · '+x.ed:''))+'</b>'+(x.a||x.tr?'<span class="advauth">'+esc(x.a+(x.tr?' · пер. '+x.tr:''))+'</span>':'')+'</span>'+rqIcon('chevron-right',18)+'</button>';}).join('')+'</div>'
+    :'<div class="bk-note">На этой странице нет ссылок на тексты. Попробуйте уточнить поиск.</div>');
+  el('bookSheetBody').querySelectorAll('.advrow').forEach(function(b){b.onclick=function(){advOpen(list[+b.dataset.i]);};});
 }
 function advSize(b){return b<1048576?Math.max(1,Math.round(b/1024))+' КБ':(b/1048576).toFixed(1).replace('.',',')+' МБ';}
 function advRead(){const own=advCur&&advOnShelf(advCur.it.sid);if(!own)return;el('bookSheet').classList.add('hidden');openBook(own.id);}

@@ -1,6 +1,7 @@
 // «Приключения» (js/adv.js, arch.md 18.10, поля lang и srcId):
 //  1) экран и карточка книги ничего не пишут; пункт есть в боковом меню;
-//  2) Викитека: поиск, подстраницы одной книги сводятся в одну строку; без свободной лицензии скачать нельзя;
+//  2) Викитека: поиск, подстраницы одной книги сводятся в одну строку; текст с отметкой о нарушении прав скачать нельзя,
+//     без шаблона лицензии можно; список изданий открывается списком; 429 не обрывает скачивание;
 //     скачивание собирает главы по порядку (современная орфография, без шапки), книга одна, с srcId и lang, открывается читалка;
 //  3) Гутенберг: каталог OPDS по-русски по умолчанию; файл без CORS → книга не добавляется, предлагается скачать файл;
 //  4) экспорт: srcId и lang в карточке.
@@ -11,7 +12,7 @@ import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-const ROOT = 'Одиссея (Гомер; Жуковский)', NONFREE = 'Новая повесть (Автор)';
+const ROOT = 'Одиссея (Гомер; Жуковский)', NONFREE = 'Новая повесть (Автор)', NOLIC = 'Зимнее утро (Пушкин)', LIST = 'Евгений Онегин (Пушкин)', ED = LIST + '/1837 (ВТ)';
 const HEAD = '<div class="ws-noexport" style="display:none"><span id="textquality" class="75%"></span></div><div id="headertemplate"><table class="headertemplate ws-noexport"><tr><td><span id="ws-title">Одиссея</span> автор Гомер</td><td><a href="/wiki/x" title="' + ROOT + '/Песнь вторая">Песнь вторая</a></td></tr></table></div>';
 const link = (t, n) => '<li><a href="/wiki/' + encodeURIComponent(t) + '" title="' + t + '">' + n + '</a></li>';
 const PAGES = {
@@ -21,7 +22,10 @@ const PAGES = {
   [ROOT + '/Песнь первая']: { cats: [], html: HEAD + '<p>Муза, скажи мне о том многоопытном муже, который,<br>Странствуя долго со дня, как святой Илион им разрушен,</p><p><span class="pagenum">[5]</span>Многих людей города посетил и обычаи видел.<sup class="reference">[1]</sup></p>' + '<p>Песнь первая, строфа.</p>'.repeat(30) },
   [ROOT + '/Песнь вторая']: { cats: [], html: HEAD + '<p>Вышла из мрака младая с перстами пурпурными Эос.</p>' + '<p>Песнь вторая, строфа.</p>'.repeat(30) },
   [ROOT + '/ДО']: { cats: [], html: '<p>Муза, скажи мнѣ о томъ</p>'.repeat(40) },
-  [NONFREE]: { cats: [{ category: 'Тексты_без_ссылок_на_источники' }], html: '<p>Текст</p>'.repeat(40) }
+  [NONFREE]: { cats: [{ category: 'Возможные_нарушения_авторских_прав' }], html: '<p>Текст</p>'.repeat(40) },
+  [NOLIC]: { cats: [{ category: 'Стихотворения_Александра_Пушкина' }], html: '<p>Мороз и солнце; день чудесный!</p>'.repeat(20) },
+  [LIST]: { cats: [{ category: 'Списки_редакций' }], html: HEAD + '<ul>' + link(ED, '1837') + link(LIST + '/1833 (ВТ)', '1833') + link('Категория:Романы', 'Романы') + '<li><a href="/wiki/z" class="new" title="' + LIST + '/1825">1825</a></li></ul>' },
+  [ED]: { cats: [{ category: 'PD-old' }], html: '<p>Мой дядя самых честных правил.</p>'.repeat(20) }
 };
 const atom = (entries, next) => '<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/">' +
   (next ? '<link rel="next" href="' + next + '"/>' : '') + entries + '</feed>';
@@ -33,7 +37,7 @@ const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome
 const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 const errs = [], dialogs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
-const hits = { ws: [], gutQ: [], gutFile: 0 };
+const hits = { ws: [], gutQ: [], gutFile: 0, tooMany: 0 };
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 await p.setRequestInterception(true);
 p.on('request', r => {
@@ -41,8 +45,9 @@ p.on('request', r => {
   if (u.host === 'ru.wikisource.org') {
     const q = u.searchParams; hits.ws.push(q.get('action') + ':' + (q.get('page') || q.get('titles') || q.get('srsearch')));
     let body;
-    if (q.get('list') === 'search') body = { query: { search: [{ title: ROOT }, { title: ROOT + '/Песнь первая' }, { title: NONFREE }] } };
-    else if (q.get('prop') && q.get('prop').indexOf('categories') === 0 && q.get('action') === 'query') { const t = q.get('titles'); body = { query: { pages: [PAGES[t] ? { title: t, length: 5000, categories: PAGES[t].cats } : { title: t, missing: true }] } }; }
+    if (q.get('list') === 'search') body = { query: { search: [{ title: ROOT }, { title: ROOT + '/Песнь первая' }, { title: NONFREE }, { title: NOLIC }, { title: LIST }] } };
+    else if (q.get('prop') && q.get('prop').indexOf('categories') === 0 && q.get('action') === 'query') { const t = q.get('titles'); body = { query: { pages: [PAGES[t] ? { title: t, length: 5000, categories: PAGES[t].cats.map(c => ({ ns: 14, title: 'Категория:' + c.category.replace(/_/g, ' ') })) } : { title: t, missing: true }] } }; }
+    else if (q.get('action') === 'parse' && q.get('page') === ROOT + '/Песнь первая' && !hits.tooMany++) { r.respond({ status: 429, headers: CORS, body: '' }); return; }
     else if (q.get('action') === 'parse') { const t = q.get('page'); body = PAGES[t] ? { parse: { title: t, text: PAGES[t].html, categories: PAGES[t].cats } } : { error: { code: 'missingtitle' } }; }
     r.respond({ status: 200, contentType: 'application/json; charset=utf-8', headers: CORS, body: JSON.stringify(body || {}) });
   } else if (u.host === 'www.gutenberg.org') {
@@ -70,9 +75,16 @@ ok('1a «Приключения» в боковом меню, экран отк�
 // 2. Wikisource
 const s = await p.evaluate(async () => { document.querySelector('#advList .advhints .fchip').click(); await new Promise(r => setTimeout(r, 400));
   return { q: el('advQ').value, rows: Array.from(document.querySelectorAll('#advList .advrow')).map(b => b.querySelector('b').textContent + '|' + b.querySelector('.advauth').textContent) }; });
-ok('2a поиск: «Одиссея» и её глава сведены в одну строку, автор и переводчик из названия страницы', s.rows.length === 2 && s.rows[0] === 'Одиссея|Гомер · пер. Жуковский' && s.rows[1] === 'Новая повесть|Автор', s);
+ok('2a поиск: «Одиссея» и её глава сведены в одну строку, автор и переводчик из названия страницы', s.rows.length === 4 && s.rows[0] === 'Одиссея|Гомер · пер. Жуковский' && s.rows[1] === 'Новая повесть|Автор', s);
+const nl = await p.evaluate(async () => { advOpen(ADV.items[2]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody'); const r = { cta: !!b.querySelector('#advGet'), txt: b.textContent }; el('bookSheet').classList.add('hidden'); return r; });
+ok('2g стихотворение без шаблона лицензии (как у Пушкина на Викитеке) скачивается', nl.cta && /Свободный текст Викитеки/.test(nl.txt), nl);
+const li = await p.evaluate(async () => { advOpen(ADV.items[3]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody');
+  const rows = Array.from(b.querySelectorAll('.advrow b')).map(x => x.textContent), cta = !!b.querySelector('#advGet');
+  b.querySelector('.advrow').click(); await new Promise(r => setTimeout(r, 400));
+  const r = { rows, cta, ed: b.querySelector('.bk-ttl b').textContent, edCta: !!b.querySelector('#advGet') }; el('bookSheet').classList.add('hidden'); return r; });
+ok('2h список изданий («Евгений Онегин»): вместо скачивания выбор издания, издание скачивается', !li.cta && JSON.stringify(li.rows) === JSON.stringify(['Евгений Онегин · 1837 (ВТ)', 'Евгений Онегин · 1833 (ВТ)']) && li.ed === 'Евгений Онегин · 1837 (ВТ)' && li.edCta, li);
 const nf = await p.evaluate(async () => { advOpen(ADV.items[1]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody'); const r = { cta: !!b.querySelector('#advGet'), txt: b.textContent }; el('bookSheet').classList.add('hidden'); return r; });
-ok('2b без свободной лицензии кнопки скачивания нет, объяснение есть', !nf.cta && /не отметила, что текст свободен/.test(nf.txt) && /авторское право/.test(nf.txt), nf);
+ok('2b текст с отметкой о нарушении прав: кнопки скачивания нет, объяснение есть', !nf.cta && /права на текст под вопросом/.test(nf.txt) && /авторское право/.test(nf.txt), nf);
 const fr = await p.evaluate(async () => { advOpen(ADV.items[0]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody');
   return { cta: b.querySelector('#advGet') ? b.querySelector('#advGet').textContent : '', rights: /Общественное достояние/.test(b.textContent), tr: /Жуковский/.test(b.textContent) }; });
 ok('2c свободная книга: «Скачать на телефон и читать», права «Общественное достояние»', /Скачать на телефон и читать/.test(fr.cta) && fr.rights && fr.tr, fr);
@@ -85,7 +97,7 @@ const g = await p.evaluate(async () => { const n0 = S.userBooks.length; await ad
   const inReader = !el('reader').classList.contains('hidden'); await closeReader({ quiet: true });
   return { added: S.userBooks.length - n0, id: b && b.id, title: b && b.title, author: b && b.author, lang: b && b.lang, genre: b && b.genre, toc: b && b.toc && b.toc.map(t => t.t), idbLen: idb ? idb.length : 0,
     first: idb ? idb.indexOf('Муза, скажи мне') : -1, second: idb ? idb.indexOf('Вышла из мрака') : -1, old: idb ? /мнѣ|томъ/.test(idb) : null, junk: idb ? /Содержание|\[5\]|\[1\]|автор Гомер|75%/.test(idb) : null, inReader }; });
-ok('2d скачано: одна книга с srcId и lang «ru», главы по порядку в оглавлении, текст в IDB, открыта читалка', g.added === 1 && g.title === 'Одиссея' && g.author === 'Гомер' && g.lang === 'ru' && g.genre === 'Викитека' &&
+ok('2d скачано (один ответ 429 переждан): одна книга с srcId и lang «ru», главы по порядку в оглавлении, текст в IDB, открыта читалка', hits.tooMany >= 1 && g.added === 1 && g.title === 'Одиссея' && g.author === 'Гомер' && g.lang === 'ru' && g.genre === 'Викитека' &&
   JSON.stringify(g.toc) === JSON.stringify(['Песнь первая', 'Песнь вторая']) && g.first >= 0 && g.second > g.first && g.inReader, g);
 ok('2e в тексте нет дореформенной копии, шапки, номеров страниц и сносок; несуществующая глава не запрашивалась', g.old === false && g.junk === false && !hits.ws.some(x => /Песнь третья|\/ДО/.test(x)), { old: g.old, junk: g.junk, ws: hits.ws });
 const g2 = await p.evaluate(async () => { navGo('adv'); await new Promise(r => setTimeout(r, 200)); const own = document.querySelector('#advList .advrow .advown');

@@ -96,6 +96,7 @@ await openLib(); await page.screenshot({ path: OUT + '/library-mvp-dev.png' });
 await openSettings(); await page.click('#mvpTgl'); await sleep(300);
 await page.evaluate(() => { S.goal = 5; S.anti.minSec = 30; save(); renderLibrary(); });
 const v6 = await page.evaluate(() => ({ mvp: isMvp(), goal: S.goal, goalMin: goalMin(), minSecMs: trackerOpts().minSecMs, title: goalTitle.textContent }));
+await page.evaluate(() => navGo('profile')); await sleep(200); /* 17.10: the goal card lives in «Профиль» */
 const v6btn = await vis('goalMinus');
 ok('1/2 outside MVP in-session (v6): goal 5 and 30 s kept, «Цель дня: 5 мин», steppers visible', !v6.mvp && v6.goal === 5 && v6.goalMin === 5 && v6.minSecMs === 30000 && v6.title === 'Цель дня: 5 мин' && v6btn, { ...v6, v6btn });
 await page.screenshot({ path: OUT + '/library-v6-dev.png' });

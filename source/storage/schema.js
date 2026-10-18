@@ -178,6 +178,9 @@ export const SET_DEF = {
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
   pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
   readCounter: true, // 1б: «7 / 10 мин» in focus
+  bright: 1,         // 18.10: own brightness 0.3..1 (arch.md SET.bright)
+  warm: 0,           // 18.10: warm tint 0..0.6
+  warmNight: true,   // 18.10: warm tint only on a night page
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -186,7 +189,7 @@ export const SET_DEF = {
 export const FLIP_DEF = { btns: false, tap: true, invert: false, swipe: true, mode: 'page', anim: 'none' };
 const FLIP_KEYS = ['btns', 'tap', 'invert', 'swipe'];
 /* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings; junk → default */
-const FLIP_STR = { mode: ['page', 'scroll'], anim: ['none', 'slide', 'fade'] };
+const FLIP_STR = { mode: ['page', 'scroll'], anim: ['none', 'slide', 'fade', 'curl'] };
 function flipFrom(o) {
   const f = {};
   FLIP_KEYS.forEach((k) => { f[k] = typeof o[k] === 'boolean' ? o[k] : FLIP_DEF[k]; });
@@ -198,6 +201,12 @@ export function normFlip(s) {
   if (s.flip) s.flip = flipFrom(s.flip);
   else if (s.nav && typeof s.nav === 'object' && !Array.isArray(s.nav) && FLIP_KEYS.some((k) => k in s.nav)) s.flip = flipFrom(s.nav);
   return s;
+}
+
+/** 18.10 (arch.md SET.bright / SET.warm): number clamped to [lo,hi] on a 0.05 grid; not a number → default */
+export function normStep(v, lo, hi, def) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return def;
+  return Math.round(Math.max(lo, Math.min(hi, v)) * 20) / 20;
 }
 
 export const FOCUS_MODES = ['off', 'button', 'auto'];
@@ -396,6 +405,9 @@ export function hydrateSettings(s) {
   if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
   out.pdfDim = normPdfDim(out.pdfDim);
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
+  out.bright = normStep(out.bright, 0.3, 1, 1);
+  out.warm = normStep(out.warm, 0, 0.6, 0);
+  if (typeof out.warmNight !== 'boolean') out.warmNight = true;
   /* 1в: theme is an id string — the free ones incl. 'pencil' / 'pencil-night' («Карандашный»), paid SHOP ids. Unknown ids are KEPT
      (forward compat: an older build simply renders sepia, see activeTheme); only a non-string / empty / huge value falls back. */
   if (typeof out.theme !== 'string' || !out.theme || out.theme.length > 32) out.theme = 'sepia';

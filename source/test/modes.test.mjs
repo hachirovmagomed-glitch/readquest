@@ -128,17 +128,56 @@ if (want('scroll')) {
   await ctx.close();
 }
 
-/* scrollpdf: PDF stays paged even with «Прокрутка» chosen; the choice is shown as unavailable for PDF */
+/* scrollpdf (18.10, Джессика «все 4 по очереди»): PDF scrolls vertically too. Fit-width page slots in #pdfScroll, canvases only near the
+   screen, the page under the upper third is the current one; a settled scroll to the next page = a turn, farther = a jump; the slider jumps;
+   the choice is saved and the paged view comes back with «Страницы» on the same page. */
 if (want('scrollpdf')) {
   const { ctx, p } = await fresh();
   const inp = await p.$('#fileInp');
   await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); });
   await inp.uploadFile(PDF); await sleep(2500);
-  await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); openBook(b.id); await new Promise(r => setTimeout(r, 2500)); openReaderSettings('grpNav'); });
-  await sleep(300);
-  const r = await p.evaluate(() => { const v = document.getElementById('viewer'), s = document.querySelector('#flipModeSeg [data-v="scroll"]');
-    return { mode: R.mode, ovf: getComputedStyle(v).overflowY, cls: document.getElementById('reader').classList.contains('scrollmode'), dis: !!(s && s.disabled), note: (document.getElementById('flipModeNote') || {}).textContent || '' }; });
-  ok('scrollpdf: PDF stays paged (no vertical scroll), «Прокрутка» disabled with a note', r.mode === 'pdf' && r.ovf === 'hidden' && !r.cls && r.dis && /PDF/.test(r.note), r);
+  await p.evaluate(async () => {
+    window.__ev = []; const t = __tracker; ['pageTurned', 'pageShown', 'jumped'].forEach(k => { const f = t[k] && t[k].bind(t); if (f) t[k] = function () { __ev.push([k, ...arguments]); return f.apply(null, arguments); }; });
+    const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000));
+  });
+  const a = await p.evaluate(() => { const s = document.getElementById('pdfScroll'), w = document.getElementById('pdfWrap');
+    return { on: !!(window.__rqPdfScroll && __rqPdfScroll.on), shown: !s.classList.contains('hidden') && s.scrollHeight > s.clientHeight * 3, wrap: w.classList.contains('hidden'),
+      slots: s.querySelectorAll('.psl').length, pc: R.pageCount, canv: s.querySelectorAll('canvas').length, sw: s.querySelector('.psl').getBoundingClientRect().width, vw: s.clientWidth, page: R.page }; });
+  ok('scrollpdf: PDF opens as one vertical strip, a slot per page, fit to width, page 1', a.on && a.shown && a.wrap && a.slots === a.pc && Math.abs(a.sw - a.vw) < 1 && a.page === 0, a);
+  ok('scrollpdf: only pages near the screen have a canvas (≤ 6 of ' + a.pc + ')', a.canv >= 1 && a.canv <= 6, a);
+  /* user scroll to page 2 → a turn; then far → a jump */
+  const b = await p.evaluate(async () => {
+    const s = document.getElementById('pdfScroll'), P2 = __rqPdfScroll; __ev.length = 0;
+    s.scrollTop = P2.tops[1] - 8; await new Promise(r => setTimeout(r, 450));
+    const t1 = { page: R.page, ev: __ev.map(e => e[0]).join(','), num: document.getElementById('rPage').textContent };
+    __ev.length = 0; s.scrollTop = P2.tops[20] - 8; await new Promise(r => setTimeout(r, 450));
+    const t2 = { page: R.page, ev: __ev.map(e => e[0]).join(','), canv: s.querySelectorAll('canvas').length,
+      far: [...s.querySelectorAll('canvas')].map(c => +c.parentElement.dataset.n) };
+    return { t1, t2 };
+  });
+  ok('scrollpdf: a settled scroll to the next page = turn (pageTurned + pageShown), page number follows', b.t1.page === 1 && b.t1.ev === 'pageTurned,pageShown' && /^2 \//.test(b.t1.num), b.t1);
+  ok('scrollpdf: a long scroll = one jump, far canvases freed', b.t2.page === 20 && b.t2.ev === 'jumped' && b.t2.canv <= 6 && b.t2.far.every(n => Math.abs(n - 20) <= 3), b.t2);
+  /* slider / contents jump; tap on the right edge scrolls down */
+  const c = await p.evaluate(async () => {
+    const s = document.getElementById('pdfScroll'); __ev.length = 0;
+    jumpTo(5); await new Promise(r => setTimeout(r, 400));
+    const j = { page: R.page, ev: __ev.map(e => e[0]).join(','), top: Math.round(s.scrollTop), slot: __rqPdfScroll.tops[5] - 8 };
+    const top0 = s.scrollTop, vr = document.getElementById('viewer').getBoundingClientRect();
+    __ev.length = 0; pdfSingleTap(0.9, 0.5); await new Promise(r => setTimeout(r, 900));
+    return { j, tap: { moved: Math.round(s.scrollTop - top0), h: s.clientHeight, ev: __ev.map(e => e[0]).join(',') } };
+  });
+  ok('scrollpdf: jumpTo (contents / bookmark) scrolls to the page top and reports one jump', c.j.page === 5 && c.j.ev === 'jumped' && Math.abs(c.j.top - c.j.slot) <= 1, c.j);
+  ok('scrollpdf: tap on the right edge scrolls about one screen down and counts as a turn', c.tap.moved > c.tap.h * 0.5 && c.tap.moved <= c.tap.h && c.tap.ev === 'pageTurned,pageShown', c.tap);
+  /* settings: no disabled button; back to pages on the same page */
+  const d = await p.evaluate(async () => {
+    openReaderSettings('grpNav'); await new Promise(r => setTimeout(r, 200));
+    const btn = document.querySelector('#flipModeSeg [data-v="scroll"]'), on = btn.classList.contains('on'), dis = btn.disabled;
+    const pg = R.page; document.querySelector('#flipModeSeg [data-v="page"]').click(); await new Promise(r => setTimeout(r, 1500));
+    document.getElementById('sheet').classList.add('hidden');
+    return { on, dis, pg, page: R.page, shown: __rqPdf.shown, wrap: !document.getElementById('pdfWrap').classList.contains('hidden'), scroll: !document.getElementById('pdfScroll').classList.contains('hidden'), saved: JSON.parse(localStorage.getItem(RQ_K.set)).flip.mode };
+  });
+  ok('scrollpdf: «Прокрутка» is available for PDF; «Страницы» brings the paged view back on the same page, saved', d.on && !d.dis && d.wrap && !d.scroll && d.shown === d.pg && d.page === d.pg && d.saved === 'page', d);
+  ok('scrollpdf: no page errors', !errs.length, errs);
   await ctx.close();
 }
 
@@ -331,6 +370,165 @@ if (want('bars')) {
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
   await p.evaluate(() => { S.ux.anim = false; }); r = await run();
   ok('bars: «Анимации» off → no animation', r.shown && !r.inA.length && !r.outA.length && r.gone, r);
+  await ctx.close();
+}
+
+/* curl: «Загиб» — the strip jumps at once (no transition / will-change), a screen-sized copy of the OLD page lies over it and peels off.
+   Frame 0 must look exactly like the old page (no flash); the tracker hears the same as with «Нет»; off with rqStill, 2 columns, jumps; PDF too. */
+if (want('curl')) {
+  const diff = (a, b) => { const A = PNG.sync.read(Buffer.from(a)), B = PNG.sync.read(Buffer.from(b)); if (A.width !== B.width || A.height !== B.height) return 1; let n = 0;
+    for (let i = 0; i < A.data.length; i += 4) if (Math.abs(A.data[i] - B.data[i]) > 48 || Math.abs(A.data[i + 1] - B.data[i + 1]) > 48 || Math.abs(A.data[i + 2] - B.data[i + 2]) > 48) n++;
+    return n / (A.width * A.height); };
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  await p.waitForFunction(() => document.getElementById('txtBack').classList.contains('hidden'), { timeout: 15000 }); /* hyphenation placeholder gone */
+  await p.evaluate(async () => { S.ux.anim = true; SET.flip = Object.assign({}, flipGet(), { anim: 'curl' }); jumpTo(3); await new Promise(r => setTimeout(r, 400)); });
+  const vw = await p.$('#viewer');
+  const results = [];
+  for (const dir of [1, -1]) {
+    const before = await vw.screenshot();
+    const m = await p.evaluate((dir) => { const a0 = __rqAnim.n, c0 = __rqCurl.n, t0 = __tracker.snapshot().turns, p0 = R.page;
+      goPage(R.page + dir, true); if (rqCurlNow) cancelAnimationFrame(rqCurlNow.raf); /* hold frame 0 */
+      const c = document.getElementById('content'), cs = getComputedStyle(c);
+      return { a: __rqAnim.n - a0, c: __rqCurl.n - c0, last: __rqAnim.last, d: R.page - p0, turns: __tracker.snapshot().turns - t0, ov: document.querySelectorAll('#viewer > .rqCurl').length,
+        tr: c.style.transform, want: 'translateX(' + (-R.page * R.step) + 'px)', trans: cs.transitionProperty + ' ' + cs.transitionDuration, will: cs.willChange }; }, dir);
+    const f0 = await vw.screenshot();
+    await p.evaluate(() => rqCurlStop());
+    const after = await vw.screenshot();
+    /* the same new page with «Нет» for reference */
+    const ref = await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { anim: 'none' }); return true; }).then(() => vw.screenshot());
+    await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { anim: 'curl' }); });
+    if (process.env.RQ_SHOTS) { const fs = await import('fs'); [['before', before], ['f0', f0], ['after', after], ['ref', ref]].forEach(([k, b]) => fs.writeFileSync(process.env.RQ_SHOTS + '/curl' + dir + '-' + k + '.png', b)); }
+    results.push({ dir, m, f0: +diff(before, f0).toFixed(4), changed: +diff(before, after).toFixed(4), ref: +diff(after, ref).toFixed(4) });
+  }
+  for (const r of results) {
+    ok('curl ' + (r.dir > 0 ? 'forward' : 'back') + ': one curl over the viewer, strip already on the new page, no transition / will-change',
+      r.m.c === 1 && r.m.a === 1 && r.m.last === 'curl' && r.m.ov === 1 && r.m.d === r.dir && r.m.tr === r.m.want && /none|0s/.test(r.m.trans) && r.m.will === 'auto', r.m);
+    ok('curl ' + (r.dir > 0 ? 'forward' : 'back') + ': frame 0 = the old page pixel for pixel (< 0.3% differ), then the new page shows', r.f0 < 0.003 && r.changed > 0.01 && r.ref < 0.001, r);
+  }
+  ok('curl: a forward turn is counted once, a back turn not at all (as «Нет»)', results[0].m.turns === 1 && results[1].m.turns === 0, results.map(r => r.m.turns));
+  const end = await p.evaluate(async () => { goPage(R.page + 1, true); await new Promise(r => setTimeout(r, 600)); return document.querySelectorAll('.rqCurl').length; });
+  ok('curl: the overlay is gone after the animation', end === 0, end);
+  const off = await p.evaluate(async () => { const n = () => __rqCurl.n; const c0 = n();
+    S.ux.anim = false; goPage(R.page + 1, true); S.ux.anim = true; const a = n() - c0;
+    jumpTo(R.page + 4); goPage(R.page - 1, false); const b = n() - c0;
+    await new Promise(r => setTimeout(r, 400)); return { a, b }; });
+  ok('curl: «Анимации» off, jumps and non-turn moves → no curl', off.a === 0 && off.b === 0, off);
+  await ctx.close();
+  /* two columns: both columns are copied, frame 0 = the old spread */
+  { const { ctx, p } = await fresh(1100); await openLong(p);
+    await p.waitForFunction(() => document.getElementById('txtBack').classList.contains('hidden'), { timeout: 15000 });
+    await p.evaluate(async () => { S.ux.anim = true; SET.flip = Object.assign({}, flipGet(), { anim: 'curl' }); jumpTo(0); await new Promise(r => setTimeout(r, 400)); });
+    const vw = await p.$('#viewer'); const before = await vw.screenshot();
+    const r = await p.evaluate(() => { const c0 = __rqCurl.n, p0 = R.page; goPage(R.page + 1, true); if (rqCurlNow) cancelAnimationFrame(rqCurlNow.raf);
+      return { c: __rqCurl.n - c0, d: R.page - p0, cols: document.querySelectorAll('#viewer > .rqCurl .rqCurlClip').length, tr: document.getElementById('content').style.transform, want: 'translateX(' + (-R.page * R.step) + 'px)' }; });
+    const f0 = await vw.screenshot(); r.f0 = +diff(before, f0).toFixed(4);
+    ok('curl: two columns → both columns copied, frame 0 = the old spread, strip on the new one', r.c === 1 && r.d === 1 && r.cols === 2 && r.f0 < 0.003 && r.tr === r.want, r);
+    await ctx.close(); }
+  /* PDF: the old canvas is copied before it is freed, peels off #pdfWrap; frame 0 = the old page */
+  { const { ctx, p } = await fresh(); const inp = await p.$('#fileInp');
+    await p.evaluate(() => { S.ux.anim = true; SET.flip = Object.assign({}, flipGet(), { mode: 'page', anim: 'curl' }); rqSaveSetGated(); });
+    await inp.uploadFile(PDF); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    const wrap = await p.$('#pdfWrap');
+    const before = await wrap.screenshot();
+    const m = await p.evaluate(async () => { const c0 = __rqCurl.n, p0 = R.page; window.__holdCurl = true;
+      const orig = window.rqPeel; window.rqPeel = function () { orig.apply(null, arguments); if (rqCurlNow) cancelAnimationFrame(rqCurlNow.raf); };
+      pdfFlip(1); for (let i = 0; i < 60 && R.page === p0; i++) await new Promise(r => setTimeout(r, 50));
+      window.rqPeel = orig;
+      return { c: __rqCurl.n - c0, d: R.page - p0, ov: document.querySelectorAll('#pdfWrap > .rqCurl').length, cv: document.querySelectorAll('#pdfWrap .rqCurlCv').length }; });
+    const f0 = await wrap.screenshot();
+    await p.evaluate(() => rqCurlStop()); await sleep(100);
+    const after = await wrap.screenshot();
+    if (process.env.RQ_SHOTS) { const fs = await import('fs'); [['before', before], ['f0', f0], ['after', after]].forEach(([k, b]) => fs.writeFileSync(process.env.RQ_SHOTS + '/curlpdf-' + k + '.png', b)); }
+    const d0 = +diff(before, f0).toFixed(4), d1 = +diff(before, after).toFixed(4);
+    ok('curl PDF: one curl on #pdfWrap with a copy of the old canvas, frame 0 = the old page, then the new page', m.c === 1 && m.d === 1 && m.ov === 1 && m.cv === 1 && d0 < 0.003 && d1 > 0.01, { m, d0, d1 });
+    await ctx.close(); }
+}
+
+/* grid: «Обзор» = a tile per page with a real thumbnail; only tiles near the screen hold a picture; tap = jump (tracker: jumped) */
+if (want('grid')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  await p.waitForFunction(() => document.getElementById('txtBack').classList.contains('hidden'), { timeout: 15000 });
+  const a = await p.evaluate(async () => {
+    window.__ev = []; const t = __tracker; ['pageTurned', 'pageShown', 'jumped'].forEach(k => { const f = t[k] && t[k].bind(t); if (f) t[k] = function () { __ev.push([k, ...arguments]); return f.apply(null, arguments); }; });
+    SET.size = 44; applySet(); relayout(); await new Promise(r => setTimeout(r, 600)); /* big type → many pages, most tiles far from the screen */
+    jumpTo(Math.min(R.pageCount - 1, 12)); await new Promise(r => setTimeout(r, 300));
+    el('btnPanel').click(); el('tabGrid').click(); await new Promise(r => setTimeout(r, 900));
+    const tiles = document.querySelectorAll('#panelBody .pgt'), done = document.querySelectorAll('#panelBody .pgt.done'), cur = document.querySelector('#panelBody .pgt.cur');
+    const pr = document.getElementById('panel').getBoundingClientRect(), cr = cur.getBoundingClientRect();
+    /* the thumbnail of page k holds the text that starts page k */
+    const T = txtNodes(), k = +cur.dataset.n, off = firstOffsetOfPage(k); let s = ''; for (const x of T.a) { if (x.s + x.n.nodeValue.length > off) s += x.n.nodeValue.slice(Math.max(0, off - x.s)); if (s.length > 30) break; }
+    const th = cur.querySelector('.rqCurlSheet'), thTxt = th ? th.textContent.replace(/\s+/g, ' ') : '';
+    const want = s.replace(/\s+/g, ' ').trim().slice(0, 24);
+    const box = cur.querySelector('.pgth').getBoundingClientRect(), sc = cur.querySelector('.pgsc');
+    return { n: tiles.length, pc: R.pageCount, done: done.length, cur: k, page: R.page, curIn: cr.top >= pr.top - 1 && cr.bottom <= pr.bottom + 1,
+      hasTxt: !!th && thTxt.includes(want), want, scW: sc ? sc.getBoundingClientRect().width : 0, boxW: box.width, ev: __ev.length };
+  });
+  ok('grid: a tile per page (no 400 cap), the current page marked and scrolled into view', a.n === a.pc && a.cur === a.page && a.curIn, a);
+  ok('grid: tiles near the screen have a thumbnail, far ones none', a.pc >= 30 && a.done >= 3 && a.done <= a.pc / 2, a);
+  ok('grid: the current tile shows a scaled copy of that page (its first words, fits the tile)', a.hasTxt && Math.abs(a.scW - a.boxW) < 1.5, a);
+  const b = await p.evaluate(async () => { __ev.length = 0; const t = document.querySelector('#panelBody .pgt[data-n="3"]'); t.scrollIntoView(); await new Promise(r => setTimeout(r, 200));
+    t.click(); await new Promise(r => setTimeout(r, 300));
+    return { page: R.page, hidden: el('panel').classList.contains('hidden'), ev: __ev.map(e => e[0] + ':' + e[1]), live: __rqGrid.live.size, io: !!__rqGrid.io }; });
+  ok('grid: tap a tile → that page, panel closed, one jump for the tracker, thumbnails freed', b.page === 3 && b.hidden && b.ev.join() === 'jumped:3' && b.live === 0 && !b.io, b);
+  const c = await p.evaluate(async () => { el('btnPanel').click(); el('tabGrid').click(); await new Promise(r => setTimeout(r, 500)); const n1 = __rqGrid.live.size;
+    el('tabToc').click(); await new Promise(r => setTimeout(r, 100)); return { n1, n2: __rqGrid.live.size, io: !!__rqGrid.io }; });
+  ok('grid: another tab → all thumbnails freed', c.n1 > 0 && c.n2 === 0 && !c.io, c);
+  await p.evaluate(() => el('panel').classList.add('hidden'));
+  await ctx.close();
+  /* PDF: small pdf.js renders, one at a time */
+  { const { ctx, p } = await fresh(); const inp = await p.$('#fileInp');
+    await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); rqSaveSetGated(); });
+    await inp.uploadFile(PDF); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    const r = await p.evaluate(async () => { el('btnPanel').click(); el('tabGrid').click(); await new Promise(r => setTimeout(r, 2500));
+      const cvs = [...document.querySelectorAll('#panelBody .pgt.done canvas')];
+      const t = document.querySelector('#panelBody .pgt[data-n="5"]'); t.scrollIntoView(); await new Promise(r => setTimeout(r, 1500)); const c5 = t.querySelector('canvas');
+      const g = c5 && c5.getContext('2d'), px = g ? g.getImageData(0, 0, c5.width, c5.height).data : []; let ink = 0; for (let i = 0; i < px.length; i += 16) if (px[i] < 128) ink++;
+      t.click(); for (let i = 0; i < 40 && R.page !== 5; i++) await new Promise(r => setTimeout(r, 50));
+      return { tiles: document.querySelectorAll('#panelBody .pgt').length, pc: R.pageCount, first: cvs.length, c5: !!c5, ink, page: R.page, hidden: el('panel').classList.contains('hidden') }; });
+    ok('grid PDF: tiles get pdf.js thumbnails (with ink), tap → that page', r.tiles === r.pc && r.first >= 3 && r.c5 && r.ink > 20 && r.page === 5 && r.hidden, r);
+    await ctx.close(); }
+}
+
+/* light: own «Яркость» (SET.bright) separate from «Затемнение» (SET.dim), one #dimmer layer = 1 − (1 − dim)·bright;
+   «Тёплый оттенок» (SET.warm) layer under the dimmer, only on a night page while «Тёплый только ночью» is on; stored, normalized */
+if (want('light')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.bright, s.warm, s.warmNight]; };
+    return { def: f({}), junk: f({ bright: 'x', warm: NaN, warmNight: 1 }), clamp: f({ bright: 0.01, warm: 2, warmNight: false }), step: f({ bright: 0.83, warm: 0.12 }) }; });
+  ok('light: defaults 100 % / 0 / night only; junk → defaults; clamped to 30–100 % and 0–60 % on a 5 % grid',
+    JSON.stringify(n.def) === '[1,0,true]' && JSON.stringify(n.junk) === '[1,0,true]' && JSON.stringify(n.clamp) === '[0.3,0.6,false]' && JSON.stringify(n.step) === '[0.85,0.1,true]', n);
+  const a = await p.evaluate(async () => {
+    openReaderSettings('grpPage'); await new Promise(r => setTimeout(r, 200));
+    const set = (id, v) => { const e = el(id); e.value = v; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); };
+    set('dimRange', 20); set('brightRange', 50);
+    const op = +getComputedStyle(el('dimmer')).opacity;
+    const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}');
+    set('warmRange', 40);
+    SET.theme = 'sepia'; SET.cBg = null; applySet(); const dayW = +getComputedStyle(el('warmer')).opacity;
+    SET.theme = 'dark'; applySet(); const nightW = +getComputedStyle(el('warmer')).opacity, page = el('reader').dataset.page;
+    el('warmNightTgl').click(); SET.theme = 'sepia'; applySet(); const dayAll = +getComputedStyle(el('warmer')).opacity;
+    const w = getComputedStyle(el('warmer')), d = el('dimmer'), rd = el('reader');
+    const z = (x) => parseInt(getComputedStyle(x).zIndex, 10) || 0;
+    const st2 = JSON.parse(localStorage.getItem(RQ_K.set) || '{}');
+    return { op, dim: SET.dim, st: [st.dim, st.bright], dayW, nightW, page, dayAll, blend: w.mixBlendMode, pe: w.pointerEvents, under: z(el('warmer')) < z(d) && el('warmer').parentElement === rd,
+      lbl: [el('brightVal').textContent, el('warmVal').textContent], st2: [st2.warm, st2.warmNight] };
+  });
+  ok('light: «Яркость» 50 % + «Затемнение» 20 % → one layer 0.6, both stored separately', Math.abs(a.op - 0.6) < 0.01 && a.dim === 0.2 && a.st[0] === 0.2 && a.st[1] === 0.5 && a.lbl[0] === '50 %', a);
+  ok('light: warm tint 40 % only on the night page, then on any page with «только ночью» off; multiply, no touches, under the dimmer',
+    a.dayW === 0 && a.page === 'night' && Math.abs(a.nightW - 0.4) < 0.01 && Math.abs(a.dayAll - 0.4) < 0.01 && a.blend === 'multiply' && a.pe === 'none' && a.under && a.st2[0] === 0.4 && a.st2[1] === false, a);
+  /* left-edge drag = brightness now; «Затемнение» untouched */
+  await p.evaluate(() => { el('sheet').classList.add('hidden'); SET.bright = 1; SET.dim = 0.2; applySet(); });
+  const vb = await p.evaluate(() => { const r = el('viewer').getBoundingClientRect(); return { x: r.left + 6, y: r.top + 200 }; });
+  const cdp = await p.target().createCDPSession();
+  const tp = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: vb.x, y }] });
+  await tp('touchStart', vb.y); for (let i = 1; i <= 8; i++) { await tp('touchMove', vb.y + i * 20); await sleep(16); } await tp('touchEnd'); await sleep(300);
+  const g = await p.evaluate(() => ({ bright: SET.bright, dim: SET.dim, op: +getComputedStyle(el('dimmer')).opacity, st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright }));
+  ok('light: dragging down at the left edge lowers «Яркость» (stored), «Затемнение» stays', g.bright < 0.9 && g.bright >= 0.3 && g.dim === 0.2 && Math.abs(g.op - (1 - 0.8 * g.bright)) < 0.01 && g.st === g.bright, g);
   await ctx.close();
 }
 

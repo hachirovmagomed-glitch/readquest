@@ -1,14 +1,14 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,flip:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,warmNight:true,flip:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
    SET.nav is never deleted or rewritten here; flipping already wiped by the old bug is not restored. Writes: rqSaveSetGated only. */
 const FLIP_DEF={btns:false,tap:true,invert:false,swipe:true,mode:'page',anim:'none'},FLIP_KEYS=['btns','tap','invert','swipe'];
 /* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings in the same object; junk → default */
-const FLIP_STR={mode:['page','scroll'],anim:['none','slide','fade']};
+const FLIP_STR={mode:['page','scroll'],anim:['none','slide','fade','curl']};
 function flipFrom(o){const f={};FLIP_KEYS.forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:FLIP_DEF[k];});
   Object.keys(FLIP_STR).forEach(function(k){f[k]=FLIP_STR[k].indexOf(o[k])>=0?o[k]:FLIP_DEF[k];});return f;}
 function flipNorm(s){
@@ -26,7 +26,10 @@ function rqAnimKind(){const a=flipGet().anim;if(!a||a==='none')return null;
 /* 1б settings contract (same rules as storage/schema.js hydrateSettings) */
 function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
-  if(typeof s.readCounter!=='boolean')s.readCounter=true;flipNorm(s);return s;}
+  if(typeof s.readCounter!=='boolean')s.readCounter=true;
+  const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
+  s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);if(typeof s.warmNight!=='boolean')s.warmNight=true;
+  flipNorm(s);return s;}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
 function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
@@ -48,12 +51,14 @@ function applySet(){
   r.style.background=bg;r.style.color=tx;
   r.style.setProperty('--r-margin',SET.margin+'px');
   el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
-  el('dimmer').style.opacity=SET.dim||0;
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
+  rqLightApply();
   /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
   {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
+  {const bp=Math.round((SET.bright==null?1:SET.bright)*100),wp=Math.round((SET.warm||0)*100);
+   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';rqSw('warmNightTgl',SET.warmNight!==false);}}
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   const c=el('content');
@@ -88,8 +93,8 @@ function applySet(){
   rqSw('navInvert',!!nv.invert);
   rqSw('navSwipe',nv.swipe!==false);
   {const pdf=R&&R.mode==='pdf';
-   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===(pdf?'page':nv.mode));b.disabled=pdf&&b.dataset.v==='scroll';});
-   const mn=el('flipModeNote');if(mn){mn.hidden=!pdf;mn.textContent=pdf?'В PDF пока только постранично, прокрутка работает в TXT, FB2 и EPUB.':'';}
+   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.mode);b.disabled=false;});
+   const mn=el('flipModeNote');if(mn){const t=pdf&&nv.mode==='scroll'?'В PDF при прокрутке масштаб не меняется; чтобы приблизить страницу, выберите «Страницы».':'';mn.hidden=!t;mn.textContent=t;}
    document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.anim);});
    const an=el('flipAnimNote');if(an){let t='';if(nv.anim!=='none'&&!rqAnimKind())t=(S.ux&&S.ux.anim===false)?'Сейчас не видно: анимации выключены в общих настройках.':'Сейчас не видно: в телефоне включено «Убрать анимацию».';
      else if(nv.anim!=='none'&&nv.mode==='scroll'&&!pdf)t='В прокрутке тап по краю прокручивает плавно.';an.hidden=!t;an.textContent=t;}
@@ -167,6 +172,17 @@ el('btnDayNight').onclick=()=>toggleDayNight();
 /* «Общие настройки» row removed (14.10): general settings are reached only from the drawer's «Настройки» */
 el('dimRange').oninput=e=>{SET.dim=Math.max(0,Math.min(0.7,(parseInt(e.target.value,10)||0)/100));applySet();};
 el('dimRange').onchange=()=>saveSet();
+/* 18.10 (arch.md SET.bright / SET.warm): own brightness on top of «Затемнение» (one #dimmer layer), warm tint layer #warmer */
+function rqLightApply(){
+  const r=el('reader'),b=SET.bright==null?1:SET.bright,d=SET.dim||0;
+  el('dimmer').style.opacity=+(1-(1-d)*b).toFixed(3);
+  const w=el('warmer');if(w)w.style.opacity=(SET.warmNight!==false&&r.dataset.page!=='night')?0:(SET.warm||0);
+}
+el('brightRange').oninput=e=>{SET.bright=Math.max(0.3,Math.min(1,(parseInt(e.target.value,10)||100)/100));applySet();};
+el('brightRange').onchange=()=>saveSet();
+el('warmRange').oninput=e=>{SET.warm=Math.max(0,Math.min(0.6,(parseInt(e.target.value,10)||0)/100));applySet();};
+el('warmRange').onchange=()=>saveSet();
+el('warmNightTgl').onclick=()=>{SET.warmNight=SET.warmNight===false;saveSet();applySet();};
 el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
 Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
@@ -183,7 +199,8 @@ el('navSwipe').onclick=()=>flipSet('swipe');
 /* 16.10: «Как листать» / «Анимация» — strings in SET.flip, through the gate; switching the mode re-lays the text at the same place */
 function flipPick(k,v){if(flipGet()[k]===v)return;const anchor=(k==='mode'&&R&&R.mode==='text'&&R.book)?readingAnchor():null;
   SET.flip=Object.assign({},flipGet());SET.flip[k]=v;rqSaveSetGated();applySet();
-  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});}
+  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});
+  if(k==='mode'&&R&&R.book&&R.mode==='pdf'&&typeof psSwitch==='function')psSwitch();}
 document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.onclick=function(){if(!b.disabled)flipPick('mode',b.dataset.v);};});
 document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.onclick=function(){flipPick('anim',b.dataset.v);};});
 

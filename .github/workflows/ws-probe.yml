@@ -1,0 +1,56 @@
+# Temporary: checks the titles of the «Приключения» collections on Wikisource, opensearch, and Gutenberg OPDS links (thread «Приключения»). Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          cat > p.py <<'PY'
+          import json,re,time,urllib.request,urllib.parse,urllib.error
+          A='https://ru.wikisource.org/w/api.php?'
+          def get(url):
+              for i in range(6):
+                  try:
+                      r=urllib.request.Request(url,headers={'User-Agent':'readquest-probe/1.0 (github actions)'})
+                      return urllib.request.urlopen(r,timeout=30).read().decode()
+                  except urllib.error.HTTPError as e:
+                      if e.code!=429: raise
+                      time.sleep(4*(i+1))
+          def g(**q):
+              q.update(format='json',formatversion=2,origin='*'); return json.loads(get(A+urllib.parse.urlencode(q)))
+          cat=lambda c:c['title'].replace('Категория:','')
+          FREE=re.compile(r'^PD[- ]|^CC[- ]|^GFDL|Общественное достояние|Свободн',re.I)
+          LIST=re.compile(r'^Списки |Служебные списки|Неоднозначн|Многозначн|^Авторы|^Персоналии',re.I)
+          T='''Евгений Онегин (Пушкин)|Капитанская дочка (Пушкин)|Герой нашего времени (Лермонтов)|Мёртвые души (Гоголь)|Ревизор (Гоголь)|Горе от ума (Грибоедов)|Отцы и дети (Тургенев)|Преступление и наказание (Достоевский)|Война и мир (Толстой)|Вишнёвый сад (Чехов)|Бедная Лиза (Карамзин)|Недоросль (Фонвизин)|Гроза (Островский)|Обломов (Гончаров)|Анна Каренина (Толстой)|Тарас Бульба (Гоголь)
+          Илиада (Гомер)|Одиссея (Гомер)|Энеида (Вергилий)|Метаморфозы (Овидий)|Царь Эдип (Софокл)|Прометей прикованный (Эсхил)|Медея (Еврипид)|Басни (Эзоп)|Сравнительные жизнеописания (Плутарх)|История (Геродот)|Антигона (Софокл)|Облака (Аристофан)
+          Робинзон Крузо (Дефо)|Остров сокровищ (Стивенсон)|Путешествия Гулливера (Свифт)|Дон Кихот (Сервантес)|Три мушкетёра (Дюма)|Граф Монте-Кристо (Дюма)|Двадцать тысяч льё под водой (Верн)|Дети капитана Гранта (Верн)|Война миров (Уэллс)|Машина времени (Уэллс)|Затерянный мир (Конан Дойль)|Айвенго (Скотт)|Последний из могикан (Купер)|Приключения Тома Сойера (Твен)|Человек-амфибия (Беляев)|Аэлита (Толстой)
+          Сказка о рыбаке и рыбке (Пушкин)|Сказка о царе Салтане (Пушкин)|Конёк-горбунок (Ершов)|Стрекоза и Муравей (Крылов)|Гадкий утёнок (Андерсен)|Снежная королева (Андерсен)|Русалочка (Андерсен)|Аленький цветочек (Аксаков)|Чёрная курица, или Подземные жители (Погорельский)|Городок в табакерке (Одоевский)|Огниво (Андерсен)|Сказка о мёртвой царевне и о семи богатырях (Пушкин)
+          Шинель (Гоголь)|Нос (Гоголь)|Станционный смотритель (Пушкин)|Пиковая дама (Пушкин)|Хамелеон (Чехов)|Толстый и тонкий (Чехов)|Человек в футляре (Чехов)|Дама с собачкой (Чехов)|После бала (Толстой)|Кавказский пленник (Толстой)|Белые ночи (Достоевский)|Бежин луг (Тургенев)|Ася (Тургенев)|Муму (Тургенев)|Каштанка (Чехов)|Дары волхвов (О. Генри)'''
+          for line in T.split('\n'):
+              titles=line.strip().split('|'); print('\n=== GROUP')
+              for i in range(0,len(titles),20):
+                  c=g(action='query',prop='categories|info|pageprops',ppprop='disambiguation',cllimit='max',redirects=1,titles='|'.join(titles[i:i+20])); time.sleep(1.5)
+                  red={r['from']:r['to'] for r in c['query'].get('redirects',[])}
+                  norm={r['from']:r['to'] for r in c['query'].get('normalized',[])}
+                  pages={p['title']:p for p in c['query']['pages']}
+                  for t in titles[i:i+20]:
+                      tt=red.get(norm.get(t,t),norm.get(t,t)); p=pages.get(tt,{})
+                      if p.get('missing') or not p:
+                          s=g(action='opensearch',search=t.split(' (')[0],namespace=0,limit=6); time.sleep(1.5)
+                          print('  MISSING',t,'->',s[1]); continue
+                      cats=[cat(x) for x in p.get('categories',[])]
+                      lst='disambiguation' in (p.get('pageprops') or {}) or any(LIST.search(x) for x in cats)
+                      v='LIST' if lst else 'LIC' if any(FREE.search(x) for x in cats) else 'NOLIC'
+                      print('  ',v.ljust(5),t,('-> '+tt) if tt!=t else '','| len',p.get('length'))
+          print('\n=== OPENSEARCH')
+          for q in ['пушк','войн','остров сок','шекс']:
+              print(q,g(action='opensearch',search=q,namespace=0,limit=8)[1]); time.sleep(1.5)
+          print('\n=== GUTENBERG links')
+          x=get('https://www.gutenberg.org/ebooks/1342.opds')
+          for m in re.finditer(r'<link [^>]*>',x): print(m.group(0)[:220])
+          PY
+          python3 p.py

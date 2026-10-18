@@ -1159,7 +1159,7 @@ html[data-skin="pencil"] .cover{background:none;border-radius:4px;box-shadow:ins
 html[data-skin="pencil"] .botnav-btn .ic{width:22px;height:22px}
 html[data-skin="pencil"] .tinyava{display:inline-flex;align-items:center;justify-content:center;color:var(--rq-text-2);background:none}
 html[data-skin="pencil"] #avatarFrame{width:72px;height:72px;border-radius:50%;background:var(--rq-surface)!important;box-shadow:inset 0 0 0 1.8px var(--rq-skin-border)!important}
-html[data-skin="pencil"] #avatarFrame>.avatar,html[data-skin="pencil"] #avatarFrame>.gearlayer,html[data-skin="pencil"] .avatarframe.weak::after{display:none!important}
+html[data-skin="pencil"] #avatarFrame>.gearlayer,html[data-skin="pencil"] #avatarFrame>.pc-ava,html[data-skin="pencil"] .avatarframe.weak::after{display:none!important}
 html[data-skin="pencil"] .pc-ava{color:var(--rq-text)}
 /* session summary (mockup pencil-session-summary): drawing, Caveat title, subtitle, 2 boxed cells (минуты, страницы), daily row, week dots */
 html[data-skin="pencil"] #sumArt{margin:0 auto 6px}
@@ -1175,6 +1175,24 @@ html[data-skin="pencil"] .pc-week{display:flex;align-items:center;gap:8px;justif
 #sumWeekDots svg{margin-left:4px;vertical-align:middle}
 html[data-skin="pencil"] .confetti{color:var(--rq-accent)}
 html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
+
+/* герой-стикмен (js/hero.js): рамка = цвет щелей силуэта */
+#avatarFrame,.heroframe,.tinyava{--hero-bg:var(--rq-accent-tint)}
+#avatarFrame.avatarframe{background:var(--hero-bg)!important;box-shadow:inset 0 0 0 1px var(--rq-line,rgba(0,0,0,.08))}
+#avatarFrame .avatar{filter:none}
+#avatarFrame .gearlayer{display:none}
+.tinyava{background:var(--hero-bg)}
+html[data-skin="pencil"] #avatarFrame,html[data-skin="pencil"] .heroframe{--hero-bg:var(--rq-surface)}
+.heroframe{display:block;width:100%;aspect-ratio:72/78;border-radius:10px;background:var(--hero-bg)}
+.heroframe svg{display:block;width:100%;height:100%}
+.heroprev{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;background:var(--card);margin-bottom:10px}
+.heroprev .heroframe.big{width:112px;flex:none}
+.heroprevtx{display:flex;flex-direction:column;gap:4px;min-width:0}.heroprevtx span{font-size:13px;color:var(--muted)}
+.herogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.herocard{padding:8px}.herocard .shopname{font-size:14px;line-height:1.2}.herocard .shopprice{font-size:12px}.herocard .shopcta{width:100%;padding-left:4px;padding-right:4px}
+.herocard.trying{box-shadow:inset 0 0 0 2px var(--rq-accent)}
+#heroShop[hidden],#shopList[hidden]{display:none}
+.shopkinds .fchip{margin:0}
 </style>
 <link rel="stylesheet" href="skins/skins.css"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
@@ -1477,7 +1495,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Анимации</div><button class="ghostbtn sw" id="uxAnim" role="switch">Вкл</button></div>
       <div class="setrow mvp-hide" style="margin-top:6px"><div class="lab">Пиксельный режим<div class="sub">Игровой пиксельный скин «про волшебников». Покупается в Магазине.</div></div><button class="ghostbtn mvp-hide" id="pixelTgl">Выкл</button></div>
     </div>
-    <div class="row lookshophead"><h2>Магазин скинов</h2><div class="spacer"></div><span class="chip" id="lookBalance"></span></div><!-- Джессика 17.10: the shop moved here from «Награды» -->
+    <div class="row lookshophead"><h2>Магазин</h2><div class="spacer"></div><span class="chip" id="lookBalance"></span></div><!-- Джессика 17.10: the shop moved here from «Награды» -->
     <div id="rewPaneShop">
     <div class="shopkinds"><span class="on">Скины</span><span>Одежда · скоро</span><span>Снаряжение · скоро</span></div>
     <div id="shopList"></div>
@@ -1762,6 +1780,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/reader-ui.js"></script>
 <script src="js/rpg.js"></script>
 <script src="js/content.js"></script>
+<script src="js/hero.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>
 <script src="js/ach-core.js"></script>

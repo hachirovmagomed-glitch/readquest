@@ -413,6 +413,7 @@ html[data-skin="celestial"] #reader{background:var(--r-bg)} /* the book page sta
 html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
 html[data-skin="celestial"] #libTitle{font-size:32px;line-height:1.1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} /* gives way to «230 монет» (bug 17.10: header wider than the phone) */
 html[data-skin="celestial"] #goldChip{flex:none}
+html[data-skin="celestial"] #libHead{--rq-title-whole:1} /* libGoldRender: a clipped title drops «монет» from the balance first */
 html[data-skin="celestial"] .wrap > .row > h1{font-size:30px;line-height:1.1}
 html[data-skin="celestial"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
 html[data-skin="celestial"] #libHead :is(h1,.libgold,button,.iconbtn44){color:var(--rq-text)}

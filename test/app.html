@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261018-1246',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261018-1644',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261018-1246"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261018-1644"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -130,6 +130,24 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
 /* ===== Библиотека ===== */
 .topbar{padding:18px 18px 6px}
+/* Приключения: free books from open libraries (js/adv.js); colours only from theme tokens */
+.advlead{font-size:13px;color:var(--muted);line-height:1.4;margin:2px 0 6px}
+#advLang[hidden]{display:none}
+.advrow{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:10px 12px;margin-top:8px;background:var(--card);border-radius:14px;text-align:left;color:var(--txt);box-sizing:border-box}
+.advrow > .ic{color:var(--muted);flex:none}
+.advrow .cover,.bk-head .cover{position:relative}
+.advrow .cover img,.bk-head .cover img{position:absolute;inset:0;z-index:1}
+.advmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.advmeta b{font-size:15px;line-height:1.3;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.advauth{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.advown{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--txt)}
+.advown .ic{color:var(--accent)}
+.advempty{color:var(--muted);text-align:center;padding:32px 8px 8px;font-size:14px;line-height:1.45}
+.advhints{justify-content:center;flex-wrap:wrap}
+.advmore{display:block;width:100%;margin:14px 0 8px}
+.advsum{margin-top:14px;font-size:13px}
+a.cta{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-sizing:border-box}
+#bookSheetBody .cta .ic{flex:none}
 /* Путь читателя: open map, colors only from theme tokens */
 .pathsum{background:var(--card);border-radius:var(--radius);padding:16px;margin:4px 0 8px}
 .pathdel{display:block;width:100%;margin-top:6px;padding:12px;font-size:14px;color:var(--muted);background:none;border-radius:14px}
@@ -1176,7 +1194,7 @@ html[data-skin="pencil"] .pc-week{display:flex;align-items:center;gap:8px;justif
 html[data-skin="pencil"] .confetti{color:var(--rq-accent)}
 html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261018-1246"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261018-1644"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter></svg>
@@ -1279,6 +1297,18 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" multiple style="display:none">
     <input type="file" id="dirInp" webkitdirectory multiple style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
+  </div></div>
+</div>
+
+<!-- ПРИКЛЮЧЕНИЯ -->
+<div id="adv" class="screen hidden">
+  <div class="scroll"><div class="wrap">
+    <div class="row libhead"><button class="menubtn" id="menuAdv" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Приключения</h1></div>
+    <p class="advlead">Бесплатные книги из открытых библиотек. Скачанная книга ложится на полку и читается без интернета.</p>
+    <div id="advSrc" class="chips"></div>
+    <input id="advQ" class="searchinp" type="search" enterkeyhint="search" placeholder="Название или автор" aria-label="Поиск книги">
+    <div id="advLang" class="chips" hidden></div>
+    <div id="advList"></div>
   </div></div>
 </div>
 
@@ -1753,28 +1783,29 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261018-1246"></script>
-<script src="js/books-builtin.js?v=20261018-1246"></script>
-<script src="js/core-b.js?v=20261018-1246"></script>
-<script src="js/library.js?v=20261018-1246"></script>
-<script src="js/reader.js?v=20261018-1246"></script>
-<script src="js/pdf.js?v=20261018-1246"></script>
-<script src="js/reader-ui.js?v=20261018-1246"></script>
-<script src="js/rpg.js?v=20261018-1246"></script>
-<script src="js/content.js?v=20261018-1246"></script>
-<script src="js/settings.js?v=20261018-1246"></script>
-<script src="js/v6-extras.js?v=20261018-1246"></script>
-<script src="js/ach-core.js?v=20261018-1246"></script>
-<script src="js/achievements.js?v=20261018-1246"></script>
-<script src="js/path.js?v=20261018-1246"></script>
-<script src="js/start.js?v=20261018-1246"></script>
+<script src="js/core-a.js?v=20261018-1644"></script>
+<script src="js/books-builtin.js?v=20261018-1644"></script>
+<script src="js/core-b.js?v=20261018-1644"></script>
+<script src="js/library.js?v=20261018-1644"></script>
+<script src="js/reader.js?v=20261018-1644"></script>
+<script src="js/pdf.js?v=20261018-1644"></script>
+<script src="js/reader-ui.js?v=20261018-1644"></script>
+<script src="js/rpg.js?v=20261018-1644"></script>
+<script src="js/content.js?v=20261018-1644"></script>
+<script src="js/settings.js?v=20261018-1644"></script>
+<script src="js/v6-extras.js?v=20261018-1644"></script>
+<script src="js/ach-core.js?v=20261018-1644"></script>
+<script src="js/achievements.js?v=20261018-1644"></script>
+<script src="js/path.js?v=20261018-1644"></script>
+<script src="js/adv.js?v=20261018-1644"></script>
+<script src="js/start.js?v=20261018-1644"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261018-1246"></script>
+<script src="js/pwa-lock.js?v=20261018-1644"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -1782,9 +1813,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261018-1246';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261018-1246';
-import * as game from './game-awards.js?v=20261018-1246';
+} from './storage/index.js?v=20261018-1644';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261018-1644';
+import * as game from './game-awards.js?v=20261018-1644';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

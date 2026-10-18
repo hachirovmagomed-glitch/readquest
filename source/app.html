@@ -186,6 +186,37 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @media(min-width:700px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bookcard{margin-bottom:0}}
 /* 17.10 (Джессика): «Моя полка» in every skin = covers three across (as «Небесный»), title, author and a thin bar under the cover */
 #goalCard{margin:12px 0 0}
+/* 18.10 (Джессика: «разная вёрстка, «Квесты» то посередине, то у меню»): «Профиль» одной сетки во всех скинах.
+   Шапка, высоты карточек, отступы и кегль общие; скин меняет цвет, рамку, декор и гарнитуру. !important: скиновые правила шапок и карточек сильнее по селектору */
+#profile .wrap > .row:first-child{box-sizing:border-box;height:52px!important;min-height:0!important;margin:0 0 12px!important;padding:0 0 10px!important;align-items:center!important}
+#profile .wrap > .row:first-child h1{font-size:24px!important;line-height:30px!important;margin:0!important}
+#profile .herocard{box-sizing:border-box;height:132px;padding:16px!important;margin:0!important;overflow:hidden}
+#profile #pName{font-size:17px!important;line-height:22px!important}
+#profile #xpTxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#profile .herocard .lvl{font-size:12px!important;line-height:16px!important}
+#profile #goalCard{box-sizing:border-box;height:108px;padding:14px 16px!important;margin:10px 0 0!important;overflow:hidden}
+#profile #goalCard::before{top:4px!important}
+#profile #goalTitle{font-size:16px!important;line-height:20px!important}
+#profile #goalCard .sub{font-size:13px!important;line-height:17px!important;margin-top:2px!important}
+#profile #goalCard .streakline{font-size:14px!important;line-height:20px!important;margin-top:4px!important}
+#profile #goalCard .bbhatch{margin:2px 0 0!important}
+#profile #goalCard .bbhatch i{width:18px;height:18px}
+#profile #achCard{box-sizing:border-box;height:62px;min-height:0;padding-top:0!important;padding-bottom:0!important;margin:10px 0 0!important}
+#profile #mvpProfileBlock .kpis{height:56px;margin:10px 0 0!important}
+#profile #mvpProfileBlock .kpi{box-sizing:border-box;height:56px;padding:7px 6px!important}
+#profile #mvpProfileBlock .kpi b{font-size:18px!important;line-height:24px!important}
+#profile #mvpProfileBlock .kpi span{font-size:11px!important;line-height:14px!important}
+#profile #mvpQuestH{box-sizing:border-box;height:24px;font-size:18px!important;line-height:24px!important;margin:16px 0 8px!important;padding:0!important}
+#profile .mvp-quest{box-sizing:border-box;padding:12px 16px!important;margin:0 0 8px!important}
+#profile .mvp-quest .row{height:26px}
+#profile .mvp-quest .row > span{font-size:14px!important;line-height:20px!important}
+#profile .mvp-quest .chip{box-sizing:border-box;height:22px;font-size:12px!important;line-height:16px!important;padding:2px 10px!important}
+#profile .mvp-quest .pbar{height:6px!important;margin-top:8px!important}
+#profile .mvp-quest .mvp-qsub{font-size:12px!important;line-height:16px!important;margin-top:6px!important}
+#profile #mvpDailyCard{height:64px;overflow:hidden}
+#profile #mvpWeeklyCard{height:86px;overflow:hidden}
+/* one apparent text size: skin fonts differ in x-height (Alegreya Sans reads smaller than Manrope at the same px), so the cards align it to the system font; headings keep the skin's display face */
+#profile :is(.herocard,#goalCard,#achCard,#mvpProfileBlock){font-size-adjust:.53}
 #shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;padding-top:4px}
 #shelf .bookcard{position:relative;flex-direction:column;align-items:stretch;gap:0;padding:0;margin:0;background:transparent;border:0;border-radius:0;box-shadow:none;min-width:0}
 #shelf .bookcard::before,#shelf .bookcard::after{display:none}

@@ -58,6 +58,15 @@ ok('14 «Моя полка» is a grid of covers three across (3:4) in every ski
 await p.evaluate(() => navGo('profile')); await sleep(150);
 r = await p.evaluate(() => ({ ring: el('ringTxt').textContent, sub: el('goalSub').textContent }));
 ok('15 the goal card in «Профиль» is drawn (ring and today)', /%$/.test(r.ring) && /Сегодня/.test(r.sub), r);
+const lay = {};
+for (const sk of ['default', 'ellada', 'babochkovyi', 'celestial', 'pencil']) {
+  lay[sk] = await p.evaluate(async sk => { if (sk !== 'default') { buy('skin-' + sk); wear('skin-' + sk); } navGo('profile'); await new Promise(r => setTimeout(r, 300));
+    const t = s => Math.round(document.querySelector(s).getBoundingClientRect().top), b = s => Math.round(document.querySelector(s).getBoundingClientRect().bottom);
+    return { qh: t('#mvpQuestH'), goal: t('#goalCard'), end: b('#mvpWeeklyCard'), nav: t('#botnav') }; }, sk);
+}
+const L = Object.values(lay);
+ok('16 «Профиль» one layout in every skin: «Квесты» and the goal card at the same height, both quests above the bottom bar (18.10)',
+  L.every(v => v.qh === L[0].qh && v.goal === L[0].goal && v.end <= v.nav), lay);
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY menu.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

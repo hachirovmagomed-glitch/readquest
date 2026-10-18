@@ -229,6 +229,10 @@ html[data-skin="babochkovyi"] .screen:not(#reader):not(#library) .wrap > .row:fi
 html[data-skin="babochkovyi"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{content:"";position:absolute;right:0;bottom:-6px;width:22px;height:22px;background:var(--bb-hatch-on) center/contain no-repeat;pointer-events:none}
 html[data-skin="babochkovyi"][data-theme="night"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-hatch-on-n)}
 html[data-skin="babochkovyi"] .wrap > .row > h1{color:var(--rq-text)}
+/* 18.10 (отзыв, п. 5): Poiret One is a hairline face — screen titles a size up with a thin stroke so «Профиль» reads */
+html[data-skin="babochkovyi"] .screen:not(#reader) .wrap > .row:first-child > h1{font-size:28px!important;-webkit-text-stroke:.5px currentColor}
+html[data-skin="babochkovyi"] #libTitle{-webkit-text-stroke:.5px currentColor}
+html[data-skin="babochkovyi"] .bbhatch .bbcap{flex:none;margin-left:6px;font:600 11px/18px var(--rq-font-ui);color:var(--rq-text-2);white-space:nowrap}
 /* progress tracks: visible on the white petal cards (card2 = surface-2 is nearly white) */
 html[data-skin="babochkovyi"] .pbar{background:var(--rq-line)}
 /* session summary: butterflies fly up over the result, cells and the daily card are petals */

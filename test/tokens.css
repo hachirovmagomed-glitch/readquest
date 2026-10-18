@@ -52,6 +52,7 @@
   --rq-toast-pad:12px 16px;
   --rq-toast-gap:12px;
   --rq-pdf-night-dim:.35;
+  --rq-warm:#ffb062; /* 18.10 SET.warm: night-light tint for #warmer (multiply) */
   --rq-pdf-dim-max:.5;
   --rq-pdf-dim-step:.05;
   --rq-focus-auto-delay:10000ms;

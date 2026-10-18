@@ -274,14 +274,15 @@ el('viewer').addEventListener('touchstart',e=>{
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
-  if(e.touches[0].clientX<28&&!rqScrollMode()){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края (в прокрутке палец у края прокручивает)
+  if(e.touches[0].clientX-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()){bright={y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright};tx0=null;return;} // жест яркости у левого края (в прокрутке палец у края прокручивает)
   tx0=e.touches[0].clientX;
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
-    SET.dim=Math.max(0,Math.min(0.7,bright.d0+(e.touches[0].clientY-bright.y0)/400));
-    el('dimmer').style.opacity=SET.dim;
+    const dy=e.touches[0].clientY-bright.y0;if(Math.abs(dy)>6)bright.mv=true;
+    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's), «Затемнение» stays */
+    rqLightApply();
     return;
   }
   if(e.touches.length===2&&pinch0){
@@ -296,7 +297,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
-  if(bright){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});bright=null;return;}
+  if(bright){const mv=bright.mv;bright=null;if(mv){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
   if(pinch0){
     pinch0=null;tx0=null;
     endTextPinch(); // текст: щипок = размер шрифта, один рефлоу после жеста
@@ -385,7 +386,7 @@ async function pdfFind(q,res){
 }
 function findGo(n){jumpTo(n);el('panel').classList.add('hidden');}
 function renderPanel(tab){
-  panelTab=tab;
+  panelTab=tab;rqGridStop();
   [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabFind','find'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
   const body=el('panelBody');const b=R.book;
@@ -395,16 +396,7 @@ function renderPanel(tab){
     el('bookFind').oninput=e=>{FINDQ=e.target.value;doFind();};
     doFind();return;
   }
-  if(tab==='grid'){
-    const n=Math.min(R.pageCount,400);
-    const mk={};(S.marks[b.id]||[]).forEach(m=>mk[m.page-1]=1);
-    let html='<div class="pgrid">';
-    for(let i=0;i<n;i++){
-      html+='<button class="'+(i===R.page?'cur':'')+'" onclick="jumpRatio('+(R.pageCount>1?(i/(R.pageCount-1)).toFixed(4):0)+')">'+(i+1)+(mk[i]?'<span class="m">'+rqIcon('bookmark',10)+'</span>':'')+'</button>';
-    }
-    body.innerHTML=html+'</div>'+(R.pageCount>400?'<div class="pempty">Показаны первые 400 страниц</div>':'');
-    return;
-  }
+  if(tab==='grid'){rqGridRender(body);return;} /* 18.10: real page thumbnails, js/page-grid.js */
   if(tab==='toc'){
     const toc=b.toc||[];
     body.innerHTML=toc.length

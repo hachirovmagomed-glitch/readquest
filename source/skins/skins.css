@@ -405,11 +405,14 @@ html[data-skin="celestial"]{
 html[data-skin="celestial"]{background:var(--cl-dust) 0 0/200px 200px repeat fixed,radial-gradient(closest-side at 18% 6%,rgba(255,255,255,.75),rgba(255,255,255,0) 70%) 0 0/100% 320px no-repeat fixed,var(--cl-sky) fixed}
 html[data-skin="celestial"][data-theme="night"]{background:var(--cl-dust-n) 0 0/200px 200px repeat fixed,var(--cl-sky) fixed}
 html[data-skin="celestial"] body{font-weight:500;background:transparent}
+/* screens never scroll sideways (17.10 «едет в разные стороны»: any overflow made the scroller pan under a diagonal swipe) */
+html[data-skin] .screen > .scroll{overflow-x:hidden}
 html[data-skin="celestial"] .screen:not(#reader),html[data-skin="celestial"] #summary{background:transparent}
 html[data-skin="celestial"] #reader{background:var(--r-bg)} /* the book page stays flat paper: no sky, no stars behind the text */
 /* titles: Cormorant Garamond 700 in ink; numbers in Manrope */
 html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
-html[data-skin="celestial"] #libTitle{font-size:32px;line-height:1.1;flex-shrink:0}
+html[data-skin="celestial"] #libTitle{font-size:32px;line-height:1.1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} /* gives way to «230 монет» (bug 17.10: header wider than the phone) */
+html[data-skin="celestial"] #goldChip{flex:none}
 html[data-skin="celestial"] .wrap > .row > h1{font-size:30px;line-height:1.1}
 html[data-skin="celestial"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
 html[data-skin="celestial"] #libHead :is(h1,.libgold,button,.iconbtn44){color:var(--rq-text)}

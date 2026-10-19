@@ -1294,7 +1294,8 @@ html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 .heropencil{--pc-f1:#e5e9f1;--pc-f2:#ccd3e0;--pc-blue:#2f55b8;--pc-red:#d0443c}
 html[data-theme="night"] .heropencil{--pc-f1:#232e48;--pc-f2:#2d3a5a;--pc-blue:#7d9bff;--pc-red:#e0675f} /* js/hero.js ставит точный цвет плашки под героем */
 .herocel image{filter:drop-shadow(0 0 .6px rgba(20,23,42,.55))} /* Небесный: светлые классы (Лунная жрица, Комета) не сливаются с плашкой */
-.tinyava .herocel image{transform-box:fill-box;transform-origin:50% 4%;transform:scale(3)} /* мини-аватар = бюст */
+.tinyava .herocel>image{transform-box:fill-box;transform-origin:50% 4%;transform:scale(3)} /* мини-аватар = бюст */
+.tinyava .herocel .hcm image{filter:none}.tinyava .herocel{overflow:hidden} .tinyava .herocel>.hcm{transform-box:view-box;transform-origin:39px 24px;transform:scale(3.4)} /* манекен: бюст по голове */
 html #avatarFrame.avatarframe{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:106px;height:136px}
 #profile .herocard{height:168px} /* герой на постаменте: плашка выше во всех скинах */
 #avatarFrame .avatar{filter:none}
@@ -1924,6 +1925,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/rpg.js"></script>
 <script src="js/content.js"></script>
 <script src="js/hero-pencil.js"></script>
+<script src="js/hero-celestial.js"></script>
 <script src="js/hero.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>

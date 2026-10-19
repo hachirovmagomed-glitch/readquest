@@ -3,7 +3,7 @@
    Силуэт в цвете текста скина, одежда в акценте скина, щели между деталями = цвет фона рамки (--hero-bg),
    поэтому герой одинаково читается во всех скинах, днём и ночью. Лица и глаз нет.
    Вещи хранятся в S.ownedGear / S.equipped (поля уже в схеме) с id «gr-…»; старые вещи v6 стикмен не рисует. */
-const HERO_SLOTS={char:'Персонаж',head:'Голова',face:'Лицо',neck:'Шея',body:'Одежда',top:'Верх',bottom:'Низ',shoes:'Обувь',cloak:'Плащ',back:'Спина',belt:'Пояс',hand:'В руке',offhand:'Вторая рука',shield:'Щит',pet:'Спутник',bg:'Фон'};
+const HERO_SLOTS={char:'Персонаж',head:'Голова',face:'Лицо',neck:'Шея',body:'Одежда',top:'Верх',bottom:'Низ',shoes:'Обувь',cloak:'Плащ',back:'Спина',belt:'Пояс',hand:'В руке',offhand:'Вторая рука',shield:'Щит',pet:'Спутник',bg:'Фон',gloves:'Перчатки',acc:'Украшение'};
 const HERO_GEAR=[
  {id:'gr-helm',slot:'head',kind:'wear',name:'Коринфский шлем',skin:'ellada',price:300,desc:'Бронзовый шлем с гребнем'},
  {id:'gr-laurel',slot:'head',kind:'wear',name:'Лавровый венок',skin:'ellada',price:150,desc:'Награда победителю'},
@@ -17,7 +17,8 @@ const HERO_GEAR=[
  {id:'ch-reader',slot:'char',kind:'chars',name:'Читатель',skin:'ellada',price:0,desc:'Ваш герой'},
  {id:'ch-pythagoras',slot:'char',kind:'chars',name:'Пифагор',skin:'ellada',price:600,desc:'Борода, повязка, табличка с треугольником'},
  {id:'ch-aristotle',slot:'char',kind:'chars',name:'Аристотель',skin:'ellada',price:600,desc:'Кудри, гиматий, свиток'},
- /* Небесный (классы из архива Джессики, handoff/hero-celestial, 19.10): цельные персонажи, первый бесплатный; вещей по слотам пока нет */
+ /* Небесный (классы из архива Джессики, handoff/hero-celestial, 19.10): цельные персонажи. Звездочёт — манекен, его одевают вещами (20.10, js/hero-celestial.js) */
+ {id:'cl-zvezdochet',slot:'char',kind:'chars',name:'Звездочёт',skin:'celestial',price:0,fig:'base',desc:'Одевайте его вещами Небесного'},
  {id:'cl-sonny-chtets',slot:'char',kind:'chars',name:'Сонный чтец',skin:'celestial',price:0,fig:'teen',desc:'Ночной колпак, книга-подушка'},
  {id:'cl-kartograf',slot:'char',kind:'chars',name:'Картограф созвездий',skin:'celestial',price:600,fig:'adult',desc:'Пальто с картами, астролябия'},
  {id:'cl-lunnaya-zhritsa',slot:'char',kind:'chars',name:'Лунная жрица',skin:'celestial',price:600,fig:'adult',desc:'Диадема-полумесяц, посох'},
@@ -63,6 +64,9 @@ const HERO_GEAR=[
  {id:'pc-paper-cat',slot:'pet',kind:'gear',name:'Бумажный кот',skin:'pencil',price:280},
  {id:'gr-temple',slot:'bg',kind:'gear',name:'Акрополь',skin:'ellada',price:400,desc:'Храм за спиной героя'}
 ];
+/* вещи Небесного по слотам: листы Джессики → бумажная кукла на манекене Звездочёта (js/hero-celestial.js) */
+const HERO_CEL_PRICE={head:150,cloak:220,top:200,bottom:150,gloves:100,shoes:150,acc:100,hand:250,pet:350};
+HERO_CEL_ITEMS.forEach(function(it){HERO_GEAR.push({id:it.id,slot:it.slot,kind:it.slot==='hand'||it.slot==='pet'?'gear':'wear',name:it.name,skin:'celestial',price:HERO_CEL_PRICE[it.slot]||150});});
 function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||null;}
 /* вещи привязаны к скину (Джессика 18.10): купить можно, только если куплен скин; на герое видны только в этом скине */
 const HERO_SKIN_NAME={ellada:'Эллада',pencil:'Карандашный',celestial:'Небесный'};
@@ -84,7 +88,8 @@ function heroHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v.toLo
 /* цвет вещи свой у каждого персонажа: ключ «персонаж:вещь», без персонажа — просто id */
 let heroColCh='';
 function heroColKey(id,ch){ch=ch===undefined?heroColCh:ch;return ch&&ch!=='ch-reader'?ch+':'+id:id;}
-function heroCol(id){const gc=(S.char&&S.char.gearColor)||{};return heroHex(heroTryCol[id])||heroHex(gc[heroColKey(id)])||heroHex(gc[id])||(/^pc-/.test(id)?heroPcDefault(id):HERO_BRONZE);}
+function heroCol(id){const gc=(S.char&&S.char.gearColor)||{};return heroHex(heroTryCol[id])||heroHex(gc[heroColKey(id)])||heroHex(gc[id])||(/^pc-/.test(id)?heroPcDefault(id):heroCelNative(id)||HERO_BRONZE);}
+function heroCelNative(id){const a=typeof HERO_CEL_ART!=='undefined'&&HERO_CEL_ART.items[id];return a?a.c:null;}
 /* вещь Карандашного без своего цвета: синий или красный карандаш — какого в рисунке больше */
 function heroPcDefault(id){const it=(typeof HERO_PENCIL_ART!=='undefined'&&HERO_PENCIL_ART.items[id])||{},t=(it.back||'')+(it.front||'');
   return (t.split('--pc-red').length>t.split('--pc-blue').length)?'#d0443c':'#2f55b8';}
@@ -174,10 +179,29 @@ function heroPencilSvg(on){
   s+=A.hero;HERO_PC_ORDER.forEach(function(k){s+=art(k,'front');});
   return '<svg class="herosvg heropencil" viewBox="-34 0 188 240" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
-/* Небесный: персонаж целиком картинкой (hero/celestial/*.webp, режет source/tools/gen-celestial-heroes.py); подросток ростом 0.88 от взрослого (бриф) */
-function heroCelestialSvg(on){on=on||heroOn();const g=heroItem(on.char)||heroItem(heroCharDefault('celestial'));if(!g)return '';
+/* Небесный: персонаж целиком картинкой (hero/celestial/*.webp, режет source/tools/gen-celestial-heroes.py); подросток ростом 0.88 от взрослого (бриф).
+   Звездочёт — манекен с вещами (hero/celestial/wear/*.webp); примерка вещи на классе показывает манекен. */
+function heroCelSvg(inner){return '<svg class="herosvg herocel" viewBox="0 0 78 100" aria-hidden="true" focusable="false">'+inner+'</svg>';}
+function heroCelestialSvg(on){on=on||heroOn();
+  const tr=heroItem(heroTry),dressUp=!on.char||on.char==='cl-zvezdochet'||(!!tr&&tr.skin==='celestial'&&tr.slot!=='char'&&on[tr.slot]===tr.id);
+  if(dressUp&&typeof HERO_CEL_ART!=='undefined')return heroCelestialDoll(on);
+  const g=heroItem(on.char)||heroItem(heroCharDefault('celestial'));if(!g)return '';
   const h=g.fig==='teen'?84.5:96;
-  return '<svg class="herosvg herocel" viewBox="0 0 78 100" aria-hidden="true" focusable="false"><image href="hero/celestial/'+g.id.slice(3)+'.webp" x="0" y="'+(98-h)+'" width="78" height="'+h+'" preserveAspectRatio="xMidYMax meet"/></svg>';}
+  return heroCelSvg('<image href="hero/celestial/'+g.id.slice(3)+'.webp" x="0" y="'+(98-h)+'" width="78" height="'+h+'" preserveAspectRatio="xMidYMax meet"/>');}
+/* перекраска вещи: поворот оттенка от родного цвета к выбранному + насыщенность и яркость */
+function heroHsl(hex){const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;
+  let h=0;if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360;}return [h,d?d/(1-Math.abs(2*l-1)):0,l];}
+function heroCelFilter(id){const nat=heroCelNative(id),want=heroHex(heroTryCol[id])||heroHex(((S.char&&S.char.gearColor)||{})[heroColKey(id,heroOn().char||'')])||heroHex(((S.char&&S.char.gearColor)||{})[id]);
+  if(!nat||!want||want===nat)return '';const a=heroHsl(nat),b=heroHsl(want);
+  const sat=Math.max(0,Math.min(3,a[1]>.05?b[1]/a[1]:b[1]*3)),br=Math.max(.35,Math.min(2.2,a[2]>.04?b[2]/a[2]:1+b[2]));
+  return ' style="filter:hue-rotate('+Math.round(b[0]-a[0])+'deg) saturate('+sat.toFixed(2)+') brightness('+br.toFixed(2)+')"';}
+function heroCelestialDoll(on){const A=HERO_CEL_ART,sc=94/A.h,x0=(78-A.w*sc)/2,y0=99-A.h*sc;
+  const img=function(p,f){return '<image href="hero/celestial/wear/'+p[0]+'.webp" x="'+p[1]+'" y="'+p[2]+'" width="'+p[3]+'" height="'+p[4]+'"'+(f||'')+'/>';};
+  const ids={};Object.keys(on).forEach(function(k){if(k!=='char'&&A.items[on[k]])ids[k]=on[k];});
+  const lay=function(back){let s='';A.order.forEach(function(k){const id=ids[k],a=id&&A.items[id];if(a&&!!a.back===back){const f=heroCelFilter(id);a.p.forEach(function(p){s+=img(p,f);});}});return s;};
+  let s=lay(true)+img(['base',0,0,A.w,A.h])+lay(false);
+  if(ids.hand&&A.items[ids.hand].hand)s+=img(['hand'].concat(A.hand));
+  return heroCelSvg('<g class="hcm"><g transform="translate('+x0.toFixed(2)+' '+y0.toFixed(2)+') scale('+sc.toFixed(5)+')">'+s+'</g></g>');}
 const HERO_FIGURES={pencil:heroPencilSvg,celestial:heroCelestialSvg}; /* свой герой скина; без записи — стикмен */
 function heroFigure(on){const f=HERO_FIGURES[heroSkin()];return f?f(on):heroSvg(on);}
 /* превью в магазине: герой текущего скина (у Эллады — с персонажем и его цветами) */
@@ -207,8 +231,10 @@ function heroSetCol(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;
   S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[heroColKey(id,heroOn().char||'')]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){const g=heroItem(id);return (!!g&&g.price===0)||(S.ownedGear||[]).indexOf(id)>=0;}
 function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id)||!heroFits(g))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
-  S.equipped=S.equipped||{};const key=heroKey(g);S.equipped[key]=g.slot==='char'?(id===heroCharDefault(g.skin)?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
+  S.equipped=S.equipped||{};heroCelDressUp(g);const key=heroKey(g);S.equipped[key]=g.slot==='char'?(id===heroCharDefault(g.skin)?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
 let heroPending=null;
+/* вещи видны только на манекене: надели вещь Небесного, когда выбран класс, — героем снова становится Звездочёт */
+function heroCelDressUp(g){if(g&&g.skin==='celestial'&&g.slot!=='char'&&S.equipped)S.equipped['celestial:char']=null;}
 function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g))return;
   if(S.gold<g.price){flashMsg('Не хватает '+coinsP(g.price-S.gold));return;}
   heroPending=id;el('scTitle').textContent='Купить «'+g.name+'» за '+coinsP(g.price)+'?';
@@ -221,7 +247,7 @@ shopConfirmOk=function(){
   shopConfirmClose();const g=heroItem(id);
   if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне');return;}
   if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g)||!(S.gold>=g.price))return;
-  S.gold-=g.price;S.ownedGear=(S.ownedGear||[]).concat(id);S.equipped=S.equipped||{};S.equipped[heroKey(g)]=id;heroTry=null;save();
+  S.gold-=g.price;S.ownedGear=(S.ownedGear||[]).concat(id);S.equipped=S.equipped||{};heroCelDressUp(g);S.equipped[heroKey(g)]=id;heroTry=null;save();
   try{confettiReward();}catch(e){}flashMsg('Куплено: «'+g.name+'»');renderHeroShop();try{renderProfile();}catch(e){}
 };
 function renderHeroShop(){

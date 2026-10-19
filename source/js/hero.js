@@ -3,7 +3,7 @@
    Силуэт в цвете текста скина, одежда в акценте скина, щели между деталями = цвет фона рамки (--hero-bg),
    поэтому герой одинаково читается во всех скинах, днём и ночью. Лица и глаз нет.
    Вещи хранятся в S.ownedGear / S.equipped (поля уже в схеме) с id «gr-…»; старые вещи v6 стикмен не рисует. */
-const HERO_SLOTS={char:'Персонаж',head:'Голова',body:'Одежда',cloak:'Плащ',hand:'В руке',shield:'Щит',pet:'Спутник',bg:'Фон'};
+const HERO_SLOTS={char:'Персонаж',head:'Голова',face:'Лицо',neck:'Шея',body:'Одежда',top:'Верх',bottom:'Низ',shoes:'Обувь',cloak:'Плащ',back:'Спина',belt:'Пояс',hand:'В руке',offhand:'Вторая рука',shield:'Щит',pet:'Спутник',bg:'Фон'};
 const HERO_GEAR=[
  {id:'gr-helm',slot:'head',kind:'wear',name:'Коринфский шлем',skin:'ellada',price:300,desc:'Бронзовый шлем с гребнем'},
  {id:'gr-laurel',slot:'head',kind:'wear',name:'Лавровый венок',skin:'ellada',price:150,desc:'Награда победителю'},
@@ -17,17 +17,50 @@ const HERO_GEAR=[
  {id:'ch-reader',slot:'char',kind:'chars',name:'Читатель',skin:'ellada',price:0,desc:'Ваш герой'},
  {id:'ch-pythagoras',slot:'char',kind:'chars',name:'Пифагор',skin:'ellada',price:600,desc:'Борода, повязка, табличка с треугольником'},
  {id:'ch-aristotle',slot:'char',kind:'chars',name:'Аристотель',skin:'ellada',price:600,desc:'Кудри, гиматий, свиток'},
+ /* Карандашный (рисунок Грока, handoff/hero-pencil, 19.10): 30 вещей, видны только в Карандашном */
+ {id:'pc-cap',slot:'head',kind:'wear',name:'Кепка',skin:'pencil',price:120},
+ {id:'pc-beret',slot:'head',kind:'wear',name:'Берет',skin:'pencil',price:150},
+ {id:'pc-paperhat',slot:'head',kind:'wear',name:'Бумажная шапка',skin:'pencil',price:80},
+ {id:'pc-headphones',slot:'head',kind:'wear',name:'Наушники',skin:'pencil',price:200},
+ {id:'pc-glasses',slot:'face',kind:'wear',name:'Очки',skin:'pencil',price:100},
+ {id:'pc-scarf',slot:'neck',kind:'wear',name:'Шарф',skin:'pencil',price:100},
+ {id:'pc-hoodie',slot:'top',kind:'wear',name:'Худи',skin:'pencil',price:200},
+ {id:'pc-sweater',slot:'top',kind:'wear',name:'Свитер',skin:'pencil',price:180},
+ {id:'pc-shirt-tie',slot:'top',kind:'wear',name:'Рубашка с галстуком',skin:'pencil',price:160},
+ {id:'pc-jacket',slot:'top',kind:'wear',name:'Пиджак',skin:'pencil',price:220},
+ {id:'pc-uniform',slot:'top',kind:'wear',name:'Школьная форма',skin:'pencil',price:250},
+ {id:'pc-raincoat',slot:'top',kind:'wear',name:'Дождевик',skin:'pencil',price:220},
+ {id:'pc-jeans',slot:'bottom',kind:'wear',name:'Джинсы',skin:'pencil',price:150},
+ {id:'pc-school-trousers',slot:'bottom',kind:'wear',name:'Школьные брюки',skin:'pencil',price:140},
+ {id:'pc-shorts',slot:'bottom',kind:'wear',name:'Шорты',skin:'pencil',price:100},
+ {id:'pc-kilt',slot:'bottom',kind:'wear',name:'Юбка в клетку',skin:'pencil',price:140},
+ {id:'pc-sneakers',slot:'shoes',kind:'wear',name:'Кеды',skin:'pencil',price:120},
+ {id:'pc-boots',slot:'shoes',kind:'wear',name:'Ботинки',skin:'pencil',price:150},
+ {id:'pc-rubber-boots',slot:'shoes',kind:'wear',name:'Резиновые сапоги',skin:'pencil',price:130},
+ {id:'pc-pencil-sword',slot:'hand',kind:'gear',name:'Меч-карандаш',skin:'pencil',price:300},
+ {id:'pc-umbrella',slot:'hand',kind:'gear',name:'Зонт',skin:'pencil',price:180},
+ {id:'pc-lantern',slot:'hand',kind:'gear',name:'Фонарик',skin:'pencil',price:160},
+ {id:'pc-book',slot:'offhand',kind:'gear',name:'Книга',skin:'pencil',price:120},
+ {id:'pc-eraser-shield',slot:'offhand',kind:'gear',name:'Щит-ластик',skin:'pencil',price:250},
+ {id:'pc-paper-airplane',slot:'offhand',kind:'gear',name:'Самолётик',skin:'pencil',price:90},
+ {id:'pc-backpack',slot:'back',kind:'gear',name:'Рюкзак',skin:'pencil',price:200},
+ {id:'pc-paper-cape',slot:'back',kind:'gear',name:'Плащ из листка',skin:'pencil',price:260},
+ {id:'pc-pencil-case',slot:'belt',kind:'gear',name:'Пенал',skin:'pencil',price:110},
+ {id:'pc-crane',slot:'pet',kind:'gear',name:'Журавлик',skin:'pencil',price:220},
+ {id:'pc-paper-cat',slot:'pet',kind:'gear',name:'Бумажный кот',skin:'pencil',price:280},
  {id:'gr-temple',slot:'bg',kind:'gear',name:'Акрополь',skin:'ellada',price:400,desc:'Храм за спиной героя'}
 ];
 function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||null;}
 /* вещи привязаны к скину (Джессика 18.10): купить можно, только если куплен скин; на герое видны только в этом скине */
-const HERO_SKIN_NAME={ellada:'Эллада'};
+const HERO_SKIN_NAME={ellada:'Эллада',pencil:'Карандашный'};
 function heroSkin(){try{return activeTheme().skin||'';}catch(e){return document.documentElement.dataset.skin||'';}}
 function heroFits(g){return !!g&&(!g.skin||g.skin===heroSkin());}
 function heroSkinOwned(g){return !g.skin||shopOwns('skin-'+g.skin);}
 /* вещи текущего скина; в чужом скине чужих вещей не видно нигде (Джессика 18.10: «вообще нельзя было там увидеть») */
 function heroGearHere(){return HERO_GEAR.filter(heroFits);}
-function heroOn(){const eq=S.equipped||{},on={};Object.keys(HERO_SLOTS).forEach(function(k){const g=heroItem(eq[k]);if(g&&heroFits(g))on[k]=eq[k];});return on;}
+/* у каждого скина свои надетые вещи: Эллада в старых ключах слотов, остальные — «скин:слот» (кепка Карандашного не снимает шлем Эллады) */
+function heroKey(g){return g.skin&&g.skin!=='ellada'?g.skin+':'+g.slot:g.slot;}
+function heroOn(){const eq=S.equipped||{},on={},sk=heroSkin();Object.keys(HERO_SLOTS).forEach(function(k){[k,sk+':'+k].forEach(function(key){const g=heroItem(eq[key]);if(g&&heroFits(g)&&heroKey(g)===key)on[k]=eq[key];});});return on;}
 const HI='var(--txt)',HB='var(--hero-bg)'; /* --txt: и скины, и тема по умолчанию */
 /* цвет вещи игрок выбирает сам, любой (Джессика 18.10: «дать человеку выбрать и настроить цвет самому»); по умолчанию бронза */
 const HERO_BRONZE='#b5822a'; /* темнее, чтобы не сливаться с кремовыми плашками */
@@ -36,7 +69,10 @@ function heroHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v.toLo
 /* цвет вещи свой у каждого персонажа: ключ «персонаж:вещь», без персонажа — просто id */
 let heroColCh='';
 function heroColKey(id,ch){ch=ch===undefined?heroColCh:ch;return ch&&ch!=='ch-reader'?ch+':'+id:id;}
-function heroCol(id){const gc=(S.char&&S.char.gearColor)||{};return heroHex(heroTryCol[id])||heroHex(gc[heroColKey(id)])||heroHex(gc[id])||HERO_BRONZE;}
+function heroCol(id){const gc=(S.char&&S.char.gearColor)||{};return heroHex(heroTryCol[id])||heroHex(gc[heroColKey(id)])||heroHex(gc[id])||(/^pc-/.test(id)?heroPcDefault(id):HERO_BRONZE);}
+/* вещь Карандашного без своего цвета: синий или красный карандаш — какого в рисунке больше */
+function heroPcDefault(id){const it=(typeof HERO_PENCIL_ART!=='undefined'&&HERO_PENCIL_ART.items[id])||{},t=(it.back||'')+(it.front||'');
+  return (t.split('--pc-red').length>t.split('--pc-blue').length)?'#d0443c':'#2f55b8';}
 /** heroSvg(on): on = {slot:id}; без аргумента — то, что надето. viewBox 0 -6 72 92: сверху место под гребень шлема */
 function heroSvg(on,colCh){
   on=on||heroOn();heroColCh=colCh===undefined?(on.char||''):colCh;const ch=on.char||'';const has=function(id){return Object.keys(on).some(function(k){return on[k]===id;});};
@@ -111,43 +147,22 @@ function heroSvg(on,colCh){
       '<path d="M54.6 66.6 Q55.6 71 58.2 73.4 M61.8 66.6 Q62 70 61 73" stroke="'+c+'" stroke-width=".8" fill="none" stroke-linecap="round"/><path d="M55.4 75.4 V77 M57 75.4 V77 M59.6 75.4 V77 M61.2 75.4 V77" stroke="'+c+'" stroke-width=".8" stroke-linecap="round"/>'+'</g>';}
   return '<svg class="herosvg" viewBox="0 -6 72 92" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
-/* ===== Карандашный: свой герой — манекен, нарисованный карандашом (Джессика 18.10, набросок Грока).
-   Линии в 2–3 прохода с дрожью (детерминированно), штриховка тени справа, зерно графита фильтром. Заливка = бумага плашки. */
-function heroPencilSvg(){
-  let seed=7;const rnd=function(){seed=(seed*16807)%2147483647;return seed/2147483647;};
-  const J=function(d,a){return d.replace(/-?\d+(\.\d+)?/g,function(n){return (parseFloat(n)+(rnd()-.5)*2*a).toFixed(2);});};
-  const line=function(d,w,n){let o='';for(let i=0;i<(n||2);i++)o+='<path d="'+(i?J(d,.32):d)+'" stroke-width="'+((w||1)*(i?.7:1)).toFixed(2)+'" opacity="'+(i?.55:.95)+'"/>';return o;};
-  const part=function(d){return '<path d="'+d+'" fill="'+HB+'" stroke="none"/>'+line(d+' Z');};
-  const hatch=function(x0,y0,x1,y1){let o='';for(let y=y0;y<y1;y+=1.5)o+='M'+x0+' '+y.toFixed(1)+' L'+x1+' '+(y-1.4).toFixed(1)+' ';return '<path d="'+o+'" stroke-width=".4" opacity=".45"/>';};
-  let s='';
-  /* ступни */
-  s+=part('M30.6 77.4 L33.8 77.4 L34.4 82.8 Q29.8 83.6 25.8 82.8 Q27.6 80.6 30.6 77.4')+part('M38.2 77.4 L41.4 77.4 Q44.4 80.6 46.2 82.8 Q42.2 83.6 37.6 82.8 L38.2 77.4');
-  /* голени, колени, бёдра */
-  s+=part('M30.2 60 L34.4 60 L34.1 77.6 L30.8 77.6 Q29.8 68 30.2 60')+part('M37.6 60 L41.8 60 Q42.2 68 41.2 77.6 L37.9 77.6 L37.6 60');
-  s+=part('M29.9 56.6 Q32.3 55.6 34.7 56.6 L34.5 60.6 Q32.3 61.6 30.1 60.6 Z')+part('M37.3 56.6 Q39.7 55.6 42.1 56.6 L41.9 60.6 Q39.7 61.6 37.5 60.6 Z');
-  s+=part('M27.8 39.4 L35.4 40.6 L34.8 56.8 L29.8 56.8 Q28 48 27.8 39.4')+part('M36.6 40.6 L44.2 39.4 Q44 48 42.2 56.8 L37.2 56.8 L36.6 40.6');
-  /* руки: плечо, локоть, предплечье, кулак */
-  s+=part('M23.4 15.4 Q25 13.6 27.4 14.4 L27.6 29 L23.4 29 Q22.8 22 23.4 15.4')+part('M44.6 14.4 Q47 13.6 48.6 15.4 Q49.2 22 48.6 29 L44.4 29 L44.6 14.4');
-  s+=part('M23.2 29 L27.6 29 L27.6 30.6 L23.2 30.6 Z')+part('M44.4 29 L48.8 29 L48.8 30.6 L44.4 30.6 Z');
-  s+=part('M23.2 30.6 L27.6 30.6 Q27.8 36 27.2 41.4 L23.8 41.4 Q23 36 23.2 30.6')+part('M44.4 30.6 L48.8 30.6 Q49 36 48.2 41.4 L44.8 41.4 Q44.2 36 44.4 30.6');
-  s+=part('M23.6 41.4 L27.4 41.4 Q28.4 43.6 27.4 45.4 Q25.4 46.4 23.6 45.4 Q22.6 43.4 23.6 41.4')+part('M44.6 41.4 L48.4 41.4 Q49.4 43.4 48.4 45.4 Q46.6 46.4 44.6 45.4 Q43.6 43.6 44.6 41.4');
-  /* корпус и таз */
-  s+=part('M27.4 14.6 Q31 12.4 33.8 12.6 L38.2 12.6 Q41 12.4 44.6 14.6 Q45.2 22 43.6 31 Q36 32.6 28.4 31 Q26.8 22 27.4 14.6');
-  s+=part('M28.4 31 Q36 32.6 43.6 31 L44.2 39.4 Q40 39.8 37.4 42.4 L34.6 42.4 Q32 39.8 27.8 39.4 Z');
-  /* шея, голова, уши */
-  s+=part('M34 8.6 L38 8.6 L38.2 12.8 L33.8 12.8 Z');
-  s+=part('M30.2 6.4 Q29.6 6 29.4 4.6 Q29.6 3.4 30.6 3.8 Z')+part('M41.8 6.4 Q42.4 6 42.6 4.6 Q42.4 3.4 41.4 3.8 Z');
-  s+=part('M36 -3.4 Q41.6 -3.4 41.6 3 Q41.4 7.6 38.8 9.2 Q36 10.4 33.2 9.2 Q30.6 7.6 30.4 3 Q30.4 -3.4 36 -3.4');
-  /* контуры груди и пояса, тень штрихом */
-  s+=line('M29.6 22.2 Q36 20.6 42.4 22.2',.6,1)+line('M36 15 V30.4',.4,1)+line('M30.2 34 Q32.6 37.8 35.2 41.6 M41.8 34 Q39.4 37.8 36.8 41.6',.5,1);
-  s+=hatch(41.6,16,44.4,30)+hatch(46.4,17,48.4,28)+hatch(46.4,32,48.4,40)+hatch(40.4,44,42.6,55)+hatch(39.8,62,41.4,76)+hatch(39.4,0,41.2,8);
-  return '<svg class="herosvg heropencil" viewBox="0 -6 72 92" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
-    '<defs><filter id="rqHeroGraphite" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="5" result="n"/>'+
-    '<feDisplacementMap in="SourceGraphic" in2="n" scale="0.35" result="d"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.8 1.15" result="m"/><feComposite in="d" in2="m" operator="in"/></filter></defs>'+
-    '<g filter="url(#rqHeroGraphite)" stroke="'+HI+'" fill="none" stroke-linecap="round" stroke-linejoin="round">'+s+'</g></svg>';
+/* ===== Карандашный: свой герой — манекен карандашом (рисунок Грока, js/hero-pencil.js) и его вещи.
+   Холст Грока 0 0 120 240; по бокам поле, чтобы пропорции рамки (72:92) совпадали. Порядок слоёв — из его README. */
+const HERO_PC_ORDER=['bottom','shoes','top','neck','belt','back','face','head','hand','offhand','pet'];
+function heroPcVars(id){const v=heroHex(heroTryCol[id])||heroHex(((S.char&&S.char.gearColor)||{})[id]);if(!v)return '';
+  return ' style="--pc-blue:'+v+';--pc-red:'+v+';--pc-f1:color-mix(in srgb,'+v+' 22%,var(--hero-bg));--pc-f2:color-mix(in srgb,'+v+' 42%,var(--hero-bg))"';}
+function heroPencilSvg(on){
+  on=on||heroOn();const A=(typeof HERO_PENCIL_ART!=='undefined')?HERO_PENCIL_ART:{hero:'',items:{}};
+  const art=function(slot,part){const id=on[slot],it=id&&A.items[id];return it&&it[part]?'<g'+heroPcVars(id)+'>'+it[part]+'</g>':'';};
+  let s='';Object.keys(HERO_SLOTS).forEach(function(k){s+=art(k,'back');});
+  s+=A.hero;HERO_PC_ORDER.forEach(function(k){s+=art(k,'front');});
+  return '<svg class="herosvg heropencil" viewBox="-34 0 188 240" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
 const HERO_FIGURES={pencil:heroPencilSvg}; /* свой герой скина; без записи — стикмен */
-function heroFigure(){const f=HERO_FIGURES[heroSkin()];return f?f():heroSvg();}
+function heroFigure(on){const f=HERO_FIGURES[heroSkin()];return f?f(on):heroSvg(on);}
+/* превью в магазине: герой текущего скина (у Эллады — с персонажем и его цветами) */
+function heroRender(on,colCh){return HERO_FIGURES[heroSkin()]?heroFigure(on):heroSvg(on,colCh);}
 /* герой стоит прямо на плашке: щели силуэта = цвет плашки под ним (первый непрозрачный фон вверх по дереву) */
 function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){f.style.removeProperty('--hero-bg');});return;} /* у карандаша бумага плашки в ::before */
   (root||document).querySelectorAll('#avatarFrame,.heroframe').forEach(function(f){
@@ -165,15 +180,15 @@ function heroTryOn(id){if(!heroFits(heroItem(id)))return;heroTry=heroTry===id?nu
 /* палитра: пока крутят — только примерка (перерисовываются картинки, не магазин); отпустили — купленной вещи цвет сохраняется */
 function heroColLive(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;heroTryCol[id]=v;heroTry=heroOwns(id)?heroTry:id;
   const box=el('heroShop');if(!box)return;const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
-  const big=box.querySelector('.heroprev .heroframe');if(big)big.innerHTML=heroSvg(on);
-  const card=box.querySelector('.heroitem[data-id="'+id+'"]');if(card){const one={};one[heroItem(id).slot]=id;card.querySelector('.heroframe').innerHTML=heroSvg(one,heroOn().char||'');card.querySelector('.herocolpick').style.background=v;}}
+  const big=box.querySelector('.heroprev .heroframe');if(big)big.innerHTML=heroRender(on);
+  const card=box.querySelector('.heroitem[data-id="'+id+'"]');if(card){const one={};one[heroItem(id).slot]=id;card.querySelector('.heroframe').innerHTML=heroRender(one,heroOn().char||'');card.querySelector('.herocolpick').style.background=v;}}
 function heroSetCol(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;
   if(!heroOwns(id)){heroTryCol[id]=v;heroTry=id;renderHeroShop();return;}
   if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
   S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[heroColKey(id,heroOn().char||'')]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){const g=heroItem(id);return (!!g&&g.price===0)||(S.ownedGear||[]).indexOf(id)>=0;}
 function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id)||!heroFits(g))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
-  S.equipped=S.equipped||{};S.equipped[g.slot]=g.slot==='char'?(id==='ch-reader'?null:id):(S.equipped[g.slot]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
+  S.equipped=S.equipped||{};const key=heroKey(g);S.equipped[key]=g.slot==='char'?(id==='ch-reader'?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
 let heroPending=null;
 function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g))return;
   if(S.gold<g.price){flashMsg('Не хватает '+coinsP(g.price-S.gold));return;}
@@ -187,7 +202,7 @@ shopConfirmOk=function(){
   shopConfirmClose();const g=heroItem(id);
   if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне');return;}
   if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g)||!(S.gold>=g.price))return;
-  S.gold-=g.price;S.ownedGear=(S.ownedGear||[]).concat(id);S.equipped=S.equipped||{};S.equipped[g.slot]=id;heroTry=null;save();
+  S.gold-=g.price;S.ownedGear=(S.ownedGear||[]).concat(id);S.equipped=S.equipped||{};S.equipped[heroKey(g)]=id;heroTry=null;save();
   try{confettiReward();}catch(e){}flashMsg('Куплено: «'+g.name+'»');renderHeroShop();try{renderProfile();}catch(e){}
 };
 function renderHeroShop(){
@@ -203,17 +218,17 @@ function renderHeroShop(){
   const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
   const items=here.filter(function(g){return g.kind===heroTab;});
   const sk=(items[0]||{}).skin,chars=heroTab==='chars',curCh=heroOn().char||'',note=sk?'<p class="heroskinnote">'+(chars?'Персонажи':'Вещи')+' скина «'+HERO_SKIN_NAME[sk]+'» есть только в этом скине.</p>':'';
-  box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroSvg(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
+  box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroRender(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
       '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span></div></div>'+note+
     '<div class="herogrid">'+items.map(function(g){
-      const own=heroOwns(g.id),worn=g.slot==='char'?(curCh||'ch-reader')===g.id:(S.equipped||{})[g.slot]===g.id,one={};one[g.slot]=g.id;
+      const own=heroOwns(g.id),worn=g.slot==='char'?(curCh||'ch-reader')===g.id:(S.equipped||{})[heroKey(g)]===g.id,one={};one[g.slot]=g.id;
       const cta=chars&&worn?'<button type="button" class="buy owned shopcta" disabled>Выбран</button>'
         :chars&&own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Выбрать</button>'
         :worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
         :own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Надеть</button>'
         :'<button type="button" class="buy shopcta"'+(S.gold>=g.price?'':' disabled')+' onclick="event.stopPropagation();heroBuyAsk(\''+g.id+'\')">'+(S.gold>=g.price?'Купить':'Не хватает '+(g.price-S.gold))+'</button>';
       return '<div role="button" tabindex="0" class="shopcard heroitem'+(heroTry===g.id?' trying':'')+'" data-id="'+g.id+'" onclick="heroTryOn(\''+g.id+'\')">'+
-        '<span class="heroframe">'+heroSvg(one,curCh)+'</span><span class="shopname">'+esc(g.name)+'</span>'+
+        '<span class="heroframe">'+heroRender(one,curCh)+'</span><span class="shopname">'+esc(g.name)+'</span>'+
         '<span class="shopprice">'+(chars?(own?(g.price?'Куплен':'Бесплатно'):coinsP(g.price)):(own?(worn?'Надето':'Куплено'):coinsP(g.price))+' · '+HERO_SLOTS[g.slot].toLowerCase())+'</span>'+(chars?'':
         '<label class="herocolrow" onclick="event.stopPropagation()"><span class="herocolpick" style="background:'+heroCol(g.id)+'"><input type="color" value="'+heroCol(g.id)+'" aria-label="Цвет: '+esc(g.name)+'" oninput="heroColLive(\''+g.id+'\',this.value)" onchange="heroSetCol(\''+g.id+'\',this.value)"></span>Цвет</label>')+cta+'</div>';
     }).join('')+'</div>';

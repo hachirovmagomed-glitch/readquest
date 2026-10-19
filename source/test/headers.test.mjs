@@ -10,7 +10,7 @@ const SK = ['', 'pencil', 'celestial', 'ellada', 'babochkovyi'];
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = []; let p;
 for (const w of [390, 360]) {
-  p = await (await browser.createBrowserContext()).newPage(); p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+  p = await (await browser.createBrowserContext()).newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
   await p.setViewport({ width: w, height: 800, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
   await p.evaluate(() => { S.gold = 999999; save(); });

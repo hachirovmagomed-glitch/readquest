@@ -42,11 +42,11 @@ const swi = () => p.evaluate(() => [...document.querySelectorAll('#settings .sw'
   const bl = parseFloat(cs.borderLeftWidth), bt = parseFloat(cs.borderTopWidth);
   const x = bl + parseFloat(a.left) + m.m41, y = bt + parseFloat(a.top) + m.m42, w = parseFloat(a.width), h = parseFloat(a.height);
   return { id: b.id, on: b.getAttribute('aria-checked'), tw: Math.round(r.width), th: Math.round(r.height), x, y, w, h, rad: a.borderRadius,
-    inside: x >= 0 && y >= 0 && x + w <= r.width + .01 && y + h <= r.height + .01, img: a.borderImageSource + '|' + cs.borderImageSource, before: f.content, trad: cs.borderRadius, op: cs.backgroundColor };
+    inside: x >= 0 && y >= 0 && x + w <= r.width + .01 && y + h <= r.height + .01, img: a.borderImageSource + '|' + cs.borderImageSource, before: f.content, bvis: f.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(f.borderTopWidth) > 0 || f.backgroundImage !== 'none', trad: cs.borderRadius, op: cs.backgroundColor };
 }));
 for (const pass of [0, 1]) {
   const s = await swi();
-  const bad = s.filter(x => x.tw !== 44 || x.th !== 24 || x.w !== 20 || x.h !== 20 || x.rad !== '50%' || !x.inside || x.img !== 'none|none' || (x.before !== 'none' && x.before !== 'normal'));
+  const bad = s.filter(x => x.tw !== 44 || x.th !== 24 || x.w !== 20 || x.h !== 20 || x.rad !== '50%' || !x.inside || x.img !== 'none|none' || (x.before !== 'none' && x.before !== 'normal' && x.bvis)); /* audit 19.10 GL-02: an invisible ::before hit area (44 px) is not a frame */
   ok(`switches (${pass ? 'toggled' : 'initial'}): 44×24 track, round 20px thumb inside, no frame`, s.length >= 3 && !bad.length, bad.length ? bad : s.map(x => x.id + ':' + x.on));
   if (!pass) await p.evaluate(() => [...document.querySelectorAll('#settings .sw')].filter(b => b.offsetParent).forEach(b => b.click())), await sleep(300);
 }

@@ -12,7 +12,7 @@ const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const TEXT = 'Муза, скажи мне о том многоопытном муже, который\n\n' + 'Долго скитался с тех пор, как святой Илион им разрушен. '.repeat(400);
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
+const ctx = await browser.createBrowserContext(); const p = await ctx.newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
 const errs = [], dialogs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => { dialogs.push(d.message()); d.accept(); });
 let fetched = 0;

@@ -60,7 +60,7 @@ ok('2f system back closes the page, profile stays', back);
 for (const w of [390, 360]) {
   await p.setViewport({ width: w, height: 800, isMobile: true, hasTouch: true });
   const L = await p.evaluate(async () => { openAchPage(); await new Promise(r => setTimeout(r, 200)); const pg = el('achPage');
-    const bad = [...pg.querySelectorAll('*')].filter(n => { const r = n.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 0.5 || r.left < -0.5); }).map(n => n.className || n.tagName).slice(0, 5);
+    const bad = [...pg.querySelectorAll('*')].filter(n => { const r = n.getBoundingClientRect(); return r.width > 0 && !n.closest('.achv-secs') && (r.right > innerWidth + 0.5 || r.left < -0.5); }) /* audit 19.10 ACH-02: the section chips scroll in one row on purpose */.map(n => n.className || n.tagName).slice(0, 5);
     const r = { sw: document.scrollingElement.scrollWidth, iw: innerWidth, bad }; closeAchPage(); return r; });
   ok('3 width ' + w + ': nothing sticks out of the screen', L.bad.length === 0 && L.sw <= L.iw, L);
 }

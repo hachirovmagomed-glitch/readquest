@@ -11,7 +11,7 @@ const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
-const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
+const ctx = await browser.createBrowserContext(); const p = await ctx.newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
 p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
@@ -114,7 +114,7 @@ const rd = await p.evaluate(() => { const r = document.getElementById('reader'),
     seg: (document.querySelector('#fontSeg button') || {}).textContent || '' }; });
 const th = await p.evaluate(() => ({ thumb: [...document.styleSheets].some(sh => { try { return [...sh.cssRules].some(r => /celestial.*#pgSlider::-webkit-slider-thumb/.test(r.selectorText || '') && /--cl-thumb/.test(r.cssText)); } catch (e) { return false; } }), dia: /data:image\/svg/.test(getComputedStyle(document.getElementById('rPage'), '::before').backgroundImage), top: /gradient/.test(getComputedStyle(document.querySelector('#reader .rhead')).backgroundImage) }));
 ok('6c reader chrome: diamond slider thumb, diamonds around the page count, sky gradient over the title', th.thumb && th.dia && th.top, th);
-ok('6 reader: opaque page #fbf6ea over the sky, book in Lora, title in Cormorant, own reader icons', rd.bg === 'rgb(251, 246, 234)' && rd.at && /Lora/.test(rd.font) && /Cormorant/.test(rd.title) && rd.ic, rd);
+ok('6 reader: opaque page #fbf6ea over the sky, book keeps the reader font (audit 19.10: a skin never changes it), title in Cormorant, own reader icons', rd.bg === 'rgb(251, 246, 234)' && rd.at && /Georgia/.test(rd.font) && /Cormorant/.test(rd.title) && rd.ic, rd);
 await p.screenshot({ path: SHOTS + 'celestial-reader-390.png' });
 await p.evaluate(() => { toggleDayNight(); }); await sleep(500);
 const rn = await p.evaluate(() => ({ bg: getComputedStyle(document.getElementById('reader')).backgroundColor, theme: document.documentElement.dataset.theme, set: SET.theme }));

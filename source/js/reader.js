@@ -49,8 +49,8 @@ function applySet(){
   applySkin(); /* app-wide skin on :root */
   r.style.setProperty('--r-bg',bg);r.style.setProperty('--r-txt',tx);
   r.style.background=bg;r.style.color=tx;
-  r.style.setProperty('--r-margin',SET.margin+'px');
-  el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
+  r.style.setProperty('--r-margin',SET.margin+'px');r.classList.toggle('narrowm',SET.margin<44||R.mode==='pdf');
+  if(R.mode==='pdf')el('viewer').style.margin='0';else{el('viewer')._mw=null;rqTextMargin();} /* PDF: full width, no side fields; text: SET.margin, wider on a portrait tablet (audit 19.10 RD-TAB-01) */
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
   rqLightApply();
   /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
@@ -62,8 +62,7 @@ function applySet(){
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   const c=el('content');
-  {const sf=SET.font===0&&skinBookFont();c.style.fontFamily=sf?sf.v:FONTS[SET.font].v;
-   const b0=document.querySelector('#fontSeg button'),f0=skinBookFont()||FONTS[0];if(b0){const xn=b0.querySelector('.xn'),xs=b0.querySelector('.xs');if(xn&&xn.textContent!==f0.label){xn.textContent=f0.label;xn.style.fontFamily=f0.v;if(xs)xs.style.fontFamily=f0.v;}}}
+  c.style.fontFamily=(FONTS[SET.font]||FONTS[0]).v; /* audit 19.10 SK-01: the book face never comes from the skin (skins dress the chrome only) */
   c.style.fontSize=SET.size+'px';
   c.style.lineHeight=SET.lh;
   rqTextAlign();
@@ -112,7 +111,7 @@ FONTS.forEach((f,i)=>{
   b.onclick=()=>{SET.font=i;rqSaveSetGated();applySet();relayout();}; /* one saveSet, through the write gate (deferred until ready) */
   el('fontSeg').appendChild(b);
 });
-rqCollapse('fontSeg','Шрифт',function(){return ((SET.font===0&&skinBookFont())||FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return ((SET.font===0&&skinBookFont())||FONTS[SET.font]||FONTS[0]).v;}});
+rqCollapse('fontSeg','Шрифт',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return (FONTS[SET.font]||FONTS[0]).v;}});
 function renderThemeSeg(){
   const seg=el('themeSeg');seg.innerHTML='';
   const add=(key,bg,name,locked,yours)=>{
@@ -123,13 +122,17 @@ function renderThemeSeg(){
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
     else if(SKIN_THEMES[key]){b.classList.add('sw-pencil');b.style.color=SKIN_THEMES[key].txt;b.innerHTML=rqIcon(SKIN_THEMES[key].icon,15);b.setAttribute('aria-label',name);} /* bought shop skin */
     b.onclick=()=>{
-      if(locked){alert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
+      if(locked){rqAlert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
       const from=skinOf(activeTheme());
       SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);
     };
     if(yours){b.classList.add('yours');b.title='Ваша тема: '+name;const w=document.createElement('span');w.className='yourwrap';w.appendChild(b);
       const c=document.createElement('small');c.textContent='Ваша тема';w.appendChild(c);seg.appendChild(w);return;}
-    seg.appendChild(b);
+    /* audit 19.10 RD-SET-02: a caption under every swatch and a tick on the picked one (not told by colour alone) */
+    const w=document.createElement('span');w.className='swwrap';w.appendChild(b);
+    const k=document.createElement('span');k.className='swchk';k.setAttribute('aria-hidden','true');k.innerHTML=rqIcon('check',12);w.appendChild(k);
+    const c=document.createElement('small');c.textContent=name;w.appendChild(c);w.onclick=function(e){if(e.target!==b&&!b.contains(e.target))b.click();};
+    seg.appendChild(w);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
   Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>add(k,SKIN_THEMES[k].bg,SKIN_THEMES[k].name,false)); /* bought shop skins */
@@ -217,13 +220,13 @@ async function openBook(id){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
   if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
-  if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+  if(b.type!=='pdf'&&!b.text){rqAlert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
   if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
   R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,pos:rqPos(id),mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
-  el('rTitle').textContent=b.title+' — '+b.author;
+  el('rTitle').textContent=bookAuthor(b)?b.title+' — '+bookAuthor(b):b.title;
   const c=el('content');
   el('pdfWrap').classList.toggle('hidden',R.mode!=='pdf');
   c.classList.toggle('hidden',R.mode==='pdf');
@@ -237,7 +240,7 @@ async function openBook(id){
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
-  c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
+  c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
   const hy=hyphWaitStart(c,b);
@@ -285,6 +288,7 @@ function hyphWaitStart(c,b){
 }
 function hyphWaitRun(h,p){
   const t=el('txtBack');if(t)el('txtBackN').textContent='Открываем страницу '+(p+1);
+  setTimeout(function(){if(!h.done&&HY.tok===h.tok&&t&&!t.classList.contains('hidden'))el('txtBackN').textContent='Готовим вёрстку… большая книга';},5000); /* audit 19.10 RD-LOAD-01 */
   const fin=(relay)=>{if(h.done)return;h.done=true;h.on.remove();h.off.remove(); /* once per open, whatever fires first */
     if(HY.tok!==h.tok)return; /* a newer open owns the placeholder */
     if(!R.book||R.book.id!==h.book.id||R.mode==='pdf'||el('reader').classList.contains('hidden')){if(t)t.classList.add('hidden');return;}

@@ -107,7 +107,8 @@ function pathOpen(pid){
     '<div class="bk-note">'+(has?'Книга лежит на телефоне и читается без интернета. Её можно удалить, прогресс останется.':
       (st.lib?'Текст удалён с телефона, прогресс сохранён. Скачайте книгу снова, чтобы продолжить.':
       'Книга бесплатная, из общественного достояния. Скачивается один раз и дальше читается без интернета. Минуты, опыт и серия считаются как у любой книги.'))+'</div>'+
-    '<button type="button" class="cta" onclick="pathRead(\''+pid+'\')">'+(has?(st.done?'Открыть':'Продолжить'):(st.lib?'Скачать снова · ':'Скачать на телефон и читать · ')+pathSize(b.kb))+'</button>'+
+    (!has&&navigator.onLine===false?'<button type="button" class="cta" disabled>Нет сети — скачать можно позже</button>': /* audit 19.10 ADV-02 */
+    '<button type="button" class="cta" onclick="pathRead(\''+pid+'\')">'+(has?(st.done?'Открыть':'Продолжить'):(st.lib?'Скачать снова · ':'Скачать на телефон и читать · ')+pathSize(b.kb))+'</button>')+
     (has?'<button type="button" class="pathdel" onclick="pathDrop(\''+pid+'\')">Удалить с телефона · '+pathSize(b.kb)+'</button>':'');
   el('bookSheet').classList.remove('hidden');
 }

@@ -17,7 +17,7 @@ async function run(file, mode) {
     const dn = Date.now; Date.now = () => dn() + window.__rqTimeOffset; window.__rqAdv = (ms) => { window.__rqTimeOffset += ms; };
   });
   await p.evaluateOnNewDocument(() => { /* utterance «spoken» in 30 ms */
-    const ss = { speaking: false, cancel() {}, speak(u) { setTimeout(() => { if (u.onend) u.onend(); }, 30); }, getVoices: () => [] };
+    const ss = { speaking: false, cancel() {}, speak(u) { setTimeout(() => { if (u.onstart) u.onstart(); if (u.onend) u.onend(); }, 30); }, getVoices: () => [{ lang: 'ru-RU', name: 'stub-ru' }] };
     Object.defineProperty(window, 'speechSynthesis', { value: ss, configurable: true });
     Object.defineProperty(window, 'SpeechSynthesisUtterance', { value: function (t) { this.text = t; }, configurable: true, writable: true });
   });
@@ -74,7 +74,7 @@ async function listen10(file, mode) {
     window.__rqTimeOffset = 0; const pn = performance.now.bind(performance); performance.now = () => pn() + window.__rqTimeOffset;
     const dn = Date.now; Date.now = () => dn() + window.__rqTimeOffset; window.__rqAdv = (ms) => { window.__rqTimeOffset += ms; };
     window.__utt = null; /* utterance ends only when the test says so */
-    const ss = { speaking: false, cancel() { window.__utt = null; }, speak(u) { window.__utt = u; }, getVoices: () => [] };
+    const ss = { speaking: false, cancel() { window.__utt = null; }, speak(u) { window.__utt = u; if (u.onstart) u.onstart(); }, getVoices: () => [{ lang: 'ru-RU', name: 'stub-ru' }] };
     Object.defineProperty(window, 'speechSynthesis', { value: ss, configurable: true });
     Object.defineProperty(window, 'SpeechSynthesisUtterance', { value: function (t) { this.text = t; }, configurable: true, writable: true });
   });

@@ -14,6 +14,9 @@
 (function(){
   var ns='__RQ_NS__'; if(ns.indexOf('__')===0)ns='rq';
   window.RQ_NS=ns;
+  /* audit 19.10 R1/R2 (Джессика): «тест на людях» — paid skins, the skin shop and «Путь читателя» are hidden (class rq-lean).
+     Preview for checking new skins on her own phone: 7 taps on the build number in «Данные» → ns+'preview'='1' (outside the write gate, like diag). */
+  try{if(localStorage.getItem(ns+'preview')!=='1')document.documentElement.classList.add('rq-lean');}catch(e){document.documentElement.classList.add('rq-lean');}
   window.RQ_K={v1:ns+'_v1',set:ns+'_set',owner:ns+'_owner',migrated:ns+'_migrated_v1',takeover:ns+'_takeover',
     theme:ns+'_theme',legacy:ns==='rq'?'readquest':ns+'_readquest',idb:ns==='rq'?'readquest':'readquest-test',lock:ns+'-writer',bc:ns,cache:ns+'-'};
 })();
@@ -112,8 +115,14 @@
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
   --accent:#2bb3c0; --accent2:#ffc107; --good:#4cd97b; --bar:#19454f;
   --sheet:#122b33; --drawer:#10333d; --radius:18px;
+  --on-accent:#0b2a30; /* audit 19.10 GL-01: text on the teal fill — white on #2bb3c0 is 2.5:1, this is 8:1 */
+  --focus-ring:#7fdbe4; --danger:#ff8a80; /* audit 19.10 GL-03 / GL-07 (light app theme: js/settings.js) */
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html.rq-tsw *,html.rq-tsw *::before,html.rq-tsw *::after{transition:none!important} /* audit 19.10 GL-11 */
+/* audit 19.10 GL-03: one visible keyboard ring (mouse / touch taps draw none) */
+:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.searchinp:focus-visible{outline:2px solid var(--focus-ring);outline-offset:0}
 html,body{height:100%}
 html{background:var(--bg)} /* system edge swipe «назад» stays enabled (no overscroll-behavior) */ /* canvas under the bottom nav / safe area = page colour, never a dark strip */
 body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
@@ -121,78 +130,78 @@ body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;b
 .hidden{display:none!important}
 .scroll{flex:1;overflow-y:auto;padding:20px 18px 28px;-webkit-overflow-scrolling:touch}
 .wrap{max-width:760px;margin:0 auto;width:100%}
-h1{font-size:22px;margin:0}
-h2{font-size:16px;margin:22px 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+h1{font-size:1.375rem;margin:0}
+h2{font-size:1rem;margin:22px 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .row{display:flex;align-items:center;gap:12px}
 .spacer{flex:1}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
-.chip{font-size:12px;background:var(--card2);color:var(--muted);padding:3px 10px;border-radius:99px}
+.chip{font-size:0.75rem;background:var(--card2);color:var(--muted);padding:3px 10px;border-radius:var(--rq-radius-pill)}
 
 /* ===== Библиотека ===== */
 .topbar{padding:18px 18px 6px}
 /* Приключения: free books from open libraries (js/adv.js); colours only from theme tokens */
-.advlead{font-size:13px;color:var(--muted);line-height:1.4;margin:2px 0 6px}
+.advlead{font-size:0.8125rem;color:var(--muted);line-height:1.4;margin:2px 0 6px}
 #advLang[hidden]{display:none}
-.advrow{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:10px 12px;margin-top:8px;background:var(--card);border-radius:14px;text-align:left;color:var(--txt);box-sizing:border-box}
+.advrow{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:10px 12px;margin-top:8px;background:var(--card);border-radius:var(--rq-radius-md);text-align:left;color:var(--txt);box-sizing:border-box}
 .advrow > .ic{color:var(--muted);flex:none}
 .advlist .advrow{min-height:52px}
 .advrow .cover,.bk-head .cover{position:relative}
 .advrow .cover img,.bk-head .cover img{position:absolute;inset:0;z-index:1}
 .advmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.advmeta b{font-size:15px;line-height:1.3;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.advauth{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
-.advown{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--txt)}
+.advmeta b{font-size:0.9375rem;line-height:1.3;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.advauth{font-size:0.8125rem;color:var(--muted);overflow-wrap:anywhere}
+.advown{display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--txt)}
 .advown .ic{color:var(--accent)}
-.advempty{color:var(--muted);text-align:center;padding:32px 8px 8px;font-size:14px;line-height:1.45}
+.advempty{color:var(--muted);text-align:center;padding:32px 8px 8px;font-size:0.875rem;line-height:1.45}
 .advhints{justify-content:center;flex-wrap:wrap}
 .advmore{display:block;width:100%;margin:14px 0 8px}
-.advsum{margin-top:14px;font-size:13px}
+.advsum{margin-top:14px;font-size:0.8125rem}
 .advsets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.advset{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:96px;padding:12px;background:var(--card);border-radius:14px;text-align:left;color:var(--txt);box-sizing:border-box}
+.advset{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:96px;padding:12px;background:var(--card);border-radius:var(--rq-radius-md);text-align:left;color:var(--txt);box-sizing:border-box}
 .advset .ic{color:var(--accent)}
-.advset b{font-size:14px;line-height:1.25}
-.advset span,.advalt{font-size:12px;color:var(--muted)}
-.advbar{display:block;width:100%;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
-.advbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.advset b{font-size:0.875rem;line-height:1.25}
+.advset span,.advalt{font-size:0.75rem;color:var(--muted)}
+.advbar{display:block;width:100%;height:4px;border-radius:var(--rq-radius-xs);background:var(--line);overflow:hidden}
+.advbar i{display:block;height:100%;background:var(--accent);border-radius:var(--rq-radius-xs)}
 .advsetprog + .advbar{margin:6px 0 4px}
 .advflt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .advfsep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
-.advsnip{display:block;font-size:12px;line-height:1.35;color:var(--muted);margin-top:2px}
+.advsnip{display:block;font-size:0.75rem;line-height:1.35;color:var(--muted);margin-top:2px}
 .advsnip em{font-style:normal;color:var(--txt);font-weight:600}
 .advalt{margin:8px 2px 0}
 .advauth-h{margin-top:18px}
-.advback{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 0;color:var(--muted);font-size:14px}
-.advseth{font-size:18px;margin:4px 0 2px}
+.advback{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 0;color:var(--muted);font-size:0.875rem}
+.advseth{font-size:1.125rem;margin:4px 0 2px}
 .advsug[hidden]{display:none}
-.advsug{margin-top:4px;background:var(--card);border-radius:14px;overflow:hidden}
+.advsug{margin-top:4px;background:var(--card);border-radius:var(--rq-radius-md);overflow:hidden}
 .advsugrow{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;text-align:left;color:var(--txt);box-sizing:border-box}
 .advsugrow + .advsugrow{border-top:1px solid var(--card2)}
 .advsugrow .ic{color:var(--muted);flex:none}
 .advsugrow span{min-width:0;overflow-wrap:anywhere}
-.advsugrow i{font-style:normal;color:var(--muted);font-size:13px}
-.advpre{font-size:14px;line-height:1.5}
+.advsugrow i{font-style:normal;color:var(--muted);font-size:0.8125rem}
+.advpre{font-size:0.875rem;line-height:1.5}
 .advhome .bk-h,.advsets + .bk-h{margin-top:16px}
 .advrech{display:flex;align-items:center;justify-content:space-between}
-.advclear{font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;padding:4px 0}
+.advclear{font-size:0.75rem;color:var(--muted);text-transform:none;letter-spacing:0;padding:4px 0}
 .advrecent{flex-wrap:wrap}
 .advwant{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;box-sizing:border-box}
 .advtags{display:flex;gap:6px;flex-wrap:wrap}
-.advtags .chip{font-size:11px;padding:2px 8px}
+.advtags .chip{font-size:0.6875rem;padding:2px 8px}
 .advtags .advru{color:var(--txt)}
 a.cta{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-sizing:border-box}
 #bookSheetBody .cta .ic{flex:none}
 /* Путь читателя: open map, colors only from theme tokens */
 .pathsum{background:var(--card);border-radius:var(--radius);padding:16px;margin:4px 0 8px}
-.pathdel{display:block;width:100%;margin-top:6px;padding:12px;font-size:14px;color:var(--muted);background:none;border-radius:14px}
+.pathdel{display:block;width:100%;margin-top:6px;padding:12px;font-size:0.875rem;color:var(--muted);background:none;border-radius:var(--rq-radius-md)}
 .pn-ok,.pn-bar{display:none}
-.pathsum-t{font-size:15px;margin-bottom:10px}.pathsum-t b{font-size:20px}
-.pathsum-s{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.4}
+.pathsum-t{font-size:0.9375rem;margin-bottom:10px}.pathsum-t b{font-size:1.25rem}
+.pathsum-s{font-size:0.8125rem;color:var(--muted);margin-top:10px;line-height:1.4}
 .pathch{margin-top:22px}
 .pathch-h{display:flex;gap:12px;align-items:center;margin-bottom:6px}
-.pathch-h b{font-size:17px}
-.pathch-n{flex:none;width:40px;height:40px;border-radius:12px;background:var(--card2);color:var(--txt);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.pathch-h b{font-size:1.0625rem}
+.pathch-n{flex:none;width:40px;height:40px;border-radius:var(--rq-radius-md);background:var(--card2);color:var(--txt);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9375rem}
 .pathch.full .pathch-n{background:var(--accent);color:var(--bg)}
-.pathch-s{font-size:13px;color:var(--muted);margin-top:2px}
+.pathch-s{font-size:0.8125rem;color:var(--muted);margin-top:2px}
 .pathmap{position:relative;padding:14px 0 0}.pathmap .pathnode:last-child{margin-bottom:0}
 .pathline{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
 .pathline path{fill:none;stroke:var(--muted);stroke-opacity:.35;stroke-width:6;stroke-linecap:round}
@@ -210,30 +219,30 @@ a.cta{display:flex;align-items:center;justify-content:center;gap:8px;text-decora
 .pathnode.done .pn-dot{background:var(--accent);color:var(--bg)}
 .pathnode.done .pn-bg{stroke:var(--accent)}
 .pn-lab{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.pn-lab b{font-size:16px;line-height:1.25}
-.pn-tag{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.pn-a{font-size:13px;color:var(--muted)}
-.pn-p{font-size:13px;color:var(--muted)}
+.pn-lab b{font-size:1rem;line-height:1.25}
+.pn-tag{font-size:0.6875rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pn-a{font-size:0.8125rem;color:var(--muted)}
+.pn-p{font-size:0.8125rem;color:var(--muted)}
 .pathnode.started .pn-p,.pathnode.done .pn-p{color:var(--accent)}
 .goalcard{background:linear-gradient(135deg,var(--card2),var(--card));border-radius:var(--radius);padding:16px;display:flex;gap:16px;align-items:center;margin-bottom:6px}
 .ring{width:74px;height:74px;flex:none}
-.ring text{fill:var(--txt);font-size:15px;font-weight:700}
+.ring text{fill:var(--txt);font-size:0.9375rem;font-weight:700}
 .goalcard .ring circle:first-child{stroke:color-mix(in srgb,var(--muted) 25%,var(--card2))} /* 16.10: track and card follow «Тема», were teal hex */
-.goalcard .sub{color:var(--muted);font-size:13px;margin-top:3px}
-.streakline{display:flex;gap:14px;margin-top:8px;font-size:14px}
+.goalcard .sub{color:var(--muted);font-size:0.8125rem;margin-top:3px}
+.streakline{display:flex;gap:14px;margin-top:8px;font-size:0.875rem}
 .bookcard{background:var(--card);border-radius:var(--radius);padding:14px;display:flex;gap:14px;align-items:center;margin-bottom:12px;width:100%;text-align:left}
 .bookcard:active{transform:scale(.985)}
-.cover{width:44px;height:58px;flex:none;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden}
+.cover{width:44px;height:58px;flex:none;border-radius:var(--rq-radius-sm);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden}
 .cover img{width:100%;height:100%;object-fit:cover}
-.addmini{background:var(--card2);border:1.5px solid var(--accent);border-radius:99px;padding:7px 16px;font-size:13px;color:var(--accent);font-weight:600}
-.trophy img{width:40px;height:52px;object-fit:cover;border-radius:6px}
+.addmini{background:var(--card2);border:1.5px solid var(--accent);border-radius:var(--rq-radius-pill);padding:7px 16px;font-size:0.8125rem;color:var(--accent);font-weight:600}
+.trophy img{width:40px;height:52px;object-fit:cover;border-radius:var(--rq-radius-xs)}
 .bmeta{flex:1;min-width:0}
-.btitle{font-weight:700;font-size:16px}
-.bauthor{color:var(--muted);font-size:13px;margin:2px 0 8px}
-.pbar{height:6px;background:var(--card2);border-radius:99px;overflow:hidden}
-.pbar i{display:block;height:100%;background:var(--accent);border-radius:99px}
-.bpct{font-size:12px;color:var(--muted);margin-top:5px}
-.addbtn{border:2px dashed color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-size:15px}
+.btitle{font-weight:700;font-size:1rem}
+.bauthor{color:var(--muted);font-size:0.8125rem;margin:2px 0 8px}
+.pbar{height:6px;background:var(--card2);border-radius:var(--rq-radius-pill);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:var(--rq-radius-pill)}
+.bpct{font-size:0.75rem;color:var(--muted);margin-top:5px}
+.addbtn{border:2px dashed color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-size:0.9375rem}
 @media(min-width:700px){.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bookcard{margin-bottom:0}}
 /* 17.10 (Джессика): «Моя полка» in every skin = covers three across (as «Небесный»), title, author and a thin bar under the cover */
 #goalCard{margin:12px 0 0}
@@ -244,143 +253,143 @@ a.cta{display:flex;align-items:center;justify-content:center;gap:8px;text-decora
 .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){box-sizing:border-box;height:44px!important;min-height:0!important;margin:0 0 8px!important;padding:0 0 8px!important;align-items:center!important}
 .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1) > h1{line-height:36px!important;margin:0!important;min-width:0}
 .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){box-sizing:border-box;min-height:0!important;height:34px;padding-top:0!important;padding-bottom:0!important;display:inline-flex;align-items:center}
-#profile .wrap > .row:first-child h1{font-size:24px!important;line-height:30px!important;margin:0!important}
+#profile .wrap > .row:first-child h1{font-size:1.5rem!important;line-height:30px!important;margin:0!important}
 #profile .herocard{box-sizing:border-box;height:132px;padding:16px!important;margin:0!important;overflow:hidden}
-#profile #pName{font-size:17px!important;line-height:22px!important}
+#profile #pName{font-size:1.0625rem!important;line-height:22px!important}
 #profile #xpTxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#profile .herocard .lvl{font-size:12px!important;line-height:16px!important}
+#profile .herocard .lvl{font-size:0.75rem!important;line-height:16px!important}
 /* 18.10 (Джессика: «цель 10 минут сделать намного уже… сочеталась с другими цветами во всех скинах»): a 72px strip in the card colour of the skin;
    small ring, title with the streak on the right, «Сегодня» under it (Бабочковый: cocoons instead of the ring, on the third line) */
 #profile #goalCard{box-sizing:border-box;height:72px;padding:12px 16px!important;margin:10px 0 0!important;overflow:hidden;gap:12px!important}
 :root:is(:not([data-skin]),[data-skin=""]) #profile #goalCard{background:var(--card)} /* default look: the card colour, no grey gradient; skins keep their surface and ornaments */
 #profile #goalCard .ring{width:48px;height:48px}
-#profile #goalCard .ring text{font-size:17px}
+#profile #goalCard .ring text{font-size:1.0625rem}
 #profile #goalCard > div:last-child{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px}
 #profile #goalCard > div:last-child > .row{grid-column:1;grid-row:1;min-width:0}
 #profile #goalCard > div:last-child > .streakline{grid-column:2;grid-row:1;margin:0!important;white-space:nowrap}
 #profile #goalCard > div:last-child > .sub{grid-column:1/-1;grid-row:2}
 #profile #goalCard > div:last-child > .bbhatch{grid-column:1/-1;grid-row:3}
 #profile #goalCard::before{top:3px!important;height:6px!important;background-size:6px 6px!important}
-#profile #goalTitle{font-size:16px!important;line-height:20px!important}
-#profile #goalCard .sub{font-size:13px!important;line-height:17px!important;margin-top:2px!important}
-#profile #goalCard .streakline{font-size:14px!important;line-height:20px!important;margin-top:4px!important}
+#profile #goalTitle{font-size:1rem!important;line-height:20px!important}
+#profile #goalCard .sub{font-size:0.8125rem!important;line-height:17px!important;margin-top:2px!important}
+#profile #goalCard .streakline{font-size:0.875rem!important;line-height:20px!important;margin-top:4px!important}
 #profile #goalCard .bbhatch{margin:1px 0 0!important}
 #profile #goalCard .bbhatch i{width:14px;height:14px}
 #profile .profrow{display:flex;gap:10px;margin:10px 0 0}
 #profile .profrow > .achv-card{flex:1;min-width:0;box-sizing:border-box;height:62px;min-height:0;padding-top:0!important;padding-bottom:0!important;margin:0!important;gap:10px}
 #profile .profrow > .achv-card > .ic{display:none}
 #profile .profrow > .achv-card{padding-left:12px!important;padding-right:10px!important;gap:8px}
-#profile .profrow .achv-ic{width:30px;height:30px;border-radius:9px}
+#profile .profrow .achv-ic{width:30px;height:30px;border-radius:var(--rq-radius-sm)}
 #profile .profrow .achv-ic .ic{width:18px;height:18px}
-#profile .profrow .achv-name{font-size:14px!important;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+#profile .profrow .achv-name{font-size:0.875rem!important;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
 #profile .profrow .achv-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #profile #mvpProfileBlock .kpis{height:56px;margin:10px 0 0!important}
 #profile #mvpProfileBlock .kpi{box-sizing:border-box;height:56px;padding:7px 6px!important}
-#profile #mvpProfileBlock .kpi b{font-size:18px!important;line-height:24px!important}
-#profile #mvpProfileBlock .kpi span{font-size:11px!important;line-height:14px!important}
-#profile #mvpQuestH{box-sizing:border-box;height:24px;font-size:18px!important;line-height:24px!important;margin:16px 0 8px!important;padding:0!important}
+#profile #mvpProfileBlock .kpi b{font-size:1.125rem!important;line-height:24px!important}
+#profile #mvpProfileBlock .kpi span{font-size:0.6875rem!important;line-height:14px!important}
+#profile #mvpQuestH{box-sizing:border-box;height:24px;font-size:1.125rem!important;line-height:24px!important;margin:16px 0 8px!important;padding:0!important}
 #profile .mvp-quest{box-sizing:border-box;padding:12px 16px!important;margin:0 0 8px!important}
 #profile .mvp-quest .row{height:26px}
-#profile .mvp-quest .row > span{font-size:14px!important;line-height:20px!important}
-#profile .mvp-quest .chip{box-sizing:border-box;height:22px;font-size:12px!important;line-height:16px!important;padding:2px 10px!important}
+#profile .mvp-quest .row > span{font-size:0.875rem!important;line-height:20px!important}
+#profile .mvp-quest .chip{box-sizing:border-box;height:22px;font-size:0.75rem!important;line-height:16px!important;padding:2px 10px!important}
 /* 18.10 (отзыв, п. 7): the «0 / 10 мин» plate is the same soft filled pill in every skin, never framed */
-#profile .mvp-quest .chip{border:0!important;box-shadow:none!important;border-radius:11px!important;background:color-mix(in srgb,var(--txt) 9%,transparent)!important;color:var(--txt)!important}
+#profile .mvp-quest .chip{border:0!important;box-shadow:none!important;border-radius:var(--rq-radius-sm)!important;background:color-mix(in srgb,var(--txt) 9%,transparent)!important;color:var(--txt)!important}
 #profile .mvp-quest .chip::before,#profile .mvp-quest .chip::after{display:none!important}
 #profile .mvp-quest .pbar{height:6px!important;margin-top:8px!important}
-#profile .mvp-quest .mvp-qsub{font-size:12px!important;line-height:16px!important;margin-top:6px!important}
+#profile .mvp-quest .mvp-qsub{font-size:0.75rem!important;line-height:16px!important;margin-top:6px!important}
 #profile #mvpDailyCard{height:64px;overflow:hidden}
 #profile #mvpWeeklyCard{height:86px;overflow:hidden}
 /* one apparent text size: skin fonts differ in x-height (Alegreya Sans reads smaller than Manrope at the same px), so the cards align it to the system font; headings keep the skin's display face */
 #profile :is(.herocard,#goalCard,.profrow,#mvpProfileBlock){font-size-adjust:.53}
-#shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;padding-top:4px}
+#shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:16px 12px;padding-top:4px} /* audit 19.10 LIB-09: 3 on a phone, 6 on a tablet */
 #shelf .bookcard{position:relative;flex-direction:column;align-items:stretch;gap:0;padding:0;margin:0;background:transparent;border:0;border-radius:0;box-shadow:none;min-width:0}
 #shelf .bookcard::before,#shelf .bookcard::after{display:none}
-#shelf .cover{width:100%;height:auto;aspect-ratio:3/4;font-size:34px}
+#shelf .cover{width:100%;height:auto;aspect-ratio:3/4;font-size:2.125rem}
 #shelf .bmeta{min-width:0;margin-top:9px}
-#shelf :is(.btitle,.bauthor,.bpct){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#shelf .btitle{font-size:12.5px;line-height:1.3}
-#shelf .bauthor{font-size:11px;margin:1px 0 0}
-#shelf .pbar{height:6px;margin-top:6px;border-radius:3px}
-#shelf .bpct{font-size:11px;margin-top:3px}
-#shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:15px}
+#shelf :is(.bauthor,.bpct){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#shelf .btitle{font-size:0.8125rem;line-height:1.3;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere} /* audit 19.10 LIB-06: two lines */
+#shelf .bauthor{font-size:0.6875rem;margin:1px 0 0}
+#shelf .pbar{height:6px;margin-top:6px;border-radius:var(--rq-radius-xs)}
+#shelf .bpct{font-size:0.6875rem;margin-top:3px}
+#shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:44px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;font-size:0.9375rem}
 #shelf .bfmt{display:none}
 /* 18.10 (Джессика, как в ReadEra): вид полки в меню у «Недавние»: Сетка (по умолчанию), Эскизы (крупно по две, без подписей), Краткий и Полный (списком).
    #library #shelf перебивает сеточные правила скинов («Небесный», «Карандашный»), надписи на обложке остаются только в сетке */
-#library #shelf.v-covers{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#library #shelf.v-covers{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
 #library #shelf.v-covers .bmeta{display:none}
 #library #shelf:is(.v-short,.v-full){display:flex;flex-direction:column;gap:10px;padding-top:2px}
 #library #shelf:is(.v-short,.v-full) .bookcard{flex-direction:row;align-items:center;gap:14px;padding:10px 6px 10px 12px;margin:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:none}
 html[data-skin] #library #shelf:is(.v-short,.v-full) .bookcard{background:var(--rq-surface);border-color:var(--rq-line);border-radius:var(--rq-radius-sm)}
 #library #shelf:is(.v-short,.v-full) .cover{flex:none;aspect-ratio:auto}
-#library #shelf.v-short .cover{width:40px;height:54px;font-size:20px}
-#library #shelf.v-full .cover{width:68px;height:92px;font-size:28px}
+#library #shelf.v-short .cover{width:40px;height:54px;font-size:1.25rem}
+#library #shelf.v-full .cover{width:68px;height:92px;font-size:1.75rem}
 #library #shelf:is(.v-short,.v-full) .bmeta{flex:1;min-width:0;margin:0}
-#library #shelf.v-short .btitle{font-size:15px;line-height:20px}
-#library #shelf.v-short .bauthor{font-size:12.5px;line-height:17px}
+#library #shelf.v-short .btitle{font-size:0.9375rem;line-height:20px}
+#library #shelf.v-short .bauthor{font-size:0.8125rem;line-height:17px}
 #library #shelf.v-short .pbar{display:none}
-#library #shelf.v-full .btitle{font-size:16px;line-height:21px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-#library #shelf.v-full .bauthor{font-size:13px;line-height:18px;margin-top:2px}
-#library #shelf.v-full .bfmt{display:block;font-size:12px;line-height:16px;color:var(--muted);margin-top:2px}
+#library #shelf.v-full .btitle{font-size:1rem;line-height:21px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+#library #shelf.v-full .bauthor{font-size:0.8125rem;line-height:18px;margin-top:2px}
+#library #shelf.v-full .bfmt{display:block;font-size:0.75rem;line-height:16px;color:var(--muted);margin-top:2px}
 #library #shelf.v-full .pbar{margin-top:8px}
-#library #shelf:is(.v-short,.v-full) .bpct{font-size:12px}
-#library #shelf:is(.v-short,.v-full) .infobtn{position:static;flex:none;width:40px;height:40px;color:var(--rq-text-2,var(--muted));background:none}
+#library #shelf:is(.v-short,.v-full) .bpct{font-size:0.75rem}
+#library #shelf:is(.v-short,.v-full) .infobtn{position:static;flex:none;width:40px;height:40px;color:var(--muted);background:none}
 #library #shelf:is(.v-short,.v-full) :is(.cl-t,.cl-a,.pc-t,.pc-a){display:none!important}
 #library #shelf:is(.v-short,.v-full) .cl-cover{justify-content:center;padding:0}
 #library #shelf:is(.v-short,.v-full) .cl-cover svg{display:block;width:22px;height:22px;margin-left:-11px}
-#library #shelf:is(.v-short,.v-full) .cl-cover i{padding-top:5px;font-size:7px}
+#library #shelf:is(.v-short,.v-full) .cl-cover i{padding-top:5px;font-size:0.625rem}
 #library #shelf:is(.v-short,.v-full) .pc-cover{justify-content:center;padding:0}
 #library #shelf:is(.v-short,.v-full) .pc-cover::before{display:none}
 #library #shelf:is(.v-short,.v-full) .pc-cover .ic{display:inline-block!important}
 #library #shelf:is(.v-short,.v-full) .pc-cover i{margin-top:2px}
 #library #shelf:is(.v-short,.v-full) .addhint{flex-direction:row;align-items:center}
 #library #shelf:is(.v-short,.v-full) .addhint .cover{width:40px;height:54px;aspect-ratio:auto}
-.libshelfbar{align-items:center;gap:8px;margin:-2px 0 10px;padding:8px 10px;border-radius:12px;background:var(--card2);color:var(--txt);font-size:14px}
+.libshelfbar{align-items:center;gap:8px;margin:-2px 0 10px;padding:8px 10px;border-radius:var(--rq-radius-md);background:var(--card2);color:var(--txt);font-size:0.875rem}
 .libshelfbar[hidden]{display:none!important}
 .libshelfbar b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.libshelfbar .shbtn{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:none;color:var(--muted)}
+.libshelfbar .shbtn{flex:none;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;border-radius:var(--rq-radius-sm);background:none;color:var(--muted)}
 .libshelfbar{padding:4px 4px 4px 12px}
 .fchip .ic,.bk-shelves .fchip .ic{vertical-align:-2px;margin-right:4px}
 .bk-shelves{flex-wrap:wrap;padding:6px 0 0}
-.lsortmenu .lsoh{padding:10px 14px 4px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--rq-text-2,var(--muted))}
+.lsortmenu .lsoh{padding:10px 14px 4px;font-size:0.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .lsortmenu .lsosep{margin-top:4px;border-top:1px solid var(--rq-line,var(--line));padding-top:12px}
 
 /* ===== Нижняя навигация ===== */
 #bottomNav{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--card2);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:40}
-#bottomNav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)}
+#bottomNav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.6875rem;color:var(--muted)}
 #bottomNav button.on{color:var(--accent)}
-#bottomNav .ico{font-size:21px}
+#bottomNav .ico{font-size:1.3125rem}
 
 /* ===== Профиль ===== */
 .pcard{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px}
-.avatar{width:64px;height:64px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:32px;flex:none}
-.lvl{font-size:13px;color:var(--accent2);font-weight:700}
-.xpbar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:8px}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:2rem;flex:none}
+.lvl{font-size:0.8125rem;color:var(--accent2);font-weight:700}
+.xpbar{height:8px;background:var(--card2);border-radius:var(--rq-radius-pill);overflow:hidden;margin-top:8px}
 .xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#7fd8e0)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
-.kpi{background:var(--card);border-radius:12px;padding:8px 6px;text-align:center}
-.kpi b{font-size:16px;display:block}
-.kpi span{font-size:10px;color:var(--muted)}
+.kpi{background:var(--card);border-radius:var(--rq-radius-md);padding:8px 6px;text-align:center}
+.kpi b{font-size:1rem;display:block}
+.kpi span{font-size:0.6875rem;color:var(--muted)}
 .statrow{margin-bottom:10px}
-.statrow .row{font-size:14px;margin-bottom:4px}
+.statrow .row{font-size:0.875rem;margin-bottom:4px}
 .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
-.badge{background:var(--card);border-radius:14px;padding:12px 8px;text-align:center}
-.badge .bi{font-size:26px}
-.badge .bn{font-size:11px;margin-top:5px}
-.badge .bd{font-size:10px;color:var(--muted);margin-top:2px}
+.badge{background:var(--card);border-radius:var(--rq-radius-md);padding:12px 8px;text-align:center}
+.badge .bi{font-size:1.625rem}
+.badge .bn{font-size:0.6875rem;margin-top:5px}
+.badge .bd{font-size:0.6875rem;color:var(--muted);margin-top:2px}
 .badge.locked{opacity:.32;filter:grayscale(1)}
-.ghostbtn{border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:12px;padding:9px 14px;color:var(--muted);font-size:13px}
+.ghostbtn{border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--rq-radius-md);padding:9px 14px;color:var(--muted);font-size:0.8125rem}
 /* «Скопировать журнал запуска» in settings: same look, tap target ≥ 44 px via an invisible hit area */
 #btnDiagCopy{position:relative}#btnDiagCopy::after{content:'';position:absolute;left:0;right:0;top:50%;height:44px;min-height:100%;transform:translateY(-50%)}
-.stepbtn{width:36px;height:36px;border-radius:10px;background:var(--card2);font-size:18px}
+.stepbtn{width:36px;height:36px;border-radius:var(--rq-radius-sm);background:var(--card2);font-size:1.125rem}
 
 /* ===== Читалка ===== */
 #reader{background:var(--r-bg,#f4ecd8);color:var(--r-txt,#5b4636)}
 .rhead,.rfoot{display:flex;align-items:center;gap:6px;padding:10px 14px;flex:none;background:var(--bar);color:#fff}
 .rhead{padding-top:calc(10px + env(safe-area-inset-top));box-shadow:0 2px 10px rgba(0,0,0,.25)}
-.rfoot{justify-content:space-between;font-size:12px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.rfoot{justify-content:space-between;font-size:0.75rem;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 .rfoot span{opacity:.85;min-width:54px}
-.rhead button{font-size:19px;padding:4px 8px}
-.rtitle{flex:1;text-align:left;font-size:14px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rhead button{font-size:1.1875rem;padding:4px 8px}
+.rtitle{flex:1;text-align:left;font-size:0.875rem;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #viewer{flex:1;position:relative;overflow:hidden;margin:0 var(--r-margin,24px)}
 /* Android fix 2026-10-06: NO transition / will-change on the multi-column strip.
    A transform transition promoted the whole N-page strip to one huge GPU layer and the
@@ -393,7 +402,7 @@ html[data-skin] #library #shelf:is(.v-short,.v-full) .bookcard{background:var(--
 #dayBar i{display:block;height:100%;width:0;background:var(--accent);opacity:.75}
 body:not(.mvp) #dayBar{display:none}
 /* no navigator.locks: thin grey line under the session counter, in the flex column (never over the text), no close */
-#rqNoXp{display:none;flex:none;min-height:21px;padding:3px var(--r-margin,24px);font-size:11px;line-height:1.35;color:var(--muted);text-align:center;white-space:normal;overflow:visible;pointer-events:none}
+#rqNoXp{display:none;flex:none;min-height:21px;padding:3px var(--r-margin,24px);font-size:0.6875rem;line-height:1.35;color:var(--muted);text-align:center;white-space:normal;overflow:visible;pointer-events:none}
 body.rq-nolocks #rqNoXp{display:block}
 /* Always-on page number «34 / 210» (Интерфейс, build 3): own 18px strip between the text and the day bar →
    outside the columns, can never overlap a line; updating it never reflows the text. Muted like a printed
@@ -401,9 +410,9 @@ body.rq-nolocks #rqNoXp{display:block}
 #pgLine{flex:none;box-sizing:content-box;height:18px;display:flex;align-items:center;justify-content:flex-end;padding:0 max(var(--r-margin,24px),env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(var(--r-margin,24px),env(safe-area-inset-left,0px)); /* 1б-fix #3: counter/number above the gesture bar */pointer-events:none;contain:layout paint style;overflow:hidden;white-space:nowrap}
 #pgNum{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--r-txt-2);letter-spacing:.2px} /* audit 15.10: token, no opacity (≥ 4.5, contrast.tsv «номер страницы в углу») */
 #reader:not(.barsoff):not(.imm) #pgNum{visibility:hidden}
-#mvpQuestBox .mvp-qsub{font-size:12px;color:var(--muted);margin-top:6px}
-#libGoldLine{margin-top:10px;font-size:13px;font-weight:600;color:#ffc107;opacity:.92}
-#sumQuestGold{margin-top:8px;font-size:14px;font-weight:700;color:#ffc107;line-height:1.5}
+#mvpQuestBox .mvp-qsub{font-size:0.75rem;color:var(--muted);margin-top:6px}
+#libGoldLine{margin-top:10px;font-size:0.8125rem;font-weight:600;color:#ffc107;opacity:.92}
+#sumQuestGold{margin-top:8px;font-size:0.875rem;font-weight:700;color:#ffc107;line-height:1.5}
 /* Pinch «Aa N» (Интерфейс 2026-10-06): fixed, outside the column strip → updating N never reflows the text */
 #pinchHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;background:rgba(12,33,39,.9);color:#e6f1f2;font:600 19px/1 system-ui,-apple-system,sans-serif;padding:11px 16px;border-radius:12px;white-space:nowrap;contain:layout paint style;font-variant-numeric:tabular-nums;box-shadow:0 4px 18px rgba(0,0,0,.35)}
 #pinchHint{--rq-accent:var(--rq-accent-on-dark)} /* the plaque is dark in both themes */
@@ -419,62 +428,75 @@ body.rq-nolocks #rqNoXp{display:block}
 #reader.focus #dayBar,#reader.focus #timerHint,#reader.focus #rqNoXp,#reader.focus .navbtn{visibility:hidden}
 /* 1б-fix #1: «< на стр. N» after a slider jump (reader-jump-*): above the page-number line, left; pill 32 px, hit area 44 px */
 #jumpBack{position:fixed;z-index:40;min-height:44px;padding:0;display:flex;align-items:center;background:none;border:0;color:var(--rq-accent-text)}
-#jumpBack .jb{display:flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 8px;border-radius:999px;border:1px solid var(--rq-accent);background:var(--r-bg);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+#jumpBack .jb{display:flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 8px;border-radius:var(--rq-radius-pill);border:1px solid var(--rq-accent);background:var(--r-bg);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
 #jumpMark{position:fixed;z-index:39;width:2px;height:12px;border-radius:1px;background:var(--rq-accent);pointer-events:none}
 #jumpBack.hidden,#jumpMark.hidden,#reader.focus #jumpBack,#reader.focus #jumpMark{display:none}
 #reader.barsoff #jumpMark{display:none}
+/* audit 19.10 RD-JMP-01: «‹ на стр. N» only with the panels, never over the clean page or an open sheet (the jump is kept until a normal turn) */
+#reader.barsoff #jumpBack,#reader:has(.sheet:not(.hidden)) #jumpBack,#reader:has(.sheet:not(.hidden)) #jumpMark{display:none}
 .rfbtn{flex:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:inherit;margin:-10px -6px -10px 4px}
 #reader.nofocusbtn #btnFocus{display:none}
+#btnTts[aria-disabled="true"]{opacity:.45} /* audit 19.10 R4: no voice — looks inactive, tap explains */
+/* audit 19.10 GL-04 / LIB-02: confirm sheet (rqAsk) instead of confirm() */
+#rqAskScrim{position:fixed;inset:0;z-index:180;background:var(--rq-scrim,rgba(0,0,0,.5))}
+#rqAsk{position:fixed;left:0;right:0;bottom:0;z-index:181;background:var(--sheet);color:var(--txt);border-radius:22px 22px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.45);max-width:560px;margin:0 auto}
+#rqAsk[hidden],#rqAskScrim[hidden]{display:none}
+#rqAsk h3{margin:8px 0 6px;font-size:1.125rem}#rqAsk p{margin:0 0 14px;color:var(--muted);font-size:0.9375rem;line-height:1.4}
+.rqaskb{display:flex;gap:10px}.rqaskb button{flex:1;min-height:48px;border-radius:var(--rq-radius-md);font-size:1rem;font-weight:600;margin:0}
+.rqaskb .danger{background:#b3261e;color:#fff} /* 6.4:1 in every theme (the dark --rq-danger is a text colour) */
 /* toasts (flashMsg kinds); in the reader: centred 12 px above the page-number strip */
 .rq-toast{display:flex;align-items:center;gap:10px}
 .rq-toast svg{flex:none}
-.rq-toast.imp{max-width:calc(100vw - 32px);width:max-content;border-radius:14px!important;white-space:normal;text-align:center}
-.rq-toast.rd{top:auto!important;bottom:calc(18px + 3px + 12px + env(safe-area-inset-bottom))!important;border-radius:14px!important;padding:12px 16px!important;font:600 14px/20px system-ui,-apple-system,sans-serif!important;max-width:358px;white-space:nowrap}
+.rq-toast.imp{max-width:calc(100vw - 32px);width:max-content;border-radius:var(--rq-radius-md)!important;white-space:normal;text-align:center}
+.rq-toast.rd{top:auto!important;bottom:calc(18px + 3px + 12px + env(safe-area-inset-bottom))!important;border-radius:var(--rq-radius-md)!important;padding:12px 16px!important;font:600 14px/20px system-ui,-apple-system,sans-serif!important;max-width:358px;white-space:nowrap}
 /* reader toasts: day page = :root tokens, night page = data-theme="night" on the toast (tokens.css) */
 .rq-toast.rd{background:var(--rq-toast-info-bg)!important;color:var(--rq-toast-info-fg)!important;border:1px solid var(--rq-toast-info-border)}
 .rq-toast.rd svg{color:var(--rq-toast-info-icon)}
+.rq-toast.rd.imp{white-space:normal;max-width:min(358px,calc(100vw - 32px));width:max-content;text-align:center}
 /* page number / book progress flip in the SAME frame as the text: no transitions */
 .rfoot span,.rfoot input[type=range]{transition:none!important}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
-#content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em}
-#content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em} /* audit 15.10: secondary page token instead of opacity .6 */
+#content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em;break-inside:avoid} /* audit 19.10 RD-EPUB-01 */
+#content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em;white-space:normal;overflow-wrap:anywhere;break-inside:avoid} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
 .tap.left{left:0}.tap.right{right:0}
 .tap.mid{left:30%;width:40%}
 
 /* ===== Шторка настроек ===== */
 .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);color:var(--txt);border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));z-index:50;box-shadow:0 -10px 40px rgba(0,0,0,.45);max-height:75%;overflow-y:auto}
-.sheet h3{margin:0 0 4px;font-size:14px}
+.sheet h3{margin:0 0 4px;font-size:0.875rem}
 .srow{display:flex;align-items:center;gap:8px;margin:9px 0}
-.srow label{font-size:12px;color:var(--muted);width:64px;flex:none}
+.srow label{font-size:0.75rem;color:var(--muted);width:64px;flex:none}
 .seg{display:flex;gap:6px;flex-wrap:wrap;flex:1;align-items:center}
-.seg button{background:var(--card2);border-radius:9px;padding:6px 10px;font-size:12px}
-.seg button.on{background:var(--accent);color:#fff}
-.segval{font-size:11px;color:var(--muted)}
+.seg button{background:var(--card2);border-radius:var(--rq-radius-sm);padding:6px 10px;font-size:0.75rem}
+.seg button.on{background:var(--accent);color:var(--on-accent)}
+.segval{font-size:0.6875rem;color:var(--muted)}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid transparent}
 .swatch.on{border-color:var(--accent)}
-.yourwrap{display:inline-flex;align-items:center;gap:6px;padding:2px 8px 2px 2px;border-radius:18px;background:var(--rq-accent-tint,rgba(127,127,127,.18))}
-.yourwrap small{font-size:12px;font-weight:600;color:var(--rq-accent-text,var(--accent))}
+.yourwrap{display:inline-flex;align-items:center;gap:6px;padding:2px 8px 2px 2px;border-radius:var(--rq-radius-lg);background:var(--rq-accent-tint,rgba(127,127,127,.18))}
+.yourwrap small{font-size:0.75rem;font-weight:600;color:var(--rq-accent-text,var(--accent))}
 .seg .swatch.sw-pencil svg{flex:none;width:16px;height:16px;min-width:16px}
 .seg .swatch.sw-pencil{display:inline-flex;align-items:center;justify-content:center;padding:0;color:#3d3d3a!important;box-shadow:inset 0 0 0 1px #3d3d3a!important}
 .swatch.yours{box-shadow:0 0 0 2px var(--rq-accent,var(--accent))}
-input[type=color]{width:38px;height:38px;border:none;background:none;padding:0;border-radius:8px}
-.closes{position:absolute;top:10px;right:14px;font-size:18px;color:var(--muted)}
+input[type=color]{width:38px;height:38px;border:none;background:none;padding:0;border-radius:var(--rq-radius-sm)}
+.closes{position:absolute;top:10px;right:14px;font-size:1.125rem;color:var(--muted)}
 
 /* ===== Итог сессии ===== */
 #summary{background:radial-gradient(120% 90% at 50% 0%,#1a4a57 0%,#12121a 70%);align-items:center;justify-content:center;text-align:center;padding:24px}
 .sumbox{max-width:420px;width:100%}
-.bigxp{font-size:52px;font-weight:800;color:var(--accent2)}
+.bigxp{font-size:3.25rem;font-weight:800;color:var(--accent2)}
 .sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0}
-.sumcell{background:rgba(255,255,255,.06);border-radius:14px;padding:14px}
-.sumcell b{font-size:22px;display:block}
-.sumcell span{font-size:12px;color:var(--muted)}
-.newbadge{background:rgba(255,184,76,.12);border:1px solid rgba(255,184,76,.4);border-radius:14px;padding:10px;margin:8px 0;font-size:14px}
-.cta{background:var(--accent);color:#fff;border-radius:14px;padding:14px 22px;font-size:16px;font-weight:700;width:100%;margin-top:14px}
-.lvlup{font-size:18px;color:var(--good);font-weight:700;margin-top:6px}
-.flame{font-size:15px;margin-top:10px;color:var(--muted)}
-.confetti{position:fixed;top:-30px;font-size:22px;animation:fall 2.6s linear forwards;z-index:90;pointer-events:none}
+.sumcell{background:rgba(255,255,255,.06);border-radius:var(--rq-radius-md);padding:14px}
+.sumcell b{font-size:1.375rem;display:block}
+.sumcell span{font-size:0.75rem;color:var(--muted)}
+.newbadge{background:rgba(255,184,76,.12);border:1px solid rgba(255,184,76,.4);border-radius:var(--rq-radius-md);padding:10px;margin:8px 0;font-size:0.875rem}
+.cta{background:var(--accent);color:var(--on-accent);border-radius:var(--rq-radius-md);padding:14px 22px;font-size:1rem;font-weight:700;width:100%;margin-top:14px}
+.lvlup{font-size:1.125rem;color:var(--good);font-weight:700;margin-top:6px}
+#sumLvl{margin:6px auto 0;max-width:280px}#sumLvlT{font-size:var(--rq-fs-small,13px);color:var(--muted)}#sumLvlT.up{color:var(--good);font-weight:700;font-size:var(--rq-fs-body,15px)}
+.sumlvlbar{height:6px;border-radius:var(--rq-radius-xs);background:var(--card2);margin-top:6px;overflow:hidden}.sumlvlbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:var(--rq-radius-xs);transition:width .6s ease-out}
+.flame{font-size:0.9375rem;margin-top:10px;color:var(--muted)}
+.confetti{position:fixed;top:-30px;font-size:1.375rem;animation:fall 2.6s linear forwards;z-index:90;pointer-events:none}
 .confetti{color:var(--accent)}.confetti:nth-child(odd){color:var(--accent2)}
 .confetti .skc{display:block;transform-origin:50% 50%}html[data-skin="babochkovyi"] .confetti .skc{animation:bbcFlap .32s ease-in-out infinite alternate}html[data-skin="babochkovyi"] .confetti:is([data-c=side],[data-c=dot]) .skc{animation:none}html[data-skin="ellada"] .confetti .skc{animation:elcSpin 2.4s linear infinite}html[data-skin="ellada"] .confetti:nth-child(odd) .skc{animation-direction:reverse}
 @keyframes bbcFlap{from{transform:scaleX(1)}to{transform:scaleX(.45)}}@keyframes elcSpin{to{transform:rotate(360deg)}}
@@ -483,25 +505,25 @@ input[type=color]{width:38px;height:38px;border:none;background:none;padding:0;b
 .pop{animation:pop .5s ease both}
 
 /* ===== Цитаты, магазин, квесты ===== */
-mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1px}
-#selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:var(--sheet);color:#fff;border-radius:14px;display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-#selpop button{padding:8px 12px;font-size:13px;border-radius:10px}
+mark{background:rgba(255,205,60,.45);color:inherit;border-radius:var(--rq-radius-xs);padding:0 1px}
+#selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:var(--sheet);color:#fff;border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
-.qcard{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
-.qtext{font-size:14px;line-height:1.5}
-.qnote{font-size:13px;color:var(--accent2);margin-top:6px}
-.qmeta{font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:12px;align-items:center}
-.qmeta button{color:var(--muted);text-decoration:underline;font-size:11px;padding:0}
-.shopitem{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
-.tprev{width:44px;height:44px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;background:var(--card2)}
-.buy{background:var(--accent);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;flex:none}
+.qcard{background:var(--card);border-radius:var(--rq-radius-md);padding:12px;margin-bottom:10px}
+.qtext{font-size:0.875rem;line-height:1.5}
+.qnote{font-size:0.8125rem;color:var(--accent2);margin-top:6px}
+.qmeta{font-size:0.6875rem;color:var(--muted);margin-top:8px;display:flex;gap:12px;align-items:center}
+.qmeta button{color:var(--muted);text-decoration:underline;font-size:0.6875rem;padding:0}
+.shopitem{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:var(--rq-radius-md);padding:12px;margin-bottom:10px}
+.tprev{width:44px;height:44px;border-radius:var(--rq-radius-sm);flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9375rem;background:var(--card2)}
+.buy{background:var(--accent);color:var(--on-accent);border-radius:var(--rq-radius-sm);padding:8px 14px;font-size:0.8125rem;font-weight:600;flex:none}
 .buy[disabled]{opacity:.4}
 .buy.owned{background:var(--card2);color:var(--good)}
 .quest{margin-bottom:10px}
 .quest .pbar{margin-top:10px}
 
 /* ===== Стикеры и валюта ===== */
-.curbtn{width:44px;height:44px;border-radius:10px;background:var(--card2);font-size:20px;border:2px solid transparent}
+.curbtn{width:44px;height:44px;border-radius:var(--rq-radius-sm);background:var(--card2);font-size:1.25rem;border:2px solid transparent}
 .curbtn.on{border-color:var(--accent)}
 
 /* ===== PDF, панель, слайдер ===== */
@@ -511,17 +533,19 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
    .rfoot catches a press only within the 44 px thumb hit area, never in the bottom gesture strip (env(safe-area-inset-bottom)). */
 #pgSlider{--rq-thumb-ring:var(--rq-accent-on-dark)} /* the footer bar is dark in both themes */
 #pgSlider{pointer-events:none;-webkit-appearance:none;appearance:none;background:transparent}
-#pgSlider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--rq-slider-track)}
+#pgSlider::-webkit-slider-runnable-track{height:4px;border-radius:var(--rq-radius-xs);background:var(--rq-slider-track)}
 #pgSlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
-#pgSlider::-moz-range-track{height:4px;border-radius:2px;background:var(--rq-slider-track)}
+#pgSlider::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:var(--rq-slider-track)}
 #pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
 #reader .rfoot{touch-action:none}
-#pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:8px;background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+#pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #pgTip.hidden{display:none}
 #pgSafe{position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none}
-.ptabs{display:flex;gap:6px;margin-bottom:12px}
-.ptabs button{flex:1;background:var(--card2);border-radius:10px;padding:9px;font-size:13px;color:var(--muted)}
-.ptabs button.on{background:var(--accent);color:#fff}
+.ptabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}.ptabs::-webkit-scrollbar{display:none}
+.ptabs button{flex:1 0 auto;background:var(--card2);border-radius:var(--rq-radius-sm);padding:0 12px;min-height:44px;font-size:0.8125rem;color:var(--muted);white-space:nowrap}
+#panel .phead{display:flex;align-items:center;justify-content:space-between;margin:-8px -10px 6px 2px;font-size:0.9375rem}
+#panel .phead .closes{position:static}
+.ptabs button.on{background:var(--accent);color:var(--on-accent)}
 .ptabs button .ic,.row h1 .ic{vertical-align:-3px} /* 16.10: Lucide instead of emoji in «Дневник» */
 /* 17.10: no emoji anywhere — Lucide in theme colours (progress, calendar, achievements, quests, vocab, covers) */
 .achn{display:inline-flex;align-items:center;gap:6px}.achn .ic,.chip .ic,.qnote .ic,.achd .ic{flex:none;vertical-align:-2px}
@@ -529,10 +553,19 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .badge .bi .ic{color:var(--accent)}.badge.locked .bi .ic{color:var(--muted)}.coin .face .ic{color:#6b4a0c}
 #btnVocabCards .ic,.prow .ic,h3 .ic,.dailycard .ic{vertical-align:-3px}.calcell .pin .ic{display:block}
 .rq-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;color:var(--accent)}
-.rq-cover i{font-style:normal;font-weight:700;font-size:8px;line-height:1;letter-spacing:.06em;color:var(--muted);margin-top:3px}
-.prow{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px;color:#eceaf2;text-align:left}
+.rq-cover i{font-style:normal;font-weight:700;font-size:0.625rem;line-height:1;letter-spacing:.06em;color:var(--muted);margin-top:3px}
+.rq-gen{container-type:inline-size;position:relative;align-items:flex-start;justify-content:flex-start;gap:4px;padding:10px 8px 8px;background:var(--cv);color:#fff;text-align:left;overflow:hidden}
+.rq-gen::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(0,0,0,.18)}
+.rq-gen .rq-cf{position:absolute;right:4px;bottom:4px;margin:0;padding:2px 5px;border-radius:var(--rq-radius-xs);background:rgba(0,0,0,.32);color:#fff;font-size:0.6875rem;letter-spacing:.04em}
+.rq-gen .rq-ct{font-size:0.875rem;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;margin-top:4px}
+.rq-gen .rq-ca{font-size:0.6875rem;line-height:1.25;opacity:.88;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@container (max-width:72px){.rq-gen .rq-ct,.rq-gen .rq-ca{display:none}.rq-gen .rq-cf{right:50%;transform:translateX(50%);bottom:auto;top:50%;margin-top:-9px}}
+/* day themes: the cover stands off the page */
+#shelf .rq-gen{padding-top:38px} /* the «О книге» button sits in the top corner */
+.cover:has(.rq-gen){box-shadow:0 1px 3px rgba(0,0,0,.12);border:1px solid color-mix(in srgb,var(--txt) 10%,transparent)}
+.prow{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border-radius:var(--rq-radius-sm);padding:10px 12px;margin-bottom:8px;font-size:0.875rem;color:#eceaf2;text-align:left}
 .prow.add{color:var(--accent2);justify-content:center}
-.pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:14px}
+.pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:0.875rem}
 #panel{max-height:70%}
 
 /* ===== Drawer, настройки, карточка книги ===== */
@@ -540,89 +573,95 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #drawer{position:fixed;top:0;bottom:0;left:0;width:85vw;max-width:none;background:var(--drawer);z-index:81;transform:translateX(-105%);transition:transform .25s ease;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 0 14px;box-shadow:8px 0 30px rgba(0,0,0,.35)}
 #drawer.open{transform:translateX(0)}
 .navcfg{position:fixed;inset:0;z-index:90;background:var(--bg);overflow-y:auto;padding:calc(40px + env(safe-area-inset-top)) 16px 24px}.navcfg h2{text-transform:none;letter-spacing:0}
-.navcfg .nch{display:flex;align-items:center;gap:10px;margin-bottom:12px}.navcfg .ncp{font-size:12px;color:var(--muted)}.navcfg h2{font-size:22px;margin:0}
-.navcfg h4{font-size:13px;color:var(--muted);margin:16px 4px 8px;font-weight:600}
-.navprev{display:flex;justify-content:space-around;background:var(--card);border-radius:14px;padding:8px 6px}.navprev span{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.navprev span:first-child{color:var(--accent)}
-.navlist{background:var(--card);border-radius:14px;overflow:hidden}.navli{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 6px 0 12px;border-bottom:1px solid var(--card2)}.navli:last-child{border-bottom:0}
-.navli .nl{flex:1;min-width:0}.navli .nl small{display:block;color:var(--muted);font-size:11px}.navli button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--txt);border-radius:10px}
+.navcfg .nch{display:flex;align-items:center;gap:10px;margin-bottom:12px}.navcfg .ncp{font-size:0.75rem;color:var(--muted)}.navcfg h2{font-size:1.375rem;margin:0}
+.navcfg h4{font-size:0.8125rem;color:var(--muted);margin:16px 4px 8px;font-weight:600}
+.navprev{display:flex;justify-content:space-around;background:var(--card);border-radius:var(--rq-radius-md);padding:8px 6px}.navprev span{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:0.6875rem;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.navprev span:first-child{color:var(--accent)}
+.navlist{background:var(--card);border-radius:var(--rq-radius-md);overflow:hidden}.navli{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 6px 0 12px;border-bottom:1px solid var(--card2)}.navli:last-child{border-bottom:0}
+.navli .nl{flex:1;min-width:0}.navli .nl small{display:block;color:var(--muted);font-size:0.6875rem}.navli button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--txt);border-radius:var(--rq-radius-sm)}
 .navli button:disabled{opacity:.35}.navli .navdel{color:#e5604f}.navli .navadd{color:var(--accent)}.navli .navlock{width:44px;display:flex;justify-content:center;color:var(--muted)}
-.navmax{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin:8px 4px}.navrow{width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit}
+.navmax{display:flex;gap:6px;align-items:center;font-size:0.75rem;color:var(--muted);margin:8px 4px}.navrow{width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit}
 .dhead{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid var(--card2);margin-bottom:8px}
-.dstat{font-size:12px;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:3px;background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
-.dava{width:48px;height:48px;border-radius:50%;flex:none;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--accent)}.dname{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dgold{color:var(--txt);font-weight:600}
+.dstat{font-size:0.75rem;color:var(--muted);margin-top:2px}.dbar{height:5px;border-radius:var(--rq-radius-xs);background:var(--card2);margin:5px 0 3px;overflow:hidden}.dbar i{display:block;height:100%;background:var(--accent);width:0}
+.dava{width:48px;height:48px;border-radius:50%;flex:none;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.125rem;color:var(--accent)}.dname{display:block;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dgold{color:var(--txt);font-weight:600}
 #dList{display:flex;flex-direction:column;padding:0 10px}
 /* 18.10 (Джессика, как в Habitica): разделы меню. Заголовок раздела — полоса на всю ширину меню, герой в шапке */
-#dList .dsec{margin:10px -10px 4px;padding:6px 22px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--rq-text-2,var(--muted));background:color-mix(in srgb,var(--txt) 6%,transparent)}
+#dList .dsec{margin:10px -10px 4px; /* audit 19.10 DRW-01: --muted, ≥4.5:1 in every theme */padding:6px 22px;font-size:0.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:color-mix(in srgb,var(--txt) 6%,transparent)}
 #dList .dsec:first-child{margin-top:0}
 .dava.dhero{width:56px;height:56px;padding:4px 6px 0;align-items:flex-end;overflow:hidden;background:color-mix(in srgb,var(--accent) 12%,transparent)}.dava.dhero svg{display:block;width:100%;height:100%}
-#dList .ditem{height:48px;padding:0 12px;border-radius:12px;border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);display:flex}.dsep{height:1px;background:var(--card2);margin:8px 6px}/* 18.10 (Джессика: «нет кнопки для перехода в ночной режим»): day/night switch at the bottom of the left menu, every skin */
-#dNight{margin:0 10px 8px;width:auto;height:52px;padding:0 12px;border-radius:12px;font:inherit;font-size:15px;color:var(--txt);background:color-mix(in srgb,var(--txt) 6%,transparent);border:0;cursor:pointer}
-#dNight .dsw{flex:none;position:relative;width:40px;height:24px;border-radius:12px;background:color-mix(in srgb,var(--txt) 22%,transparent);transition:background .2s}
+#dList .ditem{height:48px;padding:0 12px;border-radius:var(--rq-radius-md);border-right:0}#dList .ditem.on{background:color-mix(in srgb,var(--accent) 16%,transparent)}.ditem .dlab{flex:1;min-width:0}.ditem .dpin{color:var(--muted);font-size:0.6875rem;white-space:nowrap}.dsep{height:1px;background:var(--card2);margin:8px 6px}/* 18.10 (Джессика: «нет кнопки для перехода в ночной режим»): day/night switch at the bottom of the left menu, every skin */
+#dNight{margin:0 10px 8px;width:auto;height:52px;padding:0 12px;border-radius:var(--rq-radius-md);font:inherit;font-size:0.9375rem;color:var(--txt);background:color-mix(in srgb,var(--txt) 6%,transparent);border:0;cursor:pointer}
+#dNight .dsw{flex:none;position:relative;width:40px;height:24px;border-radius:var(--rq-radius-md);background:color-mix(in srgb,var(--txt) 22%,transparent);transition:background .2s}
 #dNight .dsw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .2s}
 #dNight[aria-checked="true"] .dsw{background:var(--accent)}
 #dNight[aria-checked="true"] .dsw i{transform:translateX(16px)}
 @media (prefers-reduced-motion:reduce){#dNight .dsw,#dNight .dsw i{transition:none}}
-.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:12px;color:var(--muted)}
+.dcap{display:flex;gap:6px;align-items:center;padding:0 20px;font-size:0.75rem;color:var(--muted)}
 #botnav .botnav-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:15px;color:var(--txt);width:100%;text-align:left}
+.ditem{display:flex;align-items:center;gap:14px;padding:13px 20px;font-size:0.9375rem;color:var(--txt);width:100%;text-align:left}
 .ditem.on{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border-right:3px solid var(--accent)}
-.ditem .ico{font-size:19px;width:24px;text-align:center}
-.menubtn{font-size:20px;padding:4px 10px 4px 0}
-.infobtn{margin-left:6px;color:var(--muted);font-size:17px;padding:6px;flex:none}
+.ditem .ico{font-size:1.1875rem;width:24px;text-align:center}
+.menubtn{font-size:1.25rem;padding:4px 10px 4px 0}
+.infobtn{margin-left:6px;color:var(--muted);font-size:1.0625rem;padding:6px;flex:none}
 .setrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--card2)}
 .setrow:last-child{border-bottom:none}
-.setrow .lab{flex:1;font-size:14px}
-.setrow .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.setrow .lab{flex:1;font-size:0.875rem}
+.setrow .sub{font-size:0.75rem;color:var(--muted);margin-top:3px}
 /* book card (info sheet): head → progress → 3 quick actions → «О файле» → «Обложка» → removal; same row language as the reader sheet */
 .bk-head{display:flex;gap:14px;align-items:flex-start;padding-right:40px}
-.bk-head .cover{width:60px;height:80px;border-radius:10px;font-size:28px}
+.bk-head .cover{width:60px;height:80px;border-radius:var(--rq-radius-sm);font-size:1.75rem}
+/* audit 19.10 LIB-03: the title and × stay on top while the card scrolls; the cover shrinks once scrolled; the sheet stops under the test banner */
+#bookSheet .closes{position:sticky;top:0;float:right;z-index:3;margin:-6px -10px 0 0;background:var(--sheet);border-radius:50%}
+#bookSheet .bk-head{position:sticky;top:-14px;z-index:2;background:var(--sheet);margin:-14px -16px 0;padding:14px 56px 10px 16px}
+#bookSheet.stuck .bk-head{box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
+#bookSheet.stuck .bk-head .cover{width:30px;height:40px;border-radius:var(--rq-radius-xs);font-size:0.875rem}
+#bookSheet{max-height:calc(100% - 32px - env(safe-area-inset-top,0px))}
 .bk-ttl{flex:1;min-width:0;padding-top:2px}
-.bk-ttl b{display:block;font-size:17px;line-height:1.3;overflow-wrap:anywhere}
-.bk-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.bk-ttl b{display:block;font-size:1.0625rem;line-height:1.3;overflow-wrap:anywhere}
+.bk-sub{font-size:0.8125rem;color:var(--muted);margin-top:4px}
 .bk-prog{margin:18px 0 0}
-.bk-bar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden}
+.bk-bar{height:6px;border-radius:var(--rq-radius-pill);background:var(--card2);overflow:hidden}
 .bk-bar i{display:block;height:100%;background:var(--accent);border-radius:inherit}
-.bk-pl{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:8px}
+.bk-pl{display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap;font-size:0.8125rem;color:var(--muted);margin-top:8px}
 .bk-pl b{color:var(--txt);font-variant-numeric:tabular-nums}
-.bk-pn{font-size:13px;color:var(--muted);margin-top:4px}
+.bk-pn{font-size:0.8125rem;color:var(--muted);margin-top:4px}
 .bk-acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
-.bk-act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:72px;padding:10px 4px;border-radius:14px;background:var(--card2);color:var(--txt);font-size:13px;line-height:1.2;text-align:center}
+.bk-act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:72px;padding:10px 4px;border-radius:var(--rq-radius-md);background:var(--card2);color:var(--txt);font-size:0.8125rem;line-height:1.2;text-align:center}
 .bk-act .ic{color:var(--muted)}
 .bk-act.on .ic{color:var(--accent);fill:currentColor}
 .bk-act:active,.bk-line:active{opacity:.7}
-.bk-h{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:24px 0 2px}
-.bk-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;min-height:44px;padding:11px 0;border-bottom:1px solid var(--card2);font-size:14px;box-sizing:border-box}
+.bk-h{font-size:0.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:24px 0 2px}
+.bk-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;min-height:44px;padding:11px 0;border-bottom:1px solid var(--card2);font-size:0.875rem;box-sizing:border-box}
 .bk-row:last-child,.bk-line:last-child{border-bottom:0}
 .bk-k{color:var(--muted);flex:none}
 .bk-v{color:var(--txt);text-align:right;min-width:0;overflow-wrap:anywhere}
 .bk-row.wrap{flex-direction:column;align-items:stretch;gap:4px}
 .bk-row.wrap .bk-v{text-align:left;line-height:1.35}
-.bk-line{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 0;border-bottom:1px solid var(--card2);font-size:15px;color:var(--txt);text-align:left;background:none}
+.bk-line{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 0;border-bottom:1px solid var(--card2);font-size:0.9375rem;color:var(--txt);text-align:left;background:none}
 .bk-line .ic{color:var(--muted);flex:none}
-.bk-line.danger,.bk-line.danger .ic{color:#ff8a80}
+.bk-line.danger,.bk-line.danger .ic{color:var(--danger)}
 .bk-danger{margin-top:20px;border-top:1px solid var(--card2)}
-.bk-note{font-size:12px;color:var(--muted);line-height:1.4;margin-top:6px}
+.bk-note{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-top:6px}
 
 /* ===== Поиск, статистика, трофеи, сетка ===== */
-.searchinp{width:100%;background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:12px;padding:11px 14px;color:var(--txt);font:inherit;font-size:14px;outline:none}
+.searchinp{width:100%;background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--rq-radius-md);padding:11px 14px;color:var(--txt);font:inherit;font-size:0.875rem;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 #libChips{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);padding-right:24px}
 #libChips:not(.more){-webkit-mask-image:none;mask-image:none} /* 18.10: no fade once the last chip is in view (libChipsFade) */
 .chips::-webkit-scrollbar{display:none}
-.fchip{flex:none;background:var(--card2);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted)}
-.fchip.on{background:var(--accent);color:#fff}
+.fchip{flex:none;background:var(--card2);border-radius:var(--rq-radius-pill);padding:7px 14px;font-size:0.8125rem;color:var(--muted)}
+.fchip.on{background:var(--accent);color:var(--on-accent)}
 .fchip:disabled{opacity:.45} /* 19.10: «Сложность» above the automatic level */
 .chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding:18px 0 16px}
 .chart .bar{flex:1;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;position:relative}
-.chart .bar span{position:absolute;top:-15px;left:-4px;right:-4px;text-align:center;font-size:9px;color:var(--muted)}
-.chart .bar i{position:absolute;bottom:-15px;left:-4px;right:-4px;text-align:center;font-size:9px;color:var(--muted);font-style:normal}
+.chart .bar span{position:absolute;top:-15px;left:-4px;right:-4px;text-align:center;font-size:0.6875rem;color:var(--muted)}
+.chart .bar i{position:absolute;bottom:-15px;left:-4px;right:-4px;text-align:center;font-size:0.6875rem;color:var(--muted);font-style:normal}
 .trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px}
-.trophy{background:linear-gradient(160deg,#3d3210,#143039);border:1px solid var(--accent2);border-radius:12px;padding:10px 6px;text-align:center;font-size:26px}
-.trophy div{font-size:10px;color:var(--accent2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trophy{background:linear-gradient(160deg,#3d3210,#143039);border:1px solid var(--accent2);border-radius:var(--rq-radius-md);padding:10px 6px;text-align:center;font-size:1.625rem}
+.trophy div{font-size:0.6875rem;color:var(--accent2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 18.10 «Обзор» with real thumbnails (js/page-grid.js): a tile per page, a picture only near the screen */
 .pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px 10px}
-.pgt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums;cursor:pointer}
-.pgth{display:block;position:relative;width:100%;aspect-ratio:var(--pg-asp,.66);background:var(--r-bg,#f4ecd8);border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px var(--card2)}
+.pgt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;color:var(--muted);font-size:0.6875rem;font-variant-numeric:tabular-nums;cursor:pointer}
+.pgth{display:block;position:relative;width:100%;aspect-ratio:var(--pg-asp,.66);background:var(--r-bg,#f4ecd8);border-radius:var(--rq-radius-xs);overflow:hidden;box-shadow:0 0 0 1px var(--card2)}
 .pgth canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 .pgsc{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
 .pgtx{position:absolute;top:0}
@@ -639,9 +678,9 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .quest.locked{opacity:.45}
 #content.noind p,.rqCurlTxt.noind p{text-indent:0;margin-bottom:.7em}
 .emojigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;margin-top:12px}
-.emojigrid button{font-size:20px;padding:8px;border-radius:10px;background:var(--card2)}
-.emojigrid .own{grid-column:1/-1;font-size:13px;color:var(--muted)}
-.appsw{width:40px;height:40px;border-radius:10px;border:2px solid transparent;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--card2)}
+.emojigrid button{font-size:1.25rem;padding:8px;border-radius:var(--rq-radius-sm);background:var(--card2)}
+.emojigrid .own{grid-column:1/-1;font-size:0.8125rem;color:var(--muted)}
+.appsw{width:40px;height:40px;border-radius:var(--rq-radius-sm);border:2px solid transparent;font-size:0.875rem;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--card2)}
 .appsw.on{border-color:var(--accent)}
 
 /* ===== PDF: полноэкранный скролл + текстовый слой для выделения ===== */
@@ -669,6 +708,9 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #pdfBack{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:var(--r-bg);color:var(--r-txt-2);font:500 13px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;pointer-events:none}
 #pdfBack.hidden,#txtBack.hidden{display:none}
 #txtBack{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:var(--r-bg);color:var(--r-txt-2);font:500 13px/1 system-ui,-apple-system,sans-serif}
+/* audit 19.10 RD-LOAD-01: grey text lines under the spinner while the first page is set (no empty screen) */
+#txtBack{background:var(--r-bg) repeating-linear-gradient(to bottom,color-mix(in srgb,var(--r-txt) 9%,transparent) 0 12px,transparent 12px 30px) content-box;padding:72px 0 64px;background-clip:content-box}
+#txtBack>*{background:var(--r-bg);padding:6px 12px;border-radius:var(--rq-radius-pill)}
 #pdfBack{flex-direction:column;gap:12px}.pdfSpin{width:22px;height:22px;border-radius:50%;border:2px solid currentColor;border-color:var(--rq-accent,currentColor);border-top-color:transparent;animation:pdfSpin .9s linear infinite}@keyframes pdfSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.pdfSpin{animation:none}}
 /* #dimRange & co: the sheet is dark (app colours), see #warmer */
 /* ONE transform parent: backing (#pdfSheet), bitmap and text layer zoom/pan together */
@@ -684,52 +726,54 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 /* ===== Компактная панель оформления: категории ===== */
 .setcats{display:flex;gap:6px;overflow-x:auto;margin:2px 0 12px;scrollbar-width:none}
 .setcats::-webkit-scrollbar{display:none}
-.setcats button{flex:none;background:var(--card2);border-radius:10px;padding:8px 13px;font-size:13px;color:var(--muted)}
-.setcats button.on{background:var(--accent);color:#fff}
+.setcats button{flex:none;background:var(--card2);border-radius:var(--rq-radius-sm);padding:8px 13px;font-size:0.8125rem;color:var(--muted)}
+.setcats button.on{background:var(--accent);color:var(--on-accent)}
 .setgrp{display:none}
 .setgrp.on{display:block;animation:pop .25s ease both}
 
 /* ===== Таймер чтения ===== */
-#btnTimer{font-size:17px;font-weight:600;min-width:34px}
+#btnTimer{font-size:1.0625rem;font-weight:600;min-width:34px}
 #btnTimer.on{color:var(--good)}
-#timerHint{position:absolute;left:50%;transform:translateX(-50%);top:calc(50px + env(safe-area-inset-top));background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:7px 14px;border-radius:99px;z-index:9;max-width:80%;text-align:center}
+#timerHint{position:absolute;left:50%;transform:translateX(-50%);top:calc(50px + env(safe-area-inset-top));background:rgba(0,0,0,.55);color:#fff;font-size:0.75rem;padding:7px 14px;border-radius:var(--rq-radius-pill);z-index:9;max-width:80%;text-align:center}
 
 /* ===== Календарь ===== */
 .calhead{display:flex;align-items:center;gap:10px;margin:6px 0 14px}
-.calnav{width:38px;height:38px;border-radius:10px;background:var(--card2);font-size:18px}
+.calnav{width:38px;height:38px;border-radius:var(--rq-radius-sm);background:var(--card2);font-size:1.125rem}
 .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.caldow{text-align:center;font-size:11px;color:var(--muted);padding:2px 0}
-.calcell{aspect-ratio:1;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;border:1.5px solid transparent;color:var(--txt)}
+.caldow{text-align:center;font-size:0.6875rem;color:var(--muted);padding:2px 0}
+.calcell{aspect-ratio:1;border-radius:var(--rq-radius-sm);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:0.875rem;position:relative;border:1.5px solid transparent;color:var(--txt)}
 .calcell.empty{background:transparent;border:none}
 .calcell.today{border-color:var(--accent)}
 .calcell.read{background:linear-gradient(160deg,var(--bar),var(--card))}
 .calcell.planned{border-color:var(--accent2);border-style:dashed}
 .calcell .dot{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--good)}
 .calcell .pin{position:absolute;top:3px;right:3px;line-height:0;color:var(--accent2)}
-.calleg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:14px}
+.calleg{display:flex;gap:14px;flex-wrap:wrap;font-size:0.75rem;color:var(--muted);margin-top:14px}
 .calleg i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
-.calsw{width:14px;height:14px;border-radius:4px;background:var(--card);border:1.5px solid var(--card2);position:relative;flex:none}
+.calsw{width:14px;height:14px;border-radius:var(--rq-radius-xs);background:var(--card);border:1.5px solid var(--card2);position:relative;flex:none}
 .calsw.read{background:linear-gradient(160deg,var(--bar),var(--card));border-color:transparent}
 .calsw.planned{border-color:var(--accent2);border-style:dashed}
 .calsw.goal::after{content:"";position:absolute;left:50%;bottom:2px;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--good)}
 .yhwrap{overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
 .yhgrid{display:inline-flex;gap:3px}
 .yhcol{display:flex;flex-direction:column;gap:3px}
-.yh{width:10px;height:10px;border-radius:2px;background:var(--card2);flex:none}
+.yh{width:10px;height:10px;border-radius:var(--rq-radius-xs);background:var(--card2);flex:none}
 .yh.yh1{background:#1d5e3a}.yh.yh2{background:#2e8b57}.yh.yh3{background:#43b56b}.yh.yh4{background:#5fd97b}.yh.yhf{background:transparent}
-.progtab{font-size:13px}
+.progtab{font-size:0.8125rem}
 .progtabs{overflow-x:auto;scrollbar-width:none}
 .progtabs::-webkit-scrollbar{display:none}
 .progtabs .progtab{flex:0 0 auto}
 .lookshophead{align-items:center;gap:8px}.lookshophead h2{margin-bottom:8px}
+/* audit 19.10 R1: people test — no skin shop, no test coins (preview: 7 taps on the build number) */
+.rq-lean .lookshophead,.rq-lean #rewPaneShop,.rq-lean #btnTestGold{display:none!important}
 body.mvp .progtab:is([data-sub="calendar"],[data-sub="achievements"],[data-sub="shelf"]){display:none} /* MVP folds these screens into the library */
 /* ===== 3D пиксельная книжная полка ===== */
 #shelfWrap{perspective:900px;padding:6px 0 24px}
-#shelfArea{background-image:repeating-linear-gradient(90deg,rgba(80,45,10,.10) 0 1px,transparent 1px 24px),repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 1px,transparent 1px 44px),linear-gradient(180deg,#c89456,#a9743c);border:3px solid #6e451e;border-radius:8px;padding:20px 12px 6px;transform:rotateX(6deg);transform-origin:top center;box-shadow:inset 0 0 50px rgba(70,35,0,.4)}
+#shelfArea{background-image:repeating-linear-gradient(90deg,rgba(80,45,10,.10) 0 1px,transparent 1px 24px),repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 1px,transparent 1px 44px),linear-gradient(180deg,#c89456,#a9743c);border:3px solid #6e451e;border-radius:var(--rq-radius-sm);padding:20px 12px 6px;transform:rotateX(6deg);transform-origin:top center;box-shadow:inset 0 0 50px rgba(70,35,0,.4)}
 .shelfRow{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;align-items:end;min-height:90px;margin-bottom:34px}
 .shelfRow:last-child{margin-bottom:8px}
-.shelfRow .plank{position:absolute;left:-8px;right:-8px;bottom:-16px;height:15px;border-radius:2px;background:linear-gradient(180deg,#e1ae67,#9c6a32);box-shadow:0 7px 0 rgba(70,35,0,.5),inset 0 2px 0 rgba(255,255,255,.3)}
-.shelfbook{width:100%;max-width:56px;aspect-ratio:52/76;min-height:60px;justify-self:center;position:relative;border-radius:2px 4px 4px 2px;overflow:hidden;background:var(--card2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px;cursor:pointer;box-shadow:3px 5px 0 rgba(0,0,0,.4);transform-origin:bottom center}
+.shelfRow .plank{position:absolute;left:-8px;right:-8px;bottom:-16px;height:15px;border-radius:var(--rq-radius-xs);background:linear-gradient(180deg,#e1ae67,#9c6a32);box-shadow:0 7px 0 rgba(70,35,0,.5),inset 0 2px 0 rgba(255,255,255,.3)}
+.shelfbook{width:100%;max-width:56px;aspect-ratio:52/76;min-height:60px;justify-self:center;position:relative;border-radius:2px 4px 4px 2px;overflow:hidden;background:var(--card2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4375rem;cursor:pointer;box-shadow:3px 5px 0 rgba(0,0,0,.4);transform-origin:bottom center}
 .shelfbook img{width:100%;height:100%;object-fit:cover}
 .shelfbook::after{content:'';position:absolute;top:0;bottom:0;right:0;width:4px;background:linear-gradient(90deg,rgba(255,255,255,.45),rgba(0,0,0,.2))}
 .shelfbook:active{transform:translateY(-2px)}
@@ -737,40 +781,40 @@ body.mvp .progtab:is([data-sub="calendar"],[data-sub="achievements"],[data-sub="
 @keyframes bookFlyIn{0%{transform:translateY(-240px) rotate(-10deg) scale(.7);opacity:0}55%{transform:translateY(0) rotate(0) scale(1);opacity:1}70%{transform:translateY(-12px) scaleY(1.06)}84%{transform:translateY(0) scaleY(.93)}92%{transform:translateY(-3px) scaleY(1.02)}100%{transform:translateY(0) scaleY(1)}}
 .shelfbook.opening{animation:bookOpenAnim .42s ease-in forwards;z-index:6;transform-origin:left center}
 @keyframes bookOpenAnim{0%{transform:perspective(520px) rotateY(0) scale(1)}45%{transform:perspective(520px) rotateY(-44deg) scale(1.12)}100%{transform:perspective(520px) rotateY(-120deg) scale(1.3);opacity:0}}
-.shelfEmpty{color:#fff;text-align:center;padding:20px 6px;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.55)}
+.shelfEmpty{color:#fff;text-align:center;padding:20px 6px;font-size:0.8125rem;text-shadow:0 1px 2px rgba(0,0,0,.55)}
 
 /* ===== Редакторы (квесты, характеристики, награды) ===== */
-.editrow{display:flex;align-items:center;gap:8px;background:var(--card2);border-radius:10px;padding:8px 10px;margin-bottom:8px}
-.editrow input,.editrow select{background:var(--bg);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:8px;color:var(--txt);font:inherit;font-size:13px;padding:6px 8px;min-width:0}
+.editrow{display:flex;align-items:center;gap:8px;background:var(--card2);border-radius:var(--rq-radius-sm);padding:8px 10px;margin-bottom:8px}
+.editrow input,.editrow select{background:var(--bg);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--rq-radius-sm);color:var(--txt);font:inherit;font-size:0.8125rem;padding:6px 8px;min-width:0}
 .editrow .grow{flex:1}
-.editrow .x{color:#ff8a80;font-size:17px;padding:2px 6px;flex:none}
-.miniadd{background:var(--card2);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--accent);font-weight:600;width:100%;margin-top:2px}
+.editrow .x{color:var(--danger);font-size:1.0625rem;padding:2px 6px;flex:none}
+.miniadd{background:var(--card2);border-radius:var(--rq-radius-sm);padding:9px 14px;font-size:0.8125rem;color:var(--accent);font-weight:600;width:100%;margin-top:2px}
 
 /* ===== Настройки книги в RPG-стиле ===== */
 .bset-row{margin:14px 0 6px}
-.bset-lab{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px}
+.bset-lab{display:flex;align-items:center;gap:8px;font-size:0.875rem;margin-bottom:8px}
 .bset-lab .val{margin-left:auto;color:var(--accent2);font-weight:700}
 .bslider{width:100%;accent-color:var(--accent2)}
 .bset-reward{display:flex;gap:10px;margin:12px 0 4px}
-.bset-reward .rwd{flex:1;background:var(--card2);border-radius:12px;padding:12px;text-align:center}
-.bset-reward .rwd b{display:block;font-size:20px;color:var(--accent2)}
-.bset-reward .rwd span{font-size:11px;color:var(--muted)}
+.bset-reward .rwd{flex:1;background:var(--card2);border-radius:var(--rq-radius-md);padding:12px;text-align:center}
+.bset-reward .rwd b{display:block;font-size:1.25rem;color:var(--accent2)}
+.bset-reward .rwd span{font-size:0.6875rem;color:var(--muted)}
 
 /* ===== Достижения ===== */
-.achitem{background:var(--card);border-radius:12px;padding:11px 13px;margin-bottom:9px;opacity:.7}
+.achitem{background:var(--card);border-radius:var(--rq-radius-md);padding:11px 13px;margin-bottom:9px;opacity:.7}
 .achitem.got{opacity:1;border:1px solid var(--accent2)}
-.achitem .achd{font-size:12px;color:var(--muted);margin-top:3px}
+.achitem .achd{font-size:0.75rem;color:var(--muted);margin-top:3px}
 .achitem.got{cursor:pointer}
 /* 3D-значок достижения */
 #badgeModal{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(120% 90% at 50% 30%,rgba(43,179,192,.18),rgba(0,0,0,.92));backdrop-filter:blur(4px);gap:6px;padding:24px;text-align:center}
 #badgeModal.hidden{display:none!important}
 .badge3d{perspective:700px;width:200px;height:200px;display:flex;align-items:center;justify-content:center;touch-action:none}
 .coin{width:180px;height:180px;position:relative;transform-style:preserve-3d;cursor:grab;will-change:transform}
-.coin .face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;font-size:88px;background:radial-gradient(circle at 36% 30%,#ffe9a8,#e3b23c 55%,#9c6f12);box-shadow:inset 0 0 0 9px rgba(255,255,255,.22),inset 0 0 0 12px rgba(120,80,10,.5),0 14px 34px rgba(0,0,0,.55)}
+.coin .face{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;font-size:5.5rem;background:radial-gradient(circle at 36% 30%,#ffe9a8,#e3b23c 55%,#9c6f12);box-shadow:inset 0 0 0 9px rgba(255,255,255,.22),inset 0 0 0 12px rgba(120,80,10,.5),0 14px 34px rgba(0,0,0,.55)}
 .coin .back{transform:rotateY(180deg)}
-.b3dtitle{font-size:20px;font-weight:800;color:#fff;margin-top:14px}
-.b3dsub{font-size:13px;color:#cfe6ea;max-width:80%}
-.b3dhint{font-size:12px;color:#8fb0b5;margin-top:10px}
+.b3dtitle{font-size:1.25rem;font-weight:800;color:#fff;margin-top:14px}
+.b3dsub{font-size:0.8125rem;color:#cfe6ea;max-width:80%}
+.b3dhint{font-size:0.75rem;color:#8fb0b5;margin-top:10px}
 
 /* ===== Пиксельный режим (магический скин) ===== */
 body.pixel{
@@ -793,37 +837,39 @@ body.pixel #drawer{border-right:3px solid #0a0713}
 body.pixel .rhead,body.pixel .rfoot{border-bottom:3px solid #0a0713}
 body.pixel img,body.pixel #pdfSheet canvas,body.pixel .cover img{image-rendering:pixelated;image-rendering:crisp-edges}
 body.pixel .coin .face{border:4px solid #0a0713;box-shadow:inset 0 0 0 6px rgba(255,255,255,.18),6px 6px 0 #0a0713}
-.lnk{color:var(--muted);text-decoration:underline;font-size:12px;padding:0}
-.lnk.danger{color:#ff8a80}
-.navbtn{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:62px;border-radius:12px;background:rgba(0,0,0,.28);color:#fff;font-size:28px;z-index:7;display:flex;align-items:center;justify-content:center;border:none}
-#navPrev{left:6px}#navNext{right:6px}
+.lnk{color:var(--muted);text-decoration:underline;font-size:0.75rem;padding:0}
+.lnk.danger{color:var(--danger)}
+.navbtn{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:88px;border-radius:var(--rq-radius-md);background:transparent;color:var(--r-txt-2,#7f938f);opacity:.6;font-size:1.875rem;z-index:7;display:flex;align-items:center;justify-content:center;border:none}
+/* audit 19.10 RD-NAV-01: the buttons live in the side fields; with fields under 44 px they would cover glyphs → shown only with the panels */
+#navPrev{left:max(2px,calc(var(--r-margin,24px) - 42px))}#navNext{right:max(2px,calc(var(--r-margin,24px) - 42px))}
+#reader.narrowm.barsoff .navbtn{visibility:hidden}
 .navbtn.hidden{display:none!important}
 /* ===== Персонаж: карточка героя, HP, экипировка ===== */
-.herocard{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--line)}
+.herocard{background:var(--card);border-radius:var(--rq-radius-md);padding:16px;border:1px solid var(--line)}
 .herotop{display:flex;gap:14px;align-items:center}
-.avatarframe{position:relative;width:112px;height:112px;flex:none;border-radius:14px;background:linear-gradient(160deg,#3a2f5e,#241a3d);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 3px rgba(255,255,255,.08),0 6px 0 rgba(0,0,0,.3);overflow:visible}
-.avatarframe .avatar{font-size:48px;background:none;width:auto;height:auto;border-radius:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));transition:filter .35s}
+.avatarframe{position:relative;width:112px;height:112px;flex:none;border-radius:var(--rq-radius-md);background:linear-gradient(160deg,#3a2f5e,#241a3d);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 3px rgba(255,255,255,.08),0 6px 0 rgba(0,0,0,.3);overflow:visible}
+.avatarframe .avatar{font-size:3rem;background:none;width:auto;height:auto;border-radius:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));transition:filter .35s}
 .avatarframe.weak .avatar{filter:grayscale(.75) brightness(.78)}
 .avatarframe.weak::after{content:'!';position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--bad,#e0445b);color:#fff;font:700 13px/20px sans-serif;text-align:center}
 .gearlayer{position:absolute;inset:0;pointer-events:none}
-.gearlayer span{position:absolute;font-size:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
+.gearlayer span{position:absolute;font-size:1.5rem;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
 .gearlayer .g-head{top:-13px;left:50%;transform:translateX(-50%)}
 .gearlayer .g-weapon{bottom:0;right:-13px;transform:rotate(10deg)}
-.gearlayer .g-body{bottom:-9px;left:50%;transform:translateX(-50%);font-size:21px;opacity:.92}
-.gearlayer .g-pet{bottom:-11px;left:-13px;font-size:22px}
-.gearlayer .g-aura{top:50%;left:50%;transform:translate(-50%,-50%) scale(2.2);opacity:.26;font-size:40px;z-index:0}
+.gearlayer .g-body{bottom:-9px;left:50%;transform:translateX(-50%);font-size:1.3125rem;opacity:.92}
+.gearlayer .g-pet{bottom:-11px;left:-13px;font-size:1.375rem}
+.gearlayer .g-aura{top:50%;left:50%;transform:translate(-50%,-50%) scale(2.2);opacity:.26;font-size:2.5rem;z-index:0}
 .herobars{flex:1;min-width:0}
-.herobars b{font-size:16px}
-.herobars .lvl{font-size:12px;color:var(--muted);margin:2px 0 8px}
+.herobars b{font-size:1rem}
+.herobars .lvl{font-size:0.75rem;color:var(--muted);margin:2px 0 8px}
 .barline{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.barlbl{font-size:14px;width:18px;text-align:center}
-.statbar{flex:1;height:13px;border-radius:7px;background:rgba(0,0,0,.28);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.45)}
-.statbar i{display:block;height:100%;border-radius:7px;transition:width .5s}
+.barlbl{font-size:0.875rem;width:18px;text-align:center}
+.statbar{flex:1;height:13px;border-radius:var(--rq-radius-xs);background:rgba(0,0,0,.28);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.45)}
+.statbar i{display:block;height:100%;border-radius:var(--rq-radius-xs);transition:width .5s}
 .statbar.xp i{width:0;background:linear-gradient(90deg,#f0b429,#ffd966)}
 .statbar.hp i{background:#4cd97b}
-.barnum{font-size:11px;color:var(--muted);min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
-.hphint{font-size:12px;color:var(--muted);margin-top:6px}
-.subh{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:6px}
+.barnum{font-size:0.6875rem;color:var(--muted);min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+.hphint{font-size:0.75rem;color:var(--muted);margin-top:6px}
+.subh{font-size:0.75rem;font-weight:700;color:var(--accent2);margin-bottom:6px}
 .avatarframe.bg-library{background:#7a5230}
 .avatarframe.bg-forest{background:#bfe6f5}
 .avatarframe.bg-night{background:#1b2350}
@@ -831,9 +877,9 @@ body.pixel .coin .face{border:4px solid #0a0713;box-shadow:inset 0 0 0 6px rgba(
 .avatarframe.bg-castle{background:#9fd0e8}
 .gearitem{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
 .gearitem:last-child{border-bottom:none}
-.gearitem .gi{font-size:24px;width:34px;text-align:center}
-.tprev.gearprev{font-size:24px;display:flex;align-items:center;justify-content:center}
-.gearsec-h{font-size:13px;color:var(--accent2);font-weight:700;margin:14px 0 6px;letter-spacing:.3px}
+.gearitem .gi{font-size:1.5rem;width:34px;text-align:center}
+.tprev.gearprev{font-size:1.5rem;display:flex;align-items:center;justify-content:center}
+.gearsec-h{font-size:0.8125rem;color:var(--accent2);font-weight:700;margin:14px 0 6px;letter-spacing:.3px}
 #shopGear>.gearsec-h:first-child,#equipBox>.gearsec-h:first-child{margin-top:2px}
 /* ===== авто-скрытие панелей чтения ===== */
 .barsoff .rhead,.barsoff .rfoot{display:none}
@@ -850,54 +896,54 @@ body.pixel .avatarframe{border-radius:0;box-shadow:0 0 0 4px #0a0713,0 0 0 8px #
 body.pixel .statbar,body.pixel .statbar i{border-radius:0}
 body.pixel .herocard{border-radius:0}
 /* ===== персонаж-аватар + кастомайзер ===== */
-.avatarframe .avatar{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:46px}
+.avatarframe .avatar{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:2.875rem}
 .avatarframe .avatar svg{width:100%;height:100%;display:block}
 body.pixel .avatarframe .avatar svg{image-rendering:pixelated;width:100%;height:100%}
 .charpanel{margin-top:12px;display:flex;flex-direction:column;gap:9px}
 .charpanel .crow{display:flex;align-items:center;gap:8px}
-.charpanel .clab{font-size:12px;color:var(--muted);width:78px;flex:none}
+.charpanel .clab{font-size:0.75rem;color:var(--muted);width:78px;flex:none}
 .charpanel .cbtns{display:flex;gap:6px;flex-wrap:wrap}
-.charpanel .cbtn{min-width:30px;padding:6px 9px;border-radius:8px;background:var(--card2);font-size:14px}
-.charpanel .cbtn.on{background:var(--accent);color:#fff}
+.charpanel .cbtn{min-width:30px;padding:6px 9px;border-radius:var(--rq-radius-sm);background:var(--card2);font-size:0.875rem}
+.charpanel .cbtn.on{background:var(--accent);color:var(--on-accent)}
 .charpanel .swatch{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.25);padding:0;cursor:pointer}
 .charpanel .swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
 body.pixel .charpanel .cbtn,body.pixel .charpanel .swatch{border-radius:0}
 /* ===== словарь-флешкарты + продолжить ===== */
-.flashcard{background:var(--card);border:2px solid var(--line);border-radius:16px;min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:24px;font-weight:700;cursor:pointer;user-select:none}
-.flashcard .fc-back{font-size:15px;font-weight:400;line-height:1.5}
-.continuecard{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:12px}
-.continuecard .cover{width:40px;height:56px;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--card2);flex:none}
+.flashcard{background:var(--card);border:2px solid var(--line);border-radius:var(--rq-radius-md);min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:1.5rem;font-weight:700;cursor:pointer;user-select:none}
+.flashcard .fc-back{font-size:0.9375rem;font-weight:400;line-height:1.5}
+.continuecard{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--rq-radius-md);padding:10px 12px;margin-top:12px}
+.continuecard .cover{width:40px;height:56px;border-radius:var(--rq-radius-xs);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--card2);flex:none}
 .continuecard .cover img{width:100%;height:100%;object-fit:cover}
-.bossmob{width:54px;height:54px;flex:none;border-radius:12px;background:linear-gradient(160deg,#3a1f2a,#241019);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
-.dailycard{width:100%;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,#caa23a,#e6c052);color:#3a2b08;border:none;border-radius:14px;padding:12px 14px;margin-top:12px;font-size:15px;font-weight:600}
+.bossmob{width:54px;height:54px;flex:none;border-radius:var(--rq-radius-md);background:linear-gradient(160deg,#3a1f2a,#241019);display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
+.dailycard{width:100%;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,#caa23a,#e6c052);color:#3a2b08;border:none;border-radius:var(--rq-radius-md);padding:12px 14px;margin-top:12px;font-size:0.9375rem;font-weight:600}
 .hours{display:flex;align-items:flex-end;gap:2px;height:52px;margin-top:8px}
 .hbar{flex:1;display:flex;align-items:flex-end;justify-content:center}
 .hbar i{display:block;width:100%;border-radius:2px 2px 0 0}
-.hoursax{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px}
+.hoursax{display:flex;justify-content:space-between;font-size:0.6875rem;color:var(--muted);margin-top:2px}
 .gbar{display:flex;align-items:center;gap:8px;margin-top:7px}
-.gbl{font-size:12px;width:88px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gbt{flex:1;height:10px;background:var(--card2);border-radius:5px;overflow:hidden}
-.gbt i{display:block;height:100%;background:var(--accent2);border-radius:5px}
-.gbv{font-size:11px;color:var(--muted);width:42px;text-align:right;flex:none}
+.gbl{font-size:0.75rem;width:88px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gbt{flex:1;height:10px;background:var(--card2);border-radius:var(--rq-radius-xs);overflow:hidden}
+.gbt i{display:block;height:100%;background:var(--accent2);border-radius:var(--rq-radius-xs)}
+.gbv{font-size:0.6875rem;color:var(--muted);width:42px;text-align:right;flex:none}
 .months{display:flex;align-items:flex-end;gap:3px;height:62px;margin-top:6px}
 .mbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
 .mbar i{display:block;width:100%;background:var(--accent);border-radius:2px 2px 0 0;min-height:2px}
-.mbar span{font-size:9px;color:var(--muted);margin-top:2px}
-.yreview{background:linear-gradient(160deg,var(--card2),var(--card));border-radius:16px;padding:16px;margin-top:10px;color:var(--txt)} /* 17.10: was fixed purple + white under every theme and skin */
-.yr-h{font-size:16px;font-weight:700;margin-bottom:12px}
+.mbar span{font-size:0.6875rem;color:var(--muted);margin-top:2px}
+.yreview{background:linear-gradient(160deg,var(--card2),var(--card));border-radius:var(--rq-radius-md);padding:16px;margin-top:10px;color:var(--txt)} /* 17.10: was fixed purple + white under every theme and skin */
+.yr-h{font-size:1rem;font-weight:700;margin-bottom:12px}
 .yr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-.yr-cell{background:color-mix(in srgb,var(--card) 70%,transparent);border-radius:12px;padding:10px;text-align:center}
-.yr-cell b{font-size:20px;display:block}
-.yr-cell span{font-size:11px;color:color-mix(in srgb,var(--txt) 78%,var(--card))}
-.yr-line{font-size:13px;margin-top:6px}
+.yr-cell{background:color-mix(in srgb,var(--card) 70%,transparent);border-radius:var(--rq-radius-md);padding:10px;text-align:center}
+.yr-cell b{font-size:1.25rem;display:block}
+.yr-cell span{font-size:0.6875rem;color:color-mix(in srgb,var(--txt) 78%,var(--card))}
+.yr-line{font-size:0.8125rem;margin-top:6px}
 .taltree{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .talbranch{display:flex;flex-direction:column;gap:8px}
-.talbr-h{font-size:12px;font-weight:700;text-align:center;color:var(--accent2)}
-.talnode{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;background:var(--card2);border:2px solid transparent;border-radius:12px;padding:9px 5px;cursor:default;color:inherit}
-.talnode .ti{font-size:22px;line-height:1}
-.talnode b{font-size:11px}
-.talnode .td{font-size:10px;color:var(--muted);line-height:1.25}
-.talnode .ts{font-size:10px;margin-top:2px;color:var(--muted)}
+.talbr-h{font-size:0.75rem;font-weight:700;text-align:center;color:var(--accent2)}
+.talnode{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;background:var(--card2);border:2px solid transparent;border-radius:var(--rq-radius-md);padding:9px 5px;cursor:default;color:inherit}
+.talnode .ti{font-size:1.375rem;line-height:1}
+.talnode b{font-size:0.6875rem}
+.talnode .td{font-size:0.6875rem;color:var(--muted);line-height:1.25}
+.talnode .ts{font-size:0.6875rem;margin-top:2px;color:var(--muted)}
 .talnode.on{border-color:#4cd97b}
 .talnode.on .ts{color:#4cd97b}
 .talnode.can{border-color:var(--accent);cursor:pointer}
@@ -909,24 +955,24 @@ body.pixel .talnode{border-radius:0}
 body.mvp #botnav{display:flex}
 body.mvp .screen > .scroll{padding-bottom:76px}
 body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
-.botnav-btn{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:12px;padding:8px 4px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.botnav-btn .ico{font-size:20px;line-height:1}
+.botnav-btn{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:0.75rem;padding:8px 4px;border-radius:var(--rq-radius-md);display:flex;flex-direction:column;align-items:center;gap:2px}
+.botnav-btn .ico{font-size:1.25rem;line-height:1}
 .botnav-btn.on{color:var(--accent);background:var(--card2)} /* 16.10: was teal 12% → grey on Багрянец */
 #rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
 #rewardsSheet.open{transform:translateY(0);visibility:visible;transition:transform .25s ease} /* 16.10: closed sheet not painted — open() lifts it by the nav height, so 110% left its top edge (and shadow) above the screen bottom: white strip in Эллада */
 /* shop build 14.10: «Награды» = «Из жизни» / «Магазин», balance as text, no coin icons */
 .rewhead{align-items:center;margin:0 36px 10px 0}
-.rewtabs{display:flex;gap:6px;background:var(--card);border-radius:12px;padding:4px;margin-bottom:12px}
-.rewtabs button{flex:1;min-height:40px;border-radius:9px;font-weight:600;color:var(--muted)}
+.rewtabs{display:flex;gap:6px;background:var(--card);border-radius:var(--rq-radius-md);padding:4px;margin-bottom:12px}
+.rewtabs button{flex:1;min-height:40px;border-radius:var(--rq-radius-sm);font-weight:600;color:var(--muted)}
 .rewtabs button.on{background:var(--card2);color:var(--txt)}
-.shopkinds{display:flex;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.shopkinds{display:flex;gap:8px;margin-bottom:10px;font-size:0.8125rem;color:var(--muted);flex-wrap:wrap}
 .shopkinds .on{color:var(--txt);font-weight:600}
 #shopList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.shopcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:12px;background:var(--card);text-align:left;min-width:0}
-.shopcard .shopcov{display:block;width:100%;aspect-ratio:3/2;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.shopcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:var(--rq-radius-md);background:var(--card);text-align:left;min-width:0}
+.shopcard .shopcov{display:block;width:100%;aspect-ratio:3/2;border-radius:var(--rq-radius-sm);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .shopcard .shopname{font-weight:700}
-.shopcard .shopprice{font-size:13px}
-.shopcard .shopst{font-size:12px;color:var(--muted)}
+.shopcard .shopprice{font-size:0.8125rem}
+.shopcard .shopst{font-size:0.75rem;color:var(--muted)}
 .shopcard[data-st=worn] .shopst,.shopcard[data-st=owned] .shopst{color:var(--good)}
 #shopDetailScrim,#shopConfirmScrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:88}
 #shopConfirmScrim{z-index:98}
@@ -935,36 +981,36 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .spback{width:44px;height:44px;display:flex;align-items:center;justify-content:center;margin-left:-10px}
 .spbody{flex:1;overflow-y:auto;min-height:0}
 .spprev{display:flex;gap:12px;justify-content:center;margin:8px 0 14px}
-.spphone{width:44%;aspect-ratio:9/16;border-radius:16px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.35)}
-.sptitle{align-items:baseline}.sptitle b{font-size:24px}
+.spphone{width:44%;aspect-ratio:9/16;border-radius:var(--rq-radius-md);box-shadow:inset 0 0 0 3px rgba(0,0,0,.35)}
+.sptitle{align-items:baseline}.sptitle b{font-size:1.5rem}
 .spst{font-weight:600}.spst.on{color:var(--accent)}
-.spdesc{font-size:14px;color:var(--muted);margin:4px 0 12px}
+.spdesc{font-size:0.875rem;color:var(--muted);margin:4px 0 12px}
 .shopcols-h small{color:var(--muted);font-weight:400}
-.spfoot{padding-top:10px}.spcap{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+.spfoot{padding-top:10px}.spcap{text-align:center;font-size:0.75rem;color:var(--muted);margin-top:6px}
 /* Достижения v2 (js/achievements.js): только цвета приложения/скина (--card, --card2, --muted, --accent, --accent2), без анимаций */
 #achPage{position:fixed;inset:0;z-index:95;display:flex;flex-direction:column;background:var(--bg,#0c2127);padding:calc(10px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom))}
 #achPage[hidden]{display:none}
-#achPage h1{font-size:20px}
+#achPage h1{font-size:1.25rem}
 .achv-card{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0 0;text-align:left;color:inherit;font:inherit;border:0;cursor:pointer;min-height:56px}
-.achv-ic{flex:none;width:40px;height:40px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.achv-ic{flex:none;width:40px;height:40px;border-radius:var(--rq-radius-md);background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .achv-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.achv-name{font-weight:700;font-size:15px;overflow-wrap:anywhere}
-.achv-desc{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
-.achv-sub{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
-.achv-top{margin-bottom:6px}.achv-score{display:flex;flex-direction:column;gap:2px}.achv-score b{font-size:20px}.achv-score span{font-size:13px;color:var(--muted)}
-.achv-note{margin-top:8px;font-size:13px;color:var(--muted)}
-.achv-lbl{margin:14px 0 6px;font-size:13px;font-weight:600;color:var(--muted)}
-.achv-hint{font-size:12px;color:var(--muted);margin-top:6px}
+.achv-name{font-weight:700;font-size:0.9375rem;overflow-wrap:anywhere}
+.achv-desc{font-size:0.8125rem;color:var(--muted);overflow-wrap:anywhere}
+.achv-sub{font-size:0.75rem;color:var(--muted);overflow-wrap:anywhere}
+.achv-top{margin-bottom:6px}.achv-score{display:flex;flex-direction:column;gap:2px}.achv-score b{font-size:1.25rem}.achv-score span{font-size:0.8125rem;color:var(--muted)}
+.achv-note{margin-top:8px;font-size:0.8125rem;color:var(--muted)}
+.achv-lbl{margin:14px 0 6px;font-size:0.8125rem;font-weight:600;color:var(--muted)}
+.achv-hint{font-size:0.75rem;color:var(--muted);margin-top:6px}
 .achv-chips{display:flex;flex-wrap:wrap;gap:6px}
-.achv-chip{min-height:36px;max-width:100%;padding:6px 12px;border-radius:99px;border:1px solid var(--card2);background:var(--card);color:inherit;font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:4px;overflow-wrap:anywhere;text-align:left}
-.achv-chip small{color:var(--muted);font-size:11px}
+.achv-chip{min-height:36px;max-width:100%;padding:6px 12px;border-radius:var(--rq-radius-pill);border:1px solid var(--card2);background:var(--card);color:inherit;font:inherit;font-size:0.8125rem;display:inline-flex;align-items:center;gap:4px;overflow-wrap:anywhere;text-align:left}
+.achv-chip small{color:var(--muted);font-size:0.6875rem}
 .achv-chip.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .achv-chip[disabled]{color:var(--muted);opacity:.85}
 .achv-secs{margin:16px 0 10px}
-.achv-tile{display:flex;gap:12px;padding:12px;border-radius:14px;background:var(--card);margin-bottom:8px}
+.achv-tile{display:flex;gap:12px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:8px}
 .achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
 .achv-tile .pbar{margin-top:6px}
-#sumAch{margin:8px 0;font-size:14px;line-height:1.5}#sumAch div{display:flex;align-items:center;gap:6px}#sumAch .ic{flex:none;color:var(--accent2)}#sumAch .more{color:var(--muted);padding-left:20px}
+#sumAch{margin:8px 0;font-size:0.875rem;line-height:1.5}#sumAch div{display:flex;align-items:center;gap:6px}#sumAch .ic{flex:none;color:var(--accent2)}#sumAch .more{color:var(--muted);padding-left:20px}
 #avatarFrame.achf-frame250{outline:2px solid var(--muted);outline-offset:3px}
 #avatarFrame.achf-frame500{outline:4px double var(--accent);outline-offset:3px}
 #avatarFrame.achf-frame1000{outline:3px solid var(--accent);outline-offset:3px}
@@ -972,43 +1018,45 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 #avatarFrame.achf-frame3500{outline:6px double var(--accent2);outline-offset:3px}
 #avatarFrame.achf-frameSecret{outline:2px dashed var(--accent2);outline-offset:4px}
 #shopDetail[hidden],#shopConfirm[hidden],#shopDetailScrim[hidden],#shopConfirmScrim[hidden]{display:none}
-#shopConfirm{position:fixed;left:24px;right:24px;top:50%;transform:translateY(-50%);z-index:99;background:var(--sheet);border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
-#scTitle{font-size:19px;font-weight:700;line-height:1.3}
-#scText{font-size:15px;color:var(--muted);margin:8px 0 20px}
+#shopConfirm{position:fixed;left:24px;right:24px;top:50%;transform:translateY(-50%);z-index:99;background:var(--sheet);border-radius:var(--rq-radius-md);padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+#scTitle{font-size:1.1875rem;font-weight:700;line-height:1.3}
+#scText{font-size:0.9375rem;color:var(--muted);margin:8px 0 20px}
 .scRow{display:flex;gap:10px}.scRow button{flex:1;min-height:48px}
 .shopcta{width:100%;min-height:44px;margin-top:6px}
+.shopcta.st-worn{background:transparent!important;color:var(--txt)!important;border:1.5px solid var(--accent);opacity:1;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.shopcta.st-off{background:transparent!important;color:var(--muted)!important;border:1.5px dashed color-mix(in srgb,var(--muted) 60%,transparent);opacity:1}
 #btnTestGold{width:100%;min-height:44px;margin-bottom:10px}
 #rewardsSheet .rewtabs button,#rewSlots .buy,#rewSlots .tierseg button,#btnAddRewardSlot,#rewSlots .searchinp{min-height:44px}
 #rewSlots .lnk{min-height:44px;min-width:44px;padding:0 8px}
 .shopcol small{white-space:nowrap}
-.shopdh{font-size:18px}
-.shopcols-h{font-size:13px;font-weight:600;margin-bottom:6px}
+.shopdh{font-size:1.125rem}
+.shopcols-h{font-size:0.8125rem;font-weight:600;margin-bottom:6px}
 .shopcols{display:flex;gap:8px;flex-wrap:wrap}
-.shopcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:96px;padding:6px;border-radius:10px;border:2px solid transparent}
+.shopcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:96px;padding:6px;border-radius:var(--rq-radius-sm);border:2px solid transparent}
 .shopcol.on{border-color:var(--accent)}
-.shopcol .shopcov{width:56px;height:40px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.shopcol .shopcov{width:56px;height:40px;border-radius:var(--rq-radius-xs);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .shopbuy{width:100%;margin-top:10px;min-height:44px}#shopDetail .shopbuy{height:52px;min-height:52px;box-sizing:border-box}
 :is(#settings,#look) .stepbtn{width:44px;height:44px;min-width:44px}
 #shelfH{white-space:nowrap;flex:none}
 .addmini{white-space:nowrap}
 /* library header (15.10): ☰ · title · search 44 · balance text; search bar replaces the header; sort menu + add icon in «Моя полка» */
 .libhead,.libsearchbar{margin-bottom:14px;min-height:44px;gap:6px;flex-wrap:nowrap}.libhead h1{white-space:nowrap;min-width:0}
-.iconbtn44{width:44px;height:44px;min-width:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:12px;background:none;color:var(--txt)}
-.libgold{flex:none;white-space:nowrap;font-weight:600;font-size:15px;color:var(--txt);padding-left:2px}
+.iconbtn44{width:44px;height:44px;min-width:44px;flex:none;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--rq-radius-md);background:none;color:var(--txt)}
+.libgold{flex:none;white-space:nowrap;font-weight:600;font-size:0.9375rem;color:var(--txt);padding-left:2px}
 .libsearchbar[hidden],#libHead[hidden]{display:none!important}.libsearchbar .searchinp{flex:1;min-width:0;margin:0}
-.lsortwrap{position:relative;flex:none}.lsortbtn{height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border:0;border-radius:12px;background:var(--card2);color:var(--txt);font:inherit;font-size:14px;white-space:nowrap}
+.lsortwrap{position:relative;flex:none}.lsortbtn{height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border:0;border-radius:var(--rq-radius-md);background:var(--card2);color:var(--txt);font:inherit;font-size:0.875rem;white-space:nowrap}
 .lsortbtn .lsl{white-space:nowrap}
-.lsortmenu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:200px;padding:4px 0;border-radius:12px;background:var(--card);color:var(--txt);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.lsortmenu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:200px;padding:4px 0;border-radius:var(--rq-radius-md);background:var(--card);color:var(--txt);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .lsortmenu[hidden]{display:none!important}
-.lsortmenu .lso{display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:0;background:none;color:var(--txt);font:inherit;font-size:15px;text-align:left}
+.lsortmenu .lso{display:flex;align-items:center;gap:10px;width:100%;height:48px;padding:0 14px;border:0;background:none;color:var(--txt);font:inherit;font-size:0.9375rem;text-align:left}
 .lsortmenu .lso span{flex:1}.lsortmenu .lso svg{color:var(--accent);visibility:hidden}.lsortmenu .lso[aria-checked="true"] svg{visibility:visible}
 /* 18.10 (Джессика, как в ReadEra): «⋮» в шапке библиотеки — Фильтр / Сортировка / Вид, каждый открывает свой список; строки фильтров под шапкой убраны */
 #libHead{gap:4px}#libHead #libSortBtn{width:28px;min-width:28px}.libhead h1{overflow:hidden;text-overflow:ellipsis}
 #library > .scroll > .wrap{position:relative} /* «⋮» menu sits outside #libHead (skins clip the header band and recolour its buttons); libSortMenu places it under the button */
 #libSortMenu{top:0;min-width:240px;max-width:calc(100vw - 32px);max-height:min(70vh,520px);overflow-y:auto}
 .lsortmenu .lsopane[hidden]{display:none}
-.lsortmenu .lsonav svg,.lsortmenu .lsoback svg{visibility:visible;color:var(--rq-text-2,var(--muted))}
-.lsortmenu .lsonav span{flex:1}.lsortmenu .lsonav .lsov{flex:none;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--rq-text-2,var(--muted))}
+.lsortmenu .lsonav svg,.lsortmenu .lsoback svg{visibility:visible;color:var(--muted)}
+.lsortmenu .lsonav span{flex:1}.lsortmenu .lsonav .lsov{flex:none;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.8125rem;color:var(--muted)}
 .lsortmenu .lsoback{font-weight:700;border-bottom:1px solid var(--rq-line,var(--line))}.lsortmenu .lsoback span{flex:1}
 .lsortmenu .lso[data-f] span,.lsortmenu .lso[data-a] span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lsortmenu .lsoadd svg{visibility:visible}
@@ -1018,11 +1066,11 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 
 #rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:10px;padding:8px;font-size:12px;color:var(--muted)}
-.tierseg button.on{background:var(--accent);color:#fff}
+.tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:var(--rq-radius-sm);padding:8px;font-size:0.75rem;color:var(--muted)}
+.tierseg button.on{background:var(--accent);color:var(--on-accent)}
 .mvp-quest{margin-bottom:10px}
 .mvp-quest .pbar{margin-top:8px}
-.mvp-hist{font-size:12px;color:var(--muted);margin-top:10px}
+.mvp-hist{font-size:0.75rem;color:var(--muted);margin-top:10px}
 .mvp-hist li{margin:4px 0}
 body.mvp .mvp-hide{display:none!important}
 /* wave 2 (15.10): «Анимации» off (html.rq-still) or prefers-reduced-motion → no animations, no transitions anywhere */
@@ -1042,7 +1090,7 @@ body.mvp #btnProfSetup{display:none!important}
 body.mvp #mvpProfileBlock{display:block}
 #sumDailyBox{display:none;margin:12px 0;text-align:left}
 body.mvp #sumDailyBox{display:block}
-.tinyava{width:22px;height:22px;border-radius:50%;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-size:12px;margin-right:4px;vertical-align:middle;overflow:hidden}
+.tinyava{width:22px;height:22px;border-radius:50%;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;margin-right:4px;vertical-align:middle;overflow:hidden}
 .tinyava svg{width:100%;height:100%}
 
 /* ===== 1в: Lucide icons (one sprite, stroke currentColor) ===== */
@@ -1065,7 +1113,7 @@ body.mvp #sumDailyBox{display:block}
 html[data-skin="pencil"] :is(.ghostbtn:not(.sw),.stepbtn,.seg:not(#appThemeBox):not(#appSkinBox) button,.fchip,.addmini,.searchinp,input[type=text],input[type=password],input[type=search],select,textarea){
   border-style:solid;border-width:2px;border-color:var(--rq-skin-border);border-radius:var(--radius);box-shadow:none!important;border-image:none;outline-offset:2px}
 html[data-skin="pencil"] :is(.ghostbtn,.stepbtn,.seg button,.fchip)::after{content:none}
-html[data-skin="pencil"] .ghostbtn.sw{box-sizing:border-box;width:44px;min-width:44px;height:24px;min-height:0;padding:0;border:0;border-radius:999px;box-shadow:none!important;
+html[data-skin="pencil"] .ghostbtn.sw{box-sizing:border-box;width:44px;min-width:44px;height:24px;min-height:0;padding:0;border:0;border-radius:var(--rq-radius-pill);box-shadow:none!important;
   background:color-mix(in srgb,var(--rq-line) 30%,transparent)}
 html[data-skin="pencil"] .ghostbtn.sw[aria-checked="true"]{background:var(--rq-accent)}
 html[data-skin="pencil"] .ghostbtn.sw::before{content:none}
@@ -1079,20 +1127,20 @@ html[data-skin="pencil"] :is(#settings,#look) .setrow{flex-wrap:wrap}html[data-s
 html[data-skin="pencil"] :is(#settings,#look) .setrow>.lab{flex:1 1 120px}
 html[data-skin="pencil"] :is(#settings,#look) .setrow>:is(button,.btnpair,b){margin-left:auto}
 /* theme tiles with captions (both skins) */
-.xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:12px;background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:13px}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.xrow{display:flex;align-items:center;gap:10px;width:100%;height:52px;min-height:52px;box-sizing:border-box;padding:0 14px;margin:4px 0;border-radius:var(--rq-radius-md);background:var(--card2);color:var(--txt);border:0;font:inherit;text-align:left}button.xrow.xrow{height:52px!important;min-height:52px!important;flex:1 1 auto}.xrow .xl{color:var(--muted);font-size:0.8125rem}.xrow .xv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
 :is(#appThemeBox,#appSkinBox)[hidden],#fontSeg[hidden]{display:none!important}
 .xdot{width:22px;height:22px;border-radius:50%;flex:none;box-sizing:border-box;border:2px solid var(--muted);box-shadow:none} /* 2px ring like list samples */
-.xrow .xlab{flex:1 1000 auto;min-width:0;display:flex;flex-direction:column;gap:2px}.xrow .xt{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xsub{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xlab~.xv{flex:0 1 auto;min-width:0;max-width:none;font-weight:400}.xrow .xt{flex:none}
+.xrow .xlab{flex:1 1000 auto;min-width:0;display:flex;flex-direction:column;gap:2px}.xrow .xt{font-weight:600;font-size:0.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xsub{color:var(--muted);font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xrow .xlab~.xv{flex:0 1 auto;min-width:0;max-width:none;font-weight:400}.xrow .xt{flex:none}
 button.xrow:is(#appThemeX,#appSkinX){background:none!important;padding-left:0!important;padding-right:0!important;border-radius:0;box-shadow:none} /* Интерфейс: no fill, icon/text aligned with the block's rows */ /* variant A: title never shrinks, value takes the rest, ellipsis only as last resort */
 .xdot.xdot-skin{display:flex;align-items:center;justify-content:center;color:var(--txt)}.xdot.xdot-skin svg{width:14px;height:14px}html[data-skin="pencil"] .xdot.xdot-skin{border-color:var(--rq-skin-border);color:var(--rq-skin-border)}
-.xrow .xs{width:32px;flex:none;font-size:18px;text-align:center}.xrow .xs~.xl{color:var(--txt);font-size:15px}
+.xrow .xs{width:32px;flex:none;font-size:1.125rem;text-align:center}.xrow .xs~.xl{color:var(--txt);font-size:0.9375rem}
 /* expanded lists = mockups sf-1g-fonts / sf-1g-themes: 52px rows, sample, label, check on the current one */
 #fontSeg.xlist,:is(#appThemeBox,#appSkinBox).xlist{display:flex!important;flex-direction:column;gap:0;margin:0 0 8px;width:100%}
 #fontSeg.xlist[hidden],:is(#appThemeBox,#appSkinBox).xlist[hidden]{display:none!important}
-.xopt{display:flex!important;align-items:center;gap:14px;width:100%;min-height:52px;height:52px;padding:0 6px;background:none!important;border:0;border-bottom:1px solid var(--card2);border-radius:0!important;color:var(--txt);text-align:left;font-size:17px}
-.xopt .xs{width:36px;font-size:18px;text-align:center;flex:none}.xopt .xn{flex:1;min-width:0;font-size:17px}.xopt .xm{visibility:hidden;color:var(--accent);display:flex}.xopt.on .xm{visibility:visible}
+.xopt{display:flex!important;align-items:center;gap:14px;width:100%;min-height:52px;height:52px;padding:0 6px;background:none!important;border:0;border-bottom:1px solid var(--card2);border-radius:0!important;color:var(--txt);text-align:left;font-size:1.0625rem}
+.xopt .xs{width:36px;font-size:1.125rem;text-align:center;flex:none}.xopt .xn{flex:1;min-width:0;font-size:1.0625rem}.xopt .xm{visibility:hidden;color:var(--accent);display:flex}.xopt.on .xm{visibility:visible}
 :is(#appThemeBox,#appSkinBox).xlist .apptile{flex-direction:row;gap:14px;min-height:52px;height:52px;padding:0 6px;border-bottom:1px solid var(--card2);cursor:pointer}
-:is(#appThemeBox,#appSkinBox).xlist .apptile small{flex:1;text-align:left;font-size:16px;color:var(--txt)}
+:is(#appThemeBox,#appSkinBox).xlist .apptile small{flex:1;text-align:left;font-size:1rem;color:var(--txt)}
 :is(#appThemeBox,#appSkinBox).xlist .apptile .appsw{width:36px;height:36px;flex:none}
 :is(#appThemeBox,#appSkinBox).xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}:is(#appThemeBox,#appSkinBox).xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}:is(#appThemeBox,#appSkinBox).xlist .apptile small{white-space:nowrap}
 .srow:has(#fontSegX){flex-wrap:wrap}.srow:has(#fontSegX) > .seg,#fontSeg.xlist{width:100%;flex:1 1 100%}
@@ -1100,17 +1148,17 @@ button.xrow:is(#appThemeX,#appSkinX){background:none!important;padding-left:0!im
 :is(#appThemeBox,#appSkinBox).xlist .apptile.on .chk{visibility:visible}
 :is(#appThemeBox,#appSkinBox){display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px 6px;margin:4px 0 8px}
 .apptile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
-.apptile small{font-size:11px;line-height:1.2;color:var(--muted);text-align:center;white-space:nowrap}
+.apptile small{font-size:0.6875rem;line-height:1.2;color:var(--muted);text-align:center;white-space:nowrap}
 .apptile.on small{color:var(--txt);font-weight:700}
-.apptile .chk{display:none;position:absolute;top:-4px;right:calc(50% - 26px);width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center}
+.apptile .chk{display:none;position:absolute;top:-4px;right:calc(50% - 26px);width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--on-accent);align-items:center;justify-content:center}
 .apptile.on .chk{display:flex}
 html[data-skin="pencil"] .apptile .chk{background:var(--rq-accent);color:var(--rq-on-accent)}
 /* ===== 1в: «Настройки чтения» sheet ===== */
 #sheet{padding-top:8px}
-#sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--muted);opacity:.5;margin:0 auto 10px}
-#sheet h3{font-size:20px;font-weight:700;margin:2px 0 12px}
+#sheet .grab{width:36px;height:4px;border-radius:var(--rq-radius-xs);background:var(--muted);opacity:.5;margin:0 auto 10px}
+#sheet h3{font-size:1.25rem;font-weight:700;margin:2px 0 12px}
 .settabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 0 10px}
-.settabs button{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding:8px 2px;border-radius:var(--rq-radius-md,14px);color:var(--muted);font-size:12px}
+.settabs button{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding:8px 2px;border-radius:var(--rq-radius-md,14px);color:var(--muted);font-size:0.75rem}
 .settabs button.on{background:var(--card2);color:var(--txt);font-weight:700}
 .settabs button.on .ic{color:var(--accent)}
 #sheet .srow label{width:96px}
@@ -1119,33 +1167,40 @@ html[data-skin="pencil"] .apptile .chk{background:var(--rq-accent);color:var(--r
 #sheet .rrow{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 0;border-bottom:1px solid var(--card2)}
 #sheet .rrow:last-child{border-bottom:0}
 #sheet .rrow.stack{flex-direction:column;align-items:stretch;gap:8px;padding:10px 0}
-#sheet .rl{flex:1;min-width:0;font-size:14px;color:var(--txt);line-height:1.25;overflow-wrap:break-word}
-#sheet .rl small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+#sheet .rl{flex:1;min-width:0;font-size:0.875rem;color:var(--txt);line-height:1.25;overflow-wrap:break-word}
+#sheet .rl small{display:block;font-size:0.75rem;color:var(--muted);margin-top:2px}
 #sheet .rlv{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 #sheet .rlv label{font:inherit;color:inherit;width:auto}
-#sheet .rv{font-size:14px;color:var(--txt);font-variant-numeric:tabular-nums}
-#sheet .rstep{flex:none;display:inline-flex;align-items:center;background:var(--card2);border-radius:12px}
-#sheet .rstep button{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--txt);border-radius:12px;background:none}
+#sheet .rv{font-size:0.875rem;color:var(--txt);font-variant-numeric:tabular-nums}
+#sheet .rstep{flex:none;display:inline-flex;align-items:center;background:var(--card2);border-radius:var(--rq-radius-md)}
+#sheet .rstep button{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--txt);border-radius:var(--rq-radius-md);background:none}
 #sheet .rstep button:active{background:rgba(127,127,127,.18)}
 #sheet .rstep .rv{min-width:48px;text-align:center}
-#sheet .rseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:3px;background:var(--card2);border-radius:12px}
-#sheet .rseg button{min-height:40px;padding:0 6px;border-radius:9px;font-size:14px;color:var(--txt);background:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sheet .rseg button.on{background:var(--accent);color:#fff;font-weight:600}
+#sheet .rseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:3px;background:var(--card2);border-radius:var(--rq-radius-md)}
+#sheet .rseg button{min-height:44px;padding:0 6px;border-radius:var(--rq-radius-sm);font-size:0.875rem;color:var(--txt);background:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sheet .rseg button.on{background:var(--accent);color:var(--on-accent);font-weight:600}
 #sheet .rseg button:disabled{opacity:.45}
-#sheet .rnote{font-size:12px;color:var(--muted);line-height:1.35;padding:6px 0 4px}
+#sheet .rnote{font-size:0.75rem;color:var(--muted);line-height:1.35;padding:6px 0 4px}
 #sheet .rnote[hidden]{display:none}
 #sheet .rsw{position:relative;flex:none;width:52px;height:44px;padding:0;background:none;border:0}
-#sheet .rsw::before{content:"";position:absolute;left:0;top:7px;width:52px;height:30px;box-sizing:border-box;border-radius:999px;border:2px solid var(--muted)}
+#sheet .rsw::before{content:"";position:absolute;left:0;top:7px;width:52px;height:30px;box-sizing:border-box;border-radius:var(--rq-radius-pill);border:2px solid var(--muted)}
 #sheet .rsw::after{content:"";position:absolute;top:12px;left:5px;width:20px;height:20px;border-radius:50%;background:var(--muted)}
 #sheet .rsw[aria-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
 #sheet .rsw[aria-checked="true"]::after{transform:translateX(22px);background:#fff}
 @media (prefers-reduced-motion:no-preference){#sheet .rsw::after{transition:transform var(--rq-dur-fast,150ms)}}
 #sheet .rcolors{flex:none;display:flex;align-items:center;gap:8px}
-#sheet .rcol{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);width:auto}
-#sheet .rcol input{width:40px;height:30px;padding:0;border:0;border-radius:8px;background:none}
-#sheet #cReset{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;background:var(--card2);color:var(--txt)}
+#sheet .rcol{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:0.6875rem;color:var(--muted);width:auto}
+#sheet .rcol input{width:40px;height:30px;padding:0;border:0;border-radius:var(--rq-radius-sm);background:none}
+#sheet #cReset{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--rq-radius-md);background:var(--card2);color:var(--txt)}
 #sheet #themeSeg{gap:10px}
 #sheet #themeSeg .swatch{width:44px;height:44px;min-width:44px}
+#themeSeg .swwrap{position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:4px;width:56px;cursor:pointer}
+#themeSeg .swwrap small{font-size:var(--rq-fs-caption,11px);color:var(--muted);line-height:1.15;text-align:center;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#themeSeg .swchk{display:none;position:absolute;top:-3px;right:2px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--on-accent);align-items:center;justify-content:center}
+#themeSeg .swwrap:has(.swatch.on) .swchk{display:flex}
+#themeSeg .swatch.on{box-shadow:0 0 0 2px var(--focus-ring)!important}
+#sheet{min-height:min(560px,75vh)} /* audit 19.10 RD-SET-01: the sheet keeps its height between tabs */
+@media (max-width:380px){#sheet .rseg:has(> button:nth-child(4)){grid-auto-flow:row;grid-template-columns:1fr 1fr}} /* audit 19.10 RD-SET-04 */
 #sheet input[type=range]{width:100%;min-height:44px}
 html[data-skin="pencil"] #sheet .rstep,html[data-skin="pencil"] #sheet .rseg,html[data-skin="pencil"] #sheet #cReset{background:var(--rq-surface-2);box-shadow:inset 0 0 0 1px var(--rq-line)}
 html[data-skin="pencil"] #sheet .rseg button.on{background:var(--rq-accent);color:var(--rq-on-accent)}
@@ -1158,6 +1213,10 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
    Hidden = transform + opacity + visibility (delayed so the slide-out is seen), never display:none. */
 #reader .rhead{position:absolute;top:0;left:0;right:0;z-index:30}
 #reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
+/* audit 19.10 RD-PANEL-02: a soft 24 px fade at the panels' inner edges, so a cut line reads as covered, not broken */
+#reader .rhead::after,#reader .rbot::before{content:"";position:absolute;left:0;right:0;height:24px;pointer-events:none}
+#reader .rhead::after{top:100%;background:linear-gradient(var(--bar),transparent)}
+#reader .rbot::before{bottom:100%;background:linear-gradient(transparent,var(--bar))}
 #reader .rhead,#reader .rbot{transition:transform .26s cubic-bezier(.2,.7,.3,1),opacity .2s ease,visibility 0s linear 0s}
 #reader.barsoff .rhead,#reader.barsoff .rbot{opacity:0;visibility:hidden;pointer-events:none;transition:transform .22s cubic-bezier(.4,0,.6,1),opacity .2s ease,visibility 0s linear .22s}
 #reader.barsoff .rhead{transform:translateY(-100%)}
@@ -1175,14 +1234,14 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
 #sheet input[type=range]{flex:1;accent-color:var(--rq-accent)}
 .gsetrow{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:14px 4px 4px;border-top:1px solid rgba(127,127,127,.25);text-align:left;color:var(--txt)}
 .gsetrow span{flex:1;display:flex;flex-direction:column;gap:2px}
-.gsetrow b{font-size:15px}.gsetrow small{font-size:12px;color:var(--muted)}
+.gsetrow b{font-size:0.9375rem}.gsetrow small{font-size:0.75rem;color:var(--muted)}
 /* ===== 1в: «Общие настройки» ===== */
 #settings.over{z-index:95;background:var(--bg)}
 .gset .setrow>.ic{color:var(--muted)}
-.gset h2{font-size:13px;margin:18px 0 8px}
+.gset h2{font-size:0.8125rem;margin:18px 0 8px}
 .gset .pcard{padding:4px 14px}
 .btnpair{display:flex;gap:6px}
-.ghostbtn.sw{position:relative;width:52px;height:30px;min-width:52px;padding:0;border-radius:999px;border:2px solid var(--muted);background:transparent;font-size:0;color:transparent;flex:none}
+.ghostbtn.sw{position:relative;width:52px;height:30px;min-width:52px;padding:0;border-radius:var(--rq-radius-pill);border:2px solid var(--muted);background:transparent;font-size:0;color:transparent;flex:none}
 .ghostbtn.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform var(--rq-dur-fast,150ms)}
 .ghostbtn.sw[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
 .ghostbtn.sw[aria-checked="true"]::after{transform:translateX(22px);background:#fff}
@@ -1193,7 +1252,7 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
    App palette vars are bridged to the skin tokens (!important beats the inline --bg/... of applyAppTheme); chrome that had
    hard-coded white-on-teal gets skin colours. The book page itself stays flat (--r-*, README rule A). */
 html[data-skin="pencil"]{--bg:var(--rq-bg)!important;--card:var(--rq-surface)!important;--card2:var(--rq-surface-2)!important;--txt:var(--rq-text)!important;
-  --muted:var(--rq-text-2)!important;--accent:var(--rq-accent)!important;--accent2:var(--rq-coin)!important;--good:var(--rq-success)!important;
+  --muted:var(--rq-text-2)!important;--accent:var(--rq-accent)!important;--accent2:var(--rq-coin)!important;--good:var(--rq-success)!important;--on-accent:var(--rq-on-accent)!important;--focus-ring:var(--rq-focus)!important;--danger:var(--rq-danger)!important;
   --bar:var(--rq-surface)!important;--sheet:var(--rq-sheet)!important;--drawer:var(--rq-surface)!important;--rq-icon-stroke:1.9}
 html[data-skin="pencil"] body{font-family:var(--rq-font-ui)}
 html[data-skin="pencil"] [data-page]{--rq-accent:inherit;--rq-accent-text:inherit} /* stage1 night page accent must not override the skin accent */
@@ -1240,16 +1299,16 @@ html[data-skin="pencil"] svg.pc-only,html[data-skin="pencil"] span.pc-only{displ
 html[data-skin="pencil"] div.pc-only{display:block!important}
 html[data-skin="pencil"]{--pc-frame:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%233d3d3a' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%233d3d3a' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-frame-n:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%23cfccc3' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%23cfccc3' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-fw:12px;--rq-page-bg:#fbfaf6;--rq-slider-track:#8f8c84}
 html[data-skin="pencil"][data-theme="night"]{--pc-frame:var(--pc-frame-n);--rq-page-bg:#262a31;--rq-slider-track:#7c828c}
-html[data-skin="pencil"] #libTitle,html[data-skin="pencil"] #profile h1,html[data-skin="pencil"] #rewardsSheet h3{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:32px;line-height:1.1;letter-spacing:0}
-html[data-skin="pencil"] #rewardsSheet h3{font-size:28px}
+html[data-skin="pencil"] #libTitle,html[data-skin="pencil"] #profile h1,html[data-skin="pencil"] #rewardsSheet h3{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:2rem;line-height:1.1;letter-spacing:0}
+html[data-skin="pencil"] #rewardsSheet h3{font-size:1.75rem}
 /* pencil section labels in sentence case («Моя полка», «Задания»), not uppercase; ids/keys unchanged */
-html[data-skin="pencil"] :is(#shelfH,#mvpQuestH){text-transform:none;letter-spacing:0;font-size:18px;font-weight:700;color:var(--rq-text)}
+html[data-skin="pencil"] :is(#shelfH,#mvpQuestH){text-transform:none;letter-spacing:0;font-size:1.125rem;font-weight:700;color:var(--rq-text)}
 /* baked hand-drawn outline: 9-slice SVG (two jittered strokes) on a pseudo element — text never filtered */
 html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.badge,.sumcell){position:relative;box-shadow:none!important;border-color:transparent}
 html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){overflow:hidden}
 /* card paper sits exactly inside the drawn line (the 9-slice stroke is ~2.5px in from the edge, corner ~10px): no paper strip outside the frame */
-html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){isolation:isolate;background:transparent!important;border-radius:12px}
-html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell)::before{content:"";position:absolute;inset:2.5px;z-index:-1;border-radius:10px;background:var(--rq-surface);pointer-events:none}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell){isolation:isolate;background:transparent!important;border-radius:var(--rq-radius-md)}
+html[data-skin="pencil"] :is(.goalcard,.kpi,.qcard,.pcard,.shopcard,.sumcell)::before{content:"";position:absolute;inset:2.5px;z-index:-1;border-radius:var(--rq-radius-sm);background:var(--rq-surface);pointer-events:none}
 html[data-skin="pencil"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.badge,.sumcell)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:var(--pc-fw) solid transparent;border-image:var(--pc-frame) 14 / var(--pc-fw) stretch}
 html[data-skin="pencil"] .chip{border:1.2px solid var(--rq-skin-border);border-radius:9px 7px 10px 6px/7px 10px 6px 9px}
 html[data-skin="pencil"] .fchip{min-height:44px;padding:7px 14px;background:var(--rq-surface);color:var(--rq-text)}
@@ -1260,8 +1319,8 @@ html[data-skin="pencil"] .pbar{background:var(--rq-skin-daybar-track);height:4px
 /* covers: hatched tile + Lucide icon + format label on a clean plate (README D: no text on hatching) */
 .pc-cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;color:var(--rq-skin-border);
   background:var(--rq-surface) repeating-linear-gradient(-45deg,transparent 0 4px,color-mix(in srgb,var(--rq-skin-hatch) 45%,transparent) 4px 5px)}
-.pc-cover i{font:700 8px/1 var(--rq-font-ui);font-style:normal;letter-spacing:.06em;color:var(--rq-text-2);background:var(--rq-surface);padding:1px 3px;margin-top:3px}
-html[data-skin="pencil"] .cover{background:none;border-radius:4px;box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
+.pc-cover i{font:700 10px/1 var(--rq-font-ui);font-style:normal;letter-spacing:.06em;color:var(--rq-text-2);background:var(--rq-surface);padding:1px 3px;margin-top:3px}
+html[data-skin="pencil"] .cover{background:none;border-radius:var(--rq-radius-xs);box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
 /* bottom nav + avatars */
 html[data-skin="pencil"] .botnav-btn .ic{width:22px;height:22px}
 html[data-skin="pencil"] .tinyava{display:inline-flex;align-items:center;justify-content:center;color:var(--rq-text-2);background:none}
@@ -1270,13 +1329,13 @@ html[data-skin="pencil"] #avatarFrame>.gearlayer,html[data-skin="pencil"] #avata
 html[data-skin="pencil"] .pc-ava{color:var(--rq-text)}
 /* session summary (mockup pencil-session-summary): drawing, Caveat title, subtitle, 2 boxed cells (минуты, страницы), daily row, week dots */
 html[data-skin="pencil"] #sumArt{margin:0 auto 6px}
-html[data-skin="pencil"] #sumHead{font-family:var(--rq-skin-font-heading);font-size:34px!important;font-weight:700!important;color:var(--rq-text)!important;line-height:1.1}
-html[data-skin="pencil"] #sumSub{font-size:12px;color:var(--rq-text-2);margin-top:4px}
+html[data-skin="pencil"] #sumHead{font-family:var(--rq-skin-font-heading);font-size:2.125rem!important;font-weight:700!important;color:var(--rq-text)!important;line-height:1.1}
+html[data-skin="pencil"] #sumSub{font-size:0.75rem;color:var(--rq-text-2);margin-top:4px}
 html[data-skin="pencil"] #sumXp,html[data-skin="pencil"] #sumStreak{display:none}
 html[data-skin="pencil"] .sumcell{background:var(--rq-surface)!important;padding:14px 10px}
 html[data-skin="pencil"] .sumcell:has(#sumMin){order:-1}
 html[data-skin="pencil"] #sumDailyBox{background:var(--rq-surface)!important}
-html[data-skin="pencil"] #sumQuestGold{margin-top:8px;font-weight:700;font-size:14px;color:var(--rq-text)}
+html[data-skin="pencil"] #sumQuestGold{margin-top:8px;font-weight:700;font-size:0.875rem;color:var(--rq-text)}
 html[data-skin="pencil"] .pc-week{display:flex;align-items:center;gap:8px;justify-content:space-between}
 #sumWeekDots{white-space:nowrap}
 #sumWeekDots svg{margin-left:4px;vertical-align:middle}
@@ -1296,17 +1355,42 @@ html[data-skin="pencil"] #avatarFrame>.avatar{display:flex!important}
 .tinyava{background:var(--hero-bg)}
 .heroframe{display:block;width:100%;aspect-ratio:72/92;background:transparent}
 .heroframe svg{display:block;width:100%;height:100%}
-.heroprev{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;background:var(--card);margin-bottom:10px}
+.heroprev{display:flex;align-items:center;gap:14px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:10px}
 .heroprev .heroframe.big{width:112px;flex:none}
-.heroskinnote{margin:0 0 10px;font-size:13px;color:var(--muted)}.heroprevtx{display:flex;flex-direction:column;gap:4px;min-width:0}.heroprevtx span{font-size:13px;color:var(--muted)}
+.heroskinnote{margin:0 0 10px;font-size:0.8125rem;color:var(--muted)}.heroprevtx{display:flex;flex-direction:column;gap:4px;min-width:0}.heroprevtx span{font-size:0.8125rem;color:var(--muted)}
 .herogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.heroitem{padding:8px}.heroitem .shopname{font-size:14px;line-height:1.2}.heroitem .shopprice{font-size:12px}.heroitem .shopcta{width:100%;padding-left:4px;padding-right:4px}
-.herocolrow{display:flex;align-items:center;gap:6px;margin:2px 0 4px;font-size:13px;color:var(--muted);cursor:pointer}
+.heroitem{padding:8px}.heroitem .shopname{font-size:0.875rem;line-height:1.2}.heroitem .shopprice{font-size:0.75rem}.heroitem .shopcta{width:100%;padding-left:4px;padding-right:4px}
+.herocolrow{display:flex;align-items:center;gap:6px;margin:2px 0 4px;font-size:0.8125rem;color:var(--muted);cursor:pointer}
 .herocolpick{position:relative;width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 0 0 2px var(--card),0 0 0 3px var(--muted);overflow:hidden}
 .herocolpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .heroitem.trying{box-shadow:inset 0 0 0 2px var(--rq-accent)}
 #heroShop[hidden],#shopList[hidden]{display:none}
 .shopkinds .fchip{margin:0}
+/* ===== audit 19.10 GL-02: every control ≥ 44 px on its short side (visual size kept where the hit area can grow instead) ===== */
+.menubtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.infobtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:-6px -8px -6px 0}
+:is(.fchip,.achv-chip,.rseg button,#langSeg button,.miniadd,.prow.add,.ghostbtn:not(.sw),.tierseg button,.setcats button){min-height:44px}
+.fchip{display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.bk-shelves .fchip:not(.on){color:var(--txt);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--muted) 45%,transparent)} /* audit 19.10 LIB-05: an option reads as an option */
+.bk-shelves .fchip[disabled]{color:var(--muted);background:transparent;box-shadow:none;border:1px dashed color-mix(in srgb,var(--muted) 60%,transparent)}
+.ghostbtn.sw::before{content:"";position:absolute;inset:-9px -4px}
+html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset:-12px -2px;border:0;background:none}
+#cTxt,#cBg{min-width:44px;min-height:44px}
+#selpop button{min-width:44px;min-height:44px;justify-content:center}
+#rqTestReset{min-height:32px;padding:0 12px}
+#libSearch::-webkit-search-cancel-button{-webkit-appearance:none;display:none} /* audit 19.10 FR-02: one ✕ (ours) */
+#shelf .bookcard.rq-new .cover{outline:2px solid var(--accent);outline-offset:2px} /* audit 19.10 LIB-08 */
+#panelBody .pempty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 12px;font-size:var(--rq-fs-body,15px);color:var(--muted);text-align:center} /* audit 19.10 FR-03 */
+/* audit 19.10 GL-09: Lucide «plus» in place of the full-width ＋ */
+.miniadd,.addbtn,#btnAddRewardSlot{display:flex;align-items:center;justify-content:center;gap:6px}#btnAddRewardSlot{display:inline-flex}
+/* audit 19.10 SUM-04 */#sumFin{display:inline-flex;align-items:center;gap:6px;margin:8px auto 0;padding:6px 12px;border-radius:var(--rq-radius-pill);background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--txt);font-size:0.875rem;font-weight:600}#sumFin.hidden{display:none}
+/* audit 19.10 ACH-02: section chips in one scrolling row */.achv-chips.achv-secs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}.achv-chips.achv-secs::-webkit-scrollbar{display:none}.achv-secs .achv-chip{flex:none;white-space:nowrap;overflow-wrap:normal}
+/* audit 19.10 SK-06/ACH-03: secondary achievement text at full muted strength, never faded */.achv-sub,.achv-desc{opacity:1}
+/* audit 19.10 ADV-02 */.cta[disabled]{opacity:.5;cursor:default}
+/* audit 19.10 QST-02 */.chip{white-space:nowrap;flex:none}
+/* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
+/* audit 19.10 SET-01: only Russian on the test */.rq-lean .setlang{display:none}
+/* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
 <link rel="stylesheet" href="skins/skins.css"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
@@ -1332,8 +1416,11 @@ body:has(#reader:not(.hidden)) #rqTestBanner,body:has(#reader:not(.hidden)) #rqT
 body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}
 /* 1б-fix #2: the 24 px banner lay OVER the first text line in the reader (review: «half a line on top»). In the reader only a 3 px stripe stays as the test marker */
 /* 16.10: in focus mode the reader is fullscreen, env(safe-area-inset-top) is the camera cutout (~30 px) while the text starts at 0, so the stripe hung across the title line. In the reader it sits on the very top edge */
+/* audit 19.10 GL-08: outside the reader the 32 px banner is a strip of its own — screens, the drawer and full-screen pages start below it */
+html.rq-test .screen:not(#reader),html.rq-test #drawer,html.rq-test #shopDetail,html.rq-test #achPage,html.rq-test .navcfg{top:calc(32px + env(safe-area-inset-top,0px))!important}
+html.rq-test .navcfg{padding-top:16px}
 body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!important;font-size:0!important;overflow:hidden;background:var(--rq-test-strip)!important}</style>
-<div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:24px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
+<div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:32px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>
 /* Test build only (NS!=='rq'): banner + reset that deletes ONLY this namespace (rqt* keys, readquest-test DB, rqt-* caches). */
 (function(){
@@ -1391,7 +1478,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     return true;
   };
   if(ns==='rq')return;
-  document.getElementById('rqTestBanner').classList.remove('hidden');
+  document.getElementById('rqTestBanner').classList.remove('hidden');document.documentElement.classList.add('rq-test'); /* audit 19.10 GL-08: screens start under the banner */
   document.getElementById('rqTestReset').addEventListener('click',function(){window.__rqTestReset();});
 })();
 </script>
@@ -1464,7 +1551,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <text id="ringTxt" x="40" y="45" text-anchor="middle">0%</text>
       </svg>
       <div>
-        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">＋</button></div>
+        <div class="row" style="gap:8px;align-items:center"><b id="goalTitle">Цель 10 мин</b><button class="stepbtn mvp-hide" id="goalMinus">−</button><button class="stepbtn mvp-hide" id="goalPlus">+</button></div>
         <div class="sub" id="goalSub">Сегодня: 0 мин</div><div class="bbhatch" id="bbHatch" aria-hidden="true"></div>
         <div class="streakline"><span id="streakAva" class="tinyava mvp-only" style="display:none"></span><span id="streakTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-flame"/></svg><span>0 дней</span></span><span id="lvlTxt"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-star"/></svg><span>Ур. 1</span></span></div>
       </div>
@@ -1535,7 +1622,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <h2>Награды из реальной жизни</h2>
       <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Придумайте награду и назначьте цену. Золото зарабатывается только чтением — заслужите её честно.</div>
       <div id="shopRewards"></div>
-      <button class="addbtn" id="btnAddReward">＋ Добавить свою награду</button>
+      <button class="addbtn" id="btnAddReward"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg>Добавить свою награду</button>
     </div>
   </div></div>
 </div>
@@ -1551,10 +1638,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     </div>
     <h2>Язык и напоминание</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
+      <div class="setrow setlang"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
       <div class="setrow setrow-time"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время напоминания</div>
-        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">＋</button></span></div>
+        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">+</button></span></div>
     </div>
     <h2>Управление</h2>
     <div class="pcard">
@@ -1565,7 +1652,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><div class="lab">Экспорт и импорт<div class="sub">Резервная копия в файл (JSON)</div></div><span class="btnpair"><button class="ghostbtn" id="btnExport">Сохранить</button><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></span></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><div class="lab">Журнал запуска<div class="sub">Пришлите его, если приложение долго открывалось</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
       <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
-      <div class="setrow"><div class="lab" style="color:#ff8a80">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+      <div class="setrow setdanger"><div class="lab" style="color:var(--danger)">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
     </div>
     <h2>О приложении</h2>
     <div class="pcard">
@@ -1579,18 +1666,18 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <h2>Честное чтение</h2>
     <div class="pcard">
       <div class="setrow"><div class="lab">Мин. время на страницу<div class="sub">Быстрее — страница не идёт в прогресс.<span class="mvp-hide"> Настройте под свою скорость чтения.</span></div></div>
-        <button class="stepbtn mvp-hide" id="antiMinMinus">−</button><b id="antiMinVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMinPlus">＋</button></div>
+        <button class="stepbtn mvp-hide" id="antiMinMinus">−</button><b id="antiMinVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMinPlus">+</button></div>
       <div class="setrow"><div class="lab">Макс. время на страницу<div class="sub">Дольше — лишнее время не идёт в опыт (защита от «висящей» книги)</div></div>
-        <button class="stepbtn mvp-hide" id="antiMaxMinus">−</button><b id="antiMaxVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMaxPlus">＋</button></div>
+        <button class="stepbtn mvp-hide" id="antiMaxMinus">−</button><b id="antiMaxVal" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="antiMaxPlus">+</button></div>
       <div class="setrow"><div class="lab">Цель дня</div>
-        <button class="stepbtn mvp-hide" id="goalMinus2">−</button><b id="goalVal2" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="goalPlus2">＋</button></div>
+        <button class="stepbtn mvp-hide" id="goalMinus2">−</button><b id="goalVal2" style="min-width:56px;text-align:center;white-space:nowrap"></b><button class="stepbtn mvp-hide" id="goalPlus2">+</button></div>
     </div>
     <h2 class="dev-only">Тест-режим</h2>
     <div class="pcard dev-only">
           </div>
     <h2 class="mvp-hide">Сложность книг</h2>
     <div class="pcard mvp-hide">
-      <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги ⓘ. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
+      <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
     </div>
     <h2 class="mvp-hide">ИИ-помощник (экспериментально)</h2>
     <div class="pcard mvp-hide">
@@ -1600,7 +1687,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     </div>
     <h2 class="mvp-hide">Сложность книг</h2>
     <div class="pcard mvp-hide">
-      <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги ⓘ. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
+      <div class="setrow"><div class="lab">Автоопределение сложности<div class="sub">По объёму и жанру. Вручную — в карточке книги. Сложнее книга — больше опыта и валюты (×1…×3)</div></div><button class="ghostbtn" id="autoDiffTgl">Вкл</button></div>
     </div>
     <h2 class="mvp-hide">ИИ-помощник (экспериментально)</h2>
     <div class="pcard mvp-hide">
@@ -1740,7 +1827,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div class="row rewhead"><h3 style="margin:0">Награды</h3><div class="spacer"></div><span class="chip" id="rewBalance">0 монет</span></div>
     <div id="rewPaneLife" role="tabpanel">
     <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Назначьте себе награды за чтение. Цена только по ступени, монеты дают квесты за чтение.</div>
-    <div class="row" style="margin-bottom:10px"><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button">＋ Слот</button></div>
+    <div class="row" style="margin-bottom:10px"><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg>Слот</button></div>
     <div id="rewSlots"></div>
     <h2 style="font-size:14px;margin-top:16px">История</h2>
     <ul class="mvp-hist" id="rewHist"></ul>
@@ -1759,7 +1846,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div id="dList"></div>
   <div class="spacer"></div>
   <button class="ditem dnight" id="dNight" type="button" role="switch" aria-checked="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><span class="dlab" id="dNightL">Ночной режим</span><span class="dsw" aria-hidden="true"><i></i></span></button>
-  <div class="dcap"><svg class="ic" width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg>закреплено в нижней панели</div>
+  <div class="dcap">«в панели» — закреплено в нижней панели</div>
 </aside>
 
 <!-- НИЖНЯЯ ПАНЕЛЬ (Общие настройки → Управление) -->
@@ -1791,17 +1878,17 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="pdfScroll" class="hidden" aria-label="PDF"></div>
     <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span class="pdfSpin" aria-hidden="true"></span><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="timerHint" class="hidden"></div>
-    <button id="navPrev" class="navbtn hidden">‹</button>
-    <button id="navNext" class="navbtn hidden">›</button>
     <div id="selpop" class="hidden">
       <button id="spHl"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg> Цитата</button>
       <button id="spNote"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg> Заметка</button>
       <button id="spWord" title="В словарь" aria-label="В словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></button>
-      <button id="spDict" aria-label="Словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
+      <button id="spDict" aria-label="Словарь" title="Словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
       <button id="spAI" class="mvp-hide"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg></button>
-      <button id="spCopy" aria-label="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
+      <button id="spCopy" aria-label="Копировать" title="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
     </div>
   </div>
+  <button id="navPrev" class="navbtn hidden" aria-label="Предыдущая страница">‹</button><!-- audit 19.10 RD-NAV-01: in the side field, outside #viewer -->
+  <button id="navNext" class="navbtn hidden" aria-label="Следующая страница">›</button>
   <div id="warmer"></div>
   <div id="dimmer"></div>
   <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
@@ -1821,7 +1908,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </nav>
   </div>
   <div class="sheet hidden" id="panel">
-    <button class="closes" id="panelClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+    <div class="phead"><b>Навигация</b><button class="closes" id="panelClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div><!-- audit 19.10 RD-PAN-01: × in its own row, never on a tab -->
     <div class="ptabs">
       <button id="tabToc" class="on">Главы</button>
       <button id="tabMarks">Закладки</button>
@@ -1883,9 +1970,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <svg id="sumArt" class="pc-only" width="120" height="86" viewBox="0 0 120 86" aria-hidden="true" focusable="false" fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="var(--rq-skin-hatch)" stroke-width="1" opacity=".8"><path d="M22 40l12-10M22 50l22-18M24 58l26-22M30 62l24-20M38 64l18-15M68 62l22-18M68 54l26-21M70 46l24-20M72 38l14-11"/></g><g stroke="var(--rq-skin-border)" stroke-width="1.8"><path d="M60 30.5C50 23 34 22.6 16.4 26.2l.6 38.3c17-3.4 31.8-3 43.4 4.6"/><path d="M60.2 30.4c10.5-7.6 26-8 43.5-4.1l-.8 38.4c-16.8-3.6-31.7-3.2-42.5 4.4"/><path d="M60.1 30.6l.3 38.5"/><path d="M14 30.4l-.3 38c17.5-3 33-2.7 46.2 4.9 13-7.6 29.2-8 46.4-4.8l.2-38.2"/></g><path d="M51 13.5l6.4 6.2L71.6 4.6" stroke="var(--rq-accent)" stroke-width="2.4"/></svg><div id="sumHead" style="font-size:15px;color:var(--muted)">Сессия завершена</div><div id="sumSub" class="pc-only"></div>
     <div class="bigxp" id="sumXp">+0 XP</div>
     <div class="lvlup hidden" id="lvlUp"></div>
+    <div id="sumLvl"><div id="sumLvlT"></div><div class="sumlvlbar" aria-hidden="true"><i id="sumLvlBar"></i></div></div><!-- audit 19.10 SUM-01 (R3): level + progress in every summary -->
     <div class="lvlup hidden" id="luckLbl" style="color:var(--accent2)"></div>
     <div class="sumgrid">
-      <div class="sumcell"><b id="sumPages">0</b><span>страниц</span></div>
+      <div class="sumcell"><b id="sumPages">0</b><span id="sumPagesLbl">страниц</span></div>
       <div class="sumcell"><b id="sumMin">0</b><span id="sumMinLbl">минут</span></div>
       <div class="sumcell" id="sumGoldCell"><b id="sumGold">+0</b><span id="sumGoldLbl">монет</span></div>
       <div class="sumcell" id="sumStatCell"><b id="sumStat">+0</b><span id="sumStatName">характеристика</span></div>
@@ -1899,6 +1987,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
     <div id="sumAch" class="hidden"></div>
     <div id="sumBadges"></div>
+    <div class="sumfin hidden" id="sumFin"></div>
     <div class="flame" id="sumStreak"></div>
     <button class="cta" id="btnDone">В библиотеку</button>
   </div>

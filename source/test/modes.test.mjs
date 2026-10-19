@@ -196,7 +196,7 @@ if (want('tts')) {
   const { ctx, p } = await fresh();
   await openLong(p);
   const r = await p.evaluate(async () => {
-    window.speechSynthesis.speak = function () {}; /* headless: no audio */
+    window.speechSynthesis.speak = function () {}; window.speechSynthesis.getVoices = () => [{ lang: 'ru-RU', name: 'stub-ru' }]; /* audit 19.10: TTS needs a Russian voice */ /* headless: no audio */
     const b = document.getElementById('btnTts'), use = () => (b.querySelector('use') || {}).getAttribute ? b.querySelector('use').getAttribute('href') : '';
     const before = { icon: use(), pressed: b.getAttribute('aria-pressed') };
     b.click(); await new Promise(r => setTimeout(r, 200));
@@ -215,7 +215,7 @@ if (want('tts')) {
 if (want('ttslook')) {
   const { ctx, p } = await fresh();
   await openLong(p);
-  await p.evaluate(() => { S.gold = 900; save(); buy('skin-ellada'); window.speechSynthesis.speak = function () {}; });
+  await p.evaluate(() => { S.gold = 900; save(); buy('skin-ellada'); window.speechSynthesis.speak = function () {}; window.speechSynthesis.getVoices = () => [{ lang: 'ru-RU', name: 'stub-ru' }]; /* audit 19.10: TTS needs a Russian voice */ });
   const keys = await p.evaluate(() => Object.keys(THEMES).concat(['ellada', 'ellada-night']));
   for (const k of keys) {
     const r = await p.evaluate(async (k) => {
@@ -244,7 +244,7 @@ if (want('ttscorner')) {
   const { ctx, p } = await fresh();
   const bk = await openLong(p);
   const r = await p.evaluate(async (id) => {
-    window.speechSynthesis.speak = function () {};
+    window.speechSynthesis.speak = function () {}; window.speechSynthesis.getVoices = () => [{ lang: 'ru-RU', name: 'stub-ru' }]; /* audit 19.10: TTS needs a Russian voice */
     const v = document.getElementById('viewer'), rd = document.getElementById('reader'), vr = v.getBoundingClientRect();
     const tr = () => viewerTap(vr.left + vr.width * 0.9, vr.top + vr.height * 0.05);
     const n = () => (S.marks[id] || []).length;

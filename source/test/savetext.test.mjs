@@ -47,6 +47,9 @@ const idbKeys = () => page.evaluate(() => new Promise((res) => { const r = index
 const idbText = (id) => page.evaluate((id) => __rq.idb.getText(id), id);
 
 await page.goto(BASE, { waitUntil: 'load' }); await ready();
+/* audit 19.10: import errors are toasts now, not alert() — count them as the dialogs they replaced */
+await page.evaluate(() => { const o = window.importToast; window.importToast = function (t, err) { if (err) window.__rqErrs = (window.__rqErrs || 0) + 1; return o.apply(this, arguments); }; });
+const errCount = () => page.evaluate(() => window.__rqErrs || 0);
 const build = await page.evaluate(() => RQ_BUILD);
 console.log('build', build, 'url', BASE);
 await page.evaluate(() => { window.__putText.length = 0; });
@@ -54,9 +57,9 @@ await page.evaluate(() => { window.__putText.length = 0; });
 // (1) add the 7 files one by one through the real file input (no batch import yet: same path, sequential)
 const ids0 = await page.evaluate(() => S.userBooks.map(b => b.id));
 for (const [f] of files) {
-  const n0 = await page.evaluate(() => S.userBooks.length), d0 = dialogs.length;
+  const n0 = await page.evaluate(() => S.userBooks.length), d0 = dialogs.length + await errCount();
   await (await page.$('#fileInp')).uploadFile(f);
-  const t0 = Date.now(); while (Date.now() - t0 < 8000) { if (dialogs.length > d0 || (await page.evaluate((n0) => S.userBooks.length > n0, n0))) break; await sleep(50); }
+  const t0 = Date.now(); while (Date.now() - t0 < 8000) { if (dialogs.length + await errCount() > d0 || (await page.evaluate((n0) => S.userBooks.length > n0, n0))) break; await sleep(50); }
   await sleep(250); /* distinct 'u'+Date.now() ids; let the save() chain settle */
 }
 await sleep(600);
@@ -67,7 +70,7 @@ const orphanPdf = keys1.filter(k => typeof k === 'string' && k.startsWith('pdf:'
 ok('add 7 files (2 books, 2 duplicates, 1 broken PDF, 2 one-byte txt) sequentially → exactly 4 putText, one per added book',
   putAdd.length === 4 && added.length === 4 && new Set(added.map(b => b.id)).size === 4 && putAdd.every(p => added.some(b => 'text:' + b.id === p.key)) && new Set(putAdd.map(p => p.key)).size === 4,
   { putText: putAdd.length, keys: putAdd.map(p => p.key), added: added.map(b => b.title), dialogs: dialogs.length });
-ok('broken PDF and one-byte txt → no book, no orphan pdf:* in IDB, every added text body in IDB', dialogs.length === 3 && orphanPdf.length === 0 && added.every(b => keys1.includes('text:' + b.id)), { dialogs, orphanPdf });
+ok('broken PDF and one-byte txt → no book, no orphan pdf:* in IDB, every added text body in IDB', dialogs.length + await errCount() === 3 && orphanPdf.length === 0 && added.every(b => keys1.includes('text:' + b.id)), { dialogs, orphanPdf });
 
 // (2) 10 × save() without new books (progress changes) → 0 putText
 await page.evaluate(() => { window.__putText.length = 0; });

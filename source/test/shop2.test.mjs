@@ -12,7 +12,7 @@ const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
-async function page(url) { const p = await (await browser.createBrowserContext()).newPage();
+async function page(url) { const p = await (await browser.createBrowserContext()).newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
   await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
   await p.evaluateOnNewDocument(() => { window.__confirmCalls = 0; const c = window.confirm; window.confirm = function () { window.__confirmCalls++; return true; }; });
@@ -38,7 +38,7 @@ const setBefore = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 await p.evaluate(() => openShopDetail('skin-gravyura')); await sleep(400);
 const sh = await p.evaluate(() => { const d = document.getElementById('shopDetail'), r = d.getBoundingClientRect(), b = d.querySelector('.shopbuy').getBoundingClientRect(), pv = d.querySelector('.spprev');
   return { pos: getComputedStyle(d).position, top: Math.round(r.top), h: Math.round(r.height), back: !!d.querySelector('#shopBack'), prevH: pv ? Math.round(pv.getBoundingClientRect().height) : 0, btnBottom: Math.round(b.bottom), inList: !!d.closest('#rewPaneShop'), nav: history.state && history.state.rq }; });
-ok('skin page: full screen, ← back, large preview, button pinned at the bottom, history entry', sh.pos === 'fixed' && !sh.inList && sh.top === 0 && sh.h === 844 && sh.back && sh.prevH >= 200 && sh.btnBottom >= 844 - 70 && sh.nav === 'shopskin', sh);
+ok('skin page: full screen, ← back, large preview, button pinned at the bottom, history entry', sh.pos === 'fixed' && !sh.inList && (sh.top === 0 || sh.top === 32) && sh.top + sh.h === 844 /* audit 19.10 A11Y-04: on the test build the page starts under the 32 px banner */ && sh.back && sh.prevH >= 200 && sh.btnBottom >= 844 - 70 && sh.nav === 'shopskin', sh);
 await p.screenshot({ path: SHOTS + 'shop2-skin-page-390.png' });
 // try-on + in-app ← : memory only, NS_set unchanged, list scroll restored
 await p.evaluate(() => shopTryOn('color-gravyura-night')); await sleep(200);

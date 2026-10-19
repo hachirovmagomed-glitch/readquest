@@ -5,7 +5,7 @@ const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-const errs = []; const p = await (await browser.createBrowserContext()).newPage();
+const errs = []; const p = await (await browser.createBrowserContext()).newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
 await p.setViewport({ width: 360, height: 800, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
 p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
@@ -75,7 +75,7 @@ r = await p.evaluate(() => { const out = {}; const views = [...document.querySel
   return { views, out, saved: SET.libView, sorts: [...document.querySelectorAll('#libSortMenu .lso[data-k]')].map(b => b.dataset.k) }; });
 ok('17 shelf view in the sort menu (ReadEra): Сетка, Эскизы, Краткий, Полный; lists are rows, grid back by default; «По автору» sort (18.10)',
   r.views.join() === 'grid,covers,short,full' && r.out.covers.startsWith('true grid') && r.out.short === 'true flex row' && r.out.full === 'true flex row' && r.out.grid === 'true grid column' && r.saved === 'grid' && r.sorts.includes('author'), r);
-r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
+r = await p.evaluate(async () => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
   const out = {}; try {
     el('libShelfAdd').click(); out.chipOn = LIB.f === 'sh:' + S.shelves[0].id && el('libTitle').textContent === 'Русская классика'; /* 18.10: filter in «⋮», title names the shelf */ out.bar = !el('libShelfBar').hidden; out.empty = /пока нет книг/.test(el('shelf').textContent);
     const id = S.shelves[0].id, b1 = allBooks()[0].id, b2 = allBooks()[1].id;
@@ -83,7 +83,7 @@ r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P 
     ans = 'Чехов'; shelfNew(b1); out.two = S.shelves.length === 2 && S.shelves.every(x => x.b.includes(b1));
     LIB.f = 'sh:' + id; renderLibrary(); out.shown = [...el('shelf').querySelectorAll('.bookcard')].length;
     ans = 'Классика'; shelfRename(id); out.renamed = shelfById(id).n === 'Классика' && /Классика/.test(el('libShelfBar').textContent);
-    shelfDelete(id); out.left = S.shelves.map(x => x.n).join(); out.back = LIB.f === 'all' && el('libShelfBar').hidden; out.books = allBooks().length >= 2;
+    { const pr = shelfDelete(id); await new Promise(r => setTimeout(r, 50)); el('rqAskOk').click(); await pr; } /* audit 19.10 LIB-02: confirmation sheet, not confirm() */ out.left = S.shelves.map(x => x.n).join(); out.back = LIB.f === 'all' && el('libShelfBar').hidden; out.books = allBooks().length >= 2;
   } finally { window.prompt = P; window.confirm = C; } return out; });
 ok('18 own shelves (ReadEra «Коллекции»): create from «+ Полка», put books from ⓘ, one book on two shelves, rename, delete keeps books (18.10)',
   r.chipOn && r.bar && r.empty && r.two && r.shown === 2 && r.renamed && r.left === 'Чехов' && r.back && r.books, r);

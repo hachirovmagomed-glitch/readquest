@@ -74,9 +74,9 @@ ok('toast says they are already on the shelf', !alerts.length && /Уже был�
 // --- 1b. not a book (bug 16.10): a single .mp3, and audio bytes renamed to .txt
 { const n = (await books()).length;
   await inp.uploadFile(F['Skillet_-_The_Resistance.mp3']); await idle(); const t1 = await toast(); const a1 = alerts.splice(0);
-  ok('single .mp3: no book on the shelf, a toast says it is not a book', (await books()).length === n && /нет книг/.test(t1 || '') && !a1.length, { t1, a1 });
-  await inp.uploadFile(F['Песня.txt']); await idle(); const a2 = alerts.splice(0);
-  ok('audio bytes named .txt: no book, the alert says it is not text', (await books()).length === n && a2.length === 1 && /не текст/.test(a2[0]), a2);
+  ok('single .mp3: no book on the shelf, a toast says it is not a book', (await books()).length === n && /не поддерживается/.test(t1 || '') && !a1.length, { t1, a1 });
+  await inp.uploadFile(F['Песня.txt']); await idle(); const a2 = alerts.splice(0), t2 = await toast(); /* audit 19.10: a toast with the file name, no alert() */
+  ok('audio bytes named .txt: no book, the toast says it is not text', (await books()).length === n && !a2.length && /Песня\.txt/.test(t2 || '') && /не текст/.test(t2 || ''), { a2, t2 });
   await inp.uploadFile(F['Skillet_-_The_Resistance.mp3'], F['Песня.txt'], F['Альфа.txt']); await idle(); const t3 = await toast(); alerts.splice(0);
   ok('batch with music: only real books count, music never lands', (await books()).length === n && !(await books()).some(b => /Skillet|Песня/.test(b.t)), t3); }
   await inp.uploadFile(F['Старая.txt']); await idle(); alerts.splice(0);
@@ -102,7 +102,7 @@ ok('folder: two new books, .docx ignored, Альфа skipped as already there', 
 ts = await toast();
 ok('folder: one toast «2 из 3», no alert', !alerts.length && /2 из 3/.test(ts || '') && /Уже были в библиотеке: 1/.test(ts || ''), { alerts, ts });
 await p.evaluate(() => importBookFiles([new File(['x'], 'Заметки.docx')])); ts = await toast();
-ok('only non-books picked: toast, nothing added', /нет книг/.test(ts || '') && (await books()).length === bs.length, ts);
+ok('only non-books picked: toast, nothing added', /не поддерживается/.test(ts || '') && (await books()).length === bs.length, ts);
 
 // 360px: menu fits the screen
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(200);

@@ -259,20 +259,43 @@ renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroSh
 /* Небесный, проба 3D (Джессика 19.10: «одного героя и несколько вещей для него»): лист с героем, крутится пальцем, вещи примеряются.
    Модель и вещи — hero/hero3d.mjs (three.js, vendor/three); грузится только по кнопке. Покупки пока нет: примерка в памяти. */
 let hero3d=null,hero3dOn=['cl3-coat','cl3-staff','cl3-owl'];
+/* Герой из VRoid (VRM, hero/hero-vrm.mjs): база в майке, наряды — свои файлы того же персонажа. Файлов моделей в репо нет,
+   пока у них нет авторства Джессики и разрешений (образец pixiv запрещает публикацию) — тогда лист открывает пробу из примитивов. */
+const HERO_VRM={base:'hero/vrm/base.vrm',outfits:[{id:'vr-dress-1',name:'Платье',file:'hero/vrm/dress-1.vrm',hide:['Bottoms']}]};
+let hero3dVrm='vr-dress-1';
 /* модуль подключаем тегом type=module (а не import(): классические скрипты проверяет esprima без динамического import) */
-function heroLoad3d(){if(window.__rqHero3d)return Promise.resolve(window.__rqHero3d);return new Promise(function(ok,no){const sc=document.createElement('script');sc.type='module';sc.src='hero/hero3d.mjs';sc.onload=function(){window.__rqHero3d?ok(window.__rqHero3d):no(new Error('hero3d: no export'));};sc.onerror=no;document.head.appendChild(sc);});}
+function heroLoadMod(src,key){if(window[key])return Promise.resolve(window[key]);return new Promise(function(ok,no){const sc=document.createElement('script');sc.type='module';sc.src=src;sc.onload=function(){window[key]?ok(window[key]):no(new Error(src+': no export'));};sc.onerror=no;document.head.appendChild(sc);});}
+function heroLoad3d(){return heroLoadMod('hero/hero3d.mjs','__rqHero3d');}
 function heroClose3d(){const sh=el('hero3dSheet');if(hero3d){try{hero3d.dispose();}catch(e){}hero3d=null;}if(sh)sh.hidden=true;}
+function heroChips3d(list,isOn,onTap){const box=el('hero3dItems');
+  const draw=function(){box.innerHTML=list.map(function(it){return '<button type="button" class="fchip'+(isOn(it.id)?' on':'')+'" data-id="'+it.id+'">'+esc(it.name)+'</button>';}).join('');};
+  box.onclick=function(e){const b=e.target.closest('button[data-id]');if(!b)return;onTap(b.dataset.id);draw();};draw();}
+function heroOpenPrim3d(box){
+  return heroLoad3d().then(function(m){
+    if(el('hero3dSheet').hidden)return;box.innerHTML='';hero3d=m.mountHero3d(box,{items:hero3dOn});
+    el('hero3dHint').textContent='Крутите пальцем · нажмите на вещь, чтобы надеть или снять';
+    heroChips3d(m.HERO3D_ITEMS,function(id){return hero3dOn.indexOf(id)>=0;},function(id){const i=hero3dOn.indexOf(id);if(i>=0)hero3dOn.splice(i,1);else hero3dOn.push(id);hero3d.setItems(hero3dOn);});
+  });
+}
+function heroOpenVrm3d(box){
+  return heroLoadMod('hero/hero-vrm.mjs','__rqHeroVrm').then(function(m){
+    const tmp=document.createElement('div');tmp.className='h3fill';box.appendChild(tmp);
+    return m.mountHeroVrm(tmp,{base:HERO_VRM.base,outfits:HERO_VRM.outfits,wear:hero3dVrm}).then(function(h){
+      if(el('hero3dSheet').hidden){h.dispose();return;}
+      box.innerHTML='';box.appendChild(tmp);hero3d=h;
+      el('hero3dHint').textContent='Крутите пальцем · нажмите на наряд, чтобы переодеть';
+      const list=[{id:'',name:'Майка'}].concat(HERO_VRM.outfits);
+      heroChips3d(list,function(id){return id===hero3dVrm;},function(id){hero3dVrm=id;h.setWear(id);});
+    },function(e){tmp.remove();throw e;});
+  });
+}
 function heroOpen3d(){
   let sh=el('hero3dSheet');
   if(!sh){sh=document.createElement('div');sh.id='hero3dSheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Герой в 3D');
-    sh.innerHTML='<div class="h3top"><b>Звездочёт</b><button type="button" class="fchip" onclick="heroClose3d()">Закрыть</button></div><div class="h3stage" id="hero3dBox"><span class="h3load">Загружаю героя…</span></div><p class="h3hint">Крутите пальцем · нажмите на вещь, чтобы надеть или снять</p><div class="h3items" id="hero3dItems"></div>';
+    sh.innerHTML='<div class="h3top"><b>Звездочёт</b><button type="button" class="fchip" onclick="heroClose3d()">Закрыть</button></div><div class="h3stage" id="hero3dBox"><span class="h3load">Загружаю героя…</span></div><p class="h3hint" id="hero3dHint"></p><div class="h3items" id="hero3dItems"></div>';
     document.body.appendChild(sh);}
-  sh.hidden=false;const box=el('hero3dBox');
-  heroLoad3d().then(function(m){
-    if(sh.hidden)return;box.innerHTML='';hero3d=m.mountHero3d(box,{items:hero3dOn});
-    const draw=function(){el('hero3dItems').innerHTML=m.HERO3D_ITEMS.map(function(it){return '<button type="button" class="fchip'+(hero3dOn.indexOf(it.id)>=0?' on':'')+'" data-id="'+it.id+'">'+esc(it.name)+'</button>';}).join('');};
-    el('hero3dItems').onclick=function(e){const b=e.target.closest('button[data-id]');if(!b)return;const id=b.dataset.id,i=hero3dOn.indexOf(id);if(i>=0)hero3dOn.splice(i,1);else hero3dOn.push(id);hero3d.setItems(hero3dOn);draw();};
-    draw();
-  }).catch(function(e){console.warn('[rq] hero3d',e);box.innerHTML='<span class="h3load">3D не открылось на этом устройстве</span>';});
+  sh.hidden=false;const box=el('hero3dBox');box.innerHTML='<span class="h3load">Загружаю героя…</span>';el('hero3dItems').innerHTML='';
+  heroOpenVrm3d(box).catch(function(e){console.info('[rq] hero vrm → примитивы',e&&e.message);return heroOpenPrim3d(box);})
+    .catch(function(e){console.warn('[rq] hero3d',e);box.innerHTML='<span class="h3load">3D не открылось на этом устройстве</span>';});
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&el('hero3dSheet')&&!el('hero3dSheet').hidden)heroClose3d();});

@@ -126,7 +126,7 @@ ok('Небесный: 12 classes for sale, Сонный чтец free by default
 const h3 = await p.evaluate(async () => {
   wear('skin-celestial'); openLook(true); heroShopTab('chars'); await new Promise(q => setTimeout(q, 100));
   const btn = !!document.querySelector('#heroShop .hero3dbtn'); heroOpen3d();
-  for (let i = 0; i < 60 && !document.querySelector('#hero3dBox canvas, #hero3dItems button') && !/не открылось/.test(el('hero3dBox').textContent); i++) await new Promise(q => setTimeout(q, 100));
+  for (let i = 0; i < 150 && !document.querySelector('#hero3dBox canvas, #hero3dItems button') && !/не открылось/.test(el('hero3dBox').textContent); i++) await new Promise(q => setTimeout(q, 100));
   const canvas = !!document.querySelector('#hero3dBox canvas'), items = document.querySelectorAll('#hero3dItems button').length, fallback = /не открылось/.test(el('hero3dBox').textContent);
   if (items) { const b = document.querySelector('#hero3dItems [data-id="cl3-hat"]'); b.click(); }
   const toggled = !items || hero3dOn.indexOf('cl3-hat') >= 0;

@@ -96,6 +96,9 @@ cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
+# 3D-герой Небесного: ES-модуль js/*.mjs (грузится import() по кнопке «3D», без <script>) + three.js (MIT)
+(cd "$ROOT" && find js -maxdepth 1 -name "*.mjs") | while read -r f; do cp "$ROOT/$f" "$DIST/$f"; done
+mkdir -p "$DIST/vendor/three"; cp "$ROOT/vendor/three/three.module.min.js" "$ROOT/vendor/three/LICENSE" "$DIST/vendor/three/"
 # Герои скина «Небесный» (webp, режет tools/gen-celestial-heroes.py) — precached
 mkdir -p "$DIST/hero/celestial"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"
 

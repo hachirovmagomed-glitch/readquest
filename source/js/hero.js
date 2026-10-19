@@ -238,7 +238,7 @@ function renderHeroShop(){
   const items=here.filter(function(g){return g.kind===heroTab;});
   const sk=(items[0]||{}).skin,chars=heroTab==='chars',curCh=heroOn().char||'',note=sk?'<p class="heroskinnote">'+(chars?'Персонажи':'Вещи')+' скина «'+HERO_SKIN_NAME[sk]+'» есть только в этом скине.</p>':'';
   box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroRender(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
-      '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span></div></div>'+note+
+      '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span>'+(heroSkin()==='celestial'?'<button type="button" class="fchip hero3dbtn" onclick="heroOpen3d()">Покрутить в 3D</button>':'')+'</div></div>'+note+
     '<div class="herogrid">'+items.map(function(g){
       const own=heroOwns(g.id),worn=g.slot==='char'?(curCh||heroCharDefault(g.skin))===g.id:(S.equipped||{})[heroKey(g)]===g.id,one={};one[g.slot]=g.id;
       const cta=chars&&worn?'<button type="button" class="buy owned shopcta" disabled>Выбран</button>'
@@ -255,3 +255,22 @@ function renderHeroShop(){
 }
 const _renderShopPane=renderShopPane;
 renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroShop();}catch(e){console.warn('[rq] hero shop',e);}};
+
+/* Небесный, проба 3D (Джессика 19.10: «одного героя и несколько вещей для него»): лист с героем, крутится пальцем, вещи примеряются.
+   Модель и вещи — js/hero3d.mjs (three.js, vendor/three); грузится только по кнопке. Покупки пока нет: примерка в памяти. */
+let hero3d=null,hero3dOn=['cl3-coat','cl3-staff','cl3-owl'];
+function heroClose3d(){const sh=el('hero3dSheet');if(hero3d){try{hero3d.dispose();}catch(e){}hero3d=null;}if(sh)sh.hidden=true;}
+function heroOpen3d(){
+  let sh=el('hero3dSheet');
+  if(!sh){sh=document.createElement('div');sh.id='hero3dSheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Герой в 3D');
+    sh.innerHTML='<div class="h3top"><b>Звездочёт</b><button type="button" class="fchip" onclick="heroClose3d()">Закрыть</button></div><div class="h3stage" id="hero3dBox"><span class="h3load">Загружаю героя…</span></div><p class="h3hint">Крутите пальцем · нажмите на вещь, чтобы надеть или снять</p><div class="h3items" id="hero3dItems"></div>';
+    document.body.appendChild(sh);}
+  sh.hidden=false;const box=el('hero3dBox');
+  import('./hero3d.mjs') /* относительно js/hero.js */.then(function(m){
+    if(sh.hidden)return;box.innerHTML='';hero3d=m.mountHero3d(box,{items:hero3dOn});
+    const draw=function(){el('hero3dItems').innerHTML=m.HERO3D_ITEMS.map(function(it){return '<button type="button" class="fchip'+(hero3dOn.indexOf(it.id)>=0?' on':'')+'" data-id="'+it.id+'">'+esc(it.name)+'</button>';}).join('');};
+    el('hero3dItems').onclick=function(e){const b=e.target.closest('button[data-id]');if(!b)return;const id=b.dataset.id,i=hero3dOn.indexOf(id);if(i>=0)hero3dOn.splice(i,1);else hero3dOn.push(id);hero3d.setItems(hero3dOn);draw();};
+    draw();
+  }).catch(function(e){console.warn('[rq] hero3d',e);box.innerHTML='<span class="h3load">3D не открылось на этом устройстве</span>';});
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&el('hero3dSheet')&&!el('hero3dSheet').hidden)heroClose3d();});

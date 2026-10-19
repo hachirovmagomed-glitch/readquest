@@ -133,6 +133,8 @@ export async function logSession(entry) {
   if (Number.isFinite(st) && st > 0) rec.startedAt = new Date(st).toISOString(); /* stored as ISO */
   const xp = Number(entry.xp);
   if (entry.xp != null && Number.isFinite(xp) && xp >= 0) rec.xp = xp;
+  /* optional (19.10, additive): book level of the session, game-awards LEVELS; only 1…2 is kept (0 = no field) */
+  if (entry.lvl === 1 || entry.lvl === 2) rec.lvl = entry.lvl;
 
   const db = await openDb();
   return new Promise(function (res, rej) {

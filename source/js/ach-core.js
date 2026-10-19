@@ -74,6 +74,12 @@
     ['author3', 'books', GD, 'Верность автору', 'Дочитать 3 книги одного автора', 'oneAuthor', 3, 'Верный читатель'],
     ['authors5', 'books', SV, 'Широкий круг', 'Дочитать книги 5 разных авторов', 'authors', 5],
     ['parallel3', 'books', SV, 'Жонглёр', 'За одну неделю по 10 минут в 3 разных книгах', 'weekBooks', 3],
+    /* «Приключения» (arch.md 19.10): книги, скачанные из открытых библиотек (карточка с srcId) */
+    ['lib1', 'books', B, 'Находка', 'Дочитать книгу из «Приключений»', 'libBooks', 1],
+    ['lib3', 'books', SV, 'Искатель', 'Дочитать 3 книги из «Приключений»', 'libBooks', 3],
+    ['lib10', 'books', GD, 'Книжный странник', 'Дочитать 10 книг из «Приключений»', 'libBooks', 10],
+    ['lib2src', 'books', SV, 'Две библиотеки', 'Дочитать книги из двух разных библиотек', 'libSrc', 2],
+    ['libset1', 'books', GD, 'Подборка закрыта', 'Дочитать все книги одной подборки «Приключений»', 'libSet', 1],
 
     ['marathon', 'sessions', B, 'Марафонец', 'Одна сессия от 30 минут', 'maxSession', 30],
     ['sess60', 'sessions', SV, 'Час без перерыва', 'Одна сессия от 60 минут', 'maxSession', 60],
@@ -271,6 +277,8 @@
       }
       for (let i = 1; i < ds.length; i++) if (ds[i] - ds[i - 1] >= 60) { refinish++; break; }
     });
+    const libSrcs = {}; let libBooks = 0;
+    fin.forEach(function (id) { const b = books[id]; if (b && b.src) { libBooks++; libSrcs[b.src] = 1; } });
     const authorsN = Object.keys(byAuthor).length, oneAuthor = authorsN ? Math.max.apply(null, Object.keys(byAuthor).map(function (k) { return byAuthor[k]; })) : 0;
     /* форматы и свои книги */
     const fmtMin = {}; let ownRead = 0;
@@ -286,7 +294,7 @@
     return {
       minutes: Math.floor(total + 1e-9), minutesWhole: Math.floor(total + 1e-9), maxSession: Math.floor(maxSession + 1e-9), maxDay: maxDay, sessions5: sessions5,
       goalDays: goalDays, streak: best, goalWeeks: goalWeeks, fullWeek: fullWeek, fullMonth: fullMonth, monthWeekends: monthWeekends,
-      finished: fin.length, bigBook: bigBook, fastBook: fastBook, slowBook: slowBook, oneAuthor: oneAuthor, authors: authorsN, weekBooks: weekBooks,
+      finished: fin.length, libBooks: libBooks, libSrc: Object.keys(libSrcs).length, libSet: +I.libSets || 0, bigBook: bigBook, fastBook: fastBook, slowBook: slowBook, oneAuthor: oneAuthor, authors: authorsN, weekBooks: weekBooks,
       lark: tod.lark, lunch: tod.lunch, owl: tod.owl, night3: tod.night3, dawn: tod.dawn, mornings: tod.mornings, nights: tod.nights, s2222: tod.s2222, hours24: Object.keys(tod.hours).length,
       weekend: weekend, dates: dates, mirror: mirror, fri13: fri13, exactDay: exactDay,
       comeback: comeback, rebook: rebook, refinish: refinish, oneDayBook: oneDayBook,

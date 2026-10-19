@@ -482,6 +482,7 @@ async function closeReaderImpl(opts){
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
+  const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
   R.book=null;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
@@ -516,7 +517,7 @@ async function closeReaderImpl(opts){
     const res=awardPendingSessions();
     xp=Number(row.xp)||0; /* the paid value stored in the row (decision B) — the summary never recomputes it */
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
-    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[]};
+    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
   }else{
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
@@ -618,7 +619,10 @@ function renderSummary(r){
   const qp=r.quest||{daily:[],weekly:[]},ql=[];
   if(qp.daily&&qp.daily.length)ql.push('+'+coinsP(30*qp.daily.length)+' — ежедневка выполнена');
   if(qp.weekly&&qp.weekly.length)ql.push('+'+coinsP(120*qp.weekly.length)+' — неделя выполнена');
-  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
+  if(qp.lvlGold>0)ql.push('+'+coinsP(qp.lvlGold)+' — бонус за сложность книги');
+  const qh=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';});
+  const lt=summaryLevelLine(qp);if(lt)qh.push('<div>'+rqIcon(lt.ic,14)+'<span>'+lt.t+'</span></div>');
+  const qb=el('sumQuestGold');if(qb){qb.innerHTML=qh.join('');qb.classList.toggle('hidden',!qh.length);}
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
   /* «Карандашный»: subtitle «книга», «минут чтения», 4 week dots (filled = goal days), emoji stripped from the text lines */
   const pc=typeof isPencil==='function'&&isPencil();
@@ -690,6 +694,13 @@ function summaryWanted(r){
   if((Number(r.xp)||0)>0)return true;
   const q=r.quest||{};
   return !!((q.daily&&q.daily.length)||(q.weekly&&q.weekly.length));
+}
+/** 19.10: one line about the book level of THIS session (XP multiplier, or why it was not applied); null = ordinary book */
+function summaryLevelLine(q){
+  const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!q||!(q.lvl>0))return null;
+  const r=q.rowLvl||0,m=function(x){return String(L[x].xp).replace('.',',');};
+  if(r>=q.lvl)return {ic:'trending-up',t:L[r].n+' книга: опыт ×'+m(r)};
+  return {ic:'info',t:'Листали быстрее, чем читается '+L[q.lvl].n.toLowerCase()+' книга: '+(r>0?'опыт ×'+m(r):'бонус за сложность не начислен')};
 }
 /** headline: the coin reward of THIS session if any (decision D), else «Сессия завершена» */
 function summaryHeadline(q){

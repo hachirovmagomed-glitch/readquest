@@ -473,10 +473,13 @@ async function importBookFile(f,setBusy){
     await loadPdfJs();
     const buf=await f.arrayBuffer();
     const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
-    const nPages=doc.numPages;try{doc.destroy();}catch(_){} /* only the page count is needed here */
+    const nPages=doc.numPages;
+    let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText */
+    try{doc.destroy();}catch(_){}
     const id=newBookId();
     await idbPut('pdf:'+id,buf);
     b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
+    if(Number.isInteger(lt))b.lvlText=lt;
   }else if(/\.fb2$/i.test(f.name)){
     setBusy('Разбираю FB2...');
     const r=await parseFb2(f);
@@ -484,7 +487,7 @@ async function importBookFile(f,setBusy){
   }else if(/\.epub$/i.test(f.name)){
     setBusy('Распаковываю EPUB...');
     const r=await parseEpub(f);
-    b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
+    b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
   }else{
     let txt=await f.text();
     if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */

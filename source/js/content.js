@@ -473,7 +473,7 @@ async function parseEpub(file){
     }
   }
   if(!text.trim())throw new Error('не удалось извлечь текст');
-  const lang=((xml.match(/<title-info>[\s\S]*?<lang>\s*([A-Za-z-]{2,})/)||[])[1]||'').toLowerCase();
+  const lang=((opf.match(/<dc:language[^>]*>\s*([A-Za-z]{2,3})/)||[])[1]||'').toLowerCase(); /* 19.10: was the FB2 line (xml is not defined here), so every EPUB import threw */
   return {title:title,author:author,text:text.trim(),toc:toc,lang:lang};
 }
 
@@ -494,6 +494,23 @@ function fmtSize(n){
   return (n/1048576).toFixed(2)+' МБ';
 }
 function bkIc(n){return '<svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
+/* 19.10 «Сложность» (Джессика): automatic level, the reader may pick a LOWER one (S.bookLvl); levels above the automatic one are disabled.
+   One save() per tap; opening the card writes nothing. Shown only while lvlOn() (test site). */
+function bookLvlHtml(b){
+  if(typeof lvlOn!=='function'||!lvlOn())return '';
+  const G=window.__rqGame,L=G.LEVELS,auto=bookLvlAuto(b),cur=bookLvlOf(b),m=function(x){return String(L[x].xp).replace('.',',');};
+  return '<div class="bk-h">Сложность</div><div class="chips bk-shelves" role="radiogroup" aria-label="Сложность книги">'+
+    L.map(function(x,i){const on=i===cur,off=i>auto;
+      return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'"'+(off?' disabled':'')+' onclick="setBookLvl(\''+b.id+'\','+i+')">'+(on?rqIcon('check',14):'')+esc(x.n)+(i?' ×'+m(i):'')+'</button>';}).join('')+
+    '</div><div class="bk-note">'+(auto?'Определена по тексту и автору. ':'')+'Сложная книга даёт опыт ×'+m(1)+' и +'+L[1].coins+' монет за каждые 10 минут, очень сложная ×'+m(2)+' и +'+L[2].coins+', не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
+}
+function setBookLvl(id,l){
+  const b=allBooks().find(x=>x.id===id);if(!b||!lvlOn())return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+  const auto=bookLvlAuto(b);l=Math.max(0,Math.min(auto,l|0));
+  S.bookLvl=S.bookLvl||{};if(l===auto)delete S.bookLvl[id];else S.bookLvl[id]=l;
+  save();bookInfo(id);
+}
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
@@ -526,6 +543,7 @@ function bookInfo(id){
     '<div class="bk-h">Мои полки</div><div class="chips bk-shelves">'+ /* 18.10: свои полки (library.js shelf*) */
     shelvesGet().map(sh=>'<button type="button" class="fchip'+(sh.b.indexOf(id)>=0?' on':'')+'" aria-pressed="'+(sh.b.indexOf(id)>=0)+'" onclick="shelfToggle(\''+id+'\',\''+sh.id+'\')">'+(sh.b.indexOf(id)>=0?rqIcon('check',14):'')+esc(sh.n)+'</button>').join('')+
     '<button type="button" class="fchip fshelfadd" onclick="shelfNew(\''+id+'\')">'+rqIcon('plus',14)+'Новая полка</button></div>'+
+    bookLvlHtml(b)+
     '<div class="bk-h">О файле</div><div class="bk-list">'+
     row('Формат',fmt)+row('Размер',size+(words?' · '+words+' '+plural(words,'слово','слова','слов'):''))+
     (builtin?'':row('Файл',esc(b.fname||'файл'),'wrap'))+row('Хранится',place)+

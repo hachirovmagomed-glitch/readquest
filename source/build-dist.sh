@@ -96,17 +96,13 @@ cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
-# 3D-герой Небесного: ES-модуль hero/hero3d.mjs (подключается по кнопке «Покрутить в 3D») + three.js (MIT)
-mkdir -p "$DIST/vendor/three"; cp "$ROOT/vendor/three/three.module.min.js" "$ROOT/vendor/three/vrm.min.js" "$ROOT/vendor/three/LICENSE" "$ROOT/vendor/three/LICENSE-three-vrm" "$DIST/vendor/three/"
 # Герои скина «Небесный» (webp, режет tools/gen-celestial-heroes.py) — precached
-mkdir -p "$DIST/hero/celestial"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"; cp "$ROOT/hero/hero3d.mjs" "$ROOT/hero/hero-vrm.mjs" "$DIST/hero/"
-# Модели VRoid (hero/vrm/*.vrm, десятки МБ): только из git (чужие/закрытые файлы в рабочей папке не уедут) и НЕ в precache — грузятся по кнопке
-{ (cd "$ROOT/.." && git ls-files -- source/hero/vrm) 2>/dev/null || true; } | while read -r f; do mkdir -p "$DIST/hero/vrm"; cp "$ROOT/../$f" "$DIST/hero/vrm/"; done
+mkdir -p "$DIST/hero/celestial"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/";
 
 # «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB
 if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
-PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' ! -path './hero/vrm/*' | sed 's#^\./##' | sort | while read -r f; do
+PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' | sed 's#^\./##' | sort | while read -r f; do
   case "$f" in vendor/*) echo "\"$f\"";; *.js|*.css) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
 # 17.10: stylesheets are versioned like scripts (a page under the old SW got new JS + old skins.css: half a skin). Guard: no bare local <link rel=stylesheet>.
 for f in "$DIST/index.html" "$DIST/app.html"; do [ -f "$f" ] || continue

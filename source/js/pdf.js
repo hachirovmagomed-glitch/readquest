@@ -32,6 +32,7 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
+    pdfLvlCheck(b,doc); /* 19.10: level by the PDF's own text, in the background (once per book) */
     pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
     if(psOn()){psOpen(p);return;} /* 18.10: «Прокрутка» — js/pdf-scroll.js */
     pdfRender('open');pdfWatch();
@@ -218,6 +219,7 @@ async function pdfTextLayer(page,s0){
     const vp=page.getViewport({scale:s0});
     const U=window.pdfjsLib.Util;
     if(!pdfMeasure)pdfMeasure=document.createElement('canvas').getContext('2d');
+    let prev=null,line=null;const lines=[];
     tc.items.forEach(function(it){
       if(!it.str)return;
       const tx=U.transform(vp.transform,it.transform);
@@ -232,11 +234,56 @@ async function pdfTextLayer(page,s0){
       let tr=Math.abs(ang)>0.01?'rotate('+ang.toFixed(4)+'rad) ':'';
       if(it.str.trim()&&it.width>0){pdfMeasure.font=fh.toFixed(2)+'px '+fam;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
       if(tr)sp.style.transform=tr;
+      const sx=/scaleX\(([\d.]+)\)/.exec(tr);
+      /* 19.10 (Джессика: «не работает нормальное выделение»): the copied / quoted text keeps its words and lines apart —
+         a new line of the page → a line break, a gap on the same line → a space (spans are absolute, the DOM has neither) */
+      const base=tx[5],wd=(it.width||0)*s0;
+      if(prev){
+        if(Math.abs(base-prev.base)>Math.max(fh,prev.fh)*0.5){frag.appendChild(document.createElement('br'));line=null;}
+        else if(tx[4]-prev.right>fh*0.15&&!/\s$/.test(prev.str)&&!/^\s/.test(it.str)){
+          const g=document.createElement('span');g.textContent=' ';g.style.left=prev.right.toFixed(2)+'px';g.style.top=(base-fh).toFixed(2)+'px';g.style.fontSize=fh.toFixed(2)+'px';frag.appendChild(g);}
+      }
+      prev={base:base,fh:fh,right:tx[4]+wd,str:it.str};
+      if(!line){line=[];lines.push(line);}
+      line.push({sp:sp,left:tx[4],top:tx[5]-fh,bot:tx[5],right:tx[4]+wd,sx:sx?+sx[1]:1,rot:Math.abs(ang)>0.01});
       frag.appendChild(sp);
     });
+    /* no dead gaps between and around the lines: each span reaches down to the next line, the first one of a line out to
+       the left edge, the last one out to the right edge (padding, so the glyphs stay put). A finger or a selection handle
+       in a gap, in the margin or under the text then lands on the nearest line of text, not on the page header. */
+    lines.forEach(function(ln){
+      if(ln.some(function(q){return q.rot;}))return;
+      const bot=Math.max.apply(null,ln.map(function(q){return q.bot;}));let nt=vp.height; /* the nearest line BELOW (item order is not page order) */
+      lines.forEach(function(o){if(o===ln)return;const t=Math.min.apply(null,o.map(function(q){return q.top;}));if(t>=bot-1&&t<nt)nt=t;});
+      ln.forEach(function(q){const pb=Math.max(0,nt-q.bot);if(pb>0)q.sp.style.paddingBottom=pb.toFixed(2)+'px';});
+      const f=ln.reduce(function(a,q){return q.left<a.left?q:a;}),l=ln.reduce(function(a,q){return q.right>a.right?q:a;});
+      if(f.left>0){f.sp.style.left='0px';f.sp.style.paddingLeft=(f.left/f.sx).toFixed(2)+'px';}
+      if(l.right<vp.width)l.sp.style.paddingRight=((vp.width-l.right)/l.sx).toFixed(2)+'px';
+    });
   }catch(e){/* scans have no text layer */}
+  const end=document.createElement('div');end.className='endOfContent';frag.appendChild(end); /* keeps a drag in a gap near the finger (selectionchange below) */
   return frag;
 }
+/* Selection inside a PDF text layer (pdf.js 3/4 way): while selecting, .endOfContent covers the layer and sits right after
+   the moving end of the selection, so a finger / mouse / handle in a gap between lines resolves next to it instead of
+   jumping to the page start or end. Back at the end of the layer when nothing is selected. */
+let pdfSelPrev=null;
+function pdfSelReset(tl){const e=tl.querySelector(':scope > .endOfContent')||tl.querySelector('.endOfContent');if(e){tl.appendChild(e);}tl.classList.remove('selecting');}
+document.addEventListener('selectionchange',function(){
+  const s=window.getSelection&&window.getSelection();
+  if(!s||!s.rangeCount||s.isCollapsed){document.querySelectorAll('.textLayer.selecting').forEach(pdfSelReset);pdfSelPrev=null;return;}
+  const rg=s.getRangeAt(0),prevR=pdfSelPrev;pdfSelPrev=rg.cloneRange();
+  const modStart=!!(prevR&&rg.compareBoundaryPoints(Range.END_TO_END,prevR)===0&&rg.compareBoundaryPoints(Range.START_TO_START,prevR)!==0);
+  let a=modStart?rg.startContainer:rg.endContainer;if(a&&a.nodeType===3)a=a.parentNode;
+  const tl=a&&a.closest&&a.closest('.textLayer');
+  document.querySelectorAll('.textLayer.selecting').forEach(function(x){if(x!==tl)pdfSelReset(x);});
+  if(!tl||a===tl)return;
+  const end=tl.querySelector('.endOfContent');if(!end)return;
+  tl.classList.add('selecting');
+  if(a.parentNode===tl)tl.insertBefore(end,modStart?a:a.nextSibling);
+});
+document.addEventListener('mousedown',function(e){const tl=e.target&&e.target.closest&&e.target.closest('.textLayer');if(tl)tl.classList.add('selecting');});
+document.addEventListener('mouseup',function(){const s=window.getSelection&&window.getSelection();if(!s||s.isCollapsed)document.querySelectorAll('.textLayer.selecting').forEach(pdfSelReset);});
 /** Navigation (tap / swipe / slider / TOC / keys): request a page; it is shown at the swap. */
 function pdfGo(np,why){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return;

@@ -152,6 +152,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advset .ic{color:var(--accent)}
 .advset b{font-size:14px;line-height:1.25}
 .advset span,.advalt{font-size:12px;color:var(--muted)}
+.advbar{display:block;width:100%;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.advbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.advsetprog + .advbar{margin:6px 0 4px}
+.advflt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.advfsep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.advsnip{display:block;font-size:12px;line-height:1.35;color:var(--muted);margin-top:2px}
+.advsnip em{font-style:normal;color:var(--txt);font-weight:600}
 .advalt{margin:8px 2px 0}
 .advauth-h{margin-top:18px}
 .advback{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 0;color:var(--muted);font-size:14px}
@@ -164,6 +171,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advsugrow span{min-width:0;overflow-wrap:anywhere}
 .advsugrow i{font-style:normal;color:var(--muted);font-size:13px}
 .advpre{font-size:14px;line-height:1.5}
+.advhome .bk-h,.advsets + .bk-h{margin-top:16px}
+.advrech{display:flex;align-items:center;justify-content:space-between}
+.advclear{font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;padding:4px 0}
+.advrecent{flex-wrap:wrap}
+.advwant{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;box-sizing:border-box}
+.advtags{display:flex;gap:6px;flex-wrap:wrap}
+.advtags .chip{font-size:11px;padding:2px 8px}
+.advtags .advru{color:var(--txt)}
 a.cta{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-sizing:border-box}
 #bookSheetBody .cta .ic{flex:none}
 /* Путь читателя: open map, colors only from theme tokens */
@@ -596,6 +611,7 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 .chips::-webkit-scrollbar{display:none}
 .fchip{flex:none;background:var(--card2);border-radius:99px;padding:7px 14px;font-size:13px;color:var(--muted)}
 .fchip.on{background:var(--accent);color:#fff}
+.fchip:disabled{opacity:.45} /* 19.10: «Сложность» above the automatic level */
 .chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding:18px 0 16px}
 .chart .bar{flex:1;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px;position:relative}
 .chart .bar span{position:absolute;top:-15px;left:-4px;right:-4px;text-align:center;font-size:9px;color:var(--muted)}
@@ -661,7 +677,12 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:3px;padding:0 1
 #pdfSheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
-.textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent}
+.textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent;z-index:1}
+/* 19.10 selection in gaps (selectionchange in js/pdf.js, as pdf.js does): under the text, covers the layer only while selecting */
+.textLayer br::selection{background:transparent}
+.textLayer br::-moz-selection{background:transparent}
+.textLayer .endOfContent{display:block;position:absolute;left:0;right:0;top:100%;bottom:0;z-index:0;cursor:default;user-select:none;-webkit-user-select:none}
+.textLayer.selecting .endOfContent{top:0}
 .textLayer span::selection{background:color-mix(in srgb,var(--accent) 45%,transparent)}
 .textLayer span::-moz-selection{background:color-mix(in srgb,var(--accent) 45%,transparent)}
 

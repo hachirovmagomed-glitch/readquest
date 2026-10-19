@@ -321,12 +321,23 @@ export function textLevel(text) {
   return st.score >= th[1] ? 2 : st.score >= th[0] ? 1 : 0;
 }
 /**
- * Automatic level of a book card {author, genre, text?}: the highest of text, author and genre.
- * PDF / scans without text: author and genre only.
+ * Automatic level of a book card {author, genre, text?, lvlText?}: the highest of text, author and genre.
+ * PDF: no text in the card — `lvlText` (0…2) is textLevel() of a sample of its pages (pdfSample, computed once, arch.md);
+ * a scan without a text layer gives 0 there, so only author and genre count.
  */
 export function autoLevel(book) {
   const b = book || {};
-  return Math.max(b.text ? textLevel(b.text) : 0, authorLevel(b.author), genreLevel(b.genre));
+  const lt = Number.isInteger(b.lvlText) && b.lvlText >= 0 && b.lvlText <= LVL_MAX ? b.lvlText : 0;
+  return Math.max(b.text ? textLevel(b.text) : lt, authorLevel(b.author), genreLevel(b.genre));
+}
+/** pages of a PDF to sample for textLevel: up to `n`, spread over 10…90 % of the book (title pages and index left out) */
+export function pdfSamplePages(numPages, n) {
+  const k = Math.max(1, Math.min(n || 12, numPages | 0)), out = [];
+  for (let i = 0; i < k; i++) {
+    const p = numPages <= k ? i + 1 : Math.round(numPages * (0.1 + 0.8 * (k === 1 ? 0.5 : i / (k - 1)))) || 1;
+    if (out.indexOf(p) < 0) out.push(Math.max(1, Math.min(numPages, p)));
+  }
+  return out;
 }
 /** effective level: auto, lowered by the reader's choice (S.bookLvl[id]); never raised */
 export function effLevel(auto, manual) {

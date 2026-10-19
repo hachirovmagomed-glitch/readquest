@@ -29,6 +29,11 @@ ok('жанр FB2 sci_philosophy → 1, «Сказки» → 0', G.genreLevel('sc
 ok('авто = максимум (текст детский, автор Аристотель → 1); PDF без текста — по автору', G.autoLevel({ author: 'Аристотель', text: rep(RU_KIDS, 40) }) === 1 && G.autoLevel({ author: 'Гегель', type: 'pdf' }) === 2);
 ok('выбор читателя только понижает: авто 1, выбрал 2 → 1; выбрал 0 → 0; без выбора → 1', G.effLevel(1, 2) === 1 && G.effLevel(1, 0) === 0 && G.effLevel(1, undefined) === 1);
 
+/* --- PDF: lvlText from sampled pages --- */
+ok('PDF: страницы для пробы — до 12, в пределах 10–90 % книги; короткий PDF — все страницы', JSON.stringify(G.pdfSamplePages(300, 12)) === JSON.stringify([30, 52, 74, 95, 117, 139, 161, 183, 205, 226, 248, 270]) && JSON.stringify(G.pdfSamplePages(5, 12)) === '[1,2,3,4,5]' && JSON.stringify(G.pdfSamplePages(1, 12)) === '[1]', [G.pdfSamplePages(300, 12), G.pdfSamplePages(5, 12)]);
+ok('PDF: уровень из lvlText (2), автор не нужен; кривой lvlText (5, «2») не считается', G.autoLevel({ type: 'pdf', author: 'PDF', lvlText: 2 }) === 2 && G.autoLevel({ type: 'pdf', author: 'PDF', lvlText: 5 }) === 0 && G.autoLevel({ type: 'pdf', author: 'PDF', lvlText: '2' }) === 0);
+ok('PDF: lvlText 0 (скан), но автор Кант → 2', G.autoLevel({ type: 'pdf', author: 'Кант', lvlText: 0 }) === 2);
+
 /* --- XP --- */
 const D = '2026-10-19', T0 = Date.parse('2026-10-19T09:00:00+03:00');
 let n = 0;
@@ -80,6 +85,10 @@ r = await sess({ capMs: 5 * M, minSecMs: 12 * S, level: 1 }, async (t, adv) => {
 ok('сложная: страницы то 15, то 60 с (в среднем 37) → уровень остаётся', r && r.lvl === 1, r);
 r = await sess({ capMs: 5 * M, minSecMs: 12 * S, level: 1 }, async (t, adv) => { adv(3 * M); turn(t, 1); adv(M); });
 ok('меньше 5 перелистываний — темп не проверяется, уровень остаётся', r && r.lvl === 1, r);
+r = await sess({ capMs: 3 * M, minSecMs: 12 * S }, async (t, adv) => { for (let i = 1; i <= 3; i++) { adv(40 * S); turn(t, i); } t.setLevel(2, 7 * M); adv(6 * M); });
+ok('уровень пришёл посреди сессии (PDF): строка lvl 2, лимит текущей страницы вырос до 7 мин (2 + 6 мин)', r && r.lvl === 2 && Math.abs(r.minutes - 8) < 1e-9, r);
+r = await sess({ capMs: 3 * M, minSecMs: 12 * S }, async (t, adv) => { for (let i = 1; i <= 10; i++) { adv(14 * S); turn(t, i); } t.setLevel(2, 7 * M); adv(20 * S); });
+ok('…и темп проверяется по всей сессии, включая страницы до setLevel (по 14 с → без бонуса)', r && r.lvl === undefined, r);
 r = await sess({ capMs: 3 * M, minSecMs: 12 * S }, async (t, adv) => { adv(2 * M); });
 ok('обычная книга: в строке нет поля lvl (строка как раньше)', r && !('lvl' in r), r);
 

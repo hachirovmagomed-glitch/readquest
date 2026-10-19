@@ -94,6 +94,57 @@ for (const w of [360, 390]) {
   await c.close();
 }
 
+/* PDF (Джессика 19.10 «Давай чтение по ПДФ»): level from the text of sampled pages — on import, and once on open for older cards */
+{ const { execFileSync } = await import('node:child_process'); const fs = await import('node:fs'); const os = await import('node:os'); const path = await import('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rqlvl-'));
+  const EN_PHIL = 'The transcendental unity of apperception is that unity through which all the manifold given in an intuition is united in a conception of the object. Consequently the possibility of experience is the condition of the objective validity of all our cognitions a priori, and the necessity of this connection is the foundation of the understanding as a faculty of judgement and representation.';
+  const EN_KIDS = 'Mary had a little lamb. Its fleece was white as snow. The cat sat on the mat. The dog ran to the park. We like to play in the sun all day.';
+  const py = `import sys,textwrap
+from reportlab.pdfgen import canvas
+def mk(fn,txt,pages):
+    c=canvas.Canvas(fn)
+    for i in range(pages):
+        y=800
+        for line in textwrap.wrap((txt+' ')*7,95):
+            c.drawString(40,y,line); y-=14
+        c.showPage()
+    c.save()
+mk(sys.argv[1],sys.argv[3],30); mk(sys.argv[2],sys.argv[4],30)
+c=canvas.Canvas(sys.argv[5])
+for i in range(10): c.rect(40,40,500,700,fill=1); c.showPage()
+c.save()`;
+  const f = n => path.join(dir, n);
+  execFileSync('python3', ['-c', py, f('phil.pdf'), f('kids.pdf'), EN_PHIL, EN_KIDS, f('scan.pdf')]);
+  const b64 = n => fs.readFileSync(f(n)).toString('base64');
+  const { p, c } = await page(BASE, 390);
+  const imp = await p.evaluate(async (files) => {
+    const out = {};
+    for (const [name, b] of Object.entries(files)) {
+      const bin = Uint8Array.from(atob(b), ch => ch.charCodeAt(0));
+      const bk = await importBookFile(new File([bin], name, { type: 'application/pdf' }), () => {});
+      out[name] = { id: bk.id, lvlText: bk.lvlText, auto: bookLvlAuto(bk) };
+    }
+    return out;
+  }, { 'phil.pdf': b64('phil.pdf'), 'kids.pdf': b64('kids.pdf'), 'scan.pdf': b64('scan.pdf') });
+  ok('импорт PDF: философия → lvlText 2, детский → 0, скан без текста → 0', imp['phil.pdf'].lvlText === 2 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0, imp);
+  const pc = await card(p, imp['phil.pdf'].id);
+  ok('карточка PDF-философии: выбрана «Очень сложная», «Определена по тексту»', pc.chips[2] && pc.chips[2].on && /Определена по тексту/.test(pc.note), pc);
+  /* an older card (imported before this build) has no lvlText: checked once when the book is opened */
+  const op = await p.evaluate(async (id) => {
+    const b = allBooks().find(x => x.id === id); delete b.lvlText; delete __lvlAuto[id]; save();
+    await openBook(id); const before = trackerOpts().level;
+    for (let i = 0; i < 60 && !Number.isInteger(b.lvlText); i++) await new Promise(r => setTimeout(r, 100));
+    const snap = __tracker.snapshot(), after = trackerOpts().level;
+    await closeReader({ quiet: true });
+    return { before, after, lvlText: b.lvlText, cap: snap.pageCapMs, row: SESS.slice(-1)[0] };
+  }, imp['phil.pdf'].id);
+  ok('старая карточка PDF: при открытии уровень 0, через пару секунд текст проверен (lvlText 2), лимит страницы 7 мин', op.before === 0 && op.after === 2 && op.lvlText === 2 && op.cap === 7 * 60000, op);
+  await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+  const kept = await p.evaluate((ids) => ids.map(id => (allBooks().find(x => x.id === id) || {}).lvlText), [imp['phil.pdf'].id, imp['scan.pdf'].id]);
+  ok('после перезагрузки lvlText в карточках на месте (2 и 0), повторно не считается', kept[0] === 2 && kept[1] === 0, kept);
+  await c.close(); fs.rmSync(dir, { recursive: true, force: true });
+}
+
 /* root (rq): feature off — no section, no level in the tracker */
 { const { p, c } = await page(MAIN, 390); await addBooks(p, PHIL, KIDS);
   const a = await card(p, 'u_phil');

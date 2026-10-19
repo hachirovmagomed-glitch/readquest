@@ -111,7 +111,7 @@ export function createSessionTracker(api) {
     const raw = dwellAcc;
     const got = floorMs > 0 && raw < floorMs ? 0 : Math.min(raw, pageCapMs);
     creditedMs += got;
-    if (level > 0) pageMs.push(got);
+    pageMs.push(got); /* always: the level can arrive mid-session (setLevel, PDF text checked after open) */
     dwellAcc = 0;
     return raw;
   }
@@ -267,6 +267,17 @@ export function createSessionTracker(api) {
       startClock();
       dwellStart();
       armFlush();
+      persistDraft();
+    },
+
+    /**
+     * 19.10: the book level became known after begin() (PDF: its text is sampled in the background).
+     * From now on the row gets this level (pace-checked over the whole session); the page cap grows to `newCapMs`, never shrinks.
+     */
+    setLevel(lvl, newCapMs) {
+      if (!running) return;
+      level = Number.isInteger(lvl) && lvl > 0 ? lvl : 0;
+      if (newCapMs > capMs) { capMs = newCapMs; if (pageCapMs < capMs) pageCapMs = capMs; }
       persistDraft();
     },
 

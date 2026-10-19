@@ -96,10 +96,29 @@ function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__
 const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
 function bookLvlAuto(b){
   if(!b||!window.__rqGame)return 0;
-  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||''),c=__lvlAuto[b.id];
+  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+b.lvlText,c=__lvlAuto[b.id];
   if(c&&c.k===k)return c.l;
   let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
   __lvlAuto[b.id]={k:k,l:l};return l;
+}
+/** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…2 (game-awards textLevel); scans → 0. */
+async function pdfTextLevel(doc,alive){
+  const G=window.__rqGame,parts=[];
+  for(const n of G.pdfSamplePages(doc.numPages,12)){
+    if(alive&&!alive())return null; /* book closed: its document is gone, an empty sample would read as «Обычная» */
+    try{const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}catch(e){}
+  }
+  if(alive&&!alive())return null;
+  return G.textLevel(parts.join('\n'));
+}
+/** once per PDF card: store lvlText (arch.md), one save(); then the open session (if this book) gets the new level */
+async function pdfLvlCheck(b,doc){
+  if(!b||b.type!=='pdf'||!lvlOn()||Number.isInteger(b.lvlText))return;
+  await new Promise(function(r){setTimeout(r,1500);}); /* after the first page is drawn */
+  let l=null;try{l=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
+  if(l==null||Number.isInteger(b.lvlText))return;
+  b.lvlText=l;save();
+  if(R&&R.book===b&&__tracker&&__tracker.setLevel){const o=trackerOpts();__tracker.setLevel(o.level,o.capMs);}
 }
 /** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */
 function bookLvlOf(b){if(!b||!lvlOn())return 0;return window.__rqGame.effLevel(bookLvlAuto(b),(S.bookLvl||{})[b.id]);}

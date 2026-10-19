@@ -261,12 +261,17 @@ renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroSh
 let hero3d=null,hero3dOn=['cl3-coat','cl3-staff','cl3-owl'];
 /* Герой из VRoid (VRM, hero/hero-vrm.mjs): база в майке, наряды — свои файлы того же персонажа. Файлов моделей в репо нет,
    пока у них нет авторства Джессики и разрешений (образец pixiv запрещает публикацию) — тогда лист открывает пробу из примитивов. */
-const HERO_VRM={base:'hero/vrm/base.vrm',outfits:[{id:'vr-dress-1',name:'Платье',file:'hero/vrm/dress-1.vrm',hide:['Bottoms']}]};
+const HERO_VRM={base:'hero/vrm/base.vrm',outfits:[
+  {id:'vr-dress-1',name:'Платье',file:'hero/vrm/dress-1.vrm',hide:['Bottoms']},
+  {id:'vr-skirt',name:'Юбка',file:'hero/vrm/skirt.vrm'},
+  {id:'vr-jeans',name:'Белые джинсы',file:'hero/vrm/jeans-white.vrm'},
+  {id:'vr-pants-red',name:'Красные штаны',file:'hero/vrm/pants-red.vrm'},
+  {id:'vr-pants-blue',name:'Синие штаны',file:'hero/vrm/pants-blue.vrm'}]};
 let hero3dVrm='vr-dress-1';
 /* модуль подключаем тегом type=module (а не import(): классические скрипты проверяет esprima без динамического import) */
 function heroLoadMod(src,key){if(window[key])return Promise.resolve(window[key]);return new Promise(function(ok,no){const sc=document.createElement('script');sc.type='module';sc.src=src;sc.onload=function(){window[key]?ok(window[key]):no(new Error(src+': no export'));};sc.onerror=no;document.head.appendChild(sc);});}
 function heroLoad3d(){return heroLoadMod('hero/hero3d.mjs','__rqHero3d');}
-function heroClose3d(){const sh=el('hero3dSheet');if(hero3d){try{hero3d.dispose();}catch(e){}hero3d=null;}if(sh)sh.hidden=true;}
+function heroClose3d(){const sh=el('hero3dSheet');if(hero3d){try{hero3d.dispose();}catch(e){}hero3d=null;}if(sh){sh.hidden=true;el('hero3dBox').innerHTML='';}}
 function heroChips3d(list,isOn,onTap){const box=el('hero3dItems');
   const draw=function(){box.innerHTML=list.map(function(it){return '<button type="button" class="fchip'+(isOn(it.id)?' on':'')+'" data-id="'+it.id+'">'+esc(it.name)+'</button>';}).join('');};
   box.onclick=function(e){const b=e.target.closest('button[data-id]');if(!b)return;onTap(b.dataset.id);draw();};draw();}

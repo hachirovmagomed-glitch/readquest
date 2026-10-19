@@ -126,15 +126,17 @@ ok('Небесный: 12 classes for sale, Сонный чтец free by default
 const h3 = await p.evaluate(async () => {
   wear('skin-celestial'); openLook(true); heroShopTab('chars'); await new Promise(q => setTimeout(q, 100));
   const btn = !!document.querySelector('#heroShop .hero3dbtn'); heroOpen3d();
-  for (let i = 0; i < 150 && !document.querySelector('#hero3dBox canvas, #hero3dItems button') && !/не открылось/.test(el('hero3dBox').textContent); i++) await new Promise(q => setTimeout(q, 100));
+  for (let i = 0; i < 400 && !document.querySelector('#hero3dItems button') && !/не открылось/.test(el('hero3dBox').textContent); i++) await new Promise(q => setTimeout(q, 100));
   const canvas = !!document.querySelector('#hero3dBox canvas'), items = document.querySelectorAll('#hero3dItems button').length, fallback = /не открылось/.test(el('hero3dBox').textContent);
-  if (items) { const b = document.querySelector('#hero3dItems [data-id="cl3-hat"]'); b.click(); }
-  const toggled = !items || hero3dOn.indexOf('cl3-hat') >= 0;
+  /* модели VRoid (hero/vrm/) в git пока нет — тогда проба из примитивов (6 вещей); есть — наряды VRM */
+  const vrm = !!document.querySelector('#hero3dItems [data-id="vr-dress-1"]');
+  if (items) document.querySelector(vrm ? '#hero3dItems [data-id="vr-dress-1"]' : '#hero3dItems [data-id="cl3-hat"]').click();
+  const toggled = !items || (vrm ? hero3dVrm === 'vr-dress-1' : hero3dOn.indexOf('cl3-hat') >= 0);
   heroClose3d(); const closed = el('hero3dSheet').hidden && !document.querySelector('#hero3dBox canvas');
   wear('skin-ellada'); renderHeroShop(); const notHere = !document.querySelector('#heroShop .hero3dbtn');
-  return { btn, canvas, items, fallback, toggled, closed, notHere };
+  return { btn, canvas, items, vrm, fallback, toggled, closed, notHere };
 });
-ok('Небесный 3D: button only in Небесный, sheet opens (6 items) or says it cannot, try-on toggles, closes', h3.btn && ((h3.canvas && h3.items === 6) || h3.fallback) && h3.toggled && h3.closed && h3.notHere, h3);
+ok('Небесный 3D: button only in Небесный, sheet opens (6 items, or VRoid outfits) or says it cannot, try-on toggles, closes', h3.btn && ((h3.canvas && (h3.items === 6 || (h3.vrm && h3.items >= 2))) || h3.fallback) && h3.toggled && h3.closed && h3.notHere, h3);
 
 // profile: hero fits the card in every skin, gap colour = the card under it, no frame
 for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {

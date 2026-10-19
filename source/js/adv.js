@@ -390,7 +390,7 @@ function advRenderList(){
     else if(au&&au.pick)h+='<div class="advalt">На Викитеке несколько авторов с таким именем:</div>'+au.pick.map(function(t){return '<button type="button" class="advrow advauthrow" data-author="'+esc(t)+'">'+rqIcon('user-round',22)+'<span class="advmeta"><b>'+esc(t.replace(/^Автор:/,''))+'</b></span>'+rqIcon('chevron-right',18)+'</button>';}).join('');
     else if(ADV.err)h+='<div class="advempty">'+esc(ADV.err)+'</div>';
     else if(ADV.set==='want')h+='<div class="advempty">Список пуст. Откройте книгу и нажмите «Хочу прочитать»</div>';
-    else if(!advLat()&&!ADV.q)h+=advHome()+'<div class="bk-h">Подборки</div><div class="advsets">'+ADV_SETS.filter(function(x){return !(rqLean()&&(x.src==='gutenberg'||x.src==='se'));}).map(function(x){ /* audit 19.10 ADV-01: English collections off for the RU people test */
+    else if(!advLat()&&!ADV.q)h+=advHome()+'<div class="bk-h">Подборки</div><div class="advsets">'+ADV_SETS.map(function(x){ /* audit 19.10 ADV-01: English collections off for the RU people test */
         return '<button type="button" class="advset" data-set="'+x.id+'">'+rqIcon(x.ic,22)+'<b>'+esc(x.t)+'</b><span>'+(x.pages?advSetLine(x):'мировая классика')+'</span>'+(x.pages&&advSetProg(x)?advBar(advSetProg(x),x.pages.length):'')+'</button>';}).join('')+'</div>'+
       '<div class="bk-h advauth-h">Авторы</div><div class="chips advhints">'+
       ADV_WS_HINTS.map(function(s){return '<button type="button" class="fchip" data-q="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>';

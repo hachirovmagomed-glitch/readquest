@@ -14,9 +14,6 @@
 (function(){
   var ns='__RQ_NS__'; if(ns.indexOf('__')===0)ns='rq';
   window.RQ_NS=ns;
-  /* audit 19.10 R1/R2 (Джессика): «тест на людях» — paid skins, the skin shop and «Путь читателя» are hidden (class rq-lean).
-     Preview for checking new skins on her own phone: 7 taps on the build number in «Данные» → ns+'preview'='1' (outside the write gate, like diag). */
-  try{if(localStorage.getItem(ns+'preview')!=='1')document.documentElement.classList.add('rq-lean');}catch(e){document.documentElement.classList.add('rq-lean');}
   window.RQ_K={v1:ns+'_v1',set:ns+'_set',owner:ns+'_owner',migrated:ns+'_migrated_v1',takeover:ns+'_takeover',
     theme:ns+'_theme',legacy:ns==='rq'?'readquest':ns+'_readquest',idb:ns==='rq'?'readquest':'readquest-test',lock:ns+'-writer',bc:ns,cache:ns+'-'};
 })();
@@ -770,7 +767,6 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:var(--rq-radius
 .progtabs .progtab{flex:0 0 auto}
 .lookshophead{align-items:center;gap:8px}.lookshophead h2{margin-bottom:8px}
 /* audit 19.10 R1: people test — no skin shop, no test coins (preview: 7 taps on the build number) */
-.rq-lean .lookshophead,.rq-lean #rewPaneShop,.rq-lean #btnTestGold{display:none!important}
 body.mvp .progtab:is([data-sub="calendar"],[data-sub="achievements"],[data-sub="shelf"]){display:none} /* MVP folds these screens into the library */
 /* ===== 3D пиксельная книжная полка ===== */
 #shelfWrap{perspective:900px;padding:6px 0 24px}
@@ -1397,7 +1393,6 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 ADV-02 */.cta[disabled]{opacity:.5;cursor:default}
 /* audit 19.10 QST-02 */.chip{white-space:nowrap;flex:none}
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
-/* audit 19.10 SET-01: only Russian on the test */.rq-lean .setlang{display:none}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
 <link rel="stylesheet" href="skins/skins.css"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
@@ -1646,7 +1641,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     </div>
     <h2>Язык и напоминание</h2>
     <div class="pcard">
-      <div class="setrow setlang"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
       <div class="setrow setrow-time"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время напоминания</div>
         <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">+</button></span></div>

@@ -10,7 +10,7 @@ const lum = h => { const c = h.match(/\w\w/g).map(x => parseInt(x, 16) / 255).ma
 const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
 const hex = rgb => rgb.match(/\d+/g).slice(0, 3).map(n => (+n).toString(16).padStart(2, '0')).join('');
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-const errs = []; const p = await (await browser.createBrowserContext()).newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
+const errs = []; const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
 p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);

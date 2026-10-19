@@ -6,7 +6,7 @@ const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-const errs = []; const p = await (await browser.createBrowserContext()).newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
+const errs = []; const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
 p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
 

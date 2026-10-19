@@ -12,7 +12,7 @@ const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
-async function page(url) { const p = await (await browser.createBrowserContext()).newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */;
+async function page(url) { const p = await (await browser.createBrowserContext()).newPage();
   await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
   await p.evaluateOnNewDocument(() => { window.__confirmCalls = 0; const c = window.confirm; window.confirm = function () { window.__confirmCalls++; return true; }; });

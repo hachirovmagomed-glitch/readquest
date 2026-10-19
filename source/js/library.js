@@ -41,7 +41,7 @@ const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
 /* ONE flag: in MVP mode, show the extra sections (quests, «Инвентарь», «Внешний вид») in the drawer, bottom bar and «Нижняя панель».
    false → MVP shows only library/rewards/profile (+ settings); stored NS_set.nav is never rewritten by this. Outside MVP they always show. */
 const RQ_MVP_DRAWER_EXTRAS=true;
-function navAvail(id){if(id==='path'&&rqLean())return false; /* audit 19.10 R2: Путь hidden for the people test (stored nav untouched) */
+function navAvail(id){
   return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
 function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
 const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};

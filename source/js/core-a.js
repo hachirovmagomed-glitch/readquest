@@ -15,13 +15,6 @@ const RQ_BUILD='__RQ_BUILD__'; /* replaced by build-dist.sh (visible in Наст
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
-/** audit 19.10 R1/R2: lean = people-test view (no paid skins, no skin shop, no «Путь читателя»); class set in <head> before first paint */
-function rqLean(){return document.documentElement.classList.contains('rq-lean');}
-/** 7 taps on the build number within 4 s flip the preview (all skins, shop, Путь) and reload; nothing in S / SET / export */
-let __rqPvTaps=[];
-function rqPreviewTap(){const t=Date.now();__rqPvTaps=__rqPvTaps.filter(function(x){return t-x<4000;});__rqPvTaps.push(t);if(__rqPvTaps.length<7)return;__rqPvTaps=[];
-  const k=(window.RQ_NS||'rq')+'preview';try{if(rqLean())localStorage.setItem(k,'1');else localStorage.removeItem(k);}catch(e){return;}
-  try{flashMsg(rqLean()?'Предпросмотр: все скины и Путь читателя':'Предпросмотр выключен');}catch(e){}setTimeout(function(){location.reload();},700);}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
 function goalMin(){return isMvp()?MVP_GOAL:(S.goal||10);}

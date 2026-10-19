@@ -11,7 +11,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
 const hookW = () => { window.__w = []; const f = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (/^rqt?_/.test(String(k))) window.__w.push({ k, ready: !!window.__rqReady }); return f.call(this, k, v); }; };
-async function page(w = 390) { const ctx = await browser.createBrowserContext(); const p = await ctx.newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */; await p.setViewport({ width: w, height: 844, isMobile: true, hasTouch: true });
+async function page(w = 390) { const ctx = await browser.createBrowserContext(); const p = await ctx.newPage(); await p.setViewport({ width: w, height: 844, isMobile: true, hasTouch: true });
   p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept()); await p.evaluateOnNewDocument(hookW);
   await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady === true, { timeout: 20000 }); await sleep(400); await p.evaluate(() => show('library')); await sleep(200); return { p, ctx }; }
 const safe = async (f, d = {}) => { try { return await f(); } catch (e) { return Object.assign({ err: String(e.message || e).slice(0, 120) }, d); } };
@@ -97,7 +97,7 @@ await p.evaluate(() => { window.__bad = JSON.parse(sessionStorage.getItem('lhBad
 ok('old backup without libSort → «recent»; broken libSort after import → «recent», no crash', i1.r === 'ok' && i1.sort === 'recent' && i2.r === 'ok' && i2.sort === 'recent', { i1, i2 });
 await ctx.close();
 // 9 picks before ready: 0 writes before, exactly 1 after; gate closed → 0
-async function early(mode) { const c = await browser.createBrowserContext(); const q = await c.newPage().then(async (pg) => { await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('rqpreview', '1'); localStorage.setItem('rqtpreview', '1'); } catch (e) {} }); return pg; }) /* audit 19.10: paid skins / Путь live behind the preview flag */; await q.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true }); q.on('pageerror', e => errs.push(e.message));
+async function early(mode) { const c = await browser.createBrowserContext(); const q = await c.newPage(); await q.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true }); q.on('pageerror', e => errs.push(e.message));
   await q.evaluateOnNewDocument((mode) => { window.__w = []; const f = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (window.RQ_K && k === RQ_K.set) window.__w.push({ ready: !!window.__rqR, v }); return f.call(this, k, v); };
     let r = false; Object.defineProperty(window, '__rqReady', { configurable: true, get() { return r; }, set(v) { if (v && !window.__picked) { window.__picked = 1;
       try { if (mode === 'closed') window.__rqWriter.mayWrite = () => false; libSortPick('title'); libSortPick('progress'); libSortPick('title'); window.__mem = LIB.sort; window.__before = window.__w.length; } catch (e) { window.__err = String(e); } } r = v; window.__rqR = v; } }); }, mode);

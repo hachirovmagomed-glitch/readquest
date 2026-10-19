@@ -72,7 +72,6 @@ function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
 const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;const sid=it.type==='skin'?it.id:it.skin;
-  if(rqLean()&&sid!=='skin-pencil')return false; /* audit 19.10 R1: people test = base + «Карандашный» only; a bought skin stays owned, just not worn (memory only) */
   return SHOP_READY.indexOf(sid)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
@@ -148,7 +147,7 @@ function renderShopPane(){
       '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'&&it.price?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
   }).join('');
   /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
-  if(window.RQ_NS==='rqt'&&!rqLean()&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
+  if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
   renderShopDetail();
 }
 let shopListScroll=0; /* list scroll position: memory only, never stored */
@@ -335,7 +334,7 @@ function questPays(){return !isMvp()||RQ_MVP_QUEST_PAYOUTS;}
 function renderQuests(){
   if(el('qstHint'))el('qstHint').textContent=questPays()?'Выполняйте цели и забирайте награды. Создавайте свои квесты под любые читательские задачи.':'Цели для чтения. Создавайте свои под любые задачи'; /* tied to RQ_MVP_QUEST_PAYOUTS */
   if(el('qstGold'))el('qstGold').textContent=goldDisp()+' монет';
-  el('questBox').innerHTML=allQuests().filter(q=>!(rqLean()&&/^chain\d/.test(q.id))).map(q=>{ /* audit 19.10 QST-01: «Путь читателя I–III» hidden with the Путь */
+  el('questBox').innerHTML=allQuests().map(q=>{
     const key=q.id+':'+q.period();
     const done=!!S.claimed[key];
     const locked=q.need&&!S.claimed[q.need+':once'];

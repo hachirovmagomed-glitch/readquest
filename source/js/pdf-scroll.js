@@ -67,12 +67,14 @@ function psReset(){
   const b=psBox();if(b){b.textContent='';b.classList.add('hidden');b.scrollTop=0;}
 }
 /** canvases for the pages on screen ±1; free the rest; render the nearest first */
+/** a page's canvas leaves the strip: its bitmap and its text layer go with it */
+function psFree(cv){cv.remove();cv.width=0;cv.height=0;if(cv._tl){cv._tl.remove();cv._tl=null;}}
 function psUpdate(){
   if(!PS.on||!R.pdf)return;
   const b=psBox(),top=b.scrollTop,bot=top+b.clientHeight;
   let a=psPageAt(top),z=a;while(z<R.pageCount-1&&PS.tops[z+1]<bot)z++;
   a=Math.max(0,a-PS_KEEP);z=Math.min(R.pageCount-1,z+PS_KEEP);
-  PS.cv.forEach(function(cv,n){if(n<a-1||n>z+1){cv.remove();cv.width=0;cv.height=0;PS.cv.delete(n);}});
+  PS.cv.forEach(function(cv,n){if(n<a-1||n>z+1){psFree(cv);PS.cv.delete(n);}});
   const cur=psPageAt(),list=[];for(let i=a;i<=z;i++)if(!PS.cv.has(i)||PS.cv.get(i)._w!==PS.w)list.push(i);
   list.sort(function(x,y){return Math.abs(x-cur)-Math.abs(y-cur);});
   PS.want=list;psPump();
@@ -100,8 +102,11 @@ async function psRender(n,seq){
   await page.render({canvasContext:ctx,viewport:vp}).promise;PS.renders++;
   if(seq!==PS.seq){cv.width=0;cv.height=0;return;}
   const s=psBox().querySelector('.psl[data-n="'+n+'"]');if(!s){cv.width=0;cv.height=0;return;}
-  cv._w=w;const old=PS.cv.get(n);s.appendChild(cv);PS.cv.set(n,cv);s.classList.add('done');
-  if(old&&old!==cv){old.remove();old.width=0;old.height=0;}
+  /* 19.10: a text layer per page, so text can be selected / quoted / copied in «Прокрутка» too (same builder as «Страницы») */
+  const tl=document.createElement('div');tl.className='textLayer';tl.appendChild(await pdfTextLayer(page,w/v1.width));
+  if(seq!==PS.seq||!s.isConnected){cv.width=0;cv.height=0;return;}
+  cv._w=w;cv._tl=tl;const old=PS.cv.get(n);s.appendChild(cv);s.appendChild(tl);PS.cv.set(n,cv);s.classList.add('done');
+  if(old&&old!==cv)psFree(old);
 }
 /** a page with other proportions than page 1: resize its slot; when it is above the reading place, keep the place */
 function psFixAspect(n,asp){
@@ -180,7 +185,7 @@ function psTouchEnd(e){
 /* a returned app may have lost canvas bitmaps (Android): redraw the ones that are gone */
 function psCheck(){
   if(!PS.on||document.visibilityState==='hidden')return;
-  let bad=false;PS.cv.forEach(function(cv,n){if(pdfCanvasBad(cv,true)){cv.remove();cv.width=0;cv.height=0;PS.cv.delete(n);bad=true;}});
+  let bad=false;PS.cv.forEach(function(cv,n){if(pdfCanvasBad(cv,true)){psFree(cv);PS.cv.delete(n);bad=true;}});
   if(bad)psUpdate();
 }
 /** «Как листать» switched while a PDF is open: same page in the other mode */

@@ -233,6 +233,8 @@ html[data-skin="babochkovyi"] .wrap > .row > h1{color:var(--rq-text)}
 html[data-skin="babochkovyi"] .screen:not(#reader) .wrap > .row:first-child > h1{font-size:28px!important;-webkit-text-stroke:.5px currentColor}
 html[data-skin="babochkovyi"] #libTitle{-webkit-text-stroke:.5px currentColor}
 html[data-skin="babochkovyi"] .bbhatch .bbcap{flex:none;margin-left:6px;font:600 11px/18px var(--rq-font-ui);color:var(--rq-text-2);white-space:nowrap}
+html[data-skin="babochkovyi"] #sumHatch{flex-wrap:wrap;row-gap:4px}
+html[data-skin="babochkovyi"] #sumHatch .bbcap{flex:0 0 100%;margin-left:0;white-space:normal} /* 18.10 Джессика «надпись вышла направо»: on the summary card the caption sits under the cocoons */
 /* progress tracks: visible on the white petal cards (card2 = surface-2 is nearly white) */
 html[data-skin="babochkovyi"] .pbar{background:var(--rq-line)}
 /* session summary: butterflies fly up over the result, cells and the daily card are petals */

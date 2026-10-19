@@ -332,6 +332,7 @@ export async function importBackup(data) {
         pageTurns: s.pageTurns != null ? s.pageTurns : s.pages,
         startedAt: s.startedAt,
         xp: s.xp,
+        lvl: s.lvl,
       });
     } catch (e) {
       /* skip bad rows */

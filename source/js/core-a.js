@@ -88,15 +88,33 @@ function daysInWeekAtGoal(minNeed,wk){
 /** Award every sessions[] row not yet in game.awardedSessionIds (idempotent):
     XP = 10 × (dayMinutes after − before) per row (game-awards xpForSession, stored as row.xp), and AUTO daily +30 / weekly +120 for the (local) days of exactly
     these rows (game.dailyPaidDays / game.weeklyPaidWeeks). No claim button. */
+/* ===== Сложность книги (Джессика 19.10; game-awards.js LEVELS, arch.md) =====
+   Only on the test site for now (like achievements v2): RQ_LVL_NS. Off → no level is passed to the tracker, rows carry no lvl,
+   so XP and coins are exactly the old ones. */
+const RQ_LVL_NS=['rqt'];
+function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
+const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
+function bookLvlAuto(b){
+  if(!b||!window.__rqGame)return 0;
+  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||''),c=__lvlAuto[b.id];
+  if(c&&c.k===k)return c.l;
+  let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
+  __lvlAuto[b.id]={k:k,l:l};return l;
+}
+/** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */
+function bookLvlOf(b){if(!b||!lvlOn())return 0;return window.__rqGame.effLevel(bookLvlAuto(b),(S.bookLvl||{})[b.id]);}
 function awardPendingSessions(){
-  if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[]};
+  if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[],lvlGold:0};
   const G=window.__rqGame;
   const res=G.applySessionAwards(S,SESS); /* XP per row = 10 × whole-minute step of its day (xpForSession), stored as row.xp */
   const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
   if(__rq&&__rq.setSessionXp)fresh.forEach(function(r){__rq.setSessionXp(r.id,r.xp).catch(function(e){console.warn('[rq] setSessionXp',e);});});
   const q=G.applyQuestAwards(S,SESS,fresh,{goal:goalMin()});
   res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
-  if(res.ids.length||q.gold)save();
+  /* level bonus: rows carry lvl only when lvlOn() was true at the session start, so no gate is needed here */
+  const lv=G.applyLevelAwards?G.applyLevelAwards(S,SESS,fresh):{gold:0};
+  res.lvlGold=lv.gold;res.gold+=lv.gold;
+  if(res.ids.length||res.gold)save();
   return res;
 }
 function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}

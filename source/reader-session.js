@@ -26,6 +26,9 @@
  *   onPageChange(page, fwd)  legacy shorthand = pageTurned(fwd) + pageShown(page)
  *   end() / cancel() / snapshot() / setCounting(on)
  *
+ * Book level (19.10, game-awards.js LEVELS): begin(…, { level }) — the row gets `lvl` (only when > 0), dropped by
+ *   paceLevel() when the average counted time per forward turn is too short for that level (skimming a hard book).
+ *
  * Day (Product lock 2026-10-06): `date` = the device's LOCAL day on which the session STARTED
  *   (captured in begin()); reading 23:50–00:15 is one row, entirely on the first day.
  *
@@ -34,6 +37,7 @@
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
 import { localDay, newSessionId } from './storage/sessions.js';
+import { paceLevel } from './game-awards.js';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -67,6 +71,8 @@ export function createSessionTracker(api) {
   let pendingTurn = 0;    // +1 forward / -1 back requested by pageTurned(), consumed by pageShown()
   let extCount = 0;       // diagnostics: extensions granted on the current page
   let minSecMs = 12000;
+  let level = 0;          // book level for this session (0 = ordinary); the row stores paceLevel(level, …)
+  let pageMs = [];        // counted ms of every closed page (only while level > 0) — the pace check
   let counting = true;
   let running = false;
   let startedAt = 0;
@@ -103,7 +109,9 @@ export function createSessionTracker(api) {
   function creditPage(floorMs) {
     dwellPause();
     const raw = dwellAcc;
-    if (!(floorMs > 0 && raw < floorMs)) creditedMs += Math.min(raw, pageCapMs);
+    const got = floorMs > 0 && raw < floorMs ? 0 : Math.min(raw, pageCapMs);
+    creditedMs += got;
+    if (level > 0) pageMs.push(got);
     dwellAcc = 0;
     return raw;
   }
@@ -119,9 +127,13 @@ export function createSessionTracker(api) {
       countedMs: Math.round(countedMsLive()),
       pageTurns: pagesRead,
       startedAt: startedAt,
+      lvl: rowLvl() || undefined,
       updatedAt: Date.now(),
     }));
   }
+
+  /** level of the row: closed pages + the open one (counted so far) */
+  function rowLvl() { return level > 0 ? paceLevel(level, pageMs.concat([Math.min(dwellLive(), pageCapMs)]), turns) : 0; }
 
   async function flushEvent(via) {
     if (!running || !bookId) return null;
@@ -181,6 +193,8 @@ export function createSessionTracker(api) {
       pageTurns: pagesRead,
       startedAt: startedAt ? new Date(startedAt).toISOString() : undefined, // ISO; orders XP inside a day (game-awards xpForSession)
     };
+    const lv = level > 0 ? paceLevel(level, pageMs, turns) : 0; /* creditPage() above already closed the last page */
+    if (lv > 0) row.lvl = lv;
     if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return { row: null, ev: ev }; }
     /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
     reset(true);
@@ -196,7 +210,7 @@ export function createSessionTracker(api) {
     } catch (e) {
       console.warn('[rq] logSession failed — draft kept for recovery', e);
       const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
-        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, updatedAt: Date.now() });
+        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, lvl: row.lvl, updatedAt: Date.now() });
       /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
       if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
       return null;
@@ -209,7 +223,7 @@ export function createSessionTracker(api) {
     clearInterval(flushTimer); flushTimer = null;
     running = false; held = false; bookId = null; sessionId = null; startDay = null;
     pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
-    creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; newPageCap();
+    creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; level = 0; pageMs = []; newPageCap();
     if (!keepDraft) lsDel(DRAFT_KEY);
   }
 
@@ -219,7 +233,7 @@ export function createSessionTracker(api) {
      * @param {string} id
      * @param {number} startPage
      * @param {{ capMs?: number, minSecMs?: number, counting?: boolean,
-     *          extend?: {stepMs:number, everyMs:number, maxMs:number, minFraction?:number}|null }} [opts]
+     *          extend?: {stepMs:number, everyMs:number, maxMs:number, minFraction?:number}|null, level?: number }} [opts]
      */
     begin(id, startPage, opts) {
       const o = opts || {};
@@ -240,6 +254,7 @@ export function createSessionTracker(api) {
       if (o.capMs != null) capMs = Math.max(0, Number(o.capMs));
       if (o.minSecMs != null) minSecMs = Math.max(0, Number(o.minSecMs));
       counting = o.counting !== false;
+      level = Number.isInteger(o.level) && o.level > 0 ? o.level : 0; pageMs = [];
       extend = o.extend && o.extend.stepMs > 0 ? {
         stepMs: Number(o.extend.stepMs), everyMs: Number(o.extend.everyMs) || 60000,
         maxMs: Math.max(capMs, Number(o.extend.maxMs) || capMs),
@@ -420,7 +435,7 @@ async function recoverRaw(api, raw) {
       if (rows.some(function (r) { return r.id === d.id; })) return null;
     }
     return await api.logSession({
-      id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt,
+      id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt, lvl: d.lvl,
     });
   } catch (e) {
     console.warn('[rq] recoverDraft failed', e);

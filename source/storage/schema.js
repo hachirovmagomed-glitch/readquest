@@ -57,6 +57,8 @@ export const PROGRESS_DEF = {
   planned: {},
   bookStats: {},
   bookDiff: {},
+  /** 19.10 (arch.md «Сложность книги»): id → level 0…2 chosen by the reader; only LOWERS the automatic level */
+  bookLvl: {},
   bookStat: {},
   bookImp: {},
   status: {},
@@ -113,6 +115,8 @@ export const GAME_DEF = {
   dailyPaidDays: [],
   /** Auto-paid MVP weekly (+120): week keys (Mon YYYY-MM-DD) already paid */
   weeklyPaidWeeks: [],
+  /** 19.10 (arch.md «Сложность книги»): local day YYYY-MM-DD → level-bonus coins already paid that day */
+  lvlPaid: {},
   /** true once old claim dates (dailyClaimed/weeklyClaimed) were folded into the *Paid lists */
   paidMigrated: false,
   /** Legacy v6 daily-bonus button (full UI) */
@@ -237,6 +241,18 @@ export const LIBRARY_KEYS = Object.keys(LIBRARY_DEF);
 /**
  * Normalize nested defaults after merge (mirrors v6 hydrate, without side effects).
  */
+/** 19.10: {key: whole number 0…max}; not an object / bad keys / bad values → dropped */
+function intMap(o, max, keyRe) {
+  const out = {};
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    Object.keys(o).forEach(function (k) {
+      const v = o[k];
+      if (Number.isInteger(v) && v >= 0 && v <= max && (!keyRe || keyRe.test(k))) out[k] = v;
+    });
+  }
+  return out;
+}
+
 export function hydrateProgress(p) {
   const out = Object.assign({}, PROGRESS_DEF, p || {});
   out.progress = out.progress || {};
@@ -250,6 +266,7 @@ export function hydrateProgress(p) {
   out.planned = out.planned || {};
   out.bookStats = out.bookStats || {};
   out.bookDiff = out.bookDiff || {};
+  out.bookLvl = intMap(out.bookLvl, 2);
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};
   out.status = out.status || {};
@@ -295,6 +312,7 @@ export function hydrateGame(g) {
   out.awardedSessionIds = Array.isArray(out.awardedSessionIds) ? out.awardedSessionIds : [];
   out.dailyPaidDays = Array.isArray(out.dailyPaidDays) ? out.dailyPaidDays : [];
   out.weeklyPaidWeeks = Array.isArray(out.weeklyPaidWeeks) ? out.weeklyPaidWeeks : [];
+  out.lvlPaid = intMap(out.lvlPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {
     out.rewardPurchases = out.rewardHist.map(function (h, i) {

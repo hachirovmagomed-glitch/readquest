@@ -257,8 +257,10 @@ const _renderShopPane=renderShopPane;
 renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroShop();}catch(e){console.warn('[rq] hero shop',e);}};
 
 /* Небесный, проба 3D (Джессика 19.10: «одного героя и несколько вещей для него»): лист с героем, крутится пальцем, вещи примеряются.
-   Модель и вещи — js/hero3d.mjs (three.js, vendor/three); грузится только по кнопке. Покупки пока нет: примерка в памяти. */
+   Модель и вещи — hero/hero3d.mjs (three.js, vendor/three); грузится только по кнопке. Покупки пока нет: примерка в памяти. */
 let hero3d=null,hero3dOn=['cl3-coat','cl3-staff','cl3-owl'];
+/* модуль подключаем тегом type=module (а не import(): классические скрипты проверяет esprima без динамического import) */
+function heroLoad3d(){if(window.__rqHero3d)return Promise.resolve(window.__rqHero3d);return new Promise(function(ok,no){const sc=document.createElement('script');sc.type='module';sc.src='hero/hero3d.mjs';sc.onload=function(){window.__rqHero3d?ok(window.__rqHero3d):no(new Error('hero3d: no export'));};sc.onerror=no;document.head.appendChild(sc);});}
 function heroClose3d(){const sh=el('hero3dSheet');if(hero3d){try{hero3d.dispose();}catch(e){}hero3d=null;}if(sh)sh.hidden=true;}
 function heroOpen3d(){
   let sh=el('hero3dSheet');
@@ -266,7 +268,7 @@ function heroOpen3d(){
     sh.innerHTML='<div class="h3top"><b>Звездочёт</b><button type="button" class="fchip" onclick="heroClose3d()">Закрыть</button></div><div class="h3stage" id="hero3dBox"><span class="h3load">Загружаю героя…</span></div><p class="h3hint">Крутите пальцем · нажмите на вещь, чтобы надеть или снять</p><div class="h3items" id="hero3dItems"></div>';
     document.body.appendChild(sh);}
   sh.hidden=false;const box=el('hero3dBox');
-  import('./hero3d.mjs') /* относительно js/hero.js */.then(function(m){
+  heroLoad3d().then(function(m){
     if(sh.hidden)return;box.innerHTML='';hero3d=m.mountHero3d(box,{items:hero3dOn});
     const draw=function(){el('hero3dItems').innerHTML=m.HERO3D_ITEMS.map(function(it){return '<button type="button" class="fchip'+(hero3dOn.indexOf(it.id)>=0?' on':'')+'" data-id="'+it.id+'">'+esc(it.name)+'</button>';}).join('');};
     el('hero3dItems').onclick=function(e){const b=e.target.closest('button[data-id]');if(!b)return;const id=b.dataset.id,i=hero3dOn.indexOf(id);if(i>=0)hero3dOn.splice(i,1);else hero3dOn.push(id);hero3d.setItems(hero3dOn);draw();};

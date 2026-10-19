@@ -1,7 +1,7 @@
 /* «Небесный»: 3D-герой (проба 19.10, Джессика: «одного героя и несколько вещей для него»).
    Модель собрана из примитивов three.js: тело, лицо (текстура), волосы; вещи — отдельные группы по слотам.
    Тон-шейдинг в 3 тона + контур (вывернутая оболочка). Крутится пальцем; при reduced-motion не качается.
-   Подключается лениво: import('js/hero3d.mjs') из hero.js, three — vendor/three (MIT). */
+   Подключается лениво: тегом type=module из hero.js (heroLoad3d), three — vendor/three (MIT). */
 import * as T from '../vendor/three/three.module.min.js';
 
 const C = { skin: 0xf6dcc8, skinSh: 0xe2b9a2, hair: 0x5a3626, shirt: 0xf3ecdf, pants: 0x2b2f45, boot: 0x5b3a26,
@@ -231,3 +231,5 @@ export function mountHero3d(box, opts) {
     dispose() { alive = false; ro.disconnect(); r.dispose(); el.remove(); }
   };
 }
+
+window.__rqHero3d = { mountHero3d, HERO3D_ITEMS }; /* для hero.js (heroLoad3d) */

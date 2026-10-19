@@ -96,11 +96,10 @@ cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT
 mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
-# 3D-герой Небесного: ES-модуль js/*.mjs (грузится import() по кнопке «3D», без <script>) + three.js (MIT)
-(cd "$ROOT" && find js -maxdepth 1 -name "*.mjs") | while read -r f; do cp "$ROOT/$f" "$DIST/$f"; done
+# 3D-герой Небесного: ES-модуль hero/hero3d.mjs (подключается по кнопке «Покрутить в 3D») + three.js (MIT)
 mkdir -p "$DIST/vendor/three"; cp "$ROOT/vendor/three/three.module.min.js" "$ROOT/vendor/three/LICENSE" "$DIST/vendor/three/"
 # Герои скина «Небесный» (webp, режет tools/gen-celestial-heroes.py) — precached
-mkdir -p "$DIST/hero/celestial"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"
+mkdir -p "$DIST/hero/celestial"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"; cp "$ROOT/hero/hero3d.mjs" "$DIST/hero/"
 
 # «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB
 if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi

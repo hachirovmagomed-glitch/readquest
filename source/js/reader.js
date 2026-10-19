@@ -317,8 +317,10 @@ function trackerOpts(){
   const capMin=isMvp()?MVP_ANTI.maxMin:(a.maxMin||3);
   /* PDF only: active work with the page (pan > 20 % of the screen / zoom change) extends THIS page's cap
      by +1 min, at most once per 60 s, hard ceiling 8 min. Text: flat 3 min. Accounting lives in reader-session.js. */
-  const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:8*60000,minFraction:0.2}:null;
-  return {capMs:capMin*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend};
+  /* 19.10: a hard book gets a longer page cap (LEVELS capMin: 3 / 5 / 7 min) and its level goes into the session row */
+  const lvl=bookLvlOf(R.book),cap=Math.max(capMin,lvl?window.__rqGame.LEVELS[lvl].capMin:0);
+  const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:Math.max(8,cap)*60000,minFraction:0.2}:null;
+  return {capMs:cap*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend,level:lvl};
 }
 /* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
 let dayBarIv=null;

@@ -46,7 +46,8 @@ async function upload(file) {
   const n0 = await page.evaluate(() => (S.userBooks || []).length);
   const inp = await page.$('#fileInp'); await inp.uploadFile(file);
   await page.waitForFunction((n) => (S.userBooks || []).length > n, { timeout: 30000 }, n0);
-  return page.evaluate(() => S.userBooks[S.userBooks.length - 1].id);
+  /* 19.10 «Сложность книги» (/test/): the cap expectations below are for an ordinary book (3 min) — pin the level to «Обычная» */
+  return page.evaluate(() => { const id = S.userBooks[S.userBooks.length - 1].id; S.bookLvl = S.bookLvl || {}; S.bookLvl[id] = 0; return id; });
 }
 const ids = {};
 ids.a = await upload(PDFDIR + 'a-labels-144.pdf');

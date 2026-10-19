@@ -74,10 +74,10 @@ const m = await p.evaluate(async () => { openDrawer(); const di = !!el('dAdv'); 
   const src = Array.from(document.querySelectorAll('#advSrc .fchip')).map(b => b.textContent + (b.classList.contains('on') ? '*' : ''));
   const hints = document.querySelectorAll('#advList .advhints .fchip').length;
   return { di, lab, vis, h1, src, hints, on: el('dAdv') && el('dAdv').classList.contains('on') }; });
-ok('1a «Приключения» в боковом меню, экран открывается; источники Викитека (выбрана) и Гутенберг; без запроса подсказки авторов', m.di && m.lab === 'Приключения' && m.vis && m.h1 === 'Приключения' && m.src.join() === 'Викитека*,Гутенберг' && m.hints >= 4 && hits.ws.length === 0, m);
+ok('1a «Приключения» в боковом меню, экран открывается; источники Везде (выбрано), Викитека и Гутенберг; без запроса подсказки авторов', m.di && m.lab === 'Приключения' && m.vis && m.h1 === 'Приключения' && m.src.join() === 'Везде*,Викитека,Гутенберг' && m.hints >= 4 && hits.ws.length === 0, m);
 
 // 2. Wikisource
-const s = await p.evaluate(async () => { document.querySelector('#advList .advhints .fchip').click(); await new Promise(r => setTimeout(r, 400));
+const s = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 200)); el('advQ').value = 'Одиссея'; ADV.q = 'Одиссея'; await advSearch();
   return { q: el('advQ').value, rows: Array.from(document.querySelectorAll('#advList .advrow')).map(b => b.querySelector('b').textContent + '|' + b.querySelector('.advauth').textContent) }; });
 ok('2a поиск: «Одиссея» и её глава сведены в одну строку, автор и переводчик из названия страницы', s.rows.length === 4 && s.rows[0] === 'Одиссея|Гомер · пер. Жуковский' && s.rows[1] === 'Новая повесть|Автор', s);
 const nl = await p.evaluate(async () => { advOpen(ADV.items[2]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody'); const r = { cta: !!b.querySelector('#advGet'), txt: b.textContent }; el('bookSheet').classList.add('hidden'); return r; });

@@ -30,9 +30,9 @@ const days = (from, count, min, o) => { const out = []; const d0 = new Date(from
 /* ---- 1. catalog ---- */
 const CAT = A.CAT || [], SEC = A.SECTIONS || [];
 const regular = CAT.filter(a => !a.legacy);
-ok('1a catalog: 106 achievements + 6 legacy ones (shown only when earned)', regular.length === 106 && CAT.filter(a => a.legacy).length === 6, { regular: regular.length, legacy: CAT.length - regular.length });
+ok('1a catalog: 110 achievements (+4 «Приключения», 19.10) + 6 legacy ones (shown only when earned)', regular.length === 110 && CAT.filter(a => a.legacy).length === 6, { regular: regular.length, legacy: CAT.length - regular.length });
 ok('1b ids unique', new Set(CAT.map(a => a.id)).size === CAT.length);
-const want = { hours: 9, habit: 22, books: 14, sessions: 10, daytime: 8, calendar: 10, returns: 5, formats: 7, quotes: 6, levels: 6, secret: 9 };
+const want = { hours: 9, habit: 22, books: 18, sessions: 10, daytime: 8, calendar: 10, returns: 5, formats: 7, quotes: 6, levels: 6, secret: 9 };
 const got = {}; regular.forEach(a => { got[a.sec] = (got[a.sec] || 0) + 1; });
 ok('1c 11 sections with the planned sizes', SEC.length === 11 && Object.keys(want).every(k => got[k] === want[k] && SEC.some(s => s.id === k)), got);
 ok('1d tiers: bronze/silver/gold/legend, secret section = secret tier with a hint', regular.every(a => (a.sec === 'secret') === (a.tier === 'secret')) && regular.every(a => ['bronze', 'silver', 'gold', 'legend', 'secret'].includes(a.tier)) && regular.filter(a => a.tier === 'secret').every(a => a.hint));
@@ -86,6 +86,10 @@ ok('7b «Кирпич»: finished PDF of 1200 pages; «Толстяк» for 600-
 ok('7c 3 books of one author → «Верность автору»; «Моя книга»/«PDF» are not authors', A.evaluate(fin(['u1', 'u2', 'u3'])).author3.done && !A.evaluate(fin(['u4', 'b1'])).author3.done);
 ok('7d «Залпом»: first session to finish ≤ 7 days', A.evaluate(fin(['u2'], { sessions: [S('2026-10-04', 10, { book: 'u2' })] })).fast7.done && !A.evaluate(fin(['u2'], { sessions: [S('2026-10-01', 10, { book: 'u2' })] })).fast7.done);
 ok('7e «Довести до конца»: a finished book with a 60-day gap inside', A.evaluate(fin(['u2'], { sessions: [S('2026-07-01', 10, { book: 'u2' }), S('2026-09-15', 10, { book: 'u2' })] })).refinish.done);
+
+const LB = BOOKS.concat([{ id: 'w1', title: 'Хамелеон', author: 'Чехов', own: true, src: 'wikisource' }, { id: 'w2', title: 'Шинель', author: 'Гоголь', own: true, src: 'wikisource' }, { id: 'w3', title: 'Нос', author: 'Гоголь', own: true, src: 'wikisource' }, { id: 'g1', title: 'Emma', author: 'Austen', own: true, src: 'gutenberg' }]);
+const lf = (ids) => A.evaluate(fin(ids, { books: LB }));
+ok('7f «Приключения»: «Находка» за книгу из библиотек, «Искатель» за 3, «Две библиотеки» за обе; свои книги не считаются', lf(['w1']).lib1.done && !lf(['u1', 'u2']).lib1.done && lf(['w1', 'w2', 'w3']).lib3.done && !lf(['w1', 'w2']).lib3.done && !lf(['w1', 'w2', 'w3']).lib2src.done && lf(['w1', 'g1']).lib2src.done);
 
 /* ---- 8. formats ---- */
 ok('8a 60 min in a PDF → «PDF»; 59 → no', done({ sessions: [S('2026-10-01', 60, { book: 'u1' })] }, 'pdf60') && !done({ sessions: [S('2026-10-01', 59, { book: 'u1' })] }, 'pdf60'));

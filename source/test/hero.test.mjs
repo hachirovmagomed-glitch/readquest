@@ -24,7 +24,7 @@ const lock = await p.evaluate(async () => {
   const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
   const g0 = S.gold; heroBuyAsk('gr-helm'); const noBuy = el('shopConfirm').hidden && S.gold === g0 && !(S.ownedGear || []).includes('gr-helm');
   const none = !el('heroShop') || el('heroShop').hidden || !el('heroShop').querySelector('.heroitem');
-  buy('skin-ellada'); wear('skin-ellada'); renderShopPane(); return { tabs, noBuy, none, all: HERO_GEAR.every(g => g.skin === 'ellada') };
+  buy('skin-ellada'); wear('skin-ellada'); renderShopPane(); return { tabs, noBuy, none, all: HERO_GEAR.filter(g => /^(gr|ch)-/.test(g.id)).every(g => g.skin === 'ellada') };
 });
 ok('outside Эллада: only the «Скины» tab, no Greek item cards, no purchase', lock.tabs === 'Скины' && lock.noBuy && lock.none && lock.all, lock);
 
@@ -76,6 +76,19 @@ const ch = await p.evaluate(async () => {
   return { cards, readerBtn, dlg, bought, own, back, ari, noRobe };
 });
 ok('«Персонажи»: Читатель free, Пифагор −600 via dialog keeps the gear, colours per character, robe only without clothes', ch.cards === 'ch-reader,ch-pythagoras,ch-aristotle' && ch.readerBtn === 'Выбран' && ch.dlg && ch.bought && ch.own && ch.back && ch.ari && ch.noRobe, ch);
+
+// Карандашный: its own hero (Grok's mannequin) and 30 pc-* items, only in this skin
+const pc = await p.evaluate(async () => {
+  wear('skin-pencil'); renderShopPane(); heroShopTab('wear'); await new Promise(q => setTimeout(q, 100));
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), cards = el('heroShop').querySelectorAll('.heroitem').length;
+  const greek = !el('heroShop').querySelector('.heroitem[data-id^="gr-"]'), art = typeof HERO_PENCIL_ART === 'object' && Object.keys(HERO_PENCIL_ART.items).length;
+  const g0 = S.gold; heroBuyAsk('pc-cap'); shopConfirmOk();
+  const bought = S.equipped['pencil:head'] === 'pc-cap' && S.gold === g0 - 120, drawn = avatarSvg().includes('heropencil') && avatarSvg().includes(HERO_PENCIL_ART.items['pc-cap'].front.slice(0, 60));
+  heroSetCol('pc-cap', '#2a7a3b'); const col = avatarSvg().includes('--pc-blue:#2a7a3b');
+  wear('skin-ellada'); const away = !avatarSvg().includes('heropencil') && heroOn().head === 'gr-helm';
+  return { tabs, cards, greek, art, bought, drawn, col, away };
+});
+ok('Карандашный: own hero, Одежда = 19 pencil items, buy/wear/colour, nothing Greek; Эллада keeps its own', pc.tabs === 'Скины,Одежда,Снаряжение' && pc.cards === 19 && pc.greek && pc.art === 30 && pc.bought && pc.drawn && pc.col && pc.away, pc);
 
 // colour: any hex; owned = saved, not owned = try-on only
 const col = await p.evaluate(() => {

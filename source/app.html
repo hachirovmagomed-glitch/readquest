@@ -1268,7 +1268,10 @@ html[data-skin="pencil"] .confetti{color:var(--rq-accent)}
 html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 
 /* герой-стикмен (js/hero.js): рамка = цвет щелей силуэта */
-#avatarFrame,.heroframe,.tinyava{--hero-bg:var(--rq-surface)} /* js/hero.js ставит точный цвет плашки под героем */
+#avatarFrame,.heroframe,.tinyava{--hero-bg:var(--rq-surface)}
+/* Карандашный герой (js/hero-pencil.js): цветные карандаши Грока, день/ночь */
+.heropencil{--pc-f1:#e5e9f1;--pc-f2:#ccd3e0;--pc-blue:#2f55b8;--pc-red:#d0443c}
+html[data-theme="night"] .heropencil{--pc-f1:#232e48;--pc-f2:#2d3a5a;--pc-blue:#7d9bff;--pc-red:#e0675f} /* js/hero.js ставит точный цвет плашки под героем */
 html #avatarFrame.avatarframe{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:106px;height:136px}
 #profile .herocard{height:168px} /* герой на постаменте: плашка выше во всех скинах */
 #avatarFrame .avatar{filter:none}
@@ -1897,6 +1900,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/reader-ui.js"></script>
 <script src="js/rpg.js"></script>
 <script src="js/content.js"></script>
+<script src="js/hero-pencil.js"></script>
 <script src="js/hero.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>

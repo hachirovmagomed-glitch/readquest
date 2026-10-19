@@ -83,10 +83,11 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
        (pure catalog) + achievements.js (UI), both after v6-extras.js and before start.js.
        «Путь читателя» (16.10, arch.md): path.js (map screen), after achievements.js and before start.js.
        «Приключения» (18.10, arch.md): adv.js (free books from open libraries), after path.js and before start.js.
-       Герой-стикмен (18.10): hero.js (stickman + Greek gear shop), after content.js and before settings.js.
+       Герой-стикмен (18.10): hero.js (stickman + Greek gear shop), after content.js and before settings.js;
+       hero-pencil.js (19.10, generated art of the Карандашный hero and its 30 items) right before hero.js.
        Читалка (18.10, arch.md SET.flip): pdf-scroll.js (PDF «Прокрутка»), page-curl.js («Загиб»), page-grid.js («Обзор»
        with thumbnails), in that order after pdf.js and before reader-ui.js. */
-    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero.js', 'js/pdf-scroll.js', 'js/page-curl.js', 'js/page-grid.js'];
+    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero-pencil.js', 'js/hero.js', 'js/pdf-scroll.js', 'js/page-curl.js', 'js/page-grid.js'];
     const hOld = ht.filter(f => NEW_JS.indexOf(f) < 0);
     ok(`(split HEAD) <script src="js/…"> order in app.html = the 1a order of ${SPLIT_TREE} (${tt.length} tags; new since then: ${NEW_JS.join(', ')}), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(hOld) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
     const STR = "'use strict';\n", strictBad = [];

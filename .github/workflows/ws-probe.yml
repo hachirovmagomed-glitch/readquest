@@ -1,4 +1,4 @@
-# Temporary probe for «Приключения» (thread up771x): Wikisource categories/snippets, Standard Ebooks CORS. Removed after.
+# Temporary probe for «Приключения» (thread up771x): Standard Ebooks page markup. Removed after.
 name: ws-probe
 on:
   push:
@@ -10,34 +10,17 @@ jobs:
     steps:
       - run: |
           cat > p.py <<'PY'
-          import json,re,time,urllib.request,urllib.parse,urllib.error
-          A='https://ru.wikisource.org/w/api.php?'
-          UA={'User-Agent':'readquest-probe/1.0 (github actions)','Origin':'https://example.org'}
-          def g(**q):
-              q.update(format='json',formatversion=2,origin='*')
-              for i in range(6):
-                  try:
-                      r=urllib.request.Request(A+urllib.parse.urlencode(q),headers=UA)
-                      return json.loads(urllib.request.urlopen(r,timeout=30).read().decode())
-                  except urllib.error.HTTPError as e:
-                      if e.code!=429: raise
-                      time.sleep(4*(i+1))
-          T=['Зимнее утро (Пушкин)','Капитанская дочка (Пушкин)','Ревизор (Гоголь)','Шинель (Гоголь)','Вишнёвый сад (Чехов)','Хамелеон (Чехов)','Горе от ума (Грибоедов)','Бородино (Лермонтов)','Герой нашего времени (Лермонтов)','Война и мир (Толстой)','Гамлет (Шекспир; Лозинский)','Ворона и Лисица (Крылов)','Бедная Лиза (Карамзин)','Илиада (Гомер; Гнедич)','Евгений Онегин (Пушкин)','Гроза (Островский)','Муму (Тургенев)','Белые ночи (Достоевский)']
-          d=g(action='query',prop='categories|info',cllimit='max',redirects=1,titles='|'.join(T))
-          for p in d['query']['pages']:
-              print('PAGE',p.get('title'),'len',p.get('length'),'missing' if p.get('missing') else '')
-              print('   ',[c['title'].replace('Категория:','') for c in p.get('categories',[])])
-          print('continue',d.get('continue'))
-          for q in ['Мой дядя самых честных правил','"Мой дядя самых честных правил"','Белеет парус одинокой','Мороз и солнце день чудесный','"Я помню чудное мгновенье"']:
-              d=g(action='query',list='search',srsearch=q,srlimit=8); time.sleep(1.2)
-              print('\nQ',q,'total',d['query'].get('searchinfo'))
-              for h in d['query']['search']: print('  ',h['title'],'|',h.get('size'),h.get('wordcount'),'|',h.get('snippet','')[:200])
-          def head(u):
-              try:
-                  r=urllib.request.Request(u,headers=UA); x=urllib.request.urlopen(r,timeout=30)
-                  b=x.read(3000); print('\nURL',u,x.status,x.headers.get('Content-Type'),'ACAO=',x.headers.get('Access-Control-Allow-Origin'),'final',x.geturl()); print(b[:1500].decode('utf-8','replace'))
-              except Exception as e: print('\nURL',u,'ERR',e, getattr(e,'headers',{}) and dict(e.headers))
-          for u in ['https://standardebooks.org/ebooks?query=dickens','https://standardebooks.org/ebooks?query=dickens&view=list&per-page=12','https://standardebooks.org/opds/all','https://standardebooks.org/feeds/atom/new-releases','https://standardebooks.org/feeds/opds','https://standardebooks.org/ebooks.json','https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice','https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice/downloads/jane-austen_pride-and-prejudice.epub?source=download','https://standardebooks.org/feeds/atom/all','https://standardebooks.org/feeds/rss/new-releases','https://standardebooks.org/api/ebooks']:
-              head(u); time.sleep(1)
+          import re,urllib.request
+          UA={'User-Agent':'readquest-probe/1.0 (github actions)'}
+          def get(u):
+              x=urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=30); return x.read().decode('utf-8','replace')
+          h=get('https://standardebooks.org/ebooks?query=dickens&view=list&per-page=12')
+          i=h.find('<main'); print('MAIN at',i,'len',len(h)); print(h[i:i+9000])
+          print('\n\n==== tail around pagination'); j=h.find('nav class="pagination'); print(h[j-200:j+1500] if j>0 else 'no pagination')
+          h=get('https://standardebooks.org/ebooks?query=zzzzqqq'); i=h.find('<main'); print('\n\n==== EMPTY'); print(h[i:i+2500])
+          h=get('https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice')
+          i=h.find('<main'); print('\n\n==== BOOK len',len(h)); print(h[i:i+7000])
+          for k in ['epub','word count','reading-time','Reading','words','meta property']:
+              for m in list(re.finditer(re.escape(k),h))[:6]: print('  ',k,'->',h[max(0,m.start()-200):m.start()+250].replace('\n',' '))
           PY
           python3 p.py

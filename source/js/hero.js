@@ -89,7 +89,7 @@ function heroHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v.toLo
 let heroColCh='';
 function heroColKey(id,ch){ch=ch===undefined?heroColCh:ch;return ch&&ch!=='ch-reader'?ch+':'+id:id;}
 function heroCol(id){const gc=(S.char&&S.char.gearColor)||{};return heroHex(heroTryCol[id])||heroHex(gc[heroColKey(id)])||heroHex(gc[id])||(/^pc-/.test(id)?heroPcDefault(id):heroCelNative(id)||HERO_BRONZE);}
-function heroCelNative(id){const a=typeof HERO_CEL_ART!=='undefined'&&HERO_CEL_ART.items[id];return a?a.c:null;}
+function heroCelNative(id){const a=typeof HERO_CEL_ART!=='undefined'&&HERO_CEL_ART.meta[id];return a?a.c:null;}
 /* вещь Карандашного без своего цвета: синий или красный карандаш — какого в рисунке больше */
 function heroPcDefault(id){const it=(typeof HERO_PENCIL_ART!=='undefined'&&HERO_PENCIL_ART.items[id])||{},t=(it.back||'')+(it.front||'');
   return (t.split('--pc-red').length>t.split('--pc-blue').length)?'#d0443c':'#2f55b8';}
@@ -195,13 +195,17 @@ function heroCelFilter(id){const nat=heroCelNative(id),want=heroHex(heroTryCol[i
   if(!nat||!want||want===nat)return '';const a=heroHsl(nat),b=heroHsl(want);
   const sat=Math.max(0,Math.min(3,a[1]>.05?b[1]/a[1]:b[1]*3)),br=Math.max(.35,Math.min(2.2,a[2]>.04?b[2]/a[2]:1+b[2]));
   return ' style="filter:hue-rotate('+Math.round(b[0]-a[0])+'deg) saturate('+sat.toFixed(2)+') brightness('+br.toFixed(2)+')"';}
-function heroCelestialDoll(on){const A=HERO_CEL_ART,sc=94/A.h,x0=(78-A.w*sc)/2,y0=99-A.h*sc;
+function heroCelestialDoll(on){const A=HERO_CEL_ART,bid=A.bodies[S.char&&S.char.celBody]?S.char.celBody:'af',B=A.bodies[bid];
   const img=function(p,f){return '<image href="hero/celestial/wear/'+p[0]+'.webp" x="'+p[1]+'" y="'+p[2]+'" width="'+p[3]+'" height="'+p[4]+'"'+(f||'')+'/>';};
-  const ids={};Object.keys(on).forEach(function(k){if(k!=='char'&&A.items[on[k]])ids[k]=on[k];});
-  const lay=function(back){let s='';A.order.forEach(function(k){const id=ids[k],a=id&&A.items[id];if(a&&!!a.back===back){const f=heroCelFilter(id);a.p.forEach(function(p){s+=img(p,f);});}});return s;};
-  let s=lay(true)+img(['base',0,0,A.w,A.h])+lay(false);
-  if(ids.hand&&A.items[ids.hand].hand)s+=img(['hand'].concat(A.hand));
-  return heroCelSvg('<g class="hcm"><g transform="translate('+x0.toFixed(2)+' '+y0.toFixed(2)+') scale('+sc.toFixed(5)+')">'+s+'</g></g>');}
+  const ids={};Object.keys(on).forEach(function(k){if(k!=='char'&&B.items[on[k]])ids[k]=on[k];});
+  const lay=function(back){let s='';A.order.forEach(function(k){const id=ids[k];if(id&&!!A.meta[id].back===back){const f=heroCelFilter(id);B.items[id].forEach(function(p){s+=img(p,f);});}});return s;};
+  let s=lay(true)+img(['base-'+bid,0,0,B.w,B.h])+lay(false);
+  if(ids.hand&&A.meta[ids.hand].hand)s+=img(['hand-'+bid].concat(B.hand));
+  return heroCelSvg('<g class="hcm"><g transform="translate('+B.x0+' '+B.y0+') scale('+B.sc+')">'+s+'</g></g>');}
+/* фигура манекена Небесного: девушка, парень, подростки — одни и те же вещи */
+function heroCelBodyChips(){if(heroSkin()!=='celestial'||typeof HERO_CEL_ART==='undefined')return '';const cur=(S.char&&S.char.celBody)||'af';
+  return '<div class="herofig">'+Object.keys(HERO_CEL_ART.bodies).map(function(b){return '<button type="button" class="chip'+(b===cur?' on':'')+'" onclick="heroCelBody(\''+b+'\')">'+HERO_CEL_ART.bodies[b].name+'</button>';}).join('')+'</div>';}
+function heroCelBody(b){if(!HERO_CEL_ART.bodies[b])return;S.char=S.char||{};S.char.celBody=b;save();renderHeroShop();try{renderProfile();}catch(e){}}
 const HERO_FIGURES={pencil:heroPencilSvg,celestial:heroCelestialSvg}; /* свой герой скина; без записи — стикмен */
 function heroFigure(on){const f=HERO_FIGURES[heroSkin()];return f?f(on):heroSvg(on);}
 /* превью в магазине: герой текущего скина (у Эллады — с персонажем и его цветами) */
@@ -264,7 +268,7 @@ function renderHeroShop(){
   const items=here.filter(function(g){return g.kind===heroTab;});
   const sk=(items[0]||{}).skin,chars=heroTab==='chars',curCh=heroOn().char||'',note=sk?'<p class="heroskinnote">'+(chars?'Персонажи':'Вещи')+' скина «'+HERO_SKIN_NAME[sk]+'» есть только в этом скине.</p>':'';
   box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroRender(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
-      '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span>'+'</div></div>'+note+
+      '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span>'+heroCelBodyChips()+'</div></div>'+note+
     '<div class="herogrid">'+items.map(function(g){
       const own=heroOwns(g.id),worn=g.slot==='char'?(curCh||heroCharDefault(g.skin))===g.id:(S.equipped||{})[heroKey(g)]===g.id,one={};one[g.slot]=g.id;
       const cta=chars&&worn?'<button type="button" class="buy owned shopcta" disabled>Выбран</button>'

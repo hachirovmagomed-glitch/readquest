@@ -259,8 +259,8 @@ renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroSh
 /* Небесный, проба 3D (Джессика 19.10: «одного героя и несколько вещей для него»): лист с героем, крутится пальцем, вещи примеряются.
    Модель и вещи — hero/hero3d.mjs (three.js, vendor/three); грузится только по кнопке. Покупки пока нет: примерка в памяти. */
 let hero3d=null,hero3dOn=['cl3-coat','cl3-staff','cl3-owl'];
-/* Герой из VRoid (VRM, hero/hero-vrm.mjs): база в майке, наряды — свои файлы того же персонажа. Файлов моделей в репо нет,
-   пока у них нет авторства Джессики и разрешений (образец pixiv запрещает публикацию) — тогда лист открывает пробу из примитивов. */
+/* Герой из VRoid (VRM, hero/hero-vrm.mjs): база в майке, наряды — свои файлы того же персонажа (автор Maga, разрешения — hero/vrm/README.md).
+   Если модель не загрузилась — лист открывает пробу из примитивов. */
 const HERO_VRM={base:'hero/vrm/base.vrm',outfits:[
   {id:'vr-dress-1',name:'Платье',file:'hero/vrm/dress-1.vrm',hide:['Bottoms']},
   {id:'vr-skirt',name:'Юбка',file:'hero/vrm/skirt.vrm'},
@@ -291,6 +291,7 @@ function heroOpenVrm3d(box){
       el('hero3dHint').textContent='Крутите пальцем · нажмите на наряд, чтобы переодеть';
       const list=[{id:'',name:'Майка'}].concat(HERO_VRM.outfits);
       heroChips3d(list,function(id){return id===hero3dVrm;},function(id){hero3dVrm=id;h.setWear(id);});
+      el('hero3dHint').textContent+=' · модель: Maga, VRoid Studio';
     },function(e){tmp.remove();throw e;});
   });
 }

@@ -10,7 +10,7 @@ import {
   IDB_STORE_EVENTS,
   idbKeyPdf,
   idbKeyText,
-} from './schema.js?v=20261019-0349';
+} from './schema.js?v=20261019-0944';
 
 function ensureStores(db) {
   if (!db.objectStoreNames.contains(IDB_STORE)) {

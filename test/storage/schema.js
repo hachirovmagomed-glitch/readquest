@@ -156,6 +156,9 @@ export const LIBRARY_DEF = {
   shelfOrder: [],
   covers: {},
   autoDiff: true,
+  /** arch.md 19.10 «Приключения»: «Хочу прочитать» [{sid, page?, n?, t, a, tr?, ed?, lang?}] ≤ 200 и последние поиски ≤ 8 */
+  advWant: [],
+  advRecent: [],
 };
 
 /** Reader settings (same shape as v6 SETDEF) */
@@ -394,6 +397,12 @@ export function hydrateLibrary(lib) {
   out.shelfOrder = out.shelfOrder || [];
   out.covers = out.covers || {};
   if (out.autoDiff === undefined) out.autoDiff = true;
+  out.advWant = Array.isArray(out.advWant)
+    ? out.advWant.filter((x) => x && typeof x === 'object' && typeof x.sid === 'string' && /^(wikisource|gutenberg):./.test(x.sid)).slice(0, 200)
+    : [];
+  out.advRecent = Array.isArray(out.advRecent)
+    ? out.advRecent.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.slice(0, 60)).slice(0, 8)
+    : [];
   return out;
 }
 

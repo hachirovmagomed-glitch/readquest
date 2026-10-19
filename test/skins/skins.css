@@ -5,7 +5,7 @@
 
 /* ===== 1. Generic bridge: app palette vars → skin tokens (!important beats the inline --bg/... of applyAppTheme) ===== */
 html[data-skin]:not([data-skin="pencil"]){--bg:var(--rq-bg)!important;--card:var(--rq-surface)!important;--card2:var(--rq-surface-2)!important;
-  --txt:var(--rq-text)!important;--muted:var(--rq-text-2)!important;--accent:var(--rq-accent)!important;--accent2:var(--rq-coin)!important;
+  --txt:var(--rq-text)!important;--muted:var(--rq-text-2)!important;--accent:var(--rq-accent)!important;--on-accent:var(--rq-on-accent)!important;--focus-ring:var(--rq-focus)!important;--danger:var(--rq-danger)!important;--accent2:var(--rq-coin)!important;
   --good:var(--rq-success)!important;--bar:var(--rq-surface)!important;--sheet:var(--rq-sheet)!important;--drawer:var(--rq-surface)!important;
   --radius:var(--rq-radius-lg);--rq-accent-on-dark:var(--rq-accent);--rq-slider-track:var(--rq-line)}
 html[data-skin]:not([data-skin="pencil"]) body{font-family:var(--rq-font-ui)}
@@ -68,7 +68,7 @@ html[data-skin="ellada"] #libHead::before{content:"";position:absolute;left:0;ri
 html[data-skin="ellada"] #libHead::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;background:var(--el-wave-line) 0 0/14px 8px repeat-x;pointer-events:none}
 html[data-skin="ellada"][data-theme="night"] #libHead::after{background-image:var(--el-wave-line-n)}
 html[data-skin="ellada"] #libHead :is(h1,.libgold,button,.iconbtn44){color:#f6ead6}
-html[data-skin="ellada"] #libTitle{font-size:28px;line-height:1.1}
+html[data-skin="ellada"] #libTitle{font-size:1.75rem;line-height:1.1}
 /* cards: marble tiles, almost square corners, frame «black glaze + marble edge» (--rq-shadow-2) */
 html[data-skin="ellada"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.shopcard,.herocard){border-radius:var(--rq-radius-sm);border-color:transparent;box-shadow:var(--rq-shadow-2)}
 html[data-skin="ellada"] :is(.bookcard,.continuecard){margin-bottom:16px}
@@ -97,7 +97,7 @@ html[data-skin="ellada"] #path .pathch::before{content:"";position:absolute;left
 html[data-skin="ellada"] #path .pathch::after{content:"";position:absolute;right:12px;bottom:12px;width:48px;height:48px;background:var(--el-compass) center/contain no-repeat;pointer-events:none}
 html[data-skin="ellada"] #path .pathmap::after{content:"";position:absolute;left:4px;bottom:-62px;width:72px;height:34px;background:var(--el-ship) center/contain no-repeat;pointer-events:none;animation:el-ship 6s ease-in-out infinite alternate}
 @keyframes el-ship{0%{transform:translate(0,0) rotate(-1.5deg)}100%{transform:translate(10px,-2px) rotate(1.5deg)}}
-html[data-skin="ellada"] #path .pathch-h b{font-family:var(--rq-font-display);font-weight:700;font-size:20px;letter-spacing:.02em}
+html[data-skin="ellada"] #path .pathch-h b{font-family:var(--rq-font-display);font-weight:700;font-size:1.25rem;letter-spacing:.02em}
 html[data-skin="ellada"] #path .pathch-n{border-radius:var(--rq-radius-sm);background:var(--el-glaze);color:var(--rq-toast-game-fg);font-family:var(--rq-font-display);box-shadow:0 0 0 2px var(--rq-surface),0 0 0 3px var(--el-terracotta)}
 html[data-skin="ellada"][data-theme="night"] #path .pathch-n{background:var(--rq-surface-2)}
 html[data-skin="ellada"] #path .pathch.full .pathch-n{background:var(--rq-accent);color:var(--rq-on-accent)}
@@ -130,9 +130,10 @@ html[data-skin="ellada"] #path .pn-ok svg{display:block;stroke-width:3}
 html[data-skin="ellada"] #path .pn-bar{display:block;position:absolute;left:4%;right:4%;bottom:-16%;z-index:3;height:5px;border-radius:1px;background:var(--rq-surface);box-shadow:0 0 0 1px var(--el-glaze);overflow:hidden}
 html[data-skin="ellada"][data-theme="night"] #path .pn-bar{background:var(--rq-surface-2);box-shadow:0 0 0 1px var(--rq-text-2)}
 html[data-skin="ellada"] #path .pn-bar b{display:block;height:100%;background:var(--rq-accent)}
-html[data-skin="ellada"] #path .pn-lab{position:relative;z-index:3;text-shadow:0 0 3px var(--rq-accent-tint),0 0 6px var(--rq-accent-tint)}
+html[data-skin="ellada"] #path .pn-lab{position:relative;z-index:3;margin-inline-start:12px;padding:2px 6px;border-radius:var(--rq-radius-xs);background:color-mix(in srgb,var(--rq-surface) 85%,transparent);/* audit 19.10 MAP-01: a plate under the label, clear of the island */ text-shadow:0 0 3px var(--rq-accent-tint),0 0 6px var(--rq-accent-tint)}
+html[data-skin="ellada"] #path .pathnode.boss .pn-lab{margin-inline-start:30px}
 html[data-skin="ellada"][data-theme="night"] #path .pn-lab{text-shadow:0 0 3px var(--rq-surface),0 0 6px var(--rq-surface)}
-html[data-skin="ellada"] #path .pn-lab b{font-family:var(--rq-font-display);font-weight:700;font-size:18px;line-height:1.15;letter-spacing:.01em}
+html[data-skin="ellada"] #path .pn-lab b{font-family:var(--rq-font-display);font-weight:700;font-size:1.125rem;line-height:1.15;letter-spacing:.01em}
 html[data-skin="ellada"] #path .pn-tag{font-family:var(--rq-font-num);font-weight:800;color:var(--rq-text-2)}
 html[data-skin="ellada"] #path :is(.pn-a,.pn-p){color:var(--rq-text-2)}
 html[data-skin="ellada"] #path :is(.pathnode.started,.pathnode.done) .pn-p{color:var(--rq-accent-text)}
@@ -156,7 +157,7 @@ html[data-skin]:not([data-skin="pencil"]) #pgSlider::-moz-range-thumb{background
 /* app toasts outside the reader: inline background var(--sheet) + white text would be white on marble → the skin's toast tokens */
 html[data-skin]:not([data-skin="pencil"]) .rq-toast:not(.rd){background:var(--rq-toast-game-bg)!important;color:var(--rq-toast-game-fg)!important}
 /* narrow phones (360): title + search + a 5-digit balance in one row without cutting the title */
-@media (max-width:374px){html[data-skin="ellada"] #libTitle{font-size:24px;letter-spacing:0}html[data-skin="ellada"] #libHead{padding-left:10px;padding-right:10px}}
+@media (max-width:374px){html[data-skin="ellada"] #libTitle{font-size:1.5rem;letter-spacing:0}html[data-skin="ellada"] #libHead{padding-left:10px;padding-right:10px}}
 
 /* ===== 3. «Бабочковый» (handoff/skins/babochkovyi): перламутровые крылья, летний луг; ночью мотыльки и луна. Decor never in the reader. ===== */
 @font-face{font-family:"Poiret One";src:url(../fonts/babochkovyi-poiretone.woff2) format("woff2");font-weight:400;font-display:swap}
@@ -193,7 +194,7 @@ html[data-skin="babochkovyi"] #libHead{position:relative;margin:-20px -18px 6px;
   -webkit-mask:linear-gradient(#000,#000) top/100% calc(100% - 8px) no-repeat,var(--bb-wave) bottom left/22px 9px repeat-x;mask:linear-gradient(#000,#000) top/100% calc(100% - 8px) no-repeat,var(--bb-wave) bottom left/22px 9px repeat-x;
   animation:bb-shimmer var(--bb-shimmer-dur) ease-in-out infinite}
 html[data-skin="babochkovyi"] #libHead :is(h1,.libgold,button,.iconbtn44){color:var(--rq-text)}
-html[data-skin="babochkovyi"] #libTitle{font-size:30px;line-height:1.1;flex-shrink:0} /* never squeezed: wide Poiret + coin push the header to overflow instead, then the balance shows the number alone */
+html[data-skin="babochkovyi"] #libTitle{font-size:1.875rem;line-height:1.1;flex-shrink:0} /* never squeezed: wide Poiret + coin push the header to overflow instead, then the balance shows the number alone */
 /* night: the wing becomes the meadow sky — the moon rising low on the right, sparse stars above and below the row, moths instead of butterflies; no scales, no shimmer */
 html[data-skin="babochkovyi"][data-theme="night"] #libHead{background:var(--bb-sky-n) 100% 0/390px 72px no-repeat,radial-gradient(140% 170% at 92% 0%,#2a3156 0,#161a33 50%,#10121f 100%);animation:none}
 /* balance = «пыльца»: amber coin with wings before the number */
@@ -230,7 +231,7 @@ html[data-skin="babochkovyi"] .screen:not(#reader):not(#library) .wrap > .row:fi
 html[data-skin="babochkovyi"][data-theme="night"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-hatch-on-n)}
 html[data-skin="babochkovyi"] .wrap > .row > h1{color:var(--rq-text)}
 /* 18.10 (отзыв, п. 5): Poiret One is a hairline face — screen titles a size up with a thin stroke so «Профиль» reads */
-html[data-skin="babochkovyi"] .screen:not(#reader) .wrap > .row:first-child > h1{font-size:28px!important;-webkit-text-stroke:.5px currentColor}
+html[data-skin="babochkovyi"] .screen:not(#reader) .wrap > .row:first-child > h1{font-size:1.75rem!important;-webkit-text-stroke:.5px currentColor}
 html[data-skin="babochkovyi"] #libTitle{-webkit-text-stroke:.5px currentColor}
 html[data-skin="babochkovyi"] .bbhatch .bbcap{flex:none;margin-left:6px;font:600 11px/18px var(--rq-font-ui);color:var(--rq-text-2);white-space:nowrap}
 html[data-skin="babochkovyi"] #sumHatch{flex-wrap:wrap;row-gap:4px}
@@ -240,7 +241,7 @@ html[data-skin="babochkovyi"] .pbar{background:var(--rq-line)}
 /* session summary: butterflies fly up over the result, cells and the daily card are petals */
 html[data-skin="babochkovyi"] #summary .sumcell,html[data-skin="babochkovyi"] #sumDailyBox{background:var(--rq-surface)!important;border-radius:var(--rq-radius-md);box-shadow:var(--rq-shadow-2)}
 html[data-skin="babochkovyi"] #summary .sumcell b{font-family:var(--rq-font-num);font-weight:700}
-html[data-skin="babochkovyi"] #sumHead{font-family:var(--rq-font-display);font-size:28px;font-weight:400;color:var(--rq-text);line-height:1.15}
+html[data-skin="babochkovyi"] #sumHead{font-family:var(--rq-font-display);font-size:1.75rem;font-weight:400;color:var(--rq-text);line-height:1.15}
 html[data-skin="babochkovyi"] #summary .bigxp{color:var(--rq-text)}
 /* 17.10 v3 (Джессика: «думал, будет больше похож на макет» — handoff/skins/babochkovyi/babochkovyi-overview.jpg): the meadow scene on every screen but the reader,
    butterflies on the meadow, summary as a card on the scene with the big butterfly / moth, cocoons and week flowers, «Цветник» drawings in rewards, IBM Plex Serif for the book. Drawings: tools/gen-bb-decor.py --v3 */
@@ -318,8 +319,8 @@ html[data-skin="babochkovyi"] #sumWeekDots svg:has(use[href="#i-circle-check"]){
 html[data-skin="babochkovyi"][data-theme="night"] #sumWeekDots svg{background-image:var(--bb-week-off-n)}
 html[data-skin="babochkovyi"][data-theme="night"] #sumWeekDots svg:has(use[href="#i-circle-check"]){background-image:var(--bb-week-on-n)}
 html[data-skin="babochkovyi"] #sumDailyBox .pc-week{display:flex;align-items:center;justify-content:space-between;gap:8px}
-/* reader: clean page; the bar title in the skin's display face. The book face (IBM Plex Serif) comes from skinBookFont() in js/core-b.js */
-html[data-skin="babochkovyi"] #rTitle{font-family:var(--rq-font-display);font-weight:400;font-size:17px}
+/* reader: clean page; the bar title in the skin's display face. The book face is the reader's own «Шрифт» (audit 19.10 SK-01) */
+html[data-skin="babochkovyi"] #rTitle{font-family:var(--rq-font-display);font-weight:400;font-size:1.0625rem}
 /* v4: every butterfly its own kind — the 10 goal butterflies, one per screen header, the rewards title; night = moths in 4 tints */
 html[data-skin="babochkovyi"] .bbhatch i.on:nth-child(1){background-image:var(--bb-sp-0)}
 html[data-skin="babochkovyi"] .bbhatch i.on:nth-child(2){background-image:var(--bb-sp-1)}
@@ -369,7 +370,7 @@ html[data-skin="babochkovyi"] .cover{border-radius:10px;background:none;box-shad
 .bb-cover svg{position:absolute;left:50%;bottom:3px;width:34px;height:36px;margin-left:-17px}
 .bb-b{background:linear-gradient(160deg,#fbe4ee,#f1e9fb)}.bb-c{background:linear-gradient(160deg,#e8f6ec,#dff3f4)}.bb-d{background:linear-gradient(160deg,#ece6fb,#fbe4ee)}
 .bb-cocoon{background:linear-gradient(160deg,#f4f0e6,#e7f1df)}.bb-moon{background:#1b2140}.bb-moon i{color:#f4f2ff}
-@media (max-width:374px){html[data-skin="babochkovyi"] #libTitle{font-size:26px}html[data-skin="babochkovyi"] .wrap > .row > h1{font-size:22px;white-space:nowrap}html[data-skin="babochkovyi"] .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){padding:6px 10px;font-size:12px;flex:none}html[data-skin="babochkovyi"] #libHead{padding-left:10px;padding-right:10px}}
+@media (max-width:374px){html[data-skin="babochkovyi"] #libTitle{font-size:1.625rem}html[data-skin="babochkovyi"] .wrap > .row > h1{font-size:1.375rem;white-space:nowrap}html[data-skin="babochkovyi"] .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){padding:6px 10px;font-size:0.75rem;flex:none}html[data-skin="babochkovyi"] #libHead{padding-left:10px;padding-right:10px}}
 
 /* ===== 4. «Небесный» (handoff/skins/celestial, прототип rannie/mockups/celestial): небо от голубого к закату, сливочная бумага в золотых рамках,
    чернильная синева; ночью звёздная синева и лунное золото. Decor never in the reader (the page is flat --r-* paper). Vars: tools/gen-cl-decor.py */
@@ -417,9 +418,9 @@ html[data-skin="celestial"] .screen:not(#reader),html[data-skin="celestial"] #su
 html[data-skin="celestial"] #reader{background:var(--r-bg)} /* the book page stays flat paper: no sky, no stars behind the text */
 /* titles: Cormorant Garamond 700 in ink; numbers in Manrope */
 html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
-html[data-skin="celestial"] #libTitle{font-size:32px;line-height:1.1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} /* gives way to «230 монет» (bug 17.10: header wider than the phone) */
+html[data-skin="celestial"] #libTitle{font-size:2rem;line-height:1.1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} /* gives way to «230 монет» (bug 17.10: header wider than the phone) */
 html[data-skin="celestial"] #goldChip{flex:none}
-html[data-skin="celestial"] .wrap > .row > h1{font-size:30px;line-height:1.1}
+html[data-skin="celestial"] .wrap > .row > h1{font-size:1.875rem;line-height:1.1}
 html[data-skin="celestial"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
 html[data-skin="celestial"] #libHead :is(h1,.libgold,button,.iconbtn44){color:var(--rq-text)}
 /* balance = gold coin with a star, in a cream pill with a gold edge */
@@ -458,13 +459,13 @@ html[data-skin="celestial"] #summary .sumbox{position:relative;background:var(--
 html[data-skin="celestial"] #summary .sumbox::before{content:"";position:absolute;left:50%;top:12px;width:76px;height:22px;margin-left:-38px;background:var(--cl-stars3) center/contain no-repeat;pointer-events:none}
 html[data-skin="celestial"][data-theme="night"] #summary .sumbox::before{background-image:var(--cl-stars3-n)}
 html[data-skin="celestial"] #summary .sumcell,html[data-skin="celestial"] #sumDailyBox{background:var(--rq-surface-2)!important;border-radius:var(--rq-radius-sm);box-shadow:inset 0 0 0 1px var(--rq-line)}
-html[data-skin="celestial"] #summary .sumcell b{font-family:var(--rq-font-num);font-weight:800;font-size:22px} /* Cormorant digits are old-style («0» reads as «o») */
-html[data-skin="celestial"] #sumHead{font-size:30px;line-height:1.15}
+html[data-skin="celestial"] #summary .sumcell b{font-family:var(--rq-font-num);font-weight:800;font-size:1.375rem} /* Cormorant digits are old-style («0» reads as «o») */
+html[data-skin="celestial"] #sumHead{font-size:1.875rem;line-height:1.15}
 html[data-skin="celestial"] #summary .bigxp{color:var(--rq-text);font-family:var(--rq-font-num);font-weight:800}
 /* reader chrome (not the page): cream bars with a gold hairline, the title in Cormorant */
 html[data-skin="celestial"] .rhead{box-shadow:0 1px 0 var(--cl-gold-l)}
 html[data-skin="celestial"] .rfoot{box-shadow:0 -1px 0 var(--cl-gold-l)}
-html[data-skin="celestial"] #rTitle{font-family:var(--rq-font-display);font-weight:700;font-size:18px}
+html[data-skin="celestial"] #rTitle{font-family:var(--rq-font-display);font-weight:700;font-size:1.125rem}
 /* covers (celCover in js/library.js): dusk inks after the prototype (plum, sea, meadow, amber, brick, sky), a thin gold inner frame, the format on top;
    on the shelf grid the title (Cormorant) and author are printed on the cover, small covers keep a gold emblem instead */
 html[data-skin="celestial"] .cover{border-radius:8px;background:none;box-shadow:0 0 0 1px var(--cl-gold-l)}
@@ -481,21 +482,21 @@ html[data-skin="celestial"] :is(.goalcard,.qcard,#summary .sumbox,#botnav,#sumDa
 html[data-skin="celestial"][data-theme="night"] :is(.goalcard,.qcard,#summary .sumbox,#botnav,#sumDailyBox){background-image:var(--cl-ctl-n),var(--cl-ctr-n),var(--cl-cbr-n),var(--cl-cbl-n)}
 html[data-skin="celestial"] :is(.goalcard,.qcard){border-color:var(--cl-gold)}
 /* library: a grid of covers, three across; title and author under the cover, a thin dawn bar */
-html[data-skin="celestial"] #shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px;padding-top:4px}
+html[data-skin="celestial"] #shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:16px 12px;padding-top:4px}
 html[data-skin="celestial"] #shelf .bookcard{position:relative;flex-direction:column;align-items:stretch;gap:0;padding:0;margin:0;background:transparent;border:0;border-radius:0;box-shadow:none;min-width:0}
 html[data-skin="celestial"] #shelf .cover{width:100%;height:auto;aspect-ratio:3/4;border-radius:8px;box-shadow:0 0 0 1.5px var(--cl-gold-l),0 0 0 3px var(--rq-surface),0 6px 14px rgba(70,50,90,.25)}
 html[data-skin="celestial"] #shelf .cl-cover{justify-content:flex-start;padding:0 8px}
 html[data-skin="celestial"] #shelf .cl-cover i{padding-top:9px}
 html[data-skin="celestial"] #shelf .cl-cover .cl-t{display:block;margin-top:14px;font:700 16px/1.05 var(--rq-font-display);overflow-wrap:anywhere;hyphens:auto}
-html[data-skin="celestial"] #shelf .cl-cover .cl-a{display:block;margin-top:6px;font-size:9.5px;line-height:1.2;color:#fff8e6}
+html[data-skin="celestial"] #shelf .cl-cover .cl-a{display:block;margin-top:6px;font-size:0.6875rem;line-height:1.2;color:#fff8e6}
 html[data-skin="celestial"] #shelf .cl-cover svg{display:none}
 html[data-skin="celestial"] #shelf .bmeta{min-width:0;margin-top:9px}
 html[data-skin="celestial"] #shelf :is(.btitle,.bauthor,.bpct){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html[data-skin="celestial"] #shelf .btitle{font-size:12.5px;font-weight:700;line-height:1.3}
-html[data-skin="celestial"] #shelf .bauthor{font-size:11px;color:var(--rq-text-2)}
+html[data-skin="celestial"] #shelf .btitle{font-size:0.8125rem;font-weight:700;line-height:1.3}
+html[data-skin="celestial"] #shelf .bauthor{font-size:0.6875rem;color:var(--rq-text-2)}
 html[data-skin="celestial"] #shelf .pbar{height:6px;margin-top:6px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--rq-line)}
-html[data-skin="celestial"] #shelf .bpct{font-size:11px;color:var(--rq-text-2);margin-top:3px}
-html[data-skin="celestial"] #shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#ffe8b0}
+html[data-skin="celestial"] #shelf .bpct{font-size:0.6875rem;color:var(--rq-text-2);margin-top:3px}
+html[data-skin="celestial"] #shelf .infobtn{position:absolute;top:0;right:0;margin:0;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:0.9375rem;color:#ffe8b0}
 /* bottom nav: a floating framed panel with gold brackets; the active tab is a gold-leaf pill */
 html[data-skin="celestial"] #botnav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));padding:6px 8px;border:1px solid var(--cl-gold);border-radius:22px;background-color:var(--rq-surface);box-shadow:var(--cl-frame),0 8px 22px rgba(120,90,60,.16)}
 html[data-skin="celestial"] #botnav .botnav-btn.on{background:var(--cl-pill);color:var(--rq-coin);box-shadow:inset 0 0 0 1px var(--cl-gold-l)}
@@ -507,7 +508,7 @@ html[data-skin="celestial"] #reader :is(.rfoot,.rbar){background:transparent;box
 html[data-skin="celestial"][data-theme="night"] #reader .rhead{background:var(--cl-dust-n) 0 0/200px 200px repeat,var(--cl-rtop)}
 html[data-skin="celestial"][data-theme="night"] #reader .rbot{background:var(--cl-dust-n) 40px 0/200px 200px repeat,var(--cl-rbot)}
 html[data-skin="celestial"] #reader .rfoot{flex-wrap:wrap;justify-content:center;row-gap:2px;padding-top:10px}
-html[data-skin="celestial"] #rPage{order:-1;flex-basis:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--rq-font-num);font-weight:700;font-size:14px;color:var(--rq-coin)}
+html[data-skin="celestial"] #rPage{order:-1;flex-basis:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--rq-font-num);font-weight:700;font-size:0.875rem;color:var(--rq-coin)}
 html[data-skin="celestial"] #rPage::before,html[data-skin="celestial"] #rPage::after{content:"";width:8px;height:8px;background:var(--cl-dia) center/contain no-repeat}
 html[data-skin="celestial"][data-theme="night"] #rPage::before,html[data-skin="celestial"][data-theme="night"] #rPage::after{background-image:var(--cl-dia-n)}
 html[data-skin="celestial"] #pgSlider{flex:1}
@@ -518,10 +519,10 @@ html[data-skin="celestial"][data-skin] #pgSlider::-moz-range-thumb{width:24px;he
 html[data-skin="celestial"][data-theme="night"][data-skin] #pgSlider::-webkit-slider-thumb{background-image:var(--cl-thumb-n)}
 html[data-skin="celestial"][data-theme="night"][data-skin] #pgSlider::-moz-range-thumb{background-image:var(--cl-thumb-n)}
 /* session summary: a big Cormorant title with a diamond divider, XP in lilac, coins on a gold card */
-html[data-skin="celestial"] #summary #sumHead{font-size:30px!important;color:var(--rq-text)!important;margin-top:4px}
+html[data-skin="celestial"] #summary #sumHead{font-size:1.875rem!important;color:var(--rq-text)!important;margin-top:4px}
 html[data-skin="celestial"] #summary #sumHead::after{content:"";display:block;height:10px;margin:8px auto 2px;width:160px;background:var(--cl-div) center/160px 10px no-repeat}
 html[data-skin="celestial"][data-theme="night"] #summary #sumHead::after{background-image:var(--cl-div-n)}
-html[data-skin="celestial"] #summary .bigxp{color:var(--cl-xp);font-size:34px}
+html[data-skin="celestial"] #summary .bigxp{color:var(--cl-xp);font-size:2.125rem}
 html[data-skin="celestial"] #summary #sumGoldCell{background:var(--cl-gold-card)!important;box-shadow:inset 0 0 0 1px var(--cl-gold-l)}
 html[data-skin="celestial"] #summary #sumGoldCell b{color:var(--rq-coin)}
 /* rewards from life: slot cards coloured by tier like rarity in games (100 = 3★ sea blue, 250 = 4★ violet, 500 = 5★ amber), stars on top */
@@ -538,7 +539,7 @@ html[data-skin="celestial"] #rewSlots .tierseg button{background:rgba(255,250,24
 html[data-skin="celestial"] #rewSlots .tierseg button.on{background:#fffaf0;color:#2b2742}
 html[data-skin="celestial"] #rewSlots .pcard > .row:last-child{color:var(--cl-on-rar)!important}
 html[data-skin="celestial"] #rewSlots .lnk.danger{color:var(--cl-on-rar);text-decoration:underline}
-@media (max-width:374px){html[data-skin="celestial"] #libTitle{font-size:28px}html[data-skin="celestial"] #libHead{gap:4px}html[data-skin="celestial"] #goldChip{padding:4px 8px 4px 4px;gap:4px} /* 18.10: room for «⋮» */html[data-skin="celestial"] .wrap > .row > h1{font-size:24px;white-space:nowrap}html[data-skin="celestial"] .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){padding:6px 10px;font-size:12px;flex:none}}
+@media (max-width:374px){html[data-skin="celestial"] #libTitle{font-size:1.75rem}html[data-skin="celestial"] #libHead{gap:4px}html[data-skin="celestial"] #goldChip{padding:4px 8px 4px 4px;gap:4px} /* 18.10: room for «⋮» */html[data-skin="celestial"] .wrap > .row > h1{font-size:1.5rem;white-space:nowrap}html[data-skin="celestial"] .wrap > .row:first-child:has(> h1) > :is(.fchip,.ghostbtn){padding:6px 10px;font-size:0.75rem;flex:none}}
 
 /* ===== 5. «Карандашный» v2 (Джессика 17.10: «невзрачный — клеточки, как в тетради, больше деталей»; пак handoff/skins/karandashny-tetrad):
    тетрадь в клетку 20px с красными полями, каракули на полях, активное обведено карандашом, прогресс штриховкой, заголовки подчёркнуты от руки.
@@ -591,7 +592,7 @@ html[data-skin="pencil"] #shelf .pc-accent{--pc-ink:var(--rq-accent)}
 html[data-skin="pencil"] #shelf .pc-margin{--pc-ink:var(--rq-skin-margin)}
 html[data-skin="pencil"] #shelf .pc-hatch{--pc-ink:var(--rq-skin-hatch)}
 html[data-skin="pencil"] #shelf .pc-t{display:-webkit-box;align-self:stretch;word-break:break-word;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;font:700 17px/1.05 var(--rq-skin-font-heading);color:var(--rq-text);overflow-wrap:anywhere}
-html[data-skin="pencil"] #shelf .pc-a{display:block;max-width:100%;margin-top:5px;padding-top:4px;border-top:1px solid var(--rq-skin-border);font:9.5px/1.2 var(--rq-font-ui);color:var(--rq-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-skin="pencil"] #shelf .pc-a{display:block;max-width:100%;margin-top:5px;padding-top:4px;border-top:1px solid var(--rq-skin-border);font:11px/1.2 var(--rq-font-ui);color:var(--rq-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html[data-skin="pencil"] #shelf .pc-cover .ic{display:none}
 html[data-skin="pencil"] #shelf .pc-t{margin-top:auto}
 html[data-skin="pencil"] #shelf .infobtn{background:radial-gradient(circle,var(--rq-surface) 0 10px,transparent 10.5px);color:var(--rq-text-2)}

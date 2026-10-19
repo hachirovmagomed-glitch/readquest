@@ -11,8 +11,10 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261020-0234'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261020-0258'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
+/** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
+function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
 function goalMin(){return isMvp()?MVP_GOAL:(S.goal||10);}
@@ -242,9 +244,10 @@ function renameRewardSlot(i,name){
   ensureMvpRewards();const r=S.rewards[i];if(!r)return;
   r.name=(name||'').trim().slice(0,60);r.placeholder=!r.name;save();renderRewardsSheet();
 }
-function delRewardSlot(i){
+async function delRewardSlot(i){
   ensureMvpRewards();if(S.rewards.length<=1)return;
-  if(!confirm('Удалить слот?'))return;S.rewards.splice(i,1);save();renderRewardsSheet();
+  const nm=(S.rewards[i]&&S.rewards[i].name)||'';
+  if(!await rqAsk({t:nm?'Удалить награду «'+nm+'»?':'Удалить пустой слот?',ok:'Удалить',danger:true}))return;S.rewards.splice(i,1);save();renderRewardsSheet();
 }
 function buyRewardTier(i){
   ensureMvpRewards();const r=S.rewards[i];if(!r||!r.name||!r.name.trim()){flashMsg('Сначала назовите награду');return;}

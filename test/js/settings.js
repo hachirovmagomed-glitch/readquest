@@ -3,7 +3,7 @@
 const APP_THEMES={
  teal:{name:'Бирюза',bg:'#0c2127',card:'#143039',card2:'#1d4250',txt:'#e8f1f2',muted:'#8fb0b5',bar:'#19454f',sheet:'#122b33',drawer:'#10333d'},
  dark:{name:'Графит',bg:'#0e1116',card:'#161b22',card2:'#222933',txt:'#e6e8eb',muted:'#8b949e',bar:'#212c38',sheet:'#161b22',drawer:'#12161d'},
- light:{name:'Светлая',bg:'#eef2f3',card:'#ffffff',card2:'#dde7e9',txt:'#1d2b30',muted:'#526c73',bar:'#19454f',sheet:'#ffffff',drawer:'#f5f8f9'},
+ light:{name:'Светлая',bg:'#eef2f3',card:'#ffffff',card2:'#dde7e9',txt:'#1d2b30',muted:'#526c73',bar:'#19454f',sheet:'#ffffff',drawer:'#f5f8f9',focus:'#1f6f6b',danger:'#b3261e'},
  violet:{name:'Фиолет',bg:'#14101f',card:'#1d1730',card2:'#2a2145',txt:'#ece8f5',muted:'#9d93b8',bar:'#352a55',sheet:'#1a1429',drawer:'#171126'},
  forest:{name:'Лес',bg:'#0d1a12',card:'#14271b',card2:'#1e3b28',txt:'#e8f2ea',muted:'#8fb39a',bar:'#1d4a2e',sheet:'#122418',drawer:'#102016'},
  ocean:{name:'Океан',bg:'#08161f',card:'#0f2735',card2:'#173a4d',txt:'#dff1f7',muted:'#88b3c4',bar:'#114b63',sheet:'#0c1f2b',drawer:'#0a1a24'},
@@ -18,13 +18,16 @@ function resolveAppTheme(){
   const h2=new Date().getHours();
   return (h2>=7&&h2<21)?'light':'dark';
 }
-function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
+/* audit 19.10 GL-11: a theme / skin switch lands in one frame — no transitions while the colours swap */
+function rqThemeSwitchFrame(){const h=document.documentElement;h.classList.add('rq-tsw');requestAnimationFrame(function(){requestAnimationFrame(function(){h.classList.remove('rq-tsw');});});}
+function applyAppTheme(){rqThemeSwitchFrame();setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
   const t=APP_THEMES[resolveAppTheme()]||APP_THEMES.teal;
   const r=document.documentElement;
   r.style.setProperty('--bg',t.bg);r.style.setProperty('--card',t.card);
   r.style.setProperty('--card2',t.card2);r.style.setProperty('--txt',t.txt);
   r.style.setProperty('--muted',t.muted);r.style.setProperty('--bar',t.bar);
   r.style.setProperty('--sheet',t.sheet);r.style.setProperty('--drawer',t.drawer);
+  r.style.setProperty('--focus-ring',t.focus||'#7fdbe4');r.style.setProperty('--danger',t.danger||'#ff8a80'); /* audit 19.10 GL-03 / GL-07: ≥3:1 ring, ≥4.5:1 danger text on this theme */
   /* boot-screen copy (plain string, read by the first <script>); write gate: only the lock holder writes it */
   const L=APP_THEMES.light,Dk=APP_THEMES.dark,v=S.appTheme==='auto'?['auto',L.bg,L.txt,L.muted,Dk.bg,Dk.txt,Dk.muted].join(' '):[t.bg,t.txt,t.muted].join(' ');
   try{if(localStorage.getItem(RQ_K.theme)!==v)localStorage.setItem(RQ_K.theme,v);}catch(e){}
@@ -86,7 +89,7 @@ function renderSettings(){
     tile(k,t.name,S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
   const sk=activeTheme().skin||'';
-  const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=key;SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
+  const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=skinWearKey(key);SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
   stile('none','Без скина',!sk,b=>{b.innerHTML=rqIcon('circle-minus',18);},()=>{leaveSkin();renderSettings();});
   stile('pencil',THEMES.pencil.name,sk==='pencil',b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},pickSkin('pencil'));
   /* bought shop skins with app styling: a tile each (Продукт 14.10: купленные — в списке) */
@@ -115,8 +118,8 @@ el('antiMaxPlus').onclick=()=>{if(isMvp())return;S.anti.maxMin=Math.min(15,S.ant
 el('goalMinus2').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderSettings();};
 el('goalPlus2').onclick=()=>{if(isMvp())return;S.goal=Math.min(120,S.goal+5);save();renderSettings();};
 el('btnUnhide').onclick=()=>{S.hidden=[];save();renderLibrary();flashMsg('Демо-книги возвращены на полку');};
-el('btnReset2').onclick=()=>{
-  if(!confirm('Точно сбросить весь прогресс?'))return;
+el('btnReset2').onclick=async()=>{
+  if(!await rqAsk({t:'Сбросить весь прогресс?',p:'Минуты, опыт, монеты, стрик и награды обнулятся. Книги и настройки останутся. Отменить нельзя.',ok:'Сбросить',danger:true}))return;
   if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
   try{localStorage.removeItem(RQ_K.v1);localStorage.removeItem(RQ_K.migrated);localStorage.removeItem(RQ_K.legacy);}catch(e){}
   location.reload();
@@ -147,7 +150,7 @@ el('impInp').onchange=async e=>{
     }
     /* Single-writer: do NOT write legacy `readquest` key */
     location.reload();
-  }catch(err){alert('Импорт не удался: '+err.message);}
+  }catch(err){rqAlert('Импорт не удался: '+err.message);}
 };
 
 /* ================= ТАЙМЕР ЧТЕНИЯ ================= */

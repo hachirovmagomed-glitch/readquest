@@ -35,6 +35,8 @@ function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base
 function skinTheme(k){const t=SKIN_THEMES[k];return t&&typeof shopOwns==='function'&&shopOwns(t.shop)&&shopReady(t.shop)?t:null;}
 /** day/night key of the same skin: 'pencil' ↔ 'pencil-night', 'ellada' ↔ 'ellada-night' */
 function skinThemeKey(skin,night){return night?skin+'-night':skin;}
+/** audit 19.10 SK-02: putting a skin on keeps the time of day — at night (what is on screen now) the skin's night key */
+function skinWearKey(skin){let nt=false;try{const t=activeTheme();nt=t.skin?!!t.night:(S.appTheme==='dark'||(S.appTheme==='auto'&&resolveAppTheme()==='dark'));}catch(e){} /* night = «Ночной режим» on (dark / auto-at-night), or a night skin now; the default teal stays day */const k=skinThemeKey(skin,nt);return (SKIN_THEMES[k]||THEME_VARIANTS[k])?k:skin;}
 /** old (formerly paid) theme saved in rq_set — free since the shop build */
 function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.find(x=>x.id===k))||null;} /* shop build: the 9 old themes are free */
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
@@ -174,7 +176,7 @@ function applySkinIcons(skin){
     if(!(n in SKIN_ICONS_ORIG))SKIN_ICONS_ORIG[n]=sym.innerHTML;
     const want=set[n]||SKIN_ICONS_ORIG[n];if(sym.innerHTML!==want)sym.innerHTML=want;});});
 }
-function applySkin(){setTimeout(syncThemeColor,0);
+function applySkin(){if(typeof rqThemeSwitchFrame==='function')rqThemeSwitchFrame();setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
@@ -185,9 +187,6 @@ function applySkin(){setTimeout(syncThemeColor,0);
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }
 /** «Карандашный» active (app-wide skin) — UI only: covers / avatar / summary / confetti draw Lucide instead of emoji */
-/** «Бабочковый» sets its own book face (IBM Plex Serif, skins/skins.css) in place of the first «Шрифт» tile; any other tile the reader picks wins */
-const SKIN_BOOK_FONT={babochkovyi:{label:'IBM Plex Serif',v:'"IBM Plex Serif",Georgia,serif'},celestial:{label:'Lora',v:'Lora,Georgia,serif'}};
-function skinBookFont(){return SKIN_BOOK_FONT[document.documentElement.dataset.skin]||null;}
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */

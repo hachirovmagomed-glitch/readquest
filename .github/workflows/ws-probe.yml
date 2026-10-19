@@ -1,0 +1,40 @@
+# Temporary: how author pages look on ru.wikisource (thread «Приключения»). Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          cat > p.py <<'PY'
+          import json,re,time,urllib.request,urllib.parse,urllib.error
+          A='https://ru.wikisource.org/w/api.php?'
+          def g(**q):
+              q.update(format='json',formatversion=2,origin='*')
+              for i in range(6):
+                  try:
+                      r=urllib.request.Request(A+urllib.parse.urlencode(q),headers={'User-Agent':'readquest-probe/1.0 (github actions)'})
+                      return json.loads(urllib.request.urlopen(r,timeout=30).read().decode())
+                  except urllib.error.HTTPError as e:
+                      if e.code!=429: raise
+                      time.sleep(4*(i+1))
+          for s in ['Пушкин','Чехов','Гомер','Шекспир','Жюль Верн','Андерсен','Толстой','Достоевский']:
+              print('\n=== ',s)
+              for sr in [s+' incategory:"Авторы"', 'intitle:'+s.split()[-1]+' incategory:Авторы', s]:
+                  d=g(action='query',list='search',srsearch=sr,srnamespace='0|102',srlimit=6); time.sleep(1.2)
+                  print(' SR',sr,'->',[h['title']+' ns'+str(h['ns']) for h in d['query']['search']])
+              d=g(action='query',list='prefixsearch',pssearch='Автор:'+s.split()[-1],pslimit=5); time.sleep(1.2)
+              print(' PREFIX',d['query'].get('prefixsearch'))
+          for t in ['Александр Сергеевич Пушкин','Антон Павлович Чехов','Гомер','Уильям Шекспир','Жюль Верн','Ганс Христиан Андерсен','Лев Николаевич Толстой']:
+              d=g(action='query',prop='categories|pageprops|info',cllimit='max',redirects=1,titles=t); time.sleep(1.2)
+              p=d['query']['pages'][0]; print('\nPAGE',t,'->',p.get('title'),'ns',p.get('ns'),'missing' if p.get('missing') else '', 'len',p.get('length'))
+              print('  cats',[c['title'] for c in p.get('categories',[])][:25]); print('  props',p.get('pageprops'))
+              if not p.get('missing'):
+                  x=g(action='parse',page=p['title'],prop='links|text',redirects=1); time.sleep(1.2)
+                  html=x['parse']['text']; titles=re.findall(r'<a href="/wiki/[^"]*" title="([^"]+)"',html)
+                  print('  nlinks',len(titles),'first40',titles[:40])
+          PY
+          python3 p.py

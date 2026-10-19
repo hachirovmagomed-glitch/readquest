@@ -473,7 +473,7 @@ async function parseEpub(file){
     }
   }
   if(!text.trim())throw new Error('не удалось извлечь текст');
-  const lang=((xml.match(/<title-info>[\s\S]*?<lang>\s*([A-Za-z-]{2,})/)||[])[1]||'').toLowerCase();
+  const lang=((opf.match(/<dc:language[^>]*>\s*([A-Za-z]{2,3})/)||[])[1]||'').toLowerCase(); /* 19.10: was the FB2 line (xml is not defined here), so every EPUB import threw */
   return {title:title,author:author,text:text.trim(),toc:toc,lang:lang};
 }
 

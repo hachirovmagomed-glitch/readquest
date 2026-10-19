@@ -17,6 +17,19 @@ const HERO_GEAR=[
  {id:'ch-reader',slot:'char',kind:'chars',name:'Читатель',skin:'ellada',price:0,desc:'Ваш герой'},
  {id:'ch-pythagoras',slot:'char',kind:'chars',name:'Пифагор',skin:'ellada',price:600,desc:'Борода, повязка, табличка с треугольником'},
  {id:'ch-aristotle',slot:'char',kind:'chars',name:'Аристотель',skin:'ellada',price:600,desc:'Кудри, гиматий, свиток'},
+ /* Небесный (классы из архива Джессики, handoff/hero-celestial, 19.10): цельные персонажи, первый бесплатный; вещей по слотам пока нет */
+ {id:'cl-sonny-chtets',slot:'char',kind:'chars',name:'Сонный чтец',skin:'celestial',price:0,fig:'teen',desc:'Ночной колпак, книга-подушка'},
+ {id:'cl-kartograf',slot:'char',kind:'chars',name:'Картограф созвездий',skin:'celestial',price:600,fig:'adult',desc:'Пальто с картами, астролябия'},
+ {id:'cl-lunnaya-zhritsa',slot:'char',kind:'chars',name:'Лунная жрица',skin:'celestial',price:600,fig:'adult',desc:'Диадема-полумесяц, посох'},
+ {id:'cl-kometa',slot:'char',kind:'chars',name:'Комета',skin:'celestial',price:600,fig:'teen',desc:'Берет со звездой, рапира'},
+ {id:'cl-perepletchik',slot:'char',kind:'chars',name:'Переплётчица',skin:'celestial',price:600,fig:'adult',desc:'Фартук, молот-пресс'},
+ {id:'cl-zvezdny-prints',slot:'char',kind:'chars',name:'Звёздный принц',skin:'celestial',price:600,fig:'adult',desc:'Корона, плащ «ночное небо»'},
+ {id:'cl-alkhimik',slot:'char',kind:'chars',name:'Алхимик чернил',skin:'celestial',price:600,fig:'teen',desc:'Гогглы, колба с чернилами'},
+ {id:'cl-strazh-tishiny',slot:'char',kind:'chars',name:'Страж тишины',skin:'celestial',price:600,fig:'adult',desc:'Серая мантия, фонарь-посох'},
+ {id:'cl-zvezdny-bard',slot:'char',kind:'chars',name:'Звёздный бард',skin:'celestial',price:600,fig:'teen',desc:'Берет с пером, лира'},
+ {id:'cl-solnechny-paladin',slot:'char',kind:'chars',name:'Солнечный паладин',skin:'celestial',price:600,fig:'adult',desc:'Венец-солнце, булава'},
+ {id:'cl-tenevoy-chtets',slot:'char',kind:'chars',name:'Теневой чтец',skin:'celestial',price:600,fig:'teen',desc:'Капюшон индиго, кинжал-закладка'},
+ {id:'cl-sadovnik',slot:'char',kind:'chars',name:'Садовник звёздных цветов',skin:'celestial',price:600,fig:'teen',desc:'Соломенная шляпа, лейка'},
  /* Карандашный (рисунок Грока, handoff/hero-pencil, 19.10): 30 вещей, видны только в Карандашном */
  {id:'pc-cap',slot:'head',kind:'wear',name:'Кепка',skin:'pencil',price:120},
  {id:'pc-beret',slot:'head',kind:'wear',name:'Берет',skin:'pencil',price:150},
@@ -52,7 +65,9 @@ const HERO_GEAR=[
 ];
 function heroItem(id){return HERO_GEAR.find(function(g){return g.id===id;})||null;}
 /* вещи привязаны к скину (Джессика 18.10): купить можно, только если куплен скин; на герое видны только в этом скине */
-const HERO_SKIN_NAME={ellada:'Эллада',pencil:'Карандашный'};
+const HERO_SKIN_NAME={ellada:'Эллада',pencil:'Карандашный',celestial:'Небесный'};
+/* бесплатный персонаж скина = герой по умолчанию (в Элладе Читатель) */
+function heroCharDefault(sk){const g=HERO_GEAR.find(function(x){return x.slot==='char'&&x.price===0&&x.skin===(sk||heroSkin());});return g?g.id:'';}
 function heroSkin(){try{return activeTheme().skin||'';}catch(e){return document.documentElement.dataset.skin||'';}}
 function heroFits(g){return !!g&&(!g.skin||g.skin===heroSkin());}
 function heroSkinOwned(g){return !g.skin||shopOwns('skin-'+g.skin);}
@@ -159,7 +174,11 @@ function heroPencilSvg(on){
   s+=A.hero;HERO_PC_ORDER.forEach(function(k){s+=art(k,'front');});
   return '<svg class="herosvg heropencil" viewBox="-34 0 188 240" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'</svg>';
 }
-const HERO_FIGURES={pencil:heroPencilSvg}; /* свой герой скина; без записи — стикмен */
+/* Небесный: персонаж целиком картинкой (hero/celestial/*.webp, режет source/tools/gen-celestial-heroes.py); подросток ростом 0.88 от взрослого (бриф) */
+function heroCelestialSvg(on){on=on||heroOn();const g=heroItem(on.char)||heroItem(heroCharDefault('celestial'));if(!g)return '';
+  const h=g.fig==='teen'?84.5:96;
+  return '<svg class="herosvg herocel" viewBox="0 0 78 100" aria-hidden="true" focusable="false"><image href="hero/celestial/'+g.id.slice(3)+'.webp" x="0" y="'+(98-h)+'" width="78" height="'+h+'" preserveAspectRatio="xMidYMax meet"/></svg>';}
+const HERO_FIGURES={pencil:heroPencilSvg,celestial:heroCelestialSvg}; /* свой герой скина; без записи — стикмен */
 function heroFigure(on){const f=HERO_FIGURES[heroSkin()];return f?f(on):heroSvg(on);}
 /* превью в магазине: герой текущего скина (у Эллады — с персонажем и его цветами) */
 function heroRender(on,colCh){return HERO_FIGURES[heroSkin()]?heroFigure(on):heroSvg(on,colCh);}
@@ -171,7 +190,7 @@ function heroBgFix(root){if(document.documentElement.dataset.skin==='pencil'){(r
 const _renderProfile=renderProfile;renderProfile=function(){_renderProfile.apply(this,arguments);try{heroBgFix(el('profile'));}catch(e){}};
 /* профиль и мини-аватар в библиотеке рисуют героя через avatarSvg() — подменяем на стикмена */
 avatarSvg=function(){return heroFigure();};
-if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}heroShopTab(heroGearHere().length?'wear':'skins');};
+if(el('avatar'))el('avatar').onclick=function(){try{openLook(true);}catch(e){}const hk=heroGearHere().map(function(g){return g.kind;});heroShopTab(hk.indexOf('wear')>=0?'wear':hk.length?hk[0]:'skins');};
 
 /* ===== Магазин: «Внешний вид» → Скины / Одежда / Снаряжение ===== */
 let heroTab='skins',heroTry=null; /* примерка — только в памяти */
@@ -188,7 +207,7 @@ function heroSetCol(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;
   S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[heroColKey(id,heroOn().char||'')]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){const g=heroItem(id);return (!!g&&g.price===0)||(S.ownedGear||[]).indexOf(id)>=0;}
 function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id)||!heroFits(g))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
-  S.equipped=S.equipped||{};const key=heroKey(g);S.equipped[key]=g.slot==='char'?(id==='ch-reader'?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
+  S.equipped=S.equipped||{};const key=heroKey(g);S.equipped[key]=g.slot==='char'?(id===heroCharDefault(g.skin)?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
 let heroPending=null;
 function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g))return;
   if(S.gold<g.price){flashMsg('Не хватает '+coinsP(g.price-S.gold));return;}
@@ -219,9 +238,9 @@ function renderHeroShop(){
   const items=here.filter(function(g){return g.kind===heroTab;});
   const sk=(items[0]||{}).skin,chars=heroTab==='chars',curCh=heroOn().char||'',note=sk?'<p class="heroskinnote">'+(chars?'Персонажи':'Вещи')+' скина «'+HERO_SKIN_NAME[sk]+'» есть только в этом скине.</p>':'';
   box.innerHTML='<div class="heroprev"><div class="heroframe big">'+heroRender(on)+'</div><div class="heroprevtx"><b>'+esc(S.heroName||'Читатель')+'</b>'+
-      '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span></div></div>'+note+
+      '<span>'+(tr?'Примерка: '+esc(tr.name):(chars?'Нажмите на персонажа, чтобы примерить':'Нажмите на вещь, чтобы примерить'))+'</span>'+(heroSkin()==='celestial'?'<button type="button" class="fchip hero3dbtn" onclick="heroOpen3d()">Покрутить в 3D</button>':'')+'</div></div>'+note+
     '<div class="herogrid">'+items.map(function(g){
-      const own=heroOwns(g.id),worn=g.slot==='char'?(curCh||'ch-reader')===g.id:(S.equipped||{})[heroKey(g)]===g.id,one={};one[g.slot]=g.id;
+      const own=heroOwns(g.id),worn=g.slot==='char'?(curCh||heroCharDefault(g.skin))===g.id:(S.equipped||{})[heroKey(g)]===g.id,one={};one[g.slot]=g.id;
       const cta=chars&&worn?'<button type="button" class="buy owned shopcta" disabled>Выбран</button>'
         :chars&&own?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Выбрать</button>'
         :worn?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();heroWear(\''+g.id+'\')">Снять</button>'
@@ -236,3 +255,53 @@ function renderHeroShop(){
 }
 const _renderShopPane=renderShopPane;
 renderShopPane=function(){_renderShopPane.apply(this,arguments);try{renderHeroShop();}catch(e){console.warn('[rq] hero shop',e);}};
+
+/* Небесный, проба 3D (Джессика 19.10: «одного героя и несколько вещей для него»): лист с героем, крутится пальцем, вещи примеряются.
+   Модель и вещи — hero/hero3d.mjs (three.js, vendor/three); грузится только по кнопке. Покупки пока нет: примерка в памяти. */
+let hero3d=null,hero3dOn=['cl3-coat','cl3-staff','cl3-owl'];
+/* Герой из VRoid (VRM, hero/hero-vrm.mjs): база в майке, наряды — свои файлы того же персонажа (автор Maga, разрешения — hero/vrm/README.md).
+   Если модель не загрузилась — лист открывает пробу из примитивов. */
+const HERO_VRM={base:'hero/vrm/base.vrm',outfits:[
+  {id:'vr-dress-1',name:'Платье',file:'hero/vrm/dress-1.vrm',hide:['Bottoms']},
+  {id:'vr-skirt',name:'Юбка',file:'hero/vrm/skirt.vrm'},
+  {id:'vr-jeans',name:'Белые джинсы',file:'hero/vrm/jeans-white.vrm'},
+  {id:'vr-pants-red',name:'Красные штаны',file:'hero/vrm/pants-red.vrm'},
+  {id:'vr-pants-blue',name:'Синие штаны',file:'hero/vrm/pants-blue.vrm'}]};
+let hero3dVrm='vr-dress-1';
+/* модуль подключаем тегом type=module (а не import(): классические скрипты проверяет esprima без динамического import) */
+function heroLoadMod(src,key){if(window[key])return Promise.resolve(window[key]);return new Promise(function(ok,no){const sc=document.createElement('script');sc.type='module';sc.src=src;sc.onload=function(){window[key]?ok(window[key]):no(new Error(src+': no export'));};sc.onerror=no;document.head.appendChild(sc);});}
+function heroLoad3d(){return heroLoadMod('hero/hero3d.mjs','__rqHero3d');}
+function heroClose3d(){const sh=el('hero3dSheet');if(hero3d){try{hero3d.dispose();}catch(e){}hero3d=null;}if(sh){sh.hidden=true;el('hero3dBox').innerHTML='';}}
+function heroChips3d(list,isOn,onTap){const box=el('hero3dItems');
+  const draw=function(){box.innerHTML=list.map(function(it){return '<button type="button" class="fchip'+(isOn(it.id)?' on':'')+'" data-id="'+it.id+'">'+esc(it.name)+'</button>';}).join('');};
+  box.onclick=function(e){const b=e.target.closest('button[data-id]');if(!b)return;onTap(b.dataset.id);draw();};draw();}
+function heroOpenPrim3d(box){
+  return heroLoad3d().then(function(m){
+    if(el('hero3dSheet').hidden)return;box.innerHTML='';hero3d=m.mountHero3d(box,{items:hero3dOn});
+    el('hero3dHint').textContent='Крутите пальцем · нажмите на вещь, чтобы надеть или снять';
+    heroChips3d(m.HERO3D_ITEMS,function(id){return hero3dOn.indexOf(id)>=0;},function(id){const i=hero3dOn.indexOf(id);if(i>=0)hero3dOn.splice(i,1);else hero3dOn.push(id);hero3d.setItems(hero3dOn);});
+  });
+}
+function heroOpenVrm3d(box){
+  return heroLoadMod('hero/hero-vrm.mjs','__rqHeroVrm').then(function(m){
+    const tmp=document.createElement('div');tmp.className='h3fill';box.appendChild(tmp);
+    return m.mountHeroVrm(tmp,{base:HERO_VRM.base,outfits:HERO_VRM.outfits,wear:hero3dVrm}).then(function(h){
+      if(el('hero3dSheet').hidden){h.dispose();return;}
+      box.innerHTML='';box.appendChild(tmp);hero3d=h;
+      el('hero3dHint').textContent='Крутите пальцем · нажмите на наряд, чтобы переодеть';
+      const list=[{id:'',name:'Майка'}].concat(HERO_VRM.outfits);
+      heroChips3d(list,function(id){return id===hero3dVrm;},function(id){hero3dVrm=id;h.setWear(id);});
+      el('hero3dHint').textContent+=' · модель: Maga, VRoid Studio';
+    },function(e){tmp.remove();throw e;});
+  });
+}
+function heroOpen3d(){
+  let sh=el('hero3dSheet');
+  if(!sh){sh=document.createElement('div');sh.id='hero3dSheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Герой в 3D');
+    sh.innerHTML='<div class="h3top"><b>Звездочёт</b><button type="button" class="fchip" onclick="heroClose3d()">Закрыть</button></div><div class="h3stage" id="hero3dBox"><span class="h3load">Загружаю героя…</span></div><p class="h3hint" id="hero3dHint"></p><div class="h3items" id="hero3dItems"></div>';
+    document.body.appendChild(sh);}
+  sh.hidden=false;const box=el('hero3dBox');box.innerHTML='<span class="h3load">Загружаю героя…</span>';el('hero3dItems').innerHTML='';
+  heroOpenVrm3d(box).catch(function(e){console.info('[rq] hero vrm → примитивы',e&&e.message);return heroOpenPrim3d(box);})
+    .catch(function(e){console.warn('[rq] hero3d',e);box.innerHTML='<span class="h3load">3D не открылось на этом устройстве</span>';});
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&el('hero3dSheet')&&!el('hero3dSheet').hidden)heroClose3d();});

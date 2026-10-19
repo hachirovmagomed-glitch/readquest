@@ -532,6 +532,35 @@ if (want('light')) {
   await ctx.close();
 }
 
+/* pdfsel: PDF text selection (Джессика 19.10 «не работает нормальное выделение текста пдф»): copied text keeps its lines and
+   words apart; a drag ending in a margin / between lines stays on the nearest line (no jump to the page header); «Прокрутка» has
+   a text layer too, freed with its page */
+if (want('pdfsel')) {
+  for (const mode of ['page', 'scroll']) {
+    const { ctx, p } = await fresh(); const inp = await p.$('#fileInp');
+    await p.evaluate((m) => { SET.flip = Object.assign({}, flipGet(), { mode: m }); rqSaveSetGated(); }, mode);
+    await inp.uploadFile(PDF); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    /* body lines of page 1 (text boxes, not the span boxes) */
+    const L = await p.evaluate(() => { const tl = document.querySelector(PS.on ? '#pdfScroll .psl[data-n="0"] .textLayer' : '#pdfText');
+      return tl ? [...tl.querySelectorAll('span')].filter(s => s.textContent.length > 40).slice(0, 6).map(s => { const g = document.createRange(); g.selectNodeContents(s); const r = g.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom, s: s.textContent }; }) : []; });
+    const drag = async (x0, y0, x1, y1) => { await p.evaluate(() => getSelection().removeAllRanges()); await p.mouse.move(x0, y0); await p.mouse.down(); await p.mouse.move(x1, y1, { steps: 12 }); await p.mouse.up(); return p.evaluate(() => String(getSelection())); };
+    const ok3 = L.length >= 4;
+    const s1 = ok3 ? await drag(L[0].l + 2, (L[0].t + L[0].b) / 2, L[2].r - 2, (L[2].t + L[2].b) / 2) : '';
+    ok('pdfsel ' + mode + ': a drag over three lines copies them as three lines, words not glued', ok3 && s1.split('\n').length === 3 && L[0].s.endsWith(s1.split('\n')[0]) && s1.split('\n')[0].length >= L[0].s.length - 2 && s1.split('\n')[1] === L[1].s && L[2].s.startsWith(s1.split('\n')[2]), { s1: s1.slice(0, 200), n: L.length });
+    const s2 = ok3 ? await drag(L[0].l + 40, (L[0].t + L[0].b) / 2, 4, (L[3].t + L[3].b) / 2) : '';
+    ok('pdfsel ' + mode + ': ending in the left margin of a line → up to the line above it, no jump to the page header', ok3 && s2.trim().endsWith(L[2].s.trim()) && !s2.includes('·'), { s2: s2.slice(-80) });
+    const s3 = ok3 ? await drag(L[0].l + 40, (L[0].t + L[0].b) / 2, L[1].r + 4 < 386 ? 386 : L[1].r + 2, (L[1].b + L[2].t) / 2) : '';
+    ok('pdfsel ' + mode + ': ending in the right margin / the gap under a line → to the end of that line', ok3 && s3.trim().endsWith(L[1].s.trim()), { s3: s3.slice(-80) });
+    if (mode === 'scroll') {
+      const r = await p.evaluate(async () => { const b = document.getElementById('pdfScroll'); b.scrollTop = __rqPdfScroll.tops[20]; await new Promise(r => setTimeout(r, 1500));
+        return { tl: b.querySelectorAll('.psl .textLayer').length, cv: b.querySelectorAll('.psl canvas').length, p0: !!b.querySelector('.psl[data-n="0"] .textLayer'), p20: !!b.querySelector('.psl[data-n="20"] .textLayer span') }; });
+      ok('pdfsel scroll: a text layer only next to a canvas (far pages freed with theirs)', r.tl === r.cv && r.tl <= 6 && !r.p0 && r.p20, r);
+    }
+    await ctx.close();
+  }
+}
+
 const pass = checks.filter(Boolean).length;
 if (errs.length) ok('no page errors', false, errs.slice(0, 5));
 console.log('SUMMARY modes.test ' + pass + '/' + checks.length);

@@ -120,10 +120,14 @@ const v3 = await p.evaluate(() => { const svg = x => /data:image\/svg/.test(x ||
   const hero = svg(pse(document.querySelector('#summary .sumbox'), '::before').backgroundImage), sky = svg(pse(document.body, '::after').backgroundImage);
   const hatch = document.querySelectorAll('#sumHatch i').length, wk = document.getElementById('sumWeekDots'), wks = [...wk.querySelectorAll('svg')].map(x => svg(getComputedStyle(x).backgroundImage));
   const bar = getComputedStyle(document.querySelector('#sumDailyBox .pbar')).display;
+  const fit = [innerWidth].map(w => { const c = document.querySelector('#sumHatch .bbcap'), b = document.getElementById('sumDailyBox'); if (!c) return { w, cap: false };
+    const cr = c.getBoundingClientRect(), br = b.getBoundingClientRect(), ir = document.querySelector('#sumHatch i:last-of-type').getBoundingClientRect(), k = br.width / b.offsetWidth, pad = 8 * k; /* the card may still be scaling in: compare in its own units */
+    return { w, cap: true, k: +k.toFixed(2), r: +((br.right - cr.right) / k).toFixed(1), ri: +((br.right - ir.right) / k).toFixed(1), inside: cr.right <= br.right - pad && cr.left >= br.left + pad && ir.right <= br.right - pad && c.scrollWidth <= c.clientWidth + 1 }; });
   __navAllow = true; show('library'); __navAllow = false;
-  return { lugLib, masc, lugStats, rh, arts, hero, sky, hatch, wk: getComputedStyle(wk).display, wks, bar }; });
+  return { lugLib, masc, lugStats, rh, arts, hero, sky, hatch, wk: getComputedStyle(wk).display, wks, bar, fit }; });
 ok('5g scene: meadow under the content on library and stats (z -1, fixed); plain butterflies (no mascot with eyes) after the shelf and by «Награды»; «Цветник» vase/hat/can on reward cards',
   v3.lugLib.bg && v3.lugLib.z === '-1' && v3.lugLib.pos === 'fixed' && v3.lugStats && v3.masc && v3.rh && v3.arts.length >= 2 && v3.arts[0] === '56' && v3.arts[1] === '66', v3);
+ok('5h2 summary (Джессика 18.10 «надпись вышла направо»): «n из 10 бабочек» and the cocoons stay inside the daily card', v3.fit.every(f => f.cap && f.inside), v3.fit);
 ok('5h summary: big butterfly, sky over the scene, 10 cocoons instead of the bar, 4 week flowers', v3.hero && v3.sky && v3.hatch === 10 && v3.bar === 'none' && /flex/.test(v3.wk) && v3.wks.length === 4 && v3.wks.every(Boolean), v3);
 
 // 5i. variety (Джессика 17.10: «большее разнообразие бабочек»): 10 goal butterflies are 10 different drawings, screen headers differ, covers use several wing palettes

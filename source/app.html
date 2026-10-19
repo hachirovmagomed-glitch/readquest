@@ -719,7 +719,12 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:var(--rq-radius
 #pdfSheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
-.textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent}
+.textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent;z-index:1}
+/* 19.10 selection in gaps (selectionchange in js/pdf.js, as pdf.js does): under the text, covers the layer only while selecting */
+.textLayer br::selection{background:transparent}
+.textLayer br::-moz-selection{background:transparent}
+.textLayer .endOfContent{display:block;position:absolute;left:0;right:0;top:100%;bottom:0;z-index:0;cursor:default;user-select:none;-webkit-user-select:none}
+.textLayer.selecting .endOfContent{top:0}
 .textLayer span::selection{background:color-mix(in srgb,var(--accent) 45%,transparent)}
 .textLayer span::-moz-selection{background:color-mix(in srgb,var(--accent) 45%,transparent)}
 
@@ -1347,6 +1352,17 @@ html[data-skin="pencil"] .confetti:nth-child(odd){color:var(--rq-skin-hatch)}
 /* Карандашный герой (js/hero-pencil.js): цветные карандаши Грока, день/ночь */
 .heropencil{--pc-f1:#e5e9f1;--pc-f2:#ccd3e0;--pc-blue:#2f55b8;--pc-red:#d0443c}
 html[data-theme="night"] .heropencil{--pc-f1:#232e48;--pc-f2:#2d3a5a;--pc-blue:#7d9bff;--pc-red:#e0675f} /* js/hero.js ставит точный цвет плашки под героем */
+.herocel image{filter:drop-shadow(0 0 .6px rgba(20,23,42,.55))} /* Небесный: светлые классы (Лунная жрица, Комета) не сливаются с плашкой */
+.tinyava .herocel image{transform-box:fill-box;transform-origin:50% 4%;transform:scale(3)} /* мини-аватар = бюст */
+#hero3dSheet{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;background:var(--rq-surface,var(--card));color:var(--txt);padding:12px 16px calc(16px + env(safe-area-inset-bottom))}
+#hero3dSheet[hidden]{display:none}
+#hero3dSheet .h3top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:18px}
+#hero3dSheet .h3stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+#hero3dSheet .h3stage canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+#hero3dSheet .h3stage .h3fill{position:absolute;inset:0}
+#hero3dSheet .h3hint{margin:6px 0;text-align:center;font-size:13px;opacity:.75}
+#hero3dSheet .h3items{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.hero3dbtn{margin-top:8px;align-self:flex-start}
 html #avatarFrame.avatarframe{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:106px;height:136px}
 #profile .herocard{height:168px} /* герой на постаменте: плашка выше во всех скинах */
 #avatarFrame .avatar{filter:none}

@@ -4,7 +4,8 @@
 //     без шаблона лицензии можно; список изданий открывается списком; 429 не обрывает скачивание;
 //     скачивание собирает главы по порядку (современная орфография, без шапки), книга одна, с srcId и lang, открывается читалка;
 //  3) Гутенберг: каталог OPDS по-русски по умолчанию; файл без CORS → книга не добавляется, предлагается скачать файл;
-//  4) экспорт: srcId и lang в карточке.
+//  4) экспорт: srcId и lang в карточке;
+//  5) подборки на первом экране, подсказки при вводе, другая раскладка и кириллица для Гутенберга, время чтения и начало книги в карточке.
 // The libraries are served by request interception with the CORS headers they really send (checked 18.10 from GitHub Actions):
 // Wikisource API and Gutenberg OPDS send Access-Control-Allow-Origin: *, Gutenberg /cache/epub/ files do not.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node adv.test.mjs
@@ -45,13 +46,16 @@ p.on('request', r => {
   if (u.host === 'ru.wikisource.org') {
     const q = u.searchParams; hits.ws.push(q.get('action') + ':' + (q.get('page') || q.get('titles') || q.get('srsearch')));
     let body;
-    if (q.get('list') === 'search') body = { query: { search: [{ title: ROOT }, { title: ROOT + '/Песнь первая' }, { title: NONFREE }, { title: NOLIC }, { title: LIST }, { title: 'ЭСБЕ/Гомер' }] } };
+    if (q.get('action') === 'opensearch') body = [q.get('search'), /^одис/i.test(q.get('search')) ? [ROOT, ROOT + '/Песнь первая', 'ЭСБЕ/Одиссея'] : []];
+    else if (q.get('list') === 'search' && /^[a-z]/i.test(q.get('srsearch'))) body = { query: { search: [] } };
+    else if (q.get('list') === 'search') body = { query: { search: [{ title: ROOT }, { title: ROOT + '/Песнь первая' }, { title: NONFREE }, { title: NOLIC }, { title: LIST }, { title: 'ЭСБЕ/Гомер' }] } };
     else if (q.get('prop') && q.get('prop').indexOf('categories') === 0 && q.get('action') === 'query') { const t = q.get('titles'); body = { query: { pages: [PAGES[t] ? { title: t, length: 5000, categories: PAGES[t].cats.map(c => ({ ns: 14, title: 'Категория:' + c.category.replace(/_/g, ' ') })) } : { title: t, missing: true }] } }; }
     else if (q.get('action') === 'parse' && q.get('page') === ROOT + '/Песнь первая' && !hits.tooMany++) { r.respond({ status: 429, headers: CORS, body: '' }); return; }
     else if (q.get('action') === 'parse') { const t = q.get('page'); body = PAGES[t] ? { parse: { title: t, text: PAGES[t].html, categories: PAGES[t].cats } } : { error: { code: 'missingtitle' } }; }
     r.respond({ status: 200, contentType: 'application/json; charset=utf-8', headers: CORS, body: JSON.stringify(body || {}) });
   } else if (u.host === 'www.gutenberg.org') {
-    if (u.pathname === '/ebooks/search.opds/') { hits.gutQ.push(u.searchParams.get('query'));
+    if (u.pathname === '/ebooks/search.opds/' && /[а-яё]/i.test(u.searchParams.get('query'))) { hits.gutQ.push(u.searchParams.get('query')); r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: atom('') }); }
+    else if (u.pathname === '/ebooks/search.opds/') { hits.gutQ.push(u.searchParams.get('query'));
       r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: atom(ENTRY(19681, 'Детство (Russian)', 'graf Leo Tolstoy') + ENTRY(21186, 'Записки из подполья (Russian)', 'Fyodor Dostoyevsky')) }); }
     else if (u.pathname === '/ebooks/19681.opds') r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: atom(BOOK) });
     else if (/^\/cache\/epub\/\d+\/pg\d+\.txt$/.test(u.pathname)) { hits.gutFile++; r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', body: 'Детство\r\n\r\nТекст книги. '.repeat(50) }); } /* no ACAO, as on gutenberg.org */
@@ -70,14 +74,14 @@ const m = await p.evaluate(async () => { openDrawer(); const di = !!el('dAdv'); 
   const src = Array.from(document.querySelectorAll('#advSrc .fchip')).map(b => b.textContent + (b.classList.contains('on') ? '*' : ''));
   const hints = document.querySelectorAll('#advList .advhints .fchip').length;
   return { di, lab, vis, h1, src, hints, on: el('dAdv') && el('dAdv').classList.contains('on') }; });
-ok('1a «Приключения» в боковом меню, экран открывается; источники Викитека (выбрана) и Гутенберг; без запроса подсказки авторов', m.di && m.lab === 'Приключения' && m.vis && m.h1 === 'Приключения' && m.src.join() === 'Викитека*,Гутенберг' && m.hints >= 4 && hits.ws.length === 0, m);
+ok('1a «Приключения» в боковом меню, экран открывается; источники Везде (выбрано), Викитека, Гутенберг и Standard Ebooks; без запроса подсказки авторов', m.di && m.lab === 'Приключения' && m.vis && m.h1 === 'Приключения' && m.src.join() === 'Везде*,Викитека,Гутенберг,Standard Ebooks' && m.hints >= 4 && hits.ws.length === 0, m);
 
 // 2. Wikisource
-const s = await p.evaluate(async () => { document.querySelector('#advList .advhints .fchip').click(); await new Promise(r => setTimeout(r, 400));
+const s = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 200)); el('advQ').value = 'Одиссея'; ADV.q = 'Одиссея'; await advSearch();
   return { q: el('advQ').value, rows: Array.from(document.querySelectorAll('#advList .advrow')).map(b => b.querySelector('b').textContent + '|' + b.querySelector('.advauth').textContent) }; });
 ok('2a поиск: «Одиссея» и её глава сведены в одну строку, автор и переводчик из названия страницы', s.rows.length === 4 && s.rows[0] === 'Одиссея|Гомер · пер. Жуковский' && s.rows[1] === 'Новая повесть|Автор', s);
 const nl = await p.evaluate(async () => { advOpen(ADV.items[2]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody'); const r = { cta: !!b.querySelector('#advGet'), txt: b.textContent }; el('bookSheet').classList.add('hidden'); return r; });
-ok('2g стихотворение без шаблона лицензии (как у Пушкина на Викитеке) скачивается', nl.cta && /Свободный текст Викитеки/.test(nl.txt), nl);
+ok('2g стихотворение без шаблона лицензии (как у Пушкина на Викитеке) скачивается; время чтения и начало видны', nl.cta && /Свободный текст Викитеки/.test(nl.txt) && /Объём\s*около 1 минуты чтения/.test(nl.txt) && /НачалоМороз и солнце/.test(nl.txt), nl);
 const li = await p.evaluate(async () => { advOpen(ADV.items[3]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody');
   const rows = Array.from(b.querySelectorAll('.advrow b')).map(x => x.textContent), cta = !!b.querySelector('#advGet');
   b.querySelector('.advrow').click(); await new Promise(r => setTimeout(r, 400));
@@ -85,9 +89,12 @@ const li = await p.evaluate(async () => { advOpen(ADV.items[3]); await new Promi
 ok('2h список изданий («Евгений Онегин»): вместо скачивания выбор издания, издание скачивается', !li.cta && JSON.stringify(li.rows) === JSON.stringify(['Евгений Онегин · 1837 (ВТ)', 'Евгений Онегин · 1833 (ВТ)']) && li.ed === 'Евгений Онегин · 1837 (ВТ)' && li.edCta, li);
 const nf = await p.evaluate(async () => { advOpen(ADV.items[1]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody'); const r = { cta: !!b.querySelector('#advGet'), txt: b.textContent }; el('bookSheet').classList.add('hidden'); return r; });
 ok('2b текст с отметкой о нарушении прав: кнопки скачивания нет, объяснение есть', !nf.cta && /права на текст под вопросом/.test(nf.txt) && /авторское право/.test(nf.txt), nf);
-const fr = await p.evaluate(async () => { advOpen(ADV.items[0]); await new Promise(r => setTimeout(r, 400)); const b = el('bookSheetBody');
+const fr = await p.evaluate(async () => { advOpen(ADV.items[0]); for (let i = 0; i < 40 && !(advCur && advCur.inf); i++) await new Promise(r => setTimeout(r, 100)); /* the 429 is waited out here now: the card peeks at the first chapter */ const b = el('bookSheetBody');
   return { cta: b.querySelector('#advGet') ? b.querySelector('#advGet').textContent : '', rights: /Общественное достояние/.test(b.textContent), tr: /Жуковский/.test(b.textContent) }; });
 ok('2c свободная книга: «Скачать на телефон и читать», права «Общественное достояние»', /Скачать на телефон и читать/.test(fr.cta) && fr.rights && fr.tr, fr);
+const tm = await p.evaluate(() => { const b = el('bookSheetBody'); const row = Array.from(b.querySelectorAll('.bk-row')).find(r => r.querySelector('.bk-k').textContent === 'Объём');
+  return { vol: row ? row.querySelector('.bk-v').textContent : '', pre: (b.querySelector('.advpre') || {}).textContent || '' }; });
+ok('5g карточка книги из частей: объём «2 части · около … чтения» и начало первой главы без шапки и сносок', /^2 части · около \d+ минут[ыа]? чтения$/.test(tm.vol) && /^Муза, скажи мне/.test(tm.pre) && !/\[1\]|\[5\]/.test(tm.pre), tm);
 const w1 = await p.evaluate(() => window.__lsW.filter(k => k === RQ_K.v1 || k === RQ_K.set).length);
 const ns1 = await p.evaluate(() => localStorage.getItem(RQ_K.v1));
 ok('1b экран, поиск и карточка ничего не записали', w1 === 0 && ns1 === ns0, { w1 });
@@ -112,13 +119,38 @@ const gu = await p.evaluate(async () => { navGo('adv'); document.querySelector('
 ok('3a Гутенберг: русские книги по умолчанию, по популярности, «(Russian)» из названия убран', gu.vis && gu.lang[0] === 'Русские*' && hits.gutQ[0] === 'l.ru' && gu.rows[0] === 'Детство|Leo Tolstoy' && gu.rows.length === 2, { ...gu, q: hits.gutQ });
 const gs = await p.evaluate(async () => { advOpen(ADV.items[0]); await new Promise(r => setTimeout(r, 500)); const b = el('bookSheetBody');
   const t = b.textContent; const n0 = S.userBooks.length; await advGet(); await new Promise(r => setTimeout(r, 500));
-  const a = b.querySelector('a.cta'); return { sum: /A boy grows up\.$/.test((b.querySelector('.advsum') || {}).textContent || ''), author: /Leo Tolstoy/.test(t), lang: /русский/.test(t), added: S.userBooks.length - n0,
+  const a = b.querySelector('a.cta'); return { sum: /A boy grows up\.$/.test((b.querySelector('.advsum') || {}).textContent || ''), author: /Leo Tolstoy/.test(t), lang: /русский/.test(t), vol: /Объёмоколо 2 часов чтения/.test(t), added: S.userBooks.length - n0,
     href: a ? a.getAttribute('href') : '', note: /Добавить книгу/.test(b.textContent), size: a ? a.textContent : '' }; });
-ok('3b карточка: описание, автор «Leo Tolstoy», язык из каталога', gs.sum && gs.author && gs.lang, gs);
+ok('3b карточка: описание, автор «Leo Tolstoy», язык из каталога, время чтения по размеру файла', gs.sum && gs.author && gs.lang && gs.vol, gs);
 ok('3c файл Гутенберга без CORS: книга не добавлена, предложено скачать файл и добавить через «Добавить книгу»', gs.added === 0 && hits.gutFile >= 1 && gs.href === 'https://www.gutenberg.org/ebooks/19681.epub.noimages' && gs.note && /205 КБ/.test(gs.size), { ...gs, gutFile: hits.gutFile });
 await p.evaluate(() => el('bookSheet').classList.add('hidden'));
 const en = await p.evaluate(async () => { document.querySelector('#advLang .fchip[data-l="en"]').click(); await new Promise(r => setTimeout(r, 400)); el('advQ').value = 'austen'; advInput(); await new Promise(r => setTimeout(r, 900)); return true; });
 ok('3d язык и поиск уходят в запрос каталога', hits.gutQ.includes('l.en') && hits.gutQ.includes('austen l.en'), hits.gutQ);
+
+// 5. collections, suggestions, layout and Cyrillic fallbacks
+const cs = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 200));
+  const sets = Array.from(document.querySelectorAll('#advList .advset b')).map(b => b.textContent);
+  document.querySelector('#advList .advset[data-set="antiq"]').click(); await new Promise(r => setTimeout(r, 200));
+  const rows = Array.from(document.querySelectorAll('#advList .advrow')).map(b => b.querySelector('b').textContent + '|' + b.querySelector('.advauth').textContent), h = document.querySelector('#advList .advseth').textContent;
+  el('advBack').click(); await new Promise(r => setTimeout(r, 100)); const back = document.querySelectorAll('#advList .advset').length;
+  document.querySelector('#advList .advset[data-set="gut"]').click(); await new Promise(r => setTimeout(r, 400));
+  const gut = document.querySelector('#advSrc .fchip.on').dataset.src; return { sets, rows: rows.slice(0, 2), n: rows.length, h, back, gut }; });
+ok('5a первый экран: 7 подборок; «Античность» открывается сразу списком книг, «Все подборки» возвращают; «Популярное на Гутенберге» открывает Гутенберг', cs.sets.length === 7 && cs.sets[0] === 'Школьная программа' && cs.h === 'Античность' && cs.n === 10 &&
+  cs.rows[0] === 'Илиада|Гомер' && cs.rows[1] === 'Одиссея|Гомер' && cs.back === 7 && cs.gut === 'gutenberg', cs);
+const ws0 = hits.ws.length;
+const sg = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 100));
+  const i = el('advQ'); i.value = 'Одис'; advInput(); await new Promise(r => setTimeout(r, 500));
+  const rows = Array.from(document.querySelectorAll('#advSug .advsugrow')).map(b => b.textContent.trim());
+  i.value = 'гом'; advInput(); await new Promise(r => setTimeout(r, 500)); const au = Array.from(document.querySelectorAll('#advSug .advsugrow')).map(b => b.textContent.trim());
+  i.value = 'Одис'; advInput(); await new Promise(r => setTimeout(r, 500)); document.querySelector('#advSug .advsugrow').click(); await new Promise(r => setTimeout(r, 500));
+  const t = document.querySelector('#bookSheetBody .bk-ttl b').textContent, hid = el('advSug').hidden; el('bookSheet').classList.add('hidden'); return { rows, au, t, hid }; });
+ok('5c подсказки: книга и её глава одной строкой, статья энциклопедии убрана; нажатие открывает карточку', JSON.stringify(sg.rows) === JSON.stringify(['Одиссея Гомер · пер. Жуковский']) && sg.t === 'Одиссея' && sg.hid && hits.ws.slice(ws0).some(x => /^opensearch/.test(x)), sg);
+ok('5d подсказки авторов по первым буквам', sg.au[0] === 'Гомер', sg.au);
+const ly = await p.evaluate(async () => { el('advQ').value = 'jlbcctz'; ADV.q = 'jlbcctz'; await advSearch(); return { alt: (document.querySelector('#advList .advalt') || {}).textContent || '', n: ADV.items.length }; });
+ok('5e набрано в английской раскладке: найдено по «одиссея», это сказано над списком', ly.n > 0 && ly.alt === 'Показано по запросу «одиссея»', ly);
+const cy = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="gutenberg"]').click(); await new Promise(r => setTimeout(r, 400));
+  el('advQ').value = 'Достоевский'; ADV.q = 'Достоевский'; await advSearch(); return { alt: (document.querySelector('#advList .advalt') || {}).textContent || '', n: ADV.items.length }; });
+ok('5f Гутенберг по-русски ничего не нашёл: ищем «Dostoyevsky»', cy.n > 0 && cy.alt === 'Показано по запросу «Dostoyevsky»' && hits.gutQ.some(x => /^Dostoyevsky l\./.test(x)), { ...cy, q: hits.gutQ.slice(-3) });
 
 // 4. export
 const exp = await p.evaluate(async () => JSON.stringify(await __rq.exportBackup(null, SET, { includeTextBodies: false })));

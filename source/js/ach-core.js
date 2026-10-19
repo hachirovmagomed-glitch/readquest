@@ -78,7 +78,8 @@
     ['lib1', 'books', B, 'Находка', 'Дочитать книгу из «Приключений»', 'libBooks', 1],
     ['lib3', 'books', SV, 'Искатель', 'Дочитать 3 книги из «Приключений»', 'libBooks', 3],
     ['lib10', 'books', GD, 'Книжный странник', 'Дочитать 10 книг из «Приключений»', 'libBooks', 10],
-    ['lib2src', 'books', SV, 'Две библиотеки', 'Дочитать книги из Викитеки и из Гутенберга', 'libSrc', 2],
+    ['lib2src', 'books', SV, 'Две библиотеки', 'Дочитать книги из двух разных библиотек', 'libSrc', 2],
+    ['libset1', 'books', GD, 'Подборка закрыта', 'Дочитать все книги одной подборки «Приключений»', 'libSet', 1],
 
     ['marathon', 'sessions', B, 'Марафонец', 'Одна сессия от 30 минут', 'maxSession', 30],
     ['sess60', 'sessions', SV, 'Час без перерыва', 'Одна сессия от 60 минут', 'maxSession', 60],
@@ -293,7 +294,7 @@
     return {
       minutes: Math.floor(total + 1e-9), minutesWhole: Math.floor(total + 1e-9), maxSession: Math.floor(maxSession + 1e-9), maxDay: maxDay, sessions5: sessions5,
       goalDays: goalDays, streak: best, goalWeeks: goalWeeks, fullWeek: fullWeek, fullMonth: fullMonth, monthWeekends: monthWeekends,
-      finished: fin.length, libBooks: libBooks, libSrc: Object.keys(libSrcs).length, bigBook: bigBook, fastBook: fastBook, slowBook: slowBook, oneAuthor: oneAuthor, authors: authorsN, weekBooks: weekBooks,
+      finished: fin.length, libBooks: libBooks, libSrc: Object.keys(libSrcs).length, libSet: +I.libSets || 0, bigBook: bigBook, fastBook: fastBook, slowBook: slowBook, oneAuthor: oneAuthor, authors: authorsN, weekBooks: weekBooks,
       lark: tod.lark, lunch: tod.lunch, owl: tod.owl, night3: tod.night3, dawn: tod.dawn, mornings: tod.mornings, nights: tod.nights, s2222: tod.s2222, hours24: Object.keys(tod.hours).length,
       weekend: weekend, dates: dates, mirror: mirror, fri13: fri13, exactDay: exactDay,
       comeback: comeback, rebook: rebook, refinish: refinish, oneDayBook: oneDayBook,

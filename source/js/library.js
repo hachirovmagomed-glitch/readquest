@@ -487,7 +487,7 @@ async function importBookFile(f,setBusy){
   }else if(/\.epub$/i.test(f.name)){
     setBusy('Распаковываю EPUB...');
     const r=await parseEpub(f);
-    b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,fname:f.name,size:f.size};
+    b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
   }else{
     let txt=await f.text();
     if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */

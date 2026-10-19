@@ -18,8 +18,18 @@ ok('static HTML: the avatar is empty until hero.js draws it (no book flash)', /<
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(300);
 await p.evaluate(() => { S.gold = 999999; save(); });
 
-const base = await p.evaluate(() => ({ gear: HERO_GEAR.length, ids: HERO_GEAR.map(g => g.id), svg: typeof heroSvg === 'function' && avatarSvg() === heroSvg() }));
-ok('9 Greek items, avatarSvg() draws the stickman', base.gear === 9 && base.ids.every(i => /^gr-/.test(i)) && base.svg, base);
+// Greek items exist only inside the Эллада skin: other skins show no clothes/gear tabs and cannot buy them
+const lock = await p.evaluate(async () => {
+  openLook(true); heroShopTab('wear'); await new Promise(q => setTimeout(q, 150));
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
+  const g0 = S.gold; heroBuyAsk('gr-helm'); const noBuy = el('shopConfirm').hidden && S.gold === g0 && !(S.ownedGear || []).includes('gr-helm');
+  const none = !el('heroShop') || el('heroShop').hidden || !el('heroShop').querySelector('.heroitem');
+  buy('skin-ellada'); wear('skin-ellada'); renderShopPane(); return { tabs, noBuy, none, all: HERO_GEAR.every(g => g.skin === 'ellada') };
+});
+ok('outside Эллада: only the «Скины» tab, no Greek item cards, no purchase', lock.tabs === 'Скины' && lock.noBuy && lock.none && lock.all, lock);
+
+const base = await p.evaluate(() => ({ gear: HERO_GEAR.filter(g => /^gr-/.test(g.id)).length, chars: HERO_GEAR.filter(g => g.slot === 'char').map(g => g.id), svg: typeof heroSvg === 'function' && avatarSvg() === heroSvg() }));
+ok('9 Greek items + 3 characters, avatarSvg() draws the stickman', base.gear === 9 && base.chars.join() === 'ch-reader,ch-pythagoras,ch-aristotle' && base.svg, base);
 
 // shop: tabs, try-on (memory only), buy through the confirm dialog, wear / take off
 const shop = await p.evaluate(async () => {
@@ -35,13 +45,37 @@ const shop = await p.evaluate(async () => {
   heroShopTab('skins'); const back = !el('shopList').hidden && el('heroShop').hidden;
   return { tabs, cards, listHidden, tried, dlg, bought, noRebuy, off, on, back };
 });
-ok('«Внешний вид»: tabs Скины / Одежда / Снаряжение, 4 clothes cards', shop.tabs.join() === 'Скины,Одежда,Снаряжение' && shop.cards === 4 && shop.listHidden, shop);
+ok('«Внешний вид»: tabs Скины / Персонажи / Одежда / Снаряжение, 4 clothes cards', shop.tabs.join() === 'Скины,Персонажи,Одежда,Снаряжение' && shop.cards === 4 && shop.listHidden, shop);
 ok('try-on writes nothing; buy = confirm dialog, −300 coins, worn at once; no second purchase', shop.tried && shop.dlg && shop.bought && shop.noRebuy, shop);
 ok('owned item: Снять / Надеть toggles the slot; «Скины» tab shows the skins list again', shop.off && shop.on && shop.back, shop);
 
 // the skin shop still buys skins through the same dialog
-const skinBuy = await p.evaluate(() => { const g = S.gold; shopBuyAsk('skin-ellada'); shopConfirmOk(); return { owned: shopOwns('skin-ellada'), spent: g - S.gold }; });
-ok('skin purchase still works through the shared confirm dialog', skinBuy.owned && skinBuy.spent === 500, skinBuy);
+const skinBuy = await p.evaluate(() => { const g = S.gold; shopBuyAsk('skin-celestial'); shopConfirmOk(); return { owned: shopOwns('skin-celestial'), spent: g - S.gold }; });
+ok('skin purchase still works through the shared confirm dialog', skinBuy.owned && skinBuy.spent === 800, skinBuy);
+
+// another skin: owned gear stays saved but is nowhere to be seen; back in Эллада it is on again
+const other = await p.evaluate(async () => {
+  wear('skin-celestial'); renderShopPane(); heroShopTab('wear'); await new Promise(q => setTimeout(q, 100));
+  const hidden = S.equipped.head === 'gr-helm' && !Object.keys(heroOn()).length && heroSvg() === heroSvg({});
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), shopHidden = el('heroShop').hidden;
+  heroWear('gr-helm'); const kept = S.equipped.head === 'gr-helm';
+  wear('skin-ellada'); renderShopPane(); const back = heroOn().head === 'gr-helm';
+  return { hidden, tabs, shopHidden, kept, back };
+});
+ok('in another skin the Greek gear is not drawn and not listed; in Эллада it is back', other.hidden && other.tabs === 'Скины' && other.shopHidden && other.kept && other.back, other);
+
+// characters: Читатель free and chosen, Пифагор bought through the dialog, gear stays on, colours are per character
+const ch = await p.evaluate(async () => {
+  heroShopTab('chars'); await new Promise(q => setTimeout(q, 100));
+  const cards = [...el('heroShop').querySelectorAll('.heroitem')].map(c => c.dataset.id).join(), readerBtn = el('heroShop').querySelector('.heroitem[data-id="ch-reader"] .shopcta').textContent;
+  const g0 = S.gold; heroBuyAsk('ch-pythagoras'); const dlg = !el('shopConfirm').hidden; shopConfirmOk();
+  const bought = S.equipped.char === 'ch-pythagoras' && S.gold === g0 - 600 && S.equipped.head === 'gr-helm' && heroSvg().includes('#8a8a8a');
+  heroSetCol('gr-helm', '#123456'); const own = S.char.gearColor['ch-pythagoras:gr-helm'] === '#123456' && S.char.gearColor['gr-helm'] !== '#123456';
+  heroWear('ch-reader'); const back = !S.equipped.char && !heroSvg().includes('#8a8a8a') && !heroSvg().includes('#123456');
+  const ari = heroSvg({ char: 'ch-aristotle' }).includes('#b5532f'), noRobe = !heroSvg({ char: 'ch-aristotle', body: 'gr-chiton' }).includes('#b5532f');
+  return { cards, readerBtn, dlg, bought, own, back, ari, noRobe };
+});
+ok('«Персонажи»: Читатель free, Пифагор −600 via dialog keeps the gear, colours per character, robe only without clothes', ch.cards === 'ch-reader,ch-pythagoras,ch-aristotle' && ch.readerBtn === 'Выбран' && ch.dlg && ch.bought && ch.own && ch.back && ch.ari && ch.noRobe, ch);
 
 // colour: any hex; owned = saved, not owned = try-on only
 const col = await p.evaluate(() => {
@@ -62,7 +96,7 @@ ok('pose: arms down without an item, arm reaches the spear, arm bends to the che
 // profile: hero fits the card in every skin, gap colour = the card under it, no frame
 for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {
   const r = await p.evaluate(async (sk) => {
-    if (sk) { buy('skin-' + sk); wear('skin-' + sk); }
+    if (sk) { buy('skin-' + sk); wear('skin-' + sk); } else { SET.skin = null; SET.color = null; SET.theme = 'sepia'; saveSet(); applySet(); }
     S.ownedGear = HERO_GEAR.map(g => g.id); S.equipped = { head: 'gr-helm', body: 'gr-chiton', cloak: 'gr-chlamys', hand: 'gr-dory', shield: 'gr-hoplon', pet: 'gr-owl', bg: 'gr-temple' }; save();
     __navAllow = true; show('profile'); __navAllow = false; renderProfile(); await new Promise(q => setTimeout(q, 250));
     const f = el('avatarFrame'), card = f.closest('.herocard'), fr = f.getBoundingClientRect(), cr = card.getBoundingClientRect(), svg = f.querySelector('svg.herosvg');
@@ -71,11 +105,13 @@ for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {
       noFrame: cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.boxShadow === 'none', gap: f.style.getPropertyValue('--hero-bg') || getComputedStyle(f).getPropertyValue('--hero-bg').trim(),
       cardBg: getComputedStyle(card).backgroundColor };
   }, sk);
+  r.drawn = await p.evaluate(() => Object.keys(heroOn()).length);
+  if ((sk || '') !== 'ellada' && r.drawn) r.svg = false; /* Greek gear only in Эллада */
   const gapOk = r.skin === 'pencil' ? !!r.gap : r.gap === r.cardBg;
   ok((sk || 'default') + ': profile hero drawn, ≥100px, inside its card, no frame, gaps = card colour', r.svg && r.inside && r.noFrame && gapOk, r);
 }
-const tap = await p.evaluate(async () => { el('avatar').click(); await new Promise(q => setTimeout(q, 300)); return !el('look').classList.contains('hidden') && heroTab === 'wear'; });
-ok('tap on the hero opens «Внешний вид» → «Одежда»', tap);
+const tap = await p.evaluate(async () => { wear('skin-ellada'); el('avatar').click(); await new Promise(q => setTimeout(q, 300)); return !el('look').classList.contains('hidden') && heroTab === 'wear'; });
+ok('tap on the hero (Эллада) opens «Внешний вид» → «Одежда»', tap);
 ok('no page errors', !errs.length, errs);
 console.log(`SUMMARY hero.test ${checks.filter(Boolean).length}/${checks.length}`);
 await browser.close();

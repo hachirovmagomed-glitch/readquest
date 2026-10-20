@@ -72,8 +72,9 @@ const hideB = await page.evaluate(() => {
   const aiVis = ai && getComputedStyle(ai).display !== 'none' && ai.offsetParent !== null;
   return { h2, pixelVis, pixelTxt: pixel && pixel.textContent, aiVis };
 });
-ok('B MVP: «Сложность книг» and «ИИ-помощник» headings hidden; «Купить» (pixelTgl) hidden; API-key field not shown',
-  hideB.h2.every(h => !/Сложность книг|ИИ-помощник/.test(h.t) || !h.vis) && !hideB.pixelVis && !hideB.aiVis, hideB);
+/* 20.10 (Джессика): «ИИ-помощник» на своём ключе виден и в MVP (ai.test.mjs); «Сложность книг» и «Купить» по-прежнему скрыты */
+ok('B MVP: «Сложность книг» heading hidden; «Купить» (pixelTgl) hidden; «ИИ-помощник» with its key field shown (20.10)',
+  hideB.h2.every(h => !/Сложность книг/.test(h.t) || !h.vis) && hideB.h2.some(h => h.t === 'ИИ-помощник' && h.vis) && !hideB.pixelVis && hideB.aiVis, hideB);
 await page.screenshot({ path: OUT + '/settings-mvp-bottom-after.png' });
 
 // ---- EN translation of the caption ----

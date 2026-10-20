@@ -67,8 +67,7 @@ function renderSettings(){
   el('uxWake').textContent=S.ux.wake?'Вкл':'Выкл';
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
-  el('aiKey').value=(S.ai&&S.ai.key)||'';
-  el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
+  renderAiSet();
   /* Джессика 16.10: «Тема» and «Скин» are two rows. Тема = the app palette (Авто + APP_THEMES), Скин = «Без скина», «Карандашный» and the bought
      shop skins. A worn skin paints the app with its own colours; the picked palette stays selected underneath and comes back when the skin is
      taken off. Picking a palette while a skin is on takes the skin off (reader theme back to sepia), same as before the split. */
@@ -101,8 +100,29 @@ function renderSettings(){
   rqCollapse('appSkinBox','',function(){const t=document.querySelector('#appSkinBox .apptile.on small');return t?t.textContent:'';},'appSkinX',{icon:'palette',title:'Скин',sub:function(){return 'Свои и купленные';},dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'circle-minus';},dot:function(){const b=document.querySelector('#appSkinBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
-el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
-el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
+/* ИИ-помощник (20.10): сервис, свой ключ, модель, адрес для «Другого» (content.js AI_PROV, arch.md 20.10) */
+function renderAiSet(){
+  const p=aiProv(),box=el('aiProvSeg');box.innerHTML='';
+  Object.keys(AI_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':AI_PROV[k].name.replace(/ \(.*\)$/,'');
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.onclick=()=>{if(aiProv()===k)return;S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';renderAiSet();};box.appendChild(b);});
+  el('aiKey').value=(S.ai&&S.ai.key)||'';
+  el('aiBase').hidden=p!=='custom';el('aiBase').value=(S.ai&&S.ai.base)||'';
+  el('aiModel').value=(S.ai&&S.ai.model)||'';
+  el('aiModel').placeholder='Модель'+(AI_PROV[p].model?' ('+AI_PROV[p].model+')':'');
+}
+el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();el('aiTestRes').textContent='';};
+el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim();save();};
+el('aiBase').oninput=e=>{S.ai.base=e.target.value.trim().slice(0,300);save();};
+el('aiTest').onclick=async()=>{
+  const r=el('aiTestRes');
+  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(navigator.onLine===false){r.textContent='Нет интернета';return;}
+  r.textContent='Проверяю…';el('aiTest').disabled=true;
+  try{const t=await aiViaKey({system:'Отвечай одним словом.',user:'Скажи «готово».'},20);r.textContent=t?'Работает, сервис ответил':'Сервис ответил пустотой';}
+  catch(e){r.textContent='Не работает: '+(e&&e.message||'ошибка');}
+  finally{el('aiTest').disabled=false;}
+};
 el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();applyMotion();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};

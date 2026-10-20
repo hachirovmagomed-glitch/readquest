@@ -291,12 +291,13 @@ export async function importBackup(data) {
      pos > ratio raises ratio to pos, ratio is never lowered. Additive, schemaVersion stays 1. */
   sanitizeBookProgress(envelope && envelope.progress && envelope.progress.progress);
 
-  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none) */
+  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none).
+     20.10: a key belongs to its service, so with a key on this device its whole ai block (prov, base, model, key) stays. */
   if (envelope && envelope.game) {
-    let own = '';
-    try { const cur = loadEnvelope(); own = (cur && cur.game && cur.game.ai && typeof cur.game.ai.key === 'string') ? cur.game.ai.key : ''; } catch (e) { own = ''; }
+    let own = '', ownAi = null;
+    try { const cur = loadEnvelope(); ownAi = (cur && cur.game && cur.game.ai && typeof cur.game.ai === 'object') ? cur.game.ai : null; own = (ownAi && typeof ownAi.key === 'string') ? ownAi.key : ''; } catch (e) { own = ''; ownAi = null; }
     const ai = envelope.game.ai && typeof envelope.game.ai === 'object' ? envelope.game.ai : { model: 'gpt-4o-mini' };
-    envelope.game.ai = Object.assign({}, ai, { key: own });
+    envelope.game.ai = own ? Object.assign({}, ai, ownAi, { key: own }) : Object.assign({}, ai, { key: '' });
   }
 
   if (data.textBodies && typeof data.textBodies === 'object') {

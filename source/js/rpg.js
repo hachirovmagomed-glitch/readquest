@@ -283,7 +283,7 @@ function renderProfile(){
       (custom?'<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="renStat(\''+esc(s)+'\')">'+rqIcon('pencil',14)+'</button><button class="x" onclick="delStat(\''+esc(s)+'\')">✕</button>':'')+
       '<b>'+v+'</b></div>'+
     '<div class="pbar"><i style="width:'+Math.round(v/maxS*100)+'%;background:'+(v?'var(--accent2)':'var(--card2)')+'"></i></div></div>';
-  }).join('')+'<button class="miniadd" onclick="addStat()">＋ Добавить характеристику</button>';
+  }).join('')+'<button class="miniadd" onclick="addStat()">'+rqIcon('plus',16)+'Добавить характеристику</button>';
   renderTalents();
   renderEquip();
   renderMvpProfile();
@@ -292,8 +292,8 @@ function renderProfile(){
 }
 el('goalMinus').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderLibrary();};
 el('goalPlus').onclick=()=>{if(isMvp())return;S.goal=Math.min(120,S.goal+5);save();renderLibrary();};
-el('btnReset').onclick=()=>{
-  if(!confirm('Точно сбросить весь прогресс?'))return;
+el('btnReset').onclick=async()=>{
+  if(!await rqAsk({t:'Сбросить весь прогресс?',p:'Минуты, опыт, монеты, стрик и награды обнулятся. Книги и настройки останутся. Отменить нельзя.',ok:'Сбросить',danger:true}))return;
   if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
   try{localStorage.removeItem(RQ_K.v1);localStorage.removeItem(RQ_K.migrated);localStorage.removeItem(RQ_K.legacy);}catch(e){}
   location.reload();

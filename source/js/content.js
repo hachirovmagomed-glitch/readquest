@@ -14,7 +14,7 @@ function renderQuotes(){
     });
   });
   el('quoteBox').innerHTML=parts.length?parts.join(''):
-    '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге пальцем или мышкой —<br>появится кнопка «'+rqIcon('highlighter',14)+' Цитата».'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
+    '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге&nbsp;— появится кнопка «'+rqIcon('highlighter',14)+'&nbsp;Цитата».'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;
@@ -29,8 +29,8 @@ el('btnCopyAll').onclick=()=>{
   const parts=[];
   allBooks().forEach(b=>(S.quotes[b.id]||[]).forEach(q=>
     parts.push('«'+q.text+'»'+(q.note?' — '+q.note:'')+' ('+b.title+')')));
-  if(parts.length){copyText(parts.join('\n\n'));alert('Скопировано цитат: '+parts.length);}
-  else alert('Пока нет ни одной цитаты');
+  if(parts.length){copyText(parts.join('\n\n'));rqAlert('Скопировано цитат: '+parts.length);}
+  else rqAlert('Пока нет ни одной цитаты');
 };
 
 /* ================= МАГАЗИН ================= */
@@ -71,7 +71,8 @@ function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
 const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
-function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
+function shopReady(id){const it=shopItem(id);if(!it)return false;const sid=it.type==='skin'?it.id:it.skin;
+  return SHOP_READY.indexOf(sid)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
   if(it.type==='skin')return it.price===0||(S.owned||[]).indexOf(id)>=0;
@@ -99,7 +100,7 @@ function wear(id){
   SET.skin=skin;SET.color=color;
   /* a styled skin = its own reader theme (day kept if already in this skin's night); an unstyled one leaves any skin theme */
   const key=skin.replace(/^skin-/,''), cur=activeTheme();
-  if(key==='pencil'||SKIN_THEMES[key]){if(cur.skin!==key)SET.theme=key;}
+  if(key==='pencil'||SKIN_THEMES[key]){if(cur.skin!==key)SET.theme=skinWearKey(key);}
   else if(cur.skin)SET.theme='sepia';
   saveSet();applySet();logSkinChange(from);return true;
 }
@@ -138,11 +139,12 @@ function renderShopPane(){
   box.innerHTML=SHOP_CATALOG.filter(x=>x.type==='skin').map(function(it){
     const st=shopState(it), sw=(SHOP_CATALOG.find(x=>x.skin===it.id&&x.bundled)||{}).sw||'#ccc';
     const cta=st.k==='buy'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();shopBuyAsk(\''+it.id+'\')">Купить</button>'
-      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');shopRefresh()">Надеть</button>'
-      :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
+      :st.k==='owned'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');shopRefresh()">Надеть</button>'
+      :st.k==='worn'?'<button type="button" class="buy shopcta st-worn" disabled>'+rqIcon('check',16)+'Надето</button>' /* audit 19.10 SHOP-02: on = outline + tick, off = dashed */
+      :'<button type="button" class="buy shopcta st-off" disabled>'+esc(st.t)+'</button>';
     return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
       '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
-      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
+      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'&&it.price?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
   }).join('');
   /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
   if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
@@ -246,7 +248,7 @@ function renderShop(){
 }
 function useTheme(id){
   SET.theme=id;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
-  alert('Тема применена! Откройте любую книгу');
+  rqAlert('Тема применена! Откройте любую книгу');
 }
 function renderRewards(){
   el('shopRewards').innerHTML=S.rewards.map((r,i)=>({r:r,i:i}))
@@ -272,11 +274,11 @@ function renderRewards(){
 function buyReward(i){
   const r=S.rewards[i];if(!r||!canAfford(r.cost))return;
   const infinite=(r.qty==null);
-  if(!infinite&&((r.qty||0)-(r.bought||0))<=0){alert('Награда закончилась');return;}
+  if(!infinite&&((r.qty||0)-(r.bought||0))<=0){rqAlert('Награда закончилась');return;}
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];S.rewardPurchases.push({id:'rp_'+Date.now(),title:r.name,price:r.cost,at:new Date().toISOString()});
   save();confetti();renderShop();
-  alert('Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
+  rqAlert('Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
 }
 function undoRewardClaim(i){
   const r=S.rewards[i];if(!r||!(r.bought>0))return;
@@ -345,7 +347,7 @@ function renderQuests(){
         :'<span class="chip">'+q.info()+'</span>')+
       edit+
       '</div><div class="pbar"><i style="width:'+Math.round(p*100)+'%"></i></div></div>';
-  }).join('')+'<button class="miniadd" onclick="addCustomQuest()">＋ Добавить свой квест</button>';
+  }).join('')+'<button class="miniadd" onclick="addCustomQuest()">'+rqIcon('plus',16)+'Добавить свой квест</button>';
 }
 function claimQuest(id){
   if(!questPays())return; /* RQ_MVP_QUEST_PAYOUTS off: no payout, nothing written */
@@ -490,9 +492,11 @@ async function idbDel(k){
 function fmtSize(n){
   if(!n&&n!==0)return '—';
   if(n<1024)return n+' Б';
-  if(n<1048576)return (n/1024).toFixed(1)+' КБ';
-  return (n/1048576).toFixed(2)+' МБ';
+  if(n<1048576)return (n/1024).toFixed(1).replace('.',',')+' КБ'; /* audit 19.10 GL-10: decimal comma */
+  return (n/1048576).toFixed(2).replace('.',',')+' МБ';
 }
+/** audit 19.10 GL-10: 12 288 — digit groups with a narrow no-break space (U+202F) */
+function fmtInt(n){return String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');}
 function bkIc(n){return '<svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
 /* 19.10 «Сложность» (Джессика): automatic level, the reader may pick a LOWER one (S.bookLvl); levels above the automatic one are disabled.
    One save() per tap; opening the card writes nothing. Shown only while lvlOn() (test site). */
@@ -501,7 +505,7 @@ function bookLvlHtml(b){
   const G=window.__rqGame,L=G.LEVELS,auto=bookLvlAuto(b),cur=bookLvlOf(b),m=function(x){return String(L[x].xp).replace('.',',');};
   return '<div class="bk-h">Сложность</div><div class="chips bk-shelves" role="radiogroup" aria-label="Сложность книги">'+
     L.map(function(x,i){const on=i===cur,off=i>auto;
-      return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'"'+(off?' disabled':'')+' onclick="setBookLvl(\''+b.id+'\','+i+')">'+(on?rqIcon('check',14):'')+esc(x.n)+(i?' ×'+m(i):'')+'</button>';}).join('')+
+      return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'"'+(off?' disabled aria-disabled="true" title="Повысить сложность нельзя"':'')+' onclick="setBookLvl(\''+b.id+'\','+i+')">'+(on?rqIcon('check',14):off?rqIcon('lock',14):'')+esc(x.n)+(i?' ×'+m(i):'')+'</button>';}).join('')+
     '</div><div class="bk-note">'+(auto?'Определена по тексту и автору. ':'')+'Сложная книга даёт опыт ×'+m(1)+' и +'+L[1].coins+' монет за каждые 10 минут, очень сложная ×'+m(2)+' и +'+L[2].coins+', не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
 }
 function setBookLvl(id,l){
@@ -511,6 +515,7 @@ function setBookLvl(id,l){
   S.bookLvl=S.bookLvl||{};if(l===auto)delete S.bookLvl[id];else S.bookLvl[id]=l;
   save();bookInfo(id);
 }
+if(el('bookSheet'))el('bookSheet').addEventListener('scroll',function(){this.classList.toggle('stuck',this.scrollTop>24);},{passive:true});
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
@@ -523,7 +528,7 @@ function bookInfo(id){
   const rmin=Math.floor(((S.bookStats[id]||{}).min)||0); /* counted reading minutes for this book (same ones that give XP) */
   const rtime=rmin>=60?Math.floor(rmin/60)+' ч'+(rmin%60?' '+(rmin%60)+' мин':''):rmin+' мин';
   const fmt=b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст');
-  const sub=[b.author,b.genre].filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF» */
+  const sub=(bookAuthor(b)?[bookAuthor(b),b.genre]:[b.genre||'Автор не указан']).filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF»; audit 19.10 LIB-04: no «Моя книга» as an author */
   const place=builtin?'Встроена в приложение':(b.type==='pdf'?'На этом устройстве, в браузере':'На этом устройстве, в приложении');
   const row=(k,v,cls)=>'<div class="bk-row'+(cls?' '+cls:'')+'"><span class="bk-k">'+k+'</span><span class="bk-v">'+v+'</span></div>';
   const act=(ic,label,fn,on)=>'<button type="button" class="bk-act'+(on?' on':'')+'" onclick="'+fn+'(\''+id+'\')"'+(on!=null?' aria-pressed="'+!!on+'"':'')+'>'+bkIc(ic)+'<span>'+label+'</span></button>';
@@ -545,7 +550,7 @@ function bookInfo(id){
     '<button type="button" class="fchip fshelfadd" onclick="shelfNew(\''+id+'\')">'+rqIcon('plus',14)+'Новая полка</button></div>'+
     bookLvlHtml(b)+
     '<div class="bk-h">О файле</div><div class="bk-list">'+
-    row('Формат',fmt)+row('Размер',size+(words?' · '+words+' '+plural(words,'слово','слова','слов'):''))+
+    row('Формат',fmt)+row('Размер',size+(words?' · '+fmtInt(words)+' '+plural(words,'слово','слова','слов'):''))+
     (builtin?'':row('Файл',esc(b.fname||'файл'),'wrap'))+row('Хранится',place)+
     '</div>'+
     (isMvp()?'': /* MVP: XP only per minute, coins only per day/week → difficulty, importance and stat change nothing there; shown outside MVP only */
@@ -620,9 +625,9 @@ el('covInp').onchange=e=>{
     try{
       S.covers[COVID]=cv.toDataURL('image/jpeg',0.72);
       save();renderLibrary();bookInfo(COVID);
-    }catch(e2){alert('Не удалось сохранить обложку: '+e2.message);}
+    }catch(e2){rqAlert('Не удалось сохранить обложку: '+e2.message);}
   };
-  img.onerror=()=>alert('Не удалось прочитать изображение');
+  img.onerror=()=>rqAlert('Не удалось прочитать изображение');
   img.src=URL.createObjectURL(f);
 };
 function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);}
@@ -631,7 +636,7 @@ function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);
 el('spAI').onclick=()=>{
   const t=selText();if(!t)return;
   if(!S.ai||!S.ai.key){
-    alert('Чтобы «Объяснить» работало, вставьте API-ключ в Настройках → ИИ-помощник');
+    rqAlert('Чтобы «Объяснить» работало, вставьте API-ключ в Настройках → ИИ-помощник');
     return;
   }
   aiAsk('Объясни этот фрагмент из книги «'+((R.book||{}).title||'')+'» простым языком, 2–4 предложения, по-русски:\n\n«'+t.slice(0,800)+'»');
@@ -658,14 +663,15 @@ el('aiSheetClose').onclick=()=>el('aiSheet').classList.add('hidden');
 function shareBook(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
-  const txt='Читаю «'+b.title+'» ('+b.author+') в ReadQuest — прогресс '+p+'%';
+  const txt='Читаю «'+b.title+'»'+(bookAuthor(b)?' ('+bookAuthor(b)+')':'')+' в ReadQuest — прогресс '+p+'%';
   if(navigator.share){navigator.share({title:b.title,text:txt}).catch(function(){});}
-  else{copyText(txt);alert('Текст для шаринга скопирован в буфер');}
+  else{copyText(txt);rqAlert('Текст для шаринга скопирован в буфер');}
 }
 async function removeBook(id,wipeFile){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
-  if(!confirm(wipeFile?'Удалить книгу и её файл из хранилища устройства?':'Убрать книгу из библиотеки? Прогресс по ней будет удалён.'))return;
+  if(!await rqAsk(wipeFile?{t:'Удалить «'+b.title+'» и файл?',p:'Книга, прогресс, цитаты и файл удалятся с этого устройства.',ok:'Удалить',danger:true}
+    :{t:'Убрать «'+b.title+'»?',p:'Прогресс и цитаты по этой книге удалятся. Файл на устройстве останется.',ok:'Убрать',danger:true}))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
   delete S.progress[id];delete S.quotes[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
@@ -725,9 +731,9 @@ function renderYearReview(){
   const hh=S.hourHist||[];let peak=0;for(let h=0;h<24;h++)if((hh[h]||0)>(hh[peak]||0))peak=h;
   let topB='—',tv=0;allBooks().forEach(b=>{const s=S.bookStats[b.id];if(s&&s.min>tv){tv=s.min;topB=b.title;}});
   box.innerHTML='<div class="yreview"><div class="yr-h">Год в чтении · '+y+'</div><div class="yr-grid">'+
-    '<div class="yr-cell"><b>'+Math.round(min)+'</b><span>минут</span></div>'+
-    '<div class="yr-cell"><b>'+books+'</b><span>книг дочитано</span></div>'+
-    '<div class="yr-cell"><b>'+days+'</b><span>дней с чтением</span></div>'+
+    '<div class="yr-cell"><b>'+Math.round(min)+'</b><span>'+plural(Math.round(min),'минута','минуты','минут')+'</span></div>'+
+    '<div class="yr-cell"><b>'+books+'</b><span>'+plural(books,'книга дочитана','книги дочитано','книг дочитано')+'</span></div>'+
+    '<div class="yr-cell"><b>'+days+'</b><span>'+plural(days,'день','дня','дней')+' с чтением</span></div>'+
     '<div class="yr-cell"><b>'+(S.streak||0)+'</b><span>стрик сейчас</span></div></div>'+
     '<div class="yr-line">Любимый жанр: <b>'+esc(favG)+'</b></div>'+
     '<div class="yr-line">Любимое время: <b>'+peak+':00</b></div>'+

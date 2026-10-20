@@ -28,7 +28,7 @@ const lock = await p.evaluate(async () => {
 });
 ok('outside Эллада: only the «Скины» tab, no Greek item cards, no purchase', lock.tabs === 'Скины' && lock.noBuy && lock.none && lock.all, lock);
 
-const base = await p.evaluate(() => ({ gear: HERO_GEAR.filter(g => /^gr-/.test(g.id)).length, chars: HERO_GEAR.filter(g => g.slot === 'char').map(g => g.id), svg: typeof heroSvg === 'function' && avatarSvg() === heroSvg() }));
+const base = await p.evaluate(() => ({ gear: HERO_GEAR.filter(g => /^gr-/.test(g.id)).length, chars: HERO_GEAR.filter(g => g.slot === 'char' && g.skin === 'ellada').map(g => g.id), svg: typeof heroSvg === 'function' && avatarSvg() === heroSvg() }));
 ok('9 Greek items + 3 characters, avatarSvg() draws the stickman', base.gear === 9 && base.chars.join() === 'ch-reader,ch-pythagoras,ch-aristotle' && base.svg, base);
 
 // shop: tabs, try-on (memory only), buy through the confirm dialog, wear / take off
@@ -57,12 +57,12 @@ ok('skin purchase still works through the shared confirm dialog', skinBuy.owned 
 const other = await p.evaluate(async () => {
   wear('skin-celestial'); renderShopPane(); heroShopTab('wear'); await new Promise(q => setTimeout(q, 100));
   const hidden = S.equipped.head === 'gr-helm' && !Object.keys(heroOn()).length && heroSvg() === heroSvg({});
-  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), shopHidden = el('heroShop').hidden;
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), shopHidden = el('heroShop').hidden, greek = !!document.querySelector('#heroShop .heroitem[data-id^="gr-"]');
   heroWear('gr-helm'); const kept = S.equipped.head === 'gr-helm';
   wear('skin-ellada'); renderShopPane(); const back = heroOn().head === 'gr-helm';
-  return { hidden, tabs, shopHidden, kept, back };
+  return { hidden, tabs, shopHidden, greek, kept, back };
 });
-ok('in another skin the Greek gear is not drawn and not listed; in Эллада it is back', other.hidden && other.tabs === 'Скины' && other.shopHidden && other.kept && other.back, other);
+ok('in another skin (Небесный: its own «Персонажи», «Одежда», «Снаряжение») the Greek gear is not drawn and not listed; in Эллада it is back', other.hidden && other.tabs === 'Скины,Персонажи,Одежда,Снаряжение' && !other.shopHidden && !other.greek && other.kept && other.back, other);
 
 // characters: Читатель free and chosen, Пифагор bought through the dialog, gear stays on, colours are per character
 const ch = await p.evaluate(async () => {
@@ -105,6 +105,46 @@ ok('colour: palette input on cards; owned saves the hex, not owned only tries it
 const pose = await p.evaluate(() => { const n = (o) => (heroSvg(o).match(/stroke-width="4.8"/g) || []).length;
   return { down: n({}), spear: n({ hand: 'gr-dory' }), scroll: n({ hand: 'gr-scroll' }) }; });
 ok('pose: arms down without an item, arm reaches the spear, arm bends to the chest with a scroll', pose.down === 0 && pose.spear === 1 && pose.scroll === 2, pose);
+
+// Небесный: 12 classes as whole characters, Сонный чтец free, bought one becomes the hero; images load; teen 0.88; Эллада keeps Pythagoras
+const cel = await p.evaluate(async () => {
+  wear('skin-ellada'); S.equipped.char = 'ch-pythagoras'; save();
+  wear('skin-celestial'); renderShopPane(); heroShopTab('chars'); await new Promise(q => setTimeout(q, 100));
+  const ids = HERO_GEAR.filter(g => g.skin === 'celestial' && g.slot === 'char' && g.id !== 'cl-zvezdochet').map(g => g.id), cards = document.querySelectorAll('#heroShop .heroitem').length;
+  const def = avatarSvg().includes('wear/base.webp'), free = heroOwns('cl-sonny-chtets') && heroOwns('cl-zvezdochet') && !heroOwns('cl-kometa');
+  S.gold = 5000; const g0 = S.gold; heroBuyAsk('cl-kometa'); shopConfirmOk();
+  const bought = S.equipped['celestial:char'] === 'cl-kometa' && S.gold === g0 - 600 && avatarSvg().includes('kometa.webp');
+  const teen = /height="84.5"/.test(avatarSvg()), adult = /height="96"/.test(heroCelestialSvg({ char: 'cl-kartograf' }));
+  const imgs = await Promise.all(ids.map(id => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalHeight === 480); i.onerror = () => r(false); i.src = 'hero/celestial/' + id.slice(3) + '.webp'; })));
+  heroWear('cl-zvezdochet'); const back = !S.equipped['celestial:char'] && avatarSvg().includes('wear/base.webp');
+  wear('skin-ellada'); const ell = heroOn().char === 'ch-pythagoras' && !avatarSvg().includes('herocel');
+  return { n: ids.length, cards, def, free, bought, teen, adult, imgs: imgs.every(Boolean), back, ell };
+});
+ok('Небесный: 12 classes + Звездочёт-манекен (free, default), Сонный чтец free, buy Комета → hero (teen 0.88), images load, Эллада keeps its own', cel.n === 12 && cel.cards === 13 && cel.def && cel.free && cel.bought && cel.teen && cel.adult && cel.imgs && cel.back && cel.ell, cel);
+
+// Небесный: вещи по слотам на манекене (бумажная кукла из листов Джессики), перекраска, вещь на классе возвращает манекен
+const doll = await p.evaluate(async () => {
+  wear('skin-celestial'); S.gold = 99999; heroWear('cl-zvezdochet'); S.ownedGear = (S.ownedGear || []).concat('cl-kometa'); heroWear('cl-kometa');
+  const items = HERO_GEAR.filter(g => g.skin === 'celestial' && g.slot !== 'char');
+  heroBuyAsk('cc-night'); shopConfirmOk();
+  const worn = S.equipped['celestial:cloak'] === 'cc-night', toDoll = !S.equipped['celestial:char'] && avatarSvg().includes('wear/cc-night.webp') && avatarSvg().includes('wear/base.webp');
+  heroBuyAsk('cx-lantern'); shopConfirmOk(); const hand = avatarSvg().includes('wear/hand.webp');
+  heroBuyAsk('cg-white'); shopConfirmOk(); const gloves = avatarSvg().includes('cg-white-l.webp') && avatarSvg().includes('cg-white-r.webp');
+  heroSetCol('cc-night', '#b03040'); const col = /cc-night\.webp[^>]*hue-rotate/.test(avatarSvg());
+  heroShopTab('wear'); await new Promise(q => setTimeout(q, 100)); const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
+  const files = []; items.forEach(g => HERO_CEL_ART.items[g.id].p.forEach(p => files.push(p[0]))); files.push('base', 'hand');
+  const loaded = await Promise.all(files.map(f => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth > 0); i.onerror = () => r(false); i.src = 'hero/celestial/wear/' + f + '.webp'; })));
+  wear('skin-ellada'); const ell = !avatarSvg().includes('herocel');
+  return { n: items.length, worn, toDoll, hand, gloves, col, tabs, loaded: loaded.every(Boolean), files: files.length, ell };
+});
+ok('Небесный: 76 вещей на манекене, вещь на классе возвращает Звездочёта, рука держит предмет, перчатки на обе кисти, перекраска, все картинки грузятся', doll.n === 76 && doll.worn && doll.toDoll && doll.hand && doll.gloves && doll.col && doll.tabs === 'Скины,Персонажи,Одежда,Снаряжение' && doll.loaded && doll.ell, doll);
+
+// 3D убран (Джессика 20.10: «отойдём полностью от 3D моделек»): в Небесном нет кнопки 3D и листа
+const no3d = await p.evaluate(async () => {
+  wear('skin-celestial'); openLook(true); heroShopTab('chars'); await new Promise(q => setTimeout(q, 100));
+  return { btn: !!document.querySelector('#heroShop .hero3dbtn'), fn: typeof window.heroOpen3d, sheet: !!document.getElementById('hero3dSheet') };
+});
+ok('Небесный: no 3D button or sheet', !no3d.btn && no3d.fn === 'undefined' && !no3d.sheet, no3d);
 
 // profile: hero fits the card in every skin, gap colour = the card under it, no frame
 for (const sk of ['', 'pencil', 'celestial', 'ellada', 'babochkovyi']) {

@@ -36,7 +36,7 @@ async function openPdf(b){
     pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
     if(psOn()){psOpen(p);return;} /* 18.10: «Прокрутка» — js/pdf-scroll.js */
     pdfRender('open');pdfWatch();
-  }catch(e2){pdfBackdrop(null);alert('Не удалось открыть PDF: '+e2.message);show('library');}
+  }catch(e2){pdfBackdrop(null);rqAlert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
 function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
 function pdfReset(){
@@ -441,8 +441,13 @@ function pdfWheel(e){
 }
 window.__rqLayoutCount=0; /* test hook: number of full column reflows */
 function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|')+(rqScrollMode()?'|s':'');}
+/* audit 19.10 RD-TAB-01: on a tablet in portrait (600–859 px) the line stays ≈ 36 em (60–75 characters): the side fields grow; 860+ is two columns */
+function rqTextMargin(){const v=el('viewer');if(!v||R.mode==='pdf')return;const W=window.innerWidth,m=SET.margin;
+  const mw=(W>=600&&W<860)?Math.max(m,Math.floor((W-SET.size*36)/2)):m;
+  if(v._mw!==mw){v._mw=mw;v.style.margin='0 '+mw+'px';el('reader').style.setProperty('--r-margin',mw+'px');}}
 function layout(){
   if(R.mode==='pdf'){pdfOnResize();return;}
+  rqTextMargin();
   const v=el('viewer'),c=el('content');
   const w=v.clientWidth,h=v.clientHeight,gap=48;
   if(rqScrollMode()){ /* 16.10: one vertical strip; «page» = one screen, the last page = the end of the text */

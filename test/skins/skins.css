@@ -17,7 +17,7 @@ html[data-skin]:not([data-skin="pencil"]) .rfoot{box-shadow:0 -1px 0 var(--rq-li
 html[data-skin]:not([data-skin="pencil"]) :is(.rhead button,.rtitle){color:var(--rq-text)}
 html[data-skin]:not([data-skin="pencil"]) .rhead button .ic{color:var(--rq-accent-text)}
 html[data-skin]:not([data-skin="pencil"]) .rbar button{color:var(--rq-text)}
-html[data-skin]:not([data-skin="pencil"]) .rbar button .ic{color:var(--rq-accent-text)}
+html[data-skin]:not([data-skin="pencil"]) :is(.rbar button .ic,.rbar button .aa){color:var(--rq-accent-text)}
 /* controls */
 html[data-skin]:not([data-skin="pencil"]) .sheet{box-shadow:var(--rq-shadow-3)}
 html[data-skin]:not([data-skin="pencil"]) .settabs button.on{background:var(--rq-accent-tint);color:var(--rq-text)}

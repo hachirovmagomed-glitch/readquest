@@ -6,7 +6,7 @@ function renderQuotes(){
     const qs=S.quotes[b.id]||[];if(!qs.length)return;
     parts.push('<h2>'+esc(b.title)+'</h2>');
     qs.forEach((q,i)=>{
-      parts.push('<div class="qcard"><div class="qtext">«'+esc(q.text)+'»</div>'+
+      parts.push('<div class="qcard" data-c="'+hlKey(q.c)+'" style="--d:'+hlDot(q.c)+'"><div class="qtext">«'+esc(q.text)+'»</div>'+
         (q.note?'<div class="qnote">'+rqIcon('notebook-pen',14)+' '+esc(q.note)+'</div>':'')+
         '<div class="qmeta"><span>'+q.date+'</span><div class="spacer"></div>'+
         '<button onclick="copyQuote(\''+b.id+'\','+i+')">копировать</button>'+

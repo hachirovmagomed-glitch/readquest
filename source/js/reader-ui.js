@@ -180,17 +180,19 @@ function flashMsg(t,o){
 }
 
 /* audit 19.10 GL-04 / LIB-02: no system dialogs. rqAlert = a toast; rqAsk = a bottom sheet with «Отмена» (focused, Esc, tap outside) and the action.
-   rqAsk({t,p,ok,danger}) → Promise<boolean> */
+   rqAsk({t,p,ok,danger}) → Promise<boolean>; with input:'text' a text field → Promise<string|null> (null = «Отмена») */
 function rqAlert(t){flashMsg(String(t||''),{ms:4000,kind:/^Не удал|^Не хватает|не поддерж|запрещен/i.test(String(t||''))?'error':'info'});}
 function rqAsk(o){return new Promise(function(res){
   let sc=el('rqAskScrim'),d=el('rqAsk');
   if(!d){sc=document.createElement('div');sc.id='rqAskScrim';d=document.createElement('div');d.id='rqAsk';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','rqAskT');document.body.appendChild(sc);document.body.appendChild(d);}
-  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p><div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
+  const inp=o.input!=null;
+  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p>'+(inp?'<textarea id="rqAskIn" rows="3" maxlength="1000" aria-labelledby="rqAskT"></textarea>':'')+'<div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
   el('rqAskT').textContent=o.t||'';el('rqAskP').textContent=o.p||'';el('rqAskP').hidden=!o.p;el('rqAskOk').textContent=o.ok||'Да';el('rqAskOk').className=o.danger?'danger':'cta';
   const kd=function(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}};
-  const done=function(v){sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(v);};
+  if(inp)el('rqAskIn').value=String(o.input);
+  const done=function(v){const tv=inp?(v?el('rqAskIn').value.trim().slice(0,1000):null):v;sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(tv);};
   el('rqAskNo').onclick=function(){done(false);};el('rqAskOk').onclick=function(){done(true);};sc.onclick=function(){done(false);};
-  sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el('rqAskNo').focus({preventScroll:true});}catch(e){}
+  sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el(inp?'rqAskIn':'rqAskNo').focus({preventScroll:true});}catch(e){}
 });}
 
 /* --- выделение текста → цитаты --- */
@@ -201,28 +203,59 @@ function selText(){
   return t.length>2?t:'';
 }
 function updSelPop(){
-  el('selpop').classList.toggle('hidden',!selText()||el('reader').classList.contains('hidden'));
+  const off=!selText()||el('reader').classList.contains('hidden');
+  if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
+  el('selpop').classList.toggle('hidden',off);
 }
 let selT=null;
 document.addEventListener('selectionchange',()=>{if(selT)clearTimeout(selT);selT=setTimeout(updSelPop,200);});
-function markInContent(t){
-  const c=el('content');const k=esc(t);
-  if(c.innerHTML.includes(k))c.innerHTML=c.innerHTML.replace(k,'<mark>'+k+'</mark>');
+/* 20.10 цвета цитат (Джессика, как в ReadEra): цвет — поле q.c у цитаты (нет поля или кривое = жёлтый), последний выбор — SET.hlc */
+const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
+function hlKey(c){return HL_COLORS.some(x=>x.k===c)?c:'y';}
+function hlDot(c){return HL_COLORS.find(x=>x.k===hlKey(c)).d;}
+/** colour of a highlighted string = the colour of its quote (S.hl keeps plain strings, as before) */
+function quoteColor(bid,t){const q=(S.quotes[bid]||[]).find(x=>x&&x.text===t);return hlKey(q&&q.c);}
+function markHtml(k,c){return '<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
+function markInContent(t,c){
+  const c0=el('content');const k=esc(t);
+  if(c0.innerHTML.includes(k))c0.innerHTML=c0.innerHTML.replace(k,markHtml(k,hlKey(c)));
 }
-function addQuote(withNote){
-  const t=selText();if(!t||!R.book)return;
-  let note='';
-  if(withNote)note=prompt('Заметка к цитате:')||'';
-  (S.quotes[R.book.id]=S.quotes[R.book.id]||[]).push({text:t,note,date:today()});
-  (S.hl[R.book.id]=S.hl[R.book.id]||[]).push(t);
-  if(!(window.__rqWriter&&__rqWriter.noLocks)){
-    if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
-    addSkillXp('Аналитика',1);checkAchievements();
-  } /* no locks → no coins */
-  save();
-  markInContent(t);
-  if(window.getSelection)window.getSelection().removeAllRanges();
-  el('selpop').classList.add('hidden');
+function renderSpColors(){
+  const box=el('spColors');if(!box)return;const cur=hlKey(SET.hlc);
+  box.innerHTML=HL_COLORS.map(x=>'<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+x.n.toLowerCase()+'" title="'+x.n+'" style="--d:'+x.d+'"><i aria-hidden="true"></i></button>').join('');
+}
+/** an already highlighted quote the selection sits in (then a colour recolours it instead of adding a copy) */
+function selMark(){
+  try{const s=window.getSelection();if(!s||!s.rangeCount)return null;let n=s.getRangeAt(0).commonAncestorContainer;if(n&&n.nodeType===3)n=n.parentNode;
+    const m=n&&n.closest&&n.closest('mark');return m&&el('content').contains(m)?m:null;}catch(e){return null;}
+}
+function selDone(){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
+function addQuote(withNote,color){
+  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;
+  const bid=R.book.id,c=hlKey(color||SET.hlc);
+  if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
+  const old=m?(S.quotes[bid]||[]).find(x=>x&&x.text===t):null;
+  if(old){ /* recolour / re-note the quote under the selection */
+    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();m.className=c==='y'?'':'hl-'+c;};
+    if(withNote){selDone();return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:old.note||''}).then(v=>{if(v!==null)put(v);});}
+    put(null);selDone();return;
+  }
+  const commit=(note)=>{
+    (S.quotes[bid]=S.quotes[bid]||[]).push({text:t,note,date:today(),c});
+    (S.hl[bid]=S.hl[bid]||[]).push(t);
+    if(!(window.__rqWriter&&__rqWriter.noLocks)){
+      if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
+      addSkillXp('Аналитика',1);checkAchievements();
+    } /* no locks → no coins */
+    save();
+    if(!R.book||R.book.id!==bid)return;
+    markInContent(t,c);
+  };
+  if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
+    selDone();
+    return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:''}).then(v=>{if(v!==null)commit(v);});
+  }
+  commit('');selDone();
 }
 function copyText(t){
   try{navigator.clipboard.writeText(t);}
@@ -234,6 +267,7 @@ function copyText(t){
   }
 }
 el('spHl').onclick=()=>addQuote(false);
+el('spColors').onclick=(e)=>{const b=e.target.closest&&e.target.closest('button[data-c]');if(b)addQuote(false,b.dataset.c);};
 el('spNote').onclick=()=>addQuote(true);
 
 /* --- словарь по выделению --- */
@@ -262,6 +296,7 @@ el('spCopy').onclick=()=>{
 };
 document.addEventListener('keydown',e=>{
   if(el('reader').classList.contains('hidden'))return;
+  if(e.target&&e.target.closest&&e.target.closest('input,textarea,[contenteditable]'))return; /* 20.10: typing a note never turns the page */
   if(e.key==='ArrowRight'||e.key===' ')goPage(R.page+1,true);
   if(e.key==='ArrowLeft')goPage(R.page-1,true);
   if(e.key==='Escape')readerBack();

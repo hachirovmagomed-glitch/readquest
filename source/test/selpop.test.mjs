@@ -53,9 +53,11 @@ for (const k of ['pencil', 'pencil-night', 'ellada', 'ellada-night', 'babochkovy
 // 360: still one row inside the screen
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
 await select();
-const fit = await p.evaluate(() => { const r = document.getElementById('selpop').getBoundingClientRect(); return { l: Math.round(r.left), r: Math.round(r.right), h: Math.round(r.height) }; });
+const fit = await p.evaluate(() => { const b = document.getElementById('selpop'), r = b.getBoundingClientRect(); /* 20.10: colours row + one row of actions */
+  const rows = new Set([...b.querySelectorAll(':scope > button')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top))).size;
+  return { l: Math.round(r.left), r: Math.round(r.right), h: Math.round(r.height), rows }; });
 await shot('360');
-ok('360: bar inside the screen, one row', fit.l >= 0 && fit.r <= 360 && fit.h < 70, fit);
+ok('360: bar inside the screen, actions in one row under the colours', fit.l >= 0 && fit.r <= 360 && fit.rows === 1 && fit.h < 120, fit);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

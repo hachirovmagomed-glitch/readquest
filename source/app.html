@@ -957,14 +957,13 @@ body.pixel .talnode{border-radius:0}
 #botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;background:var(--card);border-top:1px solid var(--card2);padding:6px 10px calc(6px + env(safe-area-inset-bottom));gap:6px;justify-content:space-around}
 body.mvp #botnav{display:flex}
 body.mvp .screen > .scroll{padding-bottom:108px} /* 20.10: + the «Читать» bump over the bar */
-/* 20.10 (Джессика, «как в Хабитике»): sections left and right, a big raised «Читать» in the exact middle on a bump of the bar.
-   --bn-line / --bn-face: the bar's top line and face, so the bump continues them; skins restyle .brd (the raised button). */
-#botnav{--bn-line:var(--card2);--bn-face:var(--card);align-items:stretch}
-#botnav::after{content:"";position:absolute;left:50%;top:-31px;width:70px;height:70px;margin-left:-35px;box-sizing:border-box;border-radius:50%;background:var(--bn-face);border:1px solid var(--bn-line);clip-path:inset(0 0 39px 0);pointer-events:none}
+/* 20.10 (Джессика, «как в Хабитике»): sections left and right, a big raised «Читать» in the exact middle, outlined in the bar colour
+   (no bump over the page: «белая хрень выходит»). --bn-face: the bar's face for that outline; skins restyle .brd (the raised button). */
+#botnav{--bn-face:var(--card);align-items:stretch}
 .botnav-side{flex:1 1 0;min-width:0;display:flex;gap:4px}
 .botnav-mid{flex:none;width:66px;position:relative;z-index:1;display:flex}
 .botnav-read{flex:1;position:relative;background:transparent;border:none;font:inherit;font-size:0.75rem;font-weight:700;color:var(--muted);padding:0 0 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:52px}
-.botnav-read .brd{position:absolute;left:50%;top:-30px;width:56px;height:56px;margin-left:-28px;box-sizing:border-box;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.22);transition:transform .12s}
+.botnav-read .brd{position:absolute;left:50%;top:-30px;width:56px;height:56px;margin-left:-28px;box-sizing:border-box;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px var(--bn-face),0 4px 12px rgba(0,0,0,.22);transition:transform .12s}
 .botnav-read:active .brd{transform:scale(.94)}
 .botnav-read .brl{white-space:nowrap;line-height:1.2}
 .botnav-side .botnav-btn{min-width:0;flex:1 1 auto} /* long names take the room short ones leave */

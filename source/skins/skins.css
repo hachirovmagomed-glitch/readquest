@@ -615,25 +615,21 @@ html[data-skin="pencil"] .fchip{padding:7px 12px}
 html[data-skin="pencil"] #botnav{background:var(--rq-bg);border-top:1.5px solid var(--rq-skin-border)}
 /* text on accent fills (night accent is pale blue: the app paints literal #fff there) */
 html[data-skin="pencil"] :is(.buy:not(.owned),.cta,.seg button.on){color:var(--rq-on-accent)}
-/* 20.10 (Джессика, «как в Хабитике»): the raised «Читать» in each skin; the bump over the bar takes the skin's bar face and top line */
-html[data-skin]:not([data-skin="pencil"]) #botnav{--bn-line:var(--rq-line);--bn-face:var(--rq-surface)}
+/* 20.10 (Джессика, «как в Хабитике»): the raised «Читать» in each skin, outlined in the skin's bar face */
+html[data-skin]:not([data-skin="pencil"]) #botnav{--bn-face:var(--rq-surface)}
 html[data-skin]:not([data-skin="pencil"]) .botnav-read{color:var(--rq-text-2)}
 html[data-skin]:not([data-skin="pencil"]) .botnav-read .brd{background:var(--rq-accent);color:var(--rq-on-accent)}
 /* Эллада: a glazed tile set on its corner, as in Habitica, with a hairline inside */
-html[data-skin="ellada"] #botnav{--bn-line:var(--el-glaze)}
-html[data-skin="ellada"] #botnav::after{border-width:1.5px}
-html[data-skin="ellada"] .botnav-read .brd{width:46px;height:46px;margin-left:-23px;top:-19px;border-radius:var(--rq-radius-sm);transform:rotate(45deg);box-shadow:inset 0 0 0 3px var(--rq-accent),inset 0 0 0 4px color-mix(in srgb,var(--rq-on-accent) 55%,transparent),0 4px 12px rgba(60,30,10,.25)}
+html[data-skin="ellada"] .botnav-read .brd{width:42px;height:42px;margin-left:-21px;top:-26px;border-radius:var(--rq-radius-sm);transform:rotate(45deg);box-shadow:inset 0 0 0 3px var(--rq-accent),inset 0 0 0 4px color-mix(in srgb,var(--rq-on-accent) 55%,transparent),0 0 0 2px var(--rq-surface),0 0 0 3.5px var(--el-glaze),0 4px 12px rgba(60,30,10,.25)}
 html[data-skin="ellada"] .botnav-read .brd .ic{transform:rotate(-45deg)}
 html[data-skin="ellada"] .botnav-read:active .brd{transform:rotate(45deg) scale(.94)}
 /* Бабочковый: a round bud with a soft petal ring */
 html[data-skin="babochkovyi"] .botnav-read{font-weight:800}
 html[data-skin="babochkovyi"] .botnav-read .brd{box-shadow:0 0 0 3px var(--rq-surface),0 0 0 5px color-mix(in srgb,var(--rq-accent) 35%,transparent),0 5px 14px color-mix(in srgb,var(--rq-accent) 30%,transparent)}
 /* Небесный: a gold medallion on the framed panel, double gold ring */
-html[data-skin="celestial"] #botnav{--bn-line:var(--cl-gold)}
 html[data-skin="celestial"] #botnav .botnav-read .brd{background:linear-gradient(160deg,var(--cl-gold-l),var(--cl-gold));color:#fffaf0;box-shadow:0 0 0 3px var(--rq-surface),0 0 0 4px var(--cl-gold-l),0 6px 16px rgba(120,90,60,.3)}
 html[data-skin="celestial"] body.mvp .screen > .scroll{padding-bottom:136px}
 /* Карандашный: a hand-drawn blob with a pencil outline and an offset shadow */
-html[data-skin="pencil"] #botnav{--bn-line:var(--rq-skin-border);--bn-face:var(--rq-bg)}
-html[data-skin="pencil"] #botnav::after{border-width:1.5px}
+html[data-skin="pencil"] #botnav{--bn-face:var(--rq-bg)}
 html[data-skin="pencil"] .botnav-read{color:var(--rq-skin-tab)}
-html[data-skin="pencil"] .botnav-read .brd{background:var(--rq-accent);color:var(--rq-on-accent);border:1.5px solid var(--rq-skin-border);border-radius:52% 48% 55% 45%/48% 55% 45% 52%;box-shadow:2px 3px 0 var(--rq-skin-border)}
+html[data-skin="pencil"] .botnav-read .brd{background:var(--rq-accent);color:var(--rq-on-accent);border:1.5px solid var(--rq-skin-border);border-radius:52% 48% 55% 45%/48% 55% 45% 52%;box-shadow:2px 3px 0 var(--rq-skin-border),0 0 0 4px var(--rq-bg)}

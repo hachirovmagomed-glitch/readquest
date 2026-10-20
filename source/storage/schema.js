@@ -59,6 +59,8 @@ export const PROGRESS_DEF = {
   bookDiff: {},
   /** 19.10 (arch.md «Сложность книги»): id → level 0…2 chosen by the reader; only LOWERS the automatic level */
   bookLvl: {},
+  /** arch.md 20.10: «Обсудить книгу» — {bookId: [{r:'u'|'a', t, d}]}, ≤ 20 сообщений на книгу, t ≤ 1500 */
+  aiChat: {},
   bookStat: {},
   bookImp: {},
   status: {},
@@ -139,6 +141,8 @@ export const GAME_DEF = {
   anti: null,
   notif: null,
   ai: null,
+  /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
+  tts: null,
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -179,7 +183,6 @@ export const SET_DEF = {
   indent: true,
   ls: 0,
   weight: 400,
-  dim: 0,
   nav: null,
   mvp: true,
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
@@ -187,7 +190,6 @@ export const SET_DEF = {
   readCounter: true, // 1б: «7 / 10 мин» in focus
   bright: 1,         // 18.10: own brightness 0.3..1 (arch.md SET.bright)
   warm: 0,           // 18.10: warm tint 0..0.6
-  warmNight: true,   // 18.10: warm tint only on a night page
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -242,6 +244,19 @@ export const LIBRARY_KEYS = Object.keys(LIBRARY_DEF);
  * Normalize nested defaults after merge (mirrors v6 hydrate, without side effects).
  */
 /** 19.10: {key: whole number 0…max}; not an object / bad keys / bad values → dropped */
+/** arch.md 20.10: {bookId: [{r:'u'|'a', t: string ≤ 1500, d: 'YYYY-MM-DD'|''}]} — not an object/array → dropped; last 20 per book */
+function aiChatMap(o) {
+  const out = {};
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    Object.keys(o).forEach(function (k) {
+      if (!Array.isArray(o[k])) return;
+      const l = o[k].filter(function (m) { return m && (m.r === 'u' || m.r === 'a') && typeof m.t === 'string' && m.t; })
+        .map(function (m) { return { r: m.r, t: m.t.slice(0, 1500), d: typeof m.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.d) ? m.d : '' }; }).slice(-20);
+      if (l.length) out[k] = l;
+    });
+  }
+  return out;
+}
 function intMap(o, max, keyRe) {
   const out = {};
   if (o && typeof o === 'object' && !Array.isArray(o)) {
@@ -267,6 +282,7 @@ export function hydrateProgress(p) {
   out.bookStats = out.bookStats || {};
   out.bookDiff = out.bookDiff || {};
   out.bookLvl = intMap(out.bookLvl, 2);
+  out.aiChat = aiChatMap(out.aiChat);
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};
   out.status = out.status || {};
@@ -358,7 +374,8 @@ export function hydrateGame(g) {
       Скорочтение: 0,
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
-  if (!out.ai) out.ai = { key: '', model: 'gpt-4o-mini' };
+  if (!out.ai) out.ai = { key: '', model: '', prov: 'deepseek', base: '' };
+  if (!out.tts || typeof out.tts !== 'object') out.tts = { prov: 'system', key: '', voice: '', base: '' }; /* 20.10: prov/base (arch.md); old ai without prov is normalised in core-b aiNorm */
   /* shop build removed the currency picker and ∞ money; the fields stay (old fields are never deleted): cur as stored, devMoney always false */
   out.devMoney = false;
   out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; }).filter(function (id, i, a) { return a.indexOf(id) === i; });
@@ -434,7 +451,10 @@ export function hydrateSettings(s) {
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
   out.bright = normStep(out.bright, 0.3, 1, 1);
   out.warm = normStep(out.warm, 0, 0.6, 0);
-  if (typeof out.warmNight !== 'boolean') out.warmNight = true;
+  /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
+  if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
+  delete out.dim;
+  delete out.warmNight;
   /* 1в: theme is an id string — the free ones incl. 'pencil' / 'pencil-night' («Карандашный»), paid SHOP ids. Unknown ids are KEPT
      (forward compat: an older build simply renders sepia, see activeTheme); only a non-string / empty / huge value falls back. */
   if (typeof out.theme !== 'string' || !out.theme || out.theme.length > 32) out.theme = 'sepia';

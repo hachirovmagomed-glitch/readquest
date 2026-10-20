@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,warmNight:true,flip:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,flip:null,hlc:'y',hlx:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -28,7 +28,11 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
   if(typeof s.readCounter!=='boolean')s.readCounter=true;
   const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
-  s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);if(typeof s.warmNight!=='boolean')s.warmNight=true;
+  s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);
+  /* 20.10 (Джессика): «Затемнение» and «Тёплый только ночью» removed. An old SET.dim is folded into «Яркость» once (same screen:
+     1 − (1 − dim)·bright), the warm tint now follows «Тёплый оттенок» on every page; both old keys are dropped */
+  if(typeof s.dim==='number'&&isFinite(s.dim)&&s.dim>0)s.bright=st((1-Math.min(0.7,s.dim))*s.bright,0.3,1,1);
+  delete s.dim;delete s.warmNight;
   flipNorm(s);return s;}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
@@ -56,9 +60,9 @@ function applySet(){
   /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
-  {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
   {const bp=Math.round((SET.bright==null?1:SET.bright)*100),wp=Math.round((SET.warm||0)*100);
-   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';rqSw('warmNightTgl',SET.warmNight!==false);}}
+   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';}
+   const bb=el('barBright');if(bb){bb.value=bp;bb.style.setProperty('--v',Math.round((bp-30)/70*100)+'%');}}
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   const c=el('content');
@@ -100,6 +104,7 @@ function applySet(){
    el('reader').classList.toggle('scrollmode',rqScrollMode());}
   el('navPrev').classList.toggle('hidden',!nv.btns);
   el('navNext').classList.toggle('hidden',!nv.btns);
+  if(typeof hlPaintCustom==='function')hlPaintCustom(); /* 20.10: own quote colours follow the page theme */
 }
 /* switch rows in «Настройки чтения» (16.10): state = aria-checked (+ class on for older code) */
 function rqSw(id,on){const b=el(id);if(!b)return;b.classList.toggle('on',!!on);b.setAttribute('aria-checked',on?'true':'false');}
@@ -111,7 +116,7 @@ FONTS.forEach((f,i)=>{
   b.onclick=()=>{SET.font=i;rqSaveSetGated();applySet();relayout();}; /* one saveSet, through the write gate (deferred until ready) */
   el('fontSeg').appendChild(b);
 });
-rqCollapse('fontSeg','Шрифт',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{sample:'Aa',font:function(){return (FONTS[SET.font]||FONTS[0]).v;}});
+rqCollapse('fontSeg','Шрифт',function(){return (FONTS[SET.font]||FONTS[0]).label;},null,{pill:true,font:function(){return (FONTS[SET.font]||FONTS[0]).v;}}); /* 20.10 (Джессика): a row like its neighbours — label left, no «Aa», value in a plaque */
 function renderThemeSeg(){
   const seg=el('themeSeg');seg.innerHTML='';
   const add=(key,bg,name,locked,yours)=>{
@@ -173,20 +178,35 @@ el('btnAa').onclick=()=>openReaderSettings(R.mode==='pdf'?'grpPage':'grpText');
 el('btnSet').onclick=()=>openReaderSettings(null);
 el('btnDayNight').onclick=()=>toggleDayNight();
 /* «Общие настройки» row removed (14.10): general settings are reached only from the drawer's «Настройки» */
-el('dimRange').oninput=e=>{SET.dim=Math.max(0,Math.min(0.7,(parseInt(e.target.value,10)||0)/100));applySet();};
-el('dimRange').onchange=()=>saveSet();
-/* 18.10 (arch.md SET.bright / SET.warm): own brightness on top of «Затемнение» (one #dimmer layer), warm tint layer #warmer */
+/* 18.10 (arch.md SET.bright / SET.warm): «Яркость» = the #dimmer layer, warm tint layer #warmer on every page (20.10: no «Затемнение», no «только ночью») */
 function rqLightApply(){
-  const r=el('reader'),b=SET.bright==null?1:SET.bright,d=SET.dim||0;
-  el('dimmer').style.opacity=+(1-(1-d)*b).toFixed(3);
-  const w=el('warmer');if(w)w.style.opacity=(SET.warmNight!==false&&r.dataset.page!=='night')?0:(SET.warm||0);
+  const b=SET.bright==null?1:SET.bright;
+  el('dimmer').style.opacity=+(1-b).toFixed(3);
+  const w=el('warmer');if(w)w.style.opacity=SET.warm||0;
 }
 el('brightRange').oninput=e=>{SET.bright=Math.max(0.3,Math.min(1,(parseInt(e.target.value,10)||100)/100));applySet();};
 el('brightRange').onchange=()=>saveSet();
+/* 20.10: the same «Яркость» under the top bar (ReadEra-like); the bars stay up while it is dragged */
+el('barBright').oninput=e=>{SET.bright=Math.max(0.3,Math.min(1,(parseInt(e.target.value,10)||100)/100));applySet();if(typeof armChromeHide==='function')armChromeHide();};
+el('barBright').onchange=()=>saveSet();
 el('warmRange').oninput=e=>{SET.warm=Math.max(0,Math.min(0.6,(parseInt(e.target.value,10)||0)/100));applySet();};
 el('warmRange').onchange=()=>saveSet();
-el('warmNightTgl').onclick=()=>{SET.warmNight=SET.warmNight===false;saveSet();applySet();};
 el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
+/* 20.10 (Джессика): swipe down closes «Настройки чтения» — from the head (grab, title, tabs) any time, from the rows when the sheet is
+   scrolled to the very top; sliders keep their own drag. Past 90 px or a quick flick → closed, else it springs back */
+(function(){const sh=el('sheet');let y0=0,t0=0,dy=0,on=false;
+  const end=function(){if(!on)return;on=false;sh.classList.remove('drag');
+    if(dy>90||(dy>30&&Date.now()-t0<250)){sh.classList.add('hidden');sh.style.transform='';}
+    else{sh.classList.add('snap');sh.style.transform='';setTimeout(function(){sh.classList.remove('snap');},200);}dy=0;};
+  sh.addEventListener('touchstart',function(e){on=false;dy=0;if(e.touches.length!==1)return;const t=e.target;
+    if(t.closest&&t.closest('input[type=range],select,textarea'))return;
+    if(!(t.closest&&t.closest('#sheetHd'))&&sh.scrollTop>0)return;
+    y0=e.touches[0].clientY;t0=Date.now();on=true;},{passive:true});
+  sh.addEventListener('touchmove',function(e){if(!on)return;const d=e.touches[0].clientY-y0;
+    if(d<=0){if(dy>0){dy=0;sh.style.transform='';}if(!e.target.closest('#sheetHd'))on=false;return;}
+    dy=d;sh.classList.add('drag');sh.style.transform='translateY('+d+'px)';if(e.cancelable)e.preventDefault();},{passive:false});
+  sh.addEventListener('touchend',end);sh.addEventListener('touchcancel',end);
+})();
 /* категории панели оформления — открываем по одной группе */
 Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
 /* навигация при чтении */
@@ -239,9 +259,10 @@ async function openBook(id){
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
-  (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
+  (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,markHtml(k,quoteColor(b.id,t)));}); /* 20.10: in the quote's colour */
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
+  hlPaintCustom(); /* own quote colours on this page */
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
   const hy=hyphWaitStart(c,b);
   layout();

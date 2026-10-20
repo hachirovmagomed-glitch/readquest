@@ -262,13 +262,13 @@ if (want('ttscorner')) {
   await ctx.close();
 }
 
-/* dimfull (Джессика 17.10, скрин): «Затемнение» must cover the whole reader screen evenly — not only the text column between the margins,
+/* dimfull (Джессика 17.10, скрин; 20.10 «Затемнение» → «Яркость»): the #dimmer layer must cover the whole reader screen evenly — not only the text column between the margins,
    not leave light edges, and it lies over the bars too (it is a brightness control). Text and scroll mode alike; the sheet stays above it. */
 if (want('dimfull')) {
   const { ctx, p } = await fresh();
   await openLong(p);
   const shot = async (mode) => p.evaluate(async (mode) => {
-    flipPick('mode', mode); SET.dim = 0.5; applySet(); revealChrome(); await new Promise(r => setTimeout(r, 400));
+    flipPick('mode', mode); SET.bright = 0.5; applySet(); revealChrome(); await new Promise(r => setTimeout(r, 400));
     if (mode === 'scroll') { const v = document.getElementById('viewer'); v.scrollTop = v.clientHeight * 1.5; await new Promise(r => setTimeout(r, 300)); }
     const d = document.getElementById('dimmer'), rd = document.getElementById('reader');
     const a = d.getBoundingClientRect(), b = rd.getBoundingClientRect(), cs = getComputedStyle(d);
@@ -289,7 +289,7 @@ if (want('dimfull')) {
     ok('dimfull ' + m + ': dimmer = the whole reader screen (no light edges), over the bars, under the settings sheet',
       r.op === 0.5 && JSON.stringify(r.rect) === JSON.stringify(r.screen) && r.overHead && !r.overSheet, r);
   }
-  await p.evaluate(() => { SET.dim = 0; applySet(); flipPick('mode', 'page'); });
+  await p.evaluate(() => { SET.bright = 1; applySet(); flipPick('mode', 'page'); });
   await ctx.close();
 }
 
@@ -493,42 +493,106 @@ if (want('grid')) {
     await ctx.close(); }
 }
 
-/* light: own «Яркость» (SET.bright) separate from «Затемнение» (SET.dim), one #dimmer layer = 1 − (1 − dim)·bright;
-   «Тёплый оттенок» (SET.warm) layer under the dimmer, only on a night page while «Тёплый только ночью» is on; stored, normalized */
+/* light (20.10, Джессика): «Яркость» (SET.bright) alone drives the #dimmer layer = 1 − bright; «Затемнение» and «Тёплый только ночью»
+   are gone. «Тёплый оттенок» (SET.warm) layer under the dimmer on every page; stored, normalized; an old SET.dim folds into bright once */
 if (want('light')) {
   const { ctx, p } = await fresh();
   await openLong(p);
-  const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.bright, s.warm, s.warmNight]; };
-    return { def: f({}), junk: f({ bright: 'x', warm: NaN, warmNight: 1 }), clamp: f({ bright: 0.01, warm: 2, warmNight: false }), step: f({ bright: 0.83, warm: 0.12 }) }; });
-  ok('light: defaults 100 % / 0 / night only; junk → defaults; clamped to 30–100 % and 0–60 % on a 5 % grid',
-    JSON.stringify(n.def) === '[1,0,true]' && JSON.stringify(n.junk) === '[1,0,true]' && JSON.stringify(n.clamp) === '[0.3,0.6,false]' && JSON.stringify(n.step) === '[0.85,0.1,true]', n);
+  const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.bright, s.warm, 'dim' in s, 'warmNight' in s]; };
+    return { def: f({}), junk: f({ bright: 'x', warm: NaN, warmNight: 1 }), clamp: f({ bright: 0.01, warm: 2, warmNight: false }), step: f({ bright: 0.83, warm: 0.12 }),
+      fold: f({ bright: 0.8, dim: 0.5, warm: 0.3, warmNight: true }), fold2: f({ dim: 0.7 }), fold0: f({ bright: 0.6, dim: 0 }), sd: 'dim' in SETDEF || 'warmNight' in SETDEF }; });
+  ok('light: defaults 100 % / 0; junk → defaults; clamped to 30–100 % and 0–60 % on a 5 % grid; no dim / warmNight keys',
+    JSON.stringify(n.def) === '[1,0,false,false]' && JSON.stringify(n.junk) === '[1,0,false,false]' && JSON.stringify(n.clamp) === '[0.3,0.6,false,false]' && JSON.stringify(n.step) === '[0.85,0.1,false,false]' && !n.sd, n);
+  ok('light: old «Затемнение» folds into «Яркость» (same screen), warm kept', JSON.stringify(n.fold) === '[0.4,0.3,false,false]' && JSON.stringify(n.fold2) === '[0.3,0,false,false]' && JSON.stringify(n.fold0) === '[0.6,0,false,false]', n);
   const a = await p.evaluate(async () => {
     openReaderSettings('grpPage'); await new Promise(r => setTimeout(r, 200));
     const set = (id, v) => { const e = el(id); e.value = v; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); };
-    set('dimRange', 20); set('brightRange', 50);
+    const gone = !el('dimRange') && !el('warmNightTgl') && !/Затемнение|только ночью/.test(el('sheet').textContent);
+    set('brightRange', 50);
     const op = +getComputedStyle(el('dimmer')).opacity;
     const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}');
     set('warmRange', 40);
     SET.theme = 'sepia'; SET.cBg = null; applySet(); const dayW = +getComputedStyle(el('warmer')).opacity;
     SET.theme = 'dark'; applySet(); const nightW = +getComputedStyle(el('warmer')).opacity, page = el('reader').dataset.page;
-    el('warmNightTgl').click(); SET.theme = 'sepia'; applySet(); const dayAll = +getComputedStyle(el('warmer')).opacity;
+    SET.theme = 'sepia'; applySet();
     const w = getComputedStyle(el('warmer')), d = el('dimmer'), rd = el('reader');
     const z = (x) => parseInt(getComputedStyle(x).zIndex, 10) || 0;
     const st2 = JSON.parse(localStorage.getItem(RQ_K.set) || '{}');
-    return { op, dim: SET.dim, st: [st.dim, st.bright], dayW, nightW, page, dayAll, blend: w.mixBlendMode, pe: w.pointerEvents, under: z(el('warmer')) < z(d) && el('warmer').parentElement === rd,
-      lbl: [el('brightVal').textContent, el('warmVal').textContent], st2: [st2.warm, st2.warmNight] };
+    return { gone, op, st: ['dim' in st, st.bright, 'warmNight' in st], dayW, nightW, page, blend: w.mixBlendMode, pe: w.pointerEvents, under: z(el('warmer')) < z(d) && el('warmer').parentElement === rd,
+      lbl: [el('brightVal').textContent, el('warmVal').textContent], st2: st2.warm };
   });
-  ok('light: «Яркость» 50 % + «Затемнение» 20 % → one layer 0.6, both stored separately', Math.abs(a.op - 0.6) < 0.01 && a.dim === 0.2 && a.st[0] === 0.2 && a.st[1] === 0.5 && a.lbl[0] === '50 %', a);
-  ok('light: warm tint 40 % only on the night page, then on any page with «только ночью» off; multiply, no touches, under the dimmer',
-    a.dayW === 0 && a.page === 'night' && Math.abs(a.nightW - 0.4) < 0.01 && Math.abs(a.dayAll - 0.4) < 0.01 && a.blend === 'multiply' && a.pe === 'none' && a.under && a.st2[0] === 0.4 && a.st2[1] === false, a);
-  /* left-edge drag = brightness now; «Затемнение» untouched */
-  await p.evaluate(() => { el('sheet').classList.add('hidden'); SET.bright = 1; SET.dim = 0.2; applySet(); });
+  ok('light: no «Затемнение» / «Тёплый только ночью» rows; «Яркость» 50 % → layer 0.5, stored', a.gone && Math.abs(a.op - 0.5) < 0.01 && !a.st[0] && a.st[1] === 0.5 && !a.st[2] && a.lbl[0] === '50 %', a);
+  ok('light: warm tint 40 % on day and night pages alike; multiply, no touches, under the dimmer',
+    Math.abs(a.dayW - 0.4) < 0.01 && a.page === 'night' && Math.abs(a.nightW - 0.4) < 0.01 && a.blend === 'multiply' && a.pe === 'none' && a.under && a.st2 === 0.4, a);
+  /* left-edge drag = brightness */
+  await p.evaluate(() => { el('sheet').classList.add('hidden'); SET.bright = 1; applySet(); });
   const vb = await p.evaluate(() => { const r = el('viewer').getBoundingClientRect(); return { x: r.left + 6, y: r.top + 200 }; });
   const cdp = await p.target().createCDPSession();
   const tp = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: vb.x, y }] });
   await tp('touchStart', vb.y); for (let i = 1; i <= 8; i++) { await tp('touchMove', vb.y + i * 20); await sleep(16); } await tp('touchEnd'); await sleep(300);
-  const g = await p.evaluate(() => ({ bright: SET.bright, dim: SET.dim, op: +getComputedStyle(el('dimmer')).opacity, st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright }));
-  ok('light: dragging down at the left edge lowers «Яркость» (stored), «Затемнение» stays', g.bright < 0.9 && g.bright >= 0.3 && g.dim === 0.2 && Math.abs(g.op - (1 - 0.8 * g.bright)) < 0.01 && g.st === g.bright, g);
+  const g = await p.evaluate(() => ({ bright: SET.bright, op: +getComputedStyle(el('dimmer')).opacity, st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright }));
+  ok('light: dragging down at the left edge lowers «Яркость» (stored)', g.bright < 0.9 && g.bright >= 0.3 && Math.abs(g.op - (1 - g.bright)) < 0.01 && g.st === g.bright, g);
+  await ctx.close();
+}
+
+/* sheetswipe (Джессика 20.10, запись): the head of «Настройки чтения» (grab, ×, title, tabs) stays visible while the rows scroll;
+   a swipe down on the head closes the sheet even when scrolled; a short pull springs back; a swipe down on the rows closes only at the top */
+if (want('sheetswipe')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const cdp = await p.target().createCDPSession();
+  const swipe = async (x, y, dist) => { const tp = (type, yy) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y: yy }] });
+    await tp('touchStart', y); for (let i = 1; i <= 10; i++) { await tp('touchMove', y + dist * i / 10); await sleep(30); } await tp('touchEnd'); await sleep(350); };
+  const open = () => p.evaluate(async () => { openReaderSettings('grpText'); await new Promise(r => setTimeout(r, 300)); const sh = el('sheet'); sh.scrollTop = 0; return true; });
+  const st = () => p.evaluate(() => { const sh = el('sheet'), hd = el('sheetHd').getBoundingClientRect(), sb = sh.getBoundingClientRect(), x = el('sheetClose').getBoundingClientRect();
+    return { hidden: sh.classList.contains('hidden'), tr: sh.style.transform, scroll: sh.scrollTop, hdTop: Math.round(hd.top - sb.top), xVis: x.top >= sb.top - 1 && x.bottom <= sb.bottom,
+      hd: { x: hd.left + hd.width / 2, y: hd.top + 30 }, row: (() => { const r = el('grpText').getBoundingClientRect(); return { x: sb.left + 40, y: Math.min(r.top + 60, sb.bottom - 40) }; })() }; });
+  await open();
+  await p.evaluate(() => { el('sheet').scrollTop = 400; });
+  const s1 = await st();
+  ok('sheetswipe: scrolled down, the head and × stay at the top of the sheet', !s1.hidden && s1.scroll > 0 && Math.abs(s1.hdTop) <= 1 && s1.xVis, s1);
+  await swipe(s1.row.x, s1.row.y, 200);
+  const s2 = await st();
+  ok('sheetswipe: scrolled down, a swipe down on the rows scrolls (sheet stays open)', !s2.hidden, s2);
+  await swipe(s2.hd.x, s2.hd.y, 40);
+  const s3 = await st();
+  ok('sheetswipe: a short pull on the head springs back', !s3.hidden && !s3.tr, s3);
+  await swipe(s3.hd.x, s3.hd.y, 200);
+  const s4 = await st();
+  ok('sheetswipe: a swipe down on the head closes the sheet', s4.hidden && !s4.tr, s4);
+  await open(); const s5 = await st();
+  await swipe(s5.row.x, s5.row.y, 200);
+  const s6 = await st();
+  ok('sheetswipe: at the top, a swipe down on the rows closes it too', s6.hidden, s6);
+  await ctx.close();
+}
+
+/* barbright (Джессика 20.10, ReadEra): a «Яркость» slider under the top bar, shown and hidden with the bars, = SET.bright (sheet row synced,
+   stored); in every skin it has its own track / thumb */
+if (want('barbright')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const a = await p.evaluate(async () => {
+    revealChrome(); await new Promise(r => setTimeout(r, 400));
+    const b = el('barBright'), h = document.querySelector('#reader .rhead'), br = b.getBoundingClientRect(), hr = h.getBoundingClientRect();
+    b.value = 60; b.dispatchEvent(new Event('input')); b.dispatchEvent(new Event('change'));
+    const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright, op = +getComputedStyle(el('dimmer')).opacity;
+    SET.bright = 0.8; applySet();
+    const sync = [b.value, el('brightRange').value, b.style.getPropertyValue('--v')];
+    concealChrome('tap'); await new Promise(r => setTimeout(r, 500));
+    const off = b.getBoundingClientRect().bottom <= 1;
+    const look = {}; const rules = []; for (const ss of document.styleSheets) { try { for (const r of ss.cssRules) if (r.selectorText && /#barBright::-webkit-slider-(thumb|runnable-track)/.test(r.selectorText)) rules.push(r); } catch (e) {} }
+    for (const sk of ['default', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+      const mine = rules.filter(r => sk === 'default' ? !/data-skin/.test(r.selectorText) : r.selectorText.includes('data-skin="' + sk + '"') && !/data-theme/.test(r.selectorText));
+      look[sk] = mine.map(r => r.style.background || r.style.backgroundImage).join('|');
+    }
+    delete document.documentElement.dataset.skin;
+    return { inHead: h.contains(b) && br.top >= hr.top && br.bottom <= hr.bottom + 1 && br.width > 150, st, op, sync, off, look };
+  });
+  ok('barbright: slider inside the top bar, sets and stores «Яркость»', a.inHead && a.st === 0.6 && Math.abs(a.op - 0.4) < 0.01, a);
+  ok('barbright: synced with the sheet row and fill; hides with the bars', a.sync[0] === '80' && a.sync[1] === '80' && a.sync[2] === '71%' && a.off, a);
+  const looks = Object.values(a.look);
+  ok('barbright: each skin draws its own slider (track + thumb rules)', looks.every(Boolean) && new Set(looks).size === looks.length, a.look);
   await ctx.close();
 }
 

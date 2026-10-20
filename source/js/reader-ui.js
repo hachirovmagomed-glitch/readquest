@@ -512,7 +512,7 @@ function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.is
 /* Джессика 16.10: the bare «stop» square read as a glitch. Listening = a pause icon on a highlighted button (aria-pressed), stop = the speaker again. */
 function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
   const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
-function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}ttsBtn(false);}
+function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}nttsHalt();ttsBtn(false);}
 /* audit 19.10 RD-TTS-01 (R4): no voice → the position never moves. A Russian voice is checked first (voiceschanged, up to 800 ms);
    none → the button looks inactive (aria-disabled) and a toast above the panel says so. The page turns when the speech STARTS
    (onstart / onboundary), never before speak(); a real error (not interrupted / canceled) or an end without a start stops the reading
@@ -524,12 +524,74 @@ function ttsVoiceReady(){
   return new Promise(function(res){let done=false;const fin=function(){if(done)return;done=true;try{speechSynthesis.removeEventListener('voiceschanged',fin);}catch(e){}res(ttsVoices().length>0);};
     try{speechSynthesis.addEventListener('voiceschanged',fin);}catch(e){}setTimeout(fin,800);});
 }
-function ttsMarkVoice(ok){const b=el('btnTts');if(!b)return;if(ok)b.removeAttribute('aria-disabled');else b.setAttribute('aria-disabled','true');}
+function ttsMarkVoice(ok){const b=el('btnTts');if(!b)return;if(ok||nttsOn())b.removeAttribute('aria-disabled');else b.setAttribute('aria-disabled','true');}
 const TTS_NO_VOICE='Голос для чтения не найден. Установите его в настройках телефона';
-function ttsFail(){if(!ttsOn)return;const p=R.ttsStartPage;ttsStop();
+function ttsFail(msg){if(!ttsOn)return;const p=R.ttsStartPage;ttsStop();
   if(typeof p==='number'&&p!==R.page&&R.book){R.ttsAdv=true;try{goPage(p,false);}finally{R.ttsAdv=false;}}
-  flashMsg('Озвучка остановилась');}
-function ttsSay(t,onend,onstart,onpos){
+  flashMsg(msg?'Озвучка остановилась: '+msg:'Озвучка остановилась',msg?{ms:4000}:undefined);}
+
+/* --- нейросетевая озвучка на своём ключе (Джессика 20.10: «нейросетевую озвучку… пользователи подключают свои ключи») ---
+   Настройки → «Озвучка». Тот же ttsSay/ttsTextNext/ttsPdfNext, но кусок текста (≤ ~1700 знаков) уходит с телефона прямо в сервис,
+   приходит mp3 и играет через <audio>; следующий кусок заказывается, пока играет текущий. Ключ только на устройстве, не в экспорте
+   (arch.md 20.10). «Слушать» по-прежнему не считается чтением. */
+const TTS_PROV={
+  system:{name:'Телефон'},
+  openai:{name:'OpenAI',voice:'nova',voices:'alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer'},
+  elevenlabs:{name:'ElevenLabs',voice:'JBFqnCBsd6RMkjVDRZzb',voices:'ID голоса из библиотеки ElevenLabs'},
+  google:{name:'Google',voice:'ru-RU-Wavenet-D',voices:'ru-RU-Wavenet-A…E, ru-RU-Standard-A…E'},
+  custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
+};
+function nttsCfg(){const t=S.tts||{};const p=TTS_PROV[t.prov]?t.prov:'system';
+  let key=t.key||'';if(!key&&p==='openai'&&S.ai&&S.ai.prov==='openai'&&S.ai.key)key=S.ai.key; /* тот же ключ OpenAI, что у ИИ-помощника */
+  return {prov:p,key:key,voice:t.voice||(TTS_PROV[p].voice||''),base:String(t.base||'').replace(/\/+$/,'')};}
+function nttsOn(){try{const c=nttsCfg();return c.prov!=='system'&&!!c.key&&(c.prov!=='custom'||!!c.base);}catch(e){return false;}}
+let nttsAudio=null,nttsUrl=null,nttsGen=0;const NTTS_CACHE=new Map();
+function nttsHalt(){nttsGen++;if(nttsAudio){try{nttsAudio.pause();nttsAudio.removeAttribute('src');nttsAudio.load();}catch(e){}}
+  if(nttsUrl){try{URL.revokeObjectURL(nttsUrl);}catch(e){}nttsUrl=null;}}
+async function nttsFetch(text){ /* → Blob mp3; ошибки понятным русским */
+  const c=nttsCfg();let r;
+  const net=async(u,o)=>{try{return await fetch(u,o);}catch(e){throw new Error(navigator.onLine===false?'нет интернета':'нет связи с сервисом');}};
+  if(c.prov==='elevenlabs'){
+    r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
+      headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify({text:text,model_id:'eleven_multilingual_v2'})});
+  }else if(c.prov==='google'){
+    r=await net('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:{text:text},voice:{languageCode:'ru-RU',name:c.voice},audioConfig:{audioEncoding:'MP3'}})});
+  }else{
+    const base=c.prov==='custom'?c.base:'https://api.openai.com/v1';
+    r=await net(base+'/audio/speech',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify(Object.assign({model:c.prov==='openai'?'gpt-4o-mini-tts':'tts-1',voice:c.voice,input:text,response_format:'mp3'},
+        c.prov==='openai'?{instructions:'Читай по-русски спокойно и выразительно, как аудиокнигу.'}:{}))});
+  }
+  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
+  if(r.status===402)throw new Error('на счёте сервиса нет денег');
+  if(r.status===429)throw new Error('слишком много запросов или кончился лимит');
+  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||'';}catch(e){}
+    throw new Error((typeof m==='string'&&m?m.slice(0,120):'сервис ответил '+r.status));}
+  if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');
+    const bin=atob(d.audioContent),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Blob([u8],{type:'audio/mpeg'});}
+  const b=await r.blob();if(!b||!b.size)throw new Error('пустой ответ');return b;
+}
+function nttsGet(text){ /* один запрос на кусок; держим текущий и следующий */
+  if(!NTTS_CACHE.has(text)){const pr=nttsFetch(text);pr.catch(()=>{});NTTS_CACHE.set(text,pr);while(NTTS_CACHE.size>3)NTTS_CACHE.delete(NTTS_CACHE.keys().next().value);}
+  return NTTS_CACHE.get(text);
+}
+function nttsSay(t,onend,onstart,onpos,next){
+  const gen=++nttsGen;speaking=true;
+  nttsGet(t).then(function(blob){
+    if(gen!==nttsGen||!ttsOn)return;
+    if(!nttsAudio){nttsAudio=new Audio();nttsAudio.preload='auto';}
+    if(nttsUrl)try{URL.revokeObjectURL(nttsUrl);}catch(e){}
+    nttsUrl=URL.createObjectURL(blob);const a=nttsAudio;let started=false;
+    a.onplaying=function(){if(gen!==nttsGen||started)return;started=true;if(ttsOn&&onstart)onstart();if(next)nttsGet(next);};
+    a.ontimeupdate=function(){if(gen!==nttsGen||!ttsOn||!onpos||!a.duration||!isFinite(a.duration))return;onpos(Math.floor(t.length*a.currentTime/a.duration));};
+    a.onended=function(){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);if(onend)onend();};
+    a.onerror=function(){if(gen!==nttsGen)return;ttsFail('телефон не смог проиграть звук');};
+    a.src=nttsUrl;const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
+  },function(e){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);ttsFail(e&&e.message);});
+}
+function ttsSay(t,onend,onstart,onpos,next){
+  if(nttsOn()){nttsSay(t,onend,onstart,onpos,next);return;}
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
   const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
   let started=false;const t0=Date.now();
@@ -541,16 +603,15 @@ function ttsSay(t,onend,onstart,onpos){
 }
 function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
   if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
+function ttsChunkEnd(text,st){let end=Math.min(text.length,st+1500);const tail=text.slice(end,end+220).search(/[.!?…\n]/);if(tail>=0)end+=tail+1;return end;}
 function ttsTextNext(){
   if(!ttsOn||!R.book||R.mode==='pdf')return;
   const b=R.book;
   if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('Книга озвучена до конца');return;}
   const st=R.ttsPos||0;
-  let end=Math.min(b.text.length,st+1500);
-  const tail=b.text.slice(end,end+220).search(/[.!?…\n]/);
-  if(tail>=0)end+=tail+1;
-  const chunk=b.text.slice(st,end);
-  ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);},function(){ttsPageAt(st);},function(ci){ttsPageAt(st+ci);});
+  const end=ttsChunkEnd(b.text,st),chunk=b.text.slice(st,end);
+  const nx=end<b.text.length?b.text.slice(end,ttsChunkEnd(b.text,end)):''; /* нейроголос: следующий кусок заказывается заранее */
+  ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);},function(){ttsPageAt(st);},function(ci){ttsPageAt(st+ci);},nx);
 }
 function ttsPdfNext(){
   if(!ttsOn||!R.book||R.mode!=='pdf'||!R.pdf)return;
@@ -558,15 +619,18 @@ function ttsPdfNext(){
     if(!ttsOn)return;
     const t=tc.items.map(i=>i.str).join(' ').trim();
     const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('Конец документа');}};
-    if(t)ttsSay(t,advance);else advance();
+    if(!t){advance();return;}
+    const parts=[];let st=0;while(st<t.length){const e=nttsOn()?ttsChunkEnd(t,st):t.length;parts.push(t.slice(st,e));st=e;} /* нейроголос: страница кусками ≤ ~1700 */
+    const sayPart=function(i){if(!ttsOn)return;if(i>=parts.length){advance();return;}ttsSay(parts[i],function(){sayPart(i+1);},null,null,parts[i+1]||'');};
+    sayPart(0);
   }).catch(()=>ttsStop());
 }
 if(window.speechSynthesis){ttsVoiceReady().then(ttsMarkVoice);try{speechSynthesis.addEventListener('voiceschanged',function(){ttsMarkVoice(ttsVoices().length>0);});}catch(e){}}else ttsMarkVoice(false);
 el('btnTts').onclick=()=>{
   if(ttsOn||speaking){ttsStop();return;}
   if(!R.book)return;
-  if(!window.speechSynthesis){ttsMarkVoice(false);flashMsg('Озвучка не поддерживается этим браузером');return;}
-  ttsVoiceReady().then(function(ok){
+  if(!nttsOn()&&!window.speechSynthesis){ttsMarkVoice(false);flashMsg('Озвучка не поддерживается этим браузером');return;}
+  (nttsOn()?Promise.resolve(true):ttsVoiceReady()).then(function(ok){
     ttsMarkVoice(ok);
     if(!ok){flashMsg(TTS_NO_VOICE,{ms:4000});return;}
     if(!R.book||ttsOn)return;
@@ -594,9 +658,9 @@ function closeReader(opts){
 async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
-  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
+  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
-  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}ttsOn=false;ttsBtn(false);
+  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
   R.book=null;
@@ -862,6 +926,8 @@ window.addEventListener('popstate',function(e){
   if(readerIsOpen()){
     if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
+    const ac=el('aiChat'),as=el('aiSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ */
+    if(!ac.classList.contains('hidden')||!as.classList.contains('hidden')){ac.classList.add('hidden');as.classList.add('hidden');navPush('reader');return;}
     const sh=el('sheet'),pn=el('panel');
     if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}
     if(!el('reader').classList.contains('barsoff')){concealChrome('back');navPush('reader');return;}

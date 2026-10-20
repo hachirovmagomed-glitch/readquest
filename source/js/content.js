@@ -632,34 +632,179 @@ el('covInp').onchange=e=>{
 };
 function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);}
 
-/* --- ИИ-помощник --- */
+/* --- ИИ «Объясни» (20.10): выделение → объяснение по смыслу книги ---
+   Только на своём ключе человека (Джессика 20.10: «делай так, чтобы люди ставили свои ключи»). Настройки → ИИ-помощник:
+   сервис, ключ, модель. Запрос идёт с телефона прямо в выбранный сервис; ключ хранится только на устройстве и не уходит
+   в экспорт (arch.md 15.10 и 20.10). Ни опыта, ни монет: подсказка, не награда. В словарь — поле vocab[].ex. */
+const AI_PROV={
+  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com',model:'deepseek-chat'},
+  openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat'},
+  openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-4o-mini'},
+  anthropic:{name:'Claude (Anthropic)',base:'https://api.anthropic.com/v1',model:'claude-haiku-5-5'},
+  custom:{name:'Другой, совместимый с OpenAI',base:'',model:''}
+};
+function aiProv(){const p=S.ai&&S.ai.prov;return AI_PROV[p]?p:'openai';} /* старые данные без prov — это OpenAI (v6) */
+function aiModel(){return (S.ai&&S.ai.model)||AI_PROV[aiProv()].model;}
+function aiBase(){const p=aiProv();return String((p==='custom'?(S.ai&&S.ai.base):AI_PROV[p].base)||'').replace(/\/+$/,'');}
+function aiOwnKey(){return !!(S.ai&&S.ai.key)&&!!aiBase();}
+function aiOn(){return aiOwnKey();}
+const AI_CACHE={};let aiCur=null,aiSeq=0;
+function selCtx(word){ /* предложение вокруг выделения (как у «В словарь») */
+  try{const sel=window.getSelection();const full=(sel&&sel.anchorNode&&sel.anchorNode.textContent)||'';const i=full.indexOf(word);
+    if(i<0)return '';
+    const a=Math.max(full.lastIndexOf('.',i),full.lastIndexOf('!',i),full.lastIndexOf('?',i));const b=full.indexOf('.',i+word.length);
+    return full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,400);}catch(e){return '';}
+}
 el('spAI').onclick=()=>{
   const t=selText();if(!t)return;
-  if(!S.ai||!S.ai.key){
-    rqAlert('Чтобы «Объяснить» работало, вставьте API-ключ в Настройках → ИИ-помощник');
-    return;
-  }
-  aiAsk('Объясни этот фрагмент из книги «'+((R.book||{}).title||'')+'» простым языком, 2–4 предложения, по-русски:\n\n«'+t.slice(0,800)+'»');
+  if(!aiOn()){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');aiNoKey();return;}
+  const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
   if(window.getSelection)window.getSelection().removeAllRanges();
   el('selpop').classList.add('hidden');
+  aiExplain(q);
 };
-async function aiAsk(promptTxt){
-  el('aiBody').innerHTML='<div class="pempty">Думаю...</div>';
+function aiNoKey(){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает) */
+  aiCur=null;aiSeq++;
+  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник».</div>'+
+    '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
   el('aiSheet').classList.remove('hidden');
-  try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.ai.key},
-      body:JSON.stringify({model:S.ai.model||'gpt-4o-mini',messages:[{role:'user',content:promptTxt}],max_tokens:400})
-    });
-    const d=await resp.json();
-    if(d.error)throw new Error(d.error.message||'ошибка API');
-    el('aiBody').textContent=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'Пустой ответ';
-  }catch(e2){
-    el('aiBody').innerHTML='<div class="pempty">Не получилось: '+esc(e2.message)+'<br><br>Проверьте ключ, модель и интернет.</div>';
-  }
+  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);try{el('aiHead').scrollIntoView({block:'start'});}catch(e){}};
 }
-el('aiSheetClose').onclick=()=>el('aiSheet').classList.add('hidden');
+function aiRender(state,txt){
+  const q=aiCur;if(!q)return;
+  const word=q.text.length<=60;
+  el('aiBody').innerHTML='<div class="ai-q">«'+esc(q.text.length>160?q.text.slice(0,160)+'…':q.text)+'»</div>'+
+    (state==='wait'?'<div class="ai-a ai-wait" role="status">Думаю…</div>'
+     :state==='err'?'<div class="ai-a" role="alert">'+esc(txt)+'</div><button class="ghostbtn" id="aiRetry">'+rqIcon('rotate-cw',16)+' Ещё раз</button>'
+     :'<div class="ai-a">'+esc(txt)+'</div>'+
+      (word&&R.book?'<button class="ghostbtn" id="aiToVocab">'+rqIcon('book-open',16)+' В словарь с объяснением</button>':'')+
+      '<div class="ai-note">Ответ ИИ, может ошибаться</div>');
+  if(el('aiRetry'))el('aiRetry').onclick=()=>aiExplain(q,true);
+  if(el('aiToVocab'))el('aiToVocab').onclick=()=>aiToVocab(q,txt);
+}
+async function aiExplain(q,again){
+  aiCur=q;const my=++aiSeq;const k=q.title+'\n'+q.text;
+  el('aiSheet').classList.remove('hidden');
+  if(AI_CACHE[k]&&!again){aiRender('ok',AI_CACHE[k]);return;}
+  if(navigator.onLine===false){aiRender('err','Нужен интернет. Включите сеть и нажмите «Ещё раз».');return;}
+  aiRender('wait');
+  let out='',err='';
+  try{out=await aiViaKey(aiMsgs(q));}
+  catch(e){err=e&&e.message||'ошибка';}
+  if(my!==aiSeq||el('aiSheet').classList.contains('hidden'))return; /* закрыли или спросили другое */
+  if(out){AI_CACHE[k]=out;aiRender('ok',out);}else aiRender('err','Не получилось ответить'+(err?': '+err:'')+'.');
+}
+const AI_SYS='Ты помощник в приложении для чтения книг. Человек выделил фрагмент текста и просит объяснить его. Отвечай по-русски, простым языком, 2–4 предложения, без вступлений. '+
+  'Если выделено слово или выражение, объясни, что оно значит именно здесь. Если это имя, место, бог, обычай или историческое событие, коротко скажи, кто или что это. '+
+  'Если это сложная фраза, перескажи её смысл проще. Не рассказывай, что будет дальше в книге, без спойлеров. Если не уверен, так и скажи.';
+function aiMsgs(q){
+  return {system:AI_SYS,user:'Книга: «'+q.title+'»'+(q.author?', '+q.author:'')+'\nФрагмент: «'+q.text+'»'+(q.ctx&&q.ctx!==q.text?'\nПредложение вокруг: «'+q.ctx+'»':'')};
+}
+async function aiFetch(url,opt){
+  const ac=typeof AbortController==='function'?new AbortController():null;const tm=setTimeout(()=>{if(ac)ac.abort();},25000);
+  try{return await fetch(url,Object.assign({},opt,ac?{signal:ac.signal}:{}));}
+  catch(e){throw new Error(e&&e.name==='AbortError'?'долго нет ответа':(navigator.onLine===false?'нет интернета':'нет связи с сервисом (или он не пускает запросы из браузера)'));}
+  finally{clearTimeout(tm);}
+}
+async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо с телефона в выбранный сервис. m = {system, user} или {system, messages:[{role,content}]} */
+  const p=aiProv(),key=S.ai.key,model=aiModel();let r;
+  const msgs=m.messages||[{role:'user',content:m.user}];
+  if(p==='anthropic'){
+    r=await aiFetch(aiBase()+'/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:model,max_tokens:maxTok||500,system:m.system,messages:msgs})});
+  }else{
+    r=await aiFetch(aiBase()+'/chat/completions',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:model,max_tokens:maxTok||500,messages:[{role:'system',content:m.system}].concat(msgs)})});
+  }
+  let d=null;try{d=await r.json();}catch(e){}
+  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
+  if(r.status===402)throw new Error('на счёте сервиса нет денег');
+  if(r.status===429)throw new Error('слишком много запросов, попробуйте позже');
+  const em=d&&d.error&&(d.error.message||(typeof d.error==='string'?d.error:''));
+  if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
+  const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
+    ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
+  return String(t).trim().slice(0,2000);
+}
+function aiToVocab(q,ex){
+  const word=q.text.trim().slice(0,60);if(!word)return;
+  S.vocab=S.vocab||[];
+  const v=S.vocab.find(x=>x.w.toLowerCase()===word.toLowerCase());
+  if(v){v.ex=String(ex).slice(0,600);save();flashMsg('Объяснение добавлено к «'+word+'»');}
+  else{S.vocab.push({w:word,ctx:(q.ctx||'').slice(0,160),book:q.title,date:today(),box:0,ex:String(ex).slice(0,600)});save();flashMsg('«'+word+'» — в словарь');}
+  el('aiSheet').classList.add('hidden');
+}
+/* --- «Обсудить книгу» (20.10, Джессика: «мини-чат с ИИшкой, когда обсуждаешь книгу») ---
+   Кнопка в шапке читалки. ИИ получает название, автора и текст книги до конца текущей страницы (последние ~8000 знаков; PDF —
+   до 4 страниц), дальше не видит и просит не спойлерить. Переписка — S.aiChat[bookId], ≤ 20 сообщений (arch.md 20.10). Ни опыта, ни монет. */
+const CHAT_MAX=20,CHAT_CTX=8000;let chatBusy=false,chatSeq=0,chatErr=null;
+async function chatBookText(){
+  try{
+    if(R.mode==='pdf'&&R.pdf){const to=R.page+1,from=Math.max(1,to-3),parts=[];
+      for(let n=from;n<=to;n++){try{const pg=await R.pdf.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(x=>x.str||'').join(' '));}catch(e){}}
+      return parts.join('\n').replace(/\s+/g,' ').slice(-CHAT_CTX);}
+    const t=(el('content').textContent||'').replace(/\s+/g,' ');
+    const end=Math.min(t.length,Math.ceil(t.length*Math.min(1,(R.page+1)/Math.max(1,R.pageCount))));
+    return t.slice(Math.max(0,end-CHAT_CTX),end);
+  }catch(e){return '';}
+}
+function chatList(){const id=R.book&&R.book.id;if(!id)return [];S.aiChat=S.aiChat||{};return S.aiChat[id]||[];}
+function chatPush(r,t){const id=R.book&&R.book.id;if(!id)return;S.aiChat=S.aiChat||{};const l=(S.aiChat[id]||[]).concat([{r:r,t:String(t).slice(0,1500),d:today()}]).slice(-CHAT_MAX);S.aiChat[id]=l;save();}
+function chatRender(wait){
+  const l=chatList(),log=el('aiChatLog');
+  el('aiChatSub').textContent=R.book?('«'+R.book.title+'»'+(bookAuthor(R.book)?', '+bookAuthor(R.book):'')+' · ИИ знает текст до этой страницы'):'';
+  log.innerHTML=(l.length?'':'<div class="chat0">Спросите о прочитанном: о героях, непонятных местах, о чём глава. Дальше этой страницы ИИ текста не видит и спойлерить не будет.</div>')+
+    l.map(m=>'<div class="cm '+m.r+'">'+esc(m.t)+'</div>').join('')+
+    (wait?'<div class="cm a w" role="status">Думаю…</div>':'')+
+    (chatErr&&!wait?'<div class="cm e" role="alert">'+esc(chatErr)+' <button type="button" id="aiChatRetry">Ещё раз</button></div>':'');
+  el('aiChatChips').innerHTML=l.length||wait?'':['Напомни, что было','Кто главные герои?','О чём эта часть?'].map(t=>'<button type="button">'+esc(t)+'</button>').join('');
+  el('aiChatChips').querySelectorAll('button').forEach(b=>b.onclick=()=>chatSend(b.textContent));
+  if(el('aiChatRetry'))el('aiChatRetry').onclick=()=>chatAsk();
+  el('aiChatSend').disabled=!!wait;el('aiChatClear').hidden=!l.length;
+  log.scrollTop=log.scrollHeight;
+}
+function openAiChat(){
+  if(!R.book)return;
+  if(!aiOn()){aiNoKey();return;}
+  chatErr=null;el('aiChat').classList.remove('hidden');chatRender(chatBusy);
+}
+async function chatSend(txt){
+  const t=String(txt||'').trim().slice(0,1000);if(!t||chatBusy||!R.book)return;
+  chatPush('u',t);el('aiChatIn').value='';el('aiChatIn').style.height='';
+  await chatAsk();
+}
+async function chatAsk(){
+  if(chatBusy||!R.book)return;
+  const book=R.book,my=++chatSeq;chatErr=null;
+  if(navigator.onLine===false){chatErr='Нужен интернет.';chatRender();return;}
+  chatBusy=true;chatRender(true);
+  const ctx=await chatBookText();
+  const sys='Ты собеседник читателя в приложении для чтения. Обсуждаете книгу «'+book.title+'»'+(bookAuthor(book)?' ('+bookAuthor(book)+')':'')+'. '+
+    'Отвечай по-русски, живо и по делу, обычно 2–6 предложений. Опирайся на текст ниже: это всё, что человек прочитал к этому моменту. '+
+    'Не рассказывай, что будет дальше, даже если знаешь книгу: никаких спойлеров. Если спрашивают о будущем сюжете, мягко откажись. Если не уверен, так и скажи.'+
+    (ctx?'\n\nТекст до текущего места (конец фрагмента — где читатель сейчас):\n«…'+ctx+'»':'');
+  const msgs=[];chatList().slice(-12).forEach(m=>{const role=m.r==='u'?'user':'assistant';const last=msgs[msgs.length-1];
+    if(last&&last.role===role)last.content+='\n\n'+m.t;else msgs.push({role:role,content:m.t});});
+  while(msgs.length&&msgs[0].role!=='user')msgs.shift();
+  let out='',err='';
+  try{if(!msgs.length)throw new Error('нет вопроса');out=await aiViaKey({system:sys,messages:msgs},700);}catch(e){err=e&&e.message||'ошибка';}
+  chatBusy=false;
+  if(my!==chatSeq||R.book!==book)return; /* переписку очистили или книгу закрыли — ответ не нужен */
+  if(out)chatPush('a',out);else chatErr='Не получилось ответить'+(err?': '+err:'')+'.';
+  if(!el('aiChat').classList.contains('hidden'))chatRender();
+}
+el('btnAiChat').onclick=openAiChat;
+el('aiChatClose').onclick=()=>el('aiChat').classList.add('hidden');
+el('aiChatForm').onsubmit=e=>{e.preventDefault();chatSend(el('aiChatIn').value);};
+el('aiChatIn').oninput=e=>{const t=e.target;t.style.height='';t.style.height=Math.min(120,t.scrollHeight)+'px';};
+el('aiChatIn').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();chatSend(el('aiChatIn').value);}};
+el('aiChatClear').onclick=async()=>{
+  if(!R.book||!await rqAsk({t:'Очистить переписку?',p:'Разговор об этой книге удалится с этого устройства.',ok:'Очистить',danger:true}))return;
+  chatSeq++;chatBusy=false;chatErr=null;if(S.aiChat)delete S.aiChat[R.book.id];save();chatRender();
+};
+el('aiSheetClose').onclick=()=>{aiSeq++;el('aiSheet').classList.add('hidden');};
 function shareBook(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
@@ -674,7 +819,7 @@ async function removeBook(id,wipeFile){
     :{t:'Убрать «'+b.title+'»?',p:'Прогресс и цитаты по этой книге удалятся. Файл на устройстве останется.',ok:'Убрать',danger:true}))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
-  delete S.progress[id];delete S.quotes[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
+  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   save();el('bookSheet').classList.add('hidden');renderLibrary();

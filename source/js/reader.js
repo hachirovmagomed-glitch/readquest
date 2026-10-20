@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,warmNight:true,flip:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,warmNight:true,pdfFont:false,pdfTheme:false,flip:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -29,6 +29,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.readCounter!=='boolean')s.readCounter=true;
   const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
   s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);if(typeof s.warmNight!=='boolean')s.warmNight=true;
+  if(typeof s.pdfFont!=='boolean')s.pdfFont=false;if(typeof s.pdfTheme!=='boolean')s.pdfTheme=false; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
   flipNorm(s);return s;}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
@@ -53,6 +54,7 @@ function applySet(){
   if(R.mode==='pdf')el('viewer').style.margin='0';else{el('viewer')._mw=null;rqTextMargin();} /* PDF: full width, no side fields; text: SET.margin, wider on a portrait tablet (audit 19.10 RD-TAB-01) */
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
   rqLightApply();
+  if(typeof rqPdfLook==='function')rqPdfLook(); /* 20.10 SET.pdfFont / SET.pdfTheme */
   /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
@@ -186,6 +188,8 @@ el('brightRange').onchange=()=>saveSet();
 el('warmRange').oninput=e=>{SET.warm=Math.max(0,Math.min(0.6,(parseInt(e.target.value,10)||0)/100));applySet();};
 el('warmRange').onchange=()=>saveSet();
 el('warmNightTgl').onclick=()=>{SET.warmNight=SET.warmNight===false;saveSet();applySet();};
+el('pdfFontTgl').onclick=()=>{SET.pdfFont=!SET.pdfFont;saveSet();applySet();}; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
+el('pdfThemeTgl').onclick=()=>{SET.pdfTheme=!SET.pdfTheme;saveSet();applySet();};
 el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
 Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});

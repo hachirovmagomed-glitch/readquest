@@ -71,13 +71,14 @@ async function pdfRender(why){
   cv.width=Math.max(1,Math.floor(vp.width));cv.height=Math.max(1,Math.floor(vp.height));
   const ctx=cv.getContext('2d',{alpha:false});
   ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+  const gl=pdfMuteText(ctx); /* 20.10 SET.pdfFont: the text is drawn by the text layer */
   const task=page.render({canvasContext:ctx,viewport:vp});P.task=task;P.renders++;
   try{await task.promise;}catch(e){if(P.task===task)P.task=null;cv.width=0;cv.height=0;pdfRenderFailed(seq,e);return;} /* cancelled: only the back buffer is dropped */
   if(P.task===task)P.task=null;
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   const baseW=sz.w,baseH=vp1.height*s0;
   let tl=null;
-  if(!same||Math.abs(baseW-P.bw)>0.5)tl=await pdfTextLayer(page,s0);
+  if(!same||Math.abs(baseW-P.bw)>0.5)tl=await pdfTextLayer(page,s0,gl&&{g:gl,k:s0/sc});
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   requestAnimationFrame(function(){
     if(seq!==P.seq){cv.width=0;cv.height=0;return;}
@@ -212,13 +213,14 @@ function pdfRsTick(){
 }
 /** Text layer in BASE (fit-width) coordinates; widths fitted with canvas measureText (no layout). */
 let pdfMeasure=null;
-async function pdfTextLayer(page,s0){
+async function pdfTextLayer(page,s0,look){
   const frag=document.createDocumentFragment();
   try{
     const tc=await page.getTextContent();
     const vp=page.getViewport({scale:s0});
     const U=window.pdfjsLib.Util;
     if(!pdfMeasure)pdfMeasure=document.createElement('canvas').getContext('2d');
+    const lf=look?await pdfLookFont():null; /* 20.10 SET.pdfFont: the reader font, loaded before measuring */
     let prev=null,line=null;const lines=[];
     tc.items.forEach(function(it){
       if(!it.str)return;
@@ -229,15 +231,24 @@ async function pdfTextLayer(page,s0){
       const fam=(st&&st.fontFamily)||'sans-serif';
       const sp=document.createElement('span');
       sp.textContent=it.str;
-      sp.style.left=tx[4].toFixed(2)+'px';sp.style.top=(tx[5]-fh).toFixed(2)+'px';
-      sp.style.fontSize=fh.toFixed(2)+'px';sp.style.fontFamily=fam;
+      const base=tx[5],wd=(it.width||0)*s0;
+      /* 20.10 SET.pdfFont: an item whose glyphs were muted on the canvas is shown here in the reader font, in its own colour */
+      const ink=lf?pdfInkAt(look,tx[4],base,ang,fh,wd):null;
+      let fnt=fh.toFixed(2)+'px '+fam,top=base-fh;
+      if(ink!=null){
+        const fo=pdfFontObj(page,it.fontName),fs=fo.it?'italic':'normal',fw=fo.b?lf.wb:lf.w,m=pdfAscent(fs+' '+fw+' 100px '+lf.fam);
+        fnt=fs+' '+fw+' '+fh.toFixed(2)+'px '+lf.fam;top=base-((fh-(m[0]+m[1])*fh)/2+m[0]*fh); /* the reader font's baseline on the line's baseline */
+        sp.className='v';sp.style.fontFamily=lf.fam;sp.style.fontWeight=fw;sp.style.fontStyle=fs;
+        const c=rqRgb(ink);sp.style.setProperty('--ink','rgb('+c.join(',')+')');sp.style.setProperty('--l',((0.299*c[0]+0.587*c[1]+0.114*c[2])/255).toFixed(3));
+      }else sp.style.fontFamily=fam;
+      sp.style.left=tx[4].toFixed(2)+'px';sp.style.top=top.toFixed(2)+'px';
+      sp.style.fontSize=fh.toFixed(2)+'px';
       let tr=Math.abs(ang)>0.01?'rotate('+ang.toFixed(4)+'rad) ':'';
-      if(it.str.trim()&&it.width>0){pdfMeasure.font=fh.toFixed(2)+'px '+fam;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
+      if(it.str.trim()&&it.width>0){pdfMeasure.font=fnt;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
       if(tr)sp.style.transform=tr;
       const sx=/scaleX\(([\d.]+)\)/.exec(tr);
       /* 19.10 (Джессика: «не работает нормальное выделение»): the copied / quoted text keeps its words and lines apart —
          a new line of the page → a line break, a gap on the same line → a space (spans are absolute, the DOM has neither) */
-      const base=tx[5],wd=(it.width||0)*s0;
       if(prev){
         if(Math.abs(base-prev.base)>Math.max(fh,prev.fh)*0.5){frag.appendChild(document.createElement('br'));line=null;}
         else if(tx[4]-prev.right>fh*0.15&&!/\s$/.test(prev.str)&&!/^\s/.test(it.str)){
@@ -245,7 +256,7 @@ async function pdfTextLayer(page,s0){
       }
       prev={base:base,fh:fh,right:tx[4]+wd,str:it.str};
       if(!line){line=[];lines.push(line);}
-      line.push({sp:sp,left:tx[4],top:tx[5]-fh,bot:tx[5],right:tx[4]+wd,sx:sx?+sx[1]:1,rot:Math.abs(ang)>0.01});
+      line.push({sp:sp,left:tx[4],top:top,bot:top+fh,right:tx[4]+wd,sx:sx?+sx[1]:1,rot:Math.abs(ang)>0.01});
       frag.appendChild(sp);
     });
     /* no dead gaps between and around the lines: each span reaches down to the next line, the first one of a line out to
@@ -263,6 +274,70 @@ async function pdfTextLayer(page,s0){
   }catch(e){/* scans have no text layer */}
   const end=document.createElement('div');end.className='endOfContent';frag.appendChild(end); /* keeps a drag in a gap near the finger (selectionchange below) */
   return frag;
+}
+/* ===== 20.10 «Шрифт читалки в PDF» (SET.pdfFont) and «Цвета темы для PDF» (SET.pdfTheme), as in ReadEra — arch.md ===== */
+/** SET.pdfFont: pdf.js draws the page text with fillText / strokeText on this context → muted. Every muted glyph is kept
+    (canvas px + colour), so the text layer shows exactly those items: hidden OCR text of a scan, Type3 glyphs and text drawn
+    on pdf.js's own scratch canvases stay on the page bitmap as they are (never twice, never lost). null = font mode off. */
+function pdfMuteText(ctx){
+  if(!SET.pdfFont)return null;
+  const g=[],rec=function(st){return function(s,x,y){const m=this.getTransform(),c=st?this.strokeStyle:this.fillStyle;g.push(m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f,typeof c==='string'?c:'#000');};};
+  ctx.fillText=rec(false);ctx.strokeText=rec(true);return g;
+}
+/** colour of the first muted glyph inside this item's box (base px; k = canvas px → base px), or null when none was muted */
+function pdfInkAt(look,x0,y0,ang,fh,wd){
+  const g=look.g,k=look.k,c=Math.cos(ang),s=Math.sin(ang);
+  for(let i=0;i<g.length;i+=3){const dx=g[i]*k-x0,dy=g[i+1]*k-y0,u=dx*c+dy*s,v=dy*c-dx*s;
+    if(u>=-1&&u<=wd+1&&v>=-fh*0.6&&v<=fh*0.3)return g[i+2];}
+  return null;
+}
+/** bold / italic of the file's font (pdf.js font object: flags, else its name) */
+function pdfFontObj(page,id){
+  let f=null;try{if(page.commonObjs.has(id))f=page.commonObjs.get(id);}catch(e){}
+  const n=String((f&&f.name)||'');
+  return {b:!!(f&&(f.bold||f.black))||/bold|black|heavy|semibold|demi/i.test(n),it:!!(f&&f.italic)||/italic|oblique/i.test(n)};
+}
+const pdfAsc={};
+/** [ascent, descent] of a font as a share of its size (layout box of a line-height:1 span) */
+function pdfAscent(f){
+  if(pdfAsc[f])return pdfAsc[f];
+  pdfMeasure.font=f;const m=pdfMeasure.measureText('Hg'),a=m.fontBoundingBoxAscent,d=m.fontBoundingBoxDescent;
+  return (pdfAsc[f]=(a>0&&d>=0)?[a/100,d/100]:[0.8,0.2]);
+}
+/** the reader font (as the text: SET.font, SET.weight; bold = heavier), its faces loaded (≤ 1.5 s) */
+async function pdfLookFont(){
+  const fam=(FONTS[SET.font]||FONTS[0]).v,w=SET.weight||400,wb=w>=600?800:700;
+  if(document.fonts&&document.fonts.load){
+    const all=['normal '+w,'normal '+wb,'italic '+w,'italic '+wb].map(function(x){return document.fonts.load(x+' 16px '+fam).catch(function(){});});
+    await Promise.race([Promise.all(all),new Promise(function(r){setTimeout(r,1500);})]);
+  }
+  return {fam:fam,w:w,wb:wb};
+}
+let rqRgbCx=null;
+/** any CSS colour → [r,g,b] 0..255 (the browser parses it) */
+function rqRgb(v){
+  if(!rqRgbCx)rqRgbCx=document.createElement('canvas').getContext('2d');
+  rqRgbCx.fillStyle='#000';rqRgbCx.fillStyle=v||'#000';const s=rqRgbCx.fillStyle;
+  if(s[0]==='#')return [1,3,5].map(function(i){return parseInt(s.substr(i,2),16);});
+  const m=s.match(/[\d.]+/g)||[0,0,0];return [+m[0],+m[1],+m[2]];
+}
+/** applySet → #reader classes, the tone filter matrix (text colour ↔ background by pixel brightness), the switches;
+    a new font / weight / mode for the PDF on screen → it is drawn again (page or strip) */
+function rqPdfLook(){
+  const r=el('reader');if(!r)return;
+  r.classList.toggle('pdffont',!!SET.pdfFont);r.classList.toggle('pdftone',!!SET.pdfTheme);
+  if(SET.pdfTheme){
+    const cs=r.style,bg=rqRgb(cs.getPropertyValue('--r-bg')),tx=rqRgb(cs.getPropertyValue('--r-txt')),row=function(i){const d=(bg[i]-tx[i])/255;return [d*0.299,d*0.587,d*0.114,0,tx[i]/255].map(function(x){return +x.toFixed(4);}).join(' ');};
+    const m=el('rqPdfToneM');if(m)m.setAttribute('values',row(0)+' '+row(1)+' '+row(2)+' 0 0 0 1 0');
+  }
+  if(el('pdfFontTgl')){rqSw('pdfFontTgl',!!SET.pdfFont);rqSw('pdfThemeTgl',!!SET.pdfTheme);}
+  const k=SET.pdfFont?'f'+SET.font+'|'+(SET.weight||400):'file';
+  if(rqPdfLook.k!=null&&k!==rqPdfLook.k&&R.mode==='pdf'&&R.pdf)pdfRestyle();
+  rqPdfLook.k=k;
+}
+function pdfRestyle(){
+  if(PS.on){PS.cv.forEach(function(cv){cv._w=-1;});psUpdate();return;} /* stale → drawn again in place, the old one freed after */
+  P.bw=-1;pdfRender('look');
 }
 /* Selection inside a PDF text layer (pdf.js 3/4 way): while selecting, .endOfContent covers the layer and sits right after
    the moving end of the selection, so a finger / mouse / handle in a gap between lines resolves next to it instead of

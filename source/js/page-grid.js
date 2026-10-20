@@ -60,7 +60,7 @@ async function rqGridPdf(t,seq){
   const pdf=R.pdf,page=await pdf.getPage(+t.dataset.n+1);if(seq!==GRID.seq||pdf!==R.pdf)return;
   const v1=page.getViewport({scale:1}),dpr=Math.max(1,window.devicePixelRatio||1),vp=page.getViewport({scale:w*dpr/v1.width});
   const cv=document.createElement('canvas');cv.width=Math.max(1,Math.floor(vp.width));cv.height=Math.max(1,Math.floor(vp.height));
-  const g=cv.getContext('2d',{alpha:false});g.fillStyle=getComputedStyle(el('pdfSheet')).backgroundColor;g.fillRect(0,0,cv.width,cv.height);
+  const g=cv.getContext('2d',{alpha:false});g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);
   await page.render({canvasContext:g,viewport:vp}).promise;
   if(seq!==GRID.seq||!t.isConnected||!GRID.io){cv.width=0;cv.height=0;return;}
   box.textContent='';box.appendChild(cv);t.classList.add('done');GRID.live.add(t);GRID.renders++;

@@ -71,7 +71,9 @@ function rqCurlSnapPdf(old){
     const stg=document.createElement('div');stg.className='rqCurlStage';stg.style.transform=st0.style.transform;
     const pg=document.createElement('div');pg.className='rqCurlPg';
     pg.style.width=sh0.style.width;pg.style.height=sh0.style.height;pg.style.background=cs.backgroundColor;pg.style.boxShadow=cs.boxShadow;
-    old.className='rqCurlCv';pg.appendChild(old);stg.appendChild(pg);sheet.appendChild(stg);
+    old.className='rqCurlCv';pg.appendChild(old);
+    const t0=el('pdfText');if(t0.querySelector('span.v')){const tc=t0.cloneNode(true);tc.removeAttribute('id');pg.appendChild(tc);} /* 20.10 SET.pdfFont: the old page's text is in its text layer */
+    stg.appendChild(pg);sheet.appendChild(stg);
     return sheet;
   }catch(e){return null;}
 }

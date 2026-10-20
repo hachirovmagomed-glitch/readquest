@@ -517,6 +517,7 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
+@media (max-width:380px){#selpop{padding:6px 4px;gap:0}#selpop>button{padding:8px 10px}} /* 360: the actions stay one row under the colours, also with «Объясни» */
 .qcard{background:var(--card);border-radius:var(--rq-radius-md);padding:12px;margin-bottom:10px}
 .qtext{font-size:0.875rem;line-height:1.5}
 .qnote{font-size:0.8125rem;color:var(--accent2);margin-top:6px}

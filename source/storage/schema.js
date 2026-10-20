@@ -190,6 +190,8 @@ export const SET_DEF = {
   readCounter: true, // 1б: «7 / 10 мин» in focus
   bright: 1,         // 18.10: own brightness 0.3..1 (arch.md SET.bright)
   warm: 0,           // 18.10: warm tint 0..0.6
+  pdfFont: false,    // 20.10: PDF text in the reader font (arch.md SET.pdfFont)
+  pdfTheme: false,   // 20.10: PDF page in the page-theme colours (arch.md SET.pdfTheme)
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -451,6 +453,8 @@ export function hydrateSettings(s) {
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
   out.bright = normStep(out.bright, 0.3, 1, 1);
   out.warm = normStep(out.warm, 0, 0.6, 0);
+  if (typeof out.pdfFont !== 'boolean') out.pdfFont = false;
+  if (typeof out.pdfTheme !== 'boolean') out.pdfTheme = false;
   /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
   if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
   delete out.dim;

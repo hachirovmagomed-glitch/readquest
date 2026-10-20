@@ -8,6 +8,7 @@ const PDF = process.env.RQ_PDF || '/workspace/rqtest/pdf/b-nolabels-40.pdf';
 const ONLY = (process.env.RQ_ONLY || '').split(',').filter(Boolean); const want = (k) => !ONLY.length || ONLY.includes(k);
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const rqRgbStr = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
 async function fresh(w) {
@@ -621,6 +622,91 @@ if (want('pdfsel')) {
         return { tl: b.querySelectorAll('.psl .textLayer').length, cv: b.querySelectorAll('.psl canvas').length, p0: !!b.querySelector('.psl[data-n="0"] .textLayer'), p20: !!b.querySelector('.psl[data-n="20"] .textLayer span') }; });
       ok('pdfsel scroll: a text layer only next to a canvas (far pages freed with theirs)', r.tl === r.cv && r.tl <= 6 && !r.p0 && r.p20, r);
     }
+    await ctx.close();
+  }
+}
+
+/* pdflook (20.10, Джессика: «в ReadEra в PDF можно менять шрифт и цвет страницы»; arch.md SET.pdfFont / SET.pdfTheme): «Шрифт читалки
+   в PDF» draws the page text in the reader font on the original lines (canvas without text, widths kept, bold / colour kept, hidden OCR
+   text stays hidden); «Цвета темы для PDF» tints the page through #rqPdfTone (text colour ↔ page colour by brightness) */
+if (want('pdflook')) {
+  const HID = decodeURIComponent(new URL('./fixtures/f-hidden-text.pdf', import.meta.url).pathname);
+  {
+    const { ctx, p } = await fresh();
+    const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.pdfFont, s.pdfTheme]; };
+      return { def: f({}), junk: f({ pdfFont: 1, pdfTheme: 'да' }), on: f({ pdfFont: true, pdfTheme: true }) }; });
+    ok('pdflook: SET.pdfFont / SET.pdfTheme default false, non-boolean → false, true kept', n.def.join() === 'false,false' && n.junk.join() === 'false,false' && n.on.join() === 'true,true', n);
+    const inp = await p.$('#fileInp'); await inp.uploadFile(PDF); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    /* dark pixels of the page bitmap under the body lines; a long span's text box */
+    const probe = () => p.evaluate(() => {
+      const cv = __rqPdf.front, sh = el('pdfSheet'), k = cv.width / sh.offsetWidth, g = cv.getContext('2d');
+      const sp = [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.length > 40).slice(0, 4);
+      let dark = 0; sp.forEach(s => { const x = s.offsetLeft, y = s.offsetTop; const r = document.createRange(); r.selectNodeContents(s); const b = r.getBoundingClientRect(), sb = sh.getBoundingClientRect();
+        const d = g.getImageData(Math.round((b.left - sb.left) * k), Math.round((b.top - sb.top) * k), Math.round(b.width * k), Math.round(b.height * k)).data;
+        for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] < 300) dark++; });
+      const s0 = sp[0], r = document.createRange(); r.selectNodeContents(s0); const b = r.getBoundingClientRect(), cs = getComputedStyle(s0);
+      return { dark, n: sp.length, w: b.width, mid: (b.top + b.bottom) / 2, col: cs.color, fam: cs.fontFamily, v: document.querySelectorAll('#pdfText span.v').length,
+        all: [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.trim()).length, wts: [...new Set([...document.querySelectorAll('#pdfText span.v')].map(s => s.style.fontWeight))] };
+    });
+    const a = await probe();
+    ok('pdflook: off by default — the file\'s own text on the canvas, text layer transparent', a.dark > 200 && a.v === 0 && /rgba\(0, 0, 0, 0\)|transparent/.test(a.col), a);
+    /* settings sheet: PDF rows */
+    const ui = await p.evaluate(() => { openReaderSettings('grpText'); const d = (id) => getComputedStyle(el(id).closest('.rrow,.srow')).display;
+      return { font: d('pdfFontTgl'), theme: d('pdfThemeTgl'), size: d('szMinus'), seg: d('fontSeg'), weight: d('wNorm') }; });
+    ok('pdflook: PDF settings show «Шрифт читалки в PDF» / «Цвета темы для PDF», hide text-only rows, font list only with the switch on', ui.font !== 'none' && ui.theme !== 'none' && ui.size === 'none' && ui.seg === 'none' && ui.weight === 'none', ui);
+    await p.evaluate(async () => { el('pdfFontTgl').click(); await new Promise(r => setTimeout(r, 2500)); });
+    const b = await probe();
+    const ui2 = await p.evaluate(() => ({ seg: getComputedStyle(el('fontSeg').closest('.srow')).display, aria: el('pdfFontTgl').getAttribute('aria-checked'), st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').pdfFont, fv: (FONTS[SET.font] || FONTS[0]).v }));
+    ok('pdflook font: switch on (stored) → font list shown', ui2.aria === 'true' && ui2.st === true && ui2.seg !== 'none', ui2);
+    ok('pdflook font: the canvas has no text, every text item is shown by the text layer in the reader font', b.dark < a.dark * 0.05 && b.v === b.all && b.v > 20 && !/rgba\(0, 0, 0, 0\)/.test(b.col) && b.fam.split(',')[0].replace(/"/g, '') === ui2.fv.split(',')[0].replace(/"/g, ''), { a: a.dark, b });
+    ok('pdflook font: lines keep their width and place on the page', Math.abs(b.w - a.w) < a.w * 0.02 && Math.abs(b.mid - a.mid) < 6, { a: [a.w, a.mid], b: [b.w, b.mid] });
+    await p.evaluate(async () => { document.querySelectorAll('#fontSeg button')[1].click(); await new Promise(r => setTimeout(r, 2500)); });
+    const c = await probe(), f1 = await p.evaluate(() => FONTS[1].v);
+    ok('pdflook font: another reader font → the PDF text follows it', c.fam.split(',')[0].replace(/"/g, '') === f1.split(',')[0].replace(/"/g, '') && c.v === c.all && c.dark < a.dark * 0.05, { fam: c.fam, f1 });
+    /* «Загиб»: the copy of the old page carries its text */
+    const cu = await p.evaluate(async () => { SET.flip = Object.assign({}, flipGet(), { anim: 'curl' }); applySet(); pdfFlip(1); let t = 0, hit = false;
+      while (t < 40 && !hit) { await new Promise(r => setTimeout(r, 25)); t++; hit = !!document.querySelector('.rqCurl .textLayer span.v'); } return { hit, page: R.page }; });
+    ok('pdflook font: «Загиб» peels the old page with its text', cu.hit, cu);
+    await sleep(1500);
+    /* theme colours: the bitmap through the filter = text colour + (page colour − text colour) × brightness */
+    const tone = async (label) => {
+      const q = await p.evaluate(() => { el('sheet').classList.add('hidden'); const cv = __rqPdf.front, sh = el('pdfSheet'), sb = sh.getBoundingClientRect(), k = cv.width / sh.offsetWidth;
+        const cx = sh.offsetWidth / 2, x = sb.left + cx, y = sb.top + 12, d = cv.getContext('2d').getImageData(Math.round(cx * k), Math.round(12 * k), 1, 1).data;
+        const sp = document.querySelector('#pdfText span.v');
+        return { x, y, src: [d[0], d[1], d[2]], bg: rqRgb(el('reader').style.getPropertyValue('--r-bg')), tx: rqRgb(el('reader').style.getPropertyValue('--r-txt')), f: getComputedStyle(cv).filter, sc: getComputedStyle(sp).color, ink: rqRgb(sp.style.getPropertyValue('--ink')), cls: el('reader').className }; });
+      const shot = PNG.sync.read(Buffer.from(await p.screenshot({ clip: { x: Math.round(q.x), y: Math.round(q.y), width: 1, height: 1 } })));
+      const L = (0.299 * q.src[0] + 0.587 * q.src[1] + 0.114 * q.src[2]) / 255, want = q.tx.map((t, i) => t + (q.bg[i] - t) * L), got = [shot.data[0], shot.data[1], shot.data[2]];
+      ok('pdflook theme ' + label + ': page bitmap tinted by #rqPdfTone (text ↔ page colour by brightness)', /rqPdfTone/.test(q.f) && /pdftone/.test(q.cls) && got.every((v, i) => Math.abs(v - want[i]) <= 6), { got, want, q });
+      return q;
+    };
+    await p.evaluate(async () => { el('pdfThemeTgl').click(); SET.theme = 'sepia'; SET.cBg = null; SET.cTxt = null; applySet(); await new Promise(r => setTimeout(r, 600)); });
+    const q1 = await tone('sepia');
+    const st = await p.evaluate(() => JSON.parse(localStorage.getItem(RQ_K.set) || '{}').pdfTheme);
+    ok('pdflook theme: switch stored', st === true, st);
+    await p.evaluate(async () => { toggleDayNight(); await new Promise(r => setTimeout(r, 600)); });
+    const q2 = await tone('night');
+    const Li = (0.299 * q2.ink[0] + 0.587 * q2.ink[1] + 0.114 * q2.ink[2]) / 255, wi = q2.tx.map((t, i) => t + (q2.bg[i] - t) * Li);
+    ok('pdflook theme night: the file\'s text colour goes the same way (dark text → light page text)', rqRgbStr(q2.sc).every((v, i) => Math.abs(v * 255 - wi[i]) <= 3) && wi[0] > 150, { sc: q2.sc, wi, ink: q2.ink });
+    /* «Прокрутка»: the same in every page of the strip */
+    const sc = await p.evaluate(async () => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll', anim: 'none' }); applySet(); psSwitch(); await new Promise(r => setTimeout(r, 3000));
+      const s = document.querySelector('#pdfScroll .psl[data-n="' + R.page + '"]'); return { cv: s && getComputedStyle(s.querySelector('canvas')).filter, v: s ? s.querySelectorAll('.textLayer span.v').length : 0, all: s ? [...s.querySelectorAll('.textLayer span')].filter(x => x.textContent.trim()).length : -1 }; });
+    ok('pdflook scroll: strip pages tinted and in the reader font', /rqPdfTone/.test(sc.cv) && sc.v > 20 && sc.v === sc.all, sc);
+    await p.evaluate(async () => { SET.pdfFont = false; SET.pdfTheme = false; applySet(); await new Promise(r => setTimeout(r, 2500)); });
+    const off = await p.evaluate(() => { const s = document.querySelector('#pdfScroll .psl[data-n="' + R.page + '"]'); return { cv: getComputedStyle(s.querySelector('canvas')).filter, v: s.querySelectorAll('.textLayer span.v').length }; });
+    ok('pdflook: both off → the file\'s own look again', off.cv === 'none' && off.v === 0, off);
+    await ctx.close();
+  }
+  {
+    /* a scan with hidden OCR text: the hidden words stay hidden, only drawn text is replaced */
+    const { ctx, p } = await fresh(); const inp = await p.$('#fileInp');
+    await p.evaluate(() => { SET.pdfFont = true; rqSaveSetGated(); });
+    await inp.uploadFile(HID); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    const h = await p.evaluate(() => [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.trim()).map(s => [s.textContent, s.classList.contains('v'), getComputedStyle(s).color, s.style.fontWeight + ' ' + s.style.fontStyle]));
+    const fd = (re) => h.find(x => re.test(x[0])) || [], vis = fd(/Visible/), hid = fd(/Hidden/), bo = fd(/Bold/), itl = fd(/Italic/);
+    ok('pdflook font: hidden (OCR) text stays invisible, drawn text is shown', vis[1] && hid.length && !hid[1] && /rgba\(0, 0, 0, 0\)/.test(hid[2]), h);
+    ok('pdflook font: bold and italic of the file stay bold and italic', bo[1] && bo[3] === '700 normal' && itl[1] && itl[3] === '400 italic' && vis[3] === '400 normal', h);
     await ctx.close();
   }
 }

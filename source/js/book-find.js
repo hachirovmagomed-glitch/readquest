@@ -267,4 +267,6 @@ function bfTicksSync(force){
   t.innerHTML=h;
 }
 if(window.ResizeObserver)new ResizeObserver(function(){bfTicksSync();}).observe(el('pgSlider'));
+/* a new book / new layout sets sl.max (reflected to the attribute) → ticks again; the layout key covers a font change */
+if(window.MutationObserver)new MutationObserver(function(){bfTicksSync();}).observe(el('pgSlider'),{attributes:true,attributeFilter:['max']});
 addEventListener('resize',function(){bfTicksSync();});

@@ -52,6 +52,7 @@
   --rq-toast-pad:12px 16px;
   --rq-toast-gap:12px;
   --rq-pdf-night-dim:.35;
+  --rq-warm:#ffb062; /* 18.10 SET.warm: night-light tint for #warmer (multiply) */
   --rq-pdf-dim-max:.5;
   --rq-pdf-dim-step:.05;
   --rq-focus-auto-delay:10000ms;
@@ -198,28 +199,28 @@
   --rq-text:#2a2a28;
   --rq-text-2:#595853;
   --rq-text-disabled:#97958e;
-  --rq-accent:#1d6464;
-  --rq-accent-pressed:#185252;
-  --rq-accent-text:#1d6464;
+  --rq-accent:#2e48a0;
+  --rq-accent-pressed:#253b85;
+  --rq-accent-text:#2e48a0;
   --rq-on-accent:#fbfaf5;
   --rq-control-on:#fbfaf5;
-  --rq-accent-tint:#e0e8e4;
-  --rq-accent-border:#97b6b4;
+  --rq-accent-tint:#e2e6f3;
+  --rq-accent-border:#9aa6cf;
   --rq-coin:#7a4f10;
   --rq-coin-tint:#e9e2d5;
   --rq-success:#2f6a22;
   --rq-success-tint:#dee6d7;
   --rq-danger:#b3392a;
   --rq-danger-tint:#f1dfd9;
-  --rq-focus:#1d6464;
+  --rq-focus:#2e48a0;
   --rq-scrim:rgba(42,42,40,.45);
   --rq-badge-bg:#2a2a28;
   --rq-badge-text:#f3f0e7;
-  --rq-toast-game-bg:#1d6464;
+  --rq-toast-game-bg:#2e48a0;
   --rq-toast-game-fg:#fbfaf5;
   --rq-toast-info-bg:#fbfaf5;
   --rq-toast-info-fg:#2a2a28;
-  --rq-toast-info-icon:#1d6464;
+  --rq-toast-info-icon:#2e48a0;
   --rq-toast-info-border:#d7d4cc;
   --rq-toast-error-bg:#b3392a;
   --rq-toast-error-fg:#ffffff;
@@ -229,10 +230,12 @@
   /* --- skin extras (--rq-skin-*) --- */
   --rq-skin-border:#3d3d3a;
   --rq-skin-tab:#595853;
-  --rq-skin-tab-active:#1d6464;
-  --rq-skin-daybar:#1d6464;
+  --rq-skin-tab-active:#2e48a0;
+  --rq-skin-daybar:#2e48a0;
   --rq-skin-daybar-track:#dedbd1;
   --rq-skin-hatch:#8f8c84;
+  --rq-skin-grid:#d5dce8;    /* клетка тетради 20px (текст на линии ≥ 4.5: text-2 5.17, accent 5.97) */
+  --rq-skin-margin:#d98a8a;  /* двойная красная линия полей, только декор */
   color-scheme:light;
 }
 [data-skin="pencil"][data-theme="night"],
@@ -246,28 +249,28 @@
   --rq-text:#e8e6df;
   --rq-text-2:#b9b7ae;
   --rq-text-disabled:#80817f;
-  --rq-accent:#86cbc2;
-  --rq-accent-pressed:#9ed5ce;
-  --rq-accent-text:#95d1c9;
+  --rq-accent:#a9b9f0;
+  --rq-accent-pressed:#c0ccf4;
+  --rq-accent-text:#b4c2f2;
   --rq-on-accent:#1f2329;
-  --rq-control-on:#44555c;
-  --rq-accent-tint:#44555c;
-  --rq-accent-border:#597c7d;
+  --rq-control-on:#444a5e;
+  --rq-accent-tint:#3f465e;
+  --rq-accent-border:#66719c;
   --rq-coin:#e2b866;
   --rq-coin-tint:#4d4c4a;
   --rq-success:#9fd68c;
   --rq-success-tint:#44514f;
   --rq-danger:#ff9d94;
   --rq-danger-tint:#51464d;
-  --rq-focus:#86cbc2;
+  --rq-focus:#a9b9f0;
   --rq-scrim:rgba(12,14,18,.68);
   --rq-badge-bg:#e8e6df;
   --rq-badge-text:#2b3038;
-  --rq-toast-game-bg:#86cbc2;
+  --rq-toast-game-bg:#a9b9f0;
   --rq-toast-game-fg:#1f2329;
   --rq-toast-info-bg:#434951;
   --rq-toast-info-fg:#e8e6df;
-  --rq-toast-info-icon:#86cbc2;
+  --rq-toast-info-icon:#a9b9f0;
   --rq-toast-info-border:#555a61;
   --rq-toast-error-bg:#ff9d94;
   --rq-toast-error-fg:#2a0d0a;
@@ -277,12 +280,15 @@
   /* --- skin extras (--rq-skin-*) --- */
   --rq-skin-border:#cfccc3;
   --rq-skin-tab:#b9b7ae;
-  --rq-skin-tab-active:#86cbc2;
-  --rq-skin-daybar:#86cbc2;
+  --rq-skin-tab-active:#a9b9f0;
+  --rq-skin-daybar:#a9b9f0;
   --rq-skin-daybar-track:#454c57;
   --rq-skin-hatch:#7c828c;
+  --rq-skin-grid:#3a414e;    /* text-2 5.11, accent 5.32 */
+  --rq-skin-margin:#a8566a;
   color-scheme:dark;
 }
+/* 17.10 (Джессика: «в скинах всё ещё зелёные»): бирюзовый карандаш → синий, чтобы акцент не совпадал с цветом приложения */
 /* non-colour overrides (всё остальное — из stage1-final) + шрифты скина */
 [data-skin="pencil"],
 [data-theme="pencil-day"],
@@ -302,8 +308,8 @@
 [data-theme="pencil-night"] [data-page="night"]{--r-bg:#262a31;--r-txt:#e3e0d8;--r-txt-2:#a7a59d;--r-dim:.35;}
 
 /* 1в (Интерфейс, 11.10.2026): новые канонические токены stage1-final */
-[data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
-[data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#86cbc2;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny"],[data-theme="karandashny-day"]{--rq-accent-on-dark:#a9b9f0;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
+[data-skin="karandashny"][data-theme="night"],[data-theme="karandashny-night"]{--rq-accent-on-dark:#a9b9f0;--rq-slider-track:rgba(255,255,255,.35);--rq-test-strip:#c2410c;}
 [data-skin="karandashny"] [data-page="night"],[data-theme="karandashny-day"] [data-page="night"],[data-theme="karandashny-night"] [data-page="night"]{--rq-accent:#5fb8ae;--rq-accent-text:#5fb8ae;} /* читалка в скинах чистая: канонический акцент */
 
 /* ReadQuest · скин «Эллада» (вазопись, мрамор, Эгейское море, созвездия). Интерфейс, 10.10.2026. Только визуал: имена токенов = stage1-final/tokens.css. */
@@ -338,12 +344,14 @@
   --el-terracotta:#c8642c;   /* меандр, фризы, фигуры — 3.9 на мраморе; от текста и контролов ≥12 px */
   --el-terracotta-l:#e08a4e; /* процарапанные линии на чёрном лаке */
   --el-glaze:#15110e;        /* чёрный лак: шапка-фриз, полка, фигуры */
+  --el-gold:#c99a2e; --el-gold-l:#e9c766; --el-blue:#1f5a8c; --el-olive:#5f7a2e; /* конфетти (17.10): золото, Эгейский синий, олива — только декор, не текст */
   --el-sea:#3f7fb5;          /* море внизу фона, капители колонн — 4.2 */
   --el-wall:linear-gradient(135deg,#f8f5ef,#e9e3d8); /* белый мрамор с прожилками */
   --el-decor-opacity:1;      /* меандры, вазы, море, сова — НЕ в читалке */
   --el-leaf-dur:700ms; --el-column-dur:1100ms; --el-owl-dur:900ms; --el-wave-dur:14s; --el-star-dur:4s; --el-coin-dur:600ms;
 }
 [data-skin="ellada"][data-theme="night"]{
+  --el-blue:#4a8cc4; --el-olive:#8aa552; /* конфетти ночью светлее, чтобы читались на чёрном лаке */
   --rq-bg:#0d0a08; --rq-surface:#1c1714; --rq-surface-2:#26201b; --rq-sheet:#1c1714;
   --rq-line:#3a2f27; --rq-border-strong:#6a5c4e;
   --rq-text:#f3e9dc; --rq-text-2:#c9b6a2; --rq-text-disabled:#6a5c4e;
@@ -390,17 +398,17 @@
   --rq-bg:#f4f2f8; --rq-surface:#ffffff; --rq-surface-2:#f3f1f8; --rq-sheet:#ffffff;
   --rq-line:#d3cfe6; --rq-border-strong:#8e8aa8;
   --rq-text:#1d2140; --rq-text-2:#4f5470; --rq-text-disabled:#a29fbd;
-  --rq-accent:#13646c; --rq-accent-pressed:#0d4c53; --rq-accent-text:#13646c;   /* «морфо» — глубокая бирюза */
+  --rq-accent:#5e4bb3; --rq-accent-pressed:#4a3a96; --rq-accent-text:#5e4bb3;   /* сиреневое крыло (17.10, Джессика: бирюза читалась как зелёный цвет приложения) */
   --rq-on-accent:#ffffff; --rq-control-on:#ffffff;
-  --rq-accent-tint:#e1f1f2; --rq-accent-border:#8fc3c7;
+  --rq-accent-tint:#ece8fa; --rq-accent-border:#b9a7ec;
   --rq-coin:#84480c; --rq-coin-tint:#fbf0d8;            /* суммы монет — тёмная пыльца */
   --rq-success:#3d6a2c; --rq-success-tint:#e5f1de;      /* неделя, успех — клевер */
   --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
-  --rq-focus:#13646c;
+  --rq-focus:#5e4bb3;
   --rq-scrim:rgba(29,33,64,.40);
   --rq-badge-bg:#1d2140; --rq-badge-text:#ffffff;
-  --rq-toast-game-bg:#13646c; --rq-toast-game-fg:#ffffff;
-  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#13646c; --rq-toast-info-border:#d3cfe6;
+  --rq-toast-game-bg:#5e4bb3; --rq-toast-game-fg:#ffffff;
+  --rq-toast-info-bg:#ffffff; --rq-toast-info-fg:#1d2140; --rq-toast-info-icon:#5e4bb3; --rq-toast-info-border:#d3cfe6;
   --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
   --rq-shadow-1:0 2px 8px rgba(60,50,110,.10);
   --rq-shadow-2:0 0 0 1px #ddd7ef,0 6px 18px rgba(60,50,110,.10);
@@ -418,17 +426,17 @@
   --rq-bg:#0e1019; --rq-surface:#181b28; --rq-surface-2:#20243a; --rq-sheet:#181b28;
   --rq-line:#2e3247; --rq-border-strong:#5d6390;
   --rq-text:#eceef6; --rq-text-2:#b9bdd4; --rq-text-disabled:#6a6f92;
-  --rq-accent:#b5e3c4; --rq-accent-pressed:#cdeed7; --rq-accent-text:#b5e3c4;  /* ночью главный — бледная зелень мотылька-лунника */
+  --rq-accent:#c7b8f5; --rq-accent-pressed:#d8cdf8; --rq-accent-text:#c7b8f5;  /* ночью — бледная сирень мотылька */
   --rq-on-accent:#0e1019; --rq-control-on:#0e1019;
-  --rq-accent-tint:#1c2a27; --rq-accent-border:#5c8a72;
+  --rq-accent-tint:#252040; --rq-accent-border:#7d6fc0;
   --rq-coin:#f2d38a; --rq-coin-tint:#2a2618;
   --rq-success:#a9d79a; --rq-success-tint:#1e2a1c;
   --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
-  --rq-focus:#b5e3c4;
+  --rq-focus:#c7b8f5;
   --rq-scrim:rgba(4,5,12,.7);
   --rq-badge-bg:#eceef6; --rq-badge-text:#0e1019;
-  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#b5e3c4;
-  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#b5e3c4; --rq-toast-info-border:#2e3247;
+  --rq-toast-game-bg:#20243a; --rq-toast-game-fg:#c7b8f5;
+  --rq-toast-info-bg:#20243a; --rq-toast-info-fg:#eceef6; --rq-toast-info-icon:#c7b8f5; --rq-toast-info-border:#2e3247;
   --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
   --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #2e3247,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
   --bb-iridescent:linear-gradient(110deg,#1c2a3a 0,#262447 50%,#2e2238 100%);
@@ -442,4 +450,80 @@
 @keyframes bb-bloom{from{transform:scale(.6) rotate(-20deg)}to{transform:none}}          /* бутон недели распускается */
 @media (prefers-reduced-motion:reduce){
   [data-skin="babochkovyi"] *,[data-skin="babochkovyi"] *::before,[data-skin="babochkovyi"] *::after{animation:none!important;transition:none!important}
+}
+
+/* ReadQuest · скин «Небесный» (прототип: /mnt/project-files/skins/rannie/mockups/celestial). Сливочная бумага, золотые рамки, тёмно-синие чернила;
+   днём небо от голубого к персиковому закату, ночью звёздная синева. Только визуал: имена токенов = stage1-final/tokens.css.
+   Подключать ПОСЛЕ базового tokens.css: [data-skin="celestial"] на <html>. Ночь = [data-theme="night"]. Шрифты (OFL): Cormorant Garamond, Manrope, Lora.
+   17.10.2026: цвета подобраны заново под контраст (UI ≥ 4.5, текст книги ≥ 7), акцент — чернильно-синий, не бирюза приложения. */
+[data-skin="celestial"]{
+  --rq-font-ui:"Manrope",system-ui,sans-serif;
+  --rq-font-display:"Cormorant Garamond",Georgia,serif;   /* заголовки экранов, названия на обложках — 700 */
+  --rq-font-num:"Manrope",system-ui,sans-serif;
+  --rq-font-read:"Lora",Georgia,serif;
+  --rq-radius-xs:8px; --rq-radius-sm:12px; --rq-radius-md:16px; --rq-radius-lg:20px;
+  --rq-icon-stroke:1.7;
+  --rq-bg:#f6efe2; --rq-surface:#fffaf0; --rq-surface-2:#f8f0de; --rq-sheet:#fffaf0;
+  --rq-line:#e6d6b0; --rq-border-strong:#8c7a55;
+  --rq-text:#2b2742; --rq-text-2:#585070; --rq-text-disabled:#a59db4;
+  --rq-accent:#3f4a82; --rq-accent-pressed:#2f386a; --rq-accent-text:#3f4a82;   /* чернильная синева небесной канцелярии */
+  --rq-on-accent:#fffaf0; --rq-control-on:#fffaf0;
+  --rq-accent-tint:#e7e9f6; --rq-accent-border:#b9c0e2;
+  --rq-coin:#7a5410; --rq-coin-tint:#fbefcf;             /* золото: суммы монет */
+  --rq-success:#3d6a2c; --rq-success-tint:#e5f1de;
+  --rq-danger:#a3281f; --rq-danger-tint:#f8dedb;
+  --rq-focus:#3f4a82;
+  --rq-scrim:rgba(43,39,66,.42);
+  --rq-badge-bg:#2b2742; --rq-badge-text:#fffaf0;
+  --rq-toast-game-bg:#3f4a82; --rq-toast-game-fg:#fffaf0;
+  --rq-toast-info-bg:#fffaf0; --rq-toast-info-fg:#2b2742; --rq-toast-info-icon:#3f4a82; --rq-toast-info-border:#e6d6b0;
+  --rq-toast-error-bg:#a3281f; --rq-toast-error-fg:#ffffff;
+  --rq-shadow-1:0 2px 8px rgba(120,90,60,.12);
+  --rq-shadow-2:0 0 0 1px #e6d6b0,0 6px 18px rgba(120,90,60,.14);
+  --rq-shadow-3:0 14px 40px rgba(43,39,66,.28);
+  /* фирменное: ТОЛЬКО декор, текстом не использовать */
+  --cl-gold:#c9a14e; --cl-gold-l:#e2c27a; --cl-gold-d:#9a6d22;
+  --cl-sky:linear-gradient(180deg,#bcd6f2 0%,#dfe6f6 30%,#f6e7dc 64%,#f7cfb0 88%,#efb79a 100%);
+  --cl-frame:0 0 0 3px rgba(255,251,240,.9),0 0 0 4px rgba(201,161,78,.55);   /* двойная золотая рамка панелей */
+  --cl-ink:linear-gradient(180deg,#5e6da8,#3f4a82);
+  --cl-bar:linear-gradient(90deg,#8fb7ff,#c39bff 55%,#ffd27a);
+  --cl-star:#fff6d6; --cl-lilac:#c39bff;
+  --cl-rtop:linear-gradient(180deg,#e3ecf8,#fbf6ea);   /* шапка читалки: утреннее небо → бумага */
+  --cl-rbot:linear-gradient(0deg,#f4e3d2,#fbf6ea);     /* низ читалки: закатный персик → бумага */
+  --cl-pill:linear-gradient(180deg,#fff4d6,#f6e1ad);   /* активная вкладка нижней панели — сусальное золото */
+  --cl-xp:#6a45b5;                                     /* опыт — фиолетовый, как в прототипе */
+  --cl-gold-card:linear-gradient(90deg,#fff3d1,#fde6b8);
+  /* редкость наград, как звёзды редкости в играх: 3★ синяя, 4★ фиолетовая, 5★ золотая; текст на них --cl-on-rar */
+  --cl-rar3:linear-gradient(170deg,#4e72b0,#2f4a86); --cl-rar4:linear-gradient(170deg,#7d55c0,#4f338c); --cl-rar5:linear-gradient(170deg,#975e22,#7a4514);
+  --cl-on-rar:#fff8e6;
+}
+[data-skin="celestial"][data-theme="night"]{
+  --rq-bg:#10132a; --rq-surface:#181c36; --rq-surface-2:#20254a; --rq-sheet:#181c36;
+  --rq-line:#343a5e; --rq-border-strong:#7a7598;
+  --rq-text:#efe6d2; --rq-text-2:#c3bad6; --rq-text-disabled:#6c6a8a;
+  --rq-accent:#efcf86; --rq-accent-pressed:#f6dea6; --rq-accent-text:#efcf86;  /* ночью главный — лунное золото */
+  --rq-on-accent:#14172a; --rq-control-on:#14172a;
+  --rq-accent-tint:#2c2a3e; --rq-accent-border:#8a7440;
+  --rq-coin:#f2d38a; --rq-coin-tint:#2a2618;
+  --rq-success:#a9d79a; --rq-success-tint:#1e2a1c;
+  --rq-danger:#ff9c8f; --rq-danger-tint:#3a1a22;
+  --rq-focus:#efcf86;
+  --rq-scrim:rgba(4,5,14,.7);
+  --rq-badge-bg:#efe6d2; --rq-badge-text:#14172a;
+  --rq-toast-game-bg:#20254a; --rq-toast-game-fg:#efcf86;
+  --rq-toast-info-bg:#20254a; --rq-toast-info-fg:#efe6d2; --rq-toast-info-icon:#efcf86; --rq-toast-info-border:#343a5e;
+  --rq-toast-error-bg:#ff9c8f; --rq-toast-error-fg:#2a0a08;
+  --rq-shadow-1:0 1px 2px rgba(0,0,0,.5); --rq-shadow-2:0 0 0 1px #343a5e,0 8px 24px rgba(0,0,0,.6); --rq-shadow-3:0 12px 40px rgba(0,0,0,.75);
+  --cl-gold:#b08a3e; --cl-gold-l:#d9b866; --cl-gold-d:#6f5a2e;
+  --cl-sky:radial-gradient(120% 70% at 30% 0%,#2a2f5c 0%,#161a3a 45%,#0b0e22 100%);
+  --cl-frame:0 0 0 3px rgba(32,37,74,.9),0 0 0 4px rgba(176,138,62,.5);
+  --cl-ink:linear-gradient(180deg,#f6dea6,#efcf86);
+  --cl-star:#fff3c4; --cl-lilac:#b9a3f0;
+  --cl-rtop:linear-gradient(180deg,#0b1030,#161a33); --cl-rbot:linear-gradient(0deg,#0b1030,#161a33);
+  --cl-pill:linear-gradient(180deg,#3a3352,#2a2640); --cl-xp:#c9b2ff;
+  --cl-gold-card:linear-gradient(90deg,#2e2a1c,#3a321c);
+}
+/* Страница книги: чистая — однотонная бумага (#fbf6ea / #14172a), без неба, звёзд и рамок рядом с текстом. */
+@media (prefers-reduced-motion:reduce){
+  [data-skin="celestial"] *,[data-skin="celestial"] *::before,[data-skin="celestial"] *::after{animation:none!important;transition:none!important}
 }

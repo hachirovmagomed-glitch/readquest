@@ -1,14 +1,14 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,flip:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,dim:0,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,warmNight:true,flip:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
    SET.nav is never deleted or rewritten here; flipping already wiped by the old bug is not restored. Writes: rqSaveSetGated only. */
 const FLIP_DEF={btns:false,tap:true,invert:false,swipe:true,mode:'page',anim:'none'},FLIP_KEYS=['btns','tap','invert','swipe'];
 /* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings in the same object; junk → default */
-const FLIP_STR={mode:['page','scroll'],anim:['none','slide','fade']};
+const FLIP_STR={mode:['page','scroll'],anim:['none','slide','fade','curl']};
 function flipFrom(o){const f={};FLIP_KEYS.forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:FLIP_DEF[k];});
   Object.keys(FLIP_STR).forEach(function(k){f[k]=FLIP_STR[k].indexOf(o[k])>=0?o[k]:FLIP_DEF[k];});return f;}
 function flipNorm(s){
@@ -26,7 +26,10 @@ function rqAnimKind(){const a=flipGet().anim;if(!a||a==='none')return null;
 /* 1б settings contract (same rules as storage/schema.js hydrateSettings) */
 function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
-  if(typeof s.readCounter!=='boolean')s.readCounter=true;flipNorm(s);return s;}
+  if(typeof s.readCounter!=='boolean')s.readCounter=true;
+  const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
+  s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);if(typeof s.warmNight!=='boolean')s.warmNight=true;
+  flipNorm(s);return s;}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
 function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
@@ -46,18 +49,20 @@ function applySet(){
   applySkin(); /* app-wide skin on :root */
   r.style.setProperty('--r-bg',bg);r.style.setProperty('--r-txt',tx);
   r.style.background=bg;r.style.color=tx;
-  r.style.setProperty('--r-margin',SET.margin+'px');
-  el('viewer').style.margin=R.mode==='pdf'?'0':'0 '+SET.margin+'px'; /* PDF: full width, no side fields */
-  el('dimmer').style.opacity=SET.dim||0;
+  r.style.setProperty('--r-margin',SET.margin+'px');r.classList.toggle('narrowm',SET.margin<44||R.mode==='pdf');
+  if(R.mode==='pdf')el('viewer').style.margin='0';else{el('viewer')._mw=null;rqTextMargin();} /* PDF: full width, no side fields; text: SET.margin, wider on a portrait tablet (audit 19.10 RD-TAB-01) */
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
+  rqLightApply();
   /* audit 15.10 (Маня, вариант А): on these page themes the day/night --r-txt-2 is < 4.5 → page number and «автор · жанр» use the theme's own text colour */
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
   {const dp=Math.round((SET.dim||0)*100);if(el('dimRange')){el('dimRange').value=dp;el('dimVal').textContent=dp+' %';}}
+  {const bp=Math.round((SET.bright==null?1:SET.bright)*100),wp=Math.round((SET.warm||0)*100);
+   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';rqSw('warmNightTgl',SET.warmNight!==false);}}
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   const c=el('content');
-  c.style.fontFamily=FONTS[SET.font].v;
+  c.style.fontFamily=(FONTS[SET.font]||FONTS[0]).v; /* audit 19.10 SK-01: the book face never comes from the skin (skins dress the chrome only) */
   c.style.fontSize=SET.size+'px';
   c.style.lineHeight=SET.lh;
   rqTextAlign();
@@ -87,8 +92,8 @@ function applySet(){
   rqSw('navInvert',!!nv.invert);
   rqSw('navSwipe',nv.swipe!==false);
   {const pdf=R&&R.mode==='pdf';
-   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===(pdf?'page':nv.mode));b.disabled=pdf&&b.dataset.v==='scroll';});
-   const mn=el('flipModeNote');if(mn){mn.hidden=!pdf;mn.textContent=pdf?'В PDF пока только постранично, прокрутка работает в TXT, FB2 и EPUB.':'';}
+   document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.mode);b.disabled=false;});
+   const mn=el('flipModeNote');if(mn){const t=pdf&&nv.mode==='scroll'?'В PDF при прокрутке масштаб не меняется; чтобы приблизить страницу, выберите «Страницы».':'';mn.hidden=!t;mn.textContent=t;}
    document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.v===nv.anim);});
    const an=el('flipAnimNote');if(an){let t='';if(nv.anim!=='none'&&!rqAnimKind())t=(S.ux&&S.ux.anim===false)?'Сейчас не видно: анимации выключены в общих настройках.':'Сейчас не видно: в телефоне включено «Убрать анимацию».';
      else if(nv.anim!=='none'&&nv.mode==='scroll'&&!pdf)t='В прокрутке тап по краю прокручивает плавно.';an.hidden=!t;an.textContent=t;}
@@ -117,13 +122,17 @@ function renderThemeSeg(){
     if(THEMES[key]&&THEMES[key].skin==='pencil'){b.classList.add('sw-pencil');b.innerHTML=rqIcon('pencil',15);b.setAttribute('aria-label',name);} /* tells it apart from «Светлая» */
     else if(SKIN_THEMES[key]){b.classList.add('sw-pencil');b.style.color=SKIN_THEMES[key].txt;b.innerHTML=rqIcon(SKIN_THEMES[key].icon,15);b.setAttribute('aria-label',name);} /* bought shop skin */
     b.onclick=()=>{
-      if(locked){alert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
+      if(locked){rqAlert('Тема «'+name+'» покупается в Магазине за '+'монетах');return;}
       const from=skinOf(activeTheme());
       SET.theme=key;SET.cBg=null;SET.cTxt=null;saveSet();applySet();logSkinChange(from);
     };
     if(yours){b.classList.add('yours');b.title='Ваша тема: '+name;const w=document.createElement('span');w.className='yourwrap';w.appendChild(b);
       const c=document.createElement('small');c.textContent='Ваша тема';w.appendChild(c);seg.appendChild(w);return;}
-    seg.appendChild(b);
+    /* audit 19.10 RD-SET-02: a caption under every swatch and a tick on the picked one (not told by colour alone) */
+    const w=document.createElement('span');w.className='swwrap';w.appendChild(b);
+    const k=document.createElement('span');k.className='swchk';k.setAttribute('aria-hidden','true');k.innerHTML=rqIcon('check',12);w.appendChild(k);
+    const c=document.createElement('small');c.textContent=name;w.appendChild(c);w.onclick=function(e){if(e.target!==b&&!b.contains(e.target))b.click();};
+    seg.appendChild(w);
   };
   Object.keys(THEMES).forEach(k=>add(k,THEMES[k].bg,THEMES[k].name,false));
   Object.keys(SKIN_THEMES).filter(k=>!SKIN_THEMES[k].night&&skinTheme(k)).forEach(k=>add(k,SKIN_THEMES[k].bg,SKIN_THEMES[k].name,false)); /* bought shop skins */
@@ -166,6 +175,17 @@ el('btnDayNight').onclick=()=>toggleDayNight();
 /* «Общие настройки» row removed (14.10): general settings are reached only from the drawer's «Настройки» */
 el('dimRange').oninput=e=>{SET.dim=Math.max(0,Math.min(0.7,(parseInt(e.target.value,10)||0)/100));applySet();};
 el('dimRange').onchange=()=>saveSet();
+/* 18.10 (arch.md SET.bright / SET.warm): own brightness on top of «Затемнение» (one #dimmer layer), warm tint layer #warmer */
+function rqLightApply(){
+  const r=el('reader'),b=SET.bright==null?1:SET.bright,d=SET.dim||0;
+  el('dimmer').style.opacity=+(1-(1-d)*b).toFixed(3);
+  const w=el('warmer');if(w)w.style.opacity=(SET.warmNight!==false&&r.dataset.page!=='night')?0:(SET.warm||0);
+}
+el('brightRange').oninput=e=>{SET.bright=Math.max(0.3,Math.min(1,(parseInt(e.target.value,10)||100)/100));applySet();};
+el('brightRange').onchange=()=>saveSet();
+el('warmRange').oninput=e=>{SET.warm=Math.max(0,Math.min(0.6,(parseInt(e.target.value,10)||0)/100));applySet();};
+el('warmRange').onchange=()=>saveSet();
+el('warmNightTgl').onclick=()=>{SET.warmNight=SET.warmNight===false;saveSet();applySet();};
 el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
 Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
@@ -182,7 +202,8 @@ el('navSwipe').onclick=()=>flipSet('swipe');
 /* 16.10: «Как листать» / «Анимация» — strings in SET.flip, through the gate; switching the mode re-lays the text at the same place */
 function flipPick(k,v){if(flipGet()[k]===v)return;const anchor=(k==='mode'&&R&&R.mode==='text'&&R.book)?readingAnchor():null;
   SET.flip=Object.assign({},flipGet());SET.flip[k]=v;rqSaveSetGated();applySet();
-  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});}
+  if(anchor||(k==='mode'&&R&&R.book&&R.mode==='text'))relayout({force:true,anchor:anchor});
+  if(k==='mode'&&R&&R.book&&R.mode==='pdf'&&typeof psSwitch==='function')psSwitch();}
 document.querySelectorAll('#flipModeSeg button').forEach(function(b){b.onclick=function(){if(!b.disabled)flipPick('mode',b.dataset.v);};});
 document.querySelectorAll('#flipAnimSeg button').forEach(function(b){b.onclick=function(){flipPick('anim',b.dataset.v);};});
 
@@ -199,13 +220,13 @@ async function openBook(id){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
   if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
-  if(b.type!=='pdf'&&!b.text){alert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+  if(b.type!=='pdf'&&!b.text){rqAlert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
   if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
   R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,pos:rqPos(id),mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
-  el('rTitle').textContent=b.title+' — '+b.author;
+  el('rTitle').textContent=bookAuthor(b)?b.title+' — '+bookAuthor(b):b.title;
   const c=el('content');
   el('pdfWrap').classList.toggle('hidden',R.mode!=='pdf');
   c.classList.toggle('hidden',R.mode==='pdf');
@@ -214,12 +235,12 @@ async function openBook(id){
   el('viewer').scrollTop=0;el('reader').classList.toggle('scrollmode',rqScrollMode());
   hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
-  if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('📖 Полный экран · тап по центру — показать панель');}
+  if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('Полный экран · тап по центру — показать панель');}
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,'<mark>'+k+'</mark>');});
-  c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+esc(b.author)+' · '+esc(b.genre)+'</p>'+body;
+  c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
   const hy=hyphWaitStart(c,b);
@@ -267,6 +288,7 @@ function hyphWaitStart(c,b){
 }
 function hyphWaitRun(h,p){
   const t=el('txtBack');if(t)el('txtBackN').textContent='Открываем страницу '+(p+1);
+  setTimeout(function(){if(!h.done&&HY.tok===h.tok&&t&&!t.classList.contains('hidden'))el('txtBackN').textContent='Готовим вёрстку… большая книга';},5000); /* audit 19.10 RD-LOAD-01 */
   const fin=(relay)=>{if(h.done)return;h.done=true;h.on.remove();h.off.remove(); /* once per open, whatever fires first */
     if(HY.tok!==h.tok)return; /* a newer open owns the placeholder */
     if(!R.book||R.book.id!==h.book.id||R.mode==='pdf'||el('reader').classList.contains('hidden')){if(t)t.classList.add('hidden');return;}
@@ -299,8 +321,10 @@ function trackerOpts(){
   const capMin=isMvp()?MVP_ANTI.maxMin:(a.maxMin||3);
   /* PDF only: active work with the page (pan > 20 % of the screen / zoom change) extends THIS page's cap
      by +1 min, at most once per 60 s, hard ceiling 8 min. Text: flat 3 min. Accounting lives in reader-session.js. */
-  const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:8*60000,minFraction:0.2}:null;
-  return {capMs:capMin*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend};
+  /* 19.10: a hard book gets a longer page cap (LEVELS capMin: 3 / 5 / 7 min) and its level goes into the session row */
+  const lvl=bookLvlOf(R.book),cap=Math.max(capMin,lvl?window.__rqGame.LEVELS[lvl].capMin:0);
+  const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:Math.max(8,cap)*60000,minFraction:0.2}:null;
+  return {capMs:cap*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend,level:lvl};
 }
 /* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
 let dayBarIv=null;

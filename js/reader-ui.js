@@ -161,19 +161,37 @@ function flashMsg(t,o){
   const kind=opt.kind||(RQ_GAME_RE.test(String(t||''))?'game':'info');
   const inReader=!!(el('reader')&&!el('reader').classList.contains('hidden'));
   if(inReader&&kind==='game')return;
+  if(inReader&&kind!=='error'&&el('selpop')&&!el('selpop').classList.contains('hidden'))return; /* audit 19.10 RD-SEL-02: nothing over the selection bar */
   const ms=opt.ms;
   document.querySelectorAll('.rq-toast').forEach(function(x){x.remove();}); /* one toast at a time */
   const d=document.createElement('div');
   d.className='rq-toast';
   d.setAttribute('role',kind==='error'?'alert':'status');
   if(opt.icon){d.innerHTML=rqIcon(opt.icon,20)+'<span></span>';d.lastChild.textContent=t;}else d.textContent=t;
-  d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:#fff;padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
+  d.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sheet);color:var(--txt);padding:8px 16px;border-radius:99px;z-index:95;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)';
   if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');if(pg==='night')d.dataset.theme='night';} /* night page → night toast tokens */
   d.onclick=function(){d.remove();};
   document.body.appendChild(d);
+  if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12)+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title */
+  if(inReader){const rb=el('reader').querySelector('.rbot');if(rb&&!el('reader').classList.contains('barsoff')){const h=window.innerHeight-rb.getBoundingClientRect().top;if(rb.offsetHeight&&h>40&&h<window.innerHeight/2)d.style.setProperty('bottom',Math.round(h+12)+'px','important');}} /* audit 19.10: over the panel, not on it */
+  if(d.scrollWidth>d.clientWidth+1)d.classList.add('imp'); /* long text wraps instead of running off the screen */
   const dur=ms!=null?ms:(inReader?3000:1600);
   setTimeout(function(){try{d.remove();}catch(e){}},dur);
 }
+
+/* audit 19.10 GL-04 / LIB-02: no system dialogs. rqAlert = a toast; rqAsk = a bottom sheet with «Отмена» (focused, Esc, tap outside) and the action.
+   rqAsk({t,p,ok,danger}) → Promise<boolean> */
+function rqAlert(t){flashMsg(String(t||''),{ms:4000,kind:/^Не удал|^Не хватает|не поддерж|запрещен/i.test(String(t||''))?'error':'info'});}
+function rqAsk(o){return new Promise(function(res){
+  let sc=el('rqAskScrim'),d=el('rqAsk');
+  if(!d){sc=document.createElement('div');sc.id='rqAskScrim';d=document.createElement('div');d.id='rqAsk';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','rqAskT');document.body.appendChild(sc);document.body.appendChild(d);}
+  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p><div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
+  el('rqAskT').textContent=o.t||'';el('rqAskP').textContent=o.p||'';el('rqAskP').hidden=!o.p;el('rqAskOk').textContent=o.ok||'Да';el('rqAskOk').className=o.danger?'danger':'cta';
+  const kd=function(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}};
+  const done=function(v){sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(v);};
+  el('rqAskNo').onclick=function(){done(false);};el('rqAskOk').onclick=function(){done(true);};sc.onclick=function(){done(false);};
+  sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el('rqAskNo').focus({preventScroll:true});}catch(e){}
+});}
 
 /* --- выделение текста → цитаты --- */
 function selText(){
@@ -230,7 +248,7 @@ function addWord(){
   try{const sel=window.getSelection();const full=(sel&&sel.anchorNode&&sel.anchorNode.textContent)||'';const i=full.indexOf(word);
     if(i>=0){let a=Math.max(full.lastIndexOf('.',i),full.lastIndexOf('!',i),full.lastIndexOf('?',i));let b=full.indexOf('.',i+word.length);ctx=full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,160);}}catch(e){}
   S.vocab=S.vocab||[];
-  if(!S.vocab.some(v=>v.w.toLowerCase()===word.toLowerCase())){S.vocab.push({w:word,ctx:ctx,book:(R.book||{}).title||'',date:today(),box:0});save();flashMsg('📖 «'+word+'» — в словарь');}
+  if(!S.vocab.some(v=>v.w.toLowerCase()===word.toLowerCase())){S.vocab.push({w:word,ctx:ctx,book:(R.book||{}).title||'',date:today(),box:0});save();flashMsg('«'+word+'» — в словарь');}
   else flashMsg('Уже в словаре');
   if(window.getSelection)window.getSelection().removeAllRanges();
   el('selpop').classList.add('hidden');
@@ -274,14 +292,15 @@ el('viewer').addEventListener('touchstart',e=>{
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
-  if(e.touches[0].clientX<28&&!rqScrollMode()){bright={y0:e.touches[0].clientY,d0:SET.dim||0};tx0=null;return;} // жест яркости у левого края (в прокрутке палец у края прокручивает)
+  if(e.touches[0].clientX-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()){bright={y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright};tx0=null;return;} // жест яркости у левого края (в прокрутке палец у края прокручивает)
   tx0=e.touches[0].clientX;
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
-    SET.dim=Math.max(0,Math.min(0.7,bright.d0+(e.touches[0].clientY-bright.y0)/400));
-    el('dimmer').style.opacity=SET.dim;
+    const dy=e.touches[0].clientY-bright.y0;if(Math.abs(dy)>6)bright.mv=true;
+    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's), «Затемнение» stays */
+    rqLightApply();
     return;
   }
   if(e.touches.length===2&&pinch0){
@@ -296,7 +315,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
-  if(bright){saveSet();flashMsg('Яркость '+Math.round((1-SET.dim)*100)+'%',{kind:'info',icon:'sun'});bright=null;return;}
+  if(bright){const mv=bright.mv;bright=null;if(mv){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
   if(pinch0){
     pinch0=null;tx0=null;
     endTextPinch(); // текст: щипок = размер шрифта, один рефлоу после жеста
@@ -336,9 +355,15 @@ el('tabQts').onclick=()=>renderPanel('qts');
 el('tabFind').onclick=()=>renderPanel('find');
 el('tabGrid').onclick=()=>renderPanel('grid');
 function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
+/* audit 19.10 FR-03: a TXT without a stored toc gets one from its «Глава N» / «Часть N» lines (memory only, never written) */
+let __txtToc={id:null,toc:[]};
+function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;if(!b.text||b.type==='pdf')return [];if(__txtToc.id===b.id)return __txtToc.toc;
+  const out=[],re=/(^|\n)[ \t]*((?:Глава|ГЛАВА|Часть|ЧАСТЬ)[ \t]+[^\n]{1,60})/g;let m;
+  while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
+  __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
 function jumpToc(i){
-  const b=R.book;if(!b||!b.toc||!b.toc[i])return;
-  jumpRatio(b.text&&b.text.length?b.toc[i].off/b.text.length:0);
+  const b=R.book,toc=tocOf(b);if(!toc[i])return;
+  jumpRatio(b.text&&b.text.length?toc[i].off/b.text.length:0);
 }
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
 let FINDQ='';
@@ -364,7 +389,7 @@ function doFind(){
 }
 async function pdfFind(q,res){
   const token=++FINDTOKEN;
-  res.innerHTML='<div class="pempty">🔍 Ищу по страницам…</div>';
+  res.innerHTML='<div class="pempty">Ищу по страницам…</div>';
   const out=[];
   for(let n=0;n<R.pageCount;n++){
     if(token!==FINDTOKEN)return;
@@ -385,35 +410,26 @@ async function pdfFind(q,res){
 }
 function findGo(n){jumpTo(n);el('panel').classList.add('hidden');}
 function renderPanel(tab){
-  panelTab=tab;
+  panelTab=tab;rqGridStop();
   [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabFind','find'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
   const body=el('panelBody');const b=R.book;
   if(!b){body.innerHTML='<div class="pempty">Откройте книгу</div>';return;}
   if(tab==='find'){
-    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="🔍 Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
+    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
     el('bookFind').oninput=e=>{FINDQ=e.target.value;doFind();};
     doFind();return;
   }
-  if(tab==='grid'){
-    const n=Math.min(R.pageCount,400);
-    const mk={};(S.marks[b.id]||[]).forEach(m=>mk[m.page-1]=1);
-    let html='<div class="pgrid">';
-    for(let i=0;i<n;i++){
-      html+='<button class="'+(i===R.page?'cur':'')+'" onclick="jumpRatio('+(R.pageCount>1?(i/(R.pageCount-1)).toFixed(4):0)+')">'+(i+1)+(mk[i]?'<span class="m">🔖</span>':'')+'</button>';
-    }
-    body.innerHTML=html+'</div>'+(R.pageCount>400?'<div class="pempty">Показаны первые 400 страниц</div>':'');
-    return;
-  }
+  if(tab==='grid'){rqGridRender(body);return;} /* 18.10: real page thumbnails, js/page-grid.js */
   if(tab==='toc'){
-    const toc=b.toc||[];
+    const toc=tocOf(b);
     body.innerHTML=toc.length
       ?toc.map((ch,i)=>'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
-      :'<div class="pempty">У этой книги нет оглавления</div>';
+      :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
-    body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">＋ Закладка на текущей странице</button>'+
-      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">🔖 Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
+    body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
+      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
     const qs=S.quotes[b.id]||[];
     body.innerHTML=qs.length
@@ -421,7 +437,7 @@ function renderPanel(tab){
         const fr=b.text?Math.max(0,b.text.indexOf(q.text))/Math.max(1,b.text.length):0;
         return '<button class="prow" onclick="jumpRatio('+fr.toFixed(4)+')">«'+esc(q.text.slice(0,60))+(q.text.length>60?'…':'')+'»</button>';
       }).join('')
-      :'<div class="pempty">Пока нет цитат — выделите текст в книге</div>';
+      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
   }
 }
 
@@ -434,39 +450,67 @@ function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.is
 function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
   const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
 function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}ttsBtn(false);}
-function ttsSay(t,onend){
+/* audit 19.10 RD-TTS-01 (R4): no voice → the position never moves. A Russian voice is checked first (voiceschanged, up to 800 ms);
+   none → the button looks inactive (aria-disabled) and a toast above the panel says so. The page turns when the speech STARTS
+   (onstart / onboundary), never before speak(); a real error (not interrupted / canceled) or an end without a start stops the reading
+   and puts the page back where listening began. */
+function ttsVoices(){try{return (speechSynthesis.getVoices()||[]).filter(function(v){return /^ru/i.test(v.lang||'');});}catch(e){return [];}}
+function ttsVoiceReady(){
+  if(!window.speechSynthesis)return Promise.resolve(false);
+  if(ttsVoices().length)return Promise.resolve(true);
+  return new Promise(function(res){let done=false;const fin=function(){if(done)return;done=true;try{speechSynthesis.removeEventListener('voiceschanged',fin);}catch(e){}res(ttsVoices().length>0);};
+    try{speechSynthesis.addEventListener('voiceschanged',fin);}catch(e){}setTimeout(fin,800);});
+}
+function ttsMarkVoice(ok){const b=el('btnTts');if(!b)return;if(ok)b.removeAttribute('aria-disabled');else b.setAttribute('aria-disabled','true');}
+const TTS_NO_VOICE='Голос для чтения не найден. Установите его в настройках телефона';
+function ttsFail(){if(!ttsOn)return;const p=R.ttsStartPage;ttsStop();
+  if(typeof p==='number'&&p!==R.page&&R.book){R.ttsAdv=true;try{goPage(p,false);}finally{R.ttsAdv=false;}}
+  flashMsg('Озвучка остановилась');}
+function ttsSay(t,onend,onstart,onpos){
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
-  u.onend=function(){if(ttsOn&&onend)onend();};
-  u.onerror=function(){if(ttsOn&&onend)onend();};
+  const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
+  let started=false;const t0=Date.now();
+  u.onstart=function(){started=true;if(ttsOn&&onstart)onstart();};
+  u.onboundary=function(e){if(!started){started=true;if(ttsOn&&onstart)onstart();}if(ttsOn&&onpos&&typeof e.charIndex==='number')onpos(e.charIndex);};
+  u.onend=function(){if(!ttsOn)return;if(!started&&Date.now()-t0<1500){ttsFail();return;}if(onend)onend();}; /* an end with no start, at once = no voice */
+  u.onerror=function(e){const k=e&&e.error;if(k==='interrupted'||k==='canceled')return;ttsFail();};
   speaking=true;speechSynthesis.speak(u);
 }
+function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
+  if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
 function ttsTextNext(){
   if(!ttsOn||!R.book||R.mode==='pdf')return;
   const b=R.book;
-  if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('🔊 Книга озвучена до конца');return;}
-  let end=Math.min(b.text.length,(R.ttsPos||0)+1500);
+  if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('Книга озвучена до конца');return;}
+  const st=R.ttsPos||0;
+  let end=Math.min(b.text.length,st+1500);
   const tail=b.text.slice(end,end+220).search(/[.!?…\n]/);
   if(tail>=0)end+=tail+1;
-  const chunk=b.text.slice(R.ttsPos||0,end);
-  if(R.pageCount>1){R.ttsAdv=true;try{goPage(Math.round((end/b.text.length)*(R.pageCount-1)),false);}finally{R.ttsAdv=false;}} /* 1в: via:'tts', not «reached» */
-  ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);});
+  const chunk=b.text.slice(st,end);
+  ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);},function(){ttsPageAt(st);},function(ci){ttsPageAt(st+ci);});
 }
 function ttsPdfNext(){
   if(!ttsOn||!R.book||R.mode!=='pdf'||!R.pdf)return;
   R.pdf.getPage(R.page+1).then(p=>p.getTextContent()).then(tc=>{
     if(!ttsOn)return;
     const t=tc.items.map(i=>i.str).join(' ').trim();
-    const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('🔊 Конец документа');}};
+    const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('Конец документа');}};
     if(t)ttsSay(t,advance);else advance();
   }).catch(()=>ttsStop());
 }
+if(window.speechSynthesis){ttsVoiceReady().then(ttsMarkVoice);try{speechSynthesis.addEventListener('voiceschanged',function(){ttsMarkVoice(ttsVoices().length>0);});}catch(e){}}else ttsMarkVoice(false);
 el('btnTts').onclick=()=>{
   if(ttsOn||speaking){ttsStop();return;}
   if(!R.book)return;
-  if(!window.speechSynthesis){alert('Озвучка не поддерживается этим браузером');return;}
-  ttsOn=true;ttsCount(false);ttsBtn(true);
-  if(R.mode==='pdf'){ttsPdfNext();}
-  else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
+  if(!window.speechSynthesis){ttsMarkVoice(false);flashMsg('Озвучка не поддерживается этим браузером');return;}
+  ttsVoiceReady().then(function(ok){
+    ttsMarkVoice(ok);
+    if(!ok){flashMsg(TTS_NO_VOICE,{ms:4000});return;}
+    if(!R.book||ttsOn)return;
+    ttsOn=true;ttsCount(false);ttsBtn(true);R.ttsStartPage=R.page;
+    if(R.mode==='pdf'){ttsPdfNext();}
+    else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
+  });
 };
 
 /* ================= СЕССИЯ И НАГРАДЫ ================= */
@@ -488,8 +532,10 @@ async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
+  try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
+  const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
   R.book=null;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
@@ -524,7 +570,7 @@ async function closeReaderImpl(opts){
     const res=awardPendingSessions();
     xp=Number(row.xp)||0; /* the paid value stored in the row (decision B) — the summary never recomputes it */
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
-    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[]};
+    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
   }else{
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
@@ -574,7 +620,9 @@ async function closeReaderImpl(opts){
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
   const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
-  if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);return;}
+  if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);
+    /* audit 19.10 SUM-03: a short session no longer closes silently (a blink-open, under 5 s, stays quiet) */
+    if((Number(min)||0)*60>=5)flashMsg('Меньше минуты — не засчитано');return;}
   renderSummary(_sumArgs);
   show('summary');navAfterClose(true);
   if(isMvp())confettiSummary();
@@ -585,9 +633,23 @@ function countUp(elm,to,fmt){
   function f(t){const k=Math.min(1,(t-t0)/dur);elm.textContent=fmt(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(f);}
   requestAnimationFrame(f);
 }
+/* audit 19.10 SUM-01 (R3, решение 09.10): the level is in every summary — «Уровень N · ещё K XP до N+1-го» and a 6 px bar from before to now;
+   a level-up fills the bar and reads «Новый уровень: N!». level(xp)=floor(sqrt(xp/100))+1 → level L starts at 100·(L−1)² XP. */
+function lvlFloor(L){return 100*(L-1)*(L-1);}
+function sumLevel(lvNow,lvBefore,xpBefore){
+  const t=el('sumLvlT'),bar=el('sumLvlBar');if(!t||!bar)return;
+  const fr=function(x,L){return Math.max(0,Math.min(1,(x-lvlFloor(L))/(lvlFloor(L+1)-lvlFloor(L))));};
+  const xp=S.xp||0,up=lvNow>lvBefore;
+  t.textContent=up?'Новый уровень: '+lvNow+'!':'Уровень '+lvNow+' · ещё '+Math.max(0,lvlFloor(lvNow+1)-xp)+' XP до '+(lvNow+1)+'-го';
+  t.classList.toggle('up',up);
+  bar.style.transition='none';bar.style.width=Math.round(fr(Number(xpBefore)||0,up?lvBefore:lvNow)*100)+'%'; /* start: where the session began */
+  void bar.offsetWidth;bar.style.transition='';
+  requestAnimationFrame(function(){bar.style.width=Math.round((up?1:fr(xp,lvNow))*100)+'%';});
+}
 function renderSummary(r){
   countUp(el('sumXp'),r.xp,n=>'+'+n+' XP');
   countUp(el('sumPages'),r.pages,n=>n);
+  if(el('sumPagesLbl'))el('sumPagesLbl').textContent=plural(r.pages,'страница','страницы','страниц'); /* audit 19.10 SUM-02 */
   /* whole minutes (floor, the dayMinutes rule); under one minute → «меньше минуты» (decision D) */
   const wm=Math.floor((Number(r.min)||0)+1e-9);
   el('sumMin').textContent=wm<1?'меньше минуты':wm;el('sumMin').style.fontSize=wm<1?'15px':'';
@@ -595,47 +657,54 @@ function renderSummary(r){
   const hl=summaryHeadline(r.quest),hd=el('sumHead');
   if(hd){hd.textContent=hl||'Сессия завершена';hd.style.color=hl?'var(--accent2)':'';hd.style.fontWeight=hl?'600':'';}
   countUp(el('sumGold'),r.gold,n=>'+'+n);
-  el('sumGoldLbl').textContent='монет';
+  el('sumGoldLbl').textContent=plural(r.gold,'монета','монеты','монет');
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
-  if(r.flipped>r.pages)notes.push('🛡️ '+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
-  if(r.cheatFinish)notes.push('📵 Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
+  if(r.flipped>r.pages)notes.push(''+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
+  if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));
-  if(r.mult>1)el('luckLbl').textContent='🍀 Удача! Все награды ×'+r.mult;
+  if(r.mult>1)el('luckLbl').textContent='Удача! Все награды ×'+r.mult;
   const lvNow=level(S.xp);
   el('lvlUp').classList.toggle('hidden',lvNow<=r.lvBefore);
-  if(lvNow>r.lvBefore)el('lvlUp').textContent='🎉 Новый уровень: '+lvNow+'!';
-  el('sumStreak').textContent='🔥 Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
-    (r.dmul>1&&!isMvp()?' · ⚔️ '+r.dName+' ×'+r.dmul:'')+
-    (r.justFinished?' · 🏁 Книга прочитана, бонус!':'');
+  if(lvNow>r.lvBefore)el('lvlUp').textContent='Новый уровень: '+lvNow+'!';
+  sumLevel(lvNow,r.lvBefore,S.xp-(Number(r.xp)||0));
+  el('sumStreak').textContent='Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
+    (r.dmul>1&&!isMvp()?' · '+r.dName+' ×'+r.dmul:'')+
+    '';
+  /* audit 19.10 SUM-04: «Книга прочитана» is its own badge line, not glued to the streak */
+  const sf=el('sumFin');if(sf){sf.classList.toggle('hidden',!r.justFinished);sf.innerHTML=r.justFinished?rqIcon('book-open',16)+'<span>Книга прочитана, бонус!</span>':'';}
   const bb=el('sumBadges');bb.innerHTML='';
-  r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent=b.icon+' Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
-  (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='🏆 Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
+  r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
+  (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
   /* achievements v2: at most two lines + «и ещё N»; visible in MVP (#sumBadges is not) */
   const sa=el('sumAch');if(sa){const an=r.achNew||[];sa.innerHTML=an.slice(0,2).map(function(a){return '<div>'+rqIcon('trophy',14)+'<span>Новое достижение: «'+esc(a.name)+'»</span></div>';}).join('')+(an.length>2?'<div class="more">и ещё '+(an.length-2)+'</div>':'');sa.classList.toggle('hidden',!an.length);}
   /* day of THIS session (local start day), not "now": 23:50–00:15 shows the first day */
   const sday=r.day||today();
   if(el('sumDailyInfo'))el('sumDailyInfo').textContent=(dailyPaid(sday)?'✓ ':'')+mvpDailyInfo(sday)+(sday!==today()?' (вчера)':'');
   if(el('sumDailyBar'))el('sumDailyBar').style.width=Math.round(mvpDailyProg(sday)*100)+'%';
+  if(typeof bbHatchRender==='function')bbHatchRender(mvpDailyProg(sday),'sumHatch');
   if(el('sumWeeklyInfo'))el('sumWeeklyInfo').textContent='Неделя: '+mvpWeeklyInfo(weekKey(sday))+(weeklyPaid(weekKey(sday))?' · ✓ неделя выполнена':'');
   /* gold lines ONLY for what was paid by THIS session (re-render with no `quest` → no lines) */
   const qp=r.quest||{daily:[],weekly:[]},ql=[];
   if(qp.daily&&qp.daily.length)ql.push('+'+coinsP(30*qp.daily.length)+' — ежедневка выполнена');
   if(qp.weekly&&qp.weekly.length)ql.push('+'+coinsP(120*qp.weekly.length)+' — неделя выполнена');
-  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
+  if(qp.lvlGold>0)ql.push('+'+coinsP(qp.lvlGold)+' — бонус за сложность книги');
+  const qh=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';});
+  const lt=summaryLevelLine(qp);if(lt)qh.push('<div>'+rqIcon(lt.ic,14)+'<span>'+lt.t+'</span></div>');
+  const qb=el('sumQuestGold');if(qb){qb.innerHTML=qh.join('');qb.classList.toggle('hidden',!qh.length);}
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
   /* «Карандашный»: subtitle «книга», «минут чтения», 4 week dots (filled = goal days), emoji stripped from the text lines */
   const pc=typeof isPencil==='function'&&isPencil();
   if(el('sumSub'))el('sumSub').textContent=r.title||'';
-  if(el('sumMinLbl'))el('sumMinLbl').textContent=pc?'минут чтения':'минут';
+  if(el('sumMinLbl'))el('sumMinLbl').textContent=plural(wm,'минута','минуты','минут')+(pc?' чтения':''); /* audit 19.10 SUM-02 */
   if(el('sumWeekDots')){const n=Math.min(4,daysInWeekAtGoal(goalMin(),weekKey(sday)).count);let h='';for(let i=0;i<4;i++)h+=i<n?rqIcon('circle-check',18):rqIcon('circle',18);el('sumWeekDots').innerHTML=h;}
   if(pc){const de=t=>String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]+\s*/gu,'');
     ['sumNote','lvlUp','luckLbl'].forEach(function(k){const e=el(k);if(e)e.textContent=de(e.textContent);});
     bb.querySelectorAll('.newbadge').forEach(function(d){d.textContent=de(d.textContent);});
-    if(el('sumGoldLbl'))el('sumGoldLbl').textContent='монет';}
+    if(el('sumGoldLbl'))el('sumGoldLbl').textContent=plural(r.gold,'монета','монеты','монет');}
   applyMvpChrome();
 }
 
@@ -644,11 +713,9 @@ function confetti(opts){
   opts=opts||{};
   const count=opts.count!=null?opts.count:26;
   const avoidTop=!!opts.avoidTop; /* keep clear of summary heading */
-  const em=['🎉','✨','⭐','📖'];
-  for(let i=0;i<count;i++){
+  for(let i=0;i<count;i++){ /* own pieces per skin (CONFETTI_SKIN / confettiPiece, js/core-b.js), no emoji; colours = theme tokens */
     const s=document.createElement('div');s.className='confetti';
-    if(typeof isPencil==='function'&&isPencil()){s.innerHTML=rqIcon(['sparkles','star','book-open','check'][i%4],16);} /* «Карандашный»: Lucide, no emoji */
-    else s.textContent=em[i%em.length];
+    const pc=confettiPiece(i);s.innerHTML=pc.html;if(pc.c){s.dataset.c=pc.c;s.dataset.f=pc.f;}
     s.style.left=(8+Math.random()*84)+'vw';
     /* start well below heading when avoidTop */
     s.style.top=avoidTop?((32+Math.random()*40)+'vh'):'-30px';
@@ -699,6 +766,13 @@ function summaryWanted(r){
   if((Number(r.xp)||0)>0)return true;
   const q=r.quest||{};
   return !!((q.daily&&q.daily.length)||(q.weekly&&q.weekly.length));
+}
+/** 19.10: one line about the book level of THIS session (XP multiplier, or why it was not applied); null = ordinary book */
+function summaryLevelLine(q){
+  const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!q||!(q.lvl>0))return null;
+  const r=q.rowLvl||0,m=function(x){return String(L[x].xp).replace('.',',');};
+  if(r>=q.lvl)return {ic:'trending-up',t:L[r].n+' книга: опыт ×'+m(r)};
+  return {ic:'info',t:'Листали быстрее, чем читается '+L[q.lvl].n.toLowerCase()+' книга: '+(r>0?'опыт ×'+m(r):'бонус за сложность не начислен')};
 }
 /** headline: the coin reward of THIS session if any (decision D), else «Сессия завершена» */
 function summaryHeadline(q){

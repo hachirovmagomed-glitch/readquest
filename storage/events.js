@@ -4,9 +4,9 @@
  * Do NOT invent separate DBs for focus / anti-cheat — those are rules on top of events.
  * Do NOT put analytics into sessions[] — sessions stay reading-only.
  */
-import { IDB_STORE_EVENTS } from './schema.js?v=20261017-0034';
-import { openDb } from './idb.js?v=20261017-0034';
-import { normalizeDate } from './sessions.js?v=20261017-0034';
+import { IDB_STORE_EVENTS } from './schema.js?v=20261020-0851';
+import { openDb } from './idb.js?v=20261020-0851';
+import { normalizeDate } from './sessions.js?v=20261020-0851';
 
 async function addEvent(rec) {
   const db = await openDb();
@@ -89,6 +89,8 @@ export async function logAnalyticsEvent(entry) {
   if (entry.type === 'theme_changed') { rec.from = String(entry.from || '').slice(0, 32); rec.to = String(entry.to || '').slice(0, 32); }
   // purchase (shop): catalog id + price paid
   if (entry.type === 'purchase') { rec.id = String(entry.id || '').slice(0, 48); rec.price = Math.max(0, Math.round(Number(entry.price) || 0)); }
+  // test_gold (rqt only): «+1000 монет для теста», amount = coins added
+  if (entry.type === 'test_gold') rec.amount = Math.max(0, Math.round(Number(entry.amount) || 0));
   return addEvent(rec);
 }
 

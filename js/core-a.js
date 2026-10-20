@@ -11,8 +11,10 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261017-0034'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261020-0851'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
+/** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
+function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
 /* MVP: daily goal 10 min, 12 s/page, 3 min/page cap are fixed in code (saved / imported values ignored). Outside MVP: v6 (S.goal / S.anti). */
 const MVP_GOAL=10, MVP_ANTI={minSec:12,maxMin:3};
 function goalMin(){return isMvp()?MVP_GOAL:(S.goal||10);}
@@ -42,14 +44,14 @@ function applyMvpChrome(){
   const bn=el('botnav');
   if(bn){
     const onLib=!el('library').classList.contains('hidden');
-    const onProf=!el('profile').classList.contains('hidden');
+    const onProf=!el('profile').classList.contains('hidden')||!!(el('stats')&&!el('stats').classList.contains('hidden')); /* 18.10: statistics belong to «Профиль» */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
     const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
     if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
     if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
     if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
     bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
-      const scr={quests:'quests',notes:'quotes',vocab:'vocab',stats:'stats'}[id];b.classList.toggle('on',!onRew&&!!scr&&!!el(scr)&&!el(scr).classList.contains('hidden'));});
+      const scr={quests:['quests'],stats:['quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -59,8 +61,8 @@ function applyMvpChrome(){
       try{
         if(typeof isPencil==='function'&&isPencil())ava.innerHTML=rqIcon('user-round',18);
         else if(S.useChar!==false&&typeof avatarSvg==='function')ava.innerHTML=avatarSvg();
-        else ava.textContent=S.avatar||'📖';
-      }catch(e){ava.textContent='📖';}
+        else if(S.avatar)ava.textContent=S.avatar;else ava.innerHTML=rqIcon('user-round',18);
+      }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
 }
@@ -88,15 +90,52 @@ function daysInWeekAtGoal(minNeed,wk){
 /** Award every sessions[] row not yet in game.awardedSessionIds (idempotent):
     XP = 10 × (dayMinutes after − before) per row (game-awards xpForSession, stored as row.xp), and AUTO daily +30 / weekly +120 for the (local) days of exactly
     these rows (game.dailyPaidDays / game.weeklyPaidWeeks). No claim button. */
+/* ===== Сложность книги (Джессика 19.10; game-awards.js LEVELS, arch.md) =====
+   Only on the test site for now (like achievements v2): RQ_LVL_NS. Off → no level is passed to the tracker, rows carry no lvl,
+   so XP and coins are exactly the old ones. */
+const RQ_LVL_NS=['rqt'];
+function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
+const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
+function bookLvlAuto(b){
+  if(!b||!window.__rqGame)return 0;
+  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+b.lvlText,c=__lvlAuto[b.id];
+  if(c&&c.k===k)return c.l;
+  let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
+  __lvlAuto[b.id]={k:k,l:l};return l;
+}
+/** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…2 (game-awards textLevel); scans → 0. */
+async function pdfTextLevel(doc,alive){
+  const G=window.__rqGame,parts=[];
+  for(const n of G.pdfSamplePages(doc.numPages,12)){
+    if(alive&&!alive())return null; /* book closed: its document is gone, an empty sample would read as «Обычная» */
+    try{const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}catch(e){}
+  }
+  if(alive&&!alive())return null;
+  return G.textLevel(parts.join('\n'));
+}
+/** once per PDF card: store lvlText (arch.md), one save(); then the open session (if this book) gets the new level */
+async function pdfLvlCheck(b,doc){
+  if(!b||b.type!=='pdf'||!lvlOn()||Number.isInteger(b.lvlText))return;
+  await new Promise(function(r){setTimeout(r,1500);}); /* after the first page is drawn */
+  let l=null;try{l=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
+  if(l==null||Number.isInteger(b.lvlText))return;
+  b.lvlText=l;save();
+  if(R&&R.book===b&&__tracker&&__tracker.setLevel){const o=trackerOpts();__tracker.setLevel(o.level,o.capMs);}
+}
+/** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */
+function bookLvlOf(b){if(!b||!lvlOn())return 0;return window.__rqGame.effLevel(bookLvlAuto(b),(S.bookLvl||{})[b.id]);}
 function awardPendingSessions(){
-  if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[]};
+  if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[],lvlGold:0};
   const G=window.__rqGame;
   const res=G.applySessionAwards(S,SESS); /* XP per row = 10 × whole-minute step of its day (xpForSession), stored as row.xp */
   const fresh=SESS.filter(function(r){return r&&res.ids.indexOf(r.id)>=0;});
   if(__rq&&__rq.setSessionXp)fresh.forEach(function(r){__rq.setSessionXp(r.id,r.xp).catch(function(e){console.warn('[rq] setSessionXp',e);});});
   const q=G.applyQuestAwards(S,SESS,fresh,{goal:goalMin()});
   res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
-  if(res.ids.length||q.gold)save();
+  /* level bonus: rows carry lvl only when lvlOn() was true at the session start, so no gate is needed here */
+  const lv=G.applyLevelAwards?G.applyLevelAwards(S,SESS,fresh):{gold:0};
+  res.lvlGold=lv.gold;res.gold+=lv.gold;
+  if(res.ids.length||res.gold)save();
   return res;
 }
 function dailyPaid(day){return (S.dailyPaidDays||[]).indexOf(day||today())>=0;}
@@ -137,16 +176,12 @@ function clearConfetti(){
 function clearToasts(){
   document.querySelectorAll('.rq-toast').forEach(function(n){try{n.remove();}catch(e){}});
 }
-let rewTab='life';
-function setRewardsTab(t){rewTab=t==='shop'?'shop':'life';
-  if(rewTab!=='shop')try{closeShopDetail();}catch(e){}
-  [['life','rewTabLife','rewPaneLife'],['shop','rewTabShop','rewPaneShop']].forEach(function(x){const on=x[0]===rewTab,b=el(x[1]),p=el(x[2]);
-    if(b){b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');}if(p)p.hidden=!on;});
-  renderRewardsSheet();}
+/* 17.10: «Награды» = «Из жизни» only; the skin shop lives on «Внешний вид». 'shop' → that screen */
+function setRewardsTab(t){if(t==='shop'){closeRewardsSheet();openLook(true);return;}renderRewardsSheet();}
 function openRewardsSheet(tab){
-  if(tab)rewTab=tab==='shop'?'shop':'life';
+  if(tab==='shop'){openLook(true);return;}
   clearConfetti();clearToasts();
-  setRewardsTab(rewTab);
+  renderRewardsSheet();
   {const rs=el('rewardsSheet'),nh=(typeof rqNavH==='function'?rqNavH():0);rs.style.bottom=nh+'px';rs.scrollTop=0;el('rewardsScrim').style.bottom=nh+'px';} /* scrim stops above the bottom nav: tabs stay tappable */
   el('rewardsScrim').classList.remove('hidden');
   el('rewardsSheet').classList.add('open');
@@ -209,9 +244,10 @@ function renameRewardSlot(i,name){
   ensureMvpRewards();const r=S.rewards[i];if(!r)return;
   r.name=(name||'').trim().slice(0,60);r.placeholder=!r.name;save();renderRewardsSheet();
 }
-function delRewardSlot(i){
+async function delRewardSlot(i){
   ensureMvpRewards();if(S.rewards.length<=1)return;
-  if(!confirm('Удалить слот?'))return;S.rewards.splice(i,1);save();renderRewardsSheet();
+  const nm=(S.rewards[i]&&S.rewards[i].name)||'';
+  if(!await rqAsk({t:nm?'Удалить награду «'+nm+'»?':'Удалить пустой слот?',ok:'Удалить',danger:true}))return;S.rewards.splice(i,1);save();renderRewardsSheet();
 }
 function buyRewardTier(i){
   ensureMvpRewards();const r=S.rewards[i];if(!r||!r.name||!r.name.trim()){flashMsg('Сначала назовите награду');return;}
@@ -219,7 +255,7 @@ function buyRewardTier(i){
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];
   S.rewardPurchases.push({id:'rp_'+Date.now()+'_'+i, title:r.name, price:r.cost, at:new Date().toISOString()});
-  save();try{confettiReward();}catch(e){}flashMsg('🎉 «'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
+  save();try{confettiReward();}catch(e){}flashMsg('«'+r.name+'» — ваша!');renderRewardsSheet();renderMvpProfile();
   if(!isMvp())renderShop();
 }
 function addRewardSlot(){

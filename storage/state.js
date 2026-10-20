@@ -23,8 +23,8 @@ import {
   mergeFlat,
   splitLegacyState,
   NS,
-} from './schema.js?v=20261017-0034';
-import * as idb from './idb.js?v=20261017-0034';
+} from './schema.js?v=20261020-0851';
+import * as idb from './idb.js?v=20261020-0851';
 
 let saveWarned = false;
 
@@ -95,7 +95,7 @@ export function saveEnvelope(envelope) {
       saveWarned = true;
       try {
         alert(
-          '⚠️ Не удалось сохранить прогресс: память браузера переполнена. Книги теперь в IndexedDB — если ошибка повторяется, сделайте экспорт и удалите часть метаданных/обложек.'
+          'Не удалось сохранить прогресс: память браузера переполнена. Книги теперь в IndexedDB — если ошибка повторяется, сделайте экспорт и удалите часть метаданных/обложек.'
         );
       } catch (_) {}
     }
@@ -209,8 +209,8 @@ export async function exportBackup(envelope, settings, opts) {
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261017-0034');
-  const { listReadingEvents } = await import('./events.js?v=20261017-0034');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261020-0851');
+  const { listReadingEvents } = await import('./events.js?v=20261020-0851');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
@@ -309,9 +309,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261017-0034');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261020-0851');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261017-0034'
+    './events.js?v=20261020-0851'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */
@@ -332,6 +332,7 @@ export async function importBackup(data) {
         pageTurns: s.pageTurns != null ? s.pageTurns : s.pages,
         startedAt: s.startedAt,
         xp: s.xp,
+        lvl: s.lvl,
       });
     } catch (e) {
       /* skip bad rows */

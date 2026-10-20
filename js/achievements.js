@@ -9,8 +9,8 @@ function achV2(){return RQ_ACH_V2_NS.indexOf(window.RQ_NS)>=0;}
 function achDates(){return (S.achDates&&typeof S.achDates==='object'&&!Array.isArray(S.achDates))?S.achDates:{};}
 function achInput(){
   const own={};(S.userBooks||[]).forEach(function(b){if(b)own[b.id]=1;});
-  const books=BOOKS.concat(S.userBooks||[]).filter(Boolean).map(function(b){return {id:b.id,title:b.title,author:b.author,type:b.type,genre:b.genre,fname:b.fname,pages:b.pages,textLen:typeof b.text==='string'?b.text.length:0,own:!!own[b.id]};});
-  return {sessions:(typeof SESS!=='undefined'&&SESS)||[],finished:S.finished||[],finishDates:S.finishDates||{},books:books,xp:S.xp,streak:S.streak,quotes:S.quotes||{},goal:10,streakMin:typeof STREAK_MIN!=='undefined'?STREAK_MIN:2};
+  const books=BOOKS.concat(S.userBooks||[]).filter(Boolean).map(function(b){return {id:b.id,title:b.title,author:b.author,type:b.type,genre:b.genre,fname:b.fname,pages:b.pages,src:b.srcId?String(b.srcId).split(':')[0]:'',textLen:typeof b.text==='string'?b.text.length:0,own:!!own[b.id]};});
+  return {sessions:(typeof SESS!=='undefined'&&SESS)||[],finished:S.finished||[],finishDates:S.finishDates||{},books:books,xp:S.xp,streak:S.streak,quotes:S.quotes||{},goal:10,streakMin:typeof STREAK_MIN!=='undefined'?STREAK_MIN:2,libSets:typeof advSetsDone==='function'?advSetsDone():0};
 }
 /** открыто: записано в achDates, либо открыто старой версией (achUnlocked / бейдж с тем же или сопоставленным id) — никогда не отнимается */
 function achLegacy(id){return (S.achUnlocked||[]).indexOf(id)>=0||(S.badges||[]).some(function(b){return RQAch.alias(b)===id;});}
@@ -73,6 +73,17 @@ function achBack(){const was=achPageOpen();closeAchPage();if(was&&navState()==='
 window.addEventListener('popstate',function(e){const st=(e.state&&e.state.rq)||null;if(achPageOpen()&&st!=='ach')closeAchPage();});
 function achDateText(d){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');return m?(+m[3])+'.'+m[2]+'.'+m[1]:'';}
 function achTierIcon(a,got){if(!got)return a.tier==='secret'?'lock':'circle';return a.tier==='gold'||a.tier==='legend'?'trophy':a.tier==='secret'?'sparkles':'medal';}
+/* audit 19.10 GL-10 / ACH-02: «1 / 60 мин», «0 / 22 дня» — the unit of the metric after the target */
+function achUnit(a,n){const m=a&&a.m;
+  if(m==='minutes'||m==='maxSession'||m==='maxDay'||m==='minutesWhole')return ' мин';
+  if(m==='goalDays'||m==='streak'||m==='comeback')return ' '+plural(n,'день','дня','дней');
+  if(m==='goalWeeks')return ' '+plural(n,'неделя','недели','недель');
+  if(m==='finished'||m==='libBooks'||m==='weekBooks'||m==='refinish'||m==='ownRead'||m==='quoteBooks')return ' '+plural(n,'книга','книги','книг');
+  if(m==='bigBook')return ' стр.';
+  if(m==='quotes')return ' '+plural(n,'цитата','цитаты','цитат');
+  if(m==='sessions5'||m==='mornings'||m==='nights')return ' '+plural(n,'сессия','сессии','сессий');
+  if(m==='authors')return ' '+plural(n,'автор','автора','авторов');
+  return '';}
 function renderAchPage(){
   const body=el('achBody');if(!body)return;
   const sc=achScore(),D=achDates(),ev=RQAch.evaluate(achInput()),seed=S.achSeed&&typeof S.achSeed==='object'?S.achSeed:null;
@@ -98,7 +109,7 @@ function renderAchPage(){
   const list=RQAch.CAT.filter(function(a){return a.sec===achSec&&(!a.legacy||achEarned(a.id));});
   h+='<div class="achv-list">'+list.map(function(a){
     const got=achEarned(a.id),hid=a.tier==='secret'&&!got,e=ev[a.id]||{cur:0,target:1};
-    const prog=!got&&!hid&&e.target>1?'<div class="pbar"><i style="width:'+Math.round(Math.min(1,e.cur/e.target)*100)+'%"></i></div><div class="achv-sub">'+e.cur+' / '+e.target+'</div>':'';
+    const prog=!got&&!hid&&e.target>1?'<div class="pbar"><i style="width:'+Math.round(Math.min(1,e.cur/e.target)*100)+'%"></i></div><div class="achv-sub">'+e.cur+' / '+e.target+achUnit(a,e.target)+'</div>':'';
     const when=got?(D[a.id]?'Получено '+achDateText(D[a.id]):'Получено раньше'):'';
     return '<div class="achv-tile'+(got?' got':'')+'"><span class="achv-ic">'+rqIcon(achTierIcon(a,got),22)+'</span><div class="achv-txt">'+
       '<div class="achv-name">'+(hid?'???':esc(a.name))+'</div>'+

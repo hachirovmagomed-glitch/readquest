@@ -57,6 +57,8 @@ export const PROGRESS_DEF = {
   planned: {},
   bookStats: {},
   bookDiff: {},
+  /** 19.10 (arch.md «Сложность книги»): id → level 0…2 chosen by the reader; only LOWERS the automatic level */
+  bookLvl: {},
   bookStat: {},
   bookImp: {},
   status: {},
@@ -113,6 +115,8 @@ export const GAME_DEF = {
   dailyPaidDays: [],
   /** Auto-paid MVP weekly (+120): week keys (Mon YYYY-MM-DD) already paid */
   weeklyPaidWeeks: [],
+  /** 19.10 (arch.md «Сложность книги»): local day YYYY-MM-DD → level-bonus coins already paid that day */
+  lvlPaid: {},
   /** true once old claim dates (dailyClaimed/weeklyClaimed) were folded into the *Paid lists */
   paidMigrated: false,
   /** Legacy v6 daily-bonus button (full UI) */
@@ -122,6 +126,8 @@ export const GAME_DEF = {
   invHist: [],
   /** Architect: [{id, title, price, at}] ISO at */
   rewardPurchases: [],
+  /** arch.md 16.10: cancelled real-life rewards [{id, purchaseId|null, title, price, at}] ISO at */
+  rewardRefunds: [],
   /** sessions[].id (UUID) already turned into XP — idempotent awards (reload/import safe) */
   awardedSessionIds: [],
   /** Legacy → migrated to rewardPurchases in hydrateGame */
@@ -154,6 +160,9 @@ export const LIBRARY_DEF = {
   shelfOrder: [],
   covers: {},
   autoDiff: true,
+  /** arch.md 19.10 «Приключения»: «Хочу прочитать» [{sid, page?, n?, t, a, tr?, ed?, lang?}] ≤ 200 и последние поиски ≤ 8 */
+  advWant: [],
+  advRecent: [],
 };
 
 /** Reader settings (same shape as v6 SETDEF) */
@@ -176,6 +185,9 @@ export const SET_DEF = {
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
   pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
   readCounter: true, // 1б: «7 / 10 мин» in focus
+  bright: 1,         // 18.10: own brightness 0.3..1 (arch.md SET.bright)
+  warm: 0,           // 18.10: warm tint 0..0.6
+  warmNight: true,   // 18.10: warm tint only on a night page
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -184,7 +196,7 @@ export const SET_DEF = {
 export const FLIP_DEF = { btns: false, tap: true, invert: false, swipe: true, mode: 'page', anim: 'none' };
 const FLIP_KEYS = ['btns', 'tap', 'invert', 'swipe'];
 /* 16.10 (arch.md «SET.flip.mode и SET.flip.anim»): whitelisted strings; junk → default */
-const FLIP_STR = { mode: ['page', 'scroll'], anim: ['none', 'slide', 'fade'] };
+const FLIP_STR = { mode: ['page', 'scroll'], anim: ['none', 'slide', 'fade', 'curl'] };
 function flipFrom(o) {
   const f = {};
   FLIP_KEYS.forEach((k) => { f[k] = typeof o[k] === 'boolean' ? o[k] : FLIP_DEF[k]; });
@@ -196,6 +208,12 @@ export function normFlip(s) {
   if (s.flip) s.flip = flipFrom(s.flip);
   else if (s.nav && typeof s.nav === 'object' && !Array.isArray(s.nav) && FLIP_KEYS.some((k) => k in s.nav)) s.flip = flipFrom(s.nav);
   return s;
+}
+
+/** 18.10 (arch.md SET.bright / SET.warm): number clamped to [lo,hi] on a 0.05 grid; not a number → default */
+export function normStep(v, lo, hi, def) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return def;
+  return Math.round(Math.max(lo, Math.min(hi, v)) * 20) / 20;
 }
 
 export const FOCUS_MODES = ['off', 'button', 'auto'];
@@ -223,6 +241,18 @@ export const LIBRARY_KEYS = Object.keys(LIBRARY_DEF);
 /**
  * Normalize nested defaults after merge (mirrors v6 hydrate, without side effects).
  */
+/** 19.10: {key: whole number 0…max}; not an object / bad keys / bad values → dropped */
+function intMap(o, max, keyRe) {
+  const out = {};
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    Object.keys(o).forEach(function (k) {
+      const v = o[k];
+      if (Number.isInteger(v) && v >= 0 && v <= max && (!keyRe || keyRe.test(k))) out[k] = v;
+    });
+  }
+  return out;
+}
+
 export function hydrateProgress(p) {
   const out = Object.assign({}, PROGRESS_DEF, p || {});
   out.progress = out.progress || {};
@@ -236,6 +266,7 @@ export function hydrateProgress(p) {
   out.planned = out.planned || {};
   out.bookStats = out.bookStats || {};
   out.bookDiff = out.bookDiff || {};
+  out.bookLvl = intMap(out.bookLvl, 2);
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};
   out.status = out.status || {};
@@ -275,9 +306,13 @@ export function hydrateGame(g) {
   out.invHist = out.invHist || [];
   /* Architect fields + compat */
   out.rewardPurchases = Array.isArray(out.rewardPurchases) ? out.rewardPurchases : [];
+  out.rewardRefunds = Array.isArray(out.rewardRefunds) ? out.rewardRefunds.filter(function (x) {
+    return x && typeof x === 'object' && typeof x.price === 'number' && Number.isFinite(x.price) && typeof x.at === 'string';
+  }) : [];
   out.awardedSessionIds = Array.isArray(out.awardedSessionIds) ? out.awardedSessionIds : [];
   out.dailyPaidDays = Array.isArray(out.dailyPaidDays) ? out.dailyPaidDays : [];
   out.weeklyPaidWeeks = Array.isArray(out.weeklyPaidWeeks) ? out.weeklyPaidWeeks : [];
+  out.lvlPaid = intMap(out.lvlPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {
     out.rewardPurchases = out.rewardHist.map(function (h, i) {
@@ -380,6 +415,12 @@ export function hydrateLibrary(lib) {
   out.shelfOrder = out.shelfOrder || [];
   out.covers = out.covers || {};
   if (out.autoDiff === undefined) out.autoDiff = true;
+  out.advWant = Array.isArray(out.advWant)
+    ? out.advWant.filter((x) => x && typeof x === 'object' && typeof x.sid === 'string' && /^(wikisource|gutenberg|se):./.test(x.sid)).slice(0, 200)
+    : [];
+  out.advRecent = Array.isArray(out.advRecent)
+    ? out.advRecent.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.slice(0, 60)).slice(0, 8)
+    : [];
   return out;
 }
 
@@ -391,6 +432,9 @@ export function hydrateSettings(s) {
   if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
   out.pdfDim = normPdfDim(out.pdfDim);
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
+  out.bright = normStep(out.bright, 0.3, 1, 1);
+  out.warm = normStep(out.warm, 0, 0.6, 0);
+  if (typeof out.warmNight !== 'boolean') out.warmNight = true;
   /* 1в: theme is an id string — the free ones incl. 'pencil' / 'pencil-night' («Карандашный»), paid SHOP ids. Unknown ids are KEPT
      (forward compat: an older build simply renders sepia, see activeTheme); only a non-string / empty / huge value falls back. */
   if (typeof out.theme !== 'string' || !out.theme || out.theme.length > 32) out.theme = 'sepia';

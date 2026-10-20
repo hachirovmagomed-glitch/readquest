@@ -352,74 +352,30 @@ el('panelClose').onclick=()=>el('panel').classList.add('hidden');
 el('tabToc').onclick=()=>renderPanel('toc');
 el('tabMarks').onclick=()=>renderPanel('marks');
 el('tabQts').onclick=()=>renderPanel('qts');
-el('tabFind').onclick=()=>renderPanel('find');
+el('tabFind').onclick=()=>bfOpen(); /* 20.10: the one search screen (js/book-find.js), the same as the magnifier in the header */
+el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
 function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
 /* audit 19.10 FR-03: a TXT without a stored toc gets one from its «Глава N» / «Часть N» lines (memory only, never written) */
 let __txtToc={id:null,toc:[]};
-function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;if(!b.text||b.type==='pdf')return [];if(__txtToc.id===b.id)return __txtToc.toc;
+function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
+  if(b.type==='pdf')return (R&&R.book===b&&R.pdfToc)||[]; /* 20.10: PDF bookmarks [{t,page}], memory only (bfPdfOutline) */
+  if(!b.text)return [];if(__txtToc.id===b.id)return __txtToc.toc;
   const out=[],re=/(^|\n)[ \t]*((?:Глава|ГЛАВА|Часть|ЧАСТЬ)[ \t]+[^\n]{1,60})/g;let m;
   while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
   __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
+  if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
   jumpRatio(b.text&&b.text.length?toc[i].off/b.text.length:0);
 }
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
-let FINDQ='';
-let FINDTOKEN=0;
-function doFind(){
-  const res=el('findRes');if(!res)return;
-  const b=R.book;
-  if(!FINDQ||FINDQ.trim().length<2){res.innerHTML='<div class="pempty">Введите минимум 2 символа</div>';return;}
-  const q=FINDQ.trim().toLowerCase();
-  if(b&&b.text){
-    const tl=b.text.toLowerCase();const out=[];let i=0;
-    while(out.length<40){
-      const p=tl.indexOf(q,i);if(p<0)break;
-      const fr=p/b.text.length;
-      const ctx=b.text.slice(Math.max(0,p-40),p+q.length+40).replace(/\n+/g,' ');
-      out.push('<button class="prow" onclick="jumpRatio('+fr.toFixed(4)+')">…'+esc(ctx)+'…</button>');
-      i=p+q.length;
-    }
-    res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';return;
-  }
-  if(R.mode==='pdf'&&R.pdf){pdfFind(q,res);return;}
-  res.innerHTML='<div class="pempty">Поиск недоступен</div>';
-}
-async function pdfFind(q,res){
-  const token=++FINDTOKEN;
-  res.innerHTML='<div class="pempty">Ищу по страницам…</div>';
-  const out=[];
-  for(let n=0;n<R.pageCount;n++){
-    if(token!==FINDTOKEN)return;
-    try{
-      const page=await R.pdf.getPage(n+1);
-      const tc=await page.getTextContent();
-      const txt=tc.items.map(it=>it.str).join(' ');
-      const pos=txt.toLowerCase().indexOf(q);
-      if(pos>=0){
-        const ctx=txt.slice(Math.max(0,pos-40),pos+q.length+50).replace(/\s+/g,' ');
-        out.push('<button class="prow" onclick="findGo('+n+')">стр. '+(n+1)+': …'+esc(ctx)+'…</button>');
-        if(token===FINDTOKEN)res.innerHTML=out.join('')+'<div class="pempty">ищу дальше…</div>';
-      }
-    }catch(e){}
-    if(out.length>=60)break;
-  }
-  if(token===FINDTOKEN)res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';
-}
-function findGo(n){jumpTo(n);el('panel').classList.add('hidden');}
 function renderPanel(tab){
   panelTab=tab;rqGridStop();
-  [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabFind','find'],['tabGrid','grid']]
+  [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
   const body=el('panelBody');const b=R.book;
   if(!b){body.innerHTML='<div class="pempty">Откройте книгу</div>';return;}
-  if(tab==='find'){
-    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
-    el('bookFind').oninput=e=>{FINDQ=e.target.value;doFind();};
-    doFind();return;
-  }
   if(tab==='grid'){rqGridRender(body);return;} /* 18.10: real page thumbnails, js/page-grid.js */
   if(tab==='toc'){
     const toc=tocOf(b);
@@ -531,6 +487,7 @@ function closeReader(opts){
 async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
+  if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo)fo.hidden=true;} /* 20.10: the search lives with the open book only */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}ttsOn=false;ttsBtn(false);

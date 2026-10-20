@@ -85,7 +85,7 @@ if (want('nokey')) {
 if (want('deepseek')) {
   const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { role: 'assistant', content: 'Здесь это слово значит «тест». Объяснение от ИИ.' } }] } }));
   /* через настройки: сервис по умолчанию DeepSeek, вставляем ключ */
-  const d = await p.evaluate(() => { openGeneralSettings(false); const on = el('aiProvSeg').querySelector('button.on'); return { prov: on && on.textContent, base: el('aiBase').hidden, ph: el('aiModel').placeholder, sai: JSON.parse(JSON.stringify(S.ai)) }; });
+  const d = await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); const on = el('aiProvSeg').querySelector('button.on'); return { prov: on && on.textContent, base: el('aiBase').hidden, ph: el('aiModel').placeholder, sai: JSON.parse(JSON.stringify(S.ai)) }; });
   ok('deepseek: новый человек — DeepSeek по умолчанию, поле адреса скрыто, подсказка модели deepseek-chat', d.prov === 'DeepSeek' && d.base && /deepseek-chat/.test(d.ph) && d.sai.prov === 'deepseek', d);
   await p.type('#aiKey', 'sk-test-DS'); await sleep(100);
   await p.click('#aiTest'); await p.waitForFunction(() => /Работает|Не работает/.test(el('aiTestRes').textContent), { timeout: 10000 }).catch(() => {});
@@ -118,7 +118,7 @@ if (want('deepseek')) {
 
 if (want('anthropic')) {
   const { ctx, p, reqs } = await fresh(360, () => ({ status: 200, json: { content: [{ type: 'text', text: 'Это объяснение от Claude.' }] } }));
-  await p.evaluate(() => { openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => /Claude/.test(b.textContent)).click(); });
+  await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => /Claude/.test(b.textContent)).click(); });
   await p.type('#aiKey', 'sk-ant-TEST'); await sleep(100);
   await shot(p, '360-4-nastroyki-claude');
   await openAndSelect(p); await p.click('#spAI'); await waitAnswer(p);
@@ -131,7 +131,7 @@ if (want('anthropic')) {
 
 if (want('custom')) {
   const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { content: 'Свой сервис ответил.' } }] } }));
-  await p.evaluate(() => { openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Другой').click(); });
+  await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Другой').click(); });
   const vis = await p.evaluate(() => !el('aiBase').hidden);
   await p.type('#aiKey', 'k-1'); await p.type('#aiBase', 'https://ai.example.test/v1/'); await p.type('#aiModel', 'my-model'); await sleep(100);
   await openAndSelect(p); await p.click('#spAI'); await waitAnswer(p);
@@ -258,7 +258,7 @@ if (want('tts')) for (const W of [360, 390]) {
     if (/texttospeech/.test(q.url)) return { status: 200, json: { audioContent: wav(0.3).toString('base64') } };
     return { status: 200, raw: wav(0.4), type: 'audio/wav' };
   });
-  const d = await p.evaluate(() => { openGeneralSettings(false); const on = el('ttsProvSeg').querySelector('button.on'); return { prov: on && on.textContent, fields: el('ttsFields').hidden, sai: JSON.parse(JSON.stringify(S.tts)) }; });
+  const d = await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); const on = el('ttsProvSeg').querySelector('button.on'); return { prov: on && on.textContent, fields: el('ttsFields').hidden, sai: JSON.parse(JSON.stringify(S.tts)) }; });
   ok('tts ' + W + ': по умолчанию «Телефон», полей ключа не видно', d.prov === 'Телефон' && d.fields && d.sai.prov === 'system', d);
   await p.evaluate(() => [...el('ttsProvSeg').querySelectorAll('button')].find(b => b.textContent === 'OpenAI').click());
   await p.type('#ttsKey', 'sk-tts'); await sleep(100);
@@ -318,10 +318,32 @@ if (want('tts')) {
   await ctx.close();
 }
 
+if (want('compact')) for (const W of [360, 390]) {
+  const { ctx, p } = await fresh(W);
+  const r = await p.evaluate(async () => {
+    openGeneralSettings(false); el('aiHead').scrollIntoView({ block: 'start' });
+    const h = (e) => Math.round(e.getBoundingClientRect().height), card = el('aiX').parentElement;
+    const r0 = { cardH: h(card), ai: el('aiCard').hidden, tts: el('ttsCard').hidden, aiRow: el('aiX').textContent, ttsRow: el('ttsHead').textContent };
+    el('aiX').click(); await new Promise(r => setTimeout(r, 50));
+    const r1 = { ai: el('aiCard').hidden, list: el('aiProvSeg').hidden, pick: el('aiProvX').textContent, key: h(el('aiKey')) };
+    el('aiProvX').click(); const r2 = { list: el('aiProvSeg').hidden, n: el('aiProvSeg').querySelectorAll('button').length };
+    [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Claude').click();
+    const r3 = { list: el('aiProvSeg').hidden, pick: el('aiProvX').textContent, prov: S.ai.prov, open: !el('aiCard').hidden };
+    return { r0, r1, r2, r3 };
+  });
+  ok('compact ' + W + ': «Нейросети» — две строки, всё свёрнуто, карточка не выше 140px', r.r0.ai && r.r0.tts && r.r0.cardH <= 140 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
+  ok('compact ' + W + ': строка ИИ раскрывается; список сервисов скрыт за кнопкой «Сервис DeepSeek»', !r.r1.ai && r.r1.list && /Сервис\s*DeepSeek/.test(r.r1.pick) && r.r1.key > 0, r.r1);
+  ok('compact ' + W + ': «Сервис» раскрывает 5 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 5 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
+  await p.evaluate(() => { NN_EXP.ai = false; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
+  await shot(p, W + '-13-neyroseti-svernuto');
+  await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.aiP = true; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
+  await shot(p, W + '-14-neyroseti-servis');
+  await ctx.close();
+}
 if (want('keyhow')) for (const W of [360, 390]) {
   const { ctx, p } = await fresh(W);
   const r = await p.evaluate(async () => {
-    openGeneralSettings(false); const out = {};
+    NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); const out = {};
     for (const b of [...el('aiProvSeg').querySelectorAll('button')]) { b.click(); out['ai:' + b.textContent] = { t: el('aiHowB').textContent, a: (el('aiHowB').querySelector('a') || {}).href || '', tgt: (el('aiHowB').querySelector('a') || {}).target || '' }; }
     for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
     return out;

@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261020-1755'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261020-1853'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
@@ -43,15 +43,14 @@ function applyMvpChrome(){
   document.body.classList.toggle('mvp', isMvp());
   const bn=el('botnav');
   if(bn){
-    const onLib=!el('library').classList.contains('hidden');
-    const onProf=!el('profile').classList.contains('hidden')||!!(el('stats')&&!el('stats').classList.contains('hidden')); /* 18.10: statistics belong to «Профиль» */
+    /* 20.10 (Джессика: «нажимаю на Путь, а внизу не меняется»): one tab lit = the tab that owns the visible screen.
+       Was: «Библиотека» lit on every screen but «Профиль», and «Путь»/«Приключения» had no screens listed. */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
-    const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
-    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
-    if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
-    bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
-      const scr={quests:['quests'],stats:['quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
+    const OWN={library:'library',path:'path',adv:'adv',profile:'profile',stats:'profile',quests:'quests', /* 18.10: statistics belong to «Профиль» */
+      quotes:'stats',vocab:'stats',calendar:'stats',achievements:'stats',shelfScreen:'stats',look:'look'}; /* settings is not a tab → nothing lit (14.10) */
+    const cur=(typeof SCREENS!=='undefined'?SCREENS:[]).find(function(s){return el(s)&&!el(s).classList.contains('hidden');});
+    const tab=onRew?'rewards':(OWN[cur]||'');
+    bn.querySelectorAll('.botnav-btn').forEach(function(b){const id=b.dataset.nav||{bnLib:'library',bnRew:'rewards',bnProf:'profile'}[b.id];b.classList.toggle('on',!!id&&id===tab);});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');

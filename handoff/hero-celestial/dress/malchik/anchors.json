@@ -1,0 +1,131 @@
+{
+ "canvas": [
+  864,
+  1152
+ ],
+ "body": "malchik",
+ "teen": true,
+ "engine_scale": 0.88,
+ "figure_bbox": [
+  315,
+  115,
+  547,
+  1035
+ ],
+ "draw_order": [
+  "cape-back",
+  "body",
+  "bottom",
+  "top",
+  "boots",
+  "gloves",
+  "cape-front",
+  "accessory",
+  "headwear",
+  "main-hand"
+ ],
+ "grips": {
+  "main_hand": [
+   334,
+   634
+  ],
+  "off_hand": [
+   526,
+   640
+  ],
+  "note": "main_hand = правая рука персонажа (левая сторона кадра)"
+ },
+ "layers": {
+  "headwear": {
+   "file": "layers/layer-headwear.png",
+   "bbox": [
+    350,
+    103,
+    536,
+    282
+   ]
+  },
+  "cape": {
+   "file": "layers/layer-cape.png",
+   "bbox": [
+    259,
+    272,
+    602,
+    942
+   ]
+  },
+  "cape-front": {
+   "file": "layers/layer-cape-front.png",
+   "bbox": [
+    312,
+    272,
+    550,
+    901
+   ]
+  },
+  "cape-back": {
+   "file": "layers/layer-cape-back.png",
+   "bbox": [
+    259,
+    273,
+    602,
+    942
+   ]
+  },
+  "top": {
+   "file": "layers/layer-top.png",
+   "bbox": [
+    308,
+    293,
+    553,
+    602
+   ]
+  },
+  "bottom": {
+   "file": "layers/layer-bottom.png",
+   "bbox": [
+    337,
+    483,
+    522,
+    1041
+   ]
+  },
+  "gloves": {
+   "file": "layers/layer-gloves.png",
+   "bbox": [
+    307,
+    422,
+    554,
+    673
+   ]
+  },
+  "boots": {
+   "file": "layers/layer-boots.png",
+   "bbox": [
+    328,
+    889,
+    530,
+    1047
+   ]
+  },
+  "main-hand": {
+   "file": "layers/layer-main-hand.png",
+   "bbox": [
+    287,
+    529,
+    389,
+    763
+   ]
+  },
+  "accessory": {
+   "file": "layers/layer-accessory.png",
+   "bbox": [
+    389,
+    243,
+    480,
+    334
+   ]
+  }
+ },
+ "maneken": "maneken.png"
+}

@@ -148,6 +148,7 @@ function renderVocab(){
   box.innerHTML='<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Слов: <b>'+list.length+'</b> · выучено: <b>'+known+'</b></div>'+
     list.map(function(v,i){return '<div class="qcard"><div class="row"><b style="font-size:15px">'+esc(v.w)+'</b><div class="spacer"></div><span class="chip">'+(((v.box||0)>=4)?rqIcon('check',14):(v.box||0)+'/4')+'</span><button class="lnk danger" style="margin-left:8px" onclick="delWord('+i+')">✕</button></div>'+
       (v.ctx?'<div class="qnote">«'+esc(v.ctx)+'»</div>':'')+
+      (typeof v.ex==='string'&&v.ex?'<div class="qnote vex">'+rqIcon('sparkles',14)+' '+esc(v.ex)+'</div>':'')+
       '<div class="qmeta"><span>'+esc(v.book||'')+'</span><div class="spacer"></div><span>'+(v.date||'')+'</span></div></div>';}).join('');
 }
 function delWord(i){if(!S.vocab||!S.vocab[i])return;S.vocab.splice(i,1);save();renderVocab();}
@@ -159,7 +160,7 @@ function renderVocabCards(){
   const o=due[vcIdx],v=o.v;
   box.innerHTML='<div style="text-align:center;font-size:12px;color:var(--muted);margin:6px 0 12px">Карточка '+(vcIdx+1)+' из '+due.length+'</div>'+
     '<div class="flashcard" onclick="vcFlip=!vcFlip;renderVocabCards()">'+
-    (vcFlip?'<div class="fc-back">'+(v.ctx?'«'+esc(v.ctx)+'»':'<span style="color:var(--muted)">нет контекста — добавьте перевод сами</span>')+'<div style="font-size:12px;color:var(--muted);margin-top:12px">'+esc(v.book||'')+'</div></div>'
+    (vcFlip?'<div class="fc-back">'+(typeof v.ex==='string'&&v.ex?'<div class="vex">'+esc(v.ex)+'</div>':'')+(v.ctx?'«'+esc(v.ctx)+'»':(v.ex?'':'<span style="color:var(--muted)">нет контекста — добавьте перевод сами</span>'))+'<div style="font-size:12px;color:var(--muted);margin-top:12px">'+esc(v.book||'')+'</div></div>'
            :'<div class="fc-front">'+esc(v.w)+'<div style="font-size:12px;color:var(--muted);font-weight:400;margin-top:12px">тап — показать контекст</div></div>')+
     '</div>'+
     '<div class="row" style="gap:10px;margin-top:14px"><button class="buy" style="flex:1;background:#e0445b" onclick="gradeCard('+o.i+',false)">Повторить</button><button class="buy owned" style="flex:1" onclick="gradeCard('+o.i+',true)">Знаю</button></div>';

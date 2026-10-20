@@ -1,0 +1,26 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Перекраска толстовки</title>
+<style>body{margin:0;font:15px system-ui;background:#faf8f4;color:#222;text-align:center}
+body.dark{background:#121212;color:#eee}canvas{display:block;margin:8px auto}
+#pal{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px}
+#pal button{width:36px;height:36px;border-radius:50%;border:2px solid #8886;cursor:pointer}
+#pal button[aria-pressed=true]{outline:3px solid #1f6f6b;outline-offset:2px}</style>
+<div><label><input type=radio name=who value=girl checked> Девушка</label> <label><input type=radio name=who value=boy> Парень</label> <label><input type=checkbox id=dk> Тёмный фон</label></div>
+<div id=pal></div><canvas id=cv width=390 height=585></canvas>
+<script type=module>
+import {drawHero} from './recolor.js';
+const palette=await (await fetch('../palette.json')).json();
+const st={who:'girl',color:new URLSearchParams(location.search).get('color')||'red'};
+const pal=document.getElementById('pal');
+for(const c of palette.colors){const b=document.createElement('button');b.style.background=c.hex;b.title=c.name;b.setAttribute('aria-label',c.name);b.onclick=()=>{st.color=c.id;go()};b.dataset.id=c.id;pal.append(b);}
+document.querySelectorAll('[name=who]').forEach(r=>r.onchange=()=>{st.who=r.value;go()});
+dk.onchange=()=>document.body.classList.toggle('dark',dk.checked);
+async function go(){
+  pal.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===st.color));
+  const w=st.who, ctx=cv.getContext('2d');
+  await drawHero(ctx,{base:`../bases/base-${w}.png`,palette,colorId:st.color,scale:390/4096,
+    item:{gray:`../items/hoodie/hoodie-${w}.gray.trim.png`,details:`../items/hoodie/hoodie-${w}.details.trim.png`,trim:`../items/hoodie/hoodie-${w}.trim.json`}});
+  document.title='ok';
+}
+go();
+</script></html>

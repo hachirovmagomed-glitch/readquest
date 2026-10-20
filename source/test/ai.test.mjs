@@ -367,6 +367,56 @@ if (want('keyhow')) {
   await ctx.close();
 }
 
+/* skins (Джессика 20.10: «у каждого скина всё уникально»): «Нейросети», «Объясни» и чат — свой вид в каждом скине, текст читается, 360 влезает */
+const SKINS = ['ellada', 'babochkovyi', 'celestial', 'pencil'];
+const look = (p) => p.evaluate(() => {
+  const rgb = (s) => (s.match(/rgba?\([^)]*\)/g) || []).map(c => c.match(/[\d.]+/g).map(Number)).filter(c => c.length < 4 || c[3] > 0.5);
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const bgs = (e) => { for (let n = e; n; n = n.parentElement) { const cs = getComputedStyle(n); const g = n === document.documentElement ? [] : rgb(cs.backgroundImage.replace(/url\([^)]*\)/g, '')); const b = rgb(cs.backgroundColor); if (g.length || b.length) return g.concat(b); } return [[255, 255, 255]]; };
+  const cr = (e) => { if (!e) return 0; const t = rgb(getComputedStyle(e).color)[0]; return Math.min(...bgs(e).map(b => { const a = lum(t), c = lum(b); return (Math.max(a, c) + 0.05) / (Math.min(a, c) + 0.05); })); };
+  const cs = (q, k) => { const e = document.querySelector(q); return e ? getComputedStyle(e)[k] : ''; };
+  const pick = (q) => document.querySelector(q);
+  return { u: cs('#aiChatLog .cm.u', 'backgroundImage') + '|' + cs('#aiChatLog .cm.u', 'backgroundColor') + '|' + cs('#aiChatLog .cm.u', 'borderRadius'),
+    h: cs('#aiChatH', 'fontFamily'), row: cs('#aiX', 'backgroundImage') + '|' + cs('#aiX', 'backgroundColor') + '|' + cs('#aiX', 'borderRadius'),
+    send: cs('#aiChatSend', 'borderRadius') + '|' + cs('#aiChatSend', 'backgroundColor') + '|' + cs('#aiChatSend', 'backgroundImage') + '|' + cs('#aiChatSend', 'color'),
+    th: document.documentElement.dataset.theme || 'day', c: { u: cr(pick('#aiChatLog .cm.u')), a: cr(pick('#aiChatLog .cm.a')), xt: cr(pick('#aiX .xt')), xsub: cr(pick('#aiX .xsub')), xv: cr(pick('#aiX .xv')), how: cr(pick('#aiHow > summary')), q: cr(pick('#aiBody .ai-a')) } };
+});
+if (want('skins')) {
+  const seen = {};
+  for (const sk of SKINS) for (const W of [360, 390]) {
+    const { ctx, p } = await fresh(W, () => ({ status: 200, json: { choices: [{ message: { content: 'Хамелеон — человек, который меняет мнение под начальство. Очумелов то ругает собаку, то хвалит.' } }] } }));
+    await p.evaluate((sk) => { S.gold = 2000; S.ai.key = 'sk-skin'; save(); buy('skin-' + sk); wear('skin-' + sk); }, sk); await sleep(400);
+    const views = W === 390 ? ['day', 'night'] : ['day'];
+    for (const v of views) {
+      const setTh = () => p.evaluate((sk, n) => { SET.theme = skinThemeKey(sk, n); SET.cBg = null; SET.cTxt = null; saveSet(); applySet(); }, sk, v === 'night');
+      await setTh(); await sleep(300);
+      const th = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin, theme: document.documentElement.dataset.theme || 'day' }));
+      /* настройки: ИИ раскрыт, инструкция открыта */
+      await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.tts = false; openGeneralSettings(false); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(300);
+      const ov = await p.evaluate(() => { const c = document.querySelector('.nncard').getBoundingClientRect(); return [...document.querySelectorAll('.nncard *')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 4); });
+      await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-neyroseti');
+      /* «Объясни» */
+      await p.evaluate(() => { __navAllow = true; show('library'); __navAllow = false; });
+      await p.evaluate(async () => { openBook(BOOKS[0].id); await new Promise(r => setTimeout(r, 2500)); }); await setTh(); await sleep(300);
+      await openAndSelect(p, 'Очумелов', true); await p.evaluate(() => el('spAI').click()); /* click without coordinates (keyboard) must not hit the day/night corner */ await waitAnswer(p); await sleep(200);
+      await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-obyasni');
+      /* чат с перепиской */
+      await p.evaluate(() => { el('aiSheet').classList.add('hidden'); S.aiChat[R.book.id] = [{ r: 'u', t: 'Кто такой Очумелов?', d: '2026-10-20' }, { r: 'a', t: 'Полицейский надзиратель. Он меняет мнение о собаке каждый раз, когда слышит, чья она.', d: '2026-10-20' }, { r: 'u', t: 'А Хрюкин?', d: '2026-10-20' }]; save(); openAiChat(); }); await sleep(300);
+      const r = await look(p);
+      const ovc = await p.evaluate(() => { const c = el('aiChat').getBoundingClientRect(); return [...el('aiChat').querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 4); });
+      await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-chat');
+      const low = Object.entries(r.c).filter(([k, x]) => x < 4.5);
+      ok('skins ' + sk + ' ' + v + ' ' + W + ': скин и тема те, текст в строках, инструкции, ответе и чате ≥ 4.5', th.skin === sk && th.theme === v && r.th === v && !low.length, { th, rth: r.th, c: r.c });
+      ok('skins ' + sk + ' ' + v + ' ' + W + ': «Нейросети» и чат не вылезают за край', !ov.length && !ovc.length, { ov, ovc });
+      if (v === 'day' && W === 390) seen[sk] = r;
+    }
+    await ctx.close();
+  }
+  const keys = ['u', 'h', 'row', 'send'];
+  const same = keys.filter(k => new Set(SKINS.map(s => seen[s] && seen[s][k])).size < SKINS.length);
+  ok('skins: у каждого скина своё — строка, заголовок чата, реплика человека, кнопка «Отправить»', !same.length, { same, seen: Object.fromEntries(SKINS.map(s => [s, seen[s] && { u: seen[s].u, h: seen[s].h, row: seen[s].row, send: seen[s].send }])) });
+}
+
 ok('no page errors', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY ai.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

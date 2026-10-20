@@ -245,29 +245,28 @@ function timerNudge(){
 el('btnTimer').onclick=toggleTimer;
 
 
-/* ===== «Нижняя панель» (Общие настройки → Управление): 1..5 вкладок, Библиотека несъёмная и первая; каждое изменение = navSave() (один saveSet через гейт) =====
-   Порядок: кнопки «Выше» / «Ниже» (альтернатива перетаскиванию для тача и экранного диктора). */
+/* ===== «Нижняя панель» (Общие настройки → Управление): всегда NAV_N вкладок вокруг «Читать», Библиотека несъёмная и первая; каждое изменение = navSave() (один saveSet через гейт) =====
+   20.10 (Джессика): количество не меняется — в каждой вкладке выбирается раздел (выбор уже стоящего меняет их местами); порядок — «Выше» / «Ниже». */
 function openNavCfg(){const p=el('navCfg');if(!p)return;renderNavCfg();p.hidden=false;}
 function closeNavCfg(){const p=el('navCfg');if(p)p.hidden=true;try{renderSettings();}catch(e){}}
 function navCfgMove(id,d){const n=navGet(),i=n.indexOf(id),j=i+d;if(i<1||j<1||j>=n.length)return;n[i]=n[j];n[j]=id;navSave(n);renderNavCfg();}
-function navCfgDel(id){if(id==='library')return;const n=navGet().filter(function(x){return x!==id;});navSave(n);renderNavCfg();}
-function navCfgAdd(id){const n=navGet();if(n.length>=NAV_MAX||n.indexOf(id)>=0)return;n.push(id);navSave(n);renderNavCfg();}
+function navCfgSet(i,id){const n=navGet();if(i<1||i>=n.length||id==='library'||!navItem(id)||!navAvail(id))return;const j=n.indexOf(id);if(j>=0)n[j]=n[i];n[i]=id;navSave(n);renderNavCfg();}
 function renderNavCfg(){
-  const p=el('navCfg');if(!p)return;const n=navShown(),full=navGet().length>=NAV_MAX;
+  const p=el('navCfg');if(!p)return;const n=navShown(),half=Math.floor(n.length/2)||n.length;
   const ic=function(k,sz){return rqIcon(k,sz||22);};
+  const pv=function(id){const it=navItem(id);return '<span data-nav="'+id+'">'+ic(it.ic,20)+esc(it.s||it.t)+'</span>';};
+  const opts=function(cur){return NAV_CATALOG.filter(function(it){return it.id!=='library'&&navAvail(it.id);}).map(function(it){return '<option value="'+it.id+'"'+(it.id===cur?' selected':'')+'>'+esc(it.t)+'</option>';}).join('');};
   p.innerHTML='<div class="nch"><button type="button" class="menubtn" id="navCfgBack" aria-label="Назад">'+ic('arrow-left')+'</button><div><div class="ncp">Общие настройки · Управление</div><h2>Нижняя панель</h2></div></div>'+
-    '<h4>Так будет выглядеть</h4><div class="navprev">'+n.map(function(id){const it=navItem(id);return '<span data-nav="'+id+'">'+ic(it.ic,20)+esc(it.s||it.t)+'</span>';}).join('')+'</div>'+
-    '<h4 class="navcnt">В панели · '+n.length+' из '+NAV_MAX+'</h4><div class="navlist">'+
+    '<h4>Так будет выглядеть</h4><div class="navprev">'+n.slice(0,half).map(pv).join('')+'<span class="navprev-read">'+ic('book-marked',20)+'Читать</span>'+n.slice(half).map(pv).join('')+'</div>'+
+    '<h4 class="navcnt">Вкладки · '+n.length+'</h4><div class="navlist">'+
     n.map(function(id,i){const it=navItem(id);
-      if(id==='library')return '<div class="navli" data-nav="library">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>Главный экран</small></div><span class="navlock" aria-label="Нельзя убрать">'+ic('lock',18)+'</span></div>';
-      return '<div class="navli" data-nav="'+id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
+      if(id==='library')return '<div class="navli" data-nav="library">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>Главный экран</small></div><span class="navlock" aria-label="Нельзя заменить">'+ic('lock',18)+'</span></div>';
+      return '<div class="navli" data-nav="'+id+'">'+ic(it.ic)+'<div class="nl"><select class="navsel" aria-label="Вкладка '+(i+1)+'" onchange="navCfgSet('+i+',this.value)">'+opts(id)+'</select></div>'+
         '<button type="button" class="navup" aria-label="Выше"'+(i<=1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',-1)">'+ic('chevron-up',20)+'</button>'+
-        '<button type="button" class="navdown" aria-label="Ниже"'+(i>=n.length-1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',1)">'+ic('chevron-down',20)+'</button>'+
-        '<button type="button" class="navdel" aria-label="Убрать" onclick="navCfgDel(\''+id+'\')">'+ic('circle-minus')+'</button></div>';}).join('')+'</div>'+
-    (full?'<div class="navmax">'+ic('lock',14)+'Максимум 5 вкладок. Уберите одну, чтобы добавить другую.</div>':'<div class="navmax">Порядок — кнопками «Выше» и «Ниже».</div>')+
-    '<h4>Можно добавить</h4><div class="navlist">'+
-    NAV_CATALOG.filter(function(it){return navAvail(it.id)&&navGet().indexOf(it.id)<0;}).map(function(it){return '<div class="navli" data-nav="'+it.id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
-      '<button type="button" class="navadd" aria-label="Добавить"'+(full?' disabled':'')+' onclick="navCfgAdd(\''+it.id+'\')">'+ic('circle-plus')+'</button></div>';}).join('')+'</div>';
+        '<button type="button" class="navdown" aria-label="Ниже"'+(i>=n.length-1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',1)">'+ic('chevron-down',20)+'</button></div>';}).join('')+'</div>'+
+    '<div class="navmax">'+ic('lock',14)+'Вкладок всегда '+n.length+', «Читать» в центре. Нажмите на название, чтобы поставить другой раздел; порядок — кнопками «Выше» и «Ниже».</div>'+
+    '<h4>Остальные разделы</h4><div class="navlist">'+
+    NAV_CATALOG.filter(function(it){return navAvail(it.id)&&n.indexOf(it.id)<0;}).map(function(it){return '<div class="navli" data-nav="'+it.id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>в левом меню</small></div></div>';}).join('')+'</div>';
   el('navCfgBack').onclick=closeNavCfg;
 }
 if(el('btnNavCfg'))el('btnNavCfg').onclick=openNavCfg;

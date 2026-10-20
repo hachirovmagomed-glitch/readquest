@@ -183,7 +183,6 @@ export const SET_DEF = {
   indent: true,
   ls: 0,
   weight: 400,
-  dim: 0,
   nav: null,
   mvp: true,
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
@@ -191,7 +190,6 @@ export const SET_DEF = {
   readCounter: true, // 1б: «7 / 10 мин» in focus
   bright: 1,         // 18.10: own brightness 0.3..1 (arch.md SET.bright)
   warm: 0,           // 18.10: warm tint 0..0.6
-  warmNight: true,   // 18.10: warm tint only on a night page
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -453,7 +451,10 @@ export function hydrateSettings(s) {
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
   out.bright = normStep(out.bright, 0.3, 1, 1);
   out.warm = normStep(out.warm, 0, 0.6, 0);
-  if (typeof out.warmNight !== 'boolean') out.warmNight = true;
+  /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
+  if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
+  delete out.dim;
+  delete out.warmNight;
   /* 1в: theme is an id string — the free ones incl. 'pencil' / 'pencil-night' («Карандашный»), paid SHOP ids. Unknown ids are KEPT
      (forward compat: an older build simply renders sepia, see activeTheme); only a non-string / empty / huge value falls back. */
   if (typeof out.theme !== 'string' || !out.theme || out.theme.length > 32) out.theme = 'sepia';

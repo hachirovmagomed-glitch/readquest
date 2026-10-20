@@ -362,7 +362,7 @@ el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
     const dy=e.touches[0].clientY-bright.y0;if(Math.abs(dy)>6)bright.mv=true;
-    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's), «Затемнение» stays */
+    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's) */
     rqLightApply();
     return;
   }

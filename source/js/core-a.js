@@ -43,15 +43,14 @@ function applyMvpChrome(){
   document.body.classList.toggle('mvp', isMvp());
   const bn=el('botnav');
   if(bn){
-    const onLib=!el('library').classList.contains('hidden');
-    const onProf=!el('profile').classList.contains('hidden')||!!(el('stats')&&!el('stats').classList.contains('hidden')); /* 18.10: statistics belong to «Профиль» */
+    /* 20.10 (Джессика: «нажимаю на Путь, а внизу не меняется»): one tab lit = the tab that owns the visible screen.
+       Was: «Библиотека» lit on every screen but «Профиль», and «Путь»/«Приключения» had no screens listed. */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
-    const onSet=!!(el('settings')&&!el('settings').classList.contains('hidden')); /* 14.10: settings is not a tab → nothing highlighted */
-    if(el('bnLib'))el('bnLib').classList.toggle('on', !onRew&&!onSet&&(onLib||(!onProf&&isMvp())));
-    if(el('bnProf'))el('bnProf').classList.toggle('on', !onRew&&!onSet&&onProf);
-    if(el('bnRew'))el('bnRew').classList.toggle('on', onRew);
-    bn.querySelectorAll('.botnav-btn[data-nav]').forEach(function(b){const id=b.dataset.nav;if(id==='library'||id==='rewards'||id==='profile')return;
-      const scr={quests:['quests'],stats:['quotes','vocab','calendar','achievements','shelfScreen'],look:['look']}[id]||[];b.classList.toggle('on',!onRew&&scr.some(function(x){return !!el(x)&&!el(x).classList.contains('hidden');}));});
+    const OWN={library:'library',path:'path',adv:'adv',profile:'profile',stats:'profile',quests:'quests', /* 18.10: statistics belong to «Профиль» */
+      quotes:'stats',vocab:'stats',calendar:'stats',achievements:'stats',shelfScreen:'stats',look:'look'}; /* settings is not a tab → nothing lit (14.10) */
+    const cur=(typeof SCREENS!=='undefined'?SCREENS:[]).find(function(s){return el(s)&&!el(s).classList.contains('hidden');});
+    const tab=onRew?'rewards':(OWN[cur]||'');
+    bn.querySelectorAll('.botnav-btn').forEach(function(b){const id=b.dataset.nav||{bnLib:'library',bnRew:'rewards',bnProf:'profile'}[b.id];b.classList.toggle('on',!!id&&id===tab);});
   }
   /* tiny avatar on library streak */
   const ava=el('streakAva');
@@ -285,7 +284,9 @@ function rqCollapseSync(boxId){const box=el(boxId),row=box&&el(box.dataset.xrow|
   const head=o.title?'<span class="xlab"><span class="xt">'+esc(o.title)+'</span>'+(sub?'<span class="xsub">'+esc(sub)+'</span>':'')+'</span>':'';
   const sample=o.sample?'<span class="xs" aria-hidden="true">'+esc(o.sample)+'</span>':'';
   /* layout (Интерфейс 14.10): [icon | sample] [title+sub | label] … [dot] value ⌄ */
-  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+'<span class="xv">'+esc(v)+'</span>'+(o.title?'':'')+rqIcon(open?'chevron-up':'chevron-down',20);
+  /* opt.pill (20.10, «Настройки чтения»): value + chevron in their own plaque on the right, like the steppers' «− 14 +» */
+  const tail='<span class="xv">'+esc(v)+'</span>'+rqIcon(open?'chevron-up':'chevron-down',20);
+  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+(o.pill?'<span class="xpill">'+tail+'</span>':tail);
   if(o.title&&dot){row.querySelector('.xv').insertAdjacentHTML('beforebegin',dotH);}
   try{if(o.font){const ff=o.font();row.querySelector('.xv').style.fontFamily=ff;const xs=row.querySelector('.xs');if(xs)xs.style.fontFamily=ff;}}catch(e){}
   row.setAttribute('aria-expanded',open?'true':'false');box.hidden=!open;box.classList.add('xlist');}

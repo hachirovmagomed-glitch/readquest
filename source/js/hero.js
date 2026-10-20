@@ -241,10 +241,18 @@ function heroSetCol(id,v){v=heroHex(v);if(!v||!heroFits(heroItem(id)))return;
   S.char=S.char||{};S.char.gearColor=S.char.gearColor||{};S.char.gearColor[heroColKey(id,heroOn().char||'')]=v;delete heroTryCol[id];save();renderHeroShop();try{renderProfile();}catch(e){}}
 function heroOwns(id){const g=heroItem(id);return (!!g&&g.price===0)||(S.ownedGear||[]).indexOf(id)>=0;}
 function heroWear(id){const g=heroItem(id);if(!g||!heroOwns(id)||!heroFits(g))return;if(window.__rqWriter&&!window.__rqWriter.mayWrite())return;
-  S.equipped=S.equipped||{};heroCelDressUp(g);const key=heroKey(g);S.equipped[key]=g.slot==='char'?(id===heroCharDefault(g.skin)?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
+  S.equipped=S.equipped||{};const key=heroKey(g);if(S.equipped[key]!==id)heroCelDressUp(g);S.equipped[key]=g.slot==='char'?(id===heroCharDefault(g.skin)?null:id):(S.equipped[key]===id?null:id);heroTry=null;save();renderHeroShop();try{renderProfile();}catch(e){}}
 let heroPending=null;
 /* вещи видны только на манекене: надели вещь Небесного, когда выбран класс, — героем снова становится Звездочёт */
-function heroCelDressUp(g){if(g&&g.skin==='celestial'&&g.slot!=='char'&&S.equipped)S.equipped['celestial:char']=null;}
+function heroCelDressUp(g){if(g&&g.skin==='celestial'&&g.slot!=='char'&&S.equipped){S.equipped['celestial:char']=null;heroCelClash(g);}}
+/* совместимость одежды Небесного: две вещи на одной части тела одним слоем (под или сверху) не носятся вместе —
+   надели новую, мешающая снимается с подсказкой (Джессика 20.10: «чтобы вещи не наслаивались друг на друга») */
+function heroCelZones(id){const m=typeof HERO_CEL_ART!=='undefined'&&HERO_CEL_ART.meta[id];return (m&&m.z)||{};}
+function heroCelClashes(g){const z=heroCelZones(g.id),out=[];Object.keys(S.equipped||{}).forEach(function(k){const o=heroItem(S.equipped[k]);
+  if(!o||o.id===g.id||o.slot===g.slot||o.skin!=='celestial')return;const oz=heroCelZones(o.id);
+  if(Object.keys(z).some(function(p){return p in oz&&oz[p]===z[p];}))out.push([k,o]);});return out;}
+function heroCelClash(g){const c=heroCelClashes(g);if(!c.length)return;c.forEach(function(x){S.equipped[x[0]]=null;});
+  try{flashMsg('Сняли: '+c.map(function(x){return x[1].name;}).join(', ')+' — не сочетается с «'+g.name+'»',{kind:'info'});}catch(e){}}
 function heroBuyAsk(id){const g=heroItem(id);if(!g||heroOwns(id)||!heroFits(g)||!heroSkinOwned(g))return;
   if(S.gold<g.price){flashMsg('Не хватает '+coinsP(g.price-S.gold));return;}
   heroPending=id;el('scTitle').textContent='Купить «'+g.name+'» за '+coinsP(g.price)+'?';

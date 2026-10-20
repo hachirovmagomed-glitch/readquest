@@ -35,6 +35,14 @@ NAMES = {
            'gloves': 'Кожаные перчатки', 'boots': 'Тапки-сапожки', 'main-hand': 'Лира-звезда', 'accessory': 'Нефрит на ленте'},
 }
 KEEP = {'accessory': 0.08}        # у украшений в слой попадают обрывки воротника
+# Совместимость: вещь занимает части тела, 0 — прилегает (под), 1 — сверху. Две вещи на одной части
+# одним слоем не сочетаются: надели новую — старая снимается (длинные перчатки и длинный рукав, два «верха» и т. п.).
+ZONES = {'head': {'head': 1}, 'cloak': {'back': 1, 'shoulders': 1}, 'top': {'torso': 0, 'shoulders': 0},
+         'bottom': {'hips': 0}, 'gloves': {'hands': 0}, 'shoes': {'feet': 0}, 'acc': {'neck': 1}, 'hand': {}}
+ZONE_FIX = {('am', 'top'): {'arms': 0}, ('tf', 'top'): {'arms': 0}, ('tm', 'top'): {'arms': 0},
+            ('af', 'gloves'): {'arms': 0},                                        # длинные перчатки — до локтя
+            ('am', 'bottom'): {'shins': 0}, ('tm', 'bottom'): {'shins': 0},       # длинные брюки
+            ('af', 'boots'): {'shins': 1}, ('am', 'boots'): {'shins': 1}, ('tf', 'boots'): {'shins': 1}}  # высокие сапоги поверх брюк
 PETS_CAT = [('cp-owl', 1, 'Звёздная сова'), ('cp-moth', 5, 'Бумажный мотылёк'), ('cp-fox', 7, 'Лис-комета'),
             ('cp-cat', 8, 'Облачный кот'), ('cp-jelly', 14, 'Чернильная медуза'), ('cp-dragon', 11, 'Книжный дракон')]
 PET_BOX = (650, 270, 130)         # питомец у плеча: центр и ширина на холсте
@@ -117,8 +125,7 @@ def main():
         parts = {'base': [save(a, 'base-' + bid) + [z['body']]]}
         for slot, app in SLOT.items():
             iid = 'cd-' + bid + '-' + slot.replace('main-', '')
-            split = os.path.exists(os.path.join(d, 'layers', 'layer-cape-front.png')) and slot == 'cape'
-            layers = [('cape-back', 'b'), ('cape-front', 'f')] if split else [(slot, '')]
+            layers = [(slot, '')]   # плащ целиком над верхом: геометрический разрез прятал полы за телом (Джессика 20.10)
             rec, natives = [], []
             for lay, suf in layers:
                 la = tidy(np.array(Image.open(os.path.join(d, 'layers', 'layer-' + lay + '.png')).convert('RGBA')), KEEP.get(slot, 0.02))
@@ -131,7 +138,8 @@ def main():
                     rec.append(r + [zz, 1 if t else 0])
             parts[iid] = rec
             nat = np.concatenate([n.reshape(-1, 4) for n in natives])[None] if natives else np.zeros((1, 1, 4), np.uint8)
-            meta[iid] = {'c': native_hex(nat)}
+            zn = dict(ZONES[app]); zn.update(ZONE_FIX.get((bid, slot), {}))
+            meta[iid] = {'c': native_hex(nat), 'z': zn}
             items.append({'id': iid, 'slot': app, 'name': NAMES[bid][slot], 'body': bid})
         k = anc.get('engine_scale', 1.0); sc = 82 * k / (fy1 - fy0)
         bodies[bid] = {'name': title, 'sc': round(sc, 6), 'x0': round(39 - W / 2 * sc, 3), 'y0': round(99 - fy1 * sc, 3), 'p': parts}

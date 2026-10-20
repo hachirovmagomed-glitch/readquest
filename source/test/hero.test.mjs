@@ -127,8 +127,12 @@ const doll = await p.evaluate(async () => {
   wear('skin-celestial'); S.gold = 99999; heroCelBody('af'); heroWear('cl-zvezdochet'); S.ownedGear = (S.ownedGear || []).concat('cl-kometa'); heroWear('cl-kometa');
   const all = HERO_GEAR.filter(g => g.skin === 'celestial' && g.slot !== 'char'), here = heroGearHere().filter(g => g.slot !== 'char');
   heroBuyAsk('cd-af-cape'); shopConfirmOk(); const svg = avatarSvg();
-  const worn = S.equipped['celestial:cloak'] === 'cd-af-cape', toDoll = !S.equipped['celestial:char'] && svg.includes('dress/cd-af-cape-f.webp') && svg.includes('dress/base-af.webp');
-  const backFirst = svg.indexOf('cd-af-cape-b.webp') < svg.indexOf('base-af.webp') && svg.indexOf('base-af.webp') < svg.indexOf('cd-af-cape-f.webp');
+  const worn = S.equipped['celestial:cloak'] === 'cd-af-cape', toDoll = !S.equipped['celestial:char'] && svg.includes('dress/cd-af-cape.webp') && svg.includes('dress/base-af.webp');
+  heroBuyAsk('cd-af-top'); shopConfirmOk(); heroBuyAsk('cd-af-gloves'); shopConfirmOk(); const sv2 = avatarSvg();
+  const backFirst = sv2.indexOf('base-af.webp') < sv2.indexOf('cd-af-top.webp') && sv2.indexOf('cd-af-top.webp') < sv2.indexOf('cd-af-cape.webp') && !sv2.includes('cape-b');
+  const z = HERO_CEL_ART.meta['cd-af-top'].z; z.arms = 0; heroWear('cd-af-gloves'); heroWear('cd-af-gloves');   /* как будто у корсажа длинный рукав */
+  const clash = S.equipped['celestial:gloves'] === 'cd-af-gloves' && !S.equipped['celestial:top'] && /Сняли: Фиолетовый корсаж/.test((document.querySelector('.rq-toast') || {}).textContent || '');
+  delete z.arms; heroWear('cd-af-top'); const fine = S.equipped['celestial:top'] === 'cd-af-top' && S.equipped['celestial:gloves'] === 'cd-af-gloves';
   heroBuyAsk('cd-af-hand'); shopConfirmOk(); heroSetCol('cd-af-hand', '#3060c0'); const lan = avatarSvg();
   const col = /cd-af-hand\.webp"[^>]*hue-rotate/.test(lan) && /cd-af-hand-t\.webp"[^>]*\/>/.test(lan) && !/cd-af-hand-t\.webp"[^>]*hue-rotate/.test(lan);
   const other = !heroFits(heroItem('cd-am-cape'));
@@ -140,9 +144,9 @@ const doll = await p.evaluate(async () => {
   const files = []; Object.values(HERO_CEL_ART.bodies).forEach(B => Object.values(B.p).forEach(ps => ps.forEach(p => files.push(p[0])))); Object.values(HERO_CEL_ART.meta).forEach(m => { if (m.pet) files.push(m.pet[0]); });
   const loaded = await Promise.all(files.map(f => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth > 0); i.onerror = () => r(false); i.src = 'hero/celestial/dress/' + f + '.webp'; })));
   heroCelBody('af'); wear('skin-ellada'); const ell = !avatarSvg().includes('herocel');
-  return { back,  n: all.length, here: here.length, worn, toDoll, backFirst, col, other, sw, pet, tabs, chips, loaded: loaded.every(Boolean), files: files.length, ell };
+  return { back, clash, fine, n: all.length, here: here.length, worn, toDoll, backFirst, col, other, sw, pet, tabs, chips, loaded: loaded.every(Boolean), files: files.length, ell };
 });
-ok('Небесный: 4 фигуры × 8 вещей + 6 питомцев, плащ сзади и спереди, перекраска без золота, при смене фигуры наряд снимается и возвращается, все картинки грузятся', doll.n === 38 && doll.here === 14 && doll.worn && doll.toDoll && doll.backFirst && doll.col && doll.other && doll.sw && doll.back && doll.pet && doll.tabs === 'Скины,Персонажи,Одежда,Снаряжение' && doll.chips === 4 && doll.loaded && doll.ell, doll);
+ok('Небесный: 4 фигуры × 8 вещей + 6 питомцев, плащ поверх верха, несовместимые вещи снимаются, перекраска без золота, при смене фигуры наряд снимается и возвращается, все картинки грузятся', doll.n === 38 && doll.here === 14 && doll.worn && doll.toDoll && doll.backFirst && doll.clash && doll.fine && doll.col && doll.other && doll.sw && doll.back && doll.pet && doll.tabs === 'Скины,Персонажи,Одежда,Снаряжение' && doll.chips === 4 && doll.loaded && doll.ell, doll);
 
 // 3D убран (Джессика 20.10: «отойдём полностью от 3D моделек»): в Небесном нет кнопки 3D и листа
 const no3d = await p.evaluate(async () => {

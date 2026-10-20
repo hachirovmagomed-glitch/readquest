@@ -37,22 +37,24 @@ const NAV_CATALOG=[
 /* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
 const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path']},{t:'Герой',ids:['profile','quests','stats']},{t:'Магазины',ids:['rewards','look']}];
 const NAV_ALIAS={notes:'stats',vocab:'stats'}; /* stored NS_set.nav from before 17.10 */
-const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
+/* 20.10 (Джессика: «5 вкладок базой, количество менять нельзя, только что в них»): the bar always has NAV_N tabs around «Читать»
+   (2 + 2, as in Habitica); stored lists that are short get the defaults / catalog appended, long ones are cut — in memory, never written back */
+const NAV_N=4, NAV_DEF=['library','path','rewards','profile'], NAV_MAX=NAV_N;
 /* ONE flag: in MVP mode, show the extra sections (quests, «Инвентарь», «Внешний вид») in the drawer, bottom bar and «Нижняя панель».
    false → MVP shows only library/rewards/profile (+ settings); stored NS_set.nav is never rewritten by this. Outside MVP they always show. */
 const RQ_MVP_DRAWER_EXTRAS=true;
 function navAvail(id){
-  return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
-function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
+  return !isMvp()||RQ_MVP_DRAWER_EXTRAS||['library','rewards','profile'].indexOf(id)>=0||id==='settings';}
+function navFill(out,ok){NAV_DEF.concat(NAV_CATALOG.map(function(it){return it.id;})).forEach(function(x){if(out.length<NAV_N&&out.indexOf(x)<0&&ok(x))out.push(x);});return out;}
+function navShown(){return navFill(navGet().filter(navAvail),navAvail);} /* view only: what the bar shows now (a hidden section's slot is filled from the shown ones) */
 const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
 const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
-  if(!Array.isArray(v))return NAV_DEF.slice();
-  const out=[];v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
-  if(!out.length)return NAV_DEF.slice();
+  const out=[];if(Array.isArray(v))v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
   const i=out.indexOf('library');if(i>0)out.splice(i,1);if(i!==0)out.unshift('library');
-  return out.slice(0,NAV_MAX);
+  navFill(out,function(){return true;});
+  return out.slice(0,NAV_N);
 }
 function navGet(){return navRead(typeof SET!=='undefined'&&SET?SET.nav:null);}
 function navSave(arr){

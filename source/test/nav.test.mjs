@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-const DEF = '["library","rewards","profile"]';
+const DEF = '["library","path","rewards","profile"]'; /* 20.10 (Джессика): всегда 4 вкладки вокруг «Читать», меняется только содержимое */
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
@@ -14,10 +14,10 @@ await p.goto(BASE, { waitUntil: 'load' }); await boot();
 const has = await p.evaluate(() => typeof navRead === 'function' && typeof navSave === 'function');
 const R = (v) => has ? p.evaluate((v) => JSON.stringify(navRead(v)), v) : Promise.resolve('n/a');
 // contract: forgiving read
-ok('nav: неизвестные id и дубли отбрасываются', await R(['library', 'bogus', 'rewards', 'rewards', 'profile']) === DEF, await R(['library', 'bogus', 'rewards', 'rewards', 'profile']));
+ok('nav: неизвестные id и дубли отбрасываются, недостающая вкладка добирается из базовых', await R(['library', 'bogus', 'rewards', 'rewards', 'profile']) === '["library","rewards","profile","path"]', await R(['library', 'bogus', 'rewards', 'rewards', 'profile']));
 const seven = ['library', 'rewards', 'profile', 'quests', 'look', 'vocab', 'stats'];
-ok('nav: сверх 5 обрезается', await R(seven) === '["library","rewards","profile","quests","look"]', await R(seven));
-ok('nav: library всегда первой', await R(['profile', 'quests', 'library']) === '["library","profile","quests"]' && await R(['rewards']) === '["library","rewards"]', [await R(['profile', 'quests', 'library']), await R(['rewards'])]);
+ok('nav: сверх 4 обрезается', await R(seven) === '["library","rewards","profile","quests"]', await R(seven));
+ok('nav: library всегда первой, вкладок всегда 4', await R(['profile', 'quests', 'library']) === '["library","profile","quests","path"]' && await R(['rewards']) === '["library","rewards","path","profile"]', [await R(['profile', 'quests', 'library']), await R(['rewards'])]);
 const broken = [await R(null), await R(undefined), await R([]), await R('garbage'), await R({ a: 1 }), await R([1, null, {}]), await R(['bogus'])];
 ok('nav: пустой или битый → ' + DEF, broken.every(x => x === DEF), broken);
 // reading writes nothing: broken nav in storage, reload, drawer + settings + bottom bar render
@@ -27,12 +27,12 @@ const a = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 await p.evaluate(async () => { try { openDrawer(); await new Promise(r => setTimeout(r, 300)); closeDrawer(); openGeneralSettings(false); if (typeof openNavCfg === 'function') openNavCfg(); await new Promise(r => setTimeout(r, 300)); if (typeof closeNavCfg === 'function') closeNavCfg(); show('library'); } catch (e) {} await new Promise(r => setTimeout(r, 400)); });
 const b = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 const bar = await p.evaluate(() => [...document.querySelectorAll('#botnav .botnav-btn')].filter(x => getComputedStyle(x).display !== 'none').map(x => x.dataset.nav || x.id));
-ok('nav: чтение не пишет (NS_set побайтно равен), панель = library,profile,stats', a === b && JSON.stringify(bar) === '["library","profile","stats"]', { same: a === b, bar });
+ok('nav: чтение не пишет (NS_set побайтно равен), панель = library,profile,stats,path', a === b && JSON.stringify(bar) === '["library","profile","stats","path"]', { same: a === b, bar });
 // write: one saveSet through the gate; passive window refused
-const w = has ? await p.evaluate(async () => { const r1 = navSave(['library', 'rewards', 'quests', 'look', 'profile']); await new Promise(r => setTimeout(r, 200));
+const w = has ? await p.evaluate(async () => { const r1 = navSave(['library', 'rewards', 'quests', 'look']); await new Promise(r => setTimeout(r, 200));
   const s1 = JSON.parse(localStorage.getItem(RQ_K.set)).nav; const g = window.__rqWriter, m = g.mayWrite; g.mayWrite = () => false; let r2; try { r2 = navSave(['library']); } finally { g.mayWrite = m; }
   const s2 = JSON.parse(localStorage.getItem(RQ_K.set)).nav; const bar = [...document.querySelectorAll('#botnav .botnav-btn')].map(x => x.dataset.nav); return { r1, s1, r2, s2, bar }; }) : {};
-ok('nav: запись в NS_set, панель из 5 вкладок; пассивное окно не пишет', w.r1 === true && JSON.stringify(w.s1) === '["library","rewards","quests","look","profile"]' && w.r2 === false && JSON.stringify(w.s2) === JSON.stringify(w.s1) && w.bar && w.bar.length === 5, w);
+ok('nav: запись в NS_set, панель из 4 вкладок; пассивное окно не пишет', w.r1 === true && JSON.stringify(w.s1) === '["library","rewards","quests","look"]' && w.r2 === false && JSON.stringify(w.s2) === JSON.stringify(w.s1) && w.bar && w.bar.length === 4, w);
 // old backup without nav → default
 const imp = await p.evaluate(async () => { const e = await __rq.exportBackup(null, SET, { includeTextBodies: false }); const hadNav = !!(e.settings && e.settings.nav); delete e.settings.nav;
   try { await __rq.importBackup(e); } catch (x) { return { err: String(x.message || x) }; } return { hadNav }; });
@@ -40,21 +40,23 @@ await p.reload({ waitUntil: 'load' }); await boot();
 const impNav = has ? await p.evaluate(() => JSON.stringify(navGet())) : 'n/a';
 ok('nav: экспорт несёт nav; старый бэкап без nav → ' + DEF, imp.hadNav && impNav === DEF, { imp, impNav });
 // drawer per mockup
-await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 'rewards', 'profile']); openDrawer(); }); await sleep(400);
+await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 'rewards', 'profile', 'path']); openDrawer(); }); await sleep(400);
 const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent && x.id !== 'dNight'); /* 18.10: ночная кнопка внизу меню — не раздел */
   return { w: Math.round(dr.getBoundingClientRect().width), ava: !!dr.querySelector('.dava'), name: (dr.querySelector('.dname') || {}).textContent || '', items: items.map(x => x.dataset.nav || x.id), pins: items.filter(x => x.querySelector('.dpin')).map(x => x.dataset.nav),
     h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), secs: [...dr.querySelectorAll('#dList .dsec')].map(x => x.textContent).join('|'), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
 ok('drawer: 85% ширины (≈332px), аватар и имя, 8 пунктов по разделам Чтение / Герой / Магазины (18.10, как в Habitica) + Настройки, пункты 48px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","adv","path","profile","quests","stats","rewards","look","settings"]' && d.secs === 'Чтение|Герой|Магазины' && d.h === 48 && !d.emoji, d);
-ok('drawer: значок pin у закреплённых (library,rewards,profile) и подпись внизу', JSON.stringify(d.pins.slice().sort()) === '["library","profile","rewards"]' && d.cap, d.pins);
+ok('drawer: значок pin у закреплённых (library,path,rewards,profile) и подпись внизу', JSON.stringify(d.pins.slice().sort()) === '["library","path","profile","rewards"]' && d.cap, d.pins);
 await p.evaluate(() => closeDrawer());
 // settings «Нижняя панель»
 const c = has ? await p.evaluate(async () => { openGeneralSettings(false); const row = document.getElementById('btnNavCfg'); if (!row) return { row: false }; row.click(); await new Promise(r => setTimeout(r, 300));
-  const pane = document.getElementById('navCfg'); const add = [...pane.querySelectorAll('.navadd')]; add[0].click(); add[1] && add[1].click(); await new Promise(r => setTimeout(r, 200));
-  const pane2 = document.getElementById('navCfg'); const dis = [...pane2.querySelectorAll('.navadd')].every(b => b.disabled); const lock = !!pane2.querySelector('[data-nav="library"] .navlock');
-  const prev = pane2.querySelectorAll('.navprev [data-nav]').length; const cnt = (pane2.querySelector('.navcnt') || {}).textContent; const max = /Максимум 5 вкладок/.test(pane2.textContent);
-  pane2.querySelector('[data-nav="profile"] .navup').click(); await new Promise(r => setTimeout(r, 200)); const saved = JSON.parse(localStorage.getItem(RQ_K.set)).nav;
-  return { row: true, dis, lock, prev, cnt, max, saved }; }) : {};
-ok('«Нижняя панель»: превью, «В панели · 5 из 5», добавление выключено, замок у Библиотеки, «Выше» меняет порядок и пишет', c.row && c.dis && c.lock && c.prev === 5 && /5 из 5/.test(c.cnt || '') && c.max && c.saved && c.saved[0] === 'library' && c.saved.indexOf('profile') === 1, c);
+  const pane = document.getElementById('navCfg'); const noAdd = !pane.querySelector('.navadd,.navdel'); const lock = !!pane.querySelector('[data-nav="library"] .navlock');
+  const sels = pane.querySelectorAll('.navsel').length; const prev = pane.querySelectorAll('.navprev [data-nav]').length; const read = !!pane.querySelector('.navprev .navprev-read');
+  const sel = pane.querySelector('[data-nav="path"] .navsel'); sel.value = 'quests'; sel.dispatchEvent(new Event('change')); await new Promise(r => setTimeout(r, 200)); const s1 = JSON.parse(localStorage.getItem(RQ_K.set)).nav;
+  const sel2 = document.querySelector('#navCfg [data-nav="quests"] .navsel'); sel2.value = 'profile'; sel2.dispatchEvent(new Event('change')); await new Promise(r => setTimeout(r, 200)); const s2 = JSON.parse(localStorage.getItem(RQ_K.set)).nav;
+  document.querySelector('#navCfg [data-nav="rewards"] .navdown').click(); await new Promise(r => setTimeout(r, 200)); const s3 = JSON.parse(localStorage.getItem(RQ_K.set)).nav;
+  return { row: true, noAdd, lock, sels, prev, read, s1, s2, s3 }; }) : {};
+ok('«Нижняя панель»: 4 вкладки без «добавить/убрать», замок у Библиотеки, выбор раздела в вкладке пишет, выбор уже стоящего меняет местами, «Ниже» меняет порядок', c.row && c.noAdd && c.lock && c.sels === 3 && c.prev === 4 && c.read
+  && JSON.stringify(c.s1) === '["library","rewards","profile","quests"]' && JSON.stringify(c.s2) === '["library","rewards","quests","profile"]' && JSON.stringify(c.s3) === '["library","quests","rewards","profile"]', c);
 // gestures (no real touch within 24px of the screen edge — the system «назад» lives there and must stay working):
 // menu button opens; the app's edge-zone handler is fed in-page TouchEvents (no browser gesture); a real swipe left in the middle closes.
 const EDGE = 24, VW = 390;
@@ -72,13 +74,13 @@ await synthEdge(); const o1 = await p.evaluate(() => el('drawer').classList.cont
 await sw(300, 60); const o2 = await p.evaluate(() => el('drawer').classList.contains('open'));
 ok('drawer: кнопка меню открывает, свайп от края (20px, без касаний у края) открывает, свайп влево закрывает', mb && o0 && !c0 && o1 && !o2, { mbr, o0, c0, o1, o2 });
 // 20.10 (Джессика): нижняя панель подсвечивает ровно ту вкладку, на которой стоишь («Путь» не горел, «Библиотека» горела всегда)
-const lit = has ? await p.evaluate(async () => { navSave(['library', 'path', 'quests', 'profile', 'stats']); const out = {};
-  for (const id of ['path', 'quests', 'profile', 'stats', 'library']) { navGo(id); await new Promise(r => setTimeout(r, 200)); out[id] = [...document.querySelectorAll('#botnav .botnav-btn.on')].map(b => b.dataset.nav).join(','); }
+const lit = has ? await p.evaluate(async () => { navSave(['library', 'path', 'quests', 'profile']); const out = {};
+  for (const id of ['path', 'quests', 'profile', 'library']) { navGo(id); await new Promise(r => setTimeout(r, 200)); out[id] = [...document.querySelectorAll('#botnav .botnav-btn.on')].map(b => b.dataset.nav).join(','); }
   navGo('settings'); await new Promise(r => setTimeout(r, 200)); out.settings = [...document.querySelectorAll('#botnav .botnav-btn.on')].map(b => b.dataset.nav).join(',');
   navGo('library'); return out; }) : {};
-ok('nav: подсвечена ровно выбранная вкладка, в настройках ни одна', ['path', 'quests', 'profile', 'stats', 'library'].every(k => lit[k] === k) && lit.settings === '', lit);
+ok('nav: подсвечена ровно выбранная вкладка, в настройках ни одна', ['path', 'quests', 'profile', 'library'].every(k => lit[k] === k) && lit.settings === '', lit);
 // 20.10 (Джессика, как в Habitica): большая «Читать» ровно по центру панели; есть книга → она открывается, нет → библиотека
-const rd = has ? await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); navSave(['library', 'rewards', 'profile']); navGo('profile'); await w(200);
+const rd = has ? await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); navSave(['library', 'path', 'rewards', 'profile']); navGo('profile'); await w(200);
   const b = el('bnRead'), r = b && b.querySelector('.brd').getBoundingClientRect(), mid = r ? Math.round(r.left + r.width / 2 - innerWidth / 2) : null;
   const tabs = [...document.querySelectorAll('#botnav .botnav-btn')].map(x => x.dataset.nav).join(',');
   const save = { lr: S.lastRead, fin: S.finished.slice() }; S.lastRead = null; b.click(); await w(400);
@@ -87,7 +89,7 @@ const rd = has ? await p.evaluate(async () => { const w = (ms) => new Promise(r 
   const opened = !el('reader').classList.contains('hidden');
   try { closeReader && closeReader(); } catch (e) {} S.lastRead = save.lr; S.finished = save.fin; show('library'); navGo('library'); await w(300);
   return { mid, tabs, none, opened }; }) : {};
-ok('nav: «Читать» в центре (все 3 вкладки на месте), без книги → библиотека, с книгой → читалка', Math.abs(rd.mid) <= 1 && rd.tabs === 'library,rewards,profile' && rd.none && rd.opened, rd);
+ok('nav: «Читать» в центре (все 4 вкладки на месте), без книги → библиотека, с книгой → читалка', Math.abs(rd.mid) <= 1 && rd.tabs === 'library,path,rewards,profile' && rd.none && rd.opened, rd);
 ok('нет ошибок страницы', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY nav.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

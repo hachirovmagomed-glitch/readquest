@@ -97,7 +97,7 @@ mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
 # Герои скина «Небесный» (webp, режет tools/gen-celestial-heroes.py) — precached
-mkdir -p "$DIST/hero/celestial/wear"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"; cp "$ROOT/hero/celestial/wear/"*.webp "$DIST/hero/celestial/wear/"  # + вещи манекена (tools/gen-celestial-wear.py)
+mkdir -p "$DIST/hero/celestial/dress"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"; cp "$ROOT/hero/celestial/dress/"*.webp "$DIST/hero/celestial/dress/"  # + одежда на манекенах (tools/gen-celestial-dress.py)
 
 # «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB
 if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi

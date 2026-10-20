@@ -59,10 +59,15 @@ const f = await p.evaluate(() => { const row = document.getElementById('fontSegX
     sampleLeft: !!(s && s.getBoundingClientRect().left < r.left + 60), vRight: !!(v && v.getBoundingClientRect().right > r.right - 60), value: v ? v.textContent.trim() : '', want: (FONTS[SET.font] || FONTS[0]).label,
     heading: !!(srow && [...srow.children].some(c => c.tagName === 'LABEL' && /Шрифт/.test(c.textContent))) }; });
 const norm = (x) => (x || '').replace(/["']/g, '').replace(/\s+/g, ' ').trim();
-ok('font: «Aa» sample in current font on the left, label «Шрифт», value on the right', f.row && f.sample === 'Aa' && norm(f.sampleFont) === norm(f.cur) && f.label === 'Шрифт' && f.sampleLeft && f.vRight && f.value === f.want, f);
-const fontM = await rowM('fontSegX');
-const same = ['gap', 'h', 'chev', 'vfs'].every(k => pencilM[k] === fontM[k]);
-ok('theme row = font row: gap, height, chevron, value font-size', same, { pencilM, fontM });
+/* 20.10 (Джессика): the font row is like its neighbours in «Настройки чтения» — no «Aa», no fill, label in the row font, value + ⌄ in a plaque like the steppers */
+const fp = await p.evaluate(() => { const row = el('fontSegX'), l = row.querySelector('.xl'), pill = row.querySelector('.xpill'), v = row.querySelector('.xv'), lab = el('szValL'), st = document.querySelector('#grpText .rstep');
+  const cs = getComputedStyle(row), r = row.getBoundingClientRect(), pr = pill && pill.getBoundingClientRect();
+  return { bg: cs.backgroundColor, lfs: getComputedStyle(l).fontSize, lc: getComputedStyle(l).color, labFs: getComputedStyle(lab).fontSize, labC: getComputedStyle(lab).color,
+    pillBg: pill && getComputedStyle(pill).backgroundColor, stBg: getComputedStyle(st).backgroundColor, pillH: pr && Math.round(pr.height), stH: Math.round(st.getBoundingClientRect().height),
+    inPill: !!(pill && pill.contains(v) && pill.querySelector('svg')), right: pr && Math.round(r.right - pr.right), vFont: getComputedStyle(v).fontFamily,
+    line: getComputedStyle(row.closest('.srow')).borderBottomWidth }; });
+ok('font: label «Шрифт» left, no «Aa», value on the right in the current font', f.row && !f.sample && f.label === 'Шрифт' && f.vRight && f.value === f.want && norm(fp.vFont) === norm(f.cur), { f, fp });
+ok('font row = neighbours: no fill, label like «Размер текста», plaque like the stepper, divider', (fp.bg === 'rgba(0, 0, 0, 0)' || fp.bg === 'transparent') && fp.lfs === fp.labFs && fp.lc === fp.labC && fp.pillBg === fp.stBg && fp.pillH === fp.stH && fp.inPill && fp.right <= 1 && fp.line === '1px', fp);
 ok('theme row = neighbouring rows in «Внешний вид»: gap, leading icon size, title font-size; circle 22px', pencilB.rowGaps.length === 1 && pencilB.gap === pencilB.rowGaps[0] && pencilB.rowIcons.length === 1 && pencilB.lead === pencilB.rowIcons[0] && pencilB.labFs.length === 1 && pencilB.tfs === pencilB.labFs[0] && pencilB.dot === 22, pencilB);
 ok('font: no separate «Шрифт» heading above the row', f.row && !f.heading, f);
 ok('no page errors', errs.length === 0, errs);

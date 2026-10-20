@@ -71,6 +71,12 @@ await sw(300, 60); const c0 = await p.evaluate(() => el('drawer').classList.cont
 await synthEdge(); const o1 = await p.evaluate(() => el('drawer').classList.contains('open'));
 await sw(300, 60); const o2 = await p.evaluate(() => el('drawer').classList.contains('open'));
 ok('drawer: кнопка меню открывает, свайп от края (20px, без касаний у края) открывает, свайп влево закрывает', mb && o0 && !c0 && o1 && !o2, { mbr, o0, c0, o1, o2 });
+// 20.10 (Джессика): нижняя панель подсвечивает ровно ту вкладку, на которой стоишь («Путь» не горел, «Библиотека» горела всегда)
+const lit = has ? await p.evaluate(async () => { navSave(['library', 'path', 'quests', 'profile', 'stats']); const out = {};
+  for (const id of ['path', 'quests', 'profile', 'stats', 'library']) { navGo(id); await new Promise(r => setTimeout(r, 200)); out[id] = [...document.querySelectorAll('#botnav .botnav-btn.on')].map(b => b.dataset.nav).join(','); }
+  navGo('settings'); await new Promise(r => setTimeout(r, 200)); out.settings = [...document.querySelectorAll('#botnav .botnav-btn.on')].map(b => b.dataset.nav).join(',');
+  navGo('library'); return out; }) : {};
+ok('nav: подсвечена ровно выбранная вкладка, в настройках ни одна', ['path', 'quests', 'profile', 'stats', 'library'].every(k => lit[k] === k) && lit.settings === '', lit);
 ok('нет ошибок страницы', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY nav.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

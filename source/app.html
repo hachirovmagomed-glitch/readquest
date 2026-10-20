@@ -666,11 +666,11 @@ mark{background:rgba(255,205,60,.45);color:inherit;border-radius:var(--rq-radius
 .pgt.cur .pgn{color:var(--txt);font-weight:700}
 .pgn{position:relative;text-align:center}
 .pgn .m{margin-left:3px;color:var(--accent)}
-/* «Затемнение» = screen brightness (Джессика 17.10): the whole reader screen, bars included, evenly — a child of #reader, not of
+/* «Яркость» (#dimmer; was «Затемнение» until 20.10) = screen brightness (Джессика 17.10): the whole reader screen, bars included, evenly — a child of #reader, not of
    #viewer (that one is inset by the margins and scrolls in scroll mode). Above the bars (30), under the settings sheet (50). */
 #dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}
 #warmer{position:absolute;inset:0;background:var(--rq-warm);mix-blend-mode:multiply;opacity:0;pointer-events:none;z-index:44} /* 18.10 SET.warm: night-light tint, under #dimmer */
-#dimRange,#brightRange,#warmRange{--rq-accent:var(--rq-accent-on-dark)}
+#brightRange,#warmRange{--rq-accent:var(--rq-accent-on-dark)}
 .imm .rhead,.imm .rfoot{display:none}
 .quest.locked{opacity:.45}
 #content.noind p,.rqCurlTxt.noind p{text-indent:0;margin-bottom:.7em}
@@ -1144,6 +1144,14 @@ button.xrow:is(#appThemeX,#appSkinX){background:none!important;padding-left:0!im
 :is(#appThemeBox,#appSkinBox).xlist .apptile small{flex:1;text-align:left;font-size:1rem;color:var(--txt)}
 :is(#appThemeBox,#appSkinBox).xlist .apptile .appsw{width:36px;height:36px;flex:none}
 :is(#appThemeBox,#appSkinBox).xlist,#fontSeg.xlist{align-items:stretch!important;justify-content:flex-start!important;flex-basis:100%}:is(#appThemeBox,#appSkinBox).xlist .apptile{width:100%;box-sizing:border-box;align-items:center;justify-content:flex-start}:is(#appThemeBox,#appSkinBox).xlist .apptile small{white-space:nowrap}
+/* 20.10 (Джессика, скрин): «Шрифт» looks like the rows around it — no fill, no «Aa», label left in the row font, value + ⌄ in a plaque on the right, divider below */
+#sheet .srow:has(#fontSegX){margin:0;border-bottom:1px solid var(--card2)}
+#sheet button.xrow#fontSegX{background:none;border-radius:0;margin:0;padding:6px 0;gap:12px}
+#sheet #fontSegX .xl{flex:1;min-width:0;color:var(--txt);font-size:0.875rem;line-height:1.25}
+#sheet #fontSegX .xpill{flex:none;display:inline-flex;align-items:center;gap:6px;max-width:62%;height:44px;box-sizing:border-box;padding:0 10px 0 14px;background:var(--card2);border-radius:var(--rq-radius-md)}
+#sheet #fontSegX .xpill .xv{flex:0 1 auto;text-align:left;font-weight:600;font-size:0.875rem}
+#sheet #fontSegX .xpill .ic{flex:none;color:var(--muted)}
+#sheet #fontSeg.xlist{border-bottom:1px solid var(--card2);margin-bottom:0;padding-bottom:6px}
 .srow:has(#fontSegX){flex-wrap:wrap}.srow:has(#fontSegX) > .seg,#fontSeg.xlist{width:100%;flex:1 1 100%}
 :is(#appThemeBox,#appSkinBox).xlist .apptile .chk{position:static;display:flex;visibility:hidden;background:none;color:var(--accent);width:22px;height:22px}
 :is(#appThemeBox,#appSkinBox).xlist .apptile.on .chk{visibility:visible}
@@ -1155,7 +1163,12 @@ button.xrow:is(#appThemeX,#appSkinX){background:none!important;padding-left:0!im
 .apptile.on .chk{display:flex}
 html[data-skin="pencil"] .apptile .chk{background:var(--rq-accent);color:var(--rq-on-accent)}
 /* ===== 1в: «Настройки чтения» sheet ===== */
-#sheet{padding-top:8px}
+#sheet{padding-top:0}
+/* 20.10 (Джессика, запись): the head (grab, ×, title, tabs) stays on top while the sheet scrolls; a swipe down on it closes the sheet */
+#sheet .sheethd{position:sticky;top:0;z-index:2;margin:0 -16px;padding:8px 16px 2px;background:var(--sheet);touch-action:none}
+#sheet .sheethd .grab{margin-bottom:10px}
+#sheet.drag{transition:none}
+#sheet.snap{transition:transform var(--rq-dur-fast,150ms) ease-out}
 #sheet .grab{width:36px;height:4px;border-radius:var(--rq-radius-xs);background:var(--muted);opacity:.5;margin:0 auto 10px}
 #sheet h3{font-size:1.25rem;font-weight:700;margin:2px 0 12px}
 .settabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 0 10px}
@@ -1213,6 +1226,22 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
    #viewer keeps its size whether the bars are shown or not (no relayout, no fullscreen exit on the centre tap).
    Hidden = transform + opacity + visibility (delayed so the slide-out is seen), never display:none. */
 #reader .rhead{position:absolute;top:0;left:0;right:0;z-index:30}
+/* 20.10 (Джессика, ReadEra): «Яркость» slider under the top bar — opens and hides with the bars, = SET.bright (same as the sheet row and the
+   left-edge drag). Filled part up to --v (set by applySet). Each skin draws its own track and thumb (pencil here, the rest in skins.css) */
+#reader .rhead{flex-wrap:wrap}
+.rbright{flex:1 1 100%;display:flex;align-items:center;gap:10px;padding:0 8px;color:rgba(255,255,255,.86)}
+.rbright .ic{flex:none}.rbright .ic.lo{opacity:.75}
+#barBright{flex:1;min-width:0;height:40px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;--v:100%;touch-action:pan-x}
+#barBright::-webkit-slider-runnable-track{height:4px;border-radius:var(--rq-radius-xs);background:linear-gradient(90deg,#fff var(--v),rgba(255,255,255,.28) var(--v))}
+#barBright::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:linear-gradient(90deg,#fff var(--v),rgba(255,255,255,.28) var(--v))}
+#barBright::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent-on-dark,#9ec5ff);box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+#barBright::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent-on-dark,#9ec5ff);box-sizing:border-box}
+/* pencil: a pencil line — solid where drawn, dashed sketch beyond; the thumb a hand-drawn ring */
+html[data-skin="pencil"] .rbright{color:var(--rq-text)}
+html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:3px;border-radius:2px 1px 2px 1px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 7px,transparent 7px 12px)}
+html[data-skin="pencil"] #barBright::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 7px,transparent 7px 12px)}
+html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:22px;height:20px;margin-top:-9px;border-radius:52% 46% 55% 44%/48% 55% 45% 52%;background:var(--rq-bg);border:2px solid var(--rq-text);box-shadow:1px 1px 0 var(--rq-text);transform:rotate(-8deg)}
+html[data-skin="pencil"] #barBright::-moz-range-thumb{width:22px;height:20px;border-radius:52% 46% 55% 44%/48% 55% 45% 52%;background:var(--rq-bg);border:2px solid var(--rq-text)}
 #reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
 /* audit 19.10 RD-PANEL-02: a soft 24 px fade at the panels' inner edges, so a cut line reads as covered, not broken */
 #reader .rhead::after,#reader .rbot::before{content:"";position:absolute;left:0;right:0;height:24px;pointer-events:none}
@@ -1874,6 +1903,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <button id="btnTimer" title="Таймер чтения — опыт начисляется только при включённом таймере">▶</button>
     <div class="rtitle" id="rTitle"></div>
     <button id="btnTts" title="Озвучка" aria-label="Озвучка" aria-pressed="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
+    <div class="rbright" id="rBright"><svg class="ic lo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></div>
   </header>
   <div id="viewer">
     <div id="content"></div>
@@ -1922,6 +1952,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="panelBody"></div>
   </div>
   <div class="sheet hidden" id="sheet" role="dialog" aria-labelledby="sheetH">
+    <div class="sheethd" id="sheetHd">
     <div class="grab" aria-hidden="true"></div>
     <button class="closes" id="sheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
     <h3 id="sheetH">Настройки чтения</h3>
@@ -1930,6 +1961,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <button data-g="grpPage" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Страница</span></button>
       <button data-g="grpNav" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><span>Листание</span></button>
       <button data-g="grpFocus" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-focus"/></svg><span>Фокус</span></button>
+    </div>
     </div>
     <div class="setgrp on" id="grpText">
       <div class="rrow"><span class="rl" id="szValL">Размер текста</span><div class="rstep" role="group" aria-labelledby="szValL"><button id="szMinus" aria-label="Меньше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="szVal" aria-live="polite"></span><button id="szPlus" aria-label="Больше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
@@ -1947,8 +1979,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rrow"><span class="rl" id="mgValL">Поля</span><div class="rstep" role="group" aria-labelledby="mgValL"><button id="mgMinus" aria-label="Уже"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="mgVal" aria-live="polite"></span><button id="mgPlus" aria-label="Шире"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="rrow stack"><span class="rl rlv"><label for="brightRange">Яркость</label><span class="rv" id="brightVal">100 %</span></span><input type="range" id="brightRange" min="30" max="100" step="5" value="100"></div>
       <div class="rrow stack"><span class="rl rlv"><label for="warmRange">Тёплый оттенок</label><span class="rv" id="warmVal">0 %</span></span><input type="range" id="warmRange" min="0" max="60" step="5" value="0"></div>
-      <div class="rrow"><span class="rl" id="warmNightTglL">Тёплый только ночью</span><button class="rsw" id="warmNightTgl" role="switch" aria-checked="true" aria-labelledby="warmNightTglL"></button></div>
-      <div class="rrow stack"><span class="rl rlv"><label for="dimRange">Затемнение</label><span class="rv" id="dimVal">0 %</span></span><input type="range" id="dimRange" min="0" max="70" step="5" value="0"></div>
     </div>
     <div class="setgrp" id="grpNav">
       <div class="rrow stack"><span class="rl" id="flipModeSegL">Как листать</span><div class="rseg" id="flipModeSeg" role="group" aria-labelledby="flipModeSegL"><button data-v="page">Страницы</button><button data-v="scroll">Прокрутка</button></div><div class="rnote" id="flipModeNote" hidden></div></div>

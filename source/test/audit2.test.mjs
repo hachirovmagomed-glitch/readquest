@@ -44,7 +44,7 @@ if (want('gate')) {
   const poke = () => {
     const out = []; const click = (id) => { const e = document.getElementById(id); if (e && e.onclick) { e.onclick({ target: e }); out.push(id); } };
     ['lhPlus', 'lhMinus', 'mgPlus', 'mgMinus', 'lsPlus', 'lsMinus', 'alignL', 'alignJ', 'hyphTgl', 'hyphTgl', 'indTgl', 'indTgl', 'wBold', 'wNorm', 'cReset', 'readCntTgl', 'readCntTgl'].forEach(click);
-    for (const id of ['dimRange', 'pdfDimRange']) { const e = document.getElementById(id); if (e && e.onchange) { e.onchange({ target: e }); out.push(id); } }
+    for (const id of ['brightRange', 'warmRange']) { const e = document.getElementById(id); if (e && e.onchange) { e.onchange({ target: e }); out.push(id); } }
     const c = document.getElementById('cBg'); if (c && c.oninput) { c.oninput({ target: { value: '#f0e6d2' } }); out.push('cBg'); }
     document.querySelectorAll('#focusSeg button').forEach(b => { if (b.onclick) { b.onclick(); out.push('focus:' + b.dataset.f); } });
     saveSet(); out.push('saveSet()'); /* gestures (brightness in pdf.js / reader-ui.js), PDF size, theme picks: all end in saveSet() */

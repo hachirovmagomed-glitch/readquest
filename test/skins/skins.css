@@ -616,6 +616,18 @@ html[data-skin="pencil"] #botnav{background:var(--rq-bg);border-top:1.5px solid 
 /* text on accent fills (night accent is pale blue: the app paints literal #fff there) */
 html[data-skin="pencil"] :is(.buy:not(.owned),.cta,.seg button.on){color:var(--rq-on-accent)}
 
+/* ===== 20.10 Поиск по книге (js/book-find.js) и черточки глав на ползунке страниц =====
+   The search header is .rhead (rule 1 above gives it the skin bar); Небесный also gets its starry reader top.
+   Chapter marks sit ABOVE the track (the input's track covers the middle 4 px): Эллада — a small blue lozenge,
+   Бабочковый — a dot, Небесный — a golden four-point star UNDER the track (its page number sits above the slider). Decorative, outside the book page. */
+html[data-skin="ellada"] #pgTicks i{top:-11px;width:6px;height:6px;margin-left:-3px;border-radius:0;background:var(--rq-accent);opacity:.8;transform:rotate(45deg)}
+html[data-skin="babochkovyi"] #pgTicks i{top:-11px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--rq-accent);opacity:.75}
+html[data-skin="celestial"] #pgTicks i{top:6px;width:9px;height:9px;margin-left:-4.5px;border-radius:0;background:var(--cl-gold);opacity:1;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+html[data-skin="celestial"] .bfind .rhead{background:var(--cl-rtop);box-shadow:0 1px 0 var(--cl-gold),0 2px 0 var(--rq-surface),0 3px 0 var(--cl-gold-l)}
+html[data-skin="celestial"][data-theme="night"] .bfind .rhead{background:var(--cl-dust-n) 0 0/200px 200px repeat,var(--cl-rtop)}
+html[data-skin="celestial"] .bfrow{border:1px solid var(--cl-gold-l)}
+html[data-skin="ellada"] .bfrow,html[data-skin="babochkovyi"] .bfrow{box-shadow:0 0 0 1px var(--rq-line)}
+html[data-skin="ellada"] .bfrow.on,html[data-skin="babochkovyi"] .bfrow.on{box-shadow:0 0 0 1px var(--rq-line),inset 3px 0 0 var(--rq-accent)}
 /* 20.10 (Джессика): the «Яркость» slider under the reader's top bar, each skin its own (pencil in app.html) */
 html[data-skin]:not([data-skin="pencil"]) .rbright{color:var(--rq-accent-text)}
 /* Эллада: a meander band fills up to the value, a gold drachma for the thumb */

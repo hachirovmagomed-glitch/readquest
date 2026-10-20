@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261020-2334',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261021-0014',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261020-2334"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261021-0014"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -431,6 +431,42 @@ body.rq-nolocks #rqNoXp{display:block}
 #reader.barsoff #jumpMark{display:none}
 /* audit 19.10 RD-JMP-01: «‹ на стр. N» only with the panels, never over the clean page or an open sheet (the jump is kept until a normal turn) */
 #reader.barsoff #jumpBack,#reader:has(.sheet:not(.hidden)) #jumpBack,#reader:has(.sheet:not(.hidden)) #jumpMark{display:none}
+/* 20.10 лупа (js/book-find.js): the search screen over the book = the reader header (.rhead: bar colours of every skin) + the list
+   on the app background; matches marked with the accent tint, page number on the right. «‹ 3 из 57 › ✕» = the jumpBack pill on the right. */
+.bfind{position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;background:var(--bg);color:var(--txt)}
+.bfind[hidden]{display:none}
+.bfind .bfhead{position:relative;z-index:1}
+.bfind .bfhead button{flex:none}
+#bfQ{flex:1;min-width:0;height:44px;margin:0;padding:0 4px;border:0;border-radius:0;background:transparent;color:inherit;font:inherit;font-size:1.0625rem;outline:none;box-shadow:none;-webkit-appearance:none;appearance:none}
+#bfQ::placeholder{color:inherit;opacity:.7}
+#bfQ:focus-visible{outline:none;box-shadow:inset 0 -2px 0 var(--rq-accent,var(--accent))}
+.bfstat{flex:none;padding:10px 16px 2px;font-size:0.8125rem;color:var(--muted);min-height:1.2em;font-variant-numeric:tabular-nums}
+.bflist{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:6px 10px calc(16px + env(safe-area-inset-bottom))}
+.bfrow{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;margin:0 0 6px;padding:10px 12px 10px 14px;border:0;border-radius:var(--rq-radius-sm,10px);background:var(--card);color:var(--txt);text-align:left;font:inherit;font-size:0.9375rem;line-height:1.35}
+.bfrow.on{box-shadow:inset 3px 0 0 var(--rq-accent,var(--accent))}
+.bfsn{flex:1;min-width:0;overflow-wrap:anywhere}
+.bfpg{flex:none;min-width:2.5em;text-align:right;color:var(--muted);font-size:0.8125rem;font-variant-numeric:tabular-nums}
+.bfm{background:color-mix(in srgb,var(--rq-accent,var(--accent)) 40%,transparent);color:inherit;font-weight:700;border-radius:3px;padding:0 1px}
+.bfempty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:48px 24px;color:var(--muted);text-align:center;font-size:0.9375rem}
+.bfempty .ic{opacity:.6}
+::highlight(rq-find){background-color:rgba(255,205,60,.45);color:inherit}
+::highlight(rq-find-cur){background-color:rgba(255,170,0,.62);color:inherit;text-decoration:underline 2px;text-underline-offset:2px}
+#bfPill{position:fixed;z-index:40;right:10px;display:flex;align-items:center;height:44px}
+#bfPill::before{content:"";position:absolute;left:0;right:0;top:6px;bottom:6px;border-radius:var(--rq-radius-pill,999px);border:1px solid var(--rq-accent);background:var(--r-bg);z-index:-1}
+#bfPill{isolation:isolate}
+#bfPill button{min-width:40px;height:44px;padding:0;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--rq-accent-text);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+#bfPill #bfNum{min-width:56px;padding:0 4px}
+#bfPill #bfEnd{color:var(--r-txt,inherit);opacity:.8}
+#bfPill.hidden,#reader:has(.sheet:not(.hidden)) #bfPill,#reader.focus #bfPill{display:none} /* stays over the clean page too: the search is on until ✕ */
+/* 20.10 chapter ticks on the page slider (как в ReadEra): under the input (its thumb covers them), each skin draws its own mark */
+#reader .rfoot{position:relative}
+#pgSlider{position:relative;z-index:1}
+#pgTicks{position:absolute;height:0;min-width:0;opacity:1;pointer-events:none}
+#pgTicks i{position:absolute;top:-6px;width:1.5px;height:12px;margin-left:-.75px;border-radius:1px;background:currentColor;opacity:.55}
+#pgTip{opacity:1} /* a span in .rfoot (opacity .85): the page text showed through the tip */
+#pgTip.withch{display:flex;flex-direction:column;align-items:center;gap:5px;max-width:min(80vw,320px);line-height:1.15}
+#pgTip .pgch{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:var(--r-txt,inherit)}
+#pgTip .pgpn{font-weight:600}
 .rfbtn{flex:none;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:inherit;margin:-10px -6px -10px 4px}
 #reader.nofocusbtn #btnFocus{display:none}
 #btnTts[aria-disabled="true"]{opacity:.45} /* audit 19.10 R4: no voice — looks inactive, tap explains */
@@ -1376,6 +1412,8 @@ html[data-skin="pencil"] .botnav-btn.on{color:var(--rq-skin-tab-active);backgrou
 #pgArt{display:none;position:absolute;pointer-events:none;overflow:visible}
 html[data-skin="pencil"] #reader .rfoot{position:relative}
 html[data-skin="pencil"] #pgArt{display:block}
+html[data-skin="pencil"] #pgTicks i{top:-7px;width:2px;height:12px;margin-left:-1px;background:var(--rq-text-2);opacity:.8;border-radius:1px 2px 1px 2px;transform:rotate(-7deg)} /* 20.10: chapter ticks = pencil strokes */
+html[data-skin="pencil"] #pgTicks i:nth-child(even){height:10px;top:-6px;transform:rotate(6deg)}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-runnable-track{background:transparent}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-thumb{background:transparent;border-color:transparent}
 html[data-skin="pencil"] #pgSlider::-moz-range-track{background:transparent}
@@ -1485,7 +1523,7 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261020-2334"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261021-0014"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -1985,6 +2023,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="rtitle" id="rTitle"></div>
     <button id="btnAiChat" title="Обсудить книгу" aria-label="Обсудить книгу"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg></button><!-- 20.10 ИИ-чат по книге (content.js) -->
     <button id="btnTts" title="Озвучка" aria-label="Озвучка" aria-pressed="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
+    <button id="btnFind" type="button" title="Поиск по книге" aria-label="Поиск по книге" aria-haspopup="dialog"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><!-- 20.10 лупа: поиск по книге (js/book-find.js) -->
     <div class="rbright" id="rBright"><svg class="ic lo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></div>
   </header>
   <div id="viewer">
@@ -2014,7 +2053,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
   <div class="rbot">
-  <footer class="rfoot"><span id="rPage"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><svg id="pgArt" aria-hidden="true" focusable="false"></svg><span id="pgTip" class="hidden" aria-hidden="true"></span><span id="pgSafe" aria-hidden="true"></span><span id="rPct"></span></footer>
+  <footer class="rfoot"><span id="rPage"></span><span id="pgTicks" aria-hidden="true"></span><input type="range" id="pgSlider" min="0" max="100" value="0"><svg id="pgArt" aria-hidden="true" focusable="false"></svg><span id="pgTip" class="hidden" aria-hidden="true"></span><span id="pgSafe" aria-hidden="true"></span><span id="rPct"></span></footer>
   <nav class="rbar" id="rBar" aria-label="Панель читалки">
     <button id="btnPanel"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-list"/></svg><span>Оглавление</span></button>
     <button id="btnDayNight"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><span id="btnDayNightL">Ночь</span></button>
@@ -2111,35 +2150,36 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261020-2334"></script>
-<script src="js/books-builtin.js?v=20261020-2334"></script>
-<script src="js/core-b.js?v=20261020-2334"></script>
-<script src="js/library.js?v=20261020-2334"></script>
-<script src="js/reader.js?v=20261020-2334"></script>
-<script src="js/pdf.js?v=20261020-2334"></script>
-<script src="js/pdf-scroll.js?v=20261020-2334"></script>
-<script src="js/page-curl.js?v=20261020-2334"></script>
-<script src="js/page-grid.js?v=20261020-2334"></script>
-<script src="js/reader-ui.js?v=20261020-2334"></script>
-<script src="js/rpg.js?v=20261020-2334"></script>
-<script src="js/content.js?v=20261020-2334"></script>
-<script src="js/hero-pencil.js?v=20261020-2334"></script>
-<script src="js/hero-celestial.js?v=20261020-2334"></script>
-<script src="js/hero.js?v=20261020-2334"></script>
-<script src="js/settings.js?v=20261020-2334"></script>
-<script src="js/v6-extras.js?v=20261020-2334"></script>
-<script src="js/ach-core.js?v=20261020-2334"></script>
-<script src="js/achievements.js?v=20261020-2334"></script>
-<script src="js/path.js?v=20261020-2334"></script>
-<script src="js/adv.js?v=20261020-2334"></script>
-<script src="js/start.js?v=20261020-2334"></script>
+<script src="js/core-a.js?v=20261021-0014"></script>
+<script src="js/books-builtin.js?v=20261021-0014"></script>
+<script src="js/core-b.js?v=20261021-0014"></script>
+<script src="js/library.js?v=20261021-0014"></script>
+<script src="js/reader.js?v=20261021-0014"></script>
+<script src="js/pdf.js?v=20261021-0014"></script>
+<script src="js/pdf-scroll.js?v=20261021-0014"></script>
+<script src="js/page-curl.js?v=20261021-0014"></script>
+<script src="js/page-grid.js?v=20261021-0014"></script>
+<script src="js/reader-ui.js?v=20261021-0014"></script>
+<script src="js/book-find.js?v=20261021-0014"></script>
+<script src="js/rpg.js?v=20261021-0014"></script>
+<script src="js/content.js?v=20261021-0014"></script>
+<script src="js/hero-pencil.js?v=20261021-0014"></script>
+<script src="js/hero-celestial.js?v=20261021-0014"></script>
+<script src="js/hero.js?v=20261021-0014"></script>
+<script src="js/settings.js?v=20261021-0014"></script>
+<script src="js/v6-extras.js?v=20261021-0014"></script>
+<script src="js/ach-core.js?v=20261021-0014"></script>
+<script src="js/achievements.js?v=20261021-0014"></script>
+<script src="js/path.js?v=20261021-0014"></script>
+<script src="js/adv.js?v=20261021-0014"></script>
+<script src="js/start.js?v=20261021-0014"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261020-2334"></script>
+<script src="js/pwa-lock.js?v=20261021-0014"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2147,9 +2187,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261020-2334';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261020-2334';
-import * as game from './game-awards.js?v=20261020-2334';
+} from './storage/index.js?v=20261021-0014';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261021-0014';
+import * as game from './game-awards.js?v=20261021-0014';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

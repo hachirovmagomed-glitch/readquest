@@ -1,5 +1,5 @@
 // Quote colours on the selection bar (Джессика 20.10, like ReadEra: «вариативность выбора цвета» + selected text to notes).
-// 5 dots (no red); a dot saves a quote in that colour and remembers it (SET.hlc); the mark in the book keeps the colour after reopening;
+// 5 dots (no red) + «свой цвет» (Джессика 20.10 «кастомным цветом»: system colour picker, q.c '#rrggbb', SET.hlx); a dot saves a quote in that colour and remembers it (SET.hlc); the mark in the book keeps the colour after reopening;
 // a dot over an existing highlight recolours it (no copy); «Заметка» = our sheet with a text field (no system prompt), «Отмена» saves nothing;
 // typing a space in the note never turns the page; an old quote without c = yellow; book text over every colour ≥ 7:1 in all themes and skins.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ [RQ_SHOTS=/workspace/out] node hlcolor.test.mjs
@@ -32,10 +32,10 @@ let t1 = await select(0); await sleep(300);
 const bar = await p.evaluate(() => { const b = document.getElementById('selpop'), r = b.getBoundingClientRect(), d = [...document.querySelectorAll('#spColors button')];
   const top = d.map(x => Math.round(x.getBoundingClientRect().top)), act = document.getElementById('spCopy').getBoundingClientRect();
   const acts = [...b.querySelectorAll(':scope > button')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top));
-  return { n: d.length, keys: d.map(x => x.dataset.c).join(''), cols: d.map(x => getComputedStyle(x.querySelector('i')).backgroundColor), on: d.filter(x => x.classList.contains('on')).map(x => x.dataset.c),
+  return { n: d.length, own: d[5].id === 'spOwn', keys: d.map(x => x.dataset.c || '').join(''), cols: d.map(x => getComputedStyle(x.querySelector('i')).backgroundColor), on: d.filter(x => x.classList.contains('on')).map(x => x.dataset.c),
     row: new Set(top).size === 1, actRow: new Set(acts).size === 1, above: top[0] < act.top, l: Math.round(r.left), r: Math.round(r.right), tap: d.every(x => x.getBoundingClientRect().width >= 44 && x.getBoundingClientRect().height >= 44), labels: d.every(x => /^Цитата, /.test(x.getAttribute('aria-label'))) }; });
-const red = bar.cols.some(c => { const [r, g, b] = c.match(/\d+/g).map(Number); return r > 180 && g < 90 && b < 90; });
-ok('1 bar: 5 dots (y g b p o) in one row above one row of actions, no red, ring on yellow, 44 px, labelled, inside 360', bar.n === 5 && bar.keys === 'ygbpo' && !red && bar.on.join() === 'y' && bar.row && bar.actRow && bar.above && bar.tap && bar.labels && bar.l >= 0 && bar.r <= 360, bar);
+const red = bar.cols.slice(0, 5).some(c => { const [r, g, b] = c.match(/\d+/g).map(Number); return r > 180 && g < 90 && b < 90; });
+ok('1 bar: 5 dots (y g b p o) + own colour in one row above one row of actions, no red, ring on yellow, 44 px, labelled, inside 360', bar.n === 6 && bar.own && bar.keys === 'ygbpo' && !red && bar.on.join() === 'y' && bar.row && bar.actRow && bar.above && bar.tap && bar.labels && bar.l >= 0 && bar.r <= 360, bar);
 await p.screenshot({ path: SHOTS + 'hlcolor-bar-360.png' });
 
 // 2. green dot → quote in green, mark hl-g, remembered, bar closed
@@ -57,10 +57,24 @@ await sleep(300); await tap('#spColors button[data-c="b"]');
 q = await qs(); mk = await p.evaluate(() => [...document.querySelectorAll('#content mark')].map(m => m.className));
 ok('4 inside a highlight: blue recolours that quote (c=b, mark hl-b), still 2 quotes, no coins', q.length === 2 && q[0].c === 'b' && mk[0] === 'hl-b' && (await p.evaluate(() => S.gold)) === g4, { q, mk });
 
+// 4b. own colour: picker → quote '#d0306a' (pink), mark data-hc with an alpha that keeps 7:1, SET.hlx, ring on «свой»; «Отмена» in the picker saves nothing
+const t4b = await select(3); await sleep(300); await tap('#spOwn');
+const pv = await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); return { has: !!i, type: i && i.type, v: i && i.value, inBar: !!(i && i.closest('#selpop')) }; });
+let n4 = (await qs()).length;
+await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); i.value = '#d0306a'; i.dispatchEvent(new Event('change')); }); await sleep(250);
+q = await qs(); const own = await p.evaluate(() => { const m = document.querySelector('#content mark[data-hc]'); return m ? { hc: m.dataset.hc, bg: m.style.background, t: m.textContent } : null; });
+const hx = await p.evaluate(() => [SET.hlc, SET.hlx]);
+ok('4b own colour: picker (input type=color outside the bar, default pink) → quote c=#d0306a, mark data-hc + rgba background, SET.hlc/hlx = it', pv.has && pv.type === 'color' && !pv.inBar && pv.v === '#e86fb0' && q.length === n4 + 1 && q[n4].t === t4b && q[n4].c === '#d0306a' && own && own.hc === '#d0306a' && /rgba\(208, 48, 106/.test(own.bg) && hx[0] === '#d0306a' && hx[1] === '#d0306a', { pv, q: q[n4], own, hx });
+await select(4); await sleep(300);
+const ring = await p.evaluate(() => { const b = document.getElementById('spOwn'); return { on: b.classList.contains('on'), set: b.querySelector('i').classList.contains('set'), d: b.style.getPropertyValue('--d') }; });
+await tap('#spOwn'); await sleep(100); n4 = (await qs()).length; await tap('#spCopy');
+ok('4c next selection: ring on «свой», it shows the last own colour; closing the picker without a colour saves nothing', ring.on && ring.set && ring.d === '#d0306a' && (await qs()).length === n4, { ring, n: (await qs()).length, n4 });
+await p.evaluate(() => { SET.hlc = 'b'; saveSet(); });
+
 // 5. reopen: marks keep their colours
 await p.evaluate(async (id) => { await closeReader({ quiet: true }); __navAllow = true; openBook(id); __navAllow = false; await new Promise(r => setTimeout(r, 2500)); }, bid);
 mk = await p.evaluate(() => [...document.querySelectorAll('#content mark')].map(m => m.className));
-ok('5 reopen: highlights in their colours (hl-b, hl-g)', mk.length === 2 && mk.includes('hl-b') && mk.includes('hl-g'), mk);
+ok('5 reopen: highlights in their colours (hl-b, hl-g, own pink)', mk.length === 3 && mk.includes('hl-b') && mk.includes('hl-g') && (await p.evaluate(() => { const m = document.querySelector('#content mark[data-hc="#d0306a"]'); return !!m && /rgba/.test(m.style.background); })), mk);
 
 // 6. «Заметка»: our sheet with a text field; space does not turn the page; save → note; cancel → nothing
 const t6 = await select(2); await sleep(300); await tap('#spNote');
@@ -69,16 +83,16 @@ await p.keyboard.type('моя мысль про это');
 const pg = await p.evaluate(() => R.page);
 await shotSheet();
 await tap('#rqAskOk'); q = await qs();
-ok('6 «Заметка»: in-app sheet with a focused text field, no system dialog; typing a space keeps the page; saved with note and the last colour (blue)', sh.open && sh.field && sh.focus && pg === sh.page && dialogs.length === 0 && q.length === 3 && q[2].t === t6 && q[2].n === 'моя мысль про это' && q[2].c === 'b', { sh, pg, dialogs, q: q[2] });
+ok('6 «Заметка»: in-app sheet with a focused text field, no system dialog; typing a space keeps the page; saved with note and the last colour (blue)', sh.open && sh.field && sh.focus && pg === sh.page && dialogs.length === 0 && q.length === 4 && q[3].t === t6 && q[3].n === 'моя мысль про это' && q[3].c === 'b', { sh, pg, dialogs, q: q[3] });
 await select(3); await sleep(300); await tap('#spNote'); await p.keyboard.type('не надо'); await tap('#rqAskNo');
 q = await qs();
-ok('6b «Отмена» in the note sheet saves nothing', q.length === 3, q.length);
+ok('6b «Отмена» in the note sheet saves nothing', q.length === 4, q.length);
 async function shotSheet() { await p.screenshot({ path: SHOTS + 'hlcolor-note-360.png' }); }
 
 // 7. quotes screen: colour stripe; an old quote without c = yellow
 await p.evaluate((id) => { S.quotes[id].push({ text: 'старая цитата', note: '', date: today() }); save(); renderQuotes(); }, bid);
 const cards = await p.evaluate(() => [...document.querySelectorAll('#quoteBox .qcard')].map(c => c.dataset.c).join(''));
-ok('7 quotes screen: each card carries its colour (b g b), old quote without c → y', cards === 'bgby', cards);
+ok('7 quotes screen: each card carries its colour (b g own b), old quote without c → y', cards === 'bg#d0306aby', cards);
 
 // 8. book text over every colour ≥ 7:1, day and night, all page themes + skins
 await p.evaluate(() => { S.gold = 5000; save(); for (const k of ['skin-ellada', 'skin-babochkovyi', 'skin-celestial']) buy(k); });
@@ -93,11 +107,12 @@ for (const k of themes) {
     const page = rgb(getComputedStyle(document.getElementById('reader')).backgroundColor);
     const m = document.createElement('mark'); m.textContent = 'x'; document.querySelector('#content p:not(.meta)').appendChild(m); const txt = rgb(getComputedStyle(m).color);
     const out = ['y', 'g', 'b', 'p', 'o'].map(c => { m.className = c === 'y' ? '' : 'hl-' + c; const [r, g, b, a] = rgb(getComputedStyle(m).backgroundColor); const bl = [r, g, b].map((v, i) => v * a + page[i] * (1 - a)); return +cr(txt, bl).toFixed(2); });
+    m.className = ''; const own = ['#000000', '#ffffff', '#d0306a', '#00ffcc', '#3355ff'].map(h => { m.dataset.hc = h; hlPaintCustom(); const [r, g, b, a] = rgb(m.style.background); const bl = [r, g, b].map((v, i) => v * a + page[i] * (1 - a)); return +cr(txt, bl).toFixed(2); }); out.push(...own); delete m.dataset.hc;
     m.remove(); return { night: document.getElementById('reader').dataset.page, min: Math.min(...out), out };
   });
   if (r.min < 7) worst.push({ k, ...r });
 }
-ok('8 book text over every quote colour ≥ 7:1 in ' + themes.length + ' page themes (day + night, skins)', worst.length === 0, worst);
+ok('8 book text over every quote colour (5 + own black/white/pink/aqua/blue) ≥ 7:1 in ' + themes.length + ' page themes (day + night, skins)', worst.length === 0, worst);
 ok('no page errors, no system dialogs', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

@@ -24,10 +24,11 @@ async function fresh(width, reply) {
   await p.setRequestInterception(true);
   p.on('request', r => {
     const u = r.url();
-    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test)\//.test(u)) {
+    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com)\//.test(u)) {
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
       const q = { url: u, headers: r.headers(), body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
       const a = reply ? reply(q) : { status: 500, json: {} };
+      if (a.raw) return r.respond({ status: a.status, headers: CORS, contentType: a.type, body: a.raw });
       return r.respond({ status: a.status, headers: CORS, contentType: 'application/json', body: JSON.stringify(a.json) });
     }
     r.continue();
@@ -241,6 +242,79 @@ if (want('chat')) for (const W of [360, 390]) {
     const cl = await p.evaluate(() => ({ has: !!S.aiChat[R.book.id], btn: el('aiChatClear').hidden }));
     ok('chat: «Очистить» удаляет переписку по книге', !cl.has && cl.btn, cl);
   }
+  await ctx.close();
+}
+
+/* озвучка: короткий WAV вместо mp3 (Chromium узнаёт формат по содержимому) */
+function wav(sec) {
+  const rate = 8000, n = Math.floor(rate * sec), b = Buffer.alloc(44 + n * 2);
+  b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVE', 8); b.write('fmt ', 12); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22);
+  b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(n * 2, 40); return b;
+}
+if (want('tts')) for (const W of [360, 390]) {
+  let fail = 0;
+  const { ctx, p, reqs } = await fresh(W, (q) => {
+    if (fail) return { status: 401, json: { error: { message: 'Incorrect API key' } } };
+    if (/texttospeech/.test(q.url)) return { status: 200, json: { audioContent: wav(0.3).toString('base64') } };
+    return { status: 200, raw: wav(0.4), type: 'audio/wav' };
+  });
+  const d = await p.evaluate(() => { openGeneralSettings(false); const on = el('ttsProvSeg').querySelector('button.on'); return { prov: on && on.textContent, fields: el('ttsFields').hidden, sai: JSON.parse(JSON.stringify(S.tts)) }; });
+  ok('tts ' + W + ': по умолчанию «Телефон», полей ключа не видно', d.prov === 'Телефон' && d.fields && d.sai.prov === 'system', d);
+  await p.evaluate(() => [...el('ttsProvSeg').querySelectorAll('button')].find(b => b.textContent === 'OpenAI').click());
+  await p.type('#ttsKey', 'sk-tts'); await sleep(100);
+  await p.evaluate(() => el('ttsHead').scrollIntoView({ block: 'start' }));
+  await p.click('#ttsTest'); await p.waitForFunction(() => /Работает|Не работает|нажмите/.test(el('ttsTestRes').textContent), { timeout: 10000 }).catch(() => {});
+  const tr = await p.evaluate(() => el('ttsTestRes').textContent);
+  const q0 = reqs[0] || {};
+  ok('tts ' + W + ': «Послушать» → запрос в api.openai.com/v1/audio/speech (ключ, gpt-4o-mini-tts, nova) и «Работает»', /^Работает/.test(tr) && q0.url === 'https://api.openai.com/v1/audio/speech' && q0.headers.authorization === 'Bearer sk-tts' && q0.body.model === 'gpt-4o-mini-tts' && q0.body.voice === 'nova' && /Здравствуйте/.test(q0.body.input), { tr, url: q0.url, body: q0.body });
+  await shot(p, W + '-10-ozvuchka');
+  /* книга: «Озвучка» читает кусками, следующий кусок заказывается заранее, страницы листаются, минуты не идут */
+  const n0 = reqs.length;
+  await p.evaluate(async () => { closeGeneralSettings(); openBook(BOOKS[0].id); await new Promise(r => setTimeout(r, 2500)); });
+  const p0 = await p.evaluate(() => R.page);
+  await p.evaluate(() => el('btnTts').click());
+  await sleep(2500);
+  const st = await p.evaluate(() => ({ on: ttsOn, pressed: el('btnTts').getAttribute('aria-pressed'), page: R.page, pos: R.ttsPos, len: R.book.text.length }));
+  const speech = reqs.slice(n0).filter(q => /audio\/speech/.test(q.url));
+  ok('tts ' + W + ': «Озвучка» играет нейроголос (короткая книга — до конца); ушло ≥ 3 запросов кусками ≤ 1720 знаков, по порядку текста', st.on && st.pressed === 'true' && speech.length >= 3 && speech.every(q => q.body.input.length <= 1720) && st.pos > 0, { st, n: speech.length, lens: speech.map(q => q.body.input.length) });
+  const b0 = await p.evaluate(() => R.book.text);
+  ok('tts ' + W + ': куски идут подряд без пропусков', speech.length >= 2 && b0.indexOf(speech[0].body.input) >= 0 && b0.indexOf(speech[1].body.input) === b0.indexOf(speech[0].body.input) + speech[0].body.input.length, speech.slice(0, 2).map(q => q.body.input.slice(0, 40)));
+  ok('tts ' + W + ': страницы перелистываются вслед за голосом', st.page > p0, { p0, page: st.page });
+  await p.evaluate(() => el('btnTts').click()); await sleep(300);
+  const s2 = await p.evaluate(() => ({ on: ttsOn, paused: !nttsAudio || nttsAudio.paused, pressed: el('btnTts').getAttribute('aria-pressed') }));
+  ok('tts ' + W + ': повторное нажатие останавливает звук', !s2.on && s2.paused && s2.pressed === 'false', s2);
+  /* ошибка ключа — понятный текст, озвучка выключена, страница вернулась */
+  fail = 1;
+  await p.evaluate(async () => { NTTS_CACHE.clear(); goPage(1, false); await new Promise(r => setTimeout(r, 600)); }); /* книга короткая и дочитана голосом до конца */
+  const pg1 = await p.evaluate(() => R.page);
+  await p.evaluate(() => el('btnTts').click()); await sleep(1200);
+  const s3 = await p.evaluate(() => ({ on: ttsOn, page: R.page, toast: [...document.querySelectorAll('.toast,#toast,.flash,[class*=toast]')].map(e => e.textContent).join('|') }));
+  ok('tts ' + W + ': ключ не принят — озвучка выключилась, страница на месте, сообщение «сервис не принял ключ»', !s3.on && s3.page === pg1 && /не принял ключ/.test(s3.toast), s3);
+  await ctx.close();
+}
+if (want('tts')) {
+  const { ctx, p, reqs } = await fresh(390, (q) => /texttospeech/.test(q.url) ? { status: 200, json: { audioContent: wav(0.3).toString('base64') } } : { status: 200, raw: wav(0.3), type: 'audio/mpeg' });
+  await p.evaluate(() => { S.tts = { prov: 'elevenlabs', key: 'xi-1', voice: '', base: '' }; save(); });
+  const a = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size; } catch (e) { return e.message; } });
+  const q = reqs[0] || {};
+  ok('tts: ElevenLabs — xi-api-key, голос по умолчанию в адресе, eleven_multilingual_v2', a > 0 && /^https:\/\/api\.elevenlabs\.io\/v1\/text-to-speech\/JBFqnCBsd6RMkjVDRZzb\?/.test(q.url) && q.headers['xi-api-key'] === 'xi-1' && q.body.model_id === 'eleven_multilingual_v2' && q.body.text === 'Привет', { a, url: q.url });
+  await p.evaluate(() => { S.tts = { prov: 'google', key: 'g-1', voice: 'ru-RU-Wavenet-A', base: '' }; save(); });
+  const g = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size + ':' + b.type; } catch (e) { return e.message; } });
+  const q2 = reqs[1] || {};
+  ok('tts: Google — ключ в адресе, ru-RU и голос, ответ base64 → звук', /^\d+:audio\/mpeg$/.test(g) && q2.url === 'https://texttospeech.googleapis.com/v1/text:synthesize?key=g-1' && q2.body.voice.languageCode === 'ru-RU' && q2.body.voice.name === 'ru-RU-Wavenet-A', { g, url: q2.url });
+  await p.evaluate(() => { S.tts = { prov: 'openai', key: '', voice: '', base: '' }; S.ai = { prov: 'openai', key: 'sk-ai', model: '', base: '' }; save(); });
+  const sh = await p.evaluate(() => ({ on: nttsOn(), key: nttsCfg().key }));
+  ok('tts: OpenAI без своего ключа берёт ключ ИИ-помощника (тоже OpenAI)', sh.on && sh.key === 'sk-ai', sh);
+  const r = await p.evaluate(async () => {
+    const n1 = ttsNorm({ prov: 'zzz', key: 5 }), n2 = ttsNorm(null);
+    S.tts = { prov: 'elevenlabs', key: 'xi-OWN', voice: 'v1', base: '' }; save(); await new Promise(r => setTimeout(r, 300));
+    const exp = await __rq.exportBackup(null, SET, { includeTextBodies: false });
+    const raw = JSON.stringify(exp).indexOf('xi-OWN') >= 0, e = exp.game.tts;
+    const f = JSON.parse(JSON.stringify(exp)); f.game.tts = { prov: 'openai', key: 'sk-FOREIGN', voice: 'x', base: '' };
+    await __rq.importBackup(f); const after = __rq.loadEnvelope().game.tts;
+    return { n1, n2, raw, e, after };
+  });
+  ok('tts data: нормализация (мусор → «Телефон», строки), экспорт без ключа, импорт оставляет свой ключ и сервис', r.n1.prov === 'system' && r.n1.key === '' && r.n2.prov === 'system' && !r.raw && r.e.key === '' && r.e.prov === 'elevenlabs' && r.after.key === 'xi-OWN' && r.after.prov === 'elevenlabs', r);
   await ctx.close();
 }
 

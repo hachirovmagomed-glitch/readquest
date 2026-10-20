@@ -141,6 +141,8 @@ export const GAME_DEF = {
   anti: null,
   notif: null,
   ai: null,
+  /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
+  tts: null,
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -374,7 +376,8 @@ export function hydrateGame(g) {
       Скорочтение: 0,
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
-  if (!out.ai) out.ai = { key: '', model: '', prov: 'deepseek', base: '' }; /* 20.10: prov/base (arch.md); old ai without prov is normalised in core-b aiNorm */
+  if (!out.ai) out.ai = { key: '', model: '', prov: 'deepseek', base: '' };
+  if (!out.tts || typeof out.tts !== 'object') out.tts = { prov: 'system', key: '', voice: '', base: '' }; /* 20.10: prov/base (arch.md); old ai without prov is normalised in core-b aiNorm */
   /* shop build removed the currency picker and ∞ money; the fields stay (old fields are never deleted): cur as stored, devMoney always false */
   out.devMoney = false;
   out.owned = out.owned.map(function (id) { return id === 'skin-les' || id === 'skin-forest' ? 'skin-gravyura' : typeof id === 'string' ? id.replace(/^color-(les|forest)-/, 'color-gravyura-') : id; }).filter(function (id, i, a) { return a.indexOf(id) === i; });

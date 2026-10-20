@@ -235,7 +235,7 @@ function hydrateS(raw){
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
   if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
-  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat); /* 20.10 ИИ: arch.md */
+  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
   /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
@@ -401,4 +401,11 @@ function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
       .map(function(m){return {r:m.r,t:m.t.slice(0,1500),d:typeof m.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(m.d)?m.d:''};}).slice(-20);
     if(l.length)out[k]=l;});
   return out;
+}
+/* 20.10 нейросетевая озвучка (arch.md): prov system|openai|elevenlabs|google|custom, остальное строки */
+function ttsNorm(t){
+  if(!t||typeof t!=='object')t={};
+  ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});
+  if(['system','openai','elevenlabs','google','custom'].indexOf(t.prov)<0)t.prov='system';
+  t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
 }

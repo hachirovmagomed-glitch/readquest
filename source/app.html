@@ -1096,6 +1096,12 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 #aiBody .ai-wait{color:var(--muted)}
 #aiBody .ghostbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:0 8px 8px 0}
 #aiBody .ai-note{font-size:0.75rem;color:var(--muted)}
+#ttsCard .aisub{font-size:0.75rem;color:var(--muted);margin-bottom:6px}
+#ttsCard .searchinp{margin-bottom:8px}
+#ttsCard .tierseg button{min-height:44px}
+#ttsCard .aitestrow{gap:10px;align-items:center}
+#ttsCard .aitestrow .ghostbtn{min-height:44px;flex:none}
+#ttsTestRes{font-size:0.75rem;color:var(--muted);flex:1;min-width:0}
 #aiCard .aisub{font-size:0.75rem;color:var(--muted);margin-bottom:6px}
 #aiCard .searchinp{margin-bottom:8px}
 #aiCard .tierseg button{min-height:44px}
@@ -1680,6 +1686,18 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <input class="searchinp" id="aiBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API">
       <input class="searchinp" id="aiModel" autocomplete="off" spellcheck="false" aria-label="Модель">
       <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><span id="aiTestRes" role="status"></span></div>
+    </div>
+    <h2 id="ttsHead">Озвучка</h2><!-- 20.10: нейросетевая озвучка на своём ключе (reader-ui.js TTS_PROV, arch.md 20.10) -->
+    <div class="pcard" id="ttsCard">
+      <div class="aisub">Чем читать вслух кнопкой «Озвучка» в книге. «Телефон» — бесплатный голос телефона. Нейросетевой голос живее, но нужен свой ключ: платите сервису по числу знаков. Ключ хранится только на этом телефоне и не попадает в экспорт.</div>
+      <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки"></div>
+      <div id="ttsFields">
+        <input class="searchinp" id="ttsKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API озвучки">
+        <input class="searchinp" id="ttsBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API озвучки">
+        <input class="searchinp" id="ttsVoice" autocomplete="off" spellcheck="false" aria-label="Голос">
+        <div class="aisub" id="ttsVoiceHint"></div>
+        <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><span id="ttsTestRes" role="status"></span></div>
+      </div>
     </div>
     <h2>Язык и напоминание</h2>
     <div class="pcard">

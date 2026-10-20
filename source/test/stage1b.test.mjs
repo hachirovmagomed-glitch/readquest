@@ -236,8 +236,8 @@ if (want('dim') && fs.existsSync(PDF)) {
   await q.evaluate(id => openBook(id), q.__bid); await q.waitForFunction(() => R.pageCount > 1 && P.shown === P.target && P.front, { timeout: 20000 }); await sleep(500);
   await q.evaluate(() => { SET.theme = 'dark'; applySet(); revealChrome(); document.getElementById('sheet').classList.remove('hidden'); openSetTab('grpPage'); }); await sleep(400);
   const a = await q.evaluate(() => ({ layer: !!document.getElementById('pdfDim'), range: !!document.getElementById('pdfDimRange'), txt: /Затемнение PDF/.test(document.getElementById('sheet').textContent),
-    kids: [...document.getElementById('pdfSheet').children].map(c => c.id || c.tagName), dim: !!document.getElementById('dimRange'), pdfDim: SET.pdfDim }));
-  ok('dim: night PDF — no own dim layer or «Затемнение PDF» slider; canvas then text layer; general «Затемнение» stays; SET.pdfDim kept', !a.layer && !a.range && !a.txt && a.kids.indexOf('CANVAS') < a.kids.indexOf('pdfText') && a.dim && a.pdfDim === 0.35, a);
+    kids: [...document.getElementById('pdfSheet').children].map(c => c.id || c.tagName), dim: !!document.getElementById('brightRange'), pdfDim: SET.pdfDim }));
+  ok('dim: night PDF — no own dim layer or «Затемнение PDF» slider; canvas then text layer; general «Яркость» stays; SET.pdfDim kept', !a.layer && !a.range && !a.txt && a.kids.indexOf('CANVAS') < a.kids.indexOf('pdfText') && a.dim && a.pdfDim === 0.35, a);
   await q.screenshot({ path: SHOTS + '/aa-sheet-page-night.png' });
   await q.evaluate(() => { document.getElementById('sheet').classList.add('hidden'); SET.theme = 'sepia'; saveSet(); closeReader(); }); await sleep(800);
   await q.__ctx.close();

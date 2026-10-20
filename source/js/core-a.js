@@ -284,7 +284,9 @@ function rqCollapseSync(boxId){const box=el(boxId),row=box&&el(box.dataset.xrow|
   const head=o.title?'<span class="xlab"><span class="xt">'+esc(o.title)+'</span>'+(sub?'<span class="xsub">'+esc(sub)+'</span>':'')+'</span>':'';
   const sample=o.sample?'<span class="xs" aria-hidden="true">'+esc(o.sample)+'</span>':'';
   /* layout (Интерфейс 14.10): [icon | sample] [title+sub | label] … [dot] value ⌄ */
-  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+'<span class="xv">'+esc(v)+'</span>'+(o.title?'':'')+rqIcon(open?'chevron-up':'chevron-down',20);
+  /* opt.pill (20.10, «Настройки чтения»): value + chevron in their own plaque on the right, like the steppers' «− 14 +» */
+  const tail='<span class="xv">'+esc(v)+'</span>'+rqIcon(open?'chevron-up':'chevron-down',20);
+  row.innerHTML=ic+sample+head+(row._label?'<span class="xl">'+esc(row._label)+'</span>':'')+(o.title?'':dotH)+(o.pill?'<span class="xpill">'+tail+'</span>':tail);
   if(o.title&&dot){row.querySelector('.xv').insertAdjacentHTML('beforebegin',dotH);}
   try{if(o.font){const ff=o.font();row.querySelector('.xv').style.fontFamily=ff;const xs=row.querySelector('.xs');if(xs)xs.style.fontFamily=ff;}}catch(e){}
   row.setAttribute('aria-expanded',open?'true':'false');box.hidden=!open;box.classList.add('xlist');}

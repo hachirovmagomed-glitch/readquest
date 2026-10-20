@@ -643,6 +643,24 @@ const AI_PROV={
   anthropic:{name:'Claude (Anthropic)',base:'https://api.anthropic.com/v1',model:'claude-haiku-5-5'},
   custom:{name:'Другой, совместимый с OpenAI',base:'',model:''}
 };
+/* 20.10 Джессика: «инструкцию как этот ключ подключить, если пользователь не знает» — шаги по сервису в «Как получить ключ» (ИИ и озвучка) */
+const KEY_SAFE='Ключ — как пароль: никому его не показывайте. В кабинете сервиса можно поставить лимит трат в месяц.';
+const KEY_HOW={
+  deepseek:{url:'https://platform.deepseek.com/api_keys',steps:['Откройте сайт DeepSeek Platform по ссылке ниже и войдите (почта или телефон).','Слева «API keys» → «Create new API key», придумайте имя.','Скопируйте ключ (начинается с sk-): он показывается один раз.','Пополните баланс («Top up»): без денег на счёте ключ не работает. Объяснения стоят копейки.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Сайт открывается из России без VPN. Пополнить можно зарубежной картой или через сервисы-посредники.'},
+  openrouter:{url:'https://openrouter.ai/settings/keys',steps:['Откройте OpenRouter по ссылке ниже и войдите (Google или почта).','«Keys» → «Create Key», скопируйте ключ (sk-or-…).','Пополните «Credits». Модель по умолчанию — DeepSeek, её можно поменять в поле «Модель».','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Один ключ на много разных нейросетей.'},
+  openai:{url:'https://platform.openai.com/api-keys',steps:['Откройте OpenAI Platform по ссылке ниже и войдите.','«Create new secret key», скопируйте ключ (sk-…): он показывается один раз.','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить».'],note:'Из России без VPN и зарубежной карты не работает.'},
+  anthropic:{url:'https://console.anthropic.com/settings/keys',steps:['Откройте консоль Anthropic по ссылке ниже и войдите.','«Create Key», скопируйте ключ (sk-ant-…).','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Из России без VPN и зарубежной карты не работает.'},
+  custom:{steps:['Возьмите у своего сервиса адрес API (обычно оканчивается на /v1), ключ и название модели.','Сервис должен понимать запросы как у OpenAI и пускать запросы из браузера.','Заполните три поля и нажмите «Проверить».'],note:'Для тех, кто знает, что это.'},
+  elevenlabs:{url:'https://elevenlabs.io/app/settings/api-keys',steps:['Откройте ElevenLabs по ссылке ниже и войдите.','«Create API key», скопируйте ключ.','Голос по желанию: «Voices» → выберите голос → скопируйте его Voice ID в поле «Голос».','Вставьте ключ сюда и нажмите «Послушать».'],note:'Очень живые голоса, в том числе русские. На бесплатном тарифе немного знаков в месяц, потом подписка. Из России без VPN и зарубежной карты не работает.'},
+  google:{url:'https://console.cloud.google.com/apis/library/texttospeech.googleapis.com',steps:['Откройте Google Cloud по ссылке ниже, войдите и создайте проект.','Нажмите «Enable» у Cloud Text-to-Speech API (попросит привязать карту).','«APIs & Services» → «Credentials» → «Create credentials» → «API key», скопируйте ключ.','Лучше сразу ограничить ключ: только Text-to-Speech API.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Каждый месяц часть знаков бесплатно. Из России без VPN и зарубежной карты не работает.'}
+};
+function keyHowHtml(k,tts){
+  const h=KEY_HOW[k];if(!h)return '';
+  const steps=h.steps.map(t=>t.replace('«Проверить»',tts?'«Послушать»':'«Проверить ключ»'));
+  return '<ol>'+steps.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>'+
+    (h.url?'<a href="'+esc(h.url)+'" target="_blank" rel="noopener noreferrer">'+esc(h.url.replace(/^https:\/\//,''))+'</a>':'')+
+    (h.note?'<div class="kh-note">'+esc(h.note)+'</div>':'')+'<div class="kh-note">'+esc(KEY_SAFE)+'</div>';
+}
 function aiProv(){const p=S.ai&&S.ai.prov;return AI_PROV[p]?p:'openai';} /* старые данные без prov — это OpenAI (v6) */
 function aiModel(){return (S.ai&&S.ai.model)||AI_PROV[aiProv()].model;}
 function aiBase(){const p=aiProv();return String((p==='custom'?(S.ai&&S.ai.base):AI_PROV[p].base)||'').replace(/\/+$/,'');}
@@ -665,10 +683,10 @@ el('spAI').onclick=()=>{
 };
 function aiNoKey(){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает) */
   aiCur=null;aiSeq++;
-  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник».</div>'+
+  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
     '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
   el('aiSheet').classList.remove('hidden');
-  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);try{el('aiHead').scrollIntoView({block:'start'});}catch(e){}};
+  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);el('aiHow').open=true;try{el('aiHead').scrollIntoView({block:'start'});}catch(e){}};
 }
 function aiRender(state,txt){
   const q=aiCur;if(!q)return;

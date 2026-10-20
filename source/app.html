@@ -1096,6 +1096,17 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 #aiBody .ai-wait{color:var(--muted)}
 #aiBody .ghostbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:0 8px 8px 0}
 #aiBody .ai-note{font-size:0.75rem;color:var(--muted)}
+.keyhow{margin:0 0 8px;font-size:0.8125rem}
+.keyhow>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--accent);font-weight:600;list-style:none}
+.keyhow>summary::-webkit-details-marker{display:none}
+.keyhow>summary::before{content:'';width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin:0 10px 0 2px;transition:transform .15s}
+.keyhow[open]>summary::before{transform:rotate(45deg)}
+.keyhowb{color:var(--txt);line-height:1.55;padding:0 0 4px}
+.keyhowb ol{margin:4px 0 8px;padding-left:20px}
+.keyhowb li{margin:3px 0}
+.keyhowb a{color:var(--accent);overflow-wrap:anywhere}
+.keyhowb .kh-note{color:var(--muted);font-size:0.75rem;margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.keyhow>summary::before{transition:none}}
 #ttsCard .aisub{font-size:0.75rem;color:var(--muted);margin-bottom:6px}
 #ttsCard .searchinp{margin-bottom:8px}
 #ttsCard .tierseg button{min-height:44px}
@@ -1683,6 +1694,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard" id="aiCard">
       <div class="aisub">Выделите текст в книге и нажмите «Объясни». Нужен свой ключ от сервиса ИИ: запросы и оплата идут прямо в этот сервис. Ключ хранится только на этом телефоне и не попадает в экспорт.</div>
       <div class="tierseg" id="aiProvSeg" role="radiogroup" aria-label="Сервис ИИ"></div>
+      <details class="keyhow" id="aiHow"><summary>Как получить ключ</summary><div class="keyhowb" id="aiHowB"></div></details>
       <input class="searchinp" id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API">
       <input class="searchinp" id="aiBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API">
       <input class="searchinp" id="aiModel" autocomplete="off" spellcheck="false" aria-label="Модель">
@@ -1693,6 +1705,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="aisub">Чем читать вслух кнопкой «Озвучка» в книге. «Телефон» — бесплатный голос телефона. Нейросетевой голос живее, но нужен свой ключ: платите сервису по числу знаков. Ключ хранится только на этом телефоне и не попадает в экспорт.</div>
       <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки"></div>
       <div id="ttsFields">
+        <details class="keyhow" id="ttsHow"><summary>Как получить ключ</summary><div class="keyhowb" id="ttsHowB"></div></details>
         <input class="searchinp" id="ttsKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API озвучки">
         <input class="searchinp" id="ttsBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API озвучки">
         <input class="searchinp" id="ttsVoice" autocomplete="off" spellcheck="false" aria-label="Голос">

@@ -318,6 +318,33 @@ if (want('tts')) {
   await ctx.close();
 }
 
+if (want('keyhow')) for (const W of [360, 390]) {
+  const { ctx, p } = await fresh(W);
+  const r = await p.evaluate(async () => {
+    openGeneralSettings(false); const out = {};
+    for (const b of [...el('aiProvSeg').querySelectorAll('button')]) { b.click(); out['ai:' + b.textContent] = { t: el('aiHowB').textContent, a: (el('aiHowB').querySelector('a') || {}).href || '', tgt: (el('aiHowB').querySelector('a') || {}).target || '' }; }
+    for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
+    return out;
+  });
+  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com' };
+  const bad = Object.keys(want_).filter(k => !r[k] || r[k].a.indexOf('https://' + want_[k]) !== 0 || !/как пароль/.test(r[k].t));
+  ok('keyhow ' + W + ': у каждого сервиса шаги, ссылка на страницу ключей и совет про пароль', !bad.length && r['ai:DeepSeek'].tgt === '_blank' && /Проверить ключ/.test(r['ai:DeepSeek'].t) && /Послушать/.test(r['tts:OpenAI'].t) && r['ai:Другой'].a === '' && /адрес API/.test(r['ai:Другой'].t), { bad, deep: r['ai:DeepSeek'] });
+  await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')][0].click(); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); });
+  await sleep(200);
+  const ov = await p.evaluate(() => { const c = el('aiCard').getBoundingClientRect(); return [...el('aiCard').querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 5); });
+  ok('keyhow ' + W + ': раскрытая инструкция не вылезает за карточку', ov.length === 0, ov);
+  await shot(p, W + '-11-kak-poluchit-klyuch');
+  await p.evaluate(() => { [...el('ttsProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Google').click(); el('ttsHow').open = true; el('ttsHead').scrollIntoView({ block: 'start' }); });
+  await sleep(200); await shot(p, W + '-12-kak-poluchit-klyuch-ozvuchka');
+  await ctx.close();
+}
+if (want('keyhow')) {
+  const { ctx, p } = await fresh(390);
+  await openAndSelect(p); await p.click('#spAI'); await sleep(300); await p.click('#aiOpenSet'); await sleep(500);
+  ok('keyhow: «Открыть настройки» из окна без ключа сразу раскрывает инструкцию', await p.evaluate(() => el('aiHow').open));
+  await ctx.close();
+}
+
 ok('no page errors', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY ai.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

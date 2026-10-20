@@ -106,6 +106,7 @@ function renderAiSet(){
   Object.keys(AI_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':AI_PROV[k].name.replace(/ \(.*\)$/,'');
     b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
     b.onclick=()=>{if(aiProv()===k)return;S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';renderAiSet();};box.appendChild(b);});
+  el('aiHowB').innerHTML=keyHowHtml(p,false);
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiBase').hidden=p!=='custom';el('aiBase').value=(S.ai&&S.ai.base)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'';
@@ -118,6 +119,7 @@ function renderTtsSet(){
     b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
     b.onclick=()=>{if(t.prov===k)return;if(ttsOn||speaking)ttsStop();t.prov=k;t.voice='';save();el('ttsTestRes').textContent='';renderTtsSet();};box.appendChild(b);});
   el('ttsFields').hidden=p==='system';
+  el('ttsHowB').innerHTML=keyHowHtml(p,true);
   el('ttsKey').value=t.key||'';
   el('ttsKey').placeholder=p==='openai'&&!t.key&&S.ai&&S.ai.prov==='openai'&&S.ai.key?'Ключ API (сейчас берётся ключ ИИ-помощника)':'Ключ API';
   el('ttsBase').hidden=p!=='custom';el('ttsBase').value=t.base||'';

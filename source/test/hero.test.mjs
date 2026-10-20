@@ -111,33 +111,38 @@ const cel = await p.evaluate(async () => {
   wear('skin-ellada'); S.equipped.char = 'ch-pythagoras'; save();
   wear('skin-celestial'); renderShopPane(); heroShopTab('chars'); await new Promise(q => setTimeout(q, 100));
   const ids = HERO_GEAR.filter(g => g.skin === 'celestial' && g.slot === 'char' && g.id !== 'cl-zvezdochet').map(g => g.id), cards = document.querySelectorAll('#heroShop .heroitem').length;
-  const def = avatarSvg().includes('wear/base.webp'), free = heroOwns('cl-sonny-chtets') && heroOwns('cl-zvezdochet') && !heroOwns('cl-kometa');
+  const def = avatarSvg().includes('dress/base-af.webp'), free = heroOwns('cl-sonny-chtets') && heroOwns('cl-zvezdochet') && !heroOwns('cl-kometa');
   S.gold = 5000; const g0 = S.gold; heroBuyAsk('cl-kometa'); shopConfirmOk();
   const bought = S.equipped['celestial:char'] === 'cl-kometa' && S.gold === g0 - 600 && avatarSvg().includes('kometa.webp');
   const teen = /height="84.5"/.test(avatarSvg()), adult = /height="96"/.test(heroCelestialSvg({ char: 'cl-kartograf' }));
   const imgs = await Promise.all(ids.map(id => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalHeight === 480); i.onerror = () => r(false); i.src = 'hero/celestial/' + id.slice(3) + '.webp'; })));
-  heroWear('cl-zvezdochet'); const back = !S.equipped['celestial:char'] && avatarSvg().includes('wear/base.webp');
+  heroWear('cl-zvezdochet'); const back = !S.equipped['celestial:char'] && avatarSvg().includes('dress/base-af.webp');
   wear('skin-ellada'); const ell = heroOn().char === 'ch-pythagoras' && !avatarSvg().includes('herocel');
   return { n: ids.length, cards, def, free, bought, teen, adult, imgs: imgs.every(Boolean), back, ell };
 });
 ok('Небесный: 12 classes + Звездочёт-манекен (free, default), Сонный чтец free, buy Комета → hero (teen 0.88), images load, Эллада keeps its own', cel.n === 12 && cel.cards === 13 && cel.def && cel.free && cel.bought && cel.teen && cel.adult && cel.imgs && cel.back && cel.ell, cel);
 
-// Небесный: вещи по слотам на манекене (бумажная кукла из листов Джессики), перекраска, вещь на классе возвращает манекен
+// Небесный: одежда слоями на четырёх манекенах (примерочная Джессики), у каждой фигуры своя; перекраска не трогает золото
 const doll = await p.evaluate(async () => {
-  wear('skin-celestial'); S.gold = 99999; heroWear('cl-zvezdochet'); S.ownedGear = (S.ownedGear || []).concat('cl-kometa'); heroWear('cl-kometa');
-  const items = HERO_GEAR.filter(g => g.skin === 'celestial' && g.slot !== 'char');
-  heroBuyAsk('cc-night'); shopConfirmOk();
-  const worn = S.equipped['celestial:cloak'] === 'cc-night', toDoll = !S.equipped['celestial:char'] && avatarSvg().includes('wear/cc-night.webp') && avatarSvg().includes('wear/base.webp');
-  heroBuyAsk('cx-lantern'); shopConfirmOk(); const hand = avatarSvg().includes('wear/hand.webp');
-  heroBuyAsk('cg-white'); shopConfirmOk(); const gloves = avatarSvg().includes('cg-white-l.webp') && avatarSvg().includes('cg-white-r.webp');
-  heroSetCol('cc-night', '#b03040'); const col = /cc-night\.webp[^>]*hue-rotate/.test(avatarSvg());
+  wear('skin-celestial'); S.gold = 99999; heroCelBody('af'); heroWear('cl-zvezdochet'); S.ownedGear = (S.ownedGear || []).concat('cl-kometa'); heroWear('cl-kometa');
+  const all = HERO_GEAR.filter(g => g.skin === 'celestial' && g.slot !== 'char'), here = heroGearHere().filter(g => g.slot !== 'char');
+  heroBuyAsk('cd-af-cape'); shopConfirmOk(); const svg = avatarSvg();
+  const worn = S.equipped['celestial:cloak'] === 'cd-af-cape', toDoll = !S.equipped['celestial:char'] && svg.includes('dress/cd-af-cape-f.webp') && svg.includes('dress/base-af.webp');
+  const backFirst = svg.indexOf('cd-af-cape-b.webp') < svg.indexOf('base-af.webp') && svg.indexOf('base-af.webp') < svg.indexOf('cd-af-cape-f.webp');
+  heroBuyAsk('cd-af-hand'); shopConfirmOk(); heroSetCol('cd-af-hand', '#3060c0'); const lan = avatarSvg();
+  const col = /cd-af-hand\.webp"[^>]*hue-rotate/.test(lan) && /cd-af-hand-t\.webp"[^>]*\/>/.test(lan) && !/cd-af-hand-t\.webp"[^>]*hue-rotate/.test(lan);
+  const other = !heroFits(heroItem('cd-am-cape'));
+  heroCelBody('am'); const sw = !S.equipped['celestial:cloak'] && avatarSvg().includes('base-am.webp') && heroFits(heroItem('cd-am-cape')) && !heroFits(heroItem('cd-af-cape'));
+  heroCelBody('af'); const back = S.equipped['celestial:cloak'] === 'cd-af-cape' && S.equipped['celestial:hand'] === 'cd-af-hand'; heroCelBody('am');
+  heroBuyAsk('cp-owl'); shopConfirmOk(); const pet = avatarSvg().includes('dress/cp-owl.webp');
   heroShopTab('wear'); await new Promise(q => setTimeout(q, 100)); const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
-  const files = []; items.forEach(g => HERO_CEL_ART.items[g.id].p.forEach(p => files.push(p[0]))); files.push('base', 'hand');
-  const loaded = await Promise.all(files.map(f => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth > 0); i.onerror = () => r(false); i.src = 'hero/celestial/wear/' + f + '.webp'; })));
-  wear('skin-ellada'); const ell = !avatarSvg().includes('herocel');
-  return { n: items.length, worn, toDoll, hand, gloves, col, tabs, loaded: loaded.every(Boolean), files: files.length, ell };
+  const chips = document.querySelectorAll('#heroShop .herofig .chip').length;
+  const files = []; Object.values(HERO_CEL_ART.bodies).forEach(B => Object.values(B.p).forEach(ps => ps.forEach(p => files.push(p[0])))); Object.values(HERO_CEL_ART.meta).forEach(m => { if (m.pet) files.push(m.pet[0]); });
+  const loaded = await Promise.all(files.map(f => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth > 0); i.onerror = () => r(false); i.src = 'hero/celestial/dress/' + f + '.webp'; })));
+  heroCelBody('af'); wear('skin-ellada'); const ell = !avatarSvg().includes('herocel');
+  return { back,  n: all.length, here: here.length, worn, toDoll, backFirst, col, other, sw, pet, tabs, chips, loaded: loaded.every(Boolean), files: files.length, ell };
 });
-ok('Небесный: 76 вещей на манекене, вещь на классе возвращает Звездочёта, рука держит предмет, перчатки на обе кисти, перекраска, все картинки грузятся', doll.n === 76 && doll.worn && doll.toDoll && doll.hand && doll.gloves && doll.col && doll.tabs === 'Скины,Персонажи,Одежда,Снаряжение' && doll.loaded && doll.ell, doll);
+ok('Небесный: 4 фигуры × 8 вещей + 6 питомцев, плащ сзади и спереди, перекраска без золота, при смене фигуры наряд снимается и возвращается, все картинки грузятся', doll.n === 38 && doll.here === 14 && doll.worn && doll.toDoll && doll.backFirst && doll.col && doll.other && doll.sw && doll.back && doll.pet && doll.tabs === 'Скины,Персонажи,Одежда,Снаряжение' && doll.chips === 4 && doll.loaded && doll.ell, doll);
 
 // 3D убран (Джессика 20.10: «отойдём полностью от 3D моделек»): в Небесном нет кнопки 3D и листа
 const no3d = await p.evaluate(async () => {

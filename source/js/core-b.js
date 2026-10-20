@@ -234,7 +234,8 @@ function hydrateS(raw){
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
-  if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
+  if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
+  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
   /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
@@ -380,3 +381,31 @@ function rollDay(){if(S.dayKey!==today()){S.dayKey=today();S.minToday=0;
   save();}}
 function curI(){return '';} /* currency icon removed (coins are text) */
 
+
+/* 20.10 ИИ «Объясни» (arch.md): S.ai.prov/base добавлены; старые данные без prov: с ключом — это OpenAI (v6), без ключа — DeepSeek по умолчанию.
+   vocab[].ex — объяснение ИИ, строка до 600 символов, иначе поле отбрасывается. */
+function aiNorm(a){
+  ['key','model','base'].forEach(function(k){if(typeof a[k]!=='string')a[k]='';});
+  if(['deepseek','openrouter','openai','anthropic','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
+  a.base=a.base.slice(0,300);return a;
+}
+function vocabNorm(v){
+  if(!v||typeof v!=='object')return;
+  if('ex' in v&&typeof v.ex!=='string')delete v.ex;else if(typeof v.ex==='string')v.ex=v.ex.slice(0,600);
+}
+function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
+  const out={};
+  if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){
+    if(!Array.isArray(o[k]))return;
+    const l=o[k].filter(function(m){return m&&(m.r==='u'||m.r==='a')&&typeof m.t==='string'&&m.t;})
+      .map(function(m){return {r:m.r,t:m.t.slice(0,1500),d:typeof m.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(m.d)?m.d:''};}).slice(-20);
+    if(l.length)out[k]=l;});
+  return out;
+}
+/* 20.10 нейросетевая озвучка (arch.md): prov system|openai|elevenlabs|google|custom, остальное строки */
+function ttsNorm(t){
+  if(!t||typeof t!=='object')t={};
+  ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});
+  if(['system','openai','elevenlabs','google','custom'].indexOf(t.prov)<0)t.prov='system';
+  t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
+}

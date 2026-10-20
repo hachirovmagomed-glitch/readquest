@@ -1,0 +1,131 @@
+{
+ "canvas": [
+  864,
+  1152
+ ],
+ "body": "devochka",
+ "teen": true,
+ "engine_scale": 0.88,
+ "figure_bbox": [
+  316,
+  115,
+  547,
+  1035
+ ],
+ "draw_order": [
+  "cape-back",
+  "body",
+  "bottom",
+  "top",
+  "boots",
+  "gloves",
+  "cape-front",
+  "accessory",
+  "headwear",
+  "main-hand"
+ ],
+ "grips": {
+  "main_hand": [
+   336,
+   630
+  ],
+  "off_hand": [
+   527,
+   633
+  ],
+  "note": "main_hand = правая рука персонажа (левая сторона кадра)"
+ },
+ "layers": {
+  "headwear": {
+   "file": "layers/layer-headwear.png",
+   "bbox": [
+    342,
+    96,
+    497,
+    269
+   ]
+  },
+  "cape": {
+   "file": "layers/layer-cape.png",
+   "bbox": [
+    277,
+    279,
+    587,
+    728
+   ]
+  },
+  "cape-front": {
+   "file": "layers/layer-cape-front.png",
+   "bbox": [
+    313,
+    279,
+    550,
+    701
+   ]
+  },
+  "cape-back": {
+   "file": "layers/layer-cape-back.png",
+   "bbox": [
+    277,
+    280,
+    587,
+    728
+   ]
+  },
+  "top": {
+   "file": "layers/layer-top.png",
+   "bbox": [
+    315,
+    277,
+    549,
+    593
+   ]
+  },
+  "bottom": {
+   "file": "layers/layer-bottom.png",
+   "bbox": [
+    340,
+    483,
+    525,
+    618
+   ]
+  },
+  "gloves": {
+   "file": "layers/layer-gloves.png",
+   "bbox": [
+    310,
+    534,
+    553,
+    666
+   ]
+  },
+  "boots": {
+   "file": "layers/layer-boots.png",
+   "bbox": [
+    354,
+    806,
+    509,
+    1048
+   ]
+  },
+  "main-hand": {
+   "file": "layers/layer-main-hand.png",
+   "bbox": [
+    275,
+    529,
+    370,
+    823
+   ]
+  },
+  "accessory": {
+   "file": "layers/layer-accessory.png",
+   "bbox": [
+    376,
+    243,
+    474,
+    332
+   ]
+  }
+ },
+ "maneken": "maneken.png"
+}

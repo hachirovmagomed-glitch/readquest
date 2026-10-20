@@ -77,13 +77,24 @@ function navGo(id){
     else if(id==='settings'){renderSettings();show('settings');}
   }finally{__navAllow=false;}
 }
+/* «Читать»: the book from «Продолжить чтение» (last opened, not finished); none → the library to pick one */
+function navReadBook(){const lid=S.lastRead;return lid&&!S.finished.includes(lid)&&allBooks().some(function(x){return x.id===lid;})?lid:null;}
+function navReadNow(){const id=navReadBook();
+  if(id){closeDrawer();try{closeRewardsSheet();}catch(e){}openBook(id);return;}
+  navGo('library');flashMsg('Выберите книгу в библиотеке',{kind:'info',icon:'book-open'});}
 function renderNav(){
   const nav=navShown();
   const bn=el('botnav');
-  if(bn){bn.innerHTML=nav.map(function(id){const it=navItem(id);
-      return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';}).join('');
+  if(bn){const tab=function(id){const it=navItem(id);
+      return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';};
+    /* 20.10 (Джессика, как в Habitica): big «Читать» in the middle, the chosen sections split left / right of it; the odd one goes right, so «Библиотека» (always first, the longest label) keeps a wide slot at 360 */
+    const half=Math.floor(nav.length/2)||nav.length;
+    bn.innerHTML='<div class="botnav-side">'+nav.slice(0,half).map(tab).join('')+'</div>'+
+      '<div class="botnav-mid"><button class="botnav-read" id="bnRead" type="button"><span class="brd">'+rqIcon('book-marked',28)+'</span><span class="brl">Читать</span></button></div>'+
+      '<div class="botnav-side">'+nav.slice(half).map(tab).join('')+'</div>';
     bn.dataset.n=nav.length;
     bn.querySelectorAll('.botnav-btn').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
+    el('bnRead').onclick=navReadNow;
     try{applyMvpChrome();}catch(e){}}
   const list=el('dList');
   if(list){

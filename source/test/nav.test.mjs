@@ -77,6 +77,17 @@ const lit = has ? await p.evaluate(async () => { navSave(['library', 'path', 'qu
   navGo('settings'); await new Promise(r => setTimeout(r, 200)); out.settings = [...document.querySelectorAll('#botnav .botnav-btn.on')].map(b => b.dataset.nav).join(',');
   navGo('library'); return out; }) : {};
 ok('nav: подсвечена ровно выбранная вкладка, в настройках ни одна', ['path', 'quests', 'profile', 'stats', 'library'].every(k => lit[k] === k) && lit.settings === '', lit);
+// 20.10 (Джессика, как в Habitica): большая «Читать» ровно по центру панели; есть книга → она открывается, нет → библиотека
+const rd = has ? await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); navSave(['library', 'rewards', 'profile']); navGo('profile'); await w(200);
+  const b = el('bnRead'), r = b && b.querySelector('.brd').getBoundingClientRect(), mid = r ? Math.round(r.left + r.width / 2 - innerWidth / 2) : null;
+  const tabs = [...document.querySelectorAll('#botnav .botnav-btn')].map(x => x.dataset.nav).join(',');
+  const save = { lr: S.lastRead, fin: S.finished.slice() }; S.lastRead = null; b.click(); await w(400);
+  const none = !el('library').classList.contains('hidden') && el('reader').classList.contains('hidden');
+  navGo('profile'); await w(200); const bk = allBooks()[0]; S.lastRead = bk.id; S.finished = S.finished.filter(x => x !== bk.id); el('bnRead').click(); await w(1500);
+  const opened = !el('reader').classList.contains('hidden');
+  try { closeReader && closeReader(); } catch (e) {} S.lastRead = save.lr; S.finished = save.fin; show('library'); navGo('library'); await w(300);
+  return { mid, tabs, none, opened }; }) : {};
+ok('nav: «Читать» в центре (все 3 вкладки на месте), без книги → библиотека, с книгой → читалка', Math.abs(rd.mid) <= 1 && rd.tabs === 'library,rewards,profile' && rd.none && rd.opened, rd);
 ok('нет ошибок страницы', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY nav.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

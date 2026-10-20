@@ -18,7 +18,7 @@ await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.
 const nav = () => p.evaluate(() => [...document.querySelectorAll('#botnav button')].filter(b => getComputedStyle(b).display !== 'none')
   .map(b => ({ t: b.textContent.trim(), ic: [...b.querySelectorAll('svg use')].filter(u => getComputedStyle(u.closest('svg')).display !== 'none').map(u => u.getAttribute('href')).join() })));
 let n = await nav();
-ok('bottom nav: 3 items Библиотека/Награды/Профиль', n.map(x => x.t).join('|') === 'Библиотека|Награды|Профиль', n);
+ok('bottom nav: Библиотека / «Читать» в центре / Награды / Профиль', n.map(x => x.t).join('|') === 'Библиотека|Читать|Награды|Профиль', n); /* 20.10: big «Читать» in the middle, as in Habitica */
 
 // 2. «Общие настройки»: theme tiles captioned, «Карандашный» tile → html[data-skin=pencil]
 await p.evaluate(() => openLook()); await sleep(300);
@@ -33,7 +33,7 @@ const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.
 ok('click «Карандашный» → data-skin=pencil, SET.theme=pencil, tile selected', sk.skin === 'pencil' && sk.theme === 'pencil' && sk.on.join() === 'pencil', sk);
 await p.evaluate(() => openGeneralSettings(false)); await sleep(300); /* 17.10: tiles live on «Внешний вид»; the rest is measured on «Общие настройки» */
 n = await nav();
-ok('pencil: nav 3 items, each a Lucide icon', n.length === 3 && n.every(x => /^#i-/.test(x.ic)), n);
+ok('pencil: nav 3 items + «Читать», each a Lucide icon', n.length === 4 && n.every(x => /^#i-/.test(x.ic)), n);
 
 // 3. switches: 44×24 track, round 20px thumb inside the track, no frame, both states
 const swi = () => p.evaluate(() => [...document.querySelectorAll('#settings .sw')].filter(b => b.offsetParent).map(b => {

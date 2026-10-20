@@ -149,7 +149,7 @@ const rd = () => p.evaluate(() => { const r = document.getElementById('reader'),
 let r1 = await rd();
 const bf = await p.evaluate(() => { const c = document.getElementById('content'), f0 = getComputedStyle(c).fontFamily; const was = SET.font; SET.font = 1; applySet(); const f1 = getComputedStyle(c).fontFamily; SET.font = was; applySet();
   return { f0, f1, tile: (document.querySelector('#fontSeg button .xn') || {}).textContent, loaded: document.fonts.check('16px "IBM Plex Serif"') }; });
-ok('6e book face: IBM Plex Serif in place of the first «Шрифт» tile (tile named so); another tile wins', /IBM Plex Serif/.test(bf.f0) && /Times/.test(bf.f1) && bf.tile === 'IBM Plex Serif', bf);
+ok('6e book face (audit 19.10 RD-SKIN-01): the skin does not change the book font — first tile stays Georgia, another tile wins', /Georgia/.test(bf.f0) && /Times/.test(bf.f1) && bf.tile === 'Georgia', bf);
 ok('6 reader day: page #fcfbf8 / #1d2140, no wings/meadow next to the text', r1.bg === 'rgb(252, 251, 248)' && r1.color === 'rgb(29, 33, 64)' && !r1.deco && (r1.sea === 'none' || r1.sea === 'normal') && r1.skin === 'babochkovyi', r1);
 await p.evaluate(() => toggleDayNight()); await sleep(400);
 let r2 = await rd(); s = await st();

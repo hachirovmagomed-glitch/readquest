@@ -8,6 +8,7 @@ const PDF = process.env.RQ_PDF || '/workspace/rqtest/pdf/b-nolabels-40.pdf';
 const ONLY = (process.env.RQ_ONLY || '').split(',').filter(Boolean); const want = (k) => !ONLY.length || ONLY.includes(k);
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const rqRgbStr = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const errs = [];
 async function fresh(w) {
@@ -262,13 +263,13 @@ if (want('ttscorner')) {
   await ctx.close();
 }
 
-/* dimfull (Джессика 17.10, скрин): «Затемнение» must cover the whole reader screen evenly — not only the text column between the margins,
+/* dimfull (Джессика 17.10, скрин; 20.10 «Затемнение» → «Яркость»): the #dimmer layer must cover the whole reader screen evenly — not only the text column between the margins,
    not leave light edges, and it lies over the bars too (it is a brightness control). Text and scroll mode alike; the sheet stays above it. */
 if (want('dimfull')) {
   const { ctx, p } = await fresh();
   await openLong(p);
   const shot = async (mode) => p.evaluate(async (mode) => {
-    flipPick('mode', mode); SET.dim = 0.5; applySet(); revealChrome(); await new Promise(r => setTimeout(r, 400));
+    flipPick('mode', mode); SET.bright = 0.5; applySet(); revealChrome(); await new Promise(r => setTimeout(r, 400));
     if (mode === 'scroll') { const v = document.getElementById('viewer'); v.scrollTop = v.clientHeight * 1.5; await new Promise(r => setTimeout(r, 300)); }
     const d = document.getElementById('dimmer'), rd = document.getElementById('reader');
     const a = d.getBoundingClientRect(), b = rd.getBoundingClientRect(), cs = getComputedStyle(d);
@@ -289,7 +290,7 @@ if (want('dimfull')) {
     ok('dimfull ' + m + ': dimmer = the whole reader screen (no light edges), over the bars, under the settings sheet',
       r.op === 0.5 && JSON.stringify(r.rect) === JSON.stringify(r.screen) && r.overHead && !r.overSheet, r);
   }
-  await p.evaluate(() => { SET.dim = 0; applySet(); flipPick('mode', 'page'); });
+  await p.evaluate(() => { SET.bright = 1; applySet(); flipPick('mode', 'page'); });
   await ctx.close();
 }
 
@@ -493,42 +494,106 @@ if (want('grid')) {
     await ctx.close(); }
 }
 
-/* light: own «Яркость» (SET.bright) separate from «Затемнение» (SET.dim), one #dimmer layer = 1 − (1 − dim)·bright;
-   «Тёплый оттенок» (SET.warm) layer under the dimmer, only on a night page while «Тёплый только ночью» is on; stored, normalized */
+/* light (20.10, Джессика): «Яркость» (SET.bright) alone drives the #dimmer layer = 1 − bright; «Затемнение» and «Тёплый только ночью»
+   are gone. «Тёплый оттенок» (SET.warm) layer under the dimmer on every page; stored, normalized; an old SET.dim folds into bright once */
 if (want('light')) {
   const { ctx, p } = await fresh();
   await openLong(p);
-  const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.bright, s.warm, s.warmNight]; };
-    return { def: f({}), junk: f({ bright: 'x', warm: NaN, warmNight: 1 }), clamp: f({ bright: 0.01, warm: 2, warmNight: false }), step: f({ bright: 0.83, warm: 0.12 }) }; });
-  ok('light: defaults 100 % / 0 / night only; junk → defaults; clamped to 30–100 % and 0–60 % on a 5 % grid',
-    JSON.stringify(n.def) === '[1,0,true]' && JSON.stringify(n.junk) === '[1,0,true]' && JSON.stringify(n.clamp) === '[0.3,0.6,false]' && JSON.stringify(n.step) === '[0.85,0.1,true]', n);
+  const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.bright, s.warm, 'dim' in s, 'warmNight' in s]; };
+    return { def: f({}), junk: f({ bright: 'x', warm: NaN, warmNight: 1 }), clamp: f({ bright: 0.01, warm: 2, warmNight: false }), step: f({ bright: 0.83, warm: 0.12 }),
+      fold: f({ bright: 0.8, dim: 0.5, warm: 0.3, warmNight: true }), fold2: f({ dim: 0.7 }), fold0: f({ bright: 0.6, dim: 0 }), sd: 'dim' in SETDEF || 'warmNight' in SETDEF }; });
+  ok('light: defaults 100 % / 0; junk → defaults; clamped to 30–100 % and 0–60 % on a 5 % grid; no dim / warmNight keys',
+    JSON.stringify(n.def) === '[1,0,false,false]' && JSON.stringify(n.junk) === '[1,0,false,false]' && JSON.stringify(n.clamp) === '[0.3,0.6,false,false]' && JSON.stringify(n.step) === '[0.85,0.1,false,false]' && !n.sd, n);
+  ok('light: old «Затемнение» folds into «Яркость» (same screen), warm kept', JSON.stringify(n.fold) === '[0.4,0.3,false,false]' && JSON.stringify(n.fold2) === '[0.3,0,false,false]' && JSON.stringify(n.fold0) === '[0.6,0,false,false]', n);
   const a = await p.evaluate(async () => {
     openReaderSettings('grpPage'); await new Promise(r => setTimeout(r, 200));
     const set = (id, v) => { const e = el(id); e.value = v; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); };
-    set('dimRange', 20); set('brightRange', 50);
+    const gone = !el('dimRange') && !el('warmNightTgl') && !/Затемнение|только ночью/.test(el('sheet').textContent);
+    set('brightRange', 50);
     const op = +getComputedStyle(el('dimmer')).opacity;
     const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}');
     set('warmRange', 40);
     SET.theme = 'sepia'; SET.cBg = null; applySet(); const dayW = +getComputedStyle(el('warmer')).opacity;
     SET.theme = 'dark'; applySet(); const nightW = +getComputedStyle(el('warmer')).opacity, page = el('reader').dataset.page;
-    el('warmNightTgl').click(); SET.theme = 'sepia'; applySet(); const dayAll = +getComputedStyle(el('warmer')).opacity;
+    SET.theme = 'sepia'; applySet();
     const w = getComputedStyle(el('warmer')), d = el('dimmer'), rd = el('reader');
     const z = (x) => parseInt(getComputedStyle(x).zIndex, 10) || 0;
     const st2 = JSON.parse(localStorage.getItem(RQ_K.set) || '{}');
-    return { op, dim: SET.dim, st: [st.dim, st.bright], dayW, nightW, page, dayAll, blend: w.mixBlendMode, pe: w.pointerEvents, under: z(el('warmer')) < z(d) && el('warmer').parentElement === rd,
-      lbl: [el('brightVal').textContent, el('warmVal').textContent], st2: [st2.warm, st2.warmNight] };
+    return { gone, op, st: ['dim' in st, st.bright, 'warmNight' in st], dayW, nightW, page, blend: w.mixBlendMode, pe: w.pointerEvents, under: z(el('warmer')) < z(d) && el('warmer').parentElement === rd,
+      lbl: [el('brightVal').textContent, el('warmVal').textContent], st2: st2.warm };
   });
-  ok('light: «Яркость» 50 % + «Затемнение» 20 % → one layer 0.6, both stored separately', Math.abs(a.op - 0.6) < 0.01 && a.dim === 0.2 && a.st[0] === 0.2 && a.st[1] === 0.5 && a.lbl[0] === '50 %', a);
-  ok('light: warm tint 40 % only on the night page, then on any page with «только ночью» off; multiply, no touches, under the dimmer',
-    a.dayW === 0 && a.page === 'night' && Math.abs(a.nightW - 0.4) < 0.01 && Math.abs(a.dayAll - 0.4) < 0.01 && a.blend === 'multiply' && a.pe === 'none' && a.under && a.st2[0] === 0.4 && a.st2[1] === false, a);
-  /* left-edge drag = brightness now; «Затемнение» untouched */
-  await p.evaluate(() => { el('sheet').classList.add('hidden'); SET.bright = 1; SET.dim = 0.2; applySet(); });
+  ok('light: no «Затемнение» / «Тёплый только ночью» rows; «Яркость» 50 % → layer 0.5, stored', a.gone && Math.abs(a.op - 0.5) < 0.01 && !a.st[0] && a.st[1] === 0.5 && !a.st[2] && a.lbl[0] === '50 %', a);
+  ok('light: warm tint 40 % on day and night pages alike; multiply, no touches, under the dimmer',
+    Math.abs(a.dayW - 0.4) < 0.01 && a.page === 'night' && Math.abs(a.nightW - 0.4) < 0.01 && a.blend === 'multiply' && a.pe === 'none' && a.under && a.st2 === 0.4, a);
+  /* left-edge drag = brightness */
+  await p.evaluate(() => { el('sheet').classList.add('hidden'); SET.bright = 1; applySet(); });
   const vb = await p.evaluate(() => { const r = el('viewer').getBoundingClientRect(); return { x: r.left + 6, y: r.top + 200 }; });
   const cdp = await p.target().createCDPSession();
   const tp = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: vb.x, y }] });
   await tp('touchStart', vb.y); for (let i = 1; i <= 8; i++) { await tp('touchMove', vb.y + i * 20); await sleep(16); } await tp('touchEnd'); await sleep(300);
-  const g = await p.evaluate(() => ({ bright: SET.bright, dim: SET.dim, op: +getComputedStyle(el('dimmer')).opacity, st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright }));
-  ok('light: dragging down at the left edge lowers «Яркость» (stored), «Затемнение» stays', g.bright < 0.9 && g.bright >= 0.3 && g.dim === 0.2 && Math.abs(g.op - (1 - 0.8 * g.bright)) < 0.01 && g.st === g.bright, g);
+  const g = await p.evaluate(() => ({ bright: SET.bright, op: +getComputedStyle(el('dimmer')).opacity, st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright }));
+  ok('light: dragging down at the left edge lowers «Яркость» (stored)', g.bright < 0.9 && g.bright >= 0.3 && Math.abs(g.op - (1 - g.bright)) < 0.01 && g.st === g.bright, g);
+  await ctx.close();
+}
+
+/* sheetswipe (Джессика 20.10, запись): the head of «Настройки чтения» (grab, ×, title, tabs) stays visible while the rows scroll;
+   a swipe down on the head closes the sheet even when scrolled; a short pull springs back; a swipe down on the rows closes only at the top */
+if (want('sheetswipe')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const cdp = await p.target().createCDPSession();
+  const swipe = async (x, y, dist) => { const tp = (type, yy) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y: yy }] });
+    await tp('touchStart', y); for (let i = 1; i <= 10; i++) { await tp('touchMove', y + dist * i / 10); await sleep(30); } await tp('touchEnd'); await sleep(350); };
+  const open = () => p.evaluate(async () => { openReaderSettings('grpText'); await new Promise(r => setTimeout(r, 300)); const sh = el('sheet'); sh.scrollTop = 0; return true; });
+  const st = () => p.evaluate(() => { const sh = el('sheet'), hd = el('sheetHd').getBoundingClientRect(), sb = sh.getBoundingClientRect(), x = el('sheetClose').getBoundingClientRect();
+    return { hidden: sh.classList.contains('hidden'), tr: sh.style.transform, scroll: sh.scrollTop, hdTop: Math.round(hd.top - sb.top), xVis: x.top >= sb.top - 1 && x.bottom <= sb.bottom,
+      hd: { x: hd.left + hd.width / 2, y: hd.top + 30 }, row: (() => { const r = el('grpText').getBoundingClientRect(); return { x: sb.left + 40, y: Math.min(r.top + 60, sb.bottom - 40) }; })() }; });
+  await open();
+  await p.evaluate(() => { el('sheet').scrollTop = 400; });
+  const s1 = await st();
+  ok('sheetswipe: scrolled down, the head and × stay at the top of the sheet', !s1.hidden && s1.scroll > 0 && Math.abs(s1.hdTop) <= 1 && s1.xVis, s1);
+  await swipe(s1.row.x, s1.row.y, 200);
+  const s2 = await st();
+  ok('sheetswipe: scrolled down, a swipe down on the rows scrolls (sheet stays open)', !s2.hidden, s2);
+  await swipe(s2.hd.x, s2.hd.y, 40);
+  const s3 = await st();
+  ok('sheetswipe: a short pull on the head springs back', !s3.hidden && !s3.tr, s3);
+  await swipe(s3.hd.x, s3.hd.y, 200);
+  const s4 = await st();
+  ok('sheetswipe: a swipe down on the head closes the sheet', s4.hidden && !s4.tr, s4);
+  await open(); const s5 = await st();
+  await swipe(s5.row.x, s5.row.y, 200);
+  const s6 = await st();
+  ok('sheetswipe: at the top, a swipe down on the rows closes it too', s6.hidden, s6);
+  await ctx.close();
+}
+
+/* barbright (Джессика 20.10, ReadEra): a «Яркость» slider under the top bar, shown and hidden with the bars, = SET.bright (sheet row synced,
+   stored); in every skin it has its own track / thumb */
+if (want('barbright')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  const a = await p.evaluate(async () => {
+    revealChrome(); await new Promise(r => setTimeout(r, 400));
+    const b = el('barBright'), h = document.querySelector('#reader .rhead'), br = b.getBoundingClientRect(), hr = h.getBoundingClientRect();
+    b.value = 60; b.dispatchEvent(new Event('input')); b.dispatchEvent(new Event('change'));
+    const st = JSON.parse(localStorage.getItem(RQ_K.set) || '{}').bright, op = +getComputedStyle(el('dimmer')).opacity;
+    SET.bright = 0.8; applySet();
+    const sync = [b.value, el('brightRange').value, b.style.getPropertyValue('--v')];
+    concealChrome('tap'); await new Promise(r => setTimeout(r, 500));
+    const off = b.getBoundingClientRect().bottom <= 1;
+    const look = {}; const rules = []; for (const ss of document.styleSheets) { try { for (const r of ss.cssRules) if (r.selectorText && /#barBright::-webkit-slider-(thumb|runnable-track)/.test(r.selectorText)) rules.push(r); } catch (e) {} }
+    for (const sk of ['default', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+      const mine = rules.filter(r => sk === 'default' ? !/data-skin/.test(r.selectorText) : r.selectorText.includes('data-skin="' + sk + '"') && !/data-theme/.test(r.selectorText));
+      look[sk] = mine.map(r => r.style.background || r.style.backgroundImage).join('|');
+    }
+    delete document.documentElement.dataset.skin;
+    return { inHead: h.contains(b) && br.top >= hr.top && br.bottom <= hr.bottom + 1 && br.width > 150, st, op, sync, off, look };
+  });
+  ok('barbright: slider inside the top bar, sets and stores «Яркость»', a.inHead && a.st === 0.6 && Math.abs(a.op - 0.4) < 0.01, a);
+  ok('barbright: synced with the sheet row and fill; hides with the bars', a.sync[0] === '80' && a.sync[1] === '80' && a.sync[2] === '71%' && a.off, a);
+  const looks = Object.values(a.look);
+  ok('barbright: each skin draws its own slider (track + thumb rules)', looks.every(Boolean) && new Set(looks).size === looks.length, a.look);
   await ctx.close();
 }
 
@@ -557,6 +622,91 @@ if (want('pdfsel')) {
         return { tl: b.querySelectorAll('.psl .textLayer').length, cv: b.querySelectorAll('.psl canvas').length, p0: !!b.querySelector('.psl[data-n="0"] .textLayer'), p20: !!b.querySelector('.psl[data-n="20"] .textLayer span') }; });
       ok('pdfsel scroll: a text layer only next to a canvas (far pages freed with theirs)', r.tl === r.cv && r.tl <= 6 && !r.p0 && r.p20, r);
     }
+    await ctx.close();
+  }
+}
+
+/* pdflook (20.10, Джессика: «в ReadEra в PDF можно менять шрифт и цвет страницы»; arch.md SET.pdfFont / SET.pdfTheme): «Шрифт читалки
+   в PDF» draws the page text in the reader font on the original lines (canvas without text, widths kept, bold / colour kept, hidden OCR
+   text stays hidden); «Цвета темы для PDF» tints the page through #rqPdfTone (text colour ↔ page colour by brightness) */
+if (want('pdflook')) {
+  const HID = decodeURIComponent(new URL('./fixtures/f-hidden-text.pdf', import.meta.url).pathname);
+  {
+    const { ctx, p } = await fresh();
+    const n = await p.evaluate(() => { const f = (o) => { const s = normSet(Object.assign({}, o)); return [s.pdfFont, s.pdfTheme]; };
+      return { def: f({}), junk: f({ pdfFont: 1, pdfTheme: 'да' }), on: f({ pdfFont: true, pdfTheme: true }) }; });
+    ok('pdflook: SET.pdfFont / SET.pdfTheme default false, non-boolean → false, true kept', n.def.join() === 'false,false' && n.junk.join() === 'false,false' && n.on.join() === 'true,true', n);
+    const inp = await p.$('#fileInp'); await inp.uploadFile(PDF); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    /* dark pixels of the page bitmap under the body lines; a long span's text box */
+    const probe = () => p.evaluate(() => {
+      const cv = __rqPdf.front, sh = el('pdfSheet'), k = cv.width / sh.offsetWidth, g = cv.getContext('2d');
+      const sp = [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.length > 40).slice(0, 4);
+      let dark = 0; sp.forEach(s => { const x = s.offsetLeft, y = s.offsetTop; const r = document.createRange(); r.selectNodeContents(s); const b = r.getBoundingClientRect(), sb = sh.getBoundingClientRect();
+        const d = g.getImageData(Math.round((b.left - sb.left) * k), Math.round((b.top - sb.top) * k), Math.round(b.width * k), Math.round(b.height * k)).data;
+        for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] < 300) dark++; });
+      const s0 = sp[0], r = document.createRange(); r.selectNodeContents(s0); const b = r.getBoundingClientRect(), cs = getComputedStyle(s0);
+      return { dark, n: sp.length, w: b.width, mid: (b.top + b.bottom) / 2, col: cs.color, fam: cs.fontFamily, v: document.querySelectorAll('#pdfText span.v').length,
+        all: [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.trim()).length, wts: [...new Set([...document.querySelectorAll('#pdfText span.v')].map(s => s.style.fontWeight))] };
+    });
+    const a = await probe();
+    ok('pdflook: off by default — the file\'s own text on the canvas, text layer transparent', a.dark > 200 && a.v === 0 && /rgba\(0, 0, 0, 0\)|transparent/.test(a.col), a);
+    /* settings sheet: PDF rows */
+    const ui = await p.evaluate(() => { openReaderSettings('grpText'); const d = (id) => getComputedStyle(el(id).closest('.rrow,.srow')).display;
+      return { font: d('pdfFontTgl'), theme: d('pdfThemeTgl'), size: d('szMinus'), seg: d('fontSeg'), weight: d('wNorm') }; });
+    ok('pdflook: PDF settings show «Шрифт читалки в PDF» / «Цвета темы для PDF», hide text-only rows, font list only with the switch on', ui.font !== 'none' && ui.theme !== 'none' && ui.size === 'none' && ui.seg === 'none' && ui.weight === 'none', ui);
+    await p.evaluate(async () => { el('pdfFontTgl').click(); await new Promise(r => setTimeout(r, 2500)); });
+    const b = await probe();
+    const ui2 = await p.evaluate(() => ({ seg: getComputedStyle(el('fontSeg').closest('.srow')).display, aria: el('pdfFontTgl').getAttribute('aria-checked'), st: JSON.parse(localStorage.getItem(RQ_K.set) || '{}').pdfFont, fv: (FONTS[SET.font] || FONTS[0]).v }));
+    ok('pdflook font: switch on (stored) → font list shown', ui2.aria === 'true' && ui2.st === true && ui2.seg !== 'none', ui2);
+    ok('pdflook font: the canvas has no text, every text item is shown by the text layer in the reader font', b.dark < a.dark * 0.05 && b.v === b.all && b.v > 20 && !/rgba\(0, 0, 0, 0\)/.test(b.col) && b.fam.split(',')[0].replace(/"/g, '') === ui2.fv.split(',')[0].replace(/"/g, ''), { a: a.dark, b });
+    ok('pdflook font: lines keep their width and place on the page', Math.abs(b.w - a.w) < a.w * 0.02 && Math.abs(b.mid - a.mid) < 6, { a: [a.w, a.mid], b: [b.w, b.mid] });
+    await p.evaluate(async () => { document.querySelectorAll('#fontSeg button')[1].click(); await new Promise(r => setTimeout(r, 2500)); });
+    const c = await probe(), f1 = await p.evaluate(() => FONTS[1].v);
+    ok('pdflook font: another reader font → the PDF text follows it', c.fam.split(',')[0].replace(/"/g, '') === f1.split(',')[0].replace(/"/g, '') && c.v === c.all && c.dark < a.dark * 0.05, { fam: c.fam, f1 });
+    /* «Загиб»: the copy of the old page carries its text */
+    const cu = await p.evaluate(async () => { SET.flip = Object.assign({}, flipGet(), { anim: 'curl' }); applySet(); pdfFlip(1); let t = 0, hit = false;
+      while (t < 40 && !hit) { await new Promise(r => setTimeout(r, 25)); t++; hit = !!document.querySelector('.rqCurl .textLayer span.v'); } return { hit, page: R.page }; });
+    ok('pdflook font: «Загиб» peels the old page with its text', cu.hit, cu);
+    await sleep(1500);
+    /* theme colours: the bitmap through the filter = text colour + (page colour − text colour) × brightness */
+    const tone = async (label) => {
+      const q = await p.evaluate(() => { el('sheet').classList.add('hidden'); const cv = __rqPdf.front, sh = el('pdfSheet'), sb = sh.getBoundingClientRect(), k = cv.width / sh.offsetWidth;
+        const cx = sh.offsetWidth / 2, x = sb.left + cx, y = sb.top + 12, d = cv.getContext('2d').getImageData(Math.round(cx * k), Math.round(12 * k), 1, 1).data;
+        const sp = document.querySelector('#pdfText span.v');
+        return { x, y, src: [d[0], d[1], d[2]], bg: rqRgb(el('reader').style.getPropertyValue('--r-bg')), tx: rqRgb(el('reader').style.getPropertyValue('--r-txt')), f: getComputedStyle(cv).filter, sc: getComputedStyle(sp).color, ink: rqRgb(sp.style.getPropertyValue('--ink')), cls: el('reader').className }; });
+      const shot = PNG.sync.read(Buffer.from(await p.screenshot({ clip: { x: Math.round(q.x), y: Math.round(q.y), width: 1, height: 1 } })));
+      const L = (0.299 * q.src[0] + 0.587 * q.src[1] + 0.114 * q.src[2]) / 255, want = q.tx.map((t, i) => t + (q.bg[i] - t) * L), got = [shot.data[0], shot.data[1], shot.data[2]];
+      ok('pdflook theme ' + label + ': page bitmap tinted by #rqPdfTone (text ↔ page colour by brightness)', /rqPdfTone/.test(q.f) && /pdftone/.test(q.cls) && got.every((v, i) => Math.abs(v - want[i]) <= 6), { got, want, q });
+      return q;
+    };
+    await p.evaluate(async () => { el('pdfThemeTgl').click(); SET.theme = 'sepia'; SET.cBg = null; SET.cTxt = null; applySet(); await new Promise(r => setTimeout(r, 600)); });
+    const q1 = await tone('sepia');
+    const st = await p.evaluate(() => JSON.parse(localStorage.getItem(RQ_K.set) || '{}').pdfTheme);
+    ok('pdflook theme: switch stored', st === true, st);
+    await p.evaluate(async () => { toggleDayNight(); await new Promise(r => setTimeout(r, 600)); });
+    const q2 = await tone('night');
+    const Li = (0.299 * q2.ink[0] + 0.587 * q2.ink[1] + 0.114 * q2.ink[2]) / 255, wi = q2.tx.map((t, i) => t + (q2.bg[i] - t) * Li);
+    ok('pdflook theme night: the file\'s text colour goes the same way (dark text → light page text)', rqRgbStr(q2.sc).every((v, i) => Math.abs(v * 255 - wi[i]) <= 3) && wi[0] > 150, { sc: q2.sc, wi, ink: q2.ink });
+    /* «Прокрутка»: the same in every page of the strip */
+    const sc = await p.evaluate(async () => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll', anim: 'none' }); applySet(); psSwitch(); await new Promise(r => setTimeout(r, 3000));
+      const s = document.querySelector('#pdfScroll .psl[data-n="' + R.page + '"]'); return { cv: s && getComputedStyle(s.querySelector('canvas')).filter, v: s ? s.querySelectorAll('.textLayer span.v').length : 0, all: s ? [...s.querySelectorAll('.textLayer span')].filter(x => x.textContent.trim()).length : -1 }; });
+    ok('pdflook scroll: strip pages tinted and in the reader font', /rqPdfTone/.test(sc.cv) && sc.v > 20 && sc.v === sc.all, sc);
+    await p.evaluate(async () => { SET.pdfFont = false; SET.pdfTheme = false; applySet(); await new Promise(r => setTimeout(r, 2500)); });
+    const off = await p.evaluate(() => { const s = document.querySelector('#pdfScroll .psl[data-n="' + R.page + '"]'); return { cv: getComputedStyle(s.querySelector('canvas')).filter, v: s.querySelectorAll('.textLayer span.v').length }; });
+    ok('pdflook: both off → the file\'s own look again', off.cv === 'none' && off.v === 0, off);
+    await ctx.close();
+  }
+  {
+    /* a scan with hidden OCR text: the hidden words stay hidden, only drawn text is replaced */
+    const { ctx, p } = await fresh(); const inp = await p.$('#fileInp');
+    await p.evaluate(() => { SET.pdfFont = true; rqSaveSetGated(); });
+    await inp.uploadFile(HID); await sleep(2500);
+    await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); openBook(b.id); await new Promise(r => setTimeout(r, 3000)); });
+    const h = await p.evaluate(() => [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.trim()).map(s => [s.textContent, s.classList.contains('v'), getComputedStyle(s).color, s.style.fontWeight + ' ' + s.style.fontStyle]));
+    const fd = (re) => h.find(x => re.test(x[0])) || [], vis = fd(/Visible/), hid = fd(/Hidden/), bo = fd(/Bold/), itl = fd(/Italic/);
+    ok('pdflook font: hidden (OCR) text stays invisible, drawn text is shown', vis[1] && hid.length && !hid[1] && /rgba\(0, 0, 0, 0\)/.test(hid[2]), h);
+    ok('pdflook font: bold and italic of the file stay bold and italic', bo[1] && bo[3] === '700 normal' && itl[1] && itl[3] === '400 italic' && vis[3] === '400 normal', h);
     await ctx.close();
   }
 }

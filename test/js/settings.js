@@ -67,8 +67,7 @@ function renderSettings(){
   el('uxWake').textContent=S.ux.wake?'Вкл':'Выкл';
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
-  el('aiKey').value=(S.ai&&S.ai.key)||'';
-  el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
+  renderAiSet();renderTtsSet();
   /* Джессика 16.10: «Тема» and «Скин» are two rows. Тема = the app palette (Авто + APP_THEMES), Скин = «Без скина», «Карандашный» and the bought
      shop skins. A worn skin paints the app with its own colours; the picked palette stays selected underneath and comes back when the skin is
      taken off. Picking a palette while a skin is on takes the skin off (reader theme back to sepia), same as before the split. */
@@ -101,8 +100,57 @@ function renderSettings(){
   rqCollapse('appSkinBox','',function(){const t=document.querySelector('#appSkinBox .apptile.on small');return t?t.textContent:'';},'appSkinX',{icon:'palette',title:'Скин',sub:function(){return 'Свои и купленные';},dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'circle-minus';},dot:function(){const b=document.querySelector('#appSkinBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
-el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
-el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
+/* ИИ-помощник (20.10): сервис, свой ключ, модель, адрес для «Другого» (content.js AI_PROV, arch.md 20.10) */
+function renderAiSet(){
+  const p=aiProv(),box=el('aiProvSeg');box.innerHTML='';
+  Object.keys(AI_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':AI_PROV[k].name.replace(/ \(.*\)$/,'');
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.onclick=()=>{if(aiProv()===k)return;S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';renderAiSet();};box.appendChild(b);});
+  el('aiKey').value=(S.ai&&S.ai.key)||'';
+  el('aiBase').hidden=p!=='custom';el('aiBase').value=(S.ai&&S.ai.base)||'';
+  el('aiModel').value=(S.ai&&S.ai.model)||'';
+  el('aiModel').placeholder='Модель'+(AI_PROV[p].model?' ('+AI_PROV[p].model+')':'');
+}
+/* Озвучка (20.10): телефон или нейросетевой голос на своём ключе (reader-ui.js TTS_PROV, arch.md 20.10) */
+function renderTtsSet(){
+  const t=S.tts,p=TTS_PROV[t.prov]?t.prov:'system',box=el('ttsProvSeg');box.innerHTML='';
+  Object.keys(TTS_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':TTS_PROV[k].name;
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.onclick=()=>{if(t.prov===k)return;if(ttsOn||speaking)ttsStop();t.prov=k;t.voice='';save();el('ttsTestRes').textContent='';renderTtsSet();};box.appendChild(b);});
+  el('ttsFields').hidden=p==='system';
+  el('ttsKey').value=t.key||'';
+  el('ttsKey').placeholder=p==='openai'&&!t.key&&S.ai&&S.ai.prov==='openai'&&S.ai.key?'Ключ API (сейчас берётся ключ ИИ-помощника)':'Ключ API';
+  el('ttsBase').hidden=p!=='custom';el('ttsBase').value=t.base||'';
+  el('ttsVoice').value=t.voice||'';el('ttsVoice').placeholder='Голос'+(TTS_PROV[p].voice?' ('+TTS_PROV[p].voice+')':'');
+  el('ttsVoiceHint').textContent=TTS_PROV[p].voices?'Голоса: '+TTS_PROV[p].voices:'';
+}
+el('ttsKey').oninput=e=>{S.tts.key=e.target.value.trim();save();el('ttsTestRes').textContent='';};
+el('ttsVoice').oninput=e=>{S.tts.voice=e.target.value.trim().slice(0,100);save();};
+el('ttsBase').oninput=e=>{S.tts.base=e.target.value.trim().slice(0,300);save();};
+let ttsTestAudio=null;
+el('ttsTest').onclick=async()=>{
+  const r=el('ttsTestRes');
+  if(!nttsOn()){r.textContent=nttsCfg().key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(navigator.onLine===false){r.textContent='Нет интернета';return;}
+  r.textContent='Загружаю…';el('ttsTest').disabled=true;
+  try{const b=await nttsFetch('Здравствуйте! Так будут звучать ваши книги.');
+    if(ttsTestAudio)try{ttsTestAudio.pause();}catch(e){}
+    ttsTestAudio=new Audio(URL.createObjectURL(b));await ttsTestAudio.play();r.textContent='Работает, слушайте';}
+  catch(e){r.textContent=e&&e.name==='NotAllowedError'?'Звук загружен, нажмите ещё раз':'Не работает: '+(e&&e.message||'ошибка');}
+  finally{el('ttsTest').disabled=false;}
+};
+el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();el('aiTestRes').textContent='';};
+el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim();save();};
+el('aiBase').oninput=e=>{S.ai.base=e.target.value.trim().slice(0,300);save();};
+el('aiTest').onclick=async()=>{
+  const r=el('aiTestRes');
+  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(navigator.onLine===false){r.textContent='Нет интернета';return;}
+  r.textContent='Проверяю…';el('aiTest').disabled=true;
+  try{const t=await aiViaKey({system:'Отвечай одним словом.',user:'Скажи «готово».'},20);r.textContent=t?'Работает, сервис ответил':'Сервис ответил пустотой';}
+  catch(e){r.textContent='Не работает: '+(e&&e.message||'ошибка');}
+  finally{el('aiTest').disabled=false;}
+};
 el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();applyMotion();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};
@@ -129,7 +177,7 @@ el('btnExport').onclick=async ()=>{
   if(__rq&&__rq.exportBackup){
     payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{},S.tts?{tts:Object.assign({},S.tts,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');

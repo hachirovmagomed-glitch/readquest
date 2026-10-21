@@ -102,6 +102,10 @@ el('spDict').onclick=()=>{
   trPick=false;trOpen(q);
 };
 el('trSheetClose').onclick=()=>{el('trSheet').classList.add('hidden');trSeq++;};
+/* 22.10 Джессика: «выйти практически невозможно» — тап мимо окна тоже закрывает (системный «назад» — reader-ui.js popstate) */
+document.addEventListener('pointerdown',e=>{const sh=el('trSheet');if(sh.classList.contains('hidden')||sh.contains(e.target))return;
+  if(trDl)return; /* идёт скачивание — не терять его случайным тапом */
+  sh.classList.add('hidden');trSeq++;},true);
 function trHead(q){
   const opts=Object.keys(TR_LANGS).filter(k=>k!==q.to||k==='ru');
   return '<div class="ai-q">«'+esc(q.text.length>160?q.text.slice(0,160)+'…':q.text)+'»</div>'+
@@ -113,11 +117,11 @@ function trWire(q){
   document.querySelectorAll('#trBody .tr-langs .fchip').forEach(b=>b.onclick=()=>{const f=b.dataset.l;trPick=false;
     const nq=Object.assign({},q,{from:f,to:trTo(f)});if(nq.to===f)nq.to=f==='en'?'ru':'en';trOpen(nq);});
   if(el('trAi'))el('trAi').onclick=()=>trViaAi(q);
-  if(el('trWeb'))el('trWeb').onclick=()=>window.open('https://translate.google.com/?sl='+q.from+'&tl='+q.to+'&text='+encodeURIComponent(q.text.slice(0,1500)),'_blank','noopener');
+  if(el('trWeb'))el('trWeb').onclick=()=>trViaGoogle(q);
 }
-function trAlt(q,ai){ /* запасные пути под основным */
-  return '<div class="tr-alt">'+(ai&&typeof aiOn==='function'&&aiOn()?'<button type="button" class="ghostbtn" id="trAi">'+rqIcon('sparkles',16)+' Через ИИ</button>':'')+
-    '<button type="button" class="ghostbtn" id="trWeb">'+rqIcon('languages',16)+' Google Переводчик</button></div>';
+function trAlt(q,ai,g){ /* запасные пути под основным: Google онлайн (прямо в окне, 22.10 Джессика: «без того, чтобы человека бросало в гугл переводчик») и свой ключ ИИ */
+  return '<div class="tr-alt">'+(g!==false?'<button type="button" class="ghostbtn" id="trWeb">'+rqIcon('languages',16)+' Google онлайн</button>':'')+
+    (ai&&typeof aiOn==='function'&&aiOn()?'<button type="button" class="ghostbtn" id="trAi">'+rqIcon('sparkles',16)+' Через ИИ</button>':'')+'</div>';
 }
 function trRender(q,state,x){
   if(trCur!==q)return;
@@ -134,7 +138,7 @@ function trRender(q,state,x){
     h+='<div class="ai-a tr-out" lang="'+q.to+'">'+esc(x.text)+'</div>'+
       '<div class="tr-acts">'+(word?'<button type="button" class="ghostbtn" id="trToVocab">'+rqIcon('book-open',16)+' В словарь</button>':'')+
       '<button type="button" class="ghostbtn" id="trCopy">'+rqIcon('copy',16)+' Копировать</button></div>'+
-      '<div class="ai-note">'+(x.ai?'Перевод ИИ, может ошибаться':'Переведено на телефоне, без интернета')+'</div>'+(x.ai?'':trAlt(q,true));
+      '<div class="ai-note">'+(x.ai?'Перевод ИИ, может ошибаться':x.g?'Перевод Google, через интернет':'Переведено на телефоне, без интернета')+'</div>'+(x.ai?'':trAlt(q,true,!x.g));
   }
   el('trBody').innerHTML=h;trWire(q);
   if(el('trDlB'))el('trDlB').onclick=()=>trGet(q,x.path);
@@ -161,7 +165,9 @@ async function trRun(q,my){
   trRender(q,'wait');
   try{
     const t=await trEngine();
-    const r=await t.translate({from:q.from,to:q.to,text:q.text,html:false});
+    /* 22.10: на телефоне первый запуск движка может зависнуть (память) — не крутить «Перевожу…» вечно */
+    const r=await Promise.race([t.translate({from:q.from,to:q.to,text:q.text,html:false}),
+      new Promise((a,b)=>setTimeout(()=>b(new Error('движок перевода не ответил за минуту. Попробуйте «Google онлайн»')),60000))]);
     const out={text:String(r.target.text||'').trim()};
     TR_MEM[q.from+q.to+'\n'+q.text]=out;
     if(my===trSeq)trRender(q,'ok',out);
@@ -179,6 +185,18 @@ async function trGet(q,path){
   catch(e){trDl=null;if(my===trSeq)trRender(q,'err',e&&e.name==='AbortError'?'Скачивание отменено.':'Пакет не скачался: '+(e&&e.message||'ошибка')+'.');renderTrSet();return;}
   trDl=null;renderTrSet();
   if(my===trSeq)trRun(q,my);
+}
+/* Google онлайн прямо в окне: тот же сервис, что у Google Переводчика (без ключа, CORS открыт); текст уходит в Google только по этой кнопке */
+async function trViaGoogle(q){
+  if(navigator.onLine===false){trRender(q,'err','Для Google нужен интернет.');return;}
+  const my=++trSeq;trRender(q,'wait');
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl='+(q.from||'auto')+'&tl='+q.to+'&q='+encodeURIComponent(q.text.slice(0,1500)),{credentials:'omit'});
+    if(!r.ok)throw new Error('Google ответил '+r.status);
+    const d=await r.json();const text=((d&&d[0])||[]).map(x=>x&&x[0]||'').join('').trim();
+    if(!text)throw new Error('пустой ответ');
+    if(my===trSeq)trRender(q,'ok',{text,g:true});
+  }catch(e){if(my===trSeq)trRender(q,'err','Google не ответил: '+(e&&e.message||'нет связи')+'.');}
 }
 async function trViaAi(q){
   const my=++trSeq;trRender(q,'wait');

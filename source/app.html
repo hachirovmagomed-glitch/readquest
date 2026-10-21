@@ -1208,6 +1208,8 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 #trBody .tr-acts{display:flex;flex-wrap:wrap}
 #trBody .tr-alt{display:flex;flex-wrap:wrap;margin-top:6px}
 #trBody .tr-alt .ghostbtn{margin-bottom:0}
+/* 22.10: крестик над заголовком (в скинах h3 position:relative перекрывал его), зона 48×48 */
+:is(#aiSheet,#trSheet)>.closes{z-index:5;min-width:48px;min-height:48px;top:2px;right:4px}
 #trList .tr-row .ghostbtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;flex:none}
 @media (prefers-reduced-motion:reduce){#trBody .tr-prog i{transition:none}}
 .nncard .nnbox{padding:4px 2px 8px}

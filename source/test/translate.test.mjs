@@ -36,6 +36,7 @@ async function fresh(width, ctx0) {
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
       ext.push(u); return r.respond({ status: 200, headers: CORS, contentType: 'application/json', body: JSON.stringify({ choices: [{ message: { content: 'Зовите меня Измаил.' } }] }) });
     }
+    if (/^https:\/\/translate\.googleapis\.com\//.test(u)) { ext.push(u); return r.respond({ status: 200, headers: CORS, contentType: 'application/json', body: JSON.stringify([[['Зови меня Измаил.', 'Call me Ishmael.']], null, 'en']) }); }
     if (/translate\.google/.test(u)) ext.push(u);
     r.continue();
   });
@@ -71,7 +72,7 @@ const cached = (p) => p.evaluate(async () => { const c = await caches.open(TR_CA
 const econ = (p) => p.evaluate(() => ({ xp: S.xp, gold: S.gold, vocab: (S.vocab || []).length }));
 
 /* need + dl + off + vocab + set: one context (the cache lives across pages of one context) */
-if (want('need') || want('dl') || want('off') || want('vocab') || want('set') || want('ai')) {
+if (want('need') || want('dl') || want('off') || want('vocab') || want('set') || want('ai') || want('close') || want('google')) {
   const ctx = await browser.createBrowserContext();
   let { p, ext } = await fresh(390, ctx);
   const e0 = await econ(p);
@@ -130,6 +131,31 @@ if (want('need') || want('dl') || want('off') || want('vocab') || want('set') ||
     await p.evaluate(() => document.querySelector('#trList [data-del="deen"]').click()); await sleep(800);
     const st2 = await p.evaluate(() => el('trX').textContent); const c2 = await cached(p);
     ok('set: удалить «Немецкий → Английский» → 2 пакета, файлов deen в кэше нет', /2 пакета/.test(st2) && !c2.some(u => /tr\/deen\//.test(u)), { st2 });
+  }
+  if (want('close')) {
+    await p.evaluate(() => { __navAllow = true; show('library'); __navAllow = false; });
+    await select(p, 'Очумелов'); await p.evaluate(() => el('spDict').click()); await waitOut(p); await sleep(200);
+    const x = await p.evaluate(() => { const b = el('trSheetClose').getBoundingClientRect(); return { hit: el('trSheetClose').contains(document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2)), w: b.width, h: b.height }; });
+    const xy = await p.evaluate(() => { const b = el('trSheetClose').getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; });
+    await p.touchscreen.tap(xy[0], xy[1]); await sleep(200);
+    const c1 = await p.evaluate(() => el('trSheet').classList.contains('hidden'));
+    ok('close: крестик сверху (не под заголовком), 48×48, тап закрывает', x.hit && x.w >= 48 && x.h >= 48 && c1, { x, c1 });
+    await select(p, 'Очумелов', '', true); await p.evaluate(() => el('spDict').click()); await waitOut(p); await sleep(200);
+    await p.touchscreen.tap(200, 120); await sleep(200);
+    const c2 = await p.evaluate(() => el('trSheet').classList.contains('hidden'));
+    await select(p, 'Очумелов', '', true); await p.evaluate(() => el('spDict').click()); await waitOut(p); await sleep(200);
+    await p.goBack(); await sleep(400);
+    const c3 = await p.evaluate(() => ({ tr: el('trSheet').classList.contains('hidden'), reader: !el('reader').classList.contains('hidden') }));
+    ok('close: тап мимо окна закрывает; системный «назад» закрывает окно, книга остаётся открытой', c2 && c3.tr && c3.reader, { c2, c3 });
+  }
+  if (want('google')) {
+    await p.evaluate(() => el('trSheet').classList.add('hidden'));
+    await select(p, '', EN, true); await p.evaluate(() => el('spDict').click()); await waitOut(p, 20000); await sleep(200);
+    const n0 = ext.length;
+    await p.evaluate(() => el('trWeb').click()); await p.waitForFunction(() => /Перевод Google/.test(el('trBody').textContent), { timeout: 10000 }).catch(() => {});
+    const r = await sheet(p); const u = ext.slice(n0).join(' ');
+    ok('google: «Google онлайн» переводит прямо в окне (вкладка не открывается), с пометкой', /Зови меня Измаил/.test(r.out) && /Перевод Google/.test(r.t) && /translate\.googleapis\.com.*sl=en.*tl=ru/.test(u), { out: r.out, u: u.slice(0, 120) });
+    await shot(p, '7-google');
   }
   if (want('ai')) {
     await p.evaluate(() => { S.ai.prov = 'deepseek'; S.ai.key = 'sk-test'; save(); __navAllow = true; show('library'); __navAllow = false; });

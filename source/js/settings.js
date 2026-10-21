@@ -106,32 +106,57 @@ function renderSettings(){
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 /* ИИ-помощник (20.10): сервис, свой ключ, модель, адрес для «Другого» (content.js AI_PROV, arch.md 20.10) */
+/* Джессика 20.10 «ужмём»: ИИ и озвучка — по строке; раскрываются по нажатию, другие сервисы — по кнопке «Сервис» */
+const NN_EXP={ai:false,tts:false,aiP:false,ttsP:false};
+function nnRow(id,ic,title,sub,val,open){const r=el(id);
+  /* Джессика 21.10 «плашки сходят с ума»: the chosen service sits under the title (a long «ElevenLabs, нет ключа» squeezed the title away on a narrow phone with large text); what the row is for — in its title attribute */
+  r.innerHTML=rqIcon(ic,22)+'<span class="xlab"><span class="xt">'+esc(title)+'</span><span class="xsub xv">'+esc(val)+'</span></span>'+rqIcon(open?'chevron-up':'chevron-down',20);r.title=sub;
+  r.setAttribute('aria-expanded',open?'true':'false');}
+function nnPick(id,val,open){const r=el(id);r.innerHTML='<span class="xl">Сервис</span><span class="xv">'+esc(val)+'</span>'+rqIcon(open?'chevron-up':'chevron-down',20);r.setAttribute('aria-expanded',open?'true':'false');}
+function renderNn(){
+  const ap=aiProv(),tp=TTS_PROV[S.tts.prov]?S.tts.prov:'system';
+  const an=AI_PROV[ap].name.replace(/ \(.*\)$/,''),tn=TTS_PROV[tp].name;
+  nnRow('aiX','sparkles','ИИ-помощник','«Объясни» и чат о книге',aiOwnKey()?an:'Нет ключа',NN_EXP.ai);
+  const tv=tp==='custom'?'Другой':tn;
+  nnRow('ttsHead','volume-2','Озвучка','Голос для чтения вслух',tp==='system'?'Телефон':(nttsOn()?tv:tv+', нет ключа'),NN_EXP.tts);
+  el('aiCard').hidden=!NN_EXP.ai;el('ttsCard').hidden=!NN_EXP.tts;
+  nnPick('aiProvX',ap==='custom'?'Другой':an,NN_EXP.aiP);el('aiProvSeg').hidden=!NN_EXP.aiP;
+  nnPick('ttsProvX',tp==='custom'?'Другой':tn,NN_EXP.ttsP);el('ttsProvSeg').hidden=!NN_EXP.ttsP;
+}
+el('aiX').onclick=()=>{NN_EXP.ai=!NN_EXP.ai;renderNn();};
+el('ttsHead').onclick=()=>{NN_EXP.tts=!NN_EXP.tts;renderNn();};
+el('aiProvX').onclick=()=>{NN_EXP.aiP=!NN_EXP.aiP;renderNn();};
+el('ttsProvX').onclick=()=>{NN_EXP.ttsP=!NN_EXP.ttsP;renderNn();};
 function renderAiSet(){
   const p=aiProv(),box=el('aiProvSeg');box.innerHTML='';
   Object.keys(AI_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':AI_PROV[k].name.replace(/ \(.*\)$/,'');
     b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
-    b.onclick=()=>{if(aiProv()===k)return;S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';renderAiSet();};box.appendChild(b);});
+    b.onclick=()=>{NN_EXP.aiP=false;if(aiProv()!==k){S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';}renderAiSet();};box.appendChild(b);});
+  el('aiHowB').innerHTML=keyHowHtml(p,false);
   el('aiKey').value=(S.ai&&S.ai.key)||'';
   el('aiBase').hidden=p!=='custom';el('aiBase').value=(S.ai&&S.ai.base)||'';
   el('aiModel').value=(S.ai&&S.ai.model)||'';
   el('aiModel').placeholder='Модель'+(AI_PROV[p].model?' ('+AI_PROV[p].model+')':'');
+  renderNn();
 }
 /* Озвучка (20.10): телефон или нейросетевой голос на своём ключе (reader-ui.js TTS_PROV, arch.md 20.10) */
 function renderTtsSet(){
   const t=S.tts,p=TTS_PROV[t.prov]?t.prov:'system',box=el('ttsProvSeg');box.innerHTML='';
   Object.keys(TTS_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':TTS_PROV[k].name;
     b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
-    b.onclick=()=>{if(t.prov===k)return;if(ttsOn||speaking)ttsStop();t.prov=k;t.voice='';save();el('ttsTestRes').textContent='';renderTtsSet();};box.appendChild(b);});
+    b.onclick=()=>{NN_EXP.ttsP=false;if(t.prov!==k){if(ttsOn||speaking)ttsStop();t.prov=k;t.voice='';save();el('ttsTestRes').textContent='';}renderTtsSet();};box.appendChild(b);});
   el('ttsFields').hidden=p==='system';
+  el('ttsHowB').innerHTML=keyHowHtml(p,true);
   el('ttsKey').value=t.key||'';
   el('ttsKey').placeholder=p==='openai'&&!t.key&&S.ai&&S.ai.prov==='openai'&&S.ai.key?'Ключ API (сейчас берётся ключ ИИ-помощника)':'Ключ API';
   el('ttsBase').hidden=p!=='custom';el('ttsBase').value=t.base||'';
   el('ttsVoice').value=t.voice||'';el('ttsVoice').placeholder='Голос'+(TTS_PROV[p].voice?' ('+TTS_PROV[p].voice+')':'');
   el('ttsVoiceHint').textContent=TTS_PROV[p].voices?'Голоса: '+TTS_PROV[p].voices:'';
+  renderNn();
 }
-el('ttsKey').oninput=e=>{S.tts.key=e.target.value.trim();save();el('ttsTestRes').textContent='';};
+el('ttsKey').oninput=e=>{S.tts.key=e.target.value.trim();save();el('ttsTestRes').textContent='';renderNn();};
 el('ttsVoice').oninput=e=>{S.tts.voice=e.target.value.trim().slice(0,100);save();};
-el('ttsBase').oninput=e=>{S.tts.base=e.target.value.trim().slice(0,300);save();};
+el('ttsBase').oninput=e=>{S.tts.base=e.target.value.trim().slice(0,300);save();renderNn();};
 let ttsTestAudio=null;
 el('ttsTest').onclick=async()=>{
   const r=el('ttsTestRes');
@@ -144,9 +169,9 @@ el('ttsTest').onclick=async()=>{
   catch(e){r.textContent=e&&e.name==='NotAllowedError'?'Звук загружен, нажмите ещё раз':'Не работает: '+(e&&e.message||'ошибка');}
   finally{el('ttsTest').disabled=false;}
 };
-el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();el('aiTestRes').textContent='';};
+el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();el('aiTestRes').textContent='';renderNn();};
 el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim();save();};
-el('aiBase').oninput=e=>{S.ai.base=e.target.value.trim().slice(0,300);save();};
+el('aiBase').oninput=e=>{S.ai.base=e.target.value.trim().slice(0,300);save();renderNn();};
 el('aiTest').onclick=async()=>{
   const r=el('aiTestRes');
   if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?'Укажите адрес API':'Сначала вставьте ключ';return;}

@@ -23,6 +23,18 @@ const lic = '*** START OF THE PROJECT GUTENBERG EBOOK X ***\n' + rep('Mary had a
   '\n*** END OF THE PROJECT GUTENBERG EBOOK X ***\n' + rep('Redistribution is subject to the trademark license, especially commercial redistribution, and the applicable agreement with the foundation.', 200);
 ok('лицензия Гутенберга не делает детскую книгу сложной', G.textLevel(lic) === 0, G.textStats(lic).score);
 
+/* --- 21.10: formulas (Джессика: учебник макроэкономики вышел только «Сложной») --- */
+{ const K = 'Жил-был кот. Кот был рыжий. Он любил молоко и рыбку. Утром кот пошёл гулять. На лугу он встретил собаку. Собака сказала: гав! Кот сказал: мяу! И они стали дружить. ';
+  const P = 'Всякое познание начинается с опыта, однако отсюда ещё не следует, что оно целиком проистекает из опыта. Необходимость и строгая всеобщность являются достоверными признаками априорного знания. ';
+  const F = 'Выпуск равен Y = C + I + G + NX, а функция потребления C = a + b(Y − T), где 0 < b < 1. ';
+  const plain = Array.from({ length: 40 }, () => K + P).join('\n'), withF = Array.from({ length: 40 }, () => K + P + F).join('\n');
+  ok('тот же текст: без формул «Сложная», с формулами и переменными «Очень сложная»', G.textLevel(plain) === 1 && G.textLevel(withF) === 2, [G.textStats(plain).score, G.textStats(withF).score]);
+  const sm = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).math.toFixed(2)]));
+  ok('художественная полка: формул почти нет (меньше 0,1 на 100 слов)', Object.values(sm).every(x => x < 0.1), sm);
+  ok('жанр «Экономика», «Учебник математики» → 1', G.genreLevel('Экономика') === 1 && G.genreLevel('Учебник математики') === 1);
+  ok('версия правила LVL_ALGO = 2 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 2);
+}
+
 /* --- author, genre, auto, manual --- */
 ok('автор: Кант → 2, Платон → 1, Plato → 1, Эзоп → 0, «Канторович» не Кант', G.authorLevel('Иммануил Кант') === 2 && G.authorLevel('Платон') === 1 && G.authorLevel('Plato') === 1 && G.authorLevel('Эзоп') === 0 && G.authorLevel('Канторович') === 0);
 ok('жанр FB2 sci_philosophy → 1, «Сказки» → 0', G.genreLevel('sci_philosophy') === 1 && G.genreLevel('Сказки') === 0);

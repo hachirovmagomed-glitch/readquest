@@ -15,25 +15,27 @@ jobs:
           def get(u):
               x=urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60); return x,x.read()
           FREE='(licenseurl:*publicdomain* OR date:[1000-01-01 TO 1929-12-31] OR year:[1000 TO 1929])'
-          NOT='NOT collection:(inlibrary OR printdisabled OR lendinglibrary OR internetarchivebooks) NOT access-restricted-item:true'
-          Q=[('ru-all','mediatype:texts AND language:(rus OR Russian) AND format:DjVuTXT AND '+FREE+' AND '+NOT),
-             ('ru-tolstoy','(толстой OR Толстой) AND mediatype:texts AND language:(rus OR Russian) AND format:DjVuTXT AND '+FREE+' AND '+NOT),
-             ('ru-pushkin','пушкин AND mediatype:texts AND language:(rus OR Russian) AND format:DjVuTXT AND '+FREE+' AND '+NOT),
-             ('bbl-ru','collection:booksbylanguage_russian AND format:DjVuTXT AND '+FREE+' AND '+NOT),
-             ('en-dickens','dickens AND mediatype:texts AND language:(eng OR English) AND format:DjVuTXT AND '+FREE+' AND '+NOT)]
+          NOT='NOT collection:(inlibrary OR printdisabled OR lendinglibrary OR internetarchivebooks OR newspapers OR magazine_rack OR magazine_packs OR pub_* OR periodicals OR serials OR folkscanomy_miscellaneous) NOT access-restricted-item:true'
+          BASE='mediatype:texts AND format:DjVuTXT AND '+FREE+' AND '+NOT
+          def T(q): return '(title:('+q+') OR creator:('+q+'))'
+          Q=[('ru-empty','language:(rus OR Russian) AND collection:booksbylanguage AND '+BASE),
+             ('ru-empty-nonum','language:(rus OR Russian) AND collection:booksbylanguage AND NOT title:(ведомости OR газета OR журнал OR вестник OR известия) AND '+BASE),
+             ('ru-tolstoy',T('толстой')+' AND language:(rus OR Russian) AND '+BASE),
+             ('ru-pushkin',T('пушкин')+' AND language:(rus OR Russian) AND '+BASE),
+             ('ru-onegin',T('онегин')+' AND '+BASE),
+             ('ru-voina',T('война и мир')+' AND '+BASE),
+             ('ru-voina2',T('(война AND мир)')+' AND '+BASE),
+             ('en-dickens',T('dickens')+' AND language:(eng OR English) AND '+BASE),
+             ('any-homer',T('homer')+' AND '+BASE)]
           ids=[]
           for n,q in Q:
-              for api in ('adv','scrape'):
-                  if api=='adv': u='https://archive.org/advancedsearch.php?'+urllib.parse.urlencode({'q':q,'fl[]':['identifier','title','creator','date','year','language','licenseurl','downloads','imagecount'],'rows':10,'output':'json','sort[]':'downloads desc'},doseq=True)
-                  else: u='https://archive.org/services/search/v1/scrape?'+urllib.parse.urlencode({'q':q,'fields':'identifier,title,creator,date,year,language,licenseurl,downloads,imagecount','count':100,'sorts':'downloads desc'})
-                  try:
-                      x,b=get(u); d=json.loads(b)
-                      print('\n==',n,api,x.status,'ACAO=',x.headers.get('Access-Control-Allow-Origin'))
-                      docs=d['response']['docs'] if api=='adv' else d.get('items',[])
-                      print('  total',d['response']['numFound'] if api=='adv' else d.get('total'),'keys',list(d.keys()))
-                      for r in docs[:10]: print('   ',json.dumps(r,ensure_ascii=False)[:300])
-                      if api=='adv' and n in('ru-tolstoy','ru-pushkin'): ids+= [r['identifier'] for r in docs[:2]]
-                  except Exception as e: print('\n==',n,api,'ERR',e)
+              u='https://archive.org/advancedsearch.php?'+urllib.parse.urlencode({'q':q,'fl[]':['identifier','title','creator','date','year','language','licenseurl','downloads','imagecount'],'rows':12,'page':1,'output':'json','sort[]':'downloads desc'},doseq=True)
+              try:
+                  x,b=get(u); d=json.loads(b)
+                  print('\n==',n,x.status,'ACAO=',x.headers.get('Access-Control-Allow-Origin'),'total',d['response']['numFound'])
+                  for r in d['response']['docs']: print('   ',json.dumps({k:r.get(k) for k in ('identifier','title','creator','year','language','imagecount')},ensure_ascii=False)[:260])
+                  if n in('ru-tolstoy','ru-pushkin','ru-onegin'): ids+= [r['identifier'] for r in d['response']['docs'][:1]]
+              except Exception as e: print('\n==',n,'ERR',e)
           for i in ids[:3]:
               try:
                   x,b=get('https://archive.org/metadata/'+i); m=json.loads(b); md=m.get('metadata',{})
@@ -43,7 +45,7 @@ jobs:
                   if fs:
                       x,b=get('https://archive.org/download/'+i+'/'+urllib.parse.quote(fs[0]['name']))
                       t=b.decode('utf-8','replace'); print('  sample ACAO',x.headers.get('Access-Control-Allow-Origin'),'len',len(t)); mid=len(t)//2
-                      print('-----\n'+t[mid:mid+1500]+'\n-----')
+                      print('-----\n'+t[:600]+'\n...\n'+t[mid:mid+1200]+'\n-----'); print('FF',t.count('\f'),'NOT',t.count('\u00ac'))
               except Exception as e: print('meta err',i,e)
           PY
           python3 p.py

@@ -1,0 +1,132 @@
+{
+ "v": 1,
+ "source": "Mozilla Firefox Translations models, https://storage.googleapis.com/moz-fx-translations-data--303e-prod-translations-data/db/models.json",
+ "pairs": {
+  "enru": {
+   "arch": "base-memory",
+   "release": "Release Android",
+   "files": {
+    "model": {
+     "name": "enru/model.enru.intgemm.alphas.bin.gz",
+     "size": 21988864,
+     "sha256": "e766bc83434f4a9ff4110abe5450043a62cd402c6a7a8bca5e3e4d83b408dcb4"
+    },
+    "lex": {
+     "name": "enru/lex.50.50.enru.s2t.bin.gz",
+     "size": 1378563,
+     "sha256": "9c111984d8207f8dc6b9dd5c17ab4d18042f7c0e34105a09a35909538facc958"
+    },
+    "vocab": {
+     "name": "enru/vocab.enru.spm.gz",
+     "size": 419005,
+     "sha256": "9aa498dce5d27c02ac998c646c51a7475a421500ecdbbd1dff9ff3e77e64b21c"
+    }
+   }
+  },
+  "ruen": {
+   "arch": "base-memory",
+   "release": "Release",
+   "files": {
+    "model": {
+     "name": "ruen/model.ruen.intgemm.alphas.bin.gz",
+     "size": 22805722,
+     "sha256": "1dc70ffc7dce84d46ad13b8c1908c46f0dfbf4e2ed1daaffb8b8b04315e00aa3"
+    },
+    "lex": {
+     "name": "ruen/lex.50.50.ruen.s2t.bin.gz",
+     "size": 2139703,
+     "sha256": "012674431e3a248e5f647e88e254331eca37f661960ea82ceb93dab78850ccd8"
+    },
+    "vocab": {
+     "name": "ruen/vocab.ruen.spm.gz",
+     "size": 441622,
+     "sha256": "20f7d8032b12a7c1bba99784fca60ccf1d49e782f3cad8791e8cf0c2063b334c"
+    }
+   }
+  },
+  "deen": {
+   "arch": "base-memory",
+   "release": "Release",
+   "files": {
+    "model": {
+     "name": "deen/model.deen.intgemm.alphas.bin.gz",
+     "size": 22403755,
+     "sha256": "38b245bcfc23f6d61fd98a187436ea1320a38f41896df411b103df3e83f51681"
+    },
+    "lex": {
+     "name": "deen/lex.50.50.deen.s2t.bin.gz",
+     "size": 2626658,
+     "sha256": "231e9caf62e0e867775d5f4c1f4cfae21e37c70d9bf2bd628fa468aeeb2ba869"
+    },
+    "vocab": {
+     "name": "deen/vocab.deen.spm.gz",
+     "size": 413879,
+     "sha256": "88dcd7fdbf20dc60837ce837244d0d55b20f7079f2cbd2ba8e63530632028310"
+    }
+   }
+  },
+  "fren": {
+   "arch": "base-memory",
+   "release": "Release",
+   "files": {
+    "model": {
+     "name": "fren/model.fren.intgemm.alphas.bin.gz",
+     "size": 23175075,
+     "sha256": "06b1eeedd3944260d00a393d12ec7192490c5b7c930b97212faf4d5f5c90a2ee"
+    },
+    "lex": {
+     "name": "fren/lex.50.50.fren.s2t.bin.gz",
+     "size": 2649934,
+     "sha256": "395aa7767220e1bcfc085f2b2787ff98005d0075e55451f1e0832885e3d9642a"
+    },
+    "vocab": {
+     "name": "fren/vocab.fren.spm.gz",
+     "size": 409706,
+     "sha256": "8d15b219ffd32327b4cabf0d94a05a4fecb8923a4f386badbcbe5e86ede453a7"
+    }
+   }
+  },
+  "esen": {
+   "arch": "base-memory",
+   "release": "Release",
+   "files": {
+    "model": {
+     "name": "esen/model.esen.intgemm.alphas.bin.gz",
+     "size": 23288494,
+     "sha256": "54247f1e057180bca1d404dfd5c12836f65bc96cef7af98e59e55acb8bd093b1"
+    },
+    "lex": {
+     "name": "esen/lex.50.50.esen.s2t.bin.gz",
+     "size": 2543246,
+     "sha256": "3d7856bfa3b12804bdc80f12fd828fd9062c462113ab73fbf87c5c3b68420813"
+    },
+    "vocab": {
+     "name": "esen/vocab.esen.spm.gz",
+     "size": 409312,
+     "sha256": "1658b529b8858cf2e1e8cef2c4e2d69654d77b5f714ac52205864b336dfeb3ee"
+    }
+   }
+  },
+  "iten": {
+   "arch": "base-memory",
+   "release": "Release",
+   "files": {
+    "model": {
+     "name": "iten/model.iten.intgemm.alphas.bin.gz",
+     "size": 23301774,
+     "sha256": "0bc7221c2730723ac4477e8aa1d1d5bd0b9c3450cb8d006a6f86fe5da9129c27"
+    },
+    "lex": {
+     "name": "iten/lex.50.50.iten.s2t.bin.gz",
+     "size": 2532929,
+     "sha256": "504877085b31edfa3d31a1918a9a42c20fcbf85ff018caf46c54641db5538e62"
+    },
+    "vocab": {
+     "name": "iten/vocab.iten.spm.gz",
+     "size": 407598,
+     "sha256": "df05fae498f519a828eb388cd08ec1b7205a8bcaf2405a5feb9f5e30c49a0977"
+    }
+   }
+  }
+ }
+}

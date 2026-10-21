@@ -1,0 +1,49 @@
+# Temporary probe for «Приключения» (thread up771x): Internet Archive search, metadata and file CORS. Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          cat > p.py <<'PY'
+          import json,urllib.request,urllib.parse
+          UA={'User-Agent':'readquest-probe/1.0 (github actions)','Origin':'https://example.org'}
+          def get(u,n=None):
+              x=urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60)
+              b=x.read() if n is None else x.read(n)
+              return x,b
+          def show(u,n=600):
+              try:
+                  x,b=get(u,n); print('\nURL',u,'\n ',x.status,x.headers.get('Content-Type'),'ACAO=',x.headers.get('Access-Control-Allow-Origin'),'len',x.headers.get('Content-Length'),'final',x.geturl()); return b
+              except Exception as e: print('\nURL',u,'ERR',e, dict(getattr(e,'headers',{}) or {})); return b''
+          Q=['collection:booksbylanguage AND language:(rus OR Russian)','collection:booksbylanguage AND language:(rus OR Russian) AND (licenseurl:*publicdomain* OR year:[1500 TO 1929])','collection:booksbylanguage AND language:(rus OR Russian) AND year:[1500 TO 1929] AND format:(EPUB OR DjVuTXT)','толстой AND language:(rus OR Russian) AND mediatype:texts AND year:[1500 TO 1929] AND NOT collection:(inlibrary OR printdisabled OR lendinglibrary)']
+          for q in Q:
+              u='https://archive.org/advancedsearch.php?'+urllib.parse.urlencode({'q':q,'fl[]':['identifier','title','creator','year','language','licenseurl','collection','format','downloads'],'rows':8,'output':'json','sort[]':'downloads desc'},doseq=True)
+              b=show(u,None)
+              try:
+                  d=json.loads(b); print('  numFound',d['response']['numFound'])
+                  for r in d['response']['docs']: print('   ',json.dumps(r,ensure_ascii=False)[:400])
+              except Exception as e: print('  parse err',e,b[:300])
+          ids=[]
+          try:
+              u='https://archive.org/advancedsearch.php?'+urllib.parse.urlencode({'q':Q[2],'fl[]':['identifier'],'rows':3,'output':'json','sort[]':'downloads desc'},doseq=True)
+              ids=[r['identifier'] for r in json.loads(get(u)[1])['response']['docs']]
+          except Exception as e: print('ids err',e)
+          for i in ids[:2]:
+              b=show('https://archive.org/metadata/'+i,None)
+              try:
+                  m=json.loads(b); print('  meta keys',list(m.keys())); md=m.get('metadata',{}); print('  md',json.dumps({k:md.get(k) for k in ['title','creator','date','year','language','licenseurl','possible-copyright-status','access-restricted-item','collection']},ensure_ascii=False))
+                  print('  server',m.get('server'),'dir',m.get('dir'))
+                  fs=[f for f in m.get('files',[]) if f.get('format') in ('EPUB','DjVuTXT','Text','Plain text','Abbyy GZ')]
+                  for f in fs: print('   file',f.get('name'),f.get('format'),f.get('size'),f.get('private'))
+                  for f in fs[:3]:
+                      show('https://archive.org/download/'+i+'/'+urllib.parse.quote(f['name']),300)
+                      show('https://'+m.get('server')+m.get('dir')+'/'+urllib.parse.quote(f['name']),300)
+              except Exception as e: print('  meta err',e)
+          show('https://archive.org/services/search/v1/scrape?'+urllib.parse.urlencode({'q':Q[1],'fields':'identifier,title','count':100}),400)
+          PY
+          python3 p.py

@@ -68,6 +68,7 @@ for t in $SEL; do
     skinsplit)    cmd="env RQ_URL=$HOST/readquest/test/ node skinsplit.test.mjs";;
     selpop)       cmd="env RQ_URL=$HOST/readquest/test/ node selpop.test.mjs";;
     hlcolor)      cmd="env RQ_URL=$HOST/readquest/test/ node hlcolor.test.mjs";;
+    pdfhl)        cmd="env RQ_URL=$HOST/readquest/test/ node pdfhl.test.mjs";;
     menu)         cmd="env RQ_URL=$HOST/readquest/test/ node menu.test.mjs";;
     remindrow)    cmd="env RQ_URL=$HOST/readquest/test/ node remindrow.test.mjs";;
     themecolors)  cmd="env RQ_URL=$HOST/readquest/test/ node themecolors.test.mjs";;

@@ -420,11 +420,7 @@ el('spNote').onclick=()=>addQuote(true);
 el('spDel').onclick=quoteDel;
 el('spAll').onclick=()=>{selDone();renderPanel('qts');el('panel').classList.remove('hidden');el('sheet').classList.add('hidden');};
 
-/* --- словарь по выделению --- */
-el('spDict').onclick=()=>{
-  const t=selText();if(!t)return;
-  window.open('https://translate.google.com/?sl=auto&tl=ru&text='+encodeURIComponent(t.slice(0,200)),'_blank');
-};
+/* --- перевод по выделению: js/translate.js (21.10) --- */
 function addWord(){
   const t=selText();if(!t)return;
   const word=t.trim().replace(/\s+/g,' ').slice(0,60);if(!word)return;

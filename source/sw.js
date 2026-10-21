@@ -98,7 +98,10 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
+  /* 21.10 перевод: движок vendor/bergamot не в precache (5 МБ) — его кладёт в NS + '_tr' кнопка «Скачать пакет» (js/translate.js) */
   e.respondWith(caches.open(CACHE).then(function (c) {
-    return c.match(req).then(function (m) { return m || fetch(req); });
+    return c.match(req).then(function (m) {
+      return m || caches.open(NS + '_tr').then(function (t) { return t.match(req); }).then(function (m2) { return m2 || fetch(req); });
+    });
   }));
 });

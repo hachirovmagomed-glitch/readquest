@@ -216,9 +216,38 @@ const HL_HEX=/^#[0-9a-f]{6}$/;
 function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
 function hlDot(c){const k=hlKey(c);return k[0]==='#'?k:HL_COLORS.find(x=>x.k===k).d;}
 /** colour of a highlighted string = the colour of its quote (S.hl keeps plain strings, as before) */
-function quoteColor(bid,t){const q=(S.quotes[bid]||[]).find(x=>x&&x.text===t);return hlKey(q&&q.c);}
+function quoteColor(bid,t,j){const q=hlSame(bid,t)[j||0];return hlKey(q&&q.c);}
+/* 21.10 (Джессика: «нажимаю на цитату — бросает в ебеня»): the same words can stand on many pages. A text-book quote keeps q.n = which occurrence
+   of its words in the book's HTML it is (0 = the first, then not stored); its mark is put there and the quote list opens that place. */
+function hlSame(bid,t){return (S.quotes[bid]||[]).filter(x=>x&&x.text===t).sort((a,b)=>(a.n||0)-(b.n||0));}
+function hlNth(h,k,n){let i=-1;for(let j=0;j<=(n||0);j++){const x=h.indexOf(k,i+1);if(x<0)break;i=x;}return i;} /* fewer occurrences than n (other text) → the last one */
+function hlPut(h,k,n,rep){const i=hlNth(h,k,n);return i<0?h:h.slice(0,i)+rep+h.slice(i+k.length);}
+/* 21.10 (Джессика: «ничего не выделяется»): a quote over several paragraphs has line breaks in its text, which never stand in the HTML —
+   it is marked paragraph by paragraph: the first piece at its occurrence n, each next piece right after the previous one (only tags between) */
+function hlPieces(t){return String(t||'').split(/\s*\n\s*/).filter(Boolean).map(esc);}
+function hlPutQ(h,t,n,c){
+  const ps=hlPieces(t);if(!ps.length)return h;const i=hlNth(h,ps[0],n);if(i<0)return h;
+  let out=h.slice(0,i),pos=i;
+  for(let k=0;k<ps.length;k++){const at=k?h.indexOf(ps[k],pos):i;if(at<0||(k&&!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at))))break;
+    out+=h.slice(pos,at)+markHtml(ps[k],c);pos=at+ps[k].length;}
+  return out+h.slice(pos);
+}
+/** text book: the book body's HTML in #content (after the title and the meta line) — marks are counted only there */
+function hlBodyStart(c0,h){const m=c0.querySelector(':scope > p.meta');if(!m)return 0;const o=m.outerHTML,i=h.indexOf(o);return i<0?0:i+o.length;}
+/** occurrence number of the selection's words: how many times esc(t) stands in the body's HTML before the selection starts */
+function hlSelN(t){
+  try{const c0=el('content'),s=window.getSelection();if(R.mode==='pdf'||!s||!s.rangeCount||!c0.contains(s.anchorNode))return 0;
+    const m=c0.querySelector(':scope > p.meta'),rg=document.createRange();if(m)rg.setStartAfter(m);else rg.setStart(c0,0);
+    const a=s.getRangeAt(0);rg.setEnd(a.startContainer,a.startOffset);const d=document.createElement('div');d.appendChild(rg.cloneContents());
+    const h=d.innerHTML,k=hlPieces(t)[0];if(!k)return 0;let n=0,i=h.indexOf(k);while(i>=0){n++;i=h.indexOf(k,i+1);}return n;}catch(e){return 0;}
+}
+/** the quote behind a mark: its rank among the marks with the same words = rank among those quotes by q.n */
+function quoteOfMark(bid,m){const t=m.textContent,ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===t);
+  return hlSame(bid,t)[Math.max(0,ms.indexOf(m))]||(S.quotes[bid]||[]).find(q=>q&&/\n/.test(q.text)&&String(q.text).split(/\s*\n\s*/).includes(t))||null;}
+/** all marks of a quote (a quote over several paragraphs has one per paragraph) */
+function quoteMarks(q){const ps=String(q.text).split(/\s*\n\s*/).filter(Boolean);return [...el('content').querySelectorAll('mark')].filter(x=>ps.includes(x.textContent));}
 function markHtml(k,c){return c&&c[0]==='#'?'<mark data-hc="'+c+'">'+k+'</mark>':'<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
-function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;m.style.background='';hlPaintCustom();}
+function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;m.style.removeProperty('--hc');m.style.removeProperty('--hs');hlPaintCustom();}
 /** own colours: the strongest alpha (day ≤ .45, night ≤ .30) at which the book text over it stays ≥ 7:1 on this page */
 function hlPaintCustom(){
   const ms=document.querySelectorAll('#content mark[data-hc]');if(!ms.length)return;
@@ -229,26 +258,43 @@ function hlPaintCustom(){
   ms.forEach(m=>{const hc=hlKey(m.dataset.hc);if(hc[0]!=='#')return;const tx=rgb(getComputedStyle(m).color);
     const key=hc+tx.join();if(!(key in memo)){const c=[1,3,5].map(i=>parseInt(hc.slice(i,i+2),16));let a=night?0.30:0.45;
       while(a>0.03&&cr(tx,c.map((v,i)=>v*a+page[i]*(1-a)))<7.05)a-=0.01;memo[key]='rgba('+c.join(',')+','+a.toFixed(2)+')';}
-    m.style.background=memo[key];});
+    m.style.setProperty('--hc',memo[key]);m.style.setProperty('--hs',hlRgba(hc,night?.75:.85));});
 }
 /* 21.10 (Джессика: «выделяю в PDF, жму цвет — ничего не происходит»): in a PDF the quote also keeps where it is —
    q.pdf = {p: page index, r: [[x,y,w,h],…] in 0…1 of the page's text layer}; the highlight is drawn as boxes in that layer */
+/* 21.10 вечер (Джессика: «не очень эстетично»): one even box per line — rects of the selected TEXT only (not of the span/div boxes,
+   which gave full-width bands), runs on one line joined, neighbouring lines touch instead of overlapping (no darker stripes) */
+function hlLines(rs){
+  const ls=[];rs.filter(k=>Array.isArray(k)&&k.length===4&&k.every(v=>typeof v==='number'&&isFinite(v))&&k[2]>0&&k[3]>0&&!(k[0]<0.02&&k[2]>0.96)) /* old data: a whole-width container box */
+    .map(k=>({x0:k[0],x1:k[0]+k[2],y0:k[1],y1:k[1]+k[3]})).sort((a,b)=>(a.y0+a.y1)-(b.y0+b.y1)).forEach(r=>{
+      const cy=(r.y0+r.y1)/2,l=ls.find(g=>Math.abs((g.y0+g.y1)/2-cy)<Math.min(g.y1-g.y0,r.y1-r.y0)*0.6);
+      if(l){l.x0=Math.min(l.x0,r.x0);l.x1=Math.max(l.x1,r.x1);l.y0=Math.min(l.y0,r.y0);l.y1=Math.max(l.y1,r.y1);}else ls.push(Object.assign({},r));});
+  ls.sort((a,b)=>a.y0-b.y0);
+  for(let i=0;i+1<ls.length;i++){const a=ls[i],b=ls[i+1];if(a.y1>b.y0&&b.y0>a.y0){const m=(a.y1+b.y0)/2;a.y1=m;b.y0=m;}}
+  return ls.map(g=>[g.x0,g.y0,g.x1-g.x0,g.y1-g.y0].map(v=>Math.round(v*1e4)/1e4));
+}
 function pdfSelGeo(){
   try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
     let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
     const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
-    const r=[];Array.prototype.forEach.call(rg.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right),y0=Math.max(q.top,b.top),y1=Math.min(q.bottom,b.bottom);
-      if(x1-x0<1||y1-y0<1)return;const k=[(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height].map(v=>Math.round(v*1e4)/1e4);
-      if(!r.some(o=>Math.abs(o[0]-k[0])<.002&&Math.abs(o[1]-k[1])<.002&&Math.abs(o[2]-k[2])<.002))r.push(k);});
-    return r.length?{p:p,r:r.slice(0,200)}:null;}catch(e){return null;}
+    const r=[],w=document.createTreeWalker(tl,NodeFilter.SHOW_TEXT),sub=document.createRange(),ky=b.height/(tl.offsetHeight||b.height);let t;
+    while((t=w.nextNode())){if(!rg.intersectsNode(t)||(t.parentNode&&t.parentNode.closest('.pdfhls')))continue;
+      sub.setStart(t,t===rg.startContainer?rg.startOffset:0);sub.setEnd(t,t===rg.endContainer?rg.endOffset:t.length);
+      /* 21.10: an invisible span's own glyphs (fallback font) sit higher than the page's; the box follows the page's line: baseline = top + font size */
+      const sp=t.parentNode,fh=parseFloat(sp.style.fontSize),top=parseFloat(sp.style.top),own=sp.tagName==='SPAN'&&!sp.classList.contains('v')&&fh>0&&!isNaN(top)&&!/rotate/.test(sp.style.transform||'');
+      Array.prototype.forEach.call(sub.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right);
+        const y0=Math.max(own?b.top+(top+fh*0.15)*ky:q.top,b.top),y1=Math.min(own?b.top+(top+fh*1.25)*ky:q.bottom,b.bottom);
+        if(x1-x0<1||y1-y0<1)return;r.push([(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height]);});}
+    const ls=hlLines(r);return ls.length?{p:p,r:ls.slice(0,200),v:2}:null;}catch(e){return null;}
 }
+function hlRgba(c,a){return 'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+','+a+')';}
 function pdfHlPaint(tl,p){
   if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
   const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&q.pdf.p===p&&Array.isArray(q.pdf.r));if(!qs.length)return;
   const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
-  qs.forEach(q=>{const c=hlKey(q.c),bg=c[0]==='#'?'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+',.35)':'var(--hl-'+c+')';
-    q.pdf.r.forEach(k=>{if(!Array.isArray(k)||k.length!==4||!k.every(v=>typeof v==='number'&&isFinite(v)))return;const d=document.createElement('i');
-      d.style.cssText='left:'+k[0]*100+'%;top:'+k[1]*100+'%;width:'+k[2]*100+'%;height:'+k[3]*100+'%;background:'+bg;box.appendChild(d);});});
+  qs.forEach(q=>{const c=hlKey(q.c);
+    hlLines(q.pdf.r).forEach(k=>{const d=document.createElement('i');if(c[0]==='#'){d.style.setProperty('--hc',hlRgba(c,.35));d.style.setProperty('--hs',hlRgba(c,.85));}else if(c!=='y')d.className='hl-'+c;
+      d.style.left=k[0]*100+'%';d.style.top=(k[1]+(q.pdf.v===2?0:k[3]*0.23))*100+'%'; /* boxes saved before 21.10 evening: down to the page's line */d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);});});
   tl.insertBefore(box,tl.firstChild);
 }
 function pdfHlRefresh(){
@@ -256,9 +302,9 @@ function pdfHlRefresh(){
   document.querySelectorAll('#pdfScroll .psl .textLayer').forEach(tl=>pdfHlPaint(tl,+tl.closest('.psl').dataset.n));
   const t=el('pdfText');if(t&&t.childNodes.length)pdfHlPaint(t,R.page);
 }
-function markInContent(t,c){
-  const c0=el('content');const k=esc(t);
-  if(c0.innerHTML.includes(k)){c0.innerHTML=c0.innerHTML.replace(k,markHtml(k,hlKey(c)));hlPaintCustom();}
+function markInContent(t,c,n){
+  const c0=el('content'),k=hlPieces(t)[0],h=c0.innerHTML,b=hlBodyStart(c0,h);
+  if(k&&h.indexOf(k,b)>=0){c0.innerHTML=h.slice(0,b)+hlPutQ(h.slice(b),t,n,hlKey(c));hlPaintCustom();}
 }
 function renderSpColors(){
   const box=el('spColors');if(!box)return;const cur=hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';
@@ -272,7 +318,7 @@ function hlOwnInput(){let i=el('hlOwnIn');if(!i){i=document.createElement('input
   i.addEventListener('change',()=>{const v=hlKey(i.value),pk=hlPick;hlPick=null;if(v[0]!=='#'||!pk)return;SET.hlx=v;addQuote(false,v,pk);});}
   return i;}
 function hlOwnOpen(){
-  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo()};
+  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo(),n:m?0:hlSelN(t)};
   const i=hlOwnInput();i.value=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0';
   try{if(i.showPicker)i.showPicker();else i.click();}catch(e){i.click();}
 }
@@ -288,14 +334,14 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
   if(m&&!m.isConnected)return;
   const bid=R.book.id,c=hlKey(color||SET.hlc);
   if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
-  const old=m?(S.quotes[bid]||[]).find(x=>x&&x.text===t):null;
+  const old=m?quoteOfMark(bid,m):null,n=m?0:pick?pick.n||0:hlSelN(t);
   if(old){ /* recolour / re-note the quote under the selection */
-    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();hlSetMark(m,c);};
+    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();(/\n/.test(old.text)?quoteMarks(old):[m]).forEach(x=>hlSetMark(x,c));};
     if(withNote){selDone();return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:old.note||''}).then(v=>{if(v!==null)put(v);});}
     put(null);selDone();return;
   }
   const commit=(note)=>{
-    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;
+    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
     (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(t);
     if(!(window.__rqWriter&&__rqWriter.noLocks)){
@@ -304,7 +350,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     } /* no locks → no coins */
     save();
     if(!R.book||R.book.id!==bid)return;
-    markInContent(t,c);if(geo)pdfHlRefresh();
+    markInContent(t,c,n);if(geo)pdfHlRefresh();
   };
   if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
     selDone();
@@ -441,6 +487,27 @@ el('tabQts').onclick=()=>renderPanel('qts');
 el('tabFind').onclick=()=>bfOpen(); /* 20.10: the one search screen (js/book-find.js), the same as the magnifier in the header */
 el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
+/* 21.10 (Джессика: «нажимаю на цитату — бросает в ебеня»): the quote's own page, not a guess from b.text (a PDF has no b.text → page 1).
+   Text book: where its words are in the laid-out text. PDF: q.pdf.p; an older PDF quote without it is looked up page by page once, then remembered. */
+async function quoteGo(i){
+  const b=R.book,q=b&&(S.quotes[b.id]||[])[i];el('panel').classList.add('hidden');if(!q)return;
+  const pdf=R.mode==='pdf',from=pdf&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let p=-1;
+  const keys=t=>{const a=bfNorm(String(t||'')).trim(),c=a.replace(/ {2,}/g,' ');return [a.slice(0,60),c.slice(0,60),c.replace(/-? /g,'').slice(0,30)].filter(Boolean);};
+  if(pdf){
+    if(q.pdf&&Number.isInteger(q.pdf.p)&&q.pdf.p>=0&&q.pdf.p<R.pageCount)p=q.pdf.p;
+    else{const ks=keys(q.text);flashMsg('Ищу цитату в книге…');const doc=R.pdf;
+      for(let k=0;k<R.pageCount&&p<0;k++){const n=(from+k)%R.pageCount,tx=bfNorm(await bfPdfText(n));if(R.pdf!==doc)return;const t2=tx.replace(/ {2,}/g,' ');
+        if(tx.indexOf(ks[0])>=0||t2.indexOf(ks[1])>=0||(ks[2]&&t2.replace(/-? /g,'').indexOf(ks[2])>=0))p=n;}
+      if(p>=0){q.pdf={p:p,r:[]};save();}}
+  }else{
+    const ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===q.text),mk=/\n/.test(q.text)?quoteMarks(q)[0]:ms[Math.max(0,hlSame(b.id,q.text).indexOf(q))];
+    if(mk&&mk.firstChild&&mk.firstChild.nodeType===3)p=Math.max(0,pageOfAnchor({node:mk.firstChild,offset:0}));
+    else{const T=bfTextIndex(),ks=keys(q.text);let o=T.low.indexOf(ks[0]);if(o<0)o=T.low.indexOf(ks[1]);
+      if(o>=0){const a=bfNodeAt(T,o,false);if(a)p=Math.max(0,pageOfAnchor(a));}}
+  }
+  if(p<0){rqAlert('Не нашёл это место в книге');return;}
+  if(p!==from){jumpTo(p);showJumpBack(from);}
+}
 function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
 /* audit 19.10 FR-03: a TXT without a stored toc gets one from its «Глава N» / «Часть N» lines (memory only, never written) */
 let __txtToc={id:null,toc:[]};
@@ -484,9 +551,8 @@ function renderPanel(tab){
   }else{
     const qs=S.quotes[b.id]||[];
     body.innerHTML=qs.length
-      ?qs.map(q=>{
-        const fr=b.text?Math.max(0,b.text.indexOf(q.text))/Math.max(1,b.text.length):0;
-        return '<button class="prow" onclick="jumpRatio('+fr.toFixed(4)+')">«'+esc(q.text.slice(0,60))+(q.text.length>60?'…':'')+'»</button>';
+      ?qs.map((q,i)=>{
+        return '<button class="prow" onclick="quoteGo('+i+')">«'+esc(q.text.slice(0,60))+(q.text.length>60?'…':'')+'»</button>';
       }).join('')
       :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
   }

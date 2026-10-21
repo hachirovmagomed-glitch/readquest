@@ -539,12 +539,18 @@ input[type=color]{width:38px;height:38px;border:none;background:none;padding:0;b
 .pop{animation:pop .5s ease both}
 
 /* ===== Цитаты, магазин, квесты ===== */
-mark{background:var(--hl-y);color:inherit;border-radius:var(--rq-radius-xs);padding:0 1px}
+mark{--hc:var(--hl-y);--hs:var(--hs-y);background:var(--hc);color:inherit;border-radius:var(--rq-radius-xs);padding:0;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 /* 20.10 цвета цитат (Джессика: «вариативность выбора цвета», как в ReadEra). Без красного (правило читалки); ночью прозрачнее, текст под цветом чуть темнее/светлее — текст книги ≥ 7:1 (test/hlcolor) */
-#reader{--hl-y:rgba(255,205,60,.45);--hl-g:rgba(110,200,90,.38);--hl-b:rgba(80,170,240,.32);--hl-p:rgba(185,135,235,.34);--hl-o:rgba(255,150,50,.36)}
+#reader{--hl-y:rgba(255,205,60,.45);--hl-g:rgba(110,200,90,.38);--hl-b:rgba(80,170,240,.32);--hl-p:rgba(185,135,235,.34);--hl-o:rgba(255,150,50,.36);--hs-y:#d9a400;--hs-g:#4f9a3e;--hs-b:#2f84c8;--hs-p:#8a5cc4;--hs-o:#d9741c}
 #reader[data-page="night"]{--hl-y:rgba(255,205,60,.16);--hl-g:rgba(110,200,90,.22);--hl-b:rgba(80,170,240,.24);--hl-p:rgba(185,135,235,.24);--hl-o:rgba(255,150,50,.22)}
 #content mark{color:color-mix(in srgb,currentColor 70%,#000)}#reader[data-page="night"] #content mark{color:color-mix(in srgb,currentColor 65%,#fff)} /* text under a colour a bit deeper (day) / brighter (night): sepia and «Чёрная» are only 7.5:1 bare */
-mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{background:var(--hl-p)}mark.hl-o{background:var(--hl-o)}
+.pdfhls i{--hc:var(--hl-y);--hs:var(--hs-y)}
+:is(mark,.pdfhls i).hl-g{--hc:var(--hl-g);--hs:var(--hs-g)}:is(mark,.pdfhls i).hl-b{--hc:var(--hl-b);--hs:var(--hs-b)}:is(mark,.pdfhls i).hl-p{--hc:var(--hl-p);--hs:var(--hs-p)}:is(mark,.pdfhls i).hl-o{--hc:var(--hl-o);--hs:var(--hs-o)}
+/* 21.10 (Джессика: «уникальные выделения для каждого скина»): one look per skin, same in books and PDF. --hc = wash (≥ 7:1 text), --hs = line colour (never under the letters) */
+html[data-skin="pencil"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(-58deg,var(--hc) 0 2.2px,transparent 2.2px 3.6px);border-radius:.25em .7em .35em .8em/.7em .3em .8em .4em} /* Карандашный: штриховка карандашом, края неровные */
+html[data-skin="ellada"] :is(#content mark,.pdfhls i){background:linear-gradient(transparent 38%,var(--hc) 38%);box-shadow:inset 0 -2px 0 var(--hs);border-radius:0} /* Эллада: подчёркнутая строка, как в рукописи */
+html[data-skin="babochkovyi"] :is(#content mark,.pdfhls i){background:linear-gradient(90deg,transparent,var(--hc) .45em calc(100% - .45em),transparent);border-radius:1em} /* Бабочковый: мягкая лепесток-капсула */
+html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);box-shadow:0 0 .5em .12em var(--hc);border-radius:.35em} /* Небесный: свечение звезды */
 #spColors{flex-basis:100%;display:flex;justify-content:center;gap:4px;padding-bottom:2px;border-bottom:1px solid var(--rq-line,rgba(127,127,127,.25));margin-bottom:2px}
 #spColors button{min-width:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 #spColors i{width:26px;height:26px;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
@@ -774,8 +780,8 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 #pdfSheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
-.textLayer .pdfhls{position:absolute;inset:0;z-index:0;pointer-events:none}.textLayer .pdfhls i{position:absolute;border-radius:2px;mix-blend-mode:multiply} /* 21.10 quote colours on a PDF page */
-#reader[data-page="night"] .textLayer .pdfhls i{mix-blend-mode:screen}
+.textLayer .pdfhls{position:absolute;inset:0;z-index:0;pointer-events:none}.textLayer .pdfhls i{position:absolute;font-size:14px;background:var(--hc);border-radius:2px;mix-blend-mode:multiply} /* 21.10 quote colours on a PDF page */
+.textLayer .pdfhls{--hl-y:rgba(255,205,60,.45);--hl-g:rgba(110,200,90,.38);--hl-b:rgba(80,170,240,.32);--hl-p:rgba(185,135,235,.34);--hl-o:rgba(255,150,50,.36)} /* the PDF page itself stays paper-light at night: day strength */
 .textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent;z-index:1}
 /* 19.10 selection in gaps (selectionchange in js/pdf.js, as pdf.js does): under the text, covers the layer only while selecting */
 .textLayer br::selection{background:transparent}
@@ -1197,6 +1203,7 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 #trList .tr-row .ghostbtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;flex:none}
 @media (prefers-reduced-motion:reduce){#trBody .tr-prog i{transition:none}}
 .nncard .nnbox{padding:4px 2px 8px}
+.nncard .xrow .xlab{flex:1 1 0}.nncard .xrow .xsub.xv{flex:none;text-align:left;font-weight:600;font-size:0.8125rem;color:var(--txt)} /* 21.10: the service under the title */
 .nncard .xpick{background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));margin:0 0 8px}
 .nncard .xpick .xl{color:var(--muted)}
 .nncard .tierseg{margin:0 0 8px}

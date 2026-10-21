@@ -88,6 +88,11 @@ left=$(grep -lE '__RQ_(NS|BUILD)__' "$DIST/index.html" "$DIST/app.html" $( [ -d 
 if [ -n "$left" ]; then echo "build-dist: build marker left in: $left" >&2; exit 1; fi
 echo "Build marker: $BUILD (NS=$NS)"
 
+# 21.10 перевод: Firefox Translations engine (Bergamot 0.4.9, MPL-2.0) — NOT precached (wasm 5 MB); js/translate.js caches it in NS_tr on «Скачать пакет»
+mkdir -p "$DIST/vendor/bergamot/worker"
+cp "$ROOT/vendor/bergamot/translator.js" "$ROOT/vendor/bergamot/LICENSE" "$DIST/vendor/bergamot/"
+cp "$ROOT/vendor/bergamot/worker/"* "$DIST/vendor/bergamot/worker/"
+
 # Vendored pdf.js (3.11.174, Apache-2.0) + its worker — copied AFTER the ?v= rewrite so the library is byte-identical.
 mkdir -p "$DIST/vendor/pdfjs"
 cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT/vendor/pdfjs/LICENSE" "$DIST/vendor/pdfjs/"
@@ -102,7 +107,7 @@ mkdir -p "$DIST/hero/celestial/dress"; cp "$ROOT/hero/celestial/"*.webp "$DIST/h
 # «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB
 if ls "$ROOT/books/"*.txt >/dev/null 2>&1; then mkdir -p "$DIST/books"; cp "$ROOT/books/"*.txt "$DIST/books/"; fi
 # Service worker: inject build + precache list (JS gets the same ?v=BUILD the pages request)
-PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' | sed 's#^\./##' | sort | while read -r f; do
+PRE=$(cd "$DIST" && find . -type f ! -name sw.js ! -name README.txt ! -name LICENSE ! -path './books/*' ! -path './vendor/bergamot/*' | sed 's#^\./##' | sort | while read -r f; do
   case "$f" in vendor/*) echo "\"$f\"";; *.js|*.css) echo "\"$f?v=$BUILD\"";; *) echo "\"$f\"";; esac; done | paste -sd, -)
 # 17.10: stylesheets are versioned like scripts (a page under the old SW got new JS + old skins.css: half a skin). Guard: no bare local <link rel=stylesheet>.
 for f in "$DIST/index.html" "$DIST/app.html"; do [ -f "$f" ] || continue

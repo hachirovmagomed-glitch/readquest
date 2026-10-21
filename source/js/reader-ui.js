@@ -325,11 +325,7 @@ el('spHl').onclick=()=>addQuote(false);
 el('spColors').onclick=(e)=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;if(b.id==='spOwn')hlOwnOpen();else if(b.dataset.c)addQuote(false,b.dataset.c);};
 el('spNote').onclick=()=>addQuote(true);
 
-/* --- словарь по выделению --- */
-el('spDict').onclick=()=>{
-  const t=selText();if(!t)return;
-  window.open('https://translate.google.com/?sl=auto&tl=ru&text='+encodeURIComponent(t.slice(0,200)),'_blank');
-};
+/* --- перевод по выделению: js/translate.js (21.10) --- */
 function addWord(){
   const t=selText();if(!t)return;
   const word=t.trim().replace(/\s+/g,' ').slice(0,60);if(!word)return;

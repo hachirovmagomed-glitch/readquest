@@ -1,0 +1,7 @@
+bergamot-translator 0.4.9 (npm @browsermt/bergamot-translator), WebAssembly build of the
+Firefox Translations engine (Bergamot project, Mozilla). License: Mozilla Public License 2.0,
+https://mozilla.org/MPL/2.0/ — source: https://github.com/browsermt/bergamot-translator
+Files are unchanged copies from the npm package.
+
+Translation models (served from /tr/, not in this folder) are Mozilla's Firefox Translations
+models, https://github.com/mozilla/translations — see tr/README.txt next to them.

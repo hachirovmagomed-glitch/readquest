@@ -331,7 +331,7 @@ if (want('compact')) for (const W of [360, 390]) {
     const r3 = { list: el('aiProvSeg').hidden, pick: el('aiProvX').textContent, prov: S.ai.prov, open: !el('aiCard').hidden };
     return { r0, r1, r2, r3 };
   });
-  ok('compact ' + W + ': «Нейросети» — две строки, всё свёрнуто, карточка не выше 140px', r.r0.ai && r.r0.tts && r.r0.cardH <= 140 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
+  ok('compact ' + W + ': «Нейросети» — три строки (ИИ, озвучка, перевод), всё свёрнуто, карточка не выше 210px', r.r0.ai && r.r0.tts && r.r0.cardH <= 210 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
   ok('compact ' + W + ': строка ИИ раскрывается; список сервисов скрыт за кнопкой «Сервис DeepSeek»', !r.r1.ai && r.r1.list && /Сервис\s*DeepSeek/.test(r.r1.pick) && r.r1.key > 0, r.r1);
   ok('compact ' + W + ': «Сервис» раскрывает 5 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 5 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
   await p.evaluate(() => { NN_EXP.ai = false; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);

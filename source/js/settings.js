@@ -107,22 +107,25 @@ function renderSettings(){
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
 /* ИИ-помощник (20.10): сервис, свой ключ, модель, адрес для «Другого» (content.js AI_PROV, arch.md 20.10) */
 /* Джессика 20.10 «ужмём»: ИИ и озвучка — по строке; раскрываются по нажатию, другие сервисы — по кнопке «Сервис» */
-const NN_EXP={ai:false,tts:false,aiP:false,ttsP:false};
+const NN_EXP={ai:false,tts:false,aiP:false,ttsP:false,tr:false};
 function nnRow(id,ic,title,sub,val,open){const r=el(id);
   r.innerHTML=rqIcon(ic,22)+'<span class="xlab"><span class="xt">'+esc(title)+'</span><span class="xsub">'+esc(sub)+'</span></span><span class="xv">'+esc(val)+'</span>'+rqIcon(open?'chevron-up':'chevron-down',20);
   r.setAttribute('aria-expanded',open?'true':'false');}
 function nnPick(id,val,open){const r=el(id);r.innerHTML='<span class="xl">Сервис</span><span class="xv">'+esc(val)+'</span>'+rqIcon(open?'chevron-up':'chevron-down',20);r.setAttribute('aria-expanded',open?'true':'false');}
+let trSetSeen=false;
 function renderNn(){
   const ap=aiProv(),tp=TTS_PROV[S.tts.prov]?S.tts.prov:'system';
   const an=AI_PROV[ap].name.replace(/ \(.*\)$/,''),tn=TTS_PROV[tp].name;
   nnRow('aiX','sparkles','ИИ-помощник','«Объясни» и чат о книге',aiOwnKey()?an:'Нет ключа',NN_EXP.ai);
   nnRow('ttsHead','volume-2','Озвучка','Голос для чтения вслух',tp==='system'?'Телефон':(nttsOn()?tn:tn+', нет ключа'),NN_EXP.tts);
   el('aiCard').hidden=!NN_EXP.ai;el('ttsCard').hidden=!NN_EXP.tts;
+  if(typeof trRow==='function'){trRow(trHave);el('trCard').hidden=!NN_EXP.tr;if(!trSetSeen){trSetSeen=true;renderTrSet();}} /* 21.10 перевод: число пакетов на телефоне */
   nnPick('aiProvX',ap==='custom'?'Другой':an,NN_EXP.aiP);el('aiProvSeg').hidden=!NN_EXP.aiP;
   nnPick('ttsProvX',tp==='custom'?'Другой':tn,NN_EXP.ttsP);el('ttsProvSeg').hidden=!NN_EXP.ttsP;
 }
 el('aiX').onclick=()=>{NN_EXP.ai=!NN_EXP.ai;renderNn();};
 el('ttsHead').onclick=()=>{NN_EXP.tts=!NN_EXP.tts;renderNn();};
+el('trX').onclick=()=>{NN_EXP.tr=!NN_EXP.tr;renderNn();if(NN_EXP.tr)renderTrSet();};
 el('aiProvX').onclick=()=>{NN_EXP.aiP=!NN_EXP.aiP;renderNn();};
 el('ttsProvX').onclick=()=>{NN_EXP.ttsP=!NN_EXP.ttsP;renderNn();};
 function renderAiSet(){

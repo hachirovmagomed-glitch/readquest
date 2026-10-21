@@ -99,13 +99,14 @@ async function psRender(n,seq){
   const vp=page.getViewport({scale:sc}),cv=document.createElement('canvas');
   cv.width=Math.max(1,Math.floor(vp.width));cv.height=Math.max(1,Math.floor(vp.height));
   const ctx=cv.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+  const gl=pdfMuteText(ctx); /* 20.10 SET.pdfFont */
   await page.render({canvasContext:ctx,viewport:vp}).promise;PS.renders++;
   if(seq!==PS.seq){cv.width=0;cv.height=0;return;}
   const s=psBox().querySelector('.psl[data-n="'+n+'"]');if(!s){cv.width=0;cv.height=0;return;}
   /* 19.10: a text layer per page, so text can be selected / quoted / copied in «Прокрутка» too (same builder as «Страницы») */
-  const tl=document.createElement('div');tl.className='textLayer';tl.appendChild(await pdfTextLayer(page,w/v1.width));
+  const tl=document.createElement('div');tl.className='textLayer';tl.appendChild(await pdfTextLayer(page,w/v1.width,gl&&{g:gl,k:w/v1.width/sc}));
   if(seq!==PS.seq||!s.isConnected){cv.width=0;cv.height=0;return;}
-  cv._w=w;cv._tl=tl;const old=PS.cv.get(n);s.appendChild(cv);s.appendChild(tl);PS.cv.set(n,cv);s.classList.add('done');
+  cv._w=w;cv._tl=tl;const old=PS.cv.get(n);s.appendChild(cv);s.appendChild(tl);if(typeof pdfHlPaint==='function')pdfHlPaint(tl,n);PS.cv.set(n,cv);s.classList.add('done');
   if(old&&old!==cv)psFree(old);
 }
 /** a page with other proportions than page 1: resize its slot; when it is above the reading place, keep the place */

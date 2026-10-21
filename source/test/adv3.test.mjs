@@ -86,6 +86,7 @@ p.on('request', r => {
     else r.respond({ status: 404, headers: CORS, body: '' });
   } else if (u.host === 'www.gutenberg.org') r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: '<feed xmlns="http://www.w3.org/2005/Atom"></feed>' });
   else if (u.host === 'cdnjs.cloudflare.com' && /jszip/.test(u.pathname) && JSZIP) r.respond({ status: 200, contentType: 'application/javascript', body: JSZIP });
+  else if (u.host === 'archive.org') r.respond({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ response: { numFound: 0, docs: [] } }) }); /* Internet Archive: nothing, so «Везде» shows only the mocked libraries */
   else r.continue();
 });
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };
@@ -109,7 +110,7 @@ ok('1b всё дочитано: «Прочитана вся подборка», 
 // 2. filters
 const fl = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 100));
   el('advQ').value = 'классика'; ADV.q = 'классика'; await advSearch();
-  const rows = () => Array.from(document.querySelectorAll('#advList > .advrow b')).map(x => x.textContent);
+  const rows = () => Array.from(document.querySelectorAll('#advList > .advrow .advmeta > b')).map(x => x.textContent);
   const click = async (sel) => { document.querySelector('#advFlt ' + sel).click(); await new Promise(r => setTimeout(r, 50)); return rows(); };
   const r = { chips: Array.from(document.querySelectorAll('#advFlt .fchip')).map(x => x.textContent), all: rows(), kinds: ADV.items.map(x => x.kind + '/' + (x.size || '')) };
   r.poem = await click('[data-fk="poem"]'); r.prose = await click('[data-fk="prose"]'); r.proseShort = await click('[data-fl="short"]'); r.proseLong = await click('[data-fl="long"]');
@@ -128,9 +129,9 @@ ok('3 поиск по цитате: запрос от 4 слов ищется ф
 // 4. similar books
 const sm = await p.evaluate(async () => { advOpen(advWsItem('Одиссея (Гомер)')); for (let i = 0; i < 40 && !(advCur && advCur.sim); i++) await new Promise(r => setTimeout(r, 100));
   const set = ADV_SETS.find(x => x.id === 'antiq').pages, i = set.indexOf('Одиссея (Гомер)'), want = [1, 2, 3].map(j => advWsItem(set[(i + j) % set.length]).t);
-  const got = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow b')).map(x => x.textContent);
+  const got = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow .advmeta > b')).map(x => x.textContent);
   advOpen(advWsItem('Зимнее утро (Пушкин)')); for (let k = 0; k < 40 && !(advCur && advCur.sim); k++) await new Promise(r => setTimeout(r, 100));
-  const pu = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow b')).map(x => x.textContent), h = (document.querySelector('#bookSheetBody .advsim') || {}).previousElementSibling;
+  const pu = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow .advmeta > b')).map(x => x.textContent), h = (document.querySelector('#bookSheetBody .advsim') || {}).previousElementSibling;
   document.querySelector('#bookSheetBody .advsim .advrow:last-child').click(); await new Promise(r => setTimeout(r, 300));
   const opened = document.querySelector('#bookSheetBody .bk-ttl b').textContent; el('bookSheet').classList.add('hidden'); return { want, got, pu, head: h && h.textContent, opened }; });
 ok('4 «Похожие книги»: следующие книги той же подборки; у Пушкина его другие тексты без этой же книги; нажатие открывает карточку', JSON.stringify(sm.got) === JSON.stringify(sm.want) && sm.head === 'Похожие книги' &&

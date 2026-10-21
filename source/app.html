@@ -1363,6 +1363,11 @@ html[data-skin="pencil"] #barBright::-moz-range-thumb{width:22px;height:20px;bor
 .gsetrow b{font-size:0.9375rem}.gsetrow small{font-size:0.75rem;color:var(--muted)}
 /* ===== 1в: «Общие настройки» ===== */
 #settings.over{z-index:95;background:var(--bg)}
+/* 21.10 (Джессика, запись): over the reader the skins' transparent .screen let the book show through → always the page colour;
+   the «Назад» row stays on top so the way out is never scrolled away */
+html[data-skin] #settings.screen.over{background:var(--rq-bg,var(--bg))}
+#settings#settings#settings.over .wrap > .row:first-child{position:sticky;top:-20px;z-index:3;background:var(--bg);margin:-20px -18px 6px;padding:20px 18px 6px} /* triple id: the skins' title-row rules carry two */
+html[data-skin] #settings#settings#settings.over .wrap > .row:first-child{background:var(--rq-bg,var(--bg))}
 .gset .setrow>.ic{color:var(--muted)}
 .gset h2{font-size:0.8125rem;margin:18px 0 8px}
 .gset .pcard{padding:4px 14px}

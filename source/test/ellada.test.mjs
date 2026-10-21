@@ -114,7 +114,7 @@ ok('9 export → reset → import → reload: balance, owned, theme, worn skin i
 
 // 9b. own icon set: sprite symbols redrawn while the skin is on (amphora for «Награды», scroll for «Библиотека»), same ids
 const ic1 = await p.evaluate(() => ({ gift: document.getElementById('i-gift').innerHTML, lib: document.getElementById('i-book-open').innerHTML, nav: [...document.querySelectorAll('#botnav use')].map(u => u.getAttribute('href')) }));
-ok('9b Эллада icons: «Награды» amphora, «Библиотека» scroll, nav keeps the same ids', /M10 2v5\.632/.test(ic1.gift) && /M6 4v16M18 4v16/.test(ic1.lib) && ic1.nav.includes('#i-gift'), ic1);
+ok('9b Эллада icons: «Награды» amphora, «Библиотека» scroll, nav keeps the same ids', /M10 2\.5v4C7 8/.test(ic1.gift) && /M6 4v16M18 4v16/.test(ic1.lib) && ic1.nav.includes('#i-gift'), ic1);
 // 10. other skins stay «Скоро»; «Карандашный» still free and wearable
 const soon = await p.evaluate(() => SHOP_CATALOG.filter(x => x.type === 'skin' && !shopReady(x.id)).map(x => x.id));
 await p.evaluate(() => wear('skin-pencil')); await sleep(200); s = await st();

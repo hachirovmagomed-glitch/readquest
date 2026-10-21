@@ -623,6 +623,12 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
    row + «Читаете» tag; the skins draw their own (pencil below in its block, the shop skins in skins.css) */
 #panelBody .prow.on{position:relative;background:var(--accent);color:var(--on-accent);font-weight:700;padding-top:13px;padding-bottom:13px;box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 35%,transparent)}
 #panelBody .prow .ptt{flex:1;min-width:0}
+#panelBody .prow.pq{flex-direction:column;align-items:stretch;gap:0;padding:0}
+#panelBody .pq .pqt{display:flex;align-items:flex-start;gap:10px;width:100%;padding:10px 12px;text-align:left;font:inherit;white-space:pre-line}
+#panelBody .pq.on .pqt{padding-top:13px}
+#panelBody .pq .pqd{flex:none;width:10px;height:10px;margin-top:5px;border-radius:50%;background:var(--d);box-shadow:0 0 0 2px color-mix(in srgb,currentColor 25%,transparent)}
+#panelBody .pq .pqn{display:block;margin-top:6px;font-style:italic;opacity:.85;white-space:pre-line}
+#panelBody .pq .pqgo{display:inline-flex;align-items:center;gap:6px;align-self:flex-end;margin:0 8px 8px;padding:8px 12px;min-height:44px;border-radius:var(--rq-radius-sm);font-weight:700;background:color-mix(in srgb,currentColor 12%,transparent)}
 .pnow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,currentColor 16%,transparent)}
 .pnow .ic{display:block}
 .prow.add{color:var(--accent2);justify-content:center}

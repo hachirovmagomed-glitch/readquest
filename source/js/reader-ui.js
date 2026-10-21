@@ -559,6 +559,8 @@ async function quoteGo(i){
   if(p<0){rqAlert('Не нашёл это место в книге');return;}
   if(p!==from){jumpTo(p);showJumpBack(from);}
 }
+let qOpen={bid:null,i:-1};
+function quoteToggle(i){qOpen.i=qOpen.i===i?-1:i;renderPanel('qts');const on=el('panelBody').querySelector('.pq.on');if(on)try{on.scrollIntoView({block:'nearest'});}catch(e){}}
 function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
 /* audit 19.10 FR-03: a TXT without a stored toc gets one from its «Глава N» / «Часть N» lines (memory only, never written) */
 let __txtToc={id:null,toc:[]};
@@ -600,10 +602,14 @@ function renderPanel(tab){
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
       ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
-    const qs=S.quotes[b.id]||[];
+    const qs=S.quotes[b.id]||[];if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
+    /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
+       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there */
     body.innerHTML=qs.length
-      ?qs.map((q,i)=>{
-        return '<button class="prow" onclick="quoteGo('+i+')">«'+esc(q.text.slice(0,60))+(q.text.length>60?'…':'')+'»</button>';
+      ?qs.map((q,i)=>{const on=i===qOpen.i,t=String(q.text).replace(/\s*\n\s*/g,on?'\n':' ');
+        return '<div class="prow pq'+(on?' on':'')+'"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
+          (on&&q.note?'<span class="pqn">'+esc(q.note)+'</span>':'')+'</span></button>'+
+          (on?'<button class="pqgo" onclick="quoteGo('+i+')">'+rqIcon('book-open',16)+' Открыть в книге</button>':'')+'</div>';
       }).join('')
       :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
   }

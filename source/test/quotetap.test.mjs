@@ -62,8 +62,19 @@ ok('5 tap elsewhere (right side) with the bar open: bar closed, page not turned'
 
 // 6. «Все цитаты» opens the list
 await touchAt(m1.x, m1.y); await tap('#spAll');
-const pn = await p.evaluate(() => ({ open: !document.getElementById('panel').classList.contains('hidden'), tab: document.getElementById('tabQts').classList.contains('on'), n: document.querySelectorAll('#panelBody [onclick^="quoteGo("]').length }));
+const pn = await p.evaluate(() => ({ open: !document.getElementById('panel').classList.contains('hidden'), tab: document.getElementById('tabQts').classList.contains('on'), n: document.querySelectorAll('#panelBody .pq').length }));
 ok('6 «Все цитаты» opens the quotes list of the book', pn.open && pn.tab && pn.n === 1, pn);
+// 6b Джессика 22.10: a tap on a quote in the list opens it — whole text and note, the skin's own «current» look, «Открыть в книге»; a second tap closes it
+await p.evaluate((id) => { S.quotes[id].push({ text: 'Длинная цитата из другого места книги, и ещё очень длинный хвост, который в закрытом виде не помещается', note: 'мысль', date: today(), c: 'p' }); save(); renderPanel('qts'); }, ids[0]);
+const o6 = async () => p.evaluate(() => { const r = [...document.querySelectorAll('#panelBody .pq')].at(-1), t = r.querySelector('.ptt').textContent, cs = getComputedStyle(r);
+  return { on: r.classList.contains('on'), full: !t.includes('…'), note: !!r.querySelector('.pqn'), go: !!r.querySelector('.pqgo'), bg: cs.backgroundColor, sh: cs.boxShadow, bd: cs.borderTopStyle + cs.borderTopWidth }; });
+const c6 = await o6(); await p.evaluate(() => [...document.querySelectorAll('#panelBody .pq .pqt')].at(-1).click()); await sleep(200); const d6 = await o6();
+const looks = {};
+for (const k of ['sepia', 'pencil', 'ellada', 'babochkovyi', 'celestial']) { await p.evaluate((k) => { if (k !== 'sepia') { S.gold = 9000; save(); try { buy('skin-' + k); } catch (e) {} } SET.theme = k; saveSet(); applySet(); renderPanel('qts'); }, k); await sleep(250); const o = await o6(); looks[k] = o.bg + '|' + o.sh + '|' + o.bd; if (k === 'pencil' || k === 'celestial') await p.screenshot({ path: SHOTS + 'quotetap-list-' + k + '.png' }); }
+await p.evaluate(() => [...document.querySelectorAll('#panelBody .pq .pqt')].at(-1).click()); await sleep(200); const e6 = await o6();
+ok('6b list: closed = cut with «…»; a tap opens it whole with its note and «Открыть в книге»; a second tap closes', !c6.on && !c6.full && d6.on && d6.full && d6.note && d6.go && !e6.on, { c6, d6, e6 });
+ok('6c the opened quote looks different in every skin (Обычный, Карандашный, Эллада, Бабочковый, Небесный)', new Set(Object.values(looks)).size === 5, looks);
+await p.evaluate((id) => { S.quotes[id].pop(); save(); SET.theme = 'sepia'; saveSet(); applySet(); }, ids[0]);
 await p.evaluate(() => document.getElementById('panel').classList.add('hidden'));
 
 // 7. «Удалить» removes it: no quote, no mark, the words stay

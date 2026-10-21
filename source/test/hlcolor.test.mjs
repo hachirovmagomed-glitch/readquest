@@ -134,7 +134,7 @@ for (const how of ['touch', 'mouse']) {
   ok('9 text book: ' + how + ' on the orange dot (right half) saves the quote and stays on the page', pt.x > 180 && a.pg === pt.pg && a.n === pt.n + 1, { j9, pt, a });
 }
 const g9 = await p.evaluate(async () => { const i = S.quotes[R.book.id].length - 1, want = R.page; jumpTo(0); await new Promise(r => setTimeout(r, 600)); renderPanel('qts');
-  const b = [...document.querySelectorAll('#panelBody [onclick^="quoteGo("]')][i]; b.click(); await new Promise(r => setTimeout(r, 800));
+  [...document.querySelectorAll('#panelBody .pq .pqt')][i].click(); const b = document.querySelector('#panelBody .pq.on .pqgo'); b.click(); await new Promise(r => setTimeout(r, 800));
   const q = S.quotes[R.book.id][i], ms = [...document.querySelectorAll('#content mark')].filter(x => x.textContent === q.text).map(x => pageOfAnchor({ node: x.firstChild, offset: 0 }));
   return { want, pg: R.page, back: !document.getElementById('jumpBack').classList.contains('hidden'), t: q.text, n: q.n, ms }; });
 ok('9b panel «Цитаты» → the quote\'s own page, «вернуться» shown', g9.want > 0 && g9.pg === g9.want && g9.back, g9);

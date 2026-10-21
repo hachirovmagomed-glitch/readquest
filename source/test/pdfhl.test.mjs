@@ -103,7 +103,7 @@ const far = await p.evaluate(async () => { const to = 7; jumpTo(to); await new P
 const qi = await p.evaluate(() => S.quotes[R.book.id].length - 1); // the orange quote on page 3
 const want = (await quotes())[qi].pdf.p;
 await p.evaluate(async (i) => { renderPanel('qts'); }, qi).catch(() => {});
-const btn = await p.evaluate((i) => { const b = [...document.querySelectorAll('#panel [onclick^="quoteGo("]')][i]; if (b) b.click(); return !!b; }, qi); await sleep(1800);
+const btn = await p.evaluate((i) => { const t = [...document.querySelectorAll('#panel .pq .pqt')][i]; if (t) t.click(); const b = document.querySelector('#panel .pq.on .pqgo'); if (b) b.click(); return !!b; }, qi); await sleep(1800);
 let a7 = await p.evaluate(() => ({ pg: R.page, back: !document.getElementById('jumpBack').classList.contains('hidden'), panel: document.getElementById('panel').classList.contains('hidden') }));
 ok('7 panel «Цитаты» → the quote\'s page (not page 1), «вернуться» shown, panel closed', btn && far === 7 && want === 2 && a7.pg === want && a7.back && a7.panel, { btn, far, want, a7 });
 // 7b an older PDF quote saved without its place: found by its words, the place is remembered

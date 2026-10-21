@@ -1,4 +1,4 @@
-# Temporary probe for «Приключения» (thread up771x): Internet Archive free-only search and OCR text sample. Removed after.
+# Temporary probe for «Приключения» (thread up771x): Internet Archive title search and OCR text sample. Removed after.
 name: ws-probe
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
                   x,b=get(u); d=json.loads(b)
                   print('\n==',n,x.status,'ACAO=',x.headers.get('Access-Control-Allow-Origin'),'total',d['response']['numFound'])
                   for r in d['response']['docs']: print('   ',json.dumps({k:r.get(k) for k in ('identifier','title','creator','year','language','imagecount')},ensure_ascii=False)[:260])
-                  if n in('ru-tolstoy','ru-pushkin','ru-onegin'): ids+= [r['identifier'] for r in d['response']['docs'][:1]]
+                  if n in('ru-onegin','en-dickens'): ids+= [r['identifier'] for r in d['response']['docs'][:1]]
               except Exception as e: print('\n==',n,'ERR',e)
           for i in ids[:3]:
               try:
@@ -45,7 +45,7 @@ jobs:
                   if fs:
                       x,b=get('https://archive.org/download/'+i+'/'+urllib.parse.quote(fs[0]['name']))
                       t=b.decode('utf-8','replace'); print('  sample ACAO',x.headers.get('Access-Control-Allow-Origin'),'len',len(t)); mid=len(t)//2
-                      print('-----\n'+t[:600]+'\n...\n'+t[mid:mid+1200]+'\n-----'); print('FF',t.count('\f'),'NOT',t.count('\u00ac'))
+                      q=len(t)//3; print('-----\n'+t[q:q+900]+'\n-----'); print('FF',t.count('\f'),'NOT',t.count('\u00ac'),'blank',t.count('\n\n'))
               except Exception as e: print('meta err',i,e)
           PY
           python3 p.py

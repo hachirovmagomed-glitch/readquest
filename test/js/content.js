@@ -668,7 +668,7 @@ function aiNoKey(){ /* ключа нет: объясняем, где его вс
   el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник».</div>'+
     '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
   el('aiSheet').classList.remove('hidden');
-  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);try{el('aiHead').scrollIntoView({block:'start'});}catch(e){}};
+  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);settingsScrollTo('aiHead');};
 }
 function aiRender(state,txt){
   const q=aiCur;if(!q)return;

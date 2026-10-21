@@ -371,11 +371,7 @@ el('spHl').onclick=()=>addQuote(false);
 el('spColors').onclick=(e)=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;if(b.id==='spOwn')hlOwnOpen();else if(b.dataset.c)addQuote(false,b.dataset.c);};
 el('spNote').onclick=()=>addQuote(true);
 
-/* --- словарь по выделению --- */
-el('spDict').onclick=()=>{
-  const t=selText();if(!t)return;
-  window.open('https://translate.google.com/?sl=auto&tl=ru&text='+encodeURIComponent(t.slice(0,200)),'_blank');
-};
+/* --- перевод по выделению: js/translate.js (21.10) --- */
 function addWord(){
   const t=selText();if(!t)return;
   const word=t.trim().replace(/\s+/g,' ').slice(0,60);if(!word)return;
@@ -717,7 +713,7 @@ async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo)fo.hidden=true;} /* 20.10: the search lives with the open book only */
-  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');relWake();
+  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
@@ -985,8 +981,8 @@ window.addEventListener('popstate',function(e){
   if(readerIsOpen()){
     if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
-    const ac=el('aiChat'),as=el('aiSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ */
-    if(!ac.classList.contains('hidden')||!as.classList.contains('hidden')){ac.classList.add('hidden');as.classList.add('hidden');navPush('reader');return;}
+    const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ и (22.10) «Перевод» */
+    if(!ac.classList.contains('hidden')||!as.classList.contains('hidden')||!ts.classList.contains('hidden')){ac.classList.add('hidden');as.classList.add('hidden');ts.classList.add('hidden');navPush('reader');return;}
     const sh=el('sheet'),pn=el('panel');
     if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}
     if(!el('reader').classList.contains('barsoff')){concealChrome('back');navPush('reader');return;}

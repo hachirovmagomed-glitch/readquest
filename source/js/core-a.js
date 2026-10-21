@@ -102,7 +102,7 @@ function bookLvlAuto(b){
   let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
   __lvlAuto[b.id]={k:k,l:l};return l;
 }
-/** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…2 (game-awards textLevel); scans → 0. */
+/** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…LVL_MAX (game-awards textLevel); scans → 0. */
 async function pdfTextLevel(doc,alive){
   const G=window.__rqGame,parts=[];
   for(const n of G.pdfSamplePages(doc.numPages,12)){
@@ -125,6 +125,14 @@ async function pdfLvlCheck(b,doc){
 }
 /** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */
 function bookLvlOf(b){if(!b||!lvlOn())return 0;return window.__rqGame.effLevel(bookLvlAuto(b),(S.bookLvl||{})[b.id]);}
+/* 21.10 (Джессика: «название которых в каждом скине разное»): the level names of a shop skin, LEVELS order; no skin → LEVELS[i].n */
+const LVL_SKIN_NAMES={
+  pencil:['Набросок','Этюд','Штудия','Мастер-класс','Шедевр'],
+  ellada:['Смертный','Герой','Полубог','Титан','Олимп'],
+  babochkovyi:['Гусеница','Куколка','Бабочка','Махаон','Монарх'],
+  celestial:['Звезда','Созвездие','Туманность','Галактика','Вселенная']
+};
+function lvlName(i){const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!L[i])return '';const a=LVL_SKIN_NAMES[document.documentElement.dataset.skin||''];return (a&&a[i])||L[i].n;}
 function awardPendingSessions(){
   if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[],lvlGold:0};
   const G=window.__rqGame;

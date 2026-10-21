@@ -232,7 +232,7 @@ export function applyQuestAwards(game, rows, newRows, opts) {
 }
 
 /* ===== Сложность книги (Джессика 19.10: «за страницу стишков и страницу философии одинаково — несправедливо») =====
- * Three levels; the level of a book is automatic (text + author + genre), the reader may only LOWER it (S.bookLvl).
+ * Five levels (three on 19.10; 21.10 Джессика: «более вариативное ранжирование», + «Экспертная», «Запредельная»); the level of a book is automatic (text + author + genre), the reader may only LOWER it (S.bookLvl).
  * The level is frozen into the session row (row.lvl, only when > 0) when the session closes; a too fast pace drops it
  * (reader-session.js), so a skimmed «очень сложная» book earns like an ordinary one. Paid history is never recomputed.
  *   XP     = 10 × whole-minute step × LEVELS[row.lvl].xp            (xpForSession)
@@ -245,9 +245,11 @@ export const LEVELS = [
   { n: 'Обычная', xp: 1, coins: 0, capMin: 3, paceSec: 0 },
   { n: 'Сложная', xp: 1.5, coins: 5, capMin: 5, paceSec: 20 },
   { n: 'Очень сложная', xp: 2, coins: 10, capMin: 7, paceSec: 30 },
+  { n: 'Экспертная', xp: 2.5, coins: 15, capMin: 8, paceSec: 35 },
+  { n: 'Запредельная', xp: 3, coins: 20, capMin: 10, paceSec: 40 },
 ];
 export const LVL_MAX = LEVELS.length - 1;
-export const LVL_DAY_CAP = 20;
+export const LVL_DAY_CAP = 30;
 /** pace check needs this many forward turns in a session (a few slow pages tell nothing) */
 export const LVL_PACE_TURNS = 5;
 
@@ -260,7 +262,8 @@ export function rowLevel(r) {
 /* Authors whose books are hard whatever the text statistics say (dialogues of Plato read «easy» by numbers).
    Match: any word of the card's author equals one of these (Russian or the Latin spelling Gutenberg uses). */
 const AUTHOR_LVL = [
-  [2, ['кант', 'kant', 'гегель', 'hegel', 'витгенштейн', 'wittgenstein', 'хайдеггер', 'heidegger', 'гуссерль', 'husserl', 'фихте', 'fichte', 'спиноза', 'spinoza']],
+  [3, ['кант', 'kant', 'гегель', 'hegel', 'витгенштейн', 'wittgenstein', 'хайдеггер', 'heidegger', 'гуссерль', 'husserl', 'фихте', 'fichte']],
+  [2, ['спиноза', 'spinoza']],
   [1, ['платон', 'plato', 'аристотель', 'aristotle', 'юм', 'hume', 'локк', 'locke', 'декарт', 'descartes', 'лейбниц', 'leibniz',
     'ницше', 'nietzsche', 'шопенгауэр', 'schopenhauer', 'кьеркегор', 'kierkegaard', 'гоббс', 'hobbes', 'беркли', 'berkeley',
     'паскаль', 'pascal', 'монтень', 'montaigne', 'сенека', 'seneca', 'лукреций', 'lucretius', 'аврелий', 'aurelius',
@@ -284,6 +287,8 @@ export function genreLevel(genre) {
  * (Эзоп 0.6, Каренина 8.6), Alice 1.9, Austen 7.1, Hume 12.8, Nietzsche 13.9, Kant 21.4.
  * Fewer than 1500 words → no verdict (0).
  */
+const TERM_RU = /(логи[чяиюе]|метри[чя]|теор[еи]|метод|систем|структур|функци|концеп|категор|диалект|трансцендент|феномен|онтолог|эпистем|гносеолог|эмпири|рацион|абстракт|имманент|априор|детермин|парадигм|инфляц|дефляц|эластичн|мультипликат|коэффициент|параметр|интеграл|дифференц|вектор|матриц|алгоритм|молекул|потенциал|квант|инвестиц|капитал|монетарн|фискальн|эквивалент|тождеств|субъект|объект|субстанц|аксиом|теорем|постулат|корреляц|регресс|дисперс|статистик|экспонент|логарифм|производн|спекуляц|синтез|анализ|гипотез|принцип|индивид|универсал|трансформ|интерпрет|макро|микро|агрегат|равновеси|предельн|сбережени|потреблени|номинальн|эффективн|конкретн|содержани|определени|понят[ия]|познани|сознани|суждени)/iu;
+const TERM_EN = /(ology|ologic|ograph|ometr|theor|method|system|structur|function|concept|categor|dialect|transcend|phenomen|ontolog|epistem|empiric|rational|abstract|immanent|priori|determin|paradigm|inflation|deflation|elastic|multiplier|coefficient|parameter|integral|differenti|vector|matri[cx]|algorithm|molecul|potential|quantum|invest|capital|monetar|fiscal|equivalen|identity|subject|object|substan|axiom|theorem|postulat|correlat|regress|varianc|statistic|exponent|logarithm|derivativ|speculat|synthe|analy[st]|hypothe|principle|individual|universal|transform|interpret|macro|micro|aggregat|equilibri|marginal|consumption|nominal|cognition|perception|judgment|judgement|predicat|proposition|premise|inference)/i;
 export function textStats(text) {
   let t = String(text || '');
   /* a Project Gutenberg .txt carries its licence (legal prose, scores «hard») before and after the book */
@@ -315,23 +320,32 @@ export function textStats(text) {
   const ops = (s.match(/[=<>≤≥≈≠±×÷∑∏∫√∂∆Δ∞^]|[α-ωΑ-Ω]/g) || []).length;
   const vars = cyr ? (s.match(/(?<![\p{L}\d])[A-Za-z](?![\p{L}])/gu) || []).length : 0;
   const math = 100 * (ops + vars) / n;
-  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math);
-  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, score: score };
+  /* 21.10 (Джессика: «на сложность может повлиять сложность терминологии»): % of words with a term root of philosophy, science,
+     economics (TERM_RU / TERM_EN). Checked 21.10: fiction of the built-in shelf and Gutenberg novels 0–0.6, Hume 1.7–1.9, Kant 7. */
+  let term = 0;
+  const TR = cyr ? TERM_RU : TERM_EN;
+  words.forEach(function (w) { if (w.length > 5 && TR.test(w)) term++; });
+  const terms = 100 * term / n;
+  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math) + Math.min(15, 1.5 * terms);
+  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, terms: terms, score: score };
 }
 /** version of the text rule; a PDF card whose lvlText was computed by an older rule (lvlV ≠ this) is re-checked once on open.
- *  1 = 19.10, 2 = 21.10 (formulas). */
-export const LVL_ALGO = 2;
-/** score thresholds per language: [Сложная, Очень сложная] */
-export const LVL_SCORE = { ru: [14, 22], en: [10, 16] };
+ *  1 = 19.10, 2 = 21.10 (formulas), 3 = 21.10 (terms, five levels). */
+export const LVL_ALGO = 3;
+/** score thresholds per language: [Сложная, Очень сложная, Экспертная, Запредельная]. With terms (21.10): Kant (en) 31.8,
+ *  Hume 14.5–15.7, Nietzsche 14.8, Gutenberg novels ≤ 7.4, Russian fiction of the shelf ≤ 9.6. */
+export const LVL_SCORE = { ru: [14, 22, 32, 44], en: [10, 16, 24, 32] };
 export function textLevel(text) {
   const st = textStats(text);
   if (st.words < 1500) return 0;
   const th = st.cyr ? LVL_SCORE.ru : LVL_SCORE.en;
-  return st.score >= th[1] ? 2 : st.score >= th[0] ? 1 : 0;
+  let l = 0;
+  while (l < th.length && st.score >= th[l]) l++;
+  return l;
 }
 /**
  * Automatic level of a book card {author, genre, text?, lvlText?}: the highest of text, author and genre.
- * PDF: no text in the card — `lvlText` (0…2) is textLevel() of a sample of its pages (pdfSample, computed once, arch.md);
+ * PDF: no text in the card — `lvlText` (0…LVL_MAX) is textLevel() of a sample of its pages (pdfSample, computed once, arch.md);
  * a scan without a text layer gives 0 there, so only author and genre count.
  */
 export function autoLevel(book) {

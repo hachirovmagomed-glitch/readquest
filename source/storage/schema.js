@@ -283,7 +283,7 @@ export function hydrateProgress(p) {
   out.planned = out.planned || {};
   out.bookStats = out.bookStats || {};
   out.bookDiff = out.bookDiff || {};
-  out.bookLvl = intMap(out.bookLvl, 2);
+  out.bookLvl = intMap(out.bookLvl, 4); // 0…LVL_MAX (game-awards.js; 5 levels since 21.10)
   out.aiChat = aiChatMap(out.aiChat);
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};

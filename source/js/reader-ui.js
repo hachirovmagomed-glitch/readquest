@@ -891,8 +891,9 @@ function summaryWanted(r){
 function summaryLevelLine(q){
   const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!q||!(q.lvl>0))return null;
   const r=q.rowLvl||0,m=function(x){return String(L[x].xp).replace('.',',');};
-  if(r>=q.lvl)return {ic:'trending-up',t:L[r].n+' книга: опыт ×'+m(r)};
-  return {ic:'info',t:'Листали быстрее, чем читается '+L[q.lvl].n.toLowerCase()+' книга: '+(r>0?'опыт ×'+m(r):'бонус за сложность не начислен')};
+  /* 21.10: names differ per skin (lvlName), so «Сложность «Титан»» instead of «Сложная книга» */
+  if(r>=q.lvl)return {ic:'trending-up',t:'Сложность «'+lvlName(r)+'»: опыт ×'+m(r)};
+  return {ic:'info',t:'Листали быстрее, чем читается книга сложности «'+lvlName(q.lvl)+'»: '+(r>0?'опыт ×'+m(r):'бонус за сложность не начислен')};
 }
 /** headline: the coin reward of THIS session if any (decision D), else «Сессия завершена» */
 function summaryHeadline(q){

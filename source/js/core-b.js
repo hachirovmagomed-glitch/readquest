@@ -229,7 +229,7 @@ function hydrateS(raw){
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
   S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
   S.dailyPaidDays=Array.isArray(S.dailyPaidDays)?S.dailyPaidDays:[];S.weeklyPaidWeeks=Array.isArray(S.weeklyPaidWeeks)?S.weeklyPaidWeeks:[];
-  S.bookLvl=lvlMap(S.bookLvl,2);S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 19.10 book level (arch.md) */
+  S.bookLvl=lvlMap(S.bookLvl,4);S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 19.10 book level (arch.md) */
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};

@@ -264,7 +264,7 @@ async function openBook(id){
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
   {const seen={};(S.hl[b.id]||[]).forEach(t=>{const k=esc(t),j=seen[t]=(seen[t]||0)+1,q=hlSame(b.id,t)[j-1];
-    if(body.includes(k))body=hlPut(body,k,q&&q.n,markHtml(k,quoteColor(b.id,t,j-1)));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
+    if(body.includes(hlPieces(t)[0]||'\u0000'))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   hlPaintCustom(); /* own quote colours on this page */

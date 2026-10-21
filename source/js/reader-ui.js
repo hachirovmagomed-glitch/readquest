@@ -427,6 +427,10 @@ function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
   const out=[],re=/(^|\n)[ \t]*((?:Глава|ГЛАВА|Часть|ЧАСТЬ)[ \t]+[^\n]{1,60})/g;let m;
   while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
   __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
+/* 21.10: the chapter being read is marked in «Главы» (the last one that starts on or before the current page) */
+function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1;
+  toc.forEach(function(x,i){const p=x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0);if(p<=pg&&(c<0||p>=(toc[c].page!=null?toc[c].page:Math.round(toc[c].off/len*(N-1)))))c=i;});
+  tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
   if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
@@ -443,7 +447,7 @@ function renderPanel(tab){
   if(tab==='toc'){
     const toc=tocOf(b);
     body.innerHTML=toc.length
-      ?toc.map((ch,i)=>'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
+      ?toc.map((ch,i)=>'<button class="prow'+(i===tocCur(b,toc)?' on" aria-current="true':'')+'" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
       :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];

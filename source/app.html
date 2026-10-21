@@ -609,7 +609,9 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 /* day themes: the cover stands off the page */
 #shelf .rq-gen{padding-top:38px} /* the «О книге» button sits in the top corner */
 .cover:has(.rq-gen){box-shadow:0 1px 3px rgba(0,0,0,.12);border:1px solid color-mix(in srgb,var(--txt) 10%,transparent)}
-.prow{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border-radius:var(--rq-radius-sm);padding:10px 12px;margin-bottom:8px;font-size:0.875rem;color:#eceaf2;text-align:left}
+.prow{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border-radius:var(--rq-radius-sm);padding:10px 12px;margin-bottom:8px;font-size:0.875rem;color:var(--txt);text-align:left} /* 21.10 (Джессика: «главы нифига не подсвечиваются»): was #eceaf2 — white on the light skins */
+.prow button{color:inherit}
+#panelBody .prow.on{font-weight:700;box-shadow:inset 3px 0 0 var(--rq-accent,var(--accent))} /* 21.10: the chapter being read */
 .prow.add{color:var(--accent2);justify-content:center}
 .pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:0.875rem}
 #panel{max-height:70%}

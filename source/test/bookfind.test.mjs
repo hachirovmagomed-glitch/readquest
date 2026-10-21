@@ -151,6 +151,29 @@ for (const W of [360, 390]) {
     await p.evaluate(() => closeReader({ quiet: true })); await sleep(600);
   }
 }
+/* 6. 21.10 (Джессика: «главы нифига не подсвечиваются» — Небесный, день): rows of «Навигация» readable in every skin, day and night */
+await p.setViewport({ width: 390, height: 800, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+for (const sk of ['', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  await p.evaluate((sk) => { if (sk) { buy('skin-' + sk); wear('skin-' + sk); } else { SET.skin = ''; SET.color = ''; SET.theme = 'sepia'; saveSet(); applySet(); } }, sk);
+  await open(0);
+  for (const night of [false, true]) {
+    const r = await p.evaluate(async (night) => {
+      const isN = () => !isLightBg(activeTheme().bg); if (isN() !== night) toggleDayNight(); await new Promise(q => setTimeout(q, 300));
+      const L = c => { const m = c.match(/[\d.]+/g).map(Number); return m.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0); };
+      const bgOf = e => { for (let x = e; x; x = x.parentElement) { const b = getComputedStyle(x).backgroundColor; if (b && !/rgba\(0, 0, 0, 0\)|transparent/.test(b) && !/, 0\)$/.test(b)) return b; } return 'rgb(255,255,255)'; };
+      const cr = e => { const a = L(getComputedStyle(e).color), b = L(bgOf(e)); return +((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toFixed(2); };
+      el('btnPanel').click(); await new Promise(q => setTimeout(q, 250)); renderPanel('toc');
+      const toc = [...document.querySelectorAll('#panelBody .prow')].slice(0, 3).map(cr);
+      const onTxt = (document.querySelector('#panelBody .prow.on') || {}).textContent || null, want = (bfChapterAt(R.page) || {}).t || null;
+      addBookmark(); renderPanel('marks');
+      const mk = [...document.querySelectorAll('#panelBody .prow button:first-child, #panelBody .prow.add')].slice(0, 3).map(cr);
+      const o = { skin: document.documentElement.dataset.skin || '', night: isN(), toc, mk, onTxt, want };
+      el('panelClose').click(); return o; }, night);
+    ok(`${sk || 'default'} ${night ? 'night' : 'day'}: «Навигация» — chapter and bookmark rows readable (contrast ≥4.5), the chapter being read marked`, r.night === night && r.toc.length >= 3 && r.toc.every(x => x >= 4.5) && r.mk.length >= 2 && r.mk.every(x => x >= 4.5) && r.onTxt === r.want && !!r.want, r);
+    if (SHOTS && sk === 'celestial' && !night) { await p.evaluate(() => { el('btnPanel').click(); renderPanel('toc'); }); await sleep(300); await shot('390-celestial-d-glavy'); await p.evaluate(() => el('panelClose').click()); }
+  }
+  await p.evaluate(() => closeReader({ quiet: true })); await sleep(600);
+}
 ok('no page errors', !errs.length, errs);
 console.log(`SUMMARY bookfind.test ${checks.filter(Boolean).length}/${checks.length}`);
 await browser.close();

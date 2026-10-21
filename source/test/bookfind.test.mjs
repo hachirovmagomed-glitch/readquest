@@ -71,6 +71,17 @@ ok('✕ on the plaque ends the search: no plaque, no highlight', e1.pill && !e1.
 /* 22.10 (Джессика): no «Поиск» tab in «Навигация»; the magnifier is the only way in */
 await p.evaluate(() => { el('btnPanel').click(); }); await sleep(200);
 ok('«Навигация» has no «Поиск» tab', await p.evaluate(() => !document.getElementById('tabFind') && ![...document.querySelectorAll('#panel button')].some(b => b.textContent.trim() === 'Поиск')));
+/* 22.10 (Джессика): the title with ✕ and the tabs are never cut off or scrolled away — only the list scrolls */
+{ await p.evaluate(() => el('panelClose').click()); await p.setViewport({ width: 360, height: 520, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(400);
+  await p.evaluate(() => { el('btnPanel').click(); renderPanel('toc'); }); await sleep(400);
+  const vis = () => p.evaluate(() => { const pn = el('panel'), b = el('panelBody'), h = pn.querySelector('.phead').getBoundingClientRect(), x = el('panelClose').getBoundingClientRect(), t = pn.querySelector('.ptabs').getBoundingClientRect(), r = pn.getBoundingClientRect();
+    return { panelScroll: pn.scrollTop, listScrolls: b.scrollHeight > b.clientHeight + 4, bodyTop: b.scrollTop, head: h.top >= r.top && x.top >= r.top && x.bottom <= t.top + 1 && t.bottom <= b.getBoundingClientRect().top + 1 }; });
+  const a = await vis();
+  await p.evaluate(() => { const b = el('panelBody'); b.scrollTop = b.scrollHeight; }); await sleep(200);
+  const z = await vis();
+  ok('«Навигация»: the title, ✕ and tabs stay in view (opened at the current chapter and scrolled to the end); only the list scrolls', a.listScrolls && a.panelScroll === 0 && a.head && z.panelScroll === 0 && z.head && z.bodyTop > 0, { a, z });
+  await p.evaluate(() => el('panelClose').click()); await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(800);
+  await p.evaluate(() => el('btnPanel').click()); await sleep(200); }
 await p.evaluate(() => { el('panelClose').click(); }); await sleep(200);
 /* 22.10: the keyboard shrinks the viewport — the book is NOT re-paginated under the search screen (it went black for seconds); once on close */
 { await p.evaluate(() => { window.__lay = 0; const f = window.layout; window.layout = function () { window.__lay++; return f.apply(this, arguments); }; el('btnFind').click(); }); await sleep(300);

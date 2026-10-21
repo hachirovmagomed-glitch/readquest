@@ -625,7 +625,9 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 .pnow .ic{display:block}
 .prow.add{color:var(--accent2);justify-content:center}
 .pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:0.875rem}
-#panel{max-height:70%}
+#panel{max-height:70%;display:flex;flex-direction:column;overflow:hidden} /* 22.10 (Джессика): title, ✕ and tabs stay put; only the list scrolls */
+#panel>.phead,#panel>.ptabs{flex:none}
+#panelBody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;margin:0 -16px;padding:0 16px 4px}
 
 /* ===== Drawer, настройки, карточка книги ===== */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:80}

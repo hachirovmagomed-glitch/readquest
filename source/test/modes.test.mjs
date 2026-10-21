@@ -597,6 +597,28 @@ if (want('barbright')) {
   await ctx.close();
 }
 
+/* aiset (Джессика 21.10, запись): «Открыть настройки» from «Объясни» while reading — «Настройки» over the reader are opaque in every skin
+   (the book must not show through), the «Назад» row stays on top, «ИИ-помощник» is right under it, «Назад» returns to the book */
+if (want('aiset')) {
+  const { ctx, p } = await fresh();
+  await openLong(p);
+  for (const sk of ['', 'skin-celestial', 'skin-babochkovyi', 'skin-ellada', 'skin-pencil']) {
+    const r = await p.evaluate(async (sk) => {
+      S.gold = 99999; if (sk) { buy(sk); wear(sk); }
+      revealChrome(); aiNoKey(); await new Promise(r => setTimeout(r, 200)); el('aiOpenSet').click(); await new Promise(r => setTimeout(r, 400));
+      const g = el('settings'), cs = getComputedStyle(g), row = g.querySelector('.wrap > .row'), gr = g.getBoundingClientRect(), rr = row.getBoundingClientRect(), ah = el('aiHead').getBoundingClientRect();
+      const rb = getComputedStyle(row).backgroundColor;
+      const out = { sk, bg: cs.backgroundColor, rowBg: rb, z: +cs.zIndex, rowTop: Math.round(rr.top - gr.top), gTop: g.scrollTop, aiGap: Math.round(ah.top - rr.bottom), back: !!el('setBack').offsetParent };
+      el('setBack').click(); await new Promise(r => setTimeout(r, 300));
+      out.closed = g.classList.contains('hidden') && !el('reader').classList.contains('hidden');
+      return out; }, sk);
+    const opaque = (c) => /^rgb\(/.test(c);
+    ok('aiset ' + (sk || 'default') + ': opaque over the reader, «Назад» row on top, «ИИ-помощник» just under it, «Назад» back to the book',
+      opaque(r.bg) && opaque(r.rowBg) && r.z > 30 && r.rowTop <= 1 && r.gTop === 0 && r.aiGap >= 0 && r.aiGap < 60 && r.back && r.closed, r);
+  }
+  await ctx.close();
+}
+
 /* pdfsel: PDF text selection (Джессика 19.10 «не работает нормальное выделение текста пдф»): copied text keeps its lines and
    words apart; a drag ending in a margin / between lines stays on the nearest line (no jump to the page header); «Прокрутка» has
    a text layer too, freed with its page */
@@ -706,6 +728,8 @@ if (want('pdflook')) {
     const h = await p.evaluate(() => [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.trim()).map(s => [s.textContent, s.classList.contains('v'), getComputedStyle(s).color, s.style.fontWeight + ' ' + s.style.fontStyle]));
     const fd = (re) => h.find(x => re.test(x[0])) || [], vis = fd(/Visible/), hid = fd(/Hidden/), bo = fd(/Bold/), itl = fd(/Italic/);
     ok('pdflook font: hidden (OCR) text stays invisible, drawn text is shown', vis[1] && hid.length && !hid[1] && /rgba\(0, 0, 0, 0\)/.test(hid[2]), h);
+    const und = fd(/Under scan/);
+    ok('pdflook font: text under a picture (OCR under a scanned page, Джессика 21.10 «безумие») stays hidden, the picture is not overlaid', und.length && !und[1] && /rgba\(0, 0, 0, 0\)/.test(und[2]), und);
     ok('pdflook font: bold and italic of the file stay bold and italic', bo[1] && bo[3] === '700 normal' && itl[1] && itl[3] === '400 italic' && vis[3] === '400 normal', h);
     await ctx.close();
   }

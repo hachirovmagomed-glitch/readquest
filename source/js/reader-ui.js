@@ -32,7 +32,7 @@ function exitFullscreenSafe(){
   const fn=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
   if(fn&&fsActive()){try{const pr=fn.call(document);if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
 }
-function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(window.__rqWriter&&__rqWriter.passive)return; /* passive window under the overlay: no relayout / fullscreen */if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;concealChrome('timer');},3200);}
+function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(window.__rqWriter&&__rqWriter.passive)return; /* passive window under the overlay: no relayout / fullscreen */if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;if(PG.id!=null||R.slideFrom!=null)return armChromeHide(); /* 21.10: finger still on the page slider (looking through chapters) → keep the bars */concealChrome('timer');},3200);}
 /** reading state: hide our bars + (re)enter fullscreen */
 function concealChrome(how){
   const r=el('reader');if(!r)return;clearTimeout(chromeTimer);
@@ -231,6 +231,31 @@ function hlPaintCustom(){
       while(a>0.03&&cr(tx,c.map((v,i)=>v*a+page[i]*(1-a)))<7.05)a-=0.01;memo[key]='rgba('+c.join(',')+','+a.toFixed(2)+')';}
     m.style.background=memo[key];});
 }
+/* 21.10 (Джессика: «выделяю в PDF, жму цвет — ничего не происходит»): in a PDF the quote also keeps where it is —
+   q.pdf = {p: page index, r: [[x,y,w,h],…] in 0…1 of the page's text layer}; the highlight is drawn as boxes in that layer */
+function pdfSelGeo(){
+  try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
+    let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
+    const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
+    const r=[];Array.prototype.forEach.call(rg.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right),y0=Math.max(q.top,b.top),y1=Math.min(q.bottom,b.bottom);
+      if(x1-x0<1||y1-y0<1)return;const k=[(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height].map(v=>Math.round(v*1e4)/1e4);
+      if(!r.some(o=>Math.abs(o[0]-k[0])<.002&&Math.abs(o[1]-k[1])<.002&&Math.abs(o[2]-k[2])<.002))r.push(k);});
+    return r.length?{p:p,r:r.slice(0,200)}:null;}catch(e){return null;}
+}
+function pdfHlPaint(tl,p){
+  if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
+  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&q.pdf.p===p&&Array.isArray(q.pdf.r));if(!qs.length)return;
+  const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
+  qs.forEach(q=>{const c=hlKey(q.c),bg=c[0]==='#'?'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+',.35)':'var(--hl-'+c+')';
+    q.pdf.r.forEach(k=>{if(!Array.isArray(k)||k.length!==4||!k.every(v=>typeof v==='number'&&isFinite(v)))return;const d=document.createElement('i');
+      d.style.cssText='left:'+k[0]*100+'%;top:'+k[1]*100+'%;width:'+k[2]*100+'%;height:'+k[3]*100+'%;background:'+bg;box.appendChild(d);});});
+  tl.insertBefore(box,tl.firstChild);
+}
+function pdfHlRefresh(){
+  if(!R.book||R.mode!=='pdf')return;
+  document.querySelectorAll('#pdfScroll .psl .textLayer').forEach(tl=>pdfHlPaint(tl,+tl.closest('.psl').dataset.n));
+  const t=el('pdfText');if(t&&t.childNodes.length)pdfHlPaint(t,R.page);
+}
 function markInContent(t,c){
   const c0=el('content');const k=esc(t);
   if(c0.innerHTML.includes(k)){c0.innerHTML=c0.innerHTML.replace(k,markHtml(k,hlKey(c)));hlPaintCustom();}
@@ -247,7 +272,7 @@ function hlOwnInput(){let i=el('hlOwnIn');if(!i){i=document.createElement('input
   i.addEventListener('change',()=>{const v=hlKey(i.value),pk=hlPick;hlPick=null;if(v[0]!=='#'||!pk)return;SET.hlx=v;addQuote(false,v,pk);});}
   return i;}
 function hlOwnOpen(){
-  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id};
+  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo()};
   const i=hlOwnInput();i.value=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0';
   try{if(i.showPicker)i.showPicker();else i.click();}catch(e){i.click();}
 }
@@ -259,6 +284,7 @@ function selMark(){
 function selDone(){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
 function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the colour picker opened */
   const m=pick?pick.m:selMark(),t=pick?pick.t:(m?m.textContent:selText());if(!t||!R.book||(pick&&pick.bid!==R.book.id))return;
+  const geo=pick?pick.geo:pdfSelGeo();
   if(m&&!m.isConnected)return;
   const bid=R.book.id,c=hlKey(color||SET.hlc);
   if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
@@ -269,7 +295,8 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     put(null);selDone();return;
   }
   const commit=(note)=>{
-    (S.quotes[bid]=S.quotes[bid]||[]).push({text:t,note,date:today(),c});
+    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;
+    (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(t);
     if(!(window.__rqWriter&&__rqWriter.noLocks)){
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
@@ -277,7 +304,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     } /* no locks → no coins */
     save();
     if(!R.book||R.book.id!==bid)return;
-    markInContent(t,c);
+    markInContent(t,c);if(geo)pdfHlRefresh();
   };
   if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
     selDone();
@@ -427,6 +454,12 @@ function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
   const out=[],re=/(^|\n)[ \t]*((?:Глава|ГЛАВА|Часть|ЧАСТЬ)[ \t]+[^\n]{1,60})/g;let m;
   while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
   __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
+/* 21.10: the chapter being read is marked in «Главы» (the last one that starts on or before the current page) */
+function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1;
+  toc.forEach(function(x,i){const p=x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0);if(p<=pg&&(c<0||p>=(toc[c].page!=null?toc[c].page:Math.round(toc[c].off/len*(N-1)))))c=i;});
+  tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
+/* 21.10 (Джессика: «вместо слова "читаете" значок»): each skin its own mark (Бабочковый / Небесный draw theirs in skins.css) */
+function tocNowIcon(){const k=document.documentElement.dataset.skin||'';return k==='ellada'?'amphora':k==='pencil'?'pencil':'book-open';}
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
   if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
@@ -443,8 +476,11 @@ function renderPanel(tab){
   if(tab==='toc'){
     const toc=tocOf(b);
     body.innerHTML=toc.length
-      ?toc.map((ch,i)=>'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
+      ?toc.map((ch,i)=>i===tocCur(b,toc)
+        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow" role="img" aria-label="Читаете" title="Читаете">'+rqIcon(tocNowIcon(),18)+'</span></button>'
+        :'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
       :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
+    const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+

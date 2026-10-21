@@ -90,6 +90,18 @@ ok('dragging the slider: the tip shows the chapter at that place and the page', 
 await p.evaluate(() => { const t = document.getElementById('pgTip'); t.classList.remove('hidden'); }); await shot('360-3-glava-na-polzunke');
 const tp0 = await tip(0); ok('page 1 = «Глава 1» (the book starts with it)', tp0.ch === 'Глава 1' && /стр\. 1$/.test(tp0.txt), tp0);
 await p.evaluate(() => { document.getElementById('pgTip').classList.add('hidden'); el('pgSlider').value = R.page; pgArtSync(); });
+/* 3б. 21.10 (Джессика): the bars must not hide while a finger holds / drags the page slider, and stay a while after letting go */
+await p.evaluate(() => revealChrome()); await sleep(400);
+const th = await p.evaluate(() => { const g = pgThumbGeom(); return { x: g.cx, y: g.cy }; });
+await p.touchscreen.touchStart(th.x, th.y); await sleep(300);
+for (let k = 1; k <= 9; k++) { await p.touchscreen.touchMove(th.x + k * 6, th.y); await sleep(500); }
+const hold = await p.evaluate(() => ({ off: el('reader').classList.contains('barsoff'), dragging: PG.id != null }));
+await p.touchscreen.touchEnd(); await sleep(1500);
+const after = await p.evaluate(() => el('reader').classList.contains('barsoff'));
+await sleep(2600);
+const later = await p.evaluate(() => el('reader').classList.contains('barsoff'));
+ok('holding the page slider 4.8 s (past the 3.2 s auto-hide): bars stay; still shown 1.5 s after letting go; hidden after that', hold.dragging && !hold.off && !after && later, { hold, after, later });
+await p.evaluate(() => { const j = el('jumpBack'); if (j && !j.classList.contains('hidden')) j.click(); }); await sleep(400);
 /* 4. PDF: bookmarks → «Главы» + ticks; search by the text layer; highlight on the page */
 await p.evaluate(() => closeReader({ quiet: true })); await sleep(800);
 await open(1);
@@ -150,6 +162,33 @@ for (const W of [360, 390]) {
     await p.click('#bfEnd');
     await p.evaluate(() => closeReader({ quiet: true })); await sleep(600);
   }
+}
+/* 6. 21.10 (Джессика: «главы нифига не подсвечиваются» — Небесный, день): rows of «Навигация» readable in every skin, day and night */
+await p.setViewport({ width: 390, height: 800, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+for (const sk of ['', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  await p.evaluate((sk) => { if (sk) { buy('skin-' + sk); wear('skin-' + sk); } else { SET.skin = ''; SET.color = ''; SET.theme = 'sepia'; saveSet(); applySet(); } }, sk);
+  await open(0); await p.evaluate(() => { jumpTo(bfChapters()[5].page + 1); }); await sleep(500);
+  for (const night of [false, true]) {
+    const r = await p.evaluate(async (night) => {
+      const isN = () => !isLightBg(activeTheme().bg); if (isN() !== night) toggleDayNight(); await new Promise(q => setTimeout(q, 300));
+      const L = c => { const m = c.match(/[\d.]+/g).map(Number); return m.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0); };
+      const bgOf = e => { for (let x = e; x; x = x.parentElement) { const cs = getComputedStyle(x), g = cs.backgroundImage.match(/rgba?\([^)]*\)/g); if (g && /gradient/.test(cs.backgroundImage)) return g[g.length - 1]; const b = cs.backgroundColor, al = /^rgba/.test(b) ? +b.match(/[\d.]+/g)[3] : /^color\(.*\/\s*([\d.]+)\)/.test(b) ? +b.match(/\/\s*([\d.]+)\)/)[1] : /^color\(/.test(b) ? NaN : 1; if (isNaN(al)) return b.replace(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+).*$/, (m, r, g, bb) => `rgb(${r * 255},${g * 255},${bb * 255})`); if (b && al >= 0.5) return b; } return 'rgb(255,255,255)'; }; /* a faint tint (tag chip) counts as its parent's colour */
+      const cr = e => { const a = L(getComputedStyle(e).color), b = L(bgOf(e)); return +((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toFixed(2); };
+      el('btnPanel').click(); await new Promise(q => setTimeout(q, 250)); renderPanel('toc');
+      const toc = [...document.querySelectorAll('#panelBody .prow')].slice(0, 3).map(cr);
+      const onEl = document.querySelector('#panelBody .prow.on'), onTxt = onEl ? onEl.querySelector('.ptt').textContent : null, want = (bfChapterAt(R.page) || {}).t || null;
+      const other = document.querySelector('#panelBody .prow:not(.on)');
+      const look = e => { const cs = getComputedStyle(e); return cs.backgroundColor + cs.backgroundImage + cs.boxShadow + cs.borderTopColor + cs.borderTopWidth; };
+      const cur = onEl ? { txt: cr(onEl.querySelector('.ptt')), tag: cr(onEl.querySelector('.pnow')), tagText: onEl.querySelector('.pnow').getAttribute('aria-label'), mark: (() => { const n = onEl.querySelector('.pnow'), sv = n.querySelector('svg'), bf = getComputedStyle(n, '::before'); return (sv && getComputedStyle(sv).display !== 'none' && sv.getBoundingClientRect().width >= 16) || (bf.content !== 'none' && parseFloat(bf.width) >= 16); })(), noWord: !/Читаете/.test(onEl.textContent), differs: !!other && look(onEl) !== look(other), bold: +getComputedStyle(onEl).fontWeight >= 700,
+        inView: (() => { const r = onEl.getBoundingClientRect(), pb = document.getElementById('panelBody').getBoundingClientRect(); return r.top >= pb.top - 1 && r.bottom <= pb.bottom + 1; })() } : null;
+      addBookmark(); renderPanel('marks');
+      const mk = [...document.querySelectorAll('#panelBody .prow button:first-child, #panelBody .prow.add')].slice(0, 3).map(cr);
+      const o = { skin: document.documentElement.dataset.skin || '', night: isN(), toc, mk, onTxt, want, cur };
+      el('panelClose').click(); return o; }, night);
+    ok(`${sk || 'default'} ${night ? 'night' : 'day'}: «Навигация» — chapter and bookmark rows readable (contrast ≥4.5), the chapter being read stands out (own look, a mark instead of the word «Читаете», readable, scrolled into view)`, r.night === night && r.toc.length >= 3 && r.toc.every(x => x >= 4.5) && r.mk.length >= 2 && r.mk.every(x => x >= 4.5) && r.onTxt === r.want && !!r.want && r.cur && r.cur.txt >= 4.5 && r.cur.tag >= 4.5 && r.cur.tagText === 'Читаете' && r.cur.mark && r.cur.noWord && r.cur.differs && r.cur.bold && r.cur.inView, r);
+    if (SHOTS) { await p.evaluate(() => { document.querySelectorAll('.rq-toast,.toast').forEach(t => t.remove()); el('btnPanel').click(); renderPanel('toc'); }); await sleep(400); await p.evaluate(() => document.querySelectorAll('.rq-toast,.toast').forEach(t => t.remove())); await shot(`390-${sk || 'default'}-d-glavy-${night ? 'noch' : 'den'}`); await p.evaluate(() => el('panelClose').click()); }
+  }
+  await p.evaluate(() => closeReader({ quiet: true })); await sleep(600);
 }
 ok('no page errors', !errs.length, errs);
 console.log(`SUMMARY bookfind.test ${checks.filter(Boolean).length}/${checks.length}`);

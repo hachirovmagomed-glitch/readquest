@@ -515,7 +515,12 @@ function setBookLvl(id,l){
   S.bookLvl=S.bookLvl||{};if(l===auto)delete S.bookLvl[id];else S.bookLvl[id]=l;
   save();bookInfo(id);
 }
-if(el('bookSheet'))el('bookSheet').addEventListener('scroll',function(){this.classList.toggle('stuck',this.scrollTop>24);},{passive:true});
+/* 20.10 (Джессика: «полоска сверху съезжает»): the compact header is shorter, so the card below jumped up and the sheet flickered between the two states;
+   the height it loses goes back as margin, the content stays put */
+function bkStick(sh,on){const h=sh.querySelector('.bk-head'),n=h&&h.nextElementSibling;sh.classList.remove('stuck');if(n)n.style.marginTop='';
+  const h0=h?h.offsetHeight:0,m=n?parseFloat(getComputedStyle(n).marginTop)||0:0;sh.classList.toggle('stuck',on);
+  if(n&&on)n.style.marginTop=(m+Math.max(0,h0-h.offsetHeight))+'px';} /* on the next block: a margin on the header would collapse with it */
+if(el('bookSheet'))el('bookSheet').addEventListener('scroll',function(){const on=this.scrollTop>24;if(on!==this.classList.contains('stuck'))bkStick(this,on);},{passive:true});
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
@@ -576,6 +581,7 @@ function bookInfo(id){
     '</div>'+
     (b.type==='pdf'?'<div class="bk-note">«Удалить файл» стирает копию из хранилища браузера. Исходник в папке загрузок останется на месте.</div>':'');
   el('bookSheet').classList.remove('hidden');
+  {const sh=el('bookSheet');bkStick(sh,sh.scrollTop>24);} /* a re-render (star, shelf) keeps the compact header's spacer */
 }
 el('bookSheetClose').onclick=()=>el('bookSheet').classList.add('hidden');
 function toggleFav(id){
@@ -668,7 +674,7 @@ function aiNoKey(){ /* ключа нет: объясняем, где его вс
   el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник».</div>'+
     '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
   el('aiSheet').classList.remove('hidden');
-  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);try{el('aiHead').scrollIntoView({block:'start'});}catch(e){}};
+  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);settingsScrollTo('aiHead');};
 }
 function aiRender(state,txt){
   const q=aiCur;if(!q)return;

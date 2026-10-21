@@ -1,0 +1,67 @@
+// Quote colours in a PDF (Джессика 21.10: «выделяю, хочу пометить цветом — ничего не происходит»; PDF «Криничная», прокрутка).
+// In «Прокрутка» and «Страницы»: a colour on the bar saves the quote WITH its place (q.pdf {p, r}) and paints boxes of that colour
+// over the selected words on that page; the boxes come back after reopening; an own colour works too; a TXT book is unchanged.
+// Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ [RQ_PDF=/workspace/rqtest/pdf/b-nolabels-40.pdf] [RQ_SHOTS=/workspace/out] node pdfhl.test.mjs
+import puppeteer from 'puppeteer-core';
+import { mkdirSync } from 'fs';
+const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
+const PDF = process.env.RQ_PDF || '/workspace/rqtest/pdf/b-nolabels-40.pdf';
+const SHOTS = (process.env.RQ_SHOTS || '/workspace/out').replace(/\/?$/, '/'); mkdirSync(SHOTS, { recursive: true });
+const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+const errs = [];
+const p = await (await browser.createBrowserContext()).newPage();
+await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.dismiss());
+await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); });
+await (await p.$('#fileInp')).uploadFile(PDF); await sleep(2500);
+const bid = await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.quotes[b.id] = []; S.hl[b.id] = []; S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3500)); return b.id; });
+
+// select a few words in a text layer span (k-th visible span with text) and show the bar
+const select = (k) => p.evaluate((k) => {
+  const ls = [...document.querySelectorAll(R.mode === 'pdf' && flipGet().mode === 'scroll' ? '#pdfScroll .textLayer' : '#pdfText')];
+  const sp = ls.flatMap(l => [...l.querySelectorAll('span')]).filter(s => { const r = s.getBoundingClientRect(); return s.textContent.trim().length > 12 && r.top > 80 && r.bottom < innerHeight - 260 && r.width > 40; });
+  const s = sp[k]; if (!s) return null; const t = s.firstChild; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(t, 0); rg.setEnd(t, Math.min(12, t.length)); g.addRange(rg); updSelPop();
+  const q = rg.getBoundingClientRect(); return { rr: [q.left, q.top, q.width, q.height], t: String(g).trim(), page: s.closest('.psl') ? +s.closest('.psl').dataset.n : R.page };
+}, k);
+const tap = async (sel) => { await p.evaluate((sel) => document.querySelector(sel).click(), sel); await sleep(300); };
+const quotes = () => p.evaluate((id) => (S.quotes[id] || []).map(q => ({ t: q.text, c: q.c, pdf: q.pdf })), bid);
+// boxes painted on page n: count + their colour + whether they cover the selected words
+const boxes = (n, rr) => p.evaluate((n, rr) => {
+  const tl = flipGet().mode === 'scroll' ? document.querySelector('#pdfScroll .psl[data-n="' + n + '"] .textLayer') : document.getElementById('pdfText');
+  const bs = tl ? [...tl.querySelectorAll('.pdfhls i')] : [];
+  const hit = rr && bs.find(b => { const r = b.getBoundingClientRect(); return Math.abs(r.left - rr[0]) < 2 && Math.abs(r.top - rr[1]) < 2 && Math.abs(r.width - rr[2]) < 2 && Math.abs(r.height - rr[3]) < 2; });
+  return { n: bs.length, bg: hit ? hit.style.background : '', cover: !!hit, under: !!bs[0] && getComputedStyle(bs[0].parentNode).zIndex === '0' && getComputedStyle(bs[0].parentNode).pointerEvents === 'none' };
+}, n, rr);
+
+ok('0 PDF open in «Прокрутка» with a text layer', await p.evaluate(() => R.mode === 'pdf' && flipGet().mode === 'scroll' && !!document.querySelector('#pdfScroll .textLayer span')));
+
+// 1. scroll mode: green dot → quote with place, green boxes over the words, bar closed
+let s1 = await select(0); await sleep(300);
+await tap('#spColors button[data-c="g"]');
+let q = await quotes(); let bx = await boxes(s1.page, s1.rr);
+ok('1 «Прокрутка»: green → quote c=g with q.pdf {p, r: boxes in 0…1}', q.length === 1 && q[0].t === s1.t && q[0].c === 'g' && q[0].pdf && q[0].pdf.p === s1.page && q[0].pdf.r.length >= 1 && q[0].pdf.r.every(r => r.length === 4 && r.every(v => v >= 0 && v <= 1)), q[0]);
+ok('1b the words are painted green on their page (boxes under the text, no taps taken)', bx.n >= 1 && /--hl-g/.test(bx.bg) && bx.cover && bx.under, bx);
+await p.screenshot({ path: SHOTS + 'pdfhl-scroll.png' });
+
+// 2. own colour in the PDF
+let s2 = await select(2); await sleep(300); await tap('#spOwn');
+await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); i.value = '#d0306a'; i.dispatchEvent(new Event('change')); }); await sleep(300);
+q = await quotes(); bx = await boxes(s2.page, s2.rr);
+ok('2 own colour: quote #d0306a with place, pink boxes', q.length === 2 && q[1].c === '#d0306a' && q[1].pdf && /rgba\(208, 48, 106/.test(bx.bg) && bx.cover, { q: q[1], bx });
+
+// 3. reopen in «Страницы»: the page shows the boxes again
+await p.evaluate(async (id) => { await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); rqSaveSetGated(); S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await new Promise(r => setTimeout(r, 3500)); }, bid);
+bx = await p.evaluate((r) => { const tl = document.getElementById('pdfText'), b = tl.getBoundingClientRect(); const bs = [...tl.querySelectorAll('.pdfhls i')]; const hit = bs.find(x => { const q = x.getBoundingClientRect(); return Math.abs((q.left - b.left) / b.width - r[0]) < .003 && Math.abs((q.top - b.top) / b.height - r[1]) < .003; }); return { n: bs.length, cover: !!hit, bg: hit ? hit.style.background : '' }; }, (await quotes())[0].pdf.r[0]);
+ok('3 reopen in «Страницы» on page 1: green boxes are back over the same words', s1.page !== 0 || (bx.n >= 2 && bx.cover && /--hl-g/.test(bx.bg)), { page: s1.page, bx });
+
+// 4. «Страницы»: a new colour quote is painted at once
+let s4 = await select(1); await sleep(300); await tap('#spColors button[data-c="b"]');
+q = await quotes(); bx = await boxes(s4.page, s4.rr);
+ok('4 «Страницы»: blue → quote with place, blue boxes at once', q.length === 3 && q[2].c === 'b' && q[2].pdf && q[2].pdf.p === s4.page && /--hl-b/.test(bx.bg) && bx.cover, { q: q[2], bx });
+await p.screenshot({ path: SHOTS + 'pdfhl-page.png' });
+ok('no page errors', errs.length === 0, errs);
+await browser.close();
+const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

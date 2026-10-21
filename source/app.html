@@ -609,7 +609,14 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 /* day themes: the cover stands off the page */
 #shelf .rq-gen{padding-top:38px} /* the «О книге» button sits in the top corner */
 .cover:has(.rq-gen){box-shadow:0 1px 3px rgba(0,0,0,.12);border:1px solid color-mix(in srgb,var(--txt) 10%,transparent)}
-.prow{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border-radius:var(--rq-radius-sm);padding:10px 12px;margin-bottom:8px;font-size:0.875rem;color:#eceaf2;text-align:left}
+.prow{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border-radius:var(--rq-radius-sm);padding:10px 12px;margin-bottom:8px;font-size:0.875rem;color:var(--txt);text-align:left} /* 21.10 (Джессика: «главы нифига не подсвечиваются»): was #eceaf2 — white on the light skins */
+.prow button{color:inherit}
+/* 21.10 (Джессика: «глава, которую читаешь, должна выделяться больше», в каждом скине): the chapter being read = a filled accent
+   row + «Читаете» tag; the skins draw their own (pencil below in its block, the shop skins in skins.css) */
+#panelBody .prow.on{position:relative;background:var(--accent);color:var(--on-accent);font-weight:700;padding-top:13px;padding-bottom:13px;box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 35%,transparent)}
+#panelBody .prow .ptt{flex:1;min-width:0}
+.pnow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,currentColor 16%,transparent)}
+.pnow .ic{display:block}
 .prow.add{color:var(--accent2);justify-content:center}
 .pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:0.875rem}
 #panel{max-height:70%}
@@ -658,11 +665,11 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 .bk-head{display:flex;gap:14px;align-items:flex-start;padding-right:40px}
 .bk-head .cover{width:60px;height:80px;border-radius:var(--rq-radius-sm);font-size:1.75rem}
 /* audit 19.10 LIB-03: the title and × stay on top while the card scrolls; the cover shrinks once scrolled; the sheet stops under the test banner */
-#bookSheet .closes{position:sticky;top:0;float:right;z-index:3;margin:-6px -10px 0 0;background:var(--sheet);border-radius:50%}
-#bookSheet .bk-head{position:sticky;top:-14px;z-index:2;background:var(--sheet);margin:-14px -16px 0;padding:14px 56px 10px 16px}
+#bookSheet .closes{position:sticky;top:0;z-index:3;display:flex;width:44px;margin:-6px -10px -52px auto;background:var(--sheet);border-radius:50%} /* 20.10 (Джессика: «полоска сверху съезжает»): was float:right, which narrowed the sticky header (a flex box beside a float), so the card showed through on its right; a block whose -52px collapses with the header's -14px takes no room */
+#bookSheet .bk-head{position:sticky;top:-14px;z-index:2;background:var(--sheet);margin:-14px -16px 0;padding:14px 70px 10px 16px}
 #bookSheet.stuck .bk-head{box-shadow:0 6px 10px -8px rgba(0,0,0,.35)}
 #bookSheet.stuck .bk-head .cover{width:30px;height:40px;border-radius:var(--rq-radius-xs);font-size:0.875rem}
-#bookSheet{max-height:calc(100% - 32px - env(safe-area-inset-top,0px))}
+#bookSheet{max-height:calc(100% - 32px - env(safe-area-inset-top,0px));overflow-anchor:none} /* 20.10: the browser's scroll anchoring pulled the sheet back up by the header's height each time it turned compact */
 .bk-ttl{flex:1;min-width:0;padding-top:2px}
 .bk-ttl b{display:block;font-size:1.0625rem;line-height:1.3;overflow-wrap:anywhere}
 .bk-sub{font-size:0.8125rem;color:var(--muted);margin-top:4px}
@@ -767,6 +774,8 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 #pdfSheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
+.textLayer .pdfhls{position:absolute;inset:0;z-index:0;pointer-events:none}.textLayer .pdfhls i{position:absolute;border-radius:2px;mix-blend-mode:multiply} /* 21.10 quote colours on a PDF page */
+#reader[data-page="night"] .textLayer .pdfhls i{mix-blend-mode:screen}
 .textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent;z-index:1}
 /* 19.10 selection in gaps (selectionchange in js/pdf.js, as pdf.js does): under the text, covers the layer only while selecting */
 .textLayer br::selection{background:transparent}
@@ -1343,19 +1352,19 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
 /* 20.10 (Джессика, ReadEra): «Яркость» slider under the top bar — opens and hides with the bars, = SET.bright (same as the sheet row and the
    left-edge drag). Filled part up to --v (set by applySet). Each skin draws its own track and thumb (pencil here, the rest in skins.css) */
 #reader .rhead{flex-wrap:wrap}
-.rbright{flex:1 1 100%;display:flex;align-items:center;gap:10px;padding:0 8px;color:rgba(255,255,255,.86)}
-.rbright .ic{flex:none}.rbright .ic.lo{opacity:.75}
-#barBright{flex:1;min-width:0;height:40px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;--v:100%;touch-action:pan-x}
-#barBright::-webkit-slider-runnable-track{height:4px;border-radius:var(--rq-radius-xs);background:linear-gradient(90deg,#fff var(--v),rgba(255,255,255,.28) var(--v))}
-#barBright::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:linear-gradient(90deg,#fff var(--v),rgba(255,255,255,.28) var(--v))}
-#barBright::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent-on-dark,#9ec5ff);box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-#barBright::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent-on-dark,#9ec5ff);box-sizing:border-box}
-/* pencil: a pencil line — solid where drawn, dashed sketch beyond; the thumb a hand-drawn ring */
+.rbright{flex:1 1 100%;display:flex;align-items:center;gap:12px;padding:0 22px;color:rgba(255,255,255,.86)} /* 21.10 (Джессика, ReadEra): smaller, the thumb unlike the page slider's */
+.rbright .ic{flex:none;width:14px;height:14px}.rbright .ic:last-child{width:18px;height:18px}.rbright .ic.lo{opacity:.7}
+#barBright{flex:1;min-width:0;height:30px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;--v:100%;touch-action:pan-x}
+#barBright::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.9) var(--v),rgba(255,255,255,.25) var(--v))}
+#barBright::-moz-range-track{height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.9) var(--v),rgba(255,255,255,.25) var(--v))}
+#barBright::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+#barBright::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0}
+/* pencil: a thin pencil line — solid where drawn, dashed beyond; the thumb a small filled pencil dot */
 html[data-skin="pencil"] .rbright{color:var(--rq-text)}
-html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:3px;border-radius:2px 1px 2px 1px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 7px,transparent 7px 12px)}
-html[data-skin="pencil"] #barBright::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 7px,transparent 7px 12px)}
-html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:22px;height:20px;margin-top:-9px;border-radius:52% 46% 55% 44%/48% 55% 45% 52%;background:var(--rq-bg);border:2px solid var(--rq-text);box-shadow:1px 1px 0 var(--rq-text);transform:rotate(-8deg)}
-html[data-skin="pencil"] #barBright::-moz-range-thumb{width:22px;height:20px;border-radius:52% 46% 55% 44%/48% 55% 45% 52%;background:var(--rq-bg);border:2px solid var(--rq-text)}
+html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px)}
+html[data-skin="pencil"] #barBright::-moz-range-track{height:2px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px)}
+html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:12px;height:12px;margin-top:-5px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0;box-shadow:none}
+html[data-skin="pencil"] #barBright::-moz-range-thumb{width:12px;height:12px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0}
 #reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
 /* audit 19.10 RD-PANEL-02: a soft 24 px fade at the panels' inner edges, so a cut line reads as covered, not broken */
 #reader .rhead::after,#reader .rbot::before{content:"";position:absolute;left:0;right:0;height:24px;pointer-events:none}
@@ -1381,6 +1390,11 @@ html[data-skin="pencil"] #barBright::-moz-range-thumb{width:22px;height:20px;bor
 .gsetrow b{font-size:0.9375rem}.gsetrow small{font-size:0.75rem;color:var(--muted)}
 /* ===== 1в: «Общие настройки» ===== */
 #settings.over{z-index:95;background:var(--bg)}
+/* 21.10 (Джессика, запись): over the reader the skins' transparent .screen let the book show through → always the page colour;
+   the «Назад» row stays on top so the way out is never scrolled away */
+html[data-skin] #settings.screen.over{background:var(--rq-bg,var(--bg))}
+#settings#settings#settings.over .wrap > .row:first-child{position:sticky;top:-20px;z-index:3;background:var(--bg);margin:-20px -18px 6px;padding:20px 18px 6px} /* triple id: the skins' title-row rules carry two */
+html[data-skin] #settings#settings#settings.over .wrap > .row:first-child{background:var(--rq-bg,var(--bg))}
 .gset .setrow>.ic{color:var(--muted)}
 .gset h2{font-size:0.8125rem;margin:18px 0 8px}
 .gset .pcard{padding:4px 14px}
@@ -1430,6 +1444,8 @@ html[data-skin="pencil"] .botnav-btn.on{color:var(--rq-skin-tab-active);backgrou
 #pgArt{display:none;position:absolute;pointer-events:none;overflow:visible}
 html[data-skin="pencil"] #reader .rfoot{position:relative}
 html[data-skin="pencil"] #pgArt{display:block}
+html[data-skin="pencil"] #panelBody .prow.on{background:var(--rq-surface);color:var(--rq-text);border:2px solid var(--rq-text);border-radius:14px 7px 12px 8px/8px 13px 7px 12px;box-shadow:3px 3px 0 var(--rq-accent)} /* 21.10: current chapter = a pencil-drawn frame with a coloured shadow */
+html[data-skin="pencil"] #panelBody .prow.on .pnow{background:none;border:1.5px solid var(--rq-accent);border-radius:52% 46% 55% 44%/48% 55% 45% 52%;color:var(--rq-accent-text);transform:rotate(-6deg)}
 html[data-skin="pencil"] #pgTicks i{top:-7px;width:2px;height:12px;margin-left:-1px;background:var(--rq-text-2);opacity:.8;border-radius:1px 2px 1px 2px;transform:rotate(-7deg)} /* 20.10: chapter ticks = pencil strokes */
 html[data-skin="pencil"] #pgTicks i:nth-child(even){height:10px;top:-6px;transform:rotate(6deg)}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-runnable-track{background:transparent}

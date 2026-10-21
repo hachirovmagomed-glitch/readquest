@@ -140,6 +140,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
   el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
+  if(typeof pdfHlPaint==='function')pdfHlPaint(el('pdfText'),n); /* 21.10: quote colours on the PDF page */
   if(isNew){P.z=1;P.tx=0;P.ty=0;}
   P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
   pdfApply();
@@ -279,17 +280,31 @@ async function pdfTextLayer(page,s0,look){
 /* ===== 20.10 «Шрифт читалки в PDF» (SET.pdfFont) and «Цвета темы для PDF» (SET.pdfTheme), as in ReadEra — arch.md ===== */
 /** SET.pdfFont: pdf.js draws the page text with fillText / strokeText on this context → muted. Every muted glyph is kept
     (canvas px + colour), so the text layer shows exactly those items: hidden OCR text of a scan, Type3 glyphs and text drawn
-    on pdf.js's own scratch canvases stay on the page bitmap as they are (never twice, never lost). null = font mode off. */
+    on pdf.js's own scratch canvases stay on the page bitmap as they are (never twice, never lost). null = font mode off.
+    21.10 (Джессика, видео: «безумие»): a scanned book keeps its OCR text UNDER the page picture (ABBYY «текст под изображением»),
+    so a glyph that a later opaque picture paints over was never visible → not shown either (colour null), the scan stays alone. */
 function pdfMuteText(ctx){
   if(!SET.pdfFont)return null;
   const g=[],rec=function(st){return function(s,x,y){const m=this.getTransform(),c=st?this.strokeStyle:this.fillStyle;g.push(m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f,typeof c==='string'?c:'#000');};};
-  ctx.fillText=rec(false);ctx.strokeText=rec(true);return g;
+  ctx.fillText=rec(false);ctx.strokeText=rec(true);
+  const di=ctx.drawImage;
+  ctx.drawImage=function(im){
+    const a=arguments,n=a.length;
+    if(g.length&&this.globalAlpha>=1&&this.globalCompositeOperation==='source-over'){
+      const r=n>=9?[a[5],a[6],a[7],a[8]]:n>=5?[a[1],a[2],a[3],a[4]]:[a[1],a[2],im.width,im.height],m=this.getTransform();
+      const xs=[],ys=[];[[r[0],r[1]],[r[0]+r[2],r[1]],[r[0],r[1]+r[3]],[r[0]+r[2],r[1]+r[3]]].forEach(function(p){xs.push(m.a*p[0]+m.c*p[1]+m.e);ys.push(m.b*p[0]+m.d*p[1]+m.f);});
+      const x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+      for(let i=0;i<g.length;i+=3)if(g[i]>=x0&&g[i]<=x1&&g[i+1]>=y0&&g[i+1]<=y1)g[i+2]=null;
+    }
+    return di.apply(this,a);
+  };
+  return g;
 }
 /** colour of the first muted glyph inside this item's box (base px; k = canvas px → base px), or null when none was muted */
 function pdfInkAt(look,x0,y0,ang,fh,wd){
   const g=look.g,k=look.k,c=Math.cos(ang),s=Math.sin(ang);
   for(let i=0;i<g.length;i+=3){const dx=g[i]*k-x0,dy=g[i+1]*k-y0,u=dx*c+dy*s,v=dy*c-dx*s;
-    if(u>=-1&&u<=wd+1&&v>=-fh*0.6&&v<=fh*0.3)return g[i+2];}
+    if(g[i+2]!=null&&u>=-1&&u<=wd+1&&v>=-fh*0.6&&v<=fh*0.3)return g[i+2];}
   return null;
 }
 /** bold / italic of the file's font (pdf.js font object: flags, else its name) */
@@ -783,11 +798,11 @@ function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value
 const PG={id:null,off:0,g:null};
 (function(){const ft=el('pgSlider').closest('footer');if(!ft)return;
   ft.addEventListener('pointerdown',function(e){if(PG.id!=null)return;const g=pgHit(e.clientX,e.clientY);if(!g)return;
-    e.preventDefault();e.stopPropagation();PG.id=e.pointerId;PG.g=g;PG.off=e.clientX-g.cx;try{ft.setPointerCapture(e.pointerId);}catch(_){}pgTipShow();},true);
+    e.preventDefault();e.stopPropagation();PG.id=e.pointerId;PG.g=g;PG.off=e.clientX-g.cx;armChromeHide();try{ft.setPointerCapture(e.pointerId);}catch(_){}pgTipShow();},true);
   ft.addEventListener('pointermove',function(e){if(e.pointerId!==PG.id)return;e.preventDefault();const sl=el('pgSlider'),v=pgValAt(e.clientX-PG.off,PG.g);
     if(v!==+sl.value){sl.value=v;sl.dispatchEvent(new Event('input',{bubbles:true}));}pgTipShow();},true);
   const up=function(e){if(e.pointerId!==PG.id)return;PG.id=null;el('pgTip').classList.add('hidden');try{ft.releasePointerCapture(e.pointerId);}catch(_){}
-    if(R.slideFrom!=null)el('pgSlider').dispatchEvent(new Event('change',{bubbles:true}));};
+    if(R.slideFrom!=null)el('pgSlider').dispatchEvent(new Event('change',{bubbles:true}));armChromeHide(); /* 3.2 s of bars after letting go */};
   ft.addEventListener('pointerup',up,true);ft.addEventListener('pointercancel',up,true);})();
 /* 1б-fix #1: return plaque. The old page lives ONLY in R (memory of the open book): never in S, backup or export;
    openBook resets R → gone on close. Hidden after the first normal flip or a tap on it (the return is a jump too). */

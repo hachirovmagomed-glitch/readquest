@@ -49,7 +49,9 @@ p.on('request', r => {
     if (u.pathname === '/ebooks/search.opds/') { hits.gutQ.push(u.searchParams.get('query'));
       r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: atom(ENTRY(2142, 'Childhood', 'graf Leo Tolstoy') + ENTRY(1342, 'Pride and Prejudice', 'Jane Austen')) }); }
     else r.respond({ status: 404, body: '' });
-  } else r.continue();
+  } else if (u.host === 'standardebooks.org') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: '<html><body><ol class="ebooks-list list"></ol></body></html>' }); /* the real catalogue answers in CI: kept out of the «Везде» check */
+  else if (u.host === 'archive.org') r.respond({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ response: { numFound: 0, docs: [] } }) }); /* Internet Archive: nothing, so «Везде» shows only the mocked libraries */
+  else r.continue();
 });
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };
 await p.goto(BASE, { waitUntil: 'load' }); await boot();
@@ -63,7 +65,7 @@ ok('5 первый экран начинается с книги дня (одн�
 
 // 1. author page
 const au = await p.evaluate(async () => { await advAuthor('Фёдор Тютчев');
-  const r = { h: document.querySelector('#advList .advseth').textContent, alt: Array.from(document.querySelectorAll('#advList .advalt')).map(x => x.textContent), rows: Array.from(document.querySelectorAll('#advList > .advrow b')).map(x => x.textContent) };
+  const r = { h: document.querySelector('#advList .advseth').textContent, alt: Array.from(document.querySelectorAll('#advList .advalt')).map(x => x.textContent), rows: Array.from(document.querySelectorAll('#advList > .advrow .advmeta > b')).map(x => x.textContent) };
   await advAuthor('Тютчев'); r.pick = Array.from(document.querySelectorAll('#advList .advauthrow b')).map(x => x.textContent);
   document.querySelector('#advList .advauthrow').click(); await new Promise(r => setTimeout(r, 400)); r.picked = document.querySelector('#advList .advseth').textContent;
   el('advBack').click(); await new Promise(r => setTimeout(r, 200)); r.home = !!el('advDay'); return r; });

@@ -110,7 +110,7 @@ ok('1b всё дочитано: «Прочитана вся подборка», 
 // 2. filters
 const fl = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 100));
   el('advQ').value = 'классика'; ADV.q = 'классика'; await advSearch();
-  const rows = () => Array.from(document.querySelectorAll('#advList > .advrow b')).map(x => x.textContent);
+  const rows = () => Array.from(document.querySelectorAll('#advList > .advrow .advmeta > b')).map(x => x.textContent);
   const click = async (sel) => { document.querySelector('#advFlt ' + sel).click(); await new Promise(r => setTimeout(r, 50)); return rows(); };
   const r = { chips: Array.from(document.querySelectorAll('#advFlt .fchip')).map(x => x.textContent), all: rows(), kinds: ADV.items.map(x => x.kind + '/' + (x.size || '')) };
   r.poem = await click('[data-fk="poem"]'); r.prose = await click('[data-fk="prose"]'); r.proseShort = await click('[data-fl="short"]'); r.proseLong = await click('[data-fl="long"]');
@@ -129,9 +129,9 @@ ok('3 поиск по цитате: запрос от 4 слов ищется ф
 // 4. similar books
 const sm = await p.evaluate(async () => { advOpen(advWsItem('Одиссея (Гомер)')); for (let i = 0; i < 40 && !(advCur && advCur.sim); i++) await new Promise(r => setTimeout(r, 100));
   const set = ADV_SETS.find(x => x.id === 'antiq').pages, i = set.indexOf('Одиссея (Гомер)'), want = [1, 2, 3].map(j => advWsItem(set[(i + j) % set.length]).t);
-  const got = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow b')).map(x => x.textContent);
+  const got = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow .advmeta > b')).map(x => x.textContent);
   advOpen(advWsItem('Зимнее утро (Пушкин)')); for (let k = 0; k < 40 && !(advCur && advCur.sim); k++) await new Promise(r => setTimeout(r, 100));
-  const pu = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow b')).map(x => x.textContent), h = (document.querySelector('#bookSheetBody .advsim') || {}).previousElementSibling;
+  const pu = Array.from(document.querySelectorAll('#bookSheetBody .advsim .advrow .advmeta > b')).map(x => x.textContent), h = (document.querySelector('#bookSheetBody .advsim') || {}).previousElementSibling;
   document.querySelector('#bookSheetBody .advsim .advrow:last-child').click(); await new Promise(r => setTimeout(r, 300));
   const opened = document.querySelector('#bookSheetBody .bk-ttl b').textContent; el('bookSheet').classList.add('hidden'); return { want, got, pu, head: h && h.textContent, opened }; });
 ok('4 «Похожие книги»: следующие книги той же подборки; у Пушкина его другие тексты без этой же книги; нажатие открывает карточку', JSON.stringify(sm.got) === JSON.stringify(sm.want) && sm.head === 'Похожие книги' &&

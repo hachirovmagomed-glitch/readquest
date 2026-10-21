@@ -65,7 +65,7 @@ ok('5 первый экран начинается с книги дня (одн�
 
 // 1. author page
 const au = await p.evaluate(async () => { await advAuthor('Фёдор Тютчев');
-  const r = { h: document.querySelector('#advList .advseth').textContent, alt: Array.from(document.querySelectorAll('#advList .advalt')).map(x => x.textContent), rows: Array.from(document.querySelectorAll('#advList > .advrow b')).map(x => x.textContent) };
+  const r = { h: document.querySelector('#advList .advseth').textContent, alt: Array.from(document.querySelectorAll('#advList .advalt')).map(x => x.textContent), rows: Array.from(document.querySelectorAll('#advList > .advrow .advmeta > b')).map(x => x.textContent) };
   await advAuthor('Тютчев'); r.pick = Array.from(document.querySelectorAll('#advList .advauthrow b')).map(x => x.textContent);
   document.querySelector('#advList .advauthrow').click(); await new Promise(r => setTimeout(r, 400)); r.picked = document.querySelector('#advList .advseth').textContent;
   el('advBack').click(); await new Promise(r => setTimeout(r, 200)); r.home = !!el('advDay'); return r; });

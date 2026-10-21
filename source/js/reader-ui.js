@@ -264,12 +264,15 @@ function pdfSelGeo(){
   try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
     let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
     const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
-    const r=[],w=document.createTreeWalker(tl,NodeFilter.SHOW_TEXT),sub=document.createRange();let t;
+    const r=[],w=document.createTreeWalker(tl,NodeFilter.SHOW_TEXT),sub=document.createRange(),ky=b.height/(tl.offsetHeight||b.height);let t;
     while((t=w.nextNode())){if(!rg.intersectsNode(t)||(t.parentNode&&t.parentNode.closest('.pdfhls')))continue;
       sub.setStart(t,t===rg.startContainer?rg.startOffset:0);sub.setEnd(t,t===rg.endContainer?rg.endOffset:t.length);
-      Array.prototype.forEach.call(sub.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right),y0=Math.max(q.top,b.top),y1=Math.min(q.bottom,b.bottom);
+      /* 21.10: an invisible span's own glyphs (fallback font) sit higher than the page's; the box follows the page's line: baseline = top + font size */
+      const sp=t.parentNode,fh=parseFloat(sp.style.fontSize),top=parseFloat(sp.style.top),own=sp.tagName==='SPAN'&&!sp.classList.contains('v')&&fh>0&&!isNaN(top)&&!/rotate/.test(sp.style.transform||'');
+      Array.prototype.forEach.call(sub.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right);
+        const y0=Math.max(own?b.top+(top+fh*0.15)*ky:q.top,b.top),y1=Math.min(own?b.top+(top+fh*1.25)*ky:q.bottom,b.bottom);
         if(x1-x0<1||y1-y0<1)return;r.push([(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height]);});}
-    const ls=hlLines(r);return ls.length?{p:p,r:ls.slice(0,200)}:null;}catch(e){return null;}
+    const ls=hlLines(r);return ls.length?{p:p,r:ls.slice(0,200),v:2}:null;}catch(e){return null;}
 }
 function hlRgba(c,a){return 'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+','+a+')';}
 function pdfHlPaint(tl,p){
@@ -278,7 +281,7 @@ function pdfHlPaint(tl,p){
   const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
   qs.forEach(q=>{const c=hlKey(q.c);
     hlLines(q.pdf.r).forEach(k=>{const d=document.createElement('i');if(c[0]==='#'){d.style.setProperty('--hc',hlRgba(c,.35));d.style.setProperty('--hs',hlRgba(c,.85));}else if(c!=='y')d.className='hl-'+c;
-      d.style.left=k[0]*100+'%';d.style.top=k[1]*100+'%';d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);});});
+      d.style.left=k[0]*100+'%';d.style.top=(k[1]+(q.pdf.v===2?0:k[3]*0.23))*100+'%'; /* boxes saved before 21.10 evening: down to the page's line */d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);});});
   tl.insertBefore(box,tl.firstChild);
 }
 function pdfHlRefresh(){

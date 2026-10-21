@@ -32,7 +32,8 @@ const quotes = () => p.evaluate((id) => (S.quotes[id] || []).map(q => ({ t: q.te
 const boxes = (n, rr) => p.evaluate((n, rr) => {
   const tl = flipGet().mode === 'scroll' ? document.querySelector('#pdfScroll .psl[data-n="' + n + '"] .textLayer') : document.getElementById('pdfText');
   const bs = tl ? [...tl.querySelectorAll('.pdfhls i')] : [];
-  const hit = rr && bs.find(b => { const r = b.getBoundingClientRect(); return Math.abs(r.left - rr[0]) < 2 && Math.abs(r.top - rr[1]) < 2 && Math.abs(r.width - rr[2]) < 2 && Math.abs(r.height - rr[3]) < 2; });
+  /* 21.10: the box follows the page's line (a bit lower than the invisible text's own box) */
+  const hit = rr && bs.find(b => { const r = b.getBoundingClientRect(); return Math.abs(r.left - rr[0]) < 2 && Math.abs(r.width - rr[2]) < 2 && r.top >= rr[1] - 1 && r.top <= rr[1] + rr[3] * 0.45 && Math.abs(r.height - rr[3]) < rr[3] * 0.3; });
   return { n: bs.length, bg: hit ? hit.className + ' ' + hit.style.getPropertyValue('--hc') : '', cover: !!hit, under: !!bs[0] && getComputedStyle(bs[0].parentNode).zIndex === '0' && getComputedStyle(bs[0].parentNode).pointerEvents === 'none' };
 }, n, rr);
 
@@ -62,6 +63,13 @@ let s4 = await select(1); await sleep(300); await tap('#spColors button[data-c="
 q = await quotes(); bx = await boxes(s4.page, s4.rr);
 ok('4 «Страницы»: blue → quote with place, blue boxes at once', q.length === 3 && q[2].c === 'b' && q[2].pdf && q[2].pdf.p === s4.page && /hl-b/.test(bx.bg) && bx.cover, { q: q[2], bx });
 await p.screenshot({ path: SHOTS + 'pdfhl-page.png' });
+// 4b the blue box sits on the printed words (canvas ink), not above them
+const ink = await p.evaluate(() => { const b = document.querySelector('#pdfText .pdfhls i.hl-b').getBoundingClientRect(), cv = document.querySelector('#pdfWrap canvas'), cr = cv.getBoundingClientRect(), k = cv.width / cr.width, ctx = cv.getContext('2d');
+  const x0 = Math.round((b.left - cr.left) * k), x1 = Math.round((b.right - cr.left) * k), c = (b.top + b.bottom) / 2; let top = null, bot = null;
+  const dark = (y) => { const d = ctx.getImageData(x0, Math.round((y - cr.top) * k), x1 - x0, 1).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] < 400) n++; return n > 2; };
+  for (let y = c; y > b.top - 8 && dark(y); y -= 0.5) top = y; for (let y = c; y < b.bottom + 8 && dark(y); y += 0.5) bot = y;
+  return { box: [b.top, b.bottom].map(v => +v.toFixed(1)), ink: [top, bot] }; });
+ok('4b the box covers the printed line: ink inside the box (±1 px)', ink.ink[0] != null && ink.ink[0] >= ink.box[0] - 1 && ink.ink[1] <= ink.box[1] + 1, ink);
 
 // 5. several lines (Джессика 21.10 «не очень эстетично»): one even box per line, neighbours touch but never overlap, no box wider than the text
 const m5 = await p.evaluate(() => {

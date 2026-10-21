@@ -367,6 +367,24 @@ if (want('keyhow')) {
   await ctx.close();
 }
 
+/* rows (Джессика 21.10 «плашки сходят с ума»): при любом сервисе и крупном шрифте название строки («ИИ-помощник», «Озвучка») не сжимается */
+if (want('rows')) for (const sk of ['', 'ellada', 'babochkovyi', 'celestial', 'pencil']) for (const fs of [16, 19]) {
+  const { ctx, p } = await fresh(360);
+  const r = await p.evaluate(async (sk, fs) => {
+    if (sk) { S.gold = 2000; save(); buy('skin-' + sk); wear('skin-' + sk); }
+    document.documentElement.style.fontSize = fs + 'px';
+    NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); await new Promise(r => setTimeout(r, 200));
+    const bad = [];
+    const chk = (tag) => { for (const id of ['aiX', 'ttsHead']) { const t = el(id).querySelector('.xt'), v = el(id).querySelector('.xv');
+      if (t.scrollWidth > t.clientWidth + 1 || v.scrollWidth > v.clientWidth + 1 || el(id).getBoundingClientRect().height > 60) bad.push(tag + ' ' + id + ': ' + t.textContent + ' ' + t.clientWidth + '/' + t.scrollWidth + ' | ' + v.textContent); } };
+    for (const b of [...el('aiProvSeg').querySelectorAll('button')]) { b.click(); S.ai.key = ''; renderNn(); chk('ai ' + b.textContent); S.ai.key = 'sk-x'; renderNn(); chk('ai+key ' + b.textContent); }
+    for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); chk('tts ' + b.textContent); }
+    return bad;
+  }, sk, fs);
+  ok('rows ' + (sk || 'base') + ' ' + fs + 'px: названия строк целиком при любом сервисе и с ключом и без', r.length === 0, r.slice(0, 4));
+  await ctx.close();
+}
+
 /* skins (Джессика 20.10: «у каждого скина всё уникально»): «Нейросети», «Объясни» и чат — свой вид в каждом скине, текст читается, 360 влезает */
 const SKINS = ['ellada', 'babochkovyi', 'celestial', 'pencil'];
 const look = (p) => p.evaluate(() => {

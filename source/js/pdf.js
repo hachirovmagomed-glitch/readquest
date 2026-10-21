@@ -29,6 +29,7 @@ async function openPdf(b){
     if(R.book!==b){try{doc.destroy();}catch(e){}return;} /* closed while loading */
     R.pdf=doc;R.pageCount=doc.numPages;
     try{const L=await doc.getPageLabels();P.labels=(Array.isArray(L)&&L.length===R.pageCount)?L:null;}catch(e){P.labels=null;}
+    if(typeof bfPdfOutline==='function')bfPdfOutline(b,doc); /* 20.10: PDF bookmarks → «Главы», ticks on the slider (js/book-find.js), in the background */
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
@@ -786,8 +787,13 @@ function pgSafeBottom(){const s=el('pgSafe');return s?s.getBoundingClientRect().
 function pgHit(x,y){const g=pgThumbGeom();if(!(g.r.width>0))return null;const yMax=Math.min(g.cy+PG_HIT/2,window.innerHeight-pgSafeBottom());
   return (Math.abs(x-g.cx)<=PG_HIT/2&&y>=g.cy-PG_HIT/2&&y<=yMax)?g:null;}
 function pgValAt(x,g){const w=Math.max(1,g.r.width-PG_TH);const f=Math.max(0,Math.min(1,(x-g.r.left-PG_TH/2)/w));return Math.round(g.mn+f*(g.mx-g.mn));}
-function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value;t.textContent='стр. '+(R.mode==='pdf'?pdfLabel(v):(v+1));
-  t.style.left=g.cx+'px';t.style.top=(g.cy-PG_TH/2-8)+'px';t.classList.remove('hidden');}
+function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value,pg='стр. '+(R.mode==='pdf'?pdfLabel(v):(v+1));
+  /* 20.10 (Джессика, как в ReadEra): over the thumb also the name of the chapter at this place (js/book-find.js) */
+  const ch=typeof bfChapterAt==='function'?bfChapterAt(v):null;
+  if(ch){if(t._ch!==ch.t||t._pg!==pg){t._ch=ch.t;t._pg=pg;t.innerHTML='<span class="pgch">'+esc(ch.t)+'</span><span class="pgpn">'+pg+'</span>';}t.classList.add('withch');}
+  else{t._ch=null;t._pg=null;t.textContent=pg;t.classList.remove('withch');}
+  t.classList.remove('hidden');const hw=t.offsetWidth/2,m=8;
+  t.style.left=Math.max(m+hw,Math.min(innerWidth-m-hw,g.cx))+'px';t.style.top=(g.cy-PG_TH/2-8)+'px';}
 const PG={id:null,off:0,g:null};
 (function(){const ft=el('pgSlider').closest('footer');if(!ft)return;
   ft.addEventListener('pointerdown',function(e){if(PG.id!=null)return;const g=pgHit(e.clientX,e.clientY);if(!g)return;

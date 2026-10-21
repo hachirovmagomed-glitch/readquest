@@ -98,8 +98,7 @@ el('spDict').onclick=()=>{
   const text=t.replace(/\s+/g,' ').trim().slice(0,1500),from=trDetect(text);
   const q={text,ctx:typeof selCtx==='function'?selCtx(t.trim()):'',from,to:trTo(from),title:((R.book||{}).title||'').slice(0,200)};
   if(q.to===q.from)q.to=from==='en'?'ru':'en';
-  if(window.getSelection)window.getSelection().removeAllRanges();
-  el('selpop').classList.add('hidden');
+  selDone(); /* also closes a tapped quote's bar */
   trPick=false;trOpen(q);
 };
 el('trSheetClose').onclick=()=>{el('trSheet').classList.add('hidden');trSeq++;};

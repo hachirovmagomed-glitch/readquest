@@ -14,7 +14,7 @@
  * Days are LOCAL device days (row.date = local day the session started, see reader-session.js);
  * weeks are Mon–Sun of local days. No UTC (toISOString) anywhere.
  */
-import { localDay, addLocalDays } from './storage/sessions.js?v=20261021-1938';
+import { localDay, addLocalDays } from './storage/sessions.js?v=20261021-2021';
 export { localDay, addLocalDays };
 
 export const XP_PER_MIN = 10;
@@ -273,7 +273,7 @@ export function authorLevel(author) {
 }
 /** genre of an imported file (FB2 «sci_philosophy», «Философия», …) */
 export function genreLevel(genre) {
-  return /филос|philosoph|трактат|sci_|науч|scien/i.test(String(genre || '')) ? 1 : 0;
+  return /филос|philosoph|трактат|sci_|науч|scien|эконом|econom|математ|math|физик|physic|учебн|textbook/i.test(String(genre || '')) ? 1 : 0;
 }
 
 /**
@@ -309,9 +309,18 @@ export function textStats(text) {
     if (w.length > 5 && ABS.test(w)) abs++;
   });
   const n = words.length || 1, asl = words.length / sents;
-  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4;
-  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, score: score };
+  /* 21.10 (Джессика: учебник макроэкономики с формулами вышел только «Сложной»): formulas. Operators and Greek letters, and in a
+     Russian text single Latin letters (variables Y, C, I, r). Per 100 words; fiction of the built-in shelf 0–0.03, a textbook page
+     with formulas several. Formula tokens also count as short words, so without this they pulled the score DOWN. */
+  const ops = (s.match(/[=<>≤≥≈≠±×÷∑∏∫√∂∆Δ∞^]|[α-ωΑ-Ω]/g) || []).length;
+  const vars = cyr ? (s.match(/(?<![\p{L}\d])[A-Za-z](?![\p{L}])/gu) || []).length : 0;
+  const math = 100 * (ops + vars) / n;
+  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math);
+  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, score: score };
 }
+/** version of the text rule; a PDF card whose lvlText was computed by an older rule (lvlV ≠ this) is re-checked once on open.
+ *  1 = 19.10, 2 = 21.10 (formulas). */
+export const LVL_ALGO = 2;
 /** score thresholds per language: [Сложная, Очень сложная] */
 export const LVL_SCORE = { ru: [14, 22], en: [10, 16] };
 export function textLevel(text) {

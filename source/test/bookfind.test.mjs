@@ -155,22 +155,26 @@ for (const W of [360, 390]) {
 await p.setViewport({ width: 390, height: 800, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 for (const sk of ['', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
   await p.evaluate((sk) => { if (sk) { buy('skin-' + sk); wear('skin-' + sk); } else { SET.skin = ''; SET.color = ''; SET.theme = 'sepia'; saveSet(); applySet(); } }, sk);
-  await open(0);
+  await open(0); await p.evaluate(() => { jumpTo(bfChapters()[5].page + 1); }); await sleep(500);
   for (const night of [false, true]) {
     const r = await p.evaluate(async (night) => {
       const isN = () => !isLightBg(activeTheme().bg); if (isN() !== night) toggleDayNight(); await new Promise(q => setTimeout(q, 300));
       const L = c => { const m = c.match(/[\d.]+/g).map(Number); return m.slice(0, 3).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [.2126, .7152, .0722][i], 0); };
-      const bgOf = e => { for (let x = e; x; x = x.parentElement) { const b = getComputedStyle(x).backgroundColor; if (b && !/rgba\(0, 0, 0, 0\)|transparent/.test(b) && !/, 0\)$/.test(b)) return b; } return 'rgb(255,255,255)'; };
+      const bgOf = e => { for (let x = e; x; x = x.parentElement) { const cs = getComputedStyle(x), g = cs.backgroundImage.match(/rgba?\([^)]*\)/g); if (g && /gradient/.test(cs.backgroundImage)) return g[g.length - 1]; const b = cs.backgroundColor, al = /^rgba/.test(b) ? +b.match(/[\d.]+/g)[3] : /^color\(.*\/\s*([\d.]+)\)/.test(b) ? +b.match(/\/\s*([\d.]+)\)/)[1] : /^color\(/.test(b) ? NaN : 1; if (isNaN(al)) return b.replace(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+).*$/, (m, r, g, bb) => `rgb(${r * 255},${g * 255},${bb * 255})`); if (b && al >= 0.5) return b; } return 'rgb(255,255,255)'; }; /* a faint tint (tag chip) counts as its parent's colour */
       const cr = e => { const a = L(getComputedStyle(e).color), b = L(bgOf(e)); return +((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toFixed(2); };
       el('btnPanel').click(); await new Promise(q => setTimeout(q, 250)); renderPanel('toc');
       const toc = [...document.querySelectorAll('#panelBody .prow')].slice(0, 3).map(cr);
-      const onTxt = (document.querySelector('#panelBody .prow.on') || {}).textContent || null, want = (bfChapterAt(R.page) || {}).t || null;
+      const onEl = document.querySelector('#panelBody .prow.on'), onTxt = onEl ? onEl.querySelector('.ptt').textContent : null, want = (bfChapterAt(R.page) || {}).t || null;
+      const other = document.querySelector('#panelBody .prow:not(.on)');
+      const look = e => { const cs = getComputedStyle(e); return cs.backgroundColor + cs.backgroundImage + cs.boxShadow + cs.borderTopColor + cs.borderTopWidth; };
+      const cur = onEl ? { txt: cr(onEl.querySelector('.ptt')), tag: cr(onEl.querySelector('.pnow')), tagText: onEl.querySelector('.pnow').textContent, differs: !!other && look(onEl) !== look(other), bold: +getComputedStyle(onEl).fontWeight >= 700,
+        inView: (() => { const r = onEl.getBoundingClientRect(), pb = document.getElementById('panelBody').getBoundingClientRect(); return r.top >= pb.top - 1 && r.bottom <= pb.bottom + 1; })() } : null;
       addBookmark(); renderPanel('marks');
       const mk = [...document.querySelectorAll('#panelBody .prow button:first-child, #panelBody .prow.add')].slice(0, 3).map(cr);
-      const o = { skin: document.documentElement.dataset.skin || '', night: isN(), toc, mk, onTxt, want };
+      const o = { skin: document.documentElement.dataset.skin || '', night: isN(), toc, mk, onTxt, want, cur };
       el('panelClose').click(); return o; }, night);
-    ok(`${sk || 'default'} ${night ? 'night' : 'day'}: «Навигация» — chapter and bookmark rows readable (contrast ≥4.5), the chapter being read marked`, r.night === night && r.toc.length >= 3 && r.toc.every(x => x >= 4.5) && r.mk.length >= 2 && r.mk.every(x => x >= 4.5) && r.onTxt === r.want && !!r.want, r);
-    if (SHOTS && sk === 'celestial' && !night) { await p.evaluate(() => { el('btnPanel').click(); renderPanel('toc'); }); await sleep(300); await shot('390-celestial-d-glavy'); await p.evaluate(() => el('panelClose').click()); }
+    ok(`${sk || 'default'} ${night ? 'night' : 'day'}: «Навигация» — chapter and bookmark rows readable (contrast ≥4.5), the chapter being read stands out (own look, «Читаете», readable, scrolled into view)`, r.night === night && r.toc.length >= 3 && r.toc.every(x => x >= 4.5) && r.mk.length >= 2 && r.mk.every(x => x >= 4.5) && r.onTxt === r.want && !!r.want && r.cur && r.cur.txt >= 4.5 && r.cur.tag >= 4.5 && r.cur.tagText === 'Читаете' && r.cur.differs && r.cur.bold && r.cur.inView, r);
+    if (SHOTS) { await p.evaluate(() => { document.querySelectorAll('.rq-toast,.toast').forEach(t => t.remove()); el('btnPanel').click(); renderPanel('toc'); }); await sleep(400); await p.evaluate(() => document.querySelectorAll('.rq-toast,.toast').forEach(t => t.remove())); await shot(`390-${sk || 'default'}-d-glavy-${night ? 'noch' : 'den'}`); await p.evaluate(() => el('panelClose').click()); }
   }
   await p.evaluate(() => closeReader({ quiet: true })); await sleep(600);
 }

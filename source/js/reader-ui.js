@@ -447,8 +447,11 @@ function renderPanel(tab){
   if(tab==='toc'){
     const toc=tocOf(b);
     body.innerHTML=toc.length
-      ?toc.map((ch,i)=>'<button class="prow'+(i===tocCur(b,toc)?' on" aria-current="true':'')+'" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
+      ?toc.map((ch,i)=>i===tocCur(b,toc)
+        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow">Читаете</span></button>'
+        :'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
       :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
+    const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+

@@ -671,3 +671,18 @@ html[data-skin="celestial"] #barBright::-webkit-slider-thumb{width:26px;height:2
 html[data-skin="celestial"] #barBright::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:0;background:var(--cl-thumb) center/contain no-repeat}
 html[data-skin="celestial"][data-theme="night"] #barBright::-webkit-slider-thumb{background-image:var(--cl-thumb-n)}
 html[data-skin="celestial"][data-theme="night"] #barBright::-moz-range-thumb{background-image:var(--cl-thumb-n)}
+
+/* ===== 21.10 «Главы»: the chapter being read, each skin its own (Джессика: «чтобы выделялась больше … у каждого скина») =====
+   Эллада — Aegean-blue row with a meander band at the bottom; Бабочковый — lilac tint, accent outline, a butterfly at the tag;
+   Небесный — the ink plate with the gold frame and a gold star. */
+html[data-skin="ellada"] #panelBody .prow.on{background:var(--rq-accent);color:var(--rq-on-accent);border-radius:var(--rq-radius-sm);padding-bottom:19px;box-shadow:inset 0 0 0 1px var(--rq-border-strong)}
+html[data-skin="ellada"] #panelBody .prow.on::after{content:"";position:absolute;left:10px;right:10px;bottom:5px;height:8px;background:var(--el-meander) 0 0/8px 8px repeat-x;opacity:.55;filter:brightness(3);pointer-events:none}
+html[data-skin="ellada"] #panelBody .prow.on .pnow{border-radius:var(--rq-radius-xs);text-transform:uppercase;font-size:0.6875rem;letter-spacing:.8px}
+html[data-skin="babochkovyi"] #panelBody .prow.on{background:var(--rq-accent-tint);color:var(--rq-text);box-shadow:inset 0 0 0 2px var(--rq-accent),0 3px 12px color-mix(in srgb,var(--rq-accent) 25%,transparent)}
+html[data-skin="babochkovyi"] #panelBody .prow.on .pnow{display:inline-flex;align-items:center;gap:5px;background:var(--rq-accent);color:var(--rq-on-accent)}
+html[data-skin="babochkovyi"] #panelBody .prow.on .pnow::before{content:"";width:16px;height:14px;background:var(--bb-fly) center/contain no-repeat;filter:brightness(0) invert(1)}
+html[data-skin="celestial"] #panelBody .prow.on{background:var(--cl-ink);color:var(--rq-on-accent);border:1px solid var(--cl-gold-l);box-shadow:var(--cl-frame),var(--rq-shadow-1);margin:4px 4px 12px;width:calc(100% - 8px)}
+html[data-skin="celestial"] #panelBody .prow.on .pnow{display:inline-flex;align-items:center;gap:5px;background:none;color:var(--cl-gold-l);padding:0}
+html[data-skin="celestial"] #panelBody .prow.on .pnow::before{content:"";width:12px;height:12px;background:var(--cl-gold-l);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow{color:inherit}
+html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow::before{background:var(--cl-gold-d)}

@@ -14,19 +14,15 @@ jobs:
           UA={'User-Agent':'readquest-probe/1.0 (github actions)','Origin':'https://example.org'}
           def get(u):
               x=urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60); return x,x.read()
-          FREE='(licenseurl:*publicdomain* OR date:[1000-01-01 TO 1929-12-31] OR year:[1000 TO 1929])'
-          NOT='NOT collection:(inlibrary OR printdisabled OR lendinglibrary OR internetarchivebooks OR newspapers OR magazine_rack OR magazine_packs OR pub_* OR periodicals OR serials OR folkscanomy_miscellaneous) NOT access-restricted-item:true'
+          FREE='(date:[1000-01-01 TO 1929-12-31] OR year:[1000 TO 1929] OR (licenseurl:*publicdomain* AND NOT date:[1930-01-01 TO 2100-12-31] AND NOT year:[1930 TO 2100]))'
+          NOT='NOT collection:(inlibrary OR printdisabled OR lendinglibrary OR internetarchivebooks) NOT access-restricted-item:true'
+          PER='NOT collection:(newspapers OR magazine_rack OR magazine_packs OR periodicals OR serials) NOT title:(ведомости OR газета OR журнал OR вестник OR известия OR gazette OR newspaper)'
           BASE='mediatype:texts AND format:DjVuTXT AND '+FREE+' AND '+NOT
           def T(q): return '(title:('+q+') OR creator:('+q+'))'
-          Q=[('ru-empty','language:(rus OR Russian) AND collection:booksbylanguage AND '+BASE),
-             ('ru-empty-nonum','language:(rus OR Russian) AND collection:booksbylanguage AND NOT title:(ведомости OR газета OR журнал OR вестник OR известия) AND '+BASE),
-             ('ru-tolstoy',T('толстой')+' AND language:(rus OR Russian) AND '+BASE),
-             ('ru-pushkin',T('пушкин')+' AND language:(rus OR Russian) AND '+BASE),
-             ('ru-onegin',T('онегин')+' AND '+BASE),
-             ('ru-voina',T('война и мир')+' AND '+BASE),
-             ('ru-voina2',T('(война AND мир)')+' AND '+BASE),
-             ('en-dickens',T('dickens')+' AND language:(eng OR English) AND '+BASE),
-             ('any-homer',T('homer')+' AND '+BASE)]
+          Q=[('ru-empty-creator','collection:booksbylanguage AND creator:* AND '+PER+' AND language:(rus OR Russian) AND '+BASE),
+             ('ru-empty-subject','collection:booksbylanguage AND subject:* AND creator:* AND '+PER+' AND language:(rus OR Russian) AND '+BASE),
+             ('en-empty-creator','collection:booksbylanguage AND creator:* AND '+PER+' AND language:(eng OR English) AND '+BASE),
+             ('ru-tolstoy',T('(толстой)')+' AND language:(rus OR Russian) AND '+BASE)]
           ids=[]
           for n,q in Q:
               u='https://archive.org/advancedsearch.php?'+urllib.parse.urlencode({'q':q,'fl[]':['identifier','title','creator','date','year','language','licenseurl','downloads','imagecount'],'rows':12,'page':1,'output':'json','sort[]':'downloads desc'},doseq=True)
@@ -34,7 +30,7 @@ jobs:
                   x,b=get(u); d=json.loads(b)
                   print('\n==',n,x.status,'ACAO=',x.headers.get('Access-Control-Allow-Origin'),'total',d['response']['numFound'])
                   for r in d['response']['docs']: print('   ',json.dumps({k:r.get(k) for k in ('identifier','title','creator','year','language','imagecount')},ensure_ascii=False)[:260])
-                  if n in('ru-onegin','en-dickens'): ids+= [r['identifier'] for r in d['response']['docs'][:1]]
+                  pass
               except Exception as e: print('\n==',n,'ERR',e)
           for i in ids[:3]:
               try:

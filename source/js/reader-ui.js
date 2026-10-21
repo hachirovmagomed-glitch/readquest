@@ -172,7 +172,7 @@ function flashMsg(t,o){
   if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');if(pg==='night')d.dataset.theme='night';} /* night page → night toast tokens */
   d.onclick=function(){d.remove();};
   document.body.appendChild(d);
-  if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12)+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title */
+  if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12+(el('bnRead')?32:0))+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title; 20.10: and over the «Читать» bump */
   if(inReader){const rb=el('reader').querySelector('.rbot');if(rb&&!el('reader').classList.contains('barsoff')){const h=window.innerHeight-rb.getBoundingClientRect().top;if(rb.offsetHeight&&h>40&&h<window.innerHeight/2)d.style.setProperty('bottom',Math.round(h+12)+'px','important');}} /* audit 19.10: over the panel, not on it */
   if(d.scrollWidth>d.clientWidth+1)d.classList.add('imp'); /* long text wraps instead of running off the screen */
   const dur=ms!=null?ms:(inReader?3000:1600);
@@ -180,17 +180,19 @@ function flashMsg(t,o){
 }
 
 /* audit 19.10 GL-04 / LIB-02: no system dialogs. rqAlert = a toast; rqAsk = a bottom sheet with «Отмена» (focused, Esc, tap outside) and the action.
-   rqAsk({t,p,ok,danger}) → Promise<boolean> */
+   rqAsk({t,p,ok,danger}) → Promise<boolean>; with input:'text' a text field → Promise<string|null> (null = «Отмена») */
 function rqAlert(t){flashMsg(String(t||''),{ms:4000,kind:/^Не удал|^Не хватает|не поддерж|запрещен/i.test(String(t||''))?'error':'info'});}
 function rqAsk(o){return new Promise(function(res){
   let sc=el('rqAskScrim'),d=el('rqAsk');
   if(!d){sc=document.createElement('div');sc.id='rqAskScrim';d=document.createElement('div');d.id='rqAsk';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','rqAskT');document.body.appendChild(sc);document.body.appendChild(d);}
-  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p><div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
+  const inp=o.input!=null;
+  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p>'+(inp?'<textarea id="rqAskIn" rows="3" maxlength="1000" aria-labelledby="rqAskT"></textarea>':'')+'<div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
   el('rqAskT').textContent=o.t||'';el('rqAskP').textContent=o.p||'';el('rqAskP').hidden=!o.p;el('rqAskOk').textContent=o.ok||'Да';el('rqAskOk').className=o.danger?'danger':'cta';
   const kd=function(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}};
-  const done=function(v){sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(v);};
+  if(inp)el('rqAskIn').value=String(o.input);
+  const done=function(v){const tv=inp?(v?el('rqAskIn').value.trim().slice(0,1000):null):v;sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(tv);};
   el('rqAskNo').onclick=function(){done(false);};el('rqAskOk').onclick=function(){done(true);};sc.onclick=function(){done(false);};
-  sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el('rqAskNo').focus({preventScroll:true});}catch(e){}
+  sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el(inp?'rqAskIn':'rqAskNo').focus({preventScroll:true});}catch(e){}
 });}
 
 /* --- выделение текста → цитаты --- */
@@ -201,28 +203,114 @@ function selText(){
   return t.length>2?t:'';
 }
 function updSelPop(){
-  el('selpop').classList.toggle('hidden',!selText()||el('reader').classList.contains('hidden'));
+  const off=!selText()||el('reader').classList.contains('hidden');
+  if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
+  el('selpop').classList.toggle('hidden',off);
 }
 let selT=null;
 document.addEventListener('selectionchange',()=>{if(selT)clearTimeout(selT);selT=setTimeout(updSelPop,200);});
-function markInContent(t){
-  const c=el('content');const k=esc(t);
-  if(c.innerHTML.includes(k))c.innerHTML=c.innerHTML.replace(k,'<mark>'+k+'</mark>');
+/* 20.10 цвета цитат (Джессика, как в ReadEra): цвет — поле q.c у цитаты (нет поля или кривое = жёлтый), последний выбор — SET.hlc.
+   Свой цвет (Джессика: «кастомным цветом») — q.c = '#rrggbb', последний свой — SET.hlx; прозрачность подбирается под страницу, текст книги ≥ 7:1 */
+const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
+const HL_HEX=/^#[0-9a-f]{6}$/;
+function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
+function hlDot(c){const k=hlKey(c);return k[0]==='#'?k:HL_COLORS.find(x=>x.k===k).d;}
+/** colour of a highlighted string = the colour of its quote (S.hl keeps plain strings, as before) */
+function quoteColor(bid,t){const q=(S.quotes[bid]||[]).find(x=>x&&x.text===t);return hlKey(q&&q.c);}
+function markHtml(k,c){return c&&c[0]==='#'?'<mark data-hc="'+c+'">'+k+'</mark>':'<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
+function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;m.style.background='';hlPaintCustom();}
+/** own colours: the strongest alpha (day ≤ .45, night ≤ .30) at which the book text over it stays ≥ 7:1 on this page */
+function hlPaintCustom(){
+  const ms=document.querySelectorAll('#content mark[data-hc]');if(!ms.length)return;
+  const rgb=(s)=>{const v=(String(s).match(/[\d.]+/g)||[0,0,0]).map(Number);return /^color\(srgb/.test(s)?v.map((x,i)=>i<3?x*255:x):v;};
+  const lum=(c)=>{const f=(v)=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};return 0.2126*f(c[0])+0.7152*f(c[1])+0.0722*f(c[2]);};
+  const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);};
+  const r=el('reader'),page=rgb(getComputedStyle(r).backgroundColor),night=r.dataset.page==='night',memo={};
+  ms.forEach(m=>{const hc=hlKey(m.dataset.hc);if(hc[0]!=='#')return;const tx=rgb(getComputedStyle(m).color);
+    const key=hc+tx.join();if(!(key in memo)){const c=[1,3,5].map(i=>parseInt(hc.slice(i,i+2),16));let a=night?0.30:0.45;
+      while(a>0.03&&cr(tx,c.map((v,i)=>v*a+page[i]*(1-a)))<7.05)a-=0.01;memo[key]='rgba('+c.join(',')+','+a.toFixed(2)+')';}
+    m.style.background=memo[key];});
 }
-function addQuote(withNote){
-  const t=selText();if(!t||!R.book)return;
-  let note='';
-  if(withNote)note=prompt('Заметка к цитате:')||'';
-  (S.quotes[R.book.id]=S.quotes[R.book.id]||[]).push({text:t,note,date:today()});
-  (S.hl[R.book.id]=S.hl[R.book.id]||[]).push(t);
-  if(!(window.__rqWriter&&__rqWriter.noLocks)){
-    if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
-    addSkillXp('Аналитика',1);checkAchievements();
-  } /* no locks → no coins */
-  save();
-  markInContent(t);
-  if(window.getSelection)window.getSelection().removeAllRanges();
-  el('selpop').classList.add('hidden');
+/* 21.10 (Джессика: «выделяю в PDF, жму цвет — ничего не происходит»): in a PDF the quote also keeps where it is —
+   q.pdf = {p: page index, r: [[x,y,w,h],…] in 0…1 of the page's text layer}; the highlight is drawn as boxes in that layer */
+function pdfSelGeo(){
+  try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
+    let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
+    const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
+    const r=[];Array.prototype.forEach.call(rg.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right),y0=Math.max(q.top,b.top),y1=Math.min(q.bottom,b.bottom);
+      if(x1-x0<1||y1-y0<1)return;const k=[(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height].map(v=>Math.round(v*1e4)/1e4);
+      if(!r.some(o=>Math.abs(o[0]-k[0])<.002&&Math.abs(o[1]-k[1])<.002&&Math.abs(o[2]-k[2])<.002))r.push(k);});
+    return r.length?{p:p,r:r.slice(0,200)}:null;}catch(e){return null;}
+}
+function pdfHlPaint(tl,p){
+  if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
+  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&q.pdf.p===p&&Array.isArray(q.pdf.r));if(!qs.length)return;
+  const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
+  qs.forEach(q=>{const c=hlKey(q.c),bg=c[0]==='#'?'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+',.35)':'var(--hl-'+c+')';
+    q.pdf.r.forEach(k=>{if(!Array.isArray(k)||k.length!==4||!k.every(v=>typeof v==='number'&&isFinite(v)))return;const d=document.createElement('i');
+      d.style.cssText='left:'+k[0]*100+'%;top:'+k[1]*100+'%;width:'+k[2]*100+'%;height:'+k[3]*100+'%;background:'+bg;box.appendChild(d);});});
+  tl.insertBefore(box,tl.firstChild);
+}
+function pdfHlRefresh(){
+  if(!R.book||R.mode!=='pdf')return;
+  document.querySelectorAll('#pdfScroll .psl .textLayer').forEach(tl=>pdfHlPaint(tl,+tl.closest('.psl').dataset.n));
+  const t=el('pdfText');if(t&&t.childNodes.length)pdfHlPaint(t,R.page);
+}
+function markInContent(t,c){
+  const c0=el('content');const k=esc(t);
+  if(c0.innerHTML.includes(k)){c0.innerHTML=c0.innerHTML.replace(k,markHtml(k,hlKey(c)));hlPaintCustom();}
+}
+function renderSpColors(){
+  const box=el('spColors');if(!box)return;const cur=hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';
+  box.innerHTML=HL_COLORS.map(x=>'<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+x.n.toLowerCase()+'" title="'+x.n+'" style="--d:'+x.d+'"><i aria-hidden="true"></i></button>').join('')+
+    '<button type="button" id="spOwn"'+(cur[0]==='#'?' class="on"':'')+' aria-label="Цитата, свой цвет" title="Свой цвет"'+(own?' style="--d:'+own+'"':'')+'><i class="own'+(own?' set':'')+'" aria-hidden="true"></i></button>';
+}
+/* own colour: the system colour picker (input type=color outside the bar, so hiding the bar never closes it); the selection is taken BEFORE it opens */
+let hlPick=null;
+function hlOwnInput(){let i=el('hlOwnIn');if(!i){i=document.createElement('input');i.type='color';i.id='hlOwnIn';i.tabIndex=-1;i.setAttribute('aria-hidden','true');
+  i.style.cssText='position:fixed;left:50%;bottom:120px;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none';document.body.appendChild(i);
+  i.addEventListener('change',()=>{const v=hlKey(i.value),pk=hlPick;hlPick=null;if(v[0]!=='#'||!pk)return;SET.hlx=v;addQuote(false,v,pk);});}
+  return i;}
+function hlOwnOpen(){
+  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo()};
+  const i=hlOwnInput();i.value=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0';
+  try{if(i.showPicker)i.showPicker();else i.click();}catch(e){i.click();}
+}
+/** an already highlighted quote the selection sits in (then a colour recolours it instead of adding a copy) */
+function selMark(){
+  try{const s=window.getSelection();if(!s||!s.rangeCount)return null;let n=s.getRangeAt(0).commonAncestorContainer;if(n&&n.nodeType===3)n=n.parentNode;
+    const m=n&&n.closest&&n.closest('mark');return m&&el('content').contains(m)?m:null;}catch(e){return null;}
+}
+function selDone(){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
+function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the colour picker opened */
+  const m=pick?pick.m:selMark(),t=pick?pick.t:(m?m.textContent:selText());if(!t||!R.book||(pick&&pick.bid!==R.book.id))return;
+  const geo=pick?pick.geo:pdfSelGeo();
+  if(m&&!m.isConnected)return;
+  const bid=R.book.id,c=hlKey(color||SET.hlc);
+  if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
+  const old=m?(S.quotes[bid]||[]).find(x=>x&&x.text===t):null;
+  if(old){ /* recolour / re-note the quote under the selection */
+    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();hlSetMark(m,c);};
+    if(withNote){selDone();return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:old.note||''}).then(v=>{if(v!==null)put(v);});}
+    put(null);selDone();return;
+  }
+  const commit=(note)=>{
+    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;
+    (S.quotes[bid]=S.quotes[bid]||[]).push(q);
+    (S.hl[bid]=S.hl[bid]||[]).push(t);
+    if(!(window.__rqWriter&&__rqWriter.noLocks)){
+      if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
+      addSkillXp('Аналитика',1);checkAchievements();
+    } /* no locks → no coins */
+    save();
+    if(!R.book||R.book.id!==bid)return;
+    markInContent(t,c);if(geo)pdfHlRefresh();
+  };
+  if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
+    selDone();
+    return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:''}).then(v=>{if(v!==null)commit(v);});
+  }
+  commit('');selDone();
 }
 function copyText(t){
   try{navigator.clipboard.writeText(t);}
@@ -234,6 +322,7 @@ function copyText(t){
   }
 }
 el('spHl').onclick=()=>addQuote(false);
+el('spColors').onclick=(e)=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;if(b.id==='spOwn')hlOwnOpen();else if(b.dataset.c)addQuote(false,b.dataset.c);};
 el('spNote').onclick=()=>addQuote(true);
 
 /* --- словарь по выделению --- */
@@ -262,6 +351,7 @@ el('spCopy').onclick=()=>{
 };
 document.addEventListener('keydown',e=>{
   if(el('reader').classList.contains('hidden'))return;
+  if(e.target&&e.target.closest&&e.target.closest('input,textarea,[contenteditable]'))return; /* 20.10: typing a note never turns the page */
   if(e.key==='ArrowRight'||e.key===' ')goPage(R.page+1,true);
   if(e.key==='ArrowLeft')goPage(R.page-1,true);
   if(e.key==='Escape')readerBack();
@@ -299,7 +389,7 @@ el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
     const dy=e.touches[0].clientY-bright.y0;if(Math.abs(dy)>6)bright.mv=true;
-    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's), «Затемнение» stays */
+    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's) */
     rqLightApply();
     return;
   }
@@ -352,80 +442,45 @@ el('panelClose').onclick=()=>el('panel').classList.add('hidden');
 el('tabToc').onclick=()=>renderPanel('toc');
 el('tabMarks').onclick=()=>renderPanel('marks');
 el('tabQts').onclick=()=>renderPanel('qts');
-el('tabFind').onclick=()=>renderPanel('find');
+el('tabFind').onclick=()=>bfOpen(); /* 20.10: the one search screen (js/book-find.js), the same as the magnifier in the header */
+el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
 function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
 /* audit 19.10 FR-03: a TXT without a stored toc gets one from its «Глава N» / «Часть N» lines (memory only, never written) */
 let __txtToc={id:null,toc:[]};
-function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;if(!b.text||b.type==='pdf')return [];if(__txtToc.id===b.id)return __txtToc.toc;
+function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
+  if(b.type==='pdf')return (R&&R.book===b&&R.pdfToc)||[]; /* 20.10: PDF bookmarks [{t,page}], memory only (bfPdfOutline) */
+  if(!b.text)return [];if(__txtToc.id===b.id)return __txtToc.toc;
   const out=[],re=/(^|\n)[ \t]*((?:Глава|ГЛАВА|Часть|ЧАСТЬ)[ \t]+[^\n]{1,60})/g;let m;
   while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
   __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
+/* 21.10: the chapter being read is marked in «Главы» (the last one that starts on or before the current page) */
+function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1;
+  toc.forEach(function(x,i){const p=x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0);if(p<=pg&&(c<0||p>=(toc[c].page!=null?toc[c].page:Math.round(toc[c].off/len*(N-1)))))c=i;});
+  tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
+/* 21.10 (Джессика: «вместо слова "читаете" значок»): each skin its own mark (Бабочковый / Небесный draw theirs in skins.css) */
+function tocNowIcon(){const k=document.documentElement.dataset.skin||'';return k==='ellada'?'amphora':k==='pencil'?'pencil':'book-open';}
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
+  if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
   jumpRatio(b.text&&b.text.length?toc[i].off/b.text.length:0);
 }
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
-let FINDQ='';
-let FINDTOKEN=0;
-function doFind(){
-  const res=el('findRes');if(!res)return;
-  const b=R.book;
-  if(!FINDQ||FINDQ.trim().length<2){res.innerHTML='<div class="pempty">Введите минимум 2 символа</div>';return;}
-  const q=FINDQ.trim().toLowerCase();
-  if(b&&b.text){
-    const tl=b.text.toLowerCase();const out=[];let i=0;
-    while(out.length<40){
-      const p=tl.indexOf(q,i);if(p<0)break;
-      const fr=p/b.text.length;
-      const ctx=b.text.slice(Math.max(0,p-40),p+q.length+40).replace(/\n+/g,' ');
-      out.push('<button class="prow" onclick="jumpRatio('+fr.toFixed(4)+')">…'+esc(ctx)+'…</button>');
-      i=p+q.length;
-    }
-    res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';return;
-  }
-  if(R.mode==='pdf'&&R.pdf){pdfFind(q,res);return;}
-  res.innerHTML='<div class="pempty">Поиск недоступен</div>';
-}
-async function pdfFind(q,res){
-  const token=++FINDTOKEN;
-  res.innerHTML='<div class="pempty">Ищу по страницам…</div>';
-  const out=[];
-  for(let n=0;n<R.pageCount;n++){
-    if(token!==FINDTOKEN)return;
-    try{
-      const page=await R.pdf.getPage(n+1);
-      const tc=await page.getTextContent();
-      const txt=tc.items.map(it=>it.str).join(' ');
-      const pos=txt.toLowerCase().indexOf(q);
-      if(pos>=0){
-        const ctx=txt.slice(Math.max(0,pos-40),pos+q.length+50).replace(/\s+/g,' ');
-        out.push('<button class="prow" onclick="findGo('+n+')">стр. '+(n+1)+': …'+esc(ctx)+'…</button>');
-        if(token===FINDTOKEN)res.innerHTML=out.join('')+'<div class="pempty">ищу дальше…</div>';
-      }
-    }catch(e){}
-    if(out.length>=60)break;
-  }
-  if(token===FINDTOKEN)res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';
-}
-function findGo(n){jumpTo(n);el('panel').classList.add('hidden');}
 function renderPanel(tab){
   panelTab=tab;rqGridStop();
-  [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabFind','find'],['tabGrid','grid']]
+  [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
   const body=el('panelBody');const b=R.book;
   if(!b){body.innerHTML='<div class="pempty">Откройте книгу</div>';return;}
-  if(tab==='find'){
-    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
-    el('bookFind').oninput=e=>{FINDQ=e.target.value;doFind();};
-    doFind();return;
-  }
   if(tab==='grid'){rqGridRender(body);return;} /* 18.10: real page thumbnails, js/page-grid.js */
   if(tab==='toc'){
     const toc=tocOf(b);
     body.innerHTML=toc.length
-      ?toc.map((ch,i)=>'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
+      ?toc.map((ch,i)=>i===tocCur(b,toc)
+        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow" role="img" aria-label="Читаете" title="Читаете">'+rqIcon(tocNowIcon(),18)+'</span></button>'
+        :'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
       :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
+    const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
@@ -595,6 +650,7 @@ function closeReader(opts){
 async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
+  if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo)fo.hidden=true;} /* 20.10: the search lives with the open book only */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);

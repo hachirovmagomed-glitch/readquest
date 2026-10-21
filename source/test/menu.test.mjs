@@ -38,7 +38,7 @@ await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"
 r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), body: !!el('vocabBody').innerHTML, di: el('dStats').classList.contains('on') }));
 ok('9b the «Словарь» tab opens the vocab inside «Инвентарь»', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.body && r.di, r);
 const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'vocab', 'profile']; return navGet(); });
-ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile', nav);
+ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile,path', nav); /* 20.10: always 4 tabs, the free slot gets «Путь» */
 await p.evaluate(() => { SET.nav = ['library', 'stats', 'profile']; renderNav(); openProgress('quotes'); applyMvpChrome(); });
 ok('11 the pinned «Статистика» tab lights on the quotes tab too', await p.evaluate(() => el('bnStats').classList.contains('on')));
 await p.evaluate(() => navGo('quests')); await sleep(100);

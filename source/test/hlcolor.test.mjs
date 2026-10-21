@@ -57,8 +57,8 @@ ok('2 green dot: one quote c=g, its mark has class hl-g, SET.hlc g (saved), bar 
 // 3. «Цитата» uses the remembered colour; ring moved to green
 const t3 = await select(1); await sleep(300);
 const on3 = await p.evaluate(() => [...document.querySelectorAll('#spColors button.on')].map(x => x.dataset.c).join());
-await tap('#spHl'); q = await qs();
-ok('3 «Цитата» saves in the last colour (green), ring on green', on3 === 'g' && q.length === 2 && q[1].t === t3 && q[1].c === 'g', { on3, q });
+await tap('#spColors button.on'); q = await qs();
+ok('3 the ring stays on the last colour (green); it saves in green (22.10: no separate «Цитата» marker)', on3 === 'g' && q.length === 2 && q[1].t === t3 && q[1].c === 'g', { on3, q });
 
 // 4. selection inside an existing highlight + blue → recolour, no copy, no extra coins
 const g4 = await p.evaluate(() => S.gold);

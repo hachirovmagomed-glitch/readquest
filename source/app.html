@@ -560,6 +560,8 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
+#selpop:not(.qmode) .spq,#selpop.qmode #spWord{display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
+#content mark.qon,.textLayer .pdfhls i.qon{outline:2px solid var(--hs);outline-offset:1px}
 @media (max-width:380px){#selpop{padding:6px 4px;gap:0}#selpop>button{padding:8px 10px}} /* 360: the actions stay one row under the colours, also with «Объясни» */
 .qcard{background:var(--card);border-radius:var(--rq-radius-md);padding:12px;margin-bottom:10px}
 .qtext{font-size:0.875rem;line-height:1.5}
@@ -2097,12 +2099,13 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="timerHint" class="hidden"></div>
     <div id="selpop" class="hidden">
       <div id="spColors" role="group" aria-label="Цвет цитаты"></div><!-- 20.10: цвета цитат, кнопки рисует reader-ui.js (HL_COLORS) -->
-      <button id="spHl" aria-label="Цитата"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg><span class="splab"> Цитата</span></button>
       <button id="spNote" aria-label="Заметка"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span class="splab"> Заметка</span></button>
       <button id="spWord" title="В словарь" aria-label="В словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></button>
       <button id="spDict" aria-label="Словарь" title="Словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
       <button id="spAI" aria-label="Объясни"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Объясни</button>
       <button id="spCopy" aria-label="Копировать" title="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
+      <button id="spDel" class="spq" aria-label="Удалить цитату" title="Удалить"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-trash-2"/></svg></button>
+      <button id="spAll" class="spq" aria-label="Все цитаты" title="Все цитаты"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg></button>
     </div>
   </div>
   <button id="navPrev" class="navbtn hidden" aria-label="Предыдущая страница">‹</button><!-- audit 19.10 RD-NAV-01: in the side field, outside #viewer -->

@@ -14,7 +14,7 @@ function renderQuotes(){
     });
   });
   el('quoteBox').innerHTML=parts.length?parts.join(''):
-    '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге&nbsp;— появится кнопка «'+rqIcon('highlighter',14)+'&nbsp;Цитата».'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
+    '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге и нажмите цвет&nbsp;— '+rqIcon('highlighter',14)+'&nbsp;цитата появится здесь.'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;
@@ -681,10 +681,9 @@ function selCtx(word){ /* предложение вокруг выделения
 }
 el('spAI').onclick=()=>{
   const t=selText();if(!t)return;
-  if(!aiOn()){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');aiNoKey();return;}
+  if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
-  if(window.getSelection)window.getSelection().removeAllRanges();
-  el('selpop').classList.add('hidden');
+  selDone();
   aiExplain(q);
 };
 function aiNoKey(){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает) */

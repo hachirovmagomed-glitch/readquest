@@ -418,6 +418,7 @@ function pdfZoomAt(z,cx,cy){
 function pdfTap(cx,cy){
   const sel=selText();
   pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
+  if(quoteTapAt(cx,cy))return; /* 22.10: a saved highlight → its bar (no double-tap wait) */
   if(sel)return;
   const now=performance.now();
   if(P.tapT&&now-P.tapAt<=PDF_DBL_MS&&Math.hypot(cx-P.tapX,cy-P.tapY)<60){clearTimeout(P.tapT);P.tapT=null;pdfDoubleTap(cx,cy);return;}
@@ -461,9 +462,14 @@ function pdfTouchStart(e){
   P.g={type:'one',x0:t.clientX,y0:t.clientY,t0:performance.now(),tx0:P.tx,ty0:P.ty,atL:G.atL,atR:G.atR,pannable:G.pannable,moved:false,
     bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.bright==null?1:SET.bright}:null};
 }
+/* 22.10 (Джессика: «PDF более отзывчивы к выделению текста»): while text is being selected (a long press made a selection, or the finger
+   has rested on the page), one finger belongs to the selection — no pan, no swipe flip, no blocked move, so the selection follows the finger */
+function pdfSelecting(){const g=window.getSelection&&window.getSelection();if(!g||g.isCollapsed||!g.anchorNode)return false;
+  const n=g.anchorNode.nodeType===3?g.anchorNode.parentNode:g.anchorNode;return !!(n&&n.closest&&n.closest('.textLayer'));}
 function pdfTouchMove(e){
   if(PS.on){psTouchMove(e);return;}
   const g=P.g;if(!g)return;
+  if(g.type==='one'&&e.touches.length===1&&(g.sel||(g.sel=pdfSelecting()||(!g.moved&&!g.bright&&performance.now()-g.t0>450))))return; /* selecting */
   if(e.cancelable)e.preventDefault(); /* the browser must never zoom/scroll the page itself */
   const r=pdfVR();
   if(g.type==='pinch'&&e.touches.length>=2){
@@ -502,6 +508,7 @@ function pdfTouchEnd(e){
   P.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
   if(g.bright&&g.moved){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}
+  if(g.sel||pdfSelecting()){if(g.pannable&&g.moved)pdfApply();return;} /* 22.10: the end of a selection drag is not a swipe / tap */
   const swipeOn=flipGet().swipe!==false;
   const inv=flipGet().invert?-1:1;
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
@@ -842,6 +849,7 @@ el('viewer').addEventListener('click',e=>{
 /* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
    click right after a swipe), mouse/keyboard clicks via 'click'. */
 function viewerTap(cx,cy){
+  if(quoteTapAt(cx,cy))return; /* 22.10: a tap on a saved highlight opens its bar; with the bar open the tap only closes it */
   if(selText())return; // идёт выделение текста — не листаем
   const r=el('viewer').getBoundingClientRect();
   const x=(cx-r.left)/r.width;

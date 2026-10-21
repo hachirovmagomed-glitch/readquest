@@ -706,6 +706,8 @@ if (want('pdflook')) {
     const h = await p.evaluate(() => [...document.querySelectorAll('#pdfText span')].filter(s => s.textContent.trim()).map(s => [s.textContent, s.classList.contains('v'), getComputedStyle(s).color, s.style.fontWeight + ' ' + s.style.fontStyle]));
     const fd = (re) => h.find(x => re.test(x[0])) || [], vis = fd(/Visible/), hid = fd(/Hidden/), bo = fd(/Bold/), itl = fd(/Italic/);
     ok('pdflook font: hidden (OCR) text stays invisible, drawn text is shown', vis[1] && hid.length && !hid[1] && /rgba\(0, 0, 0, 0\)/.test(hid[2]), h);
+    const und = fd(/Under scan/);
+    ok('pdflook font: text under a picture (OCR under a scanned page, Джессика 21.10 «безумие») stays hidden, the picture is not overlaid', und.length && !und[1] && /rgba\(0, 0, 0, 0\)/.test(und[2]), und);
     ok('pdflook font: bold and italic of the file stay bold and italic', bo[1] && bo[3] === '700 normal' && itl[1] && itl[3] === '400 italic' && vis[3] === '400 normal', h);
     await ctx.close();
   }

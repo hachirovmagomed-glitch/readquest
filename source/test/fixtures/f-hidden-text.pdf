@@ -6,15 +6,17 @@ endobj
 << /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj
 3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 400] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 4 0 R >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 400] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> /XObject << /Im1 8 0 R >> >> /Contents 4 0 R >>
 endobj
 4 0 obj
-<< /Length 183 >>
+<< /Length 267 >>
 stream
 BT /F1 24 Tf 30 330 Td (Visible line) Tj ET
 BT /F2 20 Tf 30 290 Td (Bold title) Tj ET
 BT /F3 20 Tf 30 250 Td (Italic words) Tj ET
 BT 3 Tr /F1 24 Tf 30 150 Td (Hidden OCR words) Tj ET
+BT 0 Tr /F1 20 Tf 30 80 Td (Under scan words) Tj ET
+q 240 0 0 34 25 72 cm /Im1 Do Q
 endstream
 endobj
 5 0 obj
@@ -26,18 +28,25 @@ endobj
 7 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
 endobj
+8 0 obj
+<< /Type /XObject /Subtype /Image /Width 2 /Height 2 /ColorSpace /DeviceGray /BitsPerComponent 8 /Length 4 >>
+stream
+лллл
+endstream
+endobj
 xref
-0 8
+0 9
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
-0000000261 00000 n 
-0000000494 00000 n 
-0000000591 00000 n 
-0000000693 00000 n 
+0000000287 00000 n 
+0000000604 00000 n 
+0000000701 00000 n 
+0000000803 00000 n 
+0000000908 00000 n 
 trailer
-<< /Size 8 /Root 1 0 R >>
+<< /Size 9 /Root 1 0 R >>
 startxref
-798
+1055
 %%EOF

@@ -45,6 +45,11 @@ function rqSyncSwitches(){document.querySelectorAll('.sw').forEach(function(b){c
 function generalOverReader(){const g=el('settings');return !!(g&&g.classList.contains('over')&&!g.classList.contains('hidden'));}
 function openGeneralSettings(over){renderSettings();const g=el('settings');
   if(over){g.classList.add('over');g.classList.remove('hidden');navPush('settings');}else{g.classList.remove('over');show('settings');}}
+/* 21.10 (Джессика, запись): jump to a section of «Настройки» opened over the reader — scroll only the .scroll pane (scrollIntoView also
+   shifted the fixed screen itself), and stop just under the sticky «Назад» row */
+function settingsScrollTo(id){const g=el('settings'),sc=g&&g.querySelector('.scroll'),t=el(id);if(!sc||!t)return;
+  const hd=g.querySelector('.wrap > .row');g.scrollTop=0;
+  sc.scrollTop+=t.getBoundingClientRect().top-sc.getBoundingClientRect().top-((hd&&hd.offsetHeight)||0)-12;}
 function closeGeneralSettings(){const g=el('settings');g.classList.add('hidden');g.classList.remove('over');}
 el('setBack').onclick=function(){if(generalOverReader()){closeGeneralSettings();if(navState()==='settings')try{history.back();}catch(e){}return;}show(isMvp()?'profile':'library');};
 function renderSettings(){

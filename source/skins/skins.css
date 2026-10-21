@@ -652,25 +652,25 @@ html[data-skin="ellada"] .bfrow,html[data-skin="babochkovyi"] .bfrow{box-shadow:
 html[data-skin="ellada"] .bfrow.on,html[data-skin="babochkovyi"] .bfrow.on{box-shadow:0 0 0 1px var(--rq-line),inset 3px 0 0 var(--rq-accent)}
 /* 20.10 (Джессика): the «Яркость» slider under the reader's top bar, each skin its own (pencil in app.html) */
 html[data-skin]:not([data-skin="pencil"]) .rbright{color:var(--rq-accent-text)}
-/* Эллада: a meander band fills up to the value, a gold drachma for the thumb */
-html[data-skin="ellada"] #barBright::-webkit-slider-runnable-track{height:8px;border-radius:1px;background:linear-gradient(90deg,transparent var(--v),var(--rq-surface) var(--v)),var(--el-meander) 0 0/8px 8px repeat-x;box-shadow:0 0 0 1px var(--rq-line)}
-html[data-skin="ellada"] #barBright::-moz-range-track{height:8px;background:linear-gradient(90deg,transparent var(--v),var(--rq-surface) var(--v)),var(--el-meander) 0 0/8px 8px repeat-x;box-shadow:0 0 0 1px var(--rq-line)}
-html[data-skin="ellada"] #barBright::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8px;border-radius:50%;border:1.5px solid #7a5418;background:radial-gradient(circle at 36% 30%,#f6dc94,#c99a3a 60%,#9a6c22);box-shadow:inset 0 0 0 3px rgba(122,84,24,.25),0 1px 3px rgba(0,0,0,.35)}
-html[data-skin="ellada"] #barBright::-moz-range-thumb{width:24px;height:24px;border-radius:50%;border:1.5px solid #7a5418;background:radial-gradient(circle at 36% 30%,#f6dc94,#c99a3a 60%,#9a6c22)}
-/* Бабочковый: a meadow stem from green to lilac, a butterfly sits on it */
+/* Эллада: a thin terracotta line with a meander dot — a small round tile with the Greek key, not a coin */
+html[data-skin="ellada"]{--el-key:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7.3' fill='%23c8642c' stroke='%237a3a16' stroke-width='1.2'/%3E%3Cpath d='M5 11V5h6v4H7.5V7.5H9' fill='none' stroke='%23f6e7cf' stroke-width='1.4'/%3E%3C/svg%3E")}
+html[data-skin="ellada"] #barBright::-webkit-slider-runnable-track{height:3px;border-radius:0;background:linear-gradient(90deg,#c8642c var(--v),color-mix(in srgb,var(--rq-line) 90%,transparent) var(--v))}
+html[data-skin="ellada"] #barBright::-moz-range-track{height:3px;background:linear-gradient(90deg,#c8642c var(--v),color-mix(in srgb,var(--rq-line) 90%,transparent) var(--v))}
+html[data-skin="ellada"] #barBright::-webkit-slider-thumb{width:16px;height:16px;margin-top:-6.5px;border:0;border-radius:50%;background:var(--el-key) center/contain no-repeat;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+html[data-skin="ellada"] #barBright::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--el-key) center/contain no-repeat}
+/* Бабочковый: a thin meadow stem from green to lilac, a small butterfly sits on it */
 html[data-skin="babochkovyi"]{--bb-fly:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cg stroke='%236b5aa8' stroke-width='1.2' stroke-linejoin='round'%3E%3Cpath d='M14 12C9 2 1 1 2 7c.6 4 5 6 12 5z' fill='%23c3b4f2'/%3E%3Cpath d='M14 12C19 2 27 1 26 7c-.6 4-5 6-12 5z' fill='%23c3b4f2'/%3E%3Cpath d='M14 12c-6 1-9 5-7 8 2 2 6-2 7-8z' fill='%23f2b6d0'/%3E%3Cpath d='M14 12c6 1 9 5 7 8-2 2-6-2-7-8z' fill='%23f2b6d0'/%3E%3C/g%3E%3Cpath d='M14 6v14' stroke='%234a3f78' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")}
-html[data-skin="babochkovyi"] #barBright::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:linear-gradient(90deg,transparent var(--v),color-mix(in srgb,var(--rq-line) 80%,transparent) var(--v)),linear-gradient(90deg,#9cc48a,#a996e6)}
-html[data-skin="babochkovyi"] #barBright::-moz-range-track{height:5px;border-radius:999px;background:linear-gradient(90deg,transparent var(--v),color-mix(in srgb,var(--rq-line) 80%,transparent) var(--v)),linear-gradient(90deg,#9cc48a,#a996e6)}
-html[data-skin="babochkovyi"] #barBright::-webkit-slider-thumb{width:28px;height:24px;margin-top:-10px;border:0;border-radius:0;box-shadow:none;background:var(--bb-fly) center/contain no-repeat}
-html[data-skin="babochkovyi"] #barBright::-moz-range-thumb{width:28px;height:24px;border:0;border-radius:0;background:var(--bb-fly) center/contain no-repeat}
-/* Небесный: dusk-to-gold sky, the star thumb glows */
+html[data-skin="babochkovyi"] #barBright::-webkit-slider-runnable-track{height:2px;border-radius:999px;background:linear-gradient(90deg,transparent var(--v),color-mix(in srgb,var(--rq-line) 80%,transparent) var(--v)),linear-gradient(90deg,#9cc48a,#a996e6)}
+html[data-skin="babochkovyi"] #barBright::-moz-range-track{height:2px;border-radius:999px;background:linear-gradient(90deg,transparent var(--v),color-mix(in srgb,var(--rq-line) 80%,transparent) var(--v)),linear-gradient(90deg,#9cc48a,#a996e6)}
+html[data-skin="babochkovyi"] #barBright::-webkit-slider-thumb{width:20px;height:17px;margin-top:-7.5px;border:0;border-radius:0;box-shadow:none;background:var(--bb-fly) center/contain no-repeat}
+html[data-skin="babochkovyi"] #barBright::-moz-range-thumb{width:20px;height:17px;border:0;border-radius:0;background:var(--bb-fly) center/contain no-repeat}
+/* Небесный: a thin gold thread and a small round sun with rays — not the page slider's diamond star */
+html[data-skin="celestial"]{--cl-sun:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'%3E%3Cg stroke='%23b8862e' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M9 .8v2M9 15.2v2M.8 9h2M15.2 9h2M3.2 3.2l1.4 1.4M13.4 13.4l1.4 1.4M3.2 14.8l1.4-1.4M13.4 4.6l1.4-1.4'/%3E%3C/g%3E%3Ccircle cx='9' cy='9' r='4.2' fill='%23f3d58a' stroke='%23b8862e' stroke-width='1.2'/%3E%3C/svg%3E")}
 html[data-skin="celestial"] .rbright{color:var(--cl-gold)}
-html[data-skin="celestial"] #barBright::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:linear-gradient(90deg,transparent var(--v),rgba(40,50,90,.55) var(--v)),linear-gradient(90deg,#3c4f8f,#9db8ef 45%,#d7a94b);box-shadow:0 0 0 1px var(--cl-gold-l)}
-html[data-skin="celestial"] #barBright::-moz-range-track{height:4px;border-radius:999px;background:linear-gradient(90deg,transparent var(--v),rgba(40,50,90,.55) var(--v)),linear-gradient(90deg,#3c4f8f,#9db8ef 45%,#d7a94b)}
-html[data-skin="celestial"] #barBright::-webkit-slider-thumb{width:26px;height:26px;margin-top:-11px;border:0;border-radius:0;box-shadow:none;background:var(--cl-thumb) center/contain no-repeat;filter:drop-shadow(0 0 5px rgba(231,180,80,.9))}
-html[data-skin="celestial"] #barBright::-moz-range-thumb{width:26px;height:26px;border:0;border-radius:0;background:var(--cl-thumb) center/contain no-repeat}
-html[data-skin="celestial"][data-theme="night"] #barBright::-webkit-slider-thumb{background-image:var(--cl-thumb-n)}
-html[data-skin="celestial"][data-theme="night"] #barBright::-moz-range-thumb{background-image:var(--cl-thumb-n)}
+html[data-skin="celestial"] #barBright::-webkit-slider-runnable-track{height:2px;border-radius:999px;background:linear-gradient(90deg,var(--cl-gold,#d7a94b) var(--v),color-mix(in srgb,var(--cl-gold-l,#e8c98a) 45%,transparent) var(--v))}
+html[data-skin="celestial"] #barBright::-moz-range-track{height:2px;border-radius:999px;background:linear-gradient(90deg,var(--cl-gold,#d7a94b) var(--v),color-mix(in srgb,var(--cl-gold-l,#e8c98a) 45%,transparent) var(--v))}
+html[data-skin="celestial"] #barBright::-webkit-slider-thumb{width:18px;height:18px;margin-top:-8px;border:0;border-radius:50%;box-shadow:none;background:var(--cl-sun) center/contain no-repeat}
+html[data-skin="celestial"] #barBright::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:var(--cl-sun) center/contain no-repeat}
 
 /* ===== 21.10 «Главы»: the chapter being read, each skin its own (Джессика: «чтобы выделялась больше … у каждого скина») =====
    Эллада — Aegean-blue row with a meander band at the bottom; Бабочковый — lilac tint, accent outline, a butterfly mark;

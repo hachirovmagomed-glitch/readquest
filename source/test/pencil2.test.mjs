@@ -47,7 +47,7 @@ ok('14 no filter row under the header; filters live in «⋮» (18.10)', fd.gone
 const ad = await p.evaluate(async () => { const h = document.querySelector('#shelf .addhint'); if (!h) return null; const r = h.getBoundingClientRect(), cv = document.querySelector('#shelf .cover').getBoundingClientRect();
   h.click(); await new Promise(q => setTimeout(q, 100)); const open = !document.getElementById('addMenu').hidden; document.getElementById('addMenu').hidden = true;
   return { txt: h.textContent.trim(), w: Math.round(r.width), cw: Math.round(cv.width), open }; });
-ok('15 «Добавь книгу» tile in the grid opens the add menu', ad && /Добавь книгу/.test(ad.txt) && Math.abs(ad.w - ad.cw) <= 2 && ad.open, ad);
+ok('15 «Добавить книгу» tile in the grid opens the add menu', ad && /Добавить книгу/.test(ad.txt) && Math.abs(ad.w - ad.cw) <= 2 && ad.open, ad);
 const wm = await p.evaluate(async () => { const n = () => ((getComputedStyle(document.body, '::before').webkitMaskImage || '').match(/data:image\/svg/g) || []).length, sh = document.getElementById('shelf'), r = { short: n() };
   for (let k = 0; k < 4; k++) sh.appendChild(document.createElement('div')); await new Promise(q => setTimeout(q, 50)); r.long = n(); renderLibrary(); return r; });
 ok('16 long shelf: the caterpillar steps aside (only the spiral stays in the gutter)', wm.short === 2 && wm.long === 1, wm);

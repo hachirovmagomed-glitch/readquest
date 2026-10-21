@@ -27,7 +27,7 @@ const t = await run(true), f = await run(false);
 const has = (a, ids) => ids.every(x => a.includes(x)), none = (a, ids) => ids.every(x => !a.includes(x));
 ok('flag true (default) in MVP: quotes/quests/vocab/stats in drawer, bottom bar and «Нижняя панель»', t.mvp && t.flagV === true && has(t.drawer, EXTRA) && has(t.bar, ['quests', 'look']) && has(t.cfg, EXTRA), t);
 ok('flag false in MVP: hidden in drawer, bottom bar and «Нижняя панель»; stored nav not rewritten', f.patched && f.mvp && f.flagV === false && none(f.drawer, EXTRA) && none(f.bar, EXTRA) && none(f.cfg, EXTRA) && f.stored.includes('quests'), f);
-ok('bottom bar default stays ["library","rewards","profile"] in both', t.def === '["library","rewards","profile"]' && f.def === t.def && JSON.stringify(f.bar) === '["library","rewards","profile"]', { t: t.def, f: f.def, fbar: f.bar });
+ok('bottom bar default = 4 tabs ["library","path","rewards","profile"] in both (20.10); flag off shows library/rewards/profile', t.def === '["library","path","rewards","profile"]' && f.def === t.def && JSON.stringify(f.bar) === '["library","rewards","profile"]', { t: t.def, f: f.def, fbar: f.bar });
 ok('no page errors', errs.length === 0, errs);
 const n = checks.filter(Boolean).length; console.log(`SUMMARY mvpflag.test ${n}/${checks.length}`);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

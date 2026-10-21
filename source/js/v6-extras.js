@@ -95,10 +95,10 @@ el('calNext').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}renderCalendar();};
 function notifTime(){return S.notif.time||'20:00';}
 el('calNotifTgl').onclick=async()=>{
   if(!S.notif.on){
-    if(!('Notification' in window)){alert('Этот браузер не поддерживает уведомления');return;}
+    if(!('Notification' in window)){rqAlert('Этот браузер не поддерживает уведомления');return;}
     let perm=Notification.permission;
     if(perm!=='granted')perm=await Notification.requestPermission();
-    if(perm!=='granted'){alert('Уведомления запрещены в настройках браузера');return;}
+    if(perm!=='granted'){rqAlert('Уведомления запрещены в настройках браузера');return;}
     S.notif.on=true;save();renderCalendar();renderSettings();
     try{new Notification('ReadQuest',{body:'Напоминания включены — позовём читать в '+notifTime()});}catch(e){}
     return;
@@ -182,12 +182,12 @@ function addStat(){
   if(!name||!name.trim())return;
   const n=name.trim().replace(/['"<>\\]/g,'').slice(0,24);
   if(!n)return;
-  if(allStats().includes(n)){alert('Такая характеристика уже есть');return;}
+  if(allStats().includes(n)){rqAlert('Такая характеристика уже есть');return;}
   S.customStats.push(n);if(S.stats[n]===undefined)S.stats[n]=0;
   save();renderProfile();
 }
 function renStat(name){
-  if(STATS_BASE.includes(name)){alert('Базовые характеристики переименовать нельзя — создайте свою.');return;}
+  if(STATS_BASE.includes(name)){rqAlert('Базовые характеристики переименовать нельзя — создайте свою.');return;}
   const nn=prompt('Новое название:',name);if(nn===null||!nn.trim())return;
   const v=nn.trim().replace(/['"<>\\]/g,'').slice(0,24);if(!v)return;
   const i=S.customStats.indexOf(name);if(i<0)return;
@@ -196,7 +196,7 @@ function renStat(name){
   save();renderProfile();
 }
 function delStat(name){
-  if(STATS_BASE.includes(name)){alert('Базовую характеристику удалить нельзя.');return;}
+  if(STATS_BASE.includes(name)){rqAlert('Базовую характеристику удалить нельзя.');return;}
   if(!confirm('Удалить характеристику «'+name+'»? Накопленные очки по ней пропадут.'))return;
   S.customStats=S.customStats.filter(x=>x!==name);delete S.stats[name];
   save();renderProfile();
@@ -241,13 +241,13 @@ function renderSkillBox(){
       '<b>ур. '+lv2+'</b></div>'+
       '<div style="font-size:11px;color:var(--muted);margin:2px 0 4px">→ '+skillLinksText(k)+'</div>'+
       '<div class="pbar"><i style="width:'+Math.round((pts-lo2)/(hi2-lo2)*100)+'%"></i></div></div>';
-  }).join('')+'<button class="miniadd" onclick="addSkill()">＋ Добавить навык</button>';
+  }).join('')+'<button class="miniadd" onclick="addSkill()">'+rqIcon('plus',16)+'Добавить навык</button>';
 }
 function addSkill(){
   const name=prompt('Название навыка (например, «Критическое мышление»):');
   if(!name||!name.trim())return;
   const n=name.trim().replace(/['"<>\\]/g,'').slice(0,28);if(!n)return;
-  if(allSkills().includes(n)){alert('Такой навык уже есть');return;}
+  if(allSkills().includes(n)){rqAlert('Такой навык уже есть');return;}
   const init=parseInt(prompt('Начальный уровень (если уже владеете навыком):','1'),10)||1;
   S.skills[n]=xpForLevel(Math.max(1,init));S.skillMeta[n]={links:{}};
   save();editSkillLinks(n,true);
@@ -270,7 +270,7 @@ function editSkillLinks(name,isNew){
   S.skillMeta[name].links=links;save();renderProfile();
 }
 function delSkill(name){
-  if(DEFAULT_SKILLS.includes(name)){alert('Базовый навык удалить нельзя.');return;}
+  if(DEFAULT_SKILLS.includes(name)){rqAlert('Базовый навык удалить нельзя.');return;}
   if(!confirm('Удалить навык «'+name+'»?'))return;
   delete S.skills[name];delete S.skillMeta[name];save();renderProfile();
 }
@@ -355,7 +355,7 @@ function renderAchievements(){
   }).join('');
   el('achBox').innerHTML='<h2 style="margin-top:4px">Системные</h2>'+(def||'<div class="pempty">—</div>')+
     '<h2>Свои</h2>'+(cus||'<div class="pempty">Пока нет своих достижений</div>')+
-    '<button class="miniadd" onclick="addCustomAch()">＋ Добавить достижение</button>'+
+    '<button class="miniadd" onclick="addCustomAch()">'+rqIcon('plus',16)+'Добавить достижение</button>'+
     '<h2>Бейджи</h2><div class="badges">'+BADGES.map(function(b){var got=S.badges.includes(b.id);return '<div class="badge'+(got?'':' locked')+'"><div class="bi">'+rqIcon(b.ic||'medal',28)+'</div><div class="bn">'+esc(b.name)+'</div><div class="bd">'+esc(b.desc)+'</div></div>';}).join('')+'</div>';
 }
 function pickCondType(){
@@ -386,7 +386,7 @@ function addCustomAch(){
   const pays=achPays();
   const xp=pays?(parseInt(prompt('Приз: сколько XP (0 — без):','0'),10)||0):0;
   const gold=pays?(parseInt(prompt('Приз: сколько '+'монет'+' (0 — без):','0'),10)||0):0;
-  const c=buildCond();if(!c){alert('Нужно хотя бы одно условие');return;}
+  const c=buildCond();if(!c){rqAlert('Нужно хотя бы одно условие');return;}
   const conds=[c];
   while(confirm('Добавить ещё одно условие? (все условия должны выполниться)')){
     const c2=buildCond();if(c2)conds.push(c2);else break;
@@ -457,7 +457,7 @@ function renderProfSetup(){
       '<button style="color:var(--muted);font-size:13px;padding:0 6px" onclick="editStatus('+p[0]+')">'+rqIcon('pencil',14)+'</button>'+
       '<button class="x" onclick="delStatus('+p[0]+')">✕</button></div>'
     ).join('')+
-    '<button class="miniadd" onclick="addStatus()">＋ Добавить статус</button>';
+    '<button class="miniadd" onclick="addStatus()">'+rqIcon('plus',16)+'Добавить статус</button>';
 }
 function addStatus(){
   const lv=parseInt(prompt('С какого уровня действует статус?','2'),10);if(!lv||lv<1)return;
@@ -471,7 +471,7 @@ function editStatus(lv){
   p[1]=nm.trim().slice(0,30);S.statuses=curStatuses();save();renderProfSetup();renderProfile();
 }
 function delStatus(lv){
-  const list=curStatuses();if(list.length<=1){alert('Должен остаться хотя бы один статус');return;}
+  const list=curStatuses();if(list.length<=1){rqAlert('Должен остаться хотя бы один статус');return;}
   S.statuses=list.filter(p=>p[0]!==lv);save();renderProfSetup();renderProfile();
 }
 
@@ -518,9 +518,9 @@ function pixelShopHtml(){
 }
 function buyPixel(){
   if(S.pixelOwned)return;
-  if(!canAfford(PIXEL_COST)){alert('Не хватает '+'монет'+' (нужно '+PIXEL_COST+')');return;}
+  if(!canAfford(PIXEL_COST)){rqAlert('Не хватает '+'монет'+' (нужно '+PIXEL_COST+')');return;}
   spend(PIXEL_COST);S.pixelOwned=true;S.pixelOn=true;save();applyPixel();confetti();renderShop();
-  alert('Пиксельный режим куплен и включён! Выключить можно в Настройках.');
+  rqAlert('Пиксельный режим куплен и включён! Выключить можно в Настройках.');
 }
 function togglePixel(){
   if(!S.pixelOwned){if(confirm('Пиксельный режим покупается в Магазине за '+PIXEL_COST+' '+'монет'+'. Перейти в Магазин?')){renderShop();show('shop');}return;}

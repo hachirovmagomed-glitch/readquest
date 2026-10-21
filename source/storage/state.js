@@ -201,8 +201,11 @@ function buildNo(b) {
 }
 /** copy of game with ai.key emptied (field kept; model kept) — export only, the stored game is untouched */
 export function withoutAiKey(game) {
-  if (!game || typeof game !== 'object' || !game.ai || typeof game.ai !== 'object') return game;
-  return Object.assign({}, game, { ai: Object.assign({}, game.ai, { key: '' }) });
+  if (!game || typeof game !== 'object') return game;
+  let out = game;
+  if (game.ai && typeof game.ai === 'object') out = Object.assign({}, out, { ai: Object.assign({}, game.ai, { key: '' }) });
+  if (game.tts && typeof game.tts === 'object') out = Object.assign({}, out, { tts: Object.assign({}, game.tts, { key: '' }) }); /* arch.md 20.10: ключ озвучки так же */
+  return out;
 }
 export async function exportBackup(envelope, settings, opts) {
   const options = opts || {};
@@ -291,12 +294,19 @@ export async function importBackup(data) {
      pos > ratio raises ratio to pos, ratio is never lowered. Additive, schemaVersion stays 1. */
   sanitizeBookProgress(envelope && envelope.progress && envelope.progress.progress);
 
-  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none) */
+  /* arch.md 2026-10-15: an API key inside an imported file is ignored — this device keeps its own key (or none).
+     20.10: a key belongs to its service, so with a key on this device its whole ai block (prov, base, model, key) stays. */
   if (envelope && envelope.game) {
-    let own = '';
-    try { const cur = loadEnvelope(); own = (cur && cur.game && cur.game.ai && typeof cur.game.ai.key === 'string') ? cur.game.ai.key : ''; } catch (e) { own = ''; }
+    let own = '', ownAi = null;
+    try { const cur = loadEnvelope(); ownAi = (cur && cur.game && cur.game.ai && typeof cur.game.ai === 'object') ? cur.game.ai : null; own = (ownAi && typeof ownAi.key === 'string') ? ownAi.key : ''; } catch (e) { own = ''; ownAi = null; }
     const ai = envelope.game.ai && typeof envelope.game.ai === 'object' ? envelope.game.ai : { model: 'gpt-4o-mini' };
-    envelope.game.ai = Object.assign({}, ai, { key: own });
+    envelope.game.ai = own ? Object.assign({}, ai, ownAi, { key: own }) : Object.assign({}, ai, { key: '' });
+    /* 20.10 озвучка: то же правило для game.tts */
+    let ownT = null;
+    try { const cur = loadEnvelope(); ownT = (cur && cur.game && cur.game.tts && typeof cur.game.tts === 'object' && typeof cur.game.tts.key === 'string' && cur.game.tts.key) ? cur.game.tts : null; } catch (e) { ownT = null; }
+    const t = envelope.game.tts && typeof envelope.game.tts === 'object' ? envelope.game.tts : null;
+    if (ownT) envelope.game.tts = Object.assign({}, t || {}, ownT);
+    else if (t) envelope.game.tts = Object.assign({}, t, { key: '' });
   }
 
   if (data.textBodies && typeof data.textBodies === 'object') {
@@ -332,6 +342,7 @@ export async function importBackup(data) {
         pageTurns: s.pageTurns != null ? s.pageTurns : s.pages,
         startedAt: s.startedAt,
         xp: s.xp,
+        lvl: s.lvl,
       });
     } catch (e) {
       /* skip bad rows */

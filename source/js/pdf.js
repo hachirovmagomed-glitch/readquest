@@ -29,13 +29,15 @@ async function openPdf(b){
     if(R.book!==b){try{doc.destroy();}catch(e){}return;} /* closed while loading */
     R.pdf=doc;R.pageCount=doc.numPages;
     try{const L=await doc.getPageLabels();P.labels=(Array.isArray(L)&&L.length===R.pageCount)?L:null;}catch(e){P.labels=null;}
+    if(typeof bfPdfOutline==='function')bfPdfOutline(b,doc); /* 20.10: PDF bookmarks → «Главы», ticks on the slider (js/book-find.js), in the background */
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
+    pdfLvlCheck(b,doc); /* 19.10: level by the PDF's own text, in the background (once per book) */
     pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
     if(psOn()){psOpen(p);return;} /* 18.10: «Прокрутка» — js/pdf-scroll.js */
     pdfRender('open');pdfWatch();
-  }catch(e2){pdfBackdrop(null);alert('Не удалось открыть PDF: '+e2.message);show('library');}
+  }catch(e2){pdfBackdrop(null);rqAlert('Не удалось открыть PDF: '+e2.message);show('library');}
 }
 function pdfCancel(){if(P.task){try{P.task.cancel();P.cancels++;}catch(e){}P.task=null;}}
 function pdfReset(){
@@ -70,13 +72,14 @@ async function pdfRender(why){
   cv.width=Math.max(1,Math.floor(vp.width));cv.height=Math.max(1,Math.floor(vp.height));
   const ctx=cv.getContext('2d',{alpha:false});
   ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+  const gl=pdfMuteText(ctx); /* 20.10 SET.pdfFont: the text is drawn by the text layer */
   const task=page.render({canvasContext:ctx,viewport:vp});P.task=task;P.renders++;
   try{await task.promise;}catch(e){if(P.task===task)P.task=null;cv.width=0;cv.height=0;pdfRenderFailed(seq,e);return;} /* cancelled: only the back buffer is dropped */
   if(P.task===task)P.task=null;
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   const baseW=sz.w,baseH=vp1.height*s0;
   let tl=null;
-  if(!same||Math.abs(baseW-P.bw)>0.5)tl=await pdfTextLayer(page,s0);
+  if(!same||Math.abs(baseW-P.bw)>0.5)tl=await pdfTextLayer(page,s0,gl&&{g:gl,k:s0/sc});
   if(seq!==P.seq){cv.width=0;cv.height=0;return;}
   requestAnimationFrame(function(){
     if(seq!==P.seq){cv.width=0;cv.height=0;return;}
@@ -137,6 +140,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   P.front=cv;P.frontSc=sc;P.swaps++;P.retry=0;
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
   el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
+  if(typeof pdfHlPaint==='function')pdfHlPaint(el('pdfText'),n); /* 21.10: quote colours on the PDF page */
   if(isNew){P.z=1;P.tx=0;P.ty=0;}
   P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
   pdfApply();
@@ -211,13 +215,15 @@ function pdfRsTick(){
 }
 /** Text layer in BASE (fit-width) coordinates; widths fitted with canvas measureText (no layout). */
 let pdfMeasure=null;
-async function pdfTextLayer(page,s0){
+async function pdfTextLayer(page,s0,look){
   const frag=document.createDocumentFragment();
   try{
     const tc=await page.getTextContent();
     const vp=page.getViewport({scale:s0});
     const U=window.pdfjsLib.Util;
     if(!pdfMeasure)pdfMeasure=document.createElement('canvas').getContext('2d');
+    const lf=look?await pdfLookFont():null; /* 20.10 SET.pdfFont: the reader font, loaded before measuring */
+    let prev=null,line=null;const lines=[];
     tc.items.forEach(function(it){
       if(!it.str)return;
       const tx=U.transform(vp.transform,it.transform);
@@ -227,16 +233,148 @@ async function pdfTextLayer(page,s0){
       const fam=(st&&st.fontFamily)||'sans-serif';
       const sp=document.createElement('span');
       sp.textContent=it.str;
-      sp.style.left=tx[4].toFixed(2)+'px';sp.style.top=(tx[5]-fh).toFixed(2)+'px';
-      sp.style.fontSize=fh.toFixed(2)+'px';sp.style.fontFamily=fam;
+      const base=tx[5],wd=(it.width||0)*s0;
+      /* 20.10 SET.pdfFont: an item whose glyphs were muted on the canvas is shown here in the reader font, in its own colour */
+      const ink=lf?pdfInkAt(look,tx[4],base,ang,fh,wd):null;
+      let fnt=fh.toFixed(2)+'px '+fam,top=base-fh;
+      if(ink!=null){
+        const fo=pdfFontObj(page,it.fontName),fs=fo.it?'italic':'normal',fw=fo.b?lf.wb:lf.w,m=pdfAscent(fs+' '+fw+' 100px '+lf.fam);
+        fnt=fs+' '+fw+' '+fh.toFixed(2)+'px '+lf.fam;top=base-((fh-(m[0]+m[1])*fh)/2+m[0]*fh); /* the reader font's baseline on the line's baseline */
+        sp.className='v';sp.style.fontFamily=lf.fam;sp.style.fontWeight=fw;sp.style.fontStyle=fs;
+        const c=rqRgb(ink);sp.style.setProperty('--ink','rgb('+c.join(',')+')');sp.style.setProperty('--l',((0.299*c[0]+0.587*c[1]+0.114*c[2])/255).toFixed(3));
+      }else sp.style.fontFamily=fam;
+      sp.style.left=tx[4].toFixed(2)+'px';sp.style.top=top.toFixed(2)+'px';
+      sp.style.fontSize=fh.toFixed(2)+'px';
       let tr=Math.abs(ang)>0.01?'rotate('+ang.toFixed(4)+'rad) ':'';
-      if(it.str.trim()&&it.width>0){pdfMeasure.font=fh.toFixed(2)+'px '+fam;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
+      if(it.str.trim()&&it.width>0){pdfMeasure.font=fnt;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
       if(tr)sp.style.transform=tr;
+      const sx=/scaleX\(([\d.]+)\)/.exec(tr);
+      /* 19.10 (Джессика: «не работает нормальное выделение»): the copied / quoted text keeps its words and lines apart —
+         a new line of the page → a line break, a gap on the same line → a space (spans are absolute, the DOM has neither) */
+      if(prev){
+        if(Math.abs(base-prev.base)>Math.max(fh,prev.fh)*0.5){frag.appendChild(document.createElement('br'));line=null;}
+        else if(tx[4]-prev.right>fh*0.15&&!/\s$/.test(prev.str)&&!/^\s/.test(it.str)){
+          const g=document.createElement('span');g.textContent=' ';g.style.left=prev.right.toFixed(2)+'px';g.style.top=(base-fh).toFixed(2)+'px';g.style.fontSize=fh.toFixed(2)+'px';frag.appendChild(g);}
+      }
+      prev={base:base,fh:fh,right:tx[4]+wd,str:it.str};
+      if(!line){line=[];lines.push(line);}
+      line.push({sp:sp,left:tx[4],top:top,bot:top+fh,right:tx[4]+wd,sx:sx?+sx[1]:1,rot:Math.abs(ang)>0.01});
       frag.appendChild(sp);
     });
+    /* no dead gaps between and around the lines: each span reaches down to the next line, the first one of a line out to
+       the left edge, the last one out to the right edge (padding, so the glyphs stay put). A finger or a selection handle
+       in a gap, in the margin or under the text then lands on the nearest line of text, not on the page header. */
+    lines.forEach(function(ln){
+      if(ln.some(function(q){return q.rot;}))return;
+      const bot=Math.max.apply(null,ln.map(function(q){return q.bot;}));let nt=vp.height; /* the nearest line BELOW (item order is not page order) */
+      lines.forEach(function(o){if(o===ln)return;const t=Math.min.apply(null,o.map(function(q){return q.top;}));if(t>=bot-1&&t<nt)nt=t;});
+      ln.forEach(function(q){const pb=Math.max(0,nt-q.bot);if(pb>0)q.sp.style.paddingBottom=pb.toFixed(2)+'px';});
+      const f=ln.reduce(function(a,q){return q.left<a.left?q:a;}),l=ln.reduce(function(a,q){return q.right>a.right?q:a;});
+      if(f.left>0){f.sp.style.left='0px';f.sp.style.paddingLeft=(f.left/f.sx).toFixed(2)+'px';}
+      if(l.right<vp.width)l.sp.style.paddingRight=((vp.width-l.right)/l.sx).toFixed(2)+'px';
+    });
   }catch(e){/* scans have no text layer */}
+  const end=document.createElement('div');end.className='endOfContent';frag.appendChild(end); /* keeps a drag in a gap near the finger (selectionchange below) */
   return frag;
 }
+/* ===== 20.10 «Шрифт читалки в PDF» (SET.pdfFont) and «Цвета темы для PDF» (SET.pdfTheme), as in ReadEra — arch.md ===== */
+/** SET.pdfFont: pdf.js draws the page text with fillText / strokeText on this context → muted. Every muted glyph is kept
+    (canvas px + colour), so the text layer shows exactly those items: hidden OCR text of a scan, Type3 glyphs and text drawn
+    on pdf.js's own scratch canvases stay on the page bitmap as they are (never twice, never lost). null = font mode off.
+    21.10 (Джессика, видео: «безумие»): a scanned book keeps its OCR text UNDER the page picture (ABBYY «текст под изображением»),
+    so a glyph that a later opaque picture paints over was never visible → not shown either (colour null), the scan stays alone. */
+function pdfMuteText(ctx){
+  if(!SET.pdfFont)return null;
+  const g=[],rec=function(st){return function(s,x,y){const m=this.getTransform(),c=st?this.strokeStyle:this.fillStyle;g.push(m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f,typeof c==='string'?c:'#000');};};
+  ctx.fillText=rec(false);ctx.strokeText=rec(true);
+  const di=ctx.drawImage;
+  ctx.drawImage=function(im){
+    const a=arguments,n=a.length;
+    if(g.length&&this.globalAlpha>=1&&this.globalCompositeOperation==='source-over'){
+      const r=n>=9?[a[5],a[6],a[7],a[8]]:n>=5?[a[1],a[2],a[3],a[4]]:[a[1],a[2],im.width,im.height],m=this.getTransform();
+      const xs=[],ys=[];[[r[0],r[1]],[r[0]+r[2],r[1]],[r[0],r[1]+r[3]],[r[0]+r[2],r[1]+r[3]]].forEach(function(p){xs.push(m.a*p[0]+m.c*p[1]+m.e);ys.push(m.b*p[0]+m.d*p[1]+m.f);});
+      const x0=Math.min.apply(null,xs),x1=Math.max.apply(null,xs),y0=Math.min.apply(null,ys),y1=Math.max.apply(null,ys);
+      for(let i=0;i<g.length;i+=3)if(g[i]>=x0&&g[i]<=x1&&g[i+1]>=y0&&g[i+1]<=y1)g[i+2]=null;
+    }
+    return di.apply(this,a);
+  };
+  return g;
+}
+/** colour of the first muted glyph inside this item's box (base px; k = canvas px → base px), or null when none was muted */
+function pdfInkAt(look,x0,y0,ang,fh,wd){
+  const g=look.g,k=look.k,c=Math.cos(ang),s=Math.sin(ang);
+  for(let i=0;i<g.length;i+=3){const dx=g[i]*k-x0,dy=g[i+1]*k-y0,u=dx*c+dy*s,v=dy*c-dx*s;
+    if(g[i+2]!=null&&u>=-1&&u<=wd+1&&v>=-fh*0.6&&v<=fh*0.3)return g[i+2];}
+  return null;
+}
+/** bold / italic of the file's font (pdf.js font object: flags, else its name) */
+function pdfFontObj(page,id){
+  let f=null;try{if(page.commonObjs.has(id))f=page.commonObjs.get(id);}catch(e){}
+  const n=String((f&&f.name)||'');
+  return {b:!!(f&&(f.bold||f.black))||/bold|black|heavy|semibold|demi/i.test(n),it:!!(f&&f.italic)||/italic|oblique/i.test(n)};
+}
+const pdfAsc={};
+/** [ascent, descent] of a font as a share of its size (layout box of a line-height:1 span) */
+function pdfAscent(f){
+  if(pdfAsc[f])return pdfAsc[f];
+  pdfMeasure.font=f;const m=pdfMeasure.measureText('Hg'),a=m.fontBoundingBoxAscent,d=m.fontBoundingBoxDescent;
+  return (pdfAsc[f]=(a>0&&d>=0)?[a/100,d/100]:[0.8,0.2]);
+}
+/** the reader font (as the text: SET.font, SET.weight; bold = heavier), its faces loaded (≤ 1.5 s) */
+async function pdfLookFont(){
+  const fam=(FONTS[SET.font]||FONTS[0]).v,w=SET.weight||400,wb=w>=600?800:700;
+  if(document.fonts&&document.fonts.load){
+    const all=['normal '+w,'normal '+wb,'italic '+w,'italic '+wb].map(function(x){return document.fonts.load(x+' 16px '+fam).catch(function(){});});
+    await Promise.race([Promise.all(all),new Promise(function(r){setTimeout(r,1500);})]);
+  }
+  return {fam:fam,w:w,wb:wb};
+}
+let rqRgbCx=null;
+/** any CSS colour → [r,g,b] 0..255 (the browser parses it) */
+function rqRgb(v){
+  if(!rqRgbCx)rqRgbCx=document.createElement('canvas').getContext('2d');
+  rqRgbCx.fillStyle='#000';rqRgbCx.fillStyle=v||'#000';const s=rqRgbCx.fillStyle;
+  if(s[0]==='#')return [1,3,5].map(function(i){return parseInt(s.substr(i,2),16);});
+  const m=s.match(/[\d.]+/g)||[0,0,0];return [+m[0],+m[1],+m[2]];
+}
+/** applySet → #reader classes, the tone filter matrix (text colour ↔ background by pixel brightness), the switches;
+    a new font / weight / mode for the PDF on screen → it is drawn again (page or strip) */
+function rqPdfLook(){
+  const r=el('reader');if(!r)return;
+  r.classList.toggle('pdffont',!!SET.pdfFont);r.classList.toggle('pdftone',!!SET.pdfTheme);
+  if(SET.pdfTheme){
+    const cs=r.style,bg=rqRgb(cs.getPropertyValue('--r-bg')),tx=rqRgb(cs.getPropertyValue('--r-txt')),row=function(i){const d=(bg[i]-tx[i])/255;return [d*0.299,d*0.587,d*0.114,0,tx[i]/255].map(function(x){return +x.toFixed(4);}).join(' ');};
+    const m=el('rqPdfToneM');if(m)m.setAttribute('values',row(0)+' '+row(1)+' '+row(2)+' 0 0 0 1 0');
+  }
+  if(el('pdfFontTgl')){rqSw('pdfFontTgl',!!SET.pdfFont);rqSw('pdfThemeTgl',!!SET.pdfTheme);}
+  const k=SET.pdfFont?'f'+SET.font+'|'+(SET.weight||400):'file';
+  if(rqPdfLook.k!=null&&k!==rqPdfLook.k&&R.mode==='pdf'&&R.pdf)pdfRestyle();
+  rqPdfLook.k=k;
+}
+function pdfRestyle(){
+  if(PS.on){PS.cv.forEach(function(cv){cv._w=-1;});psUpdate();return;} /* stale → drawn again in place, the old one freed after */
+  P.bw=-1;pdfRender('look');
+}
+/* Selection inside a PDF text layer (pdf.js 3/4 way): while selecting, .endOfContent covers the layer and sits right after
+   the moving end of the selection, so a finger / mouse / handle in a gap between lines resolves next to it instead of
+   jumping to the page start or end. Back at the end of the layer when nothing is selected. */
+let pdfSelPrev=null;
+function pdfSelReset(tl){const e=tl.querySelector(':scope > .endOfContent')||tl.querySelector('.endOfContent');if(e){tl.appendChild(e);}tl.classList.remove('selecting');}
+document.addEventListener('selectionchange',function(){
+  const s=window.getSelection&&window.getSelection();
+  if(!s||!s.rangeCount||s.isCollapsed){document.querySelectorAll('.textLayer.selecting').forEach(pdfSelReset);pdfSelPrev=null;return;}
+  const rg=s.getRangeAt(0),prevR=pdfSelPrev;pdfSelPrev=rg.cloneRange();
+  const modStart=!!(prevR&&rg.compareBoundaryPoints(Range.END_TO_END,prevR)===0&&rg.compareBoundaryPoints(Range.START_TO_START,prevR)!==0);
+  let a=modStart?rg.startContainer:rg.endContainer;if(a&&a.nodeType===3)a=a.parentNode;
+  const tl=a&&a.closest&&a.closest('.textLayer');
+  document.querySelectorAll('.textLayer.selecting').forEach(function(x){if(x!==tl)pdfSelReset(x);});
+  if(!tl||a===tl)return;
+  const end=tl.querySelector('.endOfContent');if(!end)return;
+  tl.classList.add('selecting');
+  if(a.parentNode===tl)tl.insertBefore(end,modStart?a:a.nextSibling);
+});
+document.addEventListener('mousedown',function(e){const tl=e.target&&e.target.closest&&e.target.closest('.textLayer');if(tl)tl.classList.add('selecting');});
+document.addEventListener('mouseup',function(){const s=window.getSelection&&window.getSelection();if(!s||s.isCollapsed)document.querySelectorAll('.textLayer.selecting').forEach(pdfSelReset);});
 /** Navigation (tap / swipe / slider / TOC / keys): request a page; it is shown at the swap. */
 function pdfGo(np,why){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return;
@@ -394,8 +532,13 @@ function pdfWheel(e){
 }
 window.__rqLayoutCount=0; /* test hook: number of full column reflows */
 function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|')+(rqScrollMode()?'|s':'');}
+/* audit 19.10 RD-TAB-01: on a tablet in portrait (600–859 px) the line stays ≈ 36 em (60–75 characters): the side fields grow; 860+ is two columns */
+function rqTextMargin(){const v=el('viewer');if(!v||R.mode==='pdf')return;const W=window.innerWidth,m=SET.margin;
+  const mw=(W>=600&&W<860)?Math.max(m,Math.floor((W-SET.size*36)/2)):m;
+  if(v._mw!==mw){v._mw=mw;v.style.margin='0 '+mw+'px';el('reader').style.setProperty('--r-margin',mw+'px');}}
 function layout(){
   if(R.mode==='pdf'){pdfOnResize();return;}
+  rqTextMargin();
   const v=el('viewer'),c=el('content');
   const w=v.clientWidth,h=v.clientHeight,gap=48;
   if(rqScrollMode()){ /* 16.10: one vertical strip; «page» = one screen, the last page = the end of the text */
@@ -645,8 +788,13 @@ function pgSafeBottom(){const s=el('pgSafe');return s?s.getBoundingClientRect().
 function pgHit(x,y){const g=pgThumbGeom();if(!(g.r.width>0))return null;const yMax=Math.min(g.cy+PG_HIT/2,window.innerHeight-pgSafeBottom());
   return (Math.abs(x-g.cx)<=PG_HIT/2&&y>=g.cy-PG_HIT/2&&y<=yMax)?g:null;}
 function pgValAt(x,g){const w=Math.max(1,g.r.width-PG_TH);const f=Math.max(0,Math.min(1,(x-g.r.left-PG_TH/2)/w));return Math.round(g.mn+f*(g.mx-g.mn));}
-function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value;t.textContent='стр. '+(R.mode==='pdf'?pdfLabel(v):(v+1));
-  t.style.left=g.cx+'px';t.style.top=(g.cy-PG_TH/2-8)+'px';t.classList.remove('hidden');}
+function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value,pg='стр. '+(R.mode==='pdf'?pdfLabel(v):(v+1));
+  /* 20.10 (Джессика, как в ReadEra): over the thumb also the name of the chapter at this place (js/book-find.js) */
+  const ch=typeof bfChapterAt==='function'?bfChapterAt(v):null;
+  if(ch){if(t._ch!==ch.t||t._pg!==pg){t._ch=ch.t;t._pg=pg;t.innerHTML='<span class="pgch">'+esc(ch.t)+'</span><span class="pgpn">'+pg+'</span>';}t.classList.add('withch');}
+  else{t._ch=null;t._pg=null;t.textContent=pg;t.classList.remove('withch');}
+  t.classList.remove('hidden');const hw=t.offsetWidth/2,m=8;
+  t.style.left=Math.max(m+hw,Math.min(innerWidth-m-hw,g.cx))+'px';t.style.top=(g.cy-PG_TH/2-8)+'px';}
 const PG={id:null,off:0,g:null};
 (function(){const ft=el('pgSlider').closest('footer');if(!ft)return;
   ft.addEventListener('pointerdown',function(e){if(PG.id!=null)return;const g=pgHit(e.clientX,e.clientY);if(!g)return;

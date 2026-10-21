@@ -3,7 +3,7 @@
 const APP_THEMES={
  teal:{name:'Бирюза',bg:'#0c2127',card:'#143039',card2:'#1d4250',txt:'#e8f1f2',muted:'#8fb0b5',bar:'#19454f',sheet:'#122b33',drawer:'#10333d'},
  dark:{name:'Графит',bg:'#0e1116',card:'#161b22',card2:'#222933',txt:'#e6e8eb',muted:'#8b949e',bar:'#212c38',sheet:'#161b22',drawer:'#12161d'},
- light:{name:'Светлая',bg:'#eef2f3',card:'#ffffff',card2:'#dde7e9',txt:'#1d2b30',muted:'#526c73',bar:'#19454f',sheet:'#ffffff',drawer:'#f5f8f9'},
+ light:{name:'Светлая',bg:'#eef2f3',card:'#ffffff',card2:'#dde7e9',txt:'#1d2b30',muted:'#526c73',bar:'#19454f',sheet:'#ffffff',drawer:'#f5f8f9',focus:'#1f6f6b',danger:'#b3261e'},
  violet:{name:'Фиолет',bg:'#14101f',card:'#1d1730',card2:'#2a2145',txt:'#ece8f5',muted:'#9d93b8',bar:'#352a55',sheet:'#1a1429',drawer:'#171126'},
  forest:{name:'Лес',bg:'#0d1a12',card:'#14271b',card2:'#1e3b28',txt:'#e8f2ea',muted:'#8fb39a',bar:'#1d4a2e',sheet:'#122418',drawer:'#102016'},
  ocean:{name:'Океан',bg:'#08161f',card:'#0f2735',card2:'#173a4d',txt:'#dff1f7',muted:'#88b3c4',bar:'#114b63',sheet:'#0c1f2b',drawer:'#0a1a24'},
@@ -18,13 +18,16 @@ function resolveAppTheme(){
   const h2=new Date().getHours();
   return (h2>=7&&h2<21)?'light':'dark';
 }
-function applyAppTheme(){setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
+/* audit 19.10 GL-11: a theme / skin switch lands in one frame — no transitions while the colours swap */
+function rqThemeSwitchFrame(){const h=document.documentElement;h.classList.add('rq-tsw');requestAnimationFrame(function(){requestAnimationFrame(function(){h.classList.remove('rq-tsw');});});}
+function applyAppTheme(){rqThemeSwitchFrame();setTimeout(function(){try{syncThemeColor();}catch(e){}},0);
   const t=APP_THEMES[resolveAppTheme()]||APP_THEMES.teal;
   const r=document.documentElement;
   r.style.setProperty('--bg',t.bg);r.style.setProperty('--card',t.card);
   r.style.setProperty('--card2',t.card2);r.style.setProperty('--txt',t.txt);
   r.style.setProperty('--muted',t.muted);r.style.setProperty('--bar',t.bar);
   r.style.setProperty('--sheet',t.sheet);r.style.setProperty('--drawer',t.drawer);
+  r.style.setProperty('--focus-ring',t.focus||'#7fdbe4');r.style.setProperty('--danger',t.danger||'#ff8a80'); /* audit 19.10 GL-03 / GL-07: ≥3:1 ring, ≥4.5:1 danger text on this theme */
   /* boot-screen copy (plain string, read by the first <script>); write gate: only the lock holder writes it */
   const L=APP_THEMES.light,Dk=APP_THEMES.dark,v=S.appTheme==='auto'?['auto',L.bg,L.txt,L.muted,Dk.bg,Dk.txt,Dk.muted].join(' '):[t.bg,t.txt,t.muted].join(' ');
   try{if(localStorage.getItem(RQ_K.theme)!==v)localStorage.setItem(RQ_K.theme,v);}catch(e){}
@@ -42,6 +45,11 @@ function rqSyncSwitches(){document.querySelectorAll('.sw').forEach(function(b){c
 function generalOverReader(){const g=el('settings');return !!(g&&g.classList.contains('over')&&!g.classList.contains('hidden'));}
 function openGeneralSettings(over){renderSettings();const g=el('settings');
   if(over){g.classList.add('over');g.classList.remove('hidden');navPush('settings');}else{g.classList.remove('over');show('settings');}}
+/* 21.10 (Джессика, запись): jump to a section of «Настройки» opened over the reader — scroll only the .scroll pane (scrollIntoView also
+   shifted the fixed screen itself), and stop just under the sticky «Назад» row */
+function settingsScrollTo(id){const g=el('settings'),sc=g&&g.querySelector('.scroll'),t=el(id);if(!sc||!t)return;
+  const hd=g.querySelector('.wrap > .row');g.scrollTop=0;
+  sc.scrollTop+=t.getBoundingClientRect().top-sc.getBoundingClientRect().top-((hd&&hd.offsetHeight)||0)-12;}
 function closeGeneralSettings(){const g=el('settings');g.classList.add('hidden');g.classList.remove('over');}
 el('setBack').onclick=function(){if(generalOverReader()){closeGeneralSettings();if(navState()==='settings')try{history.back();}catch(e){}return;}show(isMvp()?'profile':'library');};
 function renderSettings(){
@@ -64,8 +72,7 @@ function renderSettings(){
   el('uxWake').textContent=S.ux.wake?'Вкл':'Выкл';
   el('uxVibe').textContent=S.ux.vibe!==false?'Вкл':'Выкл';
   el('autoDiffTgl').textContent=S.autoDiff===false?'Выкл':'Вкл';
-  el('aiKey').value=(S.ai&&S.ai.key)||'';
-  el('aiModel').value=(S.ai&&S.ai.model)||'gpt-4o-mini';
+  renderAiSet();renderTtsSet();
   /* Джессика 16.10: «Тема» and «Скин» are two rows. Тема = the app palette (Авто + APP_THEMES), Скин = «Без скина», «Карандашный» and the bought
      shop skins. A worn skin paints the app with its own colours; the picked palette stays selected underneath and comes back when the skin is
      taken off. Picking a palette while a skin is on takes the skin off (reader theme back to sepia), same as before the split. */
@@ -86,7 +93,7 @@ function renderSettings(){
     tile(k,t.name,S.appTheme===k,b=>{b.style.background=t.bg;b.style.color=t.txt;b.textContent='Aa';},()=>{leaveSkin();S.appTheme=k;save();applyAppTheme();renderSettings();});
   });
   const sk=activeTheme().skin||'';
-  const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=key;SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
+  const pickSkin=key=>()=>{if(sk===key){renderSettings();return;}const from=skinOf(activeTheme());SET.theme=skinWearKey(key);SET.cBg=null;SET.cTxt=null;rqSaveSetGated();applySet();logSkinChange(from);renderSettings();};
   stile('none','Без скина',!sk,b=>{b.innerHTML=rqIcon('circle-minus',18);},()=>{leaveSkin();renderSettings();});
   stile('pencil',THEMES.pencil.name,sk==='pencil',b=>{b.classList.add('appsw-pencil');b.style.background=THEMES.pencil.bg;b.style.color=THEMES.pencil.txt;b.innerHTML=rqIcon('pencil',18);},pickSkin('pencil'));
   /* bought shop skins with app styling: a tile each (Продукт 14.10: купленные — в списке) */
@@ -98,8 +105,57 @@ function renderSettings(){
   rqCollapse('appSkinBox','',function(){const t=document.querySelector('#appSkinBox .apptile.on small');return t?t.textContent:'';},'appSkinX',{icon:'palette',title:'Скин',sub:function(){return 'Свои и купленные';},dotIcon:function(){const t=activeTheme();return t.skin?(t.icon||'pencil'):'circle-minus';},dot:function(){const b=document.querySelector('#appSkinBox .apptile.on .appsw');return b?getComputedStyle(b).backgroundColor:'';}});
 }
 el('autoDiffTgl').onclick=()=>{S.autoDiff=S.autoDiff===false;save();renderSettings();renderLibrary();};
-el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();};
-el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim()||'gpt-4o-mini';save();};
+/* ИИ-помощник (20.10): сервис, свой ключ, модель, адрес для «Другого» (content.js AI_PROV, arch.md 20.10) */
+function renderAiSet(){
+  const p=aiProv(),box=el('aiProvSeg');box.innerHTML='';
+  Object.keys(AI_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':AI_PROV[k].name.replace(/ \(.*\)$/,'');
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.onclick=()=>{if(aiProv()===k)return;S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';renderAiSet();};box.appendChild(b);});
+  el('aiKey').value=(S.ai&&S.ai.key)||'';
+  el('aiBase').hidden=p!=='custom';el('aiBase').value=(S.ai&&S.ai.base)||'';
+  el('aiModel').value=(S.ai&&S.ai.model)||'';
+  el('aiModel').placeholder='Модель'+(AI_PROV[p].model?' ('+AI_PROV[p].model+')':'');
+}
+/* Озвучка (20.10): телефон или нейросетевой голос на своём ключе (reader-ui.js TTS_PROV, arch.md 20.10) */
+function renderTtsSet(){
+  const t=S.tts,p=TTS_PROV[t.prov]?t.prov:'system',box=el('ttsProvSeg');box.innerHTML='';
+  Object.keys(TTS_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':TTS_PROV[k].name;
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.onclick=()=>{if(t.prov===k)return;if(ttsOn||speaking)ttsStop();t.prov=k;t.voice='';save();el('ttsTestRes').textContent='';renderTtsSet();};box.appendChild(b);});
+  el('ttsFields').hidden=p==='system';
+  el('ttsKey').value=t.key||'';
+  el('ttsKey').placeholder=p==='openai'&&!t.key&&S.ai&&S.ai.prov==='openai'&&S.ai.key?'Ключ API (сейчас берётся ключ ИИ-помощника)':'Ключ API';
+  el('ttsBase').hidden=p!=='custom';el('ttsBase').value=t.base||'';
+  el('ttsVoice').value=t.voice||'';el('ttsVoice').placeholder='Голос'+(TTS_PROV[p].voice?' ('+TTS_PROV[p].voice+')':'');
+  el('ttsVoiceHint').textContent=TTS_PROV[p].voices?'Голоса: '+TTS_PROV[p].voices:'';
+}
+el('ttsKey').oninput=e=>{S.tts.key=e.target.value.trim();save();el('ttsTestRes').textContent='';};
+el('ttsVoice').oninput=e=>{S.tts.voice=e.target.value.trim().slice(0,100);save();};
+el('ttsBase').oninput=e=>{S.tts.base=e.target.value.trim().slice(0,300);save();};
+let ttsTestAudio=null;
+el('ttsTest').onclick=async()=>{
+  const r=el('ttsTestRes');
+  if(!nttsOn()){r.textContent=nttsCfg().key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(navigator.onLine===false){r.textContent='Нет интернета';return;}
+  r.textContent='Загружаю…';el('ttsTest').disabled=true;
+  try{const b=await nttsFetch('Здравствуйте! Так будут звучать ваши книги.');
+    if(ttsTestAudio)try{ttsTestAudio.pause();}catch(e){}
+    ttsTestAudio=new Audio(URL.createObjectURL(b));await ttsTestAudio.play();r.textContent='Работает, слушайте';}
+  catch(e){r.textContent=e&&e.name==='NotAllowedError'?'Звук загружен, нажмите ещё раз':'Не работает: '+(e&&e.message||'ошибка');}
+  finally{el('ttsTest').disabled=false;}
+};
+el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();el('aiTestRes').textContent='';};
+el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim();save();};
+el('aiBase').oninput=e=>{S.ai.base=e.target.value.trim().slice(0,300);save();};
+el('aiTest').onclick=async()=>{
+  const r=el('aiTestRes');
+  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(navigator.onLine===false){r.textContent='Нет интернета';return;}
+  r.textContent='Проверяю…';el('aiTest').disabled=true;
+  try{const t=await aiViaKey({system:'Отвечай одним словом.',user:'Скажи «готово».'},20);r.textContent=t?'Работает, сервис ответил':'Сервис ответил пустотой';}
+  catch(e){r.textContent='Не работает: '+(e&&e.message||'ошибка');}
+  finally{el('aiTest').disabled=false;}
+};
 el('uxAnim').onclick=()=>{S.ux.anim=S.ux.anim===false;save();applyMotion();renderSettings();};
 el('uxWake').onclick=()=>{S.ux.wake=!S.ux.wake;save();renderSettings();};
 el('uxVibe').onclick=()=>{S.ux.vibe=S.ux.vibe===false;save();renderSettings();};
@@ -115,8 +171,8 @@ el('antiMaxPlus').onclick=()=>{if(isMvp())return;S.anti.maxMin=Math.min(15,S.ant
 el('goalMinus2').onclick=()=>{if(isMvp())return;S.goal=Math.max(5,S.goal-5);save();renderSettings();};
 el('goalPlus2').onclick=()=>{if(isMvp())return;S.goal=Math.min(120,S.goal+5);save();renderSettings();};
 el('btnUnhide').onclick=()=>{S.hidden=[];save();renderLibrary();flashMsg('Демо-книги возвращены на полку');};
-el('btnReset2').onclick=()=>{
-  if(!confirm('Точно сбросить весь прогресс?'))return;
+el('btnReset2').onclick=async()=>{
+  if(!await rqAsk({t:'Сбросить весь прогресс?',p:'Минуты, опыт, монеты, стрик и награды обнулятся. Книги и настройки останутся. Отменить нельзя.',ok:'Сбросить',danger:true}))return;
   if(__rq&&__rq.clearAllLocal){__rq.clearAllLocal({settings:false,legacy:true});}
   try{localStorage.removeItem(RQ_K.v1);localStorage.removeItem(RQ_K.migrated);localStorage.removeItem(RQ_K.legacy);}catch(e){}
   location.reload();
@@ -126,7 +182,7 @@ el('btnExport').onclick=async ()=>{
   if(__rq&&__rq.exportBackup){
     payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{},S.tts?{tts:Object.assign({},S.tts,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');
@@ -147,7 +203,7 @@ el('impInp').onchange=async e=>{
     }
     /* Single-writer: do NOT write legacy `readquest` key */
     location.reload();
-  }catch(err){alert('Импорт не удался: '+err.message);}
+  }catch(err){rqAlert('Импорт не удался: '+err.message);}
 };
 
 /* ================= ТАЙМЕР ЧТЕНИЯ ================= */
@@ -194,29 +250,28 @@ function timerNudge(){
 el('btnTimer').onclick=toggleTimer;
 
 
-/* ===== «Нижняя панель» (Общие настройки → Управление): 1..5 вкладок, Библиотека несъёмная и первая; каждое изменение = navSave() (один saveSet через гейт) =====
-   Порядок: кнопки «Выше» / «Ниже» (альтернатива перетаскиванию для тача и экранного диктора). */
+/* ===== «Нижняя панель» (Общие настройки → Управление): всегда NAV_N вкладок вокруг «Читать», Библиотека несъёмная и первая; каждое изменение = navSave() (один saveSet через гейт) =====
+   20.10 (Джессика): количество не меняется — в каждой вкладке выбирается раздел (выбор уже стоящего меняет их местами); порядок — «Выше» / «Ниже». */
 function openNavCfg(){const p=el('navCfg');if(!p)return;renderNavCfg();p.hidden=false;}
 function closeNavCfg(){const p=el('navCfg');if(p)p.hidden=true;try{renderSettings();}catch(e){}}
 function navCfgMove(id,d){const n=navGet(),i=n.indexOf(id),j=i+d;if(i<1||j<1||j>=n.length)return;n[i]=n[j];n[j]=id;navSave(n);renderNavCfg();}
-function navCfgDel(id){if(id==='library')return;const n=navGet().filter(function(x){return x!==id;});navSave(n);renderNavCfg();}
-function navCfgAdd(id){const n=navGet();if(n.length>=NAV_MAX||n.indexOf(id)>=0)return;n.push(id);navSave(n);renderNavCfg();}
+function navCfgSet(i,id){const n=navGet();if(i<1||i>=n.length||id==='library'||!navItem(id)||!navAvail(id))return;const j=n.indexOf(id);if(j>=0)n[j]=n[i];n[i]=id;navSave(n);renderNavCfg();}
 function renderNavCfg(){
-  const p=el('navCfg');if(!p)return;const n=navShown(),full=navGet().length>=NAV_MAX;
+  const p=el('navCfg');if(!p)return;const n=navShown(),half=Math.floor(n.length/2)||n.length;
   const ic=function(k,sz){return rqIcon(k,sz||22);};
+  const pv=function(id){const it=navItem(id);return '<span data-nav="'+id+'">'+ic(it.ic,20)+esc(it.s||it.t)+'</span>';};
+  const opts=function(cur){return NAV_CATALOG.filter(function(it){return it.id!=='library'&&navAvail(it.id);}).map(function(it){return '<option value="'+it.id+'"'+(it.id===cur?' selected':'')+'>'+esc(it.t)+'</option>';}).join('');};
   p.innerHTML='<div class="nch"><button type="button" class="menubtn" id="navCfgBack" aria-label="Назад">'+ic('arrow-left')+'</button><div><div class="ncp">Общие настройки · Управление</div><h2>Нижняя панель</h2></div></div>'+
-    '<h4>Так будет выглядеть</h4><div class="navprev">'+n.map(function(id){const it=navItem(id);return '<span data-nav="'+id+'">'+ic(it.ic,20)+esc(it.s||it.t)+'</span>';}).join('')+'</div>'+
-    '<h4 class="navcnt">В панели · '+n.length+' из '+NAV_MAX+'</h4><div class="navlist">'+
+    '<h4>Так будет выглядеть</h4><div class="navprev">'+n.slice(0,half).map(pv).join('')+'<span class="navprev-read">'+ic('book-marked',20)+'Читать</span>'+n.slice(half).map(pv).join('')+'</div>'+
+    '<h4 class="navcnt">Вкладки · '+n.length+'</h4><div class="navlist">'+
     n.map(function(id,i){const it=navItem(id);
-      if(id==='library')return '<div class="navli" data-nav="library">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>Главный экран</small></div><span class="navlock" aria-label="Нельзя убрать">'+ic('lock',18)+'</span></div>';
-      return '<div class="navli" data-nav="'+id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
+      if(id==='library')return '<div class="navli" data-nav="library">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>Главный экран</small></div><span class="navlock" aria-label="Нельзя заменить">'+ic('lock',18)+'</span></div>';
+      return '<div class="navli" data-nav="'+id+'">'+ic(it.ic)+'<div class="nl"><select class="navsel" aria-label="Вкладка '+(i+1)+'" onchange="navCfgSet('+i+',this.value)">'+opts(id)+'</select></div>'+
         '<button type="button" class="navup" aria-label="Выше"'+(i<=1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',-1)">'+ic('chevron-up',20)+'</button>'+
-        '<button type="button" class="navdown" aria-label="Ниже"'+(i>=n.length-1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',1)">'+ic('chevron-down',20)+'</button>'+
-        '<button type="button" class="navdel" aria-label="Убрать" onclick="navCfgDel(\''+id+'\')">'+ic('circle-minus')+'</button></div>';}).join('')+'</div>'+
-    (full?'<div class="navmax">'+ic('lock',14)+'Максимум 5 вкладок. Уберите одну, чтобы добавить другую.</div>':'<div class="navmax">Порядок — кнопками «Выше» и «Ниже».</div>')+
-    '<h4>Можно добавить</h4><div class="navlist">'+
-    NAV_CATALOG.filter(function(it){return navAvail(it.id)&&navGet().indexOf(it.id)<0;}).map(function(it){return '<div class="navli" data-nav="'+it.id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'</div>'+
-      '<button type="button" class="navadd" aria-label="Добавить"'+(full?' disabled':'')+' onclick="navCfgAdd(\''+it.id+'\')">'+ic('circle-plus')+'</button></div>';}).join('')+'</div>';
+        '<button type="button" class="navdown" aria-label="Ниже"'+(i>=n.length-1?' disabled':'')+' onclick="navCfgMove(\''+id+'\',1)">'+ic('chevron-down',20)+'</button></div>';}).join('')+'</div>'+
+    '<div class="navmax">'+ic('lock',14)+'Вкладок всегда '+n.length+', «Читать» в центре. Нажмите на название, чтобы поставить другой раздел; порядок — кнопками «Выше» и «Ниже».</div>'+
+    '<h4>Остальные разделы</h4><div class="navlist">'+
+    NAV_CATALOG.filter(function(it){return navAvail(it.id)&&n.indexOf(it.id)<0;}).map(function(it){return '<div class="navli" data-nav="'+it.id+'">'+ic(it.ic)+'<div class="nl">'+esc(it.t)+'<small>в левом меню</small></div></div>';}).join('')+'</div>';
   el('navCfgBack').onclick=closeNavCfg;
 }
 if(el('btnNavCfg'))el('btnNavCfg').onclick=openNavCfg;

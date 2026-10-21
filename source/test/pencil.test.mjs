@@ -18,7 +18,7 @@ await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.
 const nav = () => p.evaluate(() => [...document.querySelectorAll('#botnav button')].filter(b => getComputedStyle(b).display !== 'none')
   .map(b => ({ t: b.textContent.trim(), ic: [...b.querySelectorAll('svg use')].filter(u => getComputedStyle(u.closest('svg')).display !== 'none').map(u => u.getAttribute('href')).join() })));
 let n = await nav();
-ok('bottom nav: 3 items Библиотека/Награды/Профиль', n.map(x => x.t).join('|') === 'Библиотека|Награды|Профиль', n);
+ok('bottom nav: Библиотека, Путь / «Читать» в центре / Награды, Профиль', n.map(x => x.t).join('|') === 'Библиотека|Путь|Читать|Награды|Профиль', n); /* 20.10: big «Читать» in the middle, 2 + 2 tabs, as in Habitica */
 
 // 2. «Общие настройки»: theme tiles captioned, «Карандашный» tile → html[data-skin=pencil]
 await p.evaluate(() => openLook()); await sleep(300);
@@ -33,7 +33,7 @@ const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.
 ok('click «Карандашный» → data-skin=pencil, SET.theme=pencil, tile selected', sk.skin === 'pencil' && sk.theme === 'pencil' && sk.on.join() === 'pencil', sk);
 await p.evaluate(() => openGeneralSettings(false)); await sleep(300); /* 17.10: tiles live on «Внешний вид»; the rest is measured on «Общие настройки» */
 n = await nav();
-ok('pencil: nav 3 items, each a Lucide icon', n.length === 3 && n.every(x => /^#i-/.test(x.ic)), n);
+ok('pencil: nav 4 items + «Читать», each a Lucide icon', n.length === 5 && n.every(x => /^#i-/.test(x.ic)), n);
 
 // 3. switches: 44×24 track, round 20px thumb inside the track, no frame, both states
 const swi = () => p.evaluate(() => [...document.querySelectorAll('#settings .sw')].filter(b => b.offsetParent).map(b => {
@@ -42,11 +42,11 @@ const swi = () => p.evaluate(() => [...document.querySelectorAll('#settings .sw'
   const bl = parseFloat(cs.borderLeftWidth), bt = parseFloat(cs.borderTopWidth);
   const x = bl + parseFloat(a.left) + m.m41, y = bt + parseFloat(a.top) + m.m42, w = parseFloat(a.width), h = parseFloat(a.height);
   return { id: b.id, on: b.getAttribute('aria-checked'), tw: Math.round(r.width), th: Math.round(r.height), x, y, w, h, rad: a.borderRadius,
-    inside: x >= 0 && y >= 0 && x + w <= r.width + .01 && y + h <= r.height + .01, img: a.borderImageSource + '|' + cs.borderImageSource, before: f.content, trad: cs.borderRadius, op: cs.backgroundColor };
+    inside: x >= 0 && y >= 0 && x + w <= r.width + .01 && y + h <= r.height + .01, img: a.borderImageSource + '|' + cs.borderImageSource, before: f.content, bvis: f.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(f.borderTopWidth) > 0 || f.backgroundImage !== 'none', trad: cs.borderRadius, op: cs.backgroundColor };
 }));
 for (const pass of [0, 1]) {
   const s = await swi();
-  const bad = s.filter(x => x.tw !== 44 || x.th !== 24 || x.w !== 20 || x.h !== 20 || x.rad !== '50%' || !x.inside || x.img !== 'none|none' || (x.before !== 'none' && x.before !== 'normal'));
+  const bad = s.filter(x => x.tw !== 44 || x.th !== 24 || x.w !== 20 || x.h !== 20 || x.rad !== '50%' || !x.inside || x.img !== 'none|none' || (x.before !== 'none' && x.before !== 'normal' && x.bvis)); /* audit 19.10 GL-02: an invisible ::before hit area (44 px) is not a frame */
   ok(`switches (${pass ? 'toggled' : 'initial'}): 44×24 track, round 20px thumb inside, no frame`, s.length >= 3 && !bad.length, bad.length ? bad : s.map(x => x.id + ':' + x.on));
   if (!pass) await p.evaluate(() => [...document.querySelectorAll('#settings .sw')].filter(b => b.offsetParent).forEach(b => b.click())), await sleep(300);
 }

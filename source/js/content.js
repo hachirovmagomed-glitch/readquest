@@ -6,7 +6,7 @@ function renderQuotes(){
     const qs=S.quotes[b.id]||[];if(!qs.length)return;
     parts.push('<h2>'+esc(b.title)+'</h2>');
     qs.forEach((q,i)=>{
-      parts.push('<div class="qcard"><div class="qtext">«'+esc(q.text)+'»</div>'+
+      parts.push('<div class="qcard" data-c="'+hlKey(q.c)+'" style="--d:'+hlDot(q.c)+'"><div class="qtext">«'+esc(q.text)+'»</div>'+
         (q.note?'<div class="qnote">'+rqIcon('notebook-pen',14)+' '+esc(q.note)+'</div>':'')+
         '<div class="qmeta"><span>'+q.date+'</span><div class="spacer"></div>'+
         '<button onclick="copyQuote(\''+b.id+'\','+i+')">копировать</button>'+
@@ -14,7 +14,7 @@ function renderQuotes(){
     });
   });
   el('quoteBox').innerHTML=parts.length?parts.join(''):
-    '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге пальцем или мышкой —<br>появится кнопка «'+rqIcon('highlighter',14)+' Цитата».'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
+    '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге&nbsp;— появится кнопка «'+rqIcon('highlighter',14)+'&nbsp;Цитата».'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;
@@ -29,8 +29,8 @@ el('btnCopyAll').onclick=()=>{
   const parts=[];
   allBooks().forEach(b=>(S.quotes[b.id]||[]).forEach(q=>
     parts.push('«'+q.text+'»'+(q.note?' — '+q.note:'')+' ('+b.title+')')));
-  if(parts.length){copyText(parts.join('\n\n'));alert('Скопировано цитат: '+parts.length);}
-  else alert('Пока нет ни одной цитаты');
+  if(parts.length){copyText(parts.join('\n\n'));rqAlert('Скопировано цитат: '+parts.length);}
+  else rqAlert('Пока нет ни одной цитаты');
 };
 
 /* ================= МАГАЗИН ================= */
@@ -71,7 +71,8 @@ function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
 const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
-function shopReady(id){const it=shopItem(id);if(!it)return false;return SHOP_READY.indexOf(it.type==='skin'?it.id:it.skin)>=0;}
+function shopReady(id){const it=shopItem(id);if(!it)return false;const sid=it.type==='skin'?it.id:it.skin;
+  return SHOP_READY.indexOf(sid)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
 function shopOwns(id){const it=shopItem(id);if(!it)return false;
   if(it.type==='skin')return it.price===0||(S.owned||[]).indexOf(id)>=0;
@@ -99,7 +100,7 @@ function wear(id){
   SET.skin=skin;SET.color=color;
   /* a styled skin = its own reader theme (day kept if already in this skin's night); an unstyled one leaves any skin theme */
   const key=skin.replace(/^skin-/,''), cur=activeTheme();
-  if(key==='pencil'||SKIN_THEMES[key]){if(cur.skin!==key)SET.theme=key;}
+  if(key==='pencil'||SKIN_THEMES[key]){if(cur.skin!==key)SET.theme=skinWearKey(key);}
   else if(cur.skin)SET.theme='sepia';
   saveSet();applySet();logSkinChange(from);return true;
 }
@@ -138,11 +139,12 @@ function renderShopPane(){
   box.innerHTML=SHOP_CATALOG.filter(x=>x.type==='skin').map(function(it){
     const st=shopState(it), sw=(SHOP_CATALOG.find(x=>x.skin===it.id&&x.bundled)||{}).sw||'#ccc';
     const cta=st.k==='buy'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();shopBuyAsk(\''+it.id+'\')">Купить</button>'
-      :st.k==='owned'?'<button type="button" class="buy owned shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');shopRefresh()">Надеть</button>'
-      :'<button type="button" class="buy shopcta" disabled>'+esc(st.t)+'</button>';
+      :st.k==='owned'?'<button type="button" class="buy shopcta" onclick="event.stopPropagation();wear(\''+it.id+'\');shopRefresh()">Надеть</button>'
+      :st.k==='worn'?'<button type="button" class="buy shopcta st-worn" disabled>'+rqIcon('check',16)+'Надето</button>' /* audit 19.10 SHOP-02: on = outline + tick, off = dashed */
+      :'<button type="button" class="buy shopcta st-off" disabled>'+esc(st.t)+'</button>';
     return '<div role="button" tabindex="0" class="shopcard" data-id="'+it.id+'" data-st="'+st.k+'" onclick="openShopDetail(\''+it.id+'\')">'+
       '<span class="shopcov" style="background:'+sw+'"></span><span class="shopname">'+esc(it.name)+'</span>'+
-      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
+      '<span class="shopprice">'+(it.price?coinsP(it.price):'Бесплатно')+'</span>'+(st.k==='owned'&&it.price?'<span class="shopst">'+esc(st.t)+'</span>':'')+cta+'</div>';
   }).join('');
   /* test build only (namespace rqt, not URL): +1000 coins through the normal write gate */
   if(window.RQ_NS==='rqt'&&!el('btnTestGold')){const b=document.createElement('button');b.type='button';b.id='btnTestGold';b.className='ghostbtn';b.textContent='+1000 монет для теста';b.onclick=shopTestGold;box.parentNode.insertBefore(b,box);}
@@ -246,7 +248,7 @@ function renderShop(){
 }
 function useTheme(id){
   SET.theme=id;SET.cBg=null;SET.cTxt=null;saveSet();applySet();
-  alert('Тема применена! Откройте любую книгу');
+  rqAlert('Тема применена! Откройте любую книгу');
 }
 function renderRewards(){
   el('shopRewards').innerHTML=S.rewards.map((r,i)=>({r:r,i:i}))
@@ -272,11 +274,11 @@ function renderRewards(){
 function buyReward(i){
   const r=S.rewards[i];if(!r||!canAfford(r.cost))return;
   const infinite=(r.qty==null);
-  if(!infinite&&((r.qty||0)-(r.bought||0))<=0){alert('Награда закончилась');return;}
+  if(!infinite&&((r.qty||0)-(r.bought||0))<=0){rqAlert('Награда закончилась');return;}
   spend(r.cost);r.bought=(r.bought||0)+1;
   S.rewardPurchases=S.rewardPurchases||[];S.rewardPurchases.push({id:'rp_'+Date.now(),title:r.name,price:r.cost,at:new Date().toISOString()});
   save();confetti();renderShop();
-  alert('Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
+  rqAlert('Награда ваша: «'+r.name+'»! Вы заслужили её чтением.');
 }
 function undoRewardClaim(i){
   const r=S.rewards[i];if(!r||!(r.bought>0))return;
@@ -345,7 +347,7 @@ function renderQuests(){
         :'<span class="chip">'+q.info()+'</span>')+
       edit+
       '</div><div class="pbar"><i style="width:'+Math.round(p*100)+'%"></i></div></div>';
-  }).join('')+'<button class="miniadd" onclick="addCustomQuest()">＋ Добавить свой квест</button>';
+  }).join('')+'<button class="miniadd" onclick="addCustomQuest()">'+rqIcon('plus',16)+'Добавить свой квест</button>';
 }
 function claimQuest(id){
   if(!questPays())return; /* RQ_MVP_QUEST_PAYOUTS off: no payout, nothing written */
@@ -490,10 +492,30 @@ async function idbDel(k){
 function fmtSize(n){
   if(!n&&n!==0)return '—';
   if(n<1024)return n+' Б';
-  if(n<1048576)return (n/1024).toFixed(1)+' КБ';
-  return (n/1048576).toFixed(2)+' МБ';
+  if(n<1048576)return (n/1024).toFixed(1).replace('.',',')+' КБ'; /* audit 19.10 GL-10: decimal comma */
+  return (n/1048576).toFixed(2).replace('.',',')+' МБ';
 }
+/** audit 19.10 GL-10: 12 288 — digit groups with a narrow no-break space (U+202F) */
+function fmtInt(n){return String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202F');}
 function bkIc(n){return '<svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-'+n+'"/></svg>';}
+/* 19.10 «Сложность» (Джессика): automatic level, the reader may pick a LOWER one (S.bookLvl); levels above the automatic one are disabled.
+   One save() per tap; opening the card writes nothing. Shown only while lvlOn() (test site). */
+function bookLvlHtml(b){
+  if(typeof lvlOn!=='function'||!lvlOn())return '';
+  const G=window.__rqGame,L=G.LEVELS,auto=bookLvlAuto(b),cur=bookLvlOf(b),m=function(x){return String(L[x].xp).replace('.',',');};
+  return '<div class="bk-h">Сложность</div><div class="chips bk-shelves" role="radiogroup" aria-label="Сложность книги">'+
+    L.map(function(x,i){const on=i===cur,off=i>auto;
+      return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'"'+(off?' disabled aria-disabled="true" title="Повысить сложность нельзя"':'')+' onclick="setBookLvl(\''+b.id+'\','+i+')">'+(on?rqIcon('check',14):off?rqIcon('lock',14):'')+esc(x.n)+(i?' ×'+m(i):'')+'</button>';}).join('')+
+    '</div><div class="bk-note">'+(auto?'Определена по тексту и автору. ':'')+'Сложная книга даёт опыт ×'+m(1)+' и +'+L[1].coins+' монет за каждые 10 минут, очень сложная ×'+m(2)+' и +'+L[2].coins+', не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
+}
+function setBookLvl(id,l){
+  const b=allBooks().find(x=>x.id===id);if(!b||!lvlOn())return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+  const auto=bookLvlAuto(b);l=Math.max(0,Math.min(auto,l|0));
+  S.bookLvl=S.bookLvl||{};if(l===auto)delete S.bookLvl[id];else S.bookLvl[id]=l;
+  save();bookInfo(id);
+}
+if(el('bookSheet'))el('bookSheet').addEventListener('scroll',function(){this.classList.toggle('stuck',this.scrollTop>24);},{passive:true});
 function bookInfo(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
@@ -506,7 +528,7 @@ function bookInfo(id){
   const rmin=Math.floor(((S.bookStats[id]||{}).min)||0); /* counted reading minutes for this book (same ones that give XP) */
   const rtime=rmin>=60?Math.floor(rmin/60)+' ч'+(rmin%60?' '+(rmin%60)+' мин':''):rmin+' мин';
   const fmt=b.type==='pdf'?'PDF · '+(b.pages||'?')+' стр.':(b.genre==='EPUB'?'EPUB':'Текст');
-  const sub=[b.author,b.genre].filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF» */
+  const sub=(bookAuthor(b)?[bookAuthor(b),b.genre]:[b.genre||'Автор не указан']).filter((x,i,a)=>x&&a.indexOf(x)===i).map(esc).join(' · '); /* «PDF · PDF» → «PDF»; audit 19.10 LIB-04: no «Моя книга» as an author */
   const place=builtin?'Встроена в приложение':(b.type==='pdf'?'На этом устройстве, в браузере':'На этом устройстве, в приложении');
   const row=(k,v,cls)=>'<div class="bk-row'+(cls?' '+cls:'')+'"><span class="bk-k">'+k+'</span><span class="bk-v">'+v+'</span></div>';
   const act=(ic,label,fn,on)=>'<button type="button" class="bk-act'+(on?' on':'')+'" onclick="'+fn+'(\''+id+'\')"'+(on!=null?' aria-pressed="'+!!on+'"':'')+'>'+bkIc(ic)+'<span>'+label+'</span></button>';
@@ -526,8 +548,9 @@ function bookInfo(id){
     '<div class="bk-h">Мои полки</div><div class="chips bk-shelves">'+ /* 18.10: свои полки (library.js shelf*) */
     shelvesGet().map(sh=>'<button type="button" class="fchip'+(sh.b.indexOf(id)>=0?' on':'')+'" aria-pressed="'+(sh.b.indexOf(id)>=0)+'" onclick="shelfToggle(\''+id+'\',\''+sh.id+'\')">'+(sh.b.indexOf(id)>=0?rqIcon('check',14):'')+esc(sh.n)+'</button>').join('')+
     '<button type="button" class="fchip fshelfadd" onclick="shelfNew(\''+id+'\')">'+rqIcon('plus',14)+'Новая полка</button></div>'+
+    bookLvlHtml(b)+
     '<div class="bk-h">О файле</div><div class="bk-list">'+
-    row('Формат',fmt)+row('Размер',size+(words?' · '+words+' '+plural(words,'слово','слова','слов'):''))+
+    row('Формат',fmt)+row('Размер',size+(words?' · '+fmtInt(words)+' '+plural(words,'слово','слова','слов'):''))+
     (builtin?'':row('Файл',esc(b.fname||'файл'),'wrap'))+row('Хранится',place)+
     '</div>'+
     (isMvp()?'': /* MVP: XP only per minute, coins only per day/week → difficulty, importance and stat change nothing there; shown outside MVP only */
@@ -602,55 +625,201 @@ el('covInp').onchange=e=>{
     try{
       S.covers[COVID]=cv.toDataURL('image/jpeg',0.72);
       save();renderLibrary();bookInfo(COVID);
-    }catch(e2){alert('Не удалось сохранить обложку: '+e2.message);}
+    }catch(e2){rqAlert('Не удалось сохранить обложку: '+e2.message);}
   };
-  img.onerror=()=>alert('Не удалось прочитать изображение');
+  img.onerror=()=>rqAlert('Не удалось прочитать изображение');
   img.src=URL.createObjectURL(f);
 };
 function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);}
 
-/* --- ИИ-помощник --- */
+/* --- ИИ «Объясни» (20.10): выделение → объяснение по смыслу книги ---
+   Только на своём ключе человека (Джессика 20.10: «делай так, чтобы люди ставили свои ключи»). Настройки → ИИ-помощник:
+   сервис, ключ, модель. Запрос идёт с телефона прямо в выбранный сервис; ключ хранится только на устройстве и не уходит
+   в экспорт (arch.md 15.10 и 20.10). Ни опыта, ни монет: подсказка, не награда. В словарь — поле vocab[].ex. */
+const AI_PROV={
+  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com',model:'deepseek-chat'},
+  openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat'},
+  openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-4o-mini'},
+  anthropic:{name:'Claude (Anthropic)',base:'https://api.anthropic.com/v1',model:'claude-haiku-5-5'},
+  custom:{name:'Другой, совместимый с OpenAI',base:'',model:''}
+};
+function aiProv(){const p=S.ai&&S.ai.prov;return AI_PROV[p]?p:'openai';} /* старые данные без prov — это OpenAI (v6) */
+function aiModel(){return (S.ai&&S.ai.model)||AI_PROV[aiProv()].model;}
+function aiBase(){const p=aiProv();return String((p==='custom'?(S.ai&&S.ai.base):AI_PROV[p].base)||'').replace(/\/+$/,'');}
+function aiOwnKey(){return !!(S.ai&&S.ai.key)&&!!aiBase();}
+function aiOn(){return aiOwnKey();}
+const AI_CACHE={};let aiCur=null,aiSeq=0;
+function selCtx(word){ /* предложение вокруг выделения (как у «В словарь») */
+  try{const sel=window.getSelection();const full=(sel&&sel.anchorNode&&sel.anchorNode.textContent)||'';const i=full.indexOf(word);
+    if(i<0)return '';
+    const a=Math.max(full.lastIndexOf('.',i),full.lastIndexOf('!',i),full.lastIndexOf('?',i));const b=full.indexOf('.',i+word.length);
+    return full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,400);}catch(e){return '';}
+}
 el('spAI').onclick=()=>{
   const t=selText();if(!t)return;
-  if(!S.ai||!S.ai.key){
-    alert('Чтобы «Объяснить» работало, вставьте API-ключ в Настройках → ИИ-помощник');
-    return;
-  }
-  aiAsk('Объясни этот фрагмент из книги «'+((R.book||{}).title||'')+'» простым языком, 2–4 предложения, по-русски:\n\n«'+t.slice(0,800)+'»');
+  if(!aiOn()){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');aiNoKey();return;}
+  const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
   if(window.getSelection)window.getSelection().removeAllRanges();
   el('selpop').classList.add('hidden');
+  aiExplain(q);
 };
-async function aiAsk(promptTxt){
-  el('aiBody').innerHTML='<div class="pempty">Думаю...</div>';
+function aiNoKey(){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает) */
+  aiCur=null;aiSeq++;
+  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник».</div>'+
+    '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
   el('aiSheet').classList.remove('hidden');
-  try{
-    const resp=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.ai.key},
-      body:JSON.stringify({model:S.ai.model||'gpt-4o-mini',messages:[{role:'user',content:promptTxt}],max_tokens:400})
-    });
-    const d=await resp.json();
-    if(d.error)throw new Error(d.error.message||'ошибка API');
-    el('aiBody').textContent=(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'Пустой ответ';
-  }catch(e2){
-    el('aiBody').innerHTML='<div class="pempty">Не получилось: '+esc(e2.message)+'<br><br>Проверьте ключ, модель и интернет.</div>';
-  }
+  el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');openGeneralSettings(true);settingsScrollTo('aiHead');};
 }
-el('aiSheetClose').onclick=()=>el('aiSheet').classList.add('hidden');
+function aiRender(state,txt){
+  const q=aiCur;if(!q)return;
+  const word=q.text.length<=60;
+  el('aiBody').innerHTML='<div class="ai-q">«'+esc(q.text.length>160?q.text.slice(0,160)+'…':q.text)+'»</div>'+
+    (state==='wait'?'<div class="ai-a ai-wait" role="status">Думаю…</div>'
+     :state==='err'?'<div class="ai-a" role="alert">'+esc(txt)+'</div><button class="ghostbtn" id="aiRetry">'+rqIcon('rotate-cw',16)+' Ещё раз</button>'
+     :'<div class="ai-a">'+esc(txt)+'</div>'+
+      (word&&R.book?'<button class="ghostbtn" id="aiToVocab">'+rqIcon('book-open',16)+' В словарь с объяснением</button>':'')+
+      '<div class="ai-note">Ответ ИИ, может ошибаться</div>');
+  if(el('aiRetry'))el('aiRetry').onclick=()=>aiExplain(q,true);
+  if(el('aiToVocab'))el('aiToVocab').onclick=()=>aiToVocab(q,txt);
+}
+async function aiExplain(q,again){
+  aiCur=q;const my=++aiSeq;const k=q.title+'\n'+q.text;
+  el('aiSheet').classList.remove('hidden');
+  if(AI_CACHE[k]&&!again){aiRender('ok',AI_CACHE[k]);return;}
+  if(navigator.onLine===false){aiRender('err','Нужен интернет. Включите сеть и нажмите «Ещё раз».');return;}
+  aiRender('wait');
+  let out='',err='';
+  try{out=await aiViaKey(aiMsgs(q));}
+  catch(e){err=e&&e.message||'ошибка';}
+  if(my!==aiSeq||el('aiSheet').classList.contains('hidden'))return; /* закрыли или спросили другое */
+  if(out){AI_CACHE[k]=out;aiRender('ok',out);}else aiRender('err','Не получилось ответить'+(err?': '+err:'')+'.');
+}
+const AI_SYS='Ты помощник в приложении для чтения книг. Человек выделил фрагмент текста и просит объяснить его. Отвечай по-русски, простым языком, 2–4 предложения, без вступлений. '+
+  'Если выделено слово или выражение, объясни, что оно значит именно здесь. Если это имя, место, бог, обычай или историческое событие, коротко скажи, кто или что это. '+
+  'Если это сложная фраза, перескажи её смысл проще. Не рассказывай, что будет дальше в книге, без спойлеров. Если не уверен, так и скажи.';
+function aiMsgs(q){
+  return {system:AI_SYS,user:'Книга: «'+q.title+'»'+(q.author?', '+q.author:'')+'\nФрагмент: «'+q.text+'»'+(q.ctx&&q.ctx!==q.text?'\nПредложение вокруг: «'+q.ctx+'»':'')};
+}
+async function aiFetch(url,opt){
+  const ac=typeof AbortController==='function'?new AbortController():null;const tm=setTimeout(()=>{if(ac)ac.abort();},25000);
+  try{return await fetch(url,Object.assign({},opt,ac?{signal:ac.signal}:{}));}
+  catch(e){throw new Error(e&&e.name==='AbortError'?'долго нет ответа':(navigator.onLine===false?'нет интернета':'нет связи с сервисом (или он не пускает запросы из браузера)'));}
+  finally{clearTimeout(tm);}
+}
+async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо с телефона в выбранный сервис. m = {system, user} или {system, messages:[{role,content}]} */
+  const p=aiProv(),key=S.ai.key,model=aiModel();let r;
+  const msgs=m.messages||[{role:'user',content:m.user}];
+  if(p==='anthropic'){
+    r=await aiFetch(aiBase()+'/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:model,max_tokens:maxTok||500,system:m.system,messages:msgs})});
+  }else{
+    r=await aiFetch(aiBase()+'/chat/completions',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:model,max_tokens:maxTok||500,messages:[{role:'system',content:m.system}].concat(msgs)})});
+  }
+  let d=null;try{d=await r.json();}catch(e){}
+  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
+  if(r.status===402)throw new Error('на счёте сервиса нет денег');
+  if(r.status===429)throw new Error('слишком много запросов, попробуйте позже');
+  const em=d&&d.error&&(d.error.message||(typeof d.error==='string'?d.error:''));
+  if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
+  const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
+    ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
+  return String(t).trim().slice(0,2000);
+}
+function aiToVocab(q,ex){
+  const word=q.text.trim().slice(0,60);if(!word)return;
+  S.vocab=S.vocab||[];
+  const v=S.vocab.find(x=>x.w.toLowerCase()===word.toLowerCase());
+  if(v){v.ex=String(ex).slice(0,600);save();flashMsg('Объяснение добавлено к «'+word+'»');}
+  else{S.vocab.push({w:word,ctx:(q.ctx||'').slice(0,160),book:q.title,date:today(),box:0,ex:String(ex).slice(0,600)});save();flashMsg('«'+word+'» — в словарь');}
+  el('aiSheet').classList.add('hidden');
+}
+/* --- «Обсудить книгу» (20.10, Джессика: «мини-чат с ИИшкой, когда обсуждаешь книгу») ---
+   Кнопка в шапке читалки. ИИ получает название, автора и текст книги до конца текущей страницы (последние ~8000 знаков; PDF —
+   до 4 страниц), дальше не видит и просит не спойлерить. Переписка — S.aiChat[bookId], ≤ 20 сообщений (arch.md 20.10). Ни опыта, ни монет. */
+const CHAT_MAX=20,CHAT_CTX=8000;let chatBusy=false,chatSeq=0,chatErr=null;
+async function chatBookText(){
+  try{
+    if(R.mode==='pdf'&&R.pdf){const to=R.page+1,from=Math.max(1,to-3),parts=[];
+      for(let n=from;n<=to;n++){try{const pg=await R.pdf.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(x=>x.str||'').join(' '));}catch(e){}}
+      return parts.join('\n').replace(/\s+/g,' ').slice(-CHAT_CTX);}
+    const t=(el('content').textContent||'').replace(/\s+/g,' ');
+    const end=Math.min(t.length,Math.ceil(t.length*Math.min(1,(R.page+1)/Math.max(1,R.pageCount))));
+    return t.slice(Math.max(0,end-CHAT_CTX),end);
+  }catch(e){return '';}
+}
+function chatList(){const id=R.book&&R.book.id;if(!id)return [];S.aiChat=S.aiChat||{};return S.aiChat[id]||[];}
+function chatPush(r,t){const id=R.book&&R.book.id;if(!id)return;S.aiChat=S.aiChat||{};const l=(S.aiChat[id]||[]).concat([{r:r,t:String(t).slice(0,1500),d:today()}]).slice(-CHAT_MAX);S.aiChat[id]=l;save();}
+function chatRender(wait){
+  const l=chatList(),log=el('aiChatLog');
+  el('aiChatSub').textContent=R.book?('«'+R.book.title+'»'+(bookAuthor(R.book)?', '+bookAuthor(R.book):'')+' · ИИ знает текст до этой страницы'):'';
+  log.innerHTML=(l.length?'':'<div class="chat0">Спросите о прочитанном: о героях, непонятных местах, о чём глава. Дальше этой страницы ИИ текста не видит и спойлерить не будет.</div>')+
+    l.map(m=>'<div class="cm '+m.r+'">'+esc(m.t)+'</div>').join('')+
+    (wait?'<div class="cm a w" role="status">Думаю…</div>':'')+
+    (chatErr&&!wait?'<div class="cm e" role="alert">'+esc(chatErr)+' <button type="button" id="aiChatRetry">Ещё раз</button></div>':'');
+  el('aiChatChips').innerHTML=l.length||wait?'':['Напомни, что было','Кто главные герои?','О чём эта часть?'].map(t=>'<button type="button">'+esc(t)+'</button>').join('');
+  el('aiChatChips').querySelectorAll('button').forEach(b=>b.onclick=()=>chatSend(b.textContent));
+  if(el('aiChatRetry'))el('aiChatRetry').onclick=()=>chatAsk();
+  el('aiChatSend').disabled=!!wait;el('aiChatClear').hidden=!l.length;
+  log.scrollTop=log.scrollHeight;
+}
+function openAiChat(){
+  if(!R.book)return;
+  if(!aiOn()){aiNoKey();return;}
+  chatErr=null;el('aiChat').classList.remove('hidden');chatRender(chatBusy);
+}
+async function chatSend(txt){
+  const t=String(txt||'').trim().slice(0,1000);if(!t||chatBusy||!R.book)return;
+  chatPush('u',t);el('aiChatIn').value='';el('aiChatIn').style.height='';
+  await chatAsk();
+}
+async function chatAsk(){
+  if(chatBusy||!R.book)return;
+  const book=R.book,my=++chatSeq;chatErr=null;
+  if(navigator.onLine===false){chatErr='Нужен интернет.';chatRender();return;}
+  chatBusy=true;chatRender(true);
+  const ctx=await chatBookText();
+  const sys='Ты собеседник читателя в приложении для чтения. Обсуждаете книгу «'+book.title+'»'+(bookAuthor(book)?' ('+bookAuthor(book)+')':'')+'. '+
+    'Отвечай по-русски, живо и по делу, обычно 2–6 предложений. Опирайся на текст ниже: это всё, что человек прочитал к этому моменту. '+
+    'Не рассказывай, что будет дальше, даже если знаешь книгу: никаких спойлеров. Если спрашивают о будущем сюжете, мягко откажись. Если не уверен, так и скажи.'+
+    (ctx?'\n\nТекст до текущего места (конец фрагмента — где читатель сейчас):\n«…'+ctx+'»':'');
+  const msgs=[];chatList().slice(-12).forEach(m=>{const role=m.r==='u'?'user':'assistant';const last=msgs[msgs.length-1];
+    if(last&&last.role===role)last.content+='\n\n'+m.t;else msgs.push({role:role,content:m.t});});
+  while(msgs.length&&msgs[0].role!=='user')msgs.shift();
+  let out='',err='';
+  try{if(!msgs.length)throw new Error('нет вопроса');out=await aiViaKey({system:sys,messages:msgs},700);}catch(e){err=e&&e.message||'ошибка';}
+  chatBusy=false;
+  if(my!==chatSeq||R.book!==book)return; /* переписку очистили или книгу закрыли — ответ не нужен */
+  if(out)chatPush('a',out);else chatErr='Не получилось ответить'+(err?': '+err:'')+'.';
+  if(!el('aiChat').classList.contains('hidden'))chatRender();
+}
+el('btnAiChat').onclick=openAiChat;
+el('aiChatClose').onclick=()=>el('aiChat').classList.add('hidden');
+el('aiChatForm').onsubmit=e=>{e.preventDefault();chatSend(el('aiChatIn').value);};
+el('aiChatIn').oninput=e=>{const t=e.target;t.style.height='';t.style.height=Math.min(120,t.scrollHeight)+'px';};
+el('aiChatIn').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();chatSend(el('aiChatIn').value);}};
+el('aiChatClear').onclick=async()=>{
+  if(!R.book||!await rqAsk({t:'Очистить переписку?',p:'Разговор об этой книге удалится с этого устройства.',ok:'Очистить',danger:true}))return;
+  chatSeq++;chatBusy=false;chatErr=null;if(S.aiChat)delete S.aiChat[R.book.id];save();chatRender();
+};
+el('aiSheetClose').onclick=()=>{aiSeq++;el('aiSheet').classList.add('hidden');};
 function shareBook(id){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const p=Math.round(rqPos(id)*100); /* 1б-144: current position */
-  const txt='Читаю «'+b.title+'» ('+b.author+') в ReadQuest — прогресс '+p+'%';
+  const txt='Читаю «'+b.title+'»'+(bookAuthor(b)?' ('+bookAuthor(b)+')':'')+' в ReadQuest — прогресс '+p+'%';
   if(navigator.share){navigator.share({title:b.title,text:txt}).catch(function(){});}
-  else{copyText(txt);alert('Текст для шаринга скопирован в буфер');}
+  else{copyText(txt);rqAlert('Текст для шаринга скопирован в буфер');}
 }
 async function removeBook(id,wipeFile){
   const b=allBooks().find(x=>x.id===id);if(!b)return;
   const builtin=!!BOOKS.find(x=>x.id===id);
-  if(!confirm(wipeFile?'Удалить книгу и её файл из хранилища устройства?':'Убрать книгу из библиотеки? Прогресс по ней будет удалён.'))return;
+  if(!await rqAsk(wipeFile?{t:'Удалить «'+b.title+'» и файл?',p:'Книга, прогресс, цитаты и файл удалятся с этого устройства.',ok:'Удалить',danger:true}
+    :{t:'Убрать «'+b.title+'»?',p:'Прогресс и цитаты по этой книге удалятся. Файл на устройстве останется.',ok:'Убрать',danger:true}))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
-  delete S.progress[id];delete S.quotes[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
+  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   save();el('bookSheet').classList.add('hidden');renderLibrary();
@@ -707,9 +876,9 @@ function renderYearReview(){
   const hh=S.hourHist||[];let peak=0;for(let h=0;h<24;h++)if((hh[h]||0)>(hh[peak]||0))peak=h;
   let topB='—',tv=0;allBooks().forEach(b=>{const s=S.bookStats[b.id];if(s&&s.min>tv){tv=s.min;topB=b.title;}});
   box.innerHTML='<div class="yreview"><div class="yr-h">Год в чтении · '+y+'</div><div class="yr-grid">'+
-    '<div class="yr-cell"><b>'+Math.round(min)+'</b><span>минут</span></div>'+
-    '<div class="yr-cell"><b>'+books+'</b><span>книг дочитано</span></div>'+
-    '<div class="yr-cell"><b>'+days+'</b><span>дней с чтением</span></div>'+
+    '<div class="yr-cell"><b>'+Math.round(min)+'</b><span>'+plural(Math.round(min),'минута','минуты','минут')+'</span></div>'+
+    '<div class="yr-cell"><b>'+books+'</b><span>'+plural(books,'книга дочитана','книги дочитано','книг дочитано')+'</span></div>'+
+    '<div class="yr-cell"><b>'+days+'</b><span>'+plural(days,'день','дня','дней')+' с чтением</span></div>'+
     '<div class="yr-cell"><b>'+(S.streak||0)+'</b><span>стрик сейчас</span></div></div>'+
     '<div class="yr-line">Любимый жанр: <b>'+esc(favG)+'</b></div>'+
     '<div class="yr-line">Любимое время: <b>'+peak+':00</b></div>'+

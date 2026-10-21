@@ -481,7 +481,7 @@ function advRenderList(){
     else if(ADV.set==='want')h+='<div class="advempty">Список пуст. Откройте книгу и нажмите «Хочу прочитать»</div>';
     else if(ADV.src==='ia'&&!ADV.q)h+='<div class="advempty">Напишите название или автора. В Интернет-архиве сканы старых изданий, мы показываем только изданные до 1930 года</div><div class="chips advrecent">'+
       ADV_WS_HINTS.slice(0,8).map(function(s){return '<button type="button" class="fchip" data-q="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>';
-    else if(!advLat()&&!ADV.q)h+=advHome()+'<div class="bk-h">Подборки</div><div class="advsets">'+ADV_SETS.map(function(x){
+    else if(!advLat()&&!ADV.q)h+=advHome()+'<div class="bk-h">Подборки</div><div class="advsets">'+ADV_SETS.map(function(x){ /* audit 19.10 ADV-01: English collections off for the RU people test */
         return '<button type="button" class="advset" data-set="'+x.id+'">'+rqIcon(x.ic,22)+'<b>'+esc(x.t)+'</b><span>'+(x.pages?advSetLine(x):x.sub||'мировая классика')+'</span>'+(x.pages&&advSetProg(x)?advBar(advSetProg(x),x.pages.length):'')+'</button>';}).join('')+'</div>'+
       '<div class="bk-h advauth-h">Авторы</div><div class="chips advhints">'+
       ADV_WS_HINTS.map(function(s){return '<button type="button" class="fchip" data-q="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>';
@@ -604,6 +604,7 @@ function advSheet(it,src,inf){
   else if(inf.err||inf.missing)act='<div class="bk-note">'+esc(inf.err||'Такой книги в библиотеке больше нет')+'</div>';
   else if(inf.nocors)act='<div class="bk-note">Гутенберг пока не отдаёт файлы приложению напрямую. Скачайте файл в браузере, потом нажмите «Добавить книгу» в библиотеке и выберите его. Книга ляжет на полку, как любая другая.</div>'+
     '<a class="cta" href="'+esc(inf.epub)+'" target="_blank" rel="noopener">'+rqIcon('download',18)+' Скачать файл'+(inf.size?' · '+advSize(inf.size):'')+'</a>';
+  else if(src.canGet(inf)&&navigator.onLine===false)act='<button type="button" class="cta" id="advGet" disabled>'+rqIcon('download',18)+' Нет сети — скачать можно позже</button>'; /* audit 19.10 ADV-02 */
   else if(src.canGet(inf))act='<button type="button" class="cta" id="advGet" onclick="advGet()">'+rqIcon('download',18)+(inf.partial!==undefined?' Продолжить скачивание · '+inf.partial+' %':' Скачать на телефон и читать')+'</button>';
   if(inf&&!inf.err&&!inf.missing){const ws=it.sid.indexOf('wikisource:')===0,ra=!ws?advRuAuthor(inf.author||it.a):(it.a||'');
     if(ra)act+='<button type="button" class="buy advwant" data-author="'+esc(ra)+'" onclick="advAuthor(this.dataset.author)">'+rqIcon('user-round',18)+(!ws?' Этот автор по-русски на Викитеке':' Все книги автора')+'</button>';}

@@ -161,6 +161,7 @@ function flashMsg(t,o){
   const kind=opt.kind||(RQ_GAME_RE.test(String(t||''))?'game':'info');
   const inReader=!!(el('reader')&&!el('reader').classList.contains('hidden'));
   if(inReader&&kind==='game')return;
+  if(inReader&&kind!=='error'&&el('selpop')&&!el('selpop').classList.contains('hidden'))return; /* audit 19.10 RD-SEL-02: nothing over the selection bar */
   const ms=opt.ms;
   document.querySelectorAll('.rq-toast').forEach(function(x){x.remove();}); /* one toast at a time */
   const d=document.createElement('div');
@@ -171,9 +172,28 @@ function flashMsg(t,o){
   if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');if(pg==='night')d.dataset.theme='night';} /* night page → night toast tokens */
   d.onclick=function(){d.remove();};
   document.body.appendChild(d);
+  if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12+(el('bnRead')?32:0))+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title; 20.10: and over the «Читать» bump */
+  if(inReader){const rb=el('reader').querySelector('.rbot');if(rb&&!el('reader').classList.contains('barsoff')){const h=window.innerHeight-rb.getBoundingClientRect().top;if(rb.offsetHeight&&h>40&&h<window.innerHeight/2)d.style.setProperty('bottom',Math.round(h+12)+'px','important');}} /* audit 19.10: over the panel, not on it */
+  if(d.scrollWidth>d.clientWidth+1)d.classList.add('imp'); /* long text wraps instead of running off the screen */
   const dur=ms!=null?ms:(inReader?3000:1600);
   setTimeout(function(){try{d.remove();}catch(e){}},dur);
 }
+
+/* audit 19.10 GL-04 / LIB-02: no system dialogs. rqAlert = a toast; rqAsk = a bottom sheet with «Отмена» (focused, Esc, tap outside) and the action.
+   rqAsk({t,p,ok,danger}) → Promise<boolean>; with input:'text' a text field → Promise<string|null> (null = «Отмена») */
+function rqAlert(t){flashMsg(String(t||''),{ms:4000,kind:/^Не удал|^Не хватает|не поддерж|запрещен/i.test(String(t||''))?'error':'info'});}
+function rqAsk(o){return new Promise(function(res){
+  let sc=el('rqAskScrim'),d=el('rqAsk');
+  if(!d){sc=document.createElement('div');sc.id='rqAskScrim';d=document.createElement('div');d.id='rqAsk';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','rqAskT');document.body.appendChild(sc);document.body.appendChild(d);}
+  const inp=o.input!=null;
+  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p>'+(inp?'<textarea id="rqAskIn" rows="3" maxlength="1000" aria-labelledby="rqAskT"></textarea>':'')+'<div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
+  el('rqAskT').textContent=o.t||'';el('rqAskP').textContent=o.p||'';el('rqAskP').hidden=!o.p;el('rqAskOk').textContent=o.ok||'Да';el('rqAskOk').className=o.danger?'danger':'cta';
+  const kd=function(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}};
+  if(inp)el('rqAskIn').value=String(o.input);
+  const done=function(v){const tv=inp?(v?el('rqAskIn').value.trim().slice(0,1000):null):v;sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(tv);};
+  el('rqAskNo').onclick=function(){done(false);};el('rqAskOk').onclick=function(){done(true);};sc.onclick=function(){done(false);};
+  sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el(inp?'rqAskIn':'rqAskNo').focus({preventScroll:true});}catch(e){}
+});}
 
 /* --- выделение текста → цитаты --- */
 function selText(){
@@ -183,28 +203,114 @@ function selText(){
   return t.length>2?t:'';
 }
 function updSelPop(){
-  el('selpop').classList.toggle('hidden',!selText()||el('reader').classList.contains('hidden'));
+  const off=!selText()||el('reader').classList.contains('hidden');
+  if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
+  el('selpop').classList.toggle('hidden',off);
 }
 let selT=null;
 document.addEventListener('selectionchange',()=>{if(selT)clearTimeout(selT);selT=setTimeout(updSelPop,200);});
-function markInContent(t){
-  const c=el('content');const k=esc(t);
-  if(c.innerHTML.includes(k))c.innerHTML=c.innerHTML.replace(k,'<mark>'+k+'</mark>');
+/* 20.10 цвета цитат (Джессика, как в ReadEra): цвет — поле q.c у цитаты (нет поля или кривое = жёлтый), последний выбор — SET.hlc.
+   Свой цвет (Джессика: «кастомным цветом») — q.c = '#rrggbb', последний свой — SET.hlx; прозрачность подбирается под страницу, текст книги ≥ 7:1 */
+const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
+const HL_HEX=/^#[0-9a-f]{6}$/;
+function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
+function hlDot(c){const k=hlKey(c);return k[0]==='#'?k:HL_COLORS.find(x=>x.k===k).d;}
+/** colour of a highlighted string = the colour of its quote (S.hl keeps plain strings, as before) */
+function quoteColor(bid,t){const q=(S.quotes[bid]||[]).find(x=>x&&x.text===t);return hlKey(q&&q.c);}
+function markHtml(k,c){return c&&c[0]==='#'?'<mark data-hc="'+c+'">'+k+'</mark>':'<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
+function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;m.style.background='';hlPaintCustom();}
+/** own colours: the strongest alpha (day ≤ .45, night ≤ .30) at which the book text over it stays ≥ 7:1 on this page */
+function hlPaintCustom(){
+  const ms=document.querySelectorAll('#content mark[data-hc]');if(!ms.length)return;
+  const rgb=(s)=>{const v=(String(s).match(/[\d.]+/g)||[0,0,0]).map(Number);return /^color\(srgb/.test(s)?v.map((x,i)=>i<3?x*255:x):v;};
+  const lum=(c)=>{const f=(v)=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};return 0.2126*f(c[0])+0.7152*f(c[1])+0.0722*f(c[2]);};
+  const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);};
+  const r=el('reader'),page=rgb(getComputedStyle(r).backgroundColor),night=r.dataset.page==='night',memo={};
+  ms.forEach(m=>{const hc=hlKey(m.dataset.hc);if(hc[0]!=='#')return;const tx=rgb(getComputedStyle(m).color);
+    const key=hc+tx.join();if(!(key in memo)){const c=[1,3,5].map(i=>parseInt(hc.slice(i,i+2),16));let a=night?0.30:0.45;
+      while(a>0.03&&cr(tx,c.map((v,i)=>v*a+page[i]*(1-a)))<7.05)a-=0.01;memo[key]='rgba('+c.join(',')+','+a.toFixed(2)+')';}
+    m.style.background=memo[key];});
 }
-function addQuote(withNote){
-  const t=selText();if(!t||!R.book)return;
-  let note='';
-  if(withNote)note=prompt('Заметка к цитате:')||'';
-  (S.quotes[R.book.id]=S.quotes[R.book.id]||[]).push({text:t,note,date:today()});
-  (S.hl[R.book.id]=S.hl[R.book.id]||[]).push(t);
-  if(!(window.__rqWriter&&__rqWriter.noLocks)){
-    if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
-    addSkillXp('Аналитика',1);checkAchievements();
-  } /* no locks → no coins */
-  save();
-  markInContent(t);
-  if(window.getSelection)window.getSelection().removeAllRanges();
-  el('selpop').classList.add('hidden');
+/* 21.10 (Джессика: «выделяю в PDF, жму цвет — ничего не происходит»): in a PDF the quote also keeps where it is —
+   q.pdf = {p: page index, r: [[x,y,w,h],…] in 0…1 of the page's text layer}; the highlight is drawn as boxes in that layer */
+function pdfSelGeo(){
+  try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
+    let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
+    const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
+    const r=[];Array.prototype.forEach.call(rg.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right),y0=Math.max(q.top,b.top),y1=Math.min(q.bottom,b.bottom);
+      if(x1-x0<1||y1-y0<1)return;const k=[(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height].map(v=>Math.round(v*1e4)/1e4);
+      if(!r.some(o=>Math.abs(o[0]-k[0])<.002&&Math.abs(o[1]-k[1])<.002&&Math.abs(o[2]-k[2])<.002))r.push(k);});
+    return r.length?{p:p,r:r.slice(0,200)}:null;}catch(e){return null;}
+}
+function pdfHlPaint(tl,p){
+  if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
+  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&q.pdf.p===p&&Array.isArray(q.pdf.r));if(!qs.length)return;
+  const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
+  qs.forEach(q=>{const c=hlKey(q.c),bg=c[0]==='#'?'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+',.35)':'var(--hl-'+c+')';
+    q.pdf.r.forEach(k=>{if(!Array.isArray(k)||k.length!==4||!k.every(v=>typeof v==='number'&&isFinite(v)))return;const d=document.createElement('i');
+      d.style.cssText='left:'+k[0]*100+'%;top:'+k[1]*100+'%;width:'+k[2]*100+'%;height:'+k[3]*100+'%;background:'+bg;box.appendChild(d);});});
+  tl.insertBefore(box,tl.firstChild);
+}
+function pdfHlRefresh(){
+  if(!R.book||R.mode!=='pdf')return;
+  document.querySelectorAll('#pdfScroll .psl .textLayer').forEach(tl=>pdfHlPaint(tl,+tl.closest('.psl').dataset.n));
+  const t=el('pdfText');if(t&&t.childNodes.length)pdfHlPaint(t,R.page);
+}
+function markInContent(t,c){
+  const c0=el('content');const k=esc(t);
+  if(c0.innerHTML.includes(k)){c0.innerHTML=c0.innerHTML.replace(k,markHtml(k,hlKey(c)));hlPaintCustom();}
+}
+function renderSpColors(){
+  const box=el('spColors');if(!box)return;const cur=hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';
+  box.innerHTML=HL_COLORS.map(x=>'<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+x.n.toLowerCase()+'" title="'+x.n+'" style="--d:'+x.d+'"><i aria-hidden="true"></i></button>').join('')+
+    '<button type="button" id="spOwn"'+(cur[0]==='#'?' class="on"':'')+' aria-label="Цитата, свой цвет" title="Свой цвет"'+(own?' style="--d:'+own+'"':'')+'><i class="own'+(own?' set':'')+'" aria-hidden="true"></i></button>';
+}
+/* own colour: the system colour picker (input type=color outside the bar, so hiding the bar never closes it); the selection is taken BEFORE it opens */
+let hlPick=null;
+function hlOwnInput(){let i=el('hlOwnIn');if(!i){i=document.createElement('input');i.type='color';i.id='hlOwnIn';i.tabIndex=-1;i.setAttribute('aria-hidden','true');
+  i.style.cssText='position:fixed;left:50%;bottom:120px;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none';document.body.appendChild(i);
+  i.addEventListener('change',()=>{const v=hlKey(i.value),pk=hlPick;hlPick=null;if(v[0]!=='#'||!pk)return;SET.hlx=v;addQuote(false,v,pk);});}
+  return i;}
+function hlOwnOpen(){
+  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo()};
+  const i=hlOwnInput();i.value=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0';
+  try{if(i.showPicker)i.showPicker();else i.click();}catch(e){i.click();}
+}
+/** an already highlighted quote the selection sits in (then a colour recolours it instead of adding a copy) */
+function selMark(){
+  try{const s=window.getSelection();if(!s||!s.rangeCount)return null;let n=s.getRangeAt(0).commonAncestorContainer;if(n&&n.nodeType===3)n=n.parentNode;
+    const m=n&&n.closest&&n.closest('mark');return m&&el('content').contains(m)?m:null;}catch(e){return null;}
+}
+function selDone(){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
+function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the colour picker opened */
+  const m=pick?pick.m:selMark(),t=pick?pick.t:(m?m.textContent:selText());if(!t||!R.book||(pick&&pick.bid!==R.book.id))return;
+  const geo=pick?pick.geo:pdfSelGeo();
+  if(m&&!m.isConnected)return;
+  const bid=R.book.id,c=hlKey(color||SET.hlc);
+  if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
+  const old=m?(S.quotes[bid]||[]).find(x=>x&&x.text===t):null;
+  if(old){ /* recolour / re-note the quote under the selection */
+    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();hlSetMark(m,c);};
+    if(withNote){selDone();return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:old.note||''}).then(v=>{if(v!==null)put(v);});}
+    put(null);selDone();return;
+  }
+  const commit=(note)=>{
+    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;
+    (S.quotes[bid]=S.quotes[bid]||[]).push(q);
+    (S.hl[bid]=S.hl[bid]||[]).push(t);
+    if(!(window.__rqWriter&&__rqWriter.noLocks)){
+      if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
+      addSkillXp('Аналитика',1);checkAchievements();
+    } /* no locks → no coins */
+    save();
+    if(!R.book||R.book.id!==bid)return;
+    markInContent(t,c);if(geo)pdfHlRefresh();
+  };
+  if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
+    selDone();
+    return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:''}).then(v=>{if(v!==null)commit(v);});
+  }
+  commit('');selDone();
 }
 function copyText(t){
   try{navigator.clipboard.writeText(t);}
@@ -216,6 +322,7 @@ function copyText(t){
   }
 }
 el('spHl').onclick=()=>addQuote(false);
+el('spColors').onclick=(e)=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;if(b.id==='spOwn')hlOwnOpen();else if(b.dataset.c)addQuote(false,b.dataset.c);};
 el('spNote').onclick=()=>addQuote(true);
 
 /* --- словарь по выделению --- */
@@ -244,6 +351,7 @@ el('spCopy').onclick=()=>{
 };
 document.addEventListener('keydown',e=>{
   if(el('reader').classList.contains('hidden'))return;
+  if(e.target&&e.target.closest&&e.target.closest('input,textarea,[contenteditable]'))return; /* 20.10: typing a note never turns the page */
   if(e.key==='ArrowRight'||e.key===' ')goPage(R.page+1,true);
   if(e.key==='ArrowLeft')goPage(R.page-1,true);
   if(e.key==='Escape')readerBack();
@@ -281,7 +389,7 @@ el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
     const dy=e.touches[0].clientY-bright.y0;if(Math.abs(dy)>6)bright.mv=true;
-    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's), «Затемнение» stays */
+    SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's) */
     rqLightApply();
     return;
   }
@@ -334,77 +442,48 @@ el('panelClose').onclick=()=>el('panel').classList.add('hidden');
 el('tabToc').onclick=()=>renderPanel('toc');
 el('tabMarks').onclick=()=>renderPanel('marks');
 el('tabQts').onclick=()=>renderPanel('qts');
-el('tabFind').onclick=()=>renderPanel('find');
+el('tabFind').onclick=()=>bfOpen(); /* 20.10: the one search screen (js/book-find.js), the same as the magnifier in the header */
+el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
 function jumpRatio(fr){jumpTo(Math.round(fr*(R.pageCount-1)));el('panel').classList.add('hidden');}
+/* audit 19.10 FR-03: a TXT without a stored toc gets one from its «Глава N» / «Часть N» lines (memory only, never written) */
+let __txtToc={id:null,toc:[]};
+function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
+  if(b.type==='pdf')return (R&&R.book===b&&R.pdfToc)||[]; /* 20.10: PDF bookmarks [{t,page}], memory only (bfPdfOutline) */
+  if(!b.text)return [];if(__txtToc.id===b.id)return __txtToc.toc;
+  const out=[],re=/(^|\n)[ \t]*((?:Глава|ГЛАВА|Часть|ЧАСТЬ)[ \t]+[^\n]{1,60})/g;let m;
+  while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
+  __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
+/* 21.10: the chapter being read is marked in «Главы» (the last one that starts on or before the current page) */
+function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1;
+  toc.forEach(function(x,i){const p=x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0);if(p<=pg&&(c<0||p>=(toc[c].page!=null?toc[c].page:Math.round(toc[c].off/len*(N-1)))))c=i;});
+  tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
+/* 21.10 (Джессика: «вместо слова "читаете" значок»): each skin its own mark (Бабочковый / Небесный draw theirs in skins.css) */
+function tocNowIcon(){const k=document.documentElement.dataset.skin||'';return k==='ellada'?'amphora':k==='pencil'?'pencil':'book-open';}
 function jumpToc(i){
-  const b=R.book;if(!b||!b.toc||!b.toc[i])return;
-  jumpRatio(b.text&&b.text.length?b.toc[i].off/b.text.length:0);
+  const b=R.book,toc=tocOf(b);if(!toc[i])return;
+  if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
+  jumpRatio(b.text&&b.text.length?toc[i].off/b.text.length:0);
 }
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
-let FINDQ='';
-let FINDTOKEN=0;
-function doFind(){
-  const res=el('findRes');if(!res)return;
-  const b=R.book;
-  if(!FINDQ||FINDQ.trim().length<2){res.innerHTML='<div class="pempty">Введите минимум 2 символа</div>';return;}
-  const q=FINDQ.trim().toLowerCase();
-  if(b&&b.text){
-    const tl=b.text.toLowerCase();const out=[];let i=0;
-    while(out.length<40){
-      const p=tl.indexOf(q,i);if(p<0)break;
-      const fr=p/b.text.length;
-      const ctx=b.text.slice(Math.max(0,p-40),p+q.length+40).replace(/\n+/g,' ');
-      out.push('<button class="prow" onclick="jumpRatio('+fr.toFixed(4)+')">…'+esc(ctx)+'…</button>');
-      i=p+q.length;
-    }
-    res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';return;
-  }
-  if(R.mode==='pdf'&&R.pdf){pdfFind(q,res);return;}
-  res.innerHTML='<div class="pempty">Поиск недоступен</div>';
-}
-async function pdfFind(q,res){
-  const token=++FINDTOKEN;
-  res.innerHTML='<div class="pempty">Ищу по страницам…</div>';
-  const out=[];
-  for(let n=0;n<R.pageCount;n++){
-    if(token!==FINDTOKEN)return;
-    try{
-      const page=await R.pdf.getPage(n+1);
-      const tc=await page.getTextContent();
-      const txt=tc.items.map(it=>it.str).join(' ');
-      const pos=txt.toLowerCase().indexOf(q);
-      if(pos>=0){
-        const ctx=txt.slice(Math.max(0,pos-40),pos+q.length+50).replace(/\s+/g,' ');
-        out.push('<button class="prow" onclick="findGo('+n+')">стр. '+(n+1)+': …'+esc(ctx)+'…</button>');
-        if(token===FINDTOKEN)res.innerHTML=out.join('')+'<div class="pempty">ищу дальше…</div>';
-      }
-    }catch(e){}
-    if(out.length>=60)break;
-  }
-  if(token===FINDTOKEN)res.innerHTML=out.length?out.join(''):'<div class="pempty">Не найдено</div>';
-}
-function findGo(n){jumpTo(n);el('panel').classList.add('hidden');}
 function renderPanel(tab){
   panelTab=tab;rqGridStop();
-  [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabFind','find'],['tabGrid','grid']]
+  [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
   const body=el('panelBody');const b=R.book;
   if(!b){body.innerHTML='<div class="pempty">Откройте книгу</div>';return;}
-  if(tab==='find'){
-    body.innerHTML='<input id="bookFind" class="searchinp" placeholder="Найти в книге..." value="'+esc(FINDQ)+'"><div id="findRes" style="margin-top:10px"></div>';
-    el('bookFind').oninput=e=>{FINDQ=e.target.value;doFind();};
-    doFind();return;
-  }
   if(tab==='grid'){rqGridRender(body);return;} /* 18.10: real page thumbnails, js/page-grid.js */
   if(tab==='toc'){
-    const toc=b.toc||[];
+    const toc=tocOf(b);
     body.innerHTML=toc.length
-      ?toc.map((ch,i)=>'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
-      :'<div class="pempty">У этой книги нет оглавления</div>';
+      ?toc.map((ch,i)=>i===tocCur(b,toc)
+        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow" role="img" aria-label="Читаете" title="Читаете">'+rqIcon(tocNowIcon(),18)+'</span></button>'
+        :'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
+      :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
+    const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
-    body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">＋ Закладка на текущей странице</button>'+
+    body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
       ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
     const qs=S.quotes[b.id]||[];
@@ -413,7 +492,7 @@ function renderPanel(tab){
         const fr=b.text?Math.max(0,b.text.indexOf(q.text))/Math.max(1,b.text.length):0;
         return '<button class="prow" onclick="jumpRatio('+fr.toFixed(4)+')">«'+esc(q.text.slice(0,60))+(q.text.length>60?'…':'')+'»</button>';
       }).join('')
-      :'<div class="pempty">Пока нет цитат — выделите текст в книге</div>';
+      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
   }
 }
 
@@ -425,23 +504,106 @@ function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.is
 /* Джессика 16.10: the bare «stop» square read as a glitch. Listening = a pause icon on a highlighted button (aria-pressed), stop = the speaker again. */
 function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
   const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
-function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}ttsBtn(false);}
-function ttsSay(t,onend){
+function ttsStop(){ttsOn=false;speaking=false;ttsCount(true);try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}nttsHalt();ttsBtn(false);}
+/* audit 19.10 RD-TTS-01 (R4): no voice → the position never moves. A Russian voice is checked first (voiceschanged, up to 800 ms);
+   none → the button looks inactive (aria-disabled) and a toast above the panel says so. The page turns when the speech STARTS
+   (onstart / onboundary), never before speak(); a real error (not interrupted / canceled) or an end without a start stops the reading
+   and puts the page back where listening began. */
+function ttsVoices(){try{return (speechSynthesis.getVoices()||[]).filter(function(v){return /^ru/i.test(v.lang||'');});}catch(e){return [];}}
+function ttsVoiceReady(){
+  if(!window.speechSynthesis)return Promise.resolve(false);
+  if(ttsVoices().length)return Promise.resolve(true);
+  return new Promise(function(res){let done=false;const fin=function(){if(done)return;done=true;try{speechSynthesis.removeEventListener('voiceschanged',fin);}catch(e){}res(ttsVoices().length>0);};
+    try{speechSynthesis.addEventListener('voiceschanged',fin);}catch(e){}setTimeout(fin,800);});
+}
+function ttsMarkVoice(ok){const b=el('btnTts');if(!b)return;if(ok||nttsOn())b.removeAttribute('aria-disabled');else b.setAttribute('aria-disabled','true');}
+const TTS_NO_VOICE='Голос для чтения не найден. Установите его в настройках телефона';
+function ttsFail(msg){if(!ttsOn)return;const p=R.ttsStartPage;ttsStop();
+  if(typeof p==='number'&&p!==R.page&&R.book){R.ttsAdv=true;try{goPage(p,false);}finally{R.ttsAdv=false;}}
+  flashMsg(msg?'Озвучка остановилась: '+msg:'Озвучка остановилась',msg?{ms:4000}:undefined);}
+
+/* --- нейросетевая озвучка на своём ключе (Джессика 20.10: «нейросетевую озвучку… пользователи подключают свои ключи») ---
+   Настройки → «Озвучка». Тот же ttsSay/ttsTextNext/ttsPdfNext, но кусок текста (≤ ~1700 знаков) уходит с телефона прямо в сервис,
+   приходит mp3 и играет через <audio>; следующий кусок заказывается, пока играет текущий. Ключ только на устройстве, не в экспорте
+   (arch.md 20.10). «Слушать» по-прежнему не считается чтением. */
+const TTS_PROV={
+  system:{name:'Телефон'},
+  openai:{name:'OpenAI',voice:'nova',voices:'alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer'},
+  elevenlabs:{name:'ElevenLabs',voice:'JBFqnCBsd6RMkjVDRZzb',voices:'ID голоса из библиотеки ElevenLabs'},
+  google:{name:'Google',voice:'ru-RU-Wavenet-D',voices:'ru-RU-Wavenet-A…E, ru-RU-Standard-A…E'},
+  custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
+};
+function nttsCfg(){const t=S.tts||{};const p=TTS_PROV[t.prov]?t.prov:'system';
+  let key=t.key||'';if(!key&&p==='openai'&&S.ai&&S.ai.prov==='openai'&&S.ai.key)key=S.ai.key; /* тот же ключ OpenAI, что у ИИ-помощника */
+  return {prov:p,key:key,voice:t.voice||(TTS_PROV[p].voice||''),base:String(t.base||'').replace(/\/+$/,'')};}
+function nttsOn(){try{const c=nttsCfg();return c.prov!=='system'&&!!c.key&&(c.prov!=='custom'||!!c.base);}catch(e){return false;}}
+let nttsAudio=null,nttsUrl=null,nttsGen=0;const NTTS_CACHE=new Map();
+function nttsHalt(){nttsGen++;if(nttsAudio){try{nttsAudio.pause();nttsAudio.removeAttribute('src');nttsAudio.load();}catch(e){}}
+  if(nttsUrl){try{URL.revokeObjectURL(nttsUrl);}catch(e){}nttsUrl=null;}}
+async function nttsFetch(text){ /* → Blob mp3; ошибки понятным русским */
+  const c=nttsCfg();let r;
+  const net=async(u,o)=>{try{return await fetch(u,o);}catch(e){throw new Error(navigator.onLine===false?'нет интернета':'нет связи с сервисом');}};
+  if(c.prov==='elevenlabs'){
+    r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
+      headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify({text:text,model_id:'eleven_multilingual_v2'})});
+  }else if(c.prov==='google'){
+    r=await net('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:{text:text},voice:{languageCode:'ru-RU',name:c.voice},audioConfig:{audioEncoding:'MP3'}})});
+  }else{
+    const base=c.prov==='custom'?c.base:'https://api.openai.com/v1';
+    r=await net(base+'/audio/speech',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify(Object.assign({model:c.prov==='openai'?'gpt-4o-mini-tts':'tts-1',voice:c.voice,input:text,response_format:'mp3'},
+        c.prov==='openai'?{instructions:'Читай по-русски спокойно и выразительно, как аудиокнигу.'}:{}))});
+  }
+  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
+  if(r.status===402)throw new Error('на счёте сервиса нет денег');
+  if(r.status===429)throw new Error('слишком много запросов или кончился лимит');
+  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||'';}catch(e){}
+    throw new Error((typeof m==='string'&&m?m.slice(0,120):'сервис ответил '+r.status));}
+  if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');
+    const bin=atob(d.audioContent),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Blob([u8],{type:'audio/mpeg'});}
+  const b=await r.blob();if(!b||!b.size)throw new Error('пустой ответ');return b;
+}
+function nttsGet(text){ /* один запрос на кусок; держим текущий и следующий */
+  if(!NTTS_CACHE.has(text)){const pr=nttsFetch(text);pr.catch(()=>{});NTTS_CACHE.set(text,pr);while(NTTS_CACHE.size>3)NTTS_CACHE.delete(NTTS_CACHE.keys().next().value);}
+  return NTTS_CACHE.get(text);
+}
+function nttsSay(t,onend,onstart,onpos,next){
+  const gen=++nttsGen;speaking=true;
+  nttsGet(t).then(function(blob){
+    if(gen!==nttsGen||!ttsOn)return;
+    if(!nttsAudio){nttsAudio=new Audio();nttsAudio.preload='auto';}
+    if(nttsUrl)try{URL.revokeObjectURL(nttsUrl);}catch(e){}
+    nttsUrl=URL.createObjectURL(blob);const a=nttsAudio;let started=false;
+    a.onplaying=function(){if(gen!==nttsGen||started)return;started=true;if(ttsOn&&onstart)onstart();if(next)nttsGet(next);};
+    a.ontimeupdate=function(){if(gen!==nttsGen||!ttsOn||!onpos||!a.duration||!isFinite(a.duration))return;onpos(Math.floor(t.length*a.currentTime/a.duration));};
+    a.onended=function(){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);if(onend)onend();};
+    a.onerror=function(){if(gen!==nttsGen)return;ttsFail('телефон не смог проиграть звук');};
+    a.src=nttsUrl;const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
+  },function(e){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);ttsFail(e&&e.message);});
+}
+function ttsSay(t,onend,onstart,onpos,next){
+  if(nttsOn()){nttsSay(t,onend,onstart,onpos,next);return;}
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
-  u.onend=function(){if(ttsOn&&onend)onend();};
-  u.onerror=function(){if(ttsOn&&onend)onend();};
+  const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
+  let started=false;const t0=Date.now();
+  u.onstart=function(){started=true;if(ttsOn&&onstart)onstart();};
+  u.onboundary=function(e){if(!started){started=true;if(ttsOn&&onstart)onstart();}if(ttsOn&&onpos&&typeof e.charIndex==='number')onpos(e.charIndex);};
+  u.onend=function(){if(!ttsOn)return;if(!started&&Date.now()-t0<1500){ttsFail();return;}if(onend)onend();}; /* an end with no start, at once = no voice */
+  u.onerror=function(e){const k=e&&e.error;if(k==='interrupted'||k==='canceled')return;ttsFail();};
   speaking=true;speechSynthesis.speak(u);
 }
+function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
+  if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
+function ttsChunkEnd(text,st){let end=Math.min(text.length,st+1500);const tail=text.slice(end,end+220).search(/[.!?…\n]/);if(tail>=0)end+=tail+1;return end;}
 function ttsTextNext(){
   if(!ttsOn||!R.book||R.mode==='pdf')return;
   const b=R.book;
   if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('Книга озвучена до конца');return;}
-  let end=Math.min(b.text.length,(R.ttsPos||0)+1500);
-  const tail=b.text.slice(end,end+220).search(/[.!?…\n]/);
-  if(tail>=0)end+=tail+1;
-  const chunk=b.text.slice(R.ttsPos||0,end);
-  if(R.pageCount>1){R.ttsAdv=true;try{goPage(Math.round((end/b.text.length)*(R.pageCount-1)),false);}finally{R.ttsAdv=false;}} /* 1в: via:'tts', not «reached» */
-  ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);});
+  const st=R.ttsPos||0;
+  const end=ttsChunkEnd(b.text,st),chunk=b.text.slice(st,end);
+  const nx=end<b.text.length?b.text.slice(end,ttsChunkEnd(b.text,end)):''; /* нейроголос: следующий кусок заказывается заранее */
+  ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);},function(){ttsPageAt(st);},function(ci){ttsPageAt(st+ci);},nx);
 }
 function ttsPdfNext(){
   if(!ttsOn||!R.book||R.mode!=='pdf'||!R.pdf)return;
@@ -449,16 +611,25 @@ function ttsPdfNext(){
     if(!ttsOn)return;
     const t=tc.items.map(i=>i.str).join(' ').trim();
     const advance=function(){if(ttsOn&&R.page<R.pageCount-1){pdfGo(R.page+1,'tts');setTimeout(ttsPdfNext,120);}else{ttsStop();flashMsg('Конец документа');}};
-    if(t)ttsSay(t,advance);else advance();
+    if(!t){advance();return;}
+    const parts=[];let st=0;while(st<t.length){const e=nttsOn()?ttsChunkEnd(t,st):t.length;parts.push(t.slice(st,e));st=e;} /* нейроголос: страница кусками ≤ ~1700 */
+    const sayPart=function(i){if(!ttsOn)return;if(i>=parts.length){advance();return;}ttsSay(parts[i],function(){sayPart(i+1);},null,null,parts[i+1]||'');};
+    sayPart(0);
   }).catch(()=>ttsStop());
 }
+if(window.speechSynthesis){ttsVoiceReady().then(ttsMarkVoice);try{speechSynthesis.addEventListener('voiceschanged',function(){ttsMarkVoice(ttsVoices().length>0);});}catch(e){}}else ttsMarkVoice(false);
 el('btnTts').onclick=()=>{
   if(ttsOn||speaking){ttsStop();return;}
   if(!R.book)return;
-  if(!window.speechSynthesis){alert('Озвучка не поддерживается этим браузером');return;}
-  ttsOn=true;ttsCount(false);ttsBtn(true);
-  if(R.mode==='pdf'){ttsPdfNext();}
-  else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
+  if(!nttsOn()&&!window.speechSynthesis){ttsMarkVoice(false);flashMsg('Озвучка не поддерживается этим браузером');return;}
+  (nttsOn()?Promise.resolve(true):ttsVoiceReady()).then(function(ok){
+    ttsMarkVoice(ok);
+    if(!ok){flashMsg(TTS_NO_VOICE,{ms:4000});return;}
+    if(!R.book||ttsOn)return;
+    ttsOn=true;ttsCount(false);ttsBtn(true);R.ttsStartPage=R.page;
+    if(R.mode==='pdf'){ttsPdfNext();}
+    else{const fr=R.pageCount>1?R.page/(R.pageCount-1):0;R.ttsPos=Math.floor(fr*R.book.text.length);ttsTextNext();}
+  });
 };
 
 /* ================= СЕССИЯ И НАГРАДЫ ================= */
@@ -479,9 +650,12 @@ function closeReader(opts){
 async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
-  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');relWake();
-  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}ttsOn=false;ttsBtn(false);
+  if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo)fo.hidden=true;} /* 20.10: the search lives with the open book only */
+  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');relWake();
+  try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
+  if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
+  const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
   R.book=null;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
@@ -516,7 +690,7 @@ async function closeReaderImpl(opts){
     const res=awardPendingSessions();
     xp=Number(row.xp)||0; /* the paid value stored in the row (decision B) — the summary never recomputes it */
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
-    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[]};
+    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
   }else{
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
@@ -566,7 +740,9 @@ async function closeReaderImpl(opts){
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
   const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
-  if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);return;}
+  if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);
+    /* audit 19.10 SUM-03: a short session no longer closes silently (a blink-open, under 5 s, stays quiet) */
+    if((Number(min)||0)*60>=5)flashMsg('Меньше минуты — не засчитано');return;}
   renderSummary(_sumArgs);
   show('summary');navAfterClose(true);
   if(isMvp())confettiSummary();
@@ -577,9 +753,23 @@ function countUp(elm,to,fmt){
   function f(t){const k=Math.min(1,(t-t0)/dur);elm.textContent=fmt(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(f);}
   requestAnimationFrame(f);
 }
+/* audit 19.10 SUM-01 (R3, решение 09.10): the level is in every summary — «Уровень N · ещё K XP до N+1-го» and a 6 px bar from before to now;
+   a level-up fills the bar and reads «Новый уровень: N!». level(xp)=floor(sqrt(xp/100))+1 → level L starts at 100·(L−1)² XP. */
+function lvlFloor(L){return 100*(L-1)*(L-1);}
+function sumLevel(lvNow,lvBefore,xpBefore){
+  const t=el('sumLvlT'),bar=el('sumLvlBar');if(!t||!bar)return;
+  const fr=function(x,L){return Math.max(0,Math.min(1,(x-lvlFloor(L))/(lvlFloor(L+1)-lvlFloor(L))));};
+  const xp=S.xp||0,up=lvNow>lvBefore;
+  t.textContent=up?'Новый уровень: '+lvNow+'!':'Уровень '+lvNow+' · ещё '+Math.max(0,lvlFloor(lvNow+1)-xp)+' XP до '+(lvNow+1)+'-го';
+  t.classList.toggle('up',up);
+  bar.style.transition='none';bar.style.width=Math.round(fr(Number(xpBefore)||0,up?lvBefore:lvNow)*100)+'%'; /* start: where the session began */
+  void bar.offsetWidth;bar.style.transition='';
+  requestAnimationFrame(function(){bar.style.width=Math.round((up?1:fr(xp,lvNow))*100)+'%';});
+}
 function renderSummary(r){
   countUp(el('sumXp'),r.xp,n=>'+'+n+' XP');
   countUp(el('sumPages'),r.pages,n=>n);
+  if(el('sumPagesLbl'))el('sumPagesLbl').textContent=plural(r.pages,'страница','страницы','страниц'); /* audit 19.10 SUM-02 */
   /* whole minutes (floor, the dayMinutes rule); under one minute → «меньше минуты» (decision D) */
   const wm=Math.floor((Number(r.min)||0)+1e-9);
   el('sumMin').textContent=wm<1?'меньше минуты':wm;el('sumMin').style.fontSize=wm<1?'15px':'';
@@ -587,7 +777,7 @@ function renderSummary(r){
   const hl=summaryHeadline(r.quest),hd=el('sumHead');
   if(hd){hd.textContent=hl||'Сессия завершена';hd.style.color=hl?'var(--accent2)':'';hd.style.fontWeight=hl?'600':'';}
   countUp(el('sumGold'),r.gold,n=>'+'+n);
-  el('sumGoldLbl').textContent='монет';
+  el('sumGoldLbl').textContent=plural(r.gold,'монета','монеты','монет');
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
@@ -600,9 +790,12 @@ function renderSummary(r){
   const lvNow=level(S.xp);
   el('lvlUp').classList.toggle('hidden',lvNow<=r.lvBefore);
   if(lvNow>r.lvBefore)el('lvlUp').textContent='Новый уровень: '+lvNow+'!';
+  sumLevel(lvNow,r.lvBefore,S.xp-(Number(r.xp)||0));
   el('sumStreak').textContent='Стрик: '+S.streak+' '+plural(S.streak,'день','дня','дней')+
     (r.dmul>1&&!isMvp()?' · '+r.dName+' ×'+r.dmul:'')+
-    (r.justFinished?' · Книга прочитана, бонус!':'');
+    '';
+  /* audit 19.10 SUM-04: «Книга прочитана» is its own badge line, not glued to the streak */
+  const sf=el('sumFin');if(sf){sf.classList.toggle('hidden',!r.justFinished);sf.innerHTML=r.justFinished?rqIcon('book-open',16)+'<span>Книга прочитана, бонус!</span>':'';}
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});
@@ -618,17 +811,20 @@ function renderSummary(r){
   const qp=r.quest||{daily:[],weekly:[]},ql=[];
   if(qp.daily&&qp.daily.length)ql.push('+'+coinsP(30*qp.daily.length)+' — ежедневка выполнена');
   if(qp.weekly&&qp.weekly.length)ql.push('+'+coinsP(120*qp.weekly.length)+' — неделя выполнена');
-  const qb=el('sumQuestGold');if(qb){qb.innerHTML=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';}).join('');qb.classList.toggle('hidden',!ql.length);}
+  if(qp.lvlGold>0)ql.push('+'+coinsP(qp.lvlGold)+' — бонус за сложность книги');
+  const qh=ql.map(function(t){return '<div>'+rqIcon('coins',14)+'<span>'+t+'</span></div>';});
+  const lt=summaryLevelLine(qp);if(lt)qh.push('<div>'+rqIcon(lt.ic,14)+'<span>'+lt.t+'</span></div>');
+  const qb=el('sumQuestGold');if(qb){qb.innerHTML=qh.join('');qb.classList.toggle('hidden',!qh.length);}
   if(el('btnDone'))el('btnDone').textContent=isMvp()?'В библиотеку':'Продолжить';
   /* «Карандашный»: subtitle «книга», «минут чтения», 4 week dots (filled = goal days), emoji stripped from the text lines */
   const pc=typeof isPencil==='function'&&isPencil();
   if(el('sumSub'))el('sumSub').textContent=r.title||'';
-  if(el('sumMinLbl'))el('sumMinLbl').textContent=pc?'минут чтения':'минут';
+  if(el('sumMinLbl'))el('sumMinLbl').textContent=plural(wm,'минута','минуты','минут')+(pc?' чтения':''); /* audit 19.10 SUM-02 */
   if(el('sumWeekDots')){const n=Math.min(4,daysInWeekAtGoal(goalMin(),weekKey(sday)).count);let h='';for(let i=0;i<4;i++)h+=i<n?rqIcon('circle-check',18):rqIcon('circle',18);el('sumWeekDots').innerHTML=h;}
   if(pc){const de=t=>String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]+\s*/gu,'');
     ['sumNote','lvlUp','luckLbl'].forEach(function(k){const e=el(k);if(e)e.textContent=de(e.textContent);});
     bb.querySelectorAll('.newbadge').forEach(function(d){d.textContent=de(d.textContent);});
-    if(el('sumGoldLbl'))el('sumGoldLbl').textContent='монет';}
+    if(el('sumGoldLbl'))el('sumGoldLbl').textContent=plural(r.gold,'монета','монеты','монет');}
   applyMvpChrome();
 }
 
@@ -691,6 +887,13 @@ function summaryWanted(r){
   const q=r.quest||{};
   return !!((q.daily&&q.daily.length)||(q.weekly&&q.weekly.length));
 }
+/** 19.10: one line about the book level of THIS session (XP multiplier, or why it was not applied); null = ordinary book */
+function summaryLevelLine(q){
+  const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!q||!(q.lvl>0))return null;
+  const r=q.rowLvl||0,m=function(x){return String(L[x].xp).replace('.',',');};
+  if(r>=q.lvl)return {ic:'trending-up',t:L[r].n+' книга: опыт ×'+m(r)};
+  return {ic:'info',t:'Листали быстрее, чем читается '+L[q.lvl].n.toLowerCase()+' книга: '+(r>0?'опыт ×'+m(r):'бонус за сложность не начислен')};
+}
 /** headline: the coin reward of THIS session if any (decision D), else «Сессия завершена» */
 function summaryHeadline(q){
   q=q||{};const d=(q.daily||[]).length,w=(q.weekly||[]).length;
@@ -716,6 +919,8 @@ window.addEventListener('popstate',function(e){
   if(readerIsOpen()){
     if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
+    const ac=el('aiChat'),as=el('aiSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ */
+    if(!ac.classList.contains('hidden')||!as.classList.contains('hidden')){ac.classList.add('hidden');as.classList.add('hidden');navPush('reader');return;}
     const sh=el('sheet'),pn=el('panel');
     if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}
     if(!el('reader').classList.contains('barsoff')){concealChrome('back');navPush('reader');return;}

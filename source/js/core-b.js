@@ -35,6 +35,8 @@ function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base
 function skinTheme(k){const t=SKIN_THEMES[k];return t&&typeof shopOwns==='function'&&shopOwns(t.shop)&&shopReady(t.shop)?t:null;}
 /** day/night key of the same skin: 'pencil' ↔ 'pencil-night', 'ellada' ↔ 'ellada-night' */
 function skinThemeKey(skin,night){return night?skin+'-night':skin;}
+/** audit 19.10 SK-02: putting a skin on keeps the time of day — at night (what is on screen now) the skin's night key */
+function skinWearKey(skin){let nt=false;try{const t=activeTheme();nt=t.skin?!!t.night:(S.appTheme==='dark'||(S.appTheme==='auto'&&resolveAppTheme()==='dark'));}catch(e){} /* night = «Ночной режим» on (dark / auto-at-night), or a night skin now; the default teal stays day */const k=skinThemeKey(skin,nt);return (SKIN_THEMES[k]||THEME_VARIANTS[k])?k:skin;}
 /** old (formerly paid) theme saved in rq_set — free since the shop build */
 function ownedShopTheme(k){return (typeof OLD_THEMES!=='undefined'&&OLD_THEMES.find(x=>x.id===k))||null;} /* shop build: the 9 old themes are free */
 /** theme actually rendered. 1в: a saved paid theme that is NOT owned renders the base theme (sepia); rq_set is NOT rewritten until the user picks another */
@@ -174,7 +176,7 @@ function applySkinIcons(skin){
     if(!(n in SKIN_ICONS_ORIG))SKIN_ICONS_ORIG[n]=sym.innerHTML;
     const want=set[n]||SKIN_ICONS_ORIG[n];if(sym.innerHTML!==want)sym.innerHTML=want;});});
 }
-function applySkin(){setTimeout(syncThemeColor,0);
+function applySkin(){if(typeof rqThemeSwitchFrame==='function')rqThemeSwitchFrame();setTimeout(syncThemeColor,0);
   const t=activeTheme(),h=document.documentElement;
   if(t.skin){h.dataset.skin=t.skin;if(t.night)h.dataset.theme='night';else delete h.dataset.theme;}
   else if(h.dataset.skin){delete h.dataset.skin;delete h.dataset.theme;}
@@ -185,9 +187,6 @@ function applySkin(){setTimeout(syncThemeColor,0);
   if(typeof pgArtSync==='function'){const a=document.getElementById('pgArt');if(a)a._w=0;try{pgArtSync();}catch(e){}}
 }
 /** «Карандашный» active (app-wide skin) — UI only: covers / avatar / summary / confetti draw Lucide instead of emoji */
-/** «Бабочковый» sets its own book face (IBM Plex Serif, skins/skins.css) in place of the first «Шрифт» tile; any other tile the reader picks wins */
-const SKIN_BOOK_FONT={babochkovyi:{label:'IBM Plex Serif',v:'"IBM Plex Serif",Georgia,serif'},celestial:{label:'Lora',v:'Lora,Georgia,serif'}};
-function skinBookFont(){return SKIN_BOOK_FONT[document.documentElement.dataset.skin]||null;}
 function isPencil(){return document.documentElement.dataset.skin==='pencil';}
 function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
@@ -212,13 +211,15 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},lvlPaid:{}};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
 let __tracker=null;     // reader-session tracker
 const DEFAULT_SKILLS=['Концентрация','Дисциплина','Аналитика','Скорочтение'];
 const DEFAULT_SKILL_LINKS={Концентрация:{Воля:100,Интеллект:30},Дисциплина:{Воля:100},Аналитика:{Интеллект:100,Мудрость:40},Скорочтение:{Интеллект:60}};
+/** 19.10 (arch.md): {key: whole number 0…max} — anything else dropped */
+function lvlMap(o,max,keyRe){const out={};if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){const v=o[k];if(Number.isInteger(v)&&v>=0&&v<=max&&(!keyRe||keyRe.test(k)))out[k]=v;});return out;}
 function hydrateS(raw){
   S=Object.assign({},DEF,raw||{});
   S.stats=Object.assign({},DEF.stats,S.stats||{});
@@ -228,11 +229,13 @@ function hydrateS(raw){
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
   S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
   S.dailyPaidDays=Array.isArray(S.dailyPaidDays)?S.dailyPaidDays:[];S.weeklyPaidWeeks=Array.isArray(S.weeklyPaidWeeks)?S.weeklyPaidWeeks:[];
+  S.bookLvl=lvlMap(S.bookLvl,2);S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 19.10 book level (arch.md) */
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
-  if(!S.ai)S.ai={key:'',model:'gpt-4o-mini'};
+  if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
+  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
   /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
@@ -378,3 +381,31 @@ function rollDay(){if(S.dayKey!==today()){S.dayKey=today();S.minToday=0;
   save();}}
 function curI(){return '';} /* currency icon removed (coins are text) */
 
+
+/* 20.10 ИИ «Объясни» (arch.md): S.ai.prov/base добавлены; старые данные без prov: с ключом — это OpenAI (v6), без ключа — DeepSeek по умолчанию.
+   vocab[].ex — объяснение ИИ, строка до 600 символов, иначе поле отбрасывается. */
+function aiNorm(a){
+  ['key','model','base'].forEach(function(k){if(typeof a[k]!=='string')a[k]='';});
+  if(['deepseek','openrouter','openai','anthropic','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
+  a.base=a.base.slice(0,300);return a;
+}
+function vocabNorm(v){
+  if(!v||typeof v!=='object')return;
+  if('ex' in v&&typeof v.ex!=='string')delete v.ex;else if(typeof v.ex==='string')v.ex=v.ex.slice(0,600);
+}
+function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
+  const out={};
+  if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){
+    if(!Array.isArray(o[k]))return;
+    const l=o[k].filter(function(m){return m&&(m.r==='u'||m.r==='a')&&typeof m.t==='string'&&m.t;})
+      .map(function(m){return {r:m.r,t:m.t.slice(0,1500),d:typeof m.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(m.d)?m.d:''};}).slice(-20);
+    if(l.length)out[k]=l;});
+  return out;
+}
+/* 20.10 нейросетевая озвучка (arch.md): prov system|openai|elevenlabs|google|custom, остальное строки */
+function ttsNorm(t){
+  if(!t||typeof t!=='object')t={};
+  ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});
+  if(['system','openai','elevenlabs','google','custom'].indexOf(t.prov)<0)t.prov='system';
+  t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
+}

@@ -38,7 +38,7 @@ await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"
 r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), body: !!el('vocabBody').innerHTML, di: el('dStats').classList.contains('on') }));
 ok('9b the «Словарь» tab opens the vocab inside «Инвентарь»', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.body && r.di, r);
 const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'vocab', 'profile']; return navGet(); });
-ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile', nav);
+ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile,path', nav); /* 20.10: always 4 tabs, the free slot gets «Путь» */
 await p.evaluate(() => { SET.nav = ['library', 'stats', 'profile']; renderNav(); openProgress('quotes'); applyMvpChrome(); });
 ok('11 the pinned «Статистика» tab lights on the quotes tab too', await p.evaluate(() => el('bnStats').classList.contains('on')));
 await p.evaluate(() => navGo('quests')); await sleep(100);
@@ -75,7 +75,7 @@ r = await p.evaluate(() => { const out = {}; const views = [...document.querySel
   return { views, out, saved: SET.libView, sorts: [...document.querySelectorAll('#libSortMenu .lso[data-k]')].map(b => b.dataset.k) }; });
 ok('17 shelf view in the sort menu (ReadEra): Сетка, Эскизы, Краткий, Полный; lists are rows, grid back by default; «По автору» sort (18.10)',
   r.views.join() === 'grid,covers,short,full' && r.out.covers.startsWith('true grid') && r.out.short === 'true flex row' && r.out.full === 'true flex row' && r.out.grid === 'true grid column' && r.saved === 'grid' && r.sorts.includes('author'), r);
-r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
+r = await p.evaluate(async () => { wear(''); navGo('library'); LIB.f = 'all'; const P = window.prompt, C = window.confirm; let ans = 'Русская классика'; window.prompt = () => ans; window.confirm = () => true;
   const out = {}; try {
     el('libShelfAdd').click(); out.chipOn = LIB.f === 'sh:' + S.shelves[0].id && el('libTitle').textContent === 'Русская классика'; /* 18.10: filter in «⋮», title names the shelf */ out.bar = !el('libShelfBar').hidden; out.empty = /пока нет книг/.test(el('shelf').textContent);
     const id = S.shelves[0].id, b1 = allBooks()[0].id, b2 = allBooks()[1].id;
@@ -83,7 +83,7 @@ r = await p.evaluate(() => { wear(''); navGo('library'); LIB.f = 'all'; const P 
     ans = 'Чехов'; shelfNew(b1); out.two = S.shelves.length === 2 && S.shelves.every(x => x.b.includes(b1));
     LIB.f = 'sh:' + id; renderLibrary(); out.shown = [...el('shelf').querySelectorAll('.bookcard')].length;
     ans = 'Классика'; shelfRename(id); out.renamed = shelfById(id).n === 'Классика' && /Классика/.test(el('libShelfBar').textContent);
-    shelfDelete(id); out.left = S.shelves.map(x => x.n).join(); out.back = LIB.f === 'all' && el('libShelfBar').hidden; out.books = allBooks().length >= 2;
+    { const pr = shelfDelete(id); await new Promise(r => setTimeout(r, 50)); el('rqAskOk').click(); await pr; } /* audit 19.10 LIB-02: confirmation sheet, not confirm() */ out.left = S.shelves.map(x => x.n).join(); out.back = LIB.f === 'all' && el('libShelfBar').hidden; out.books = allBooks().length >= 2;
   } finally { window.prompt = P; window.confirm = C; } return out; });
 ok('18 own shelves (ReadEra «Коллекции»): create from «+ Полка», put books from ⓘ, one book on two shelves, rename, delete keeps books (18.10)',
   r.chipOn && r.bar && r.empty && r.two && r.shown === 2 && r.renamed && r.left === 'Чехов' && r.back && r.books, r);

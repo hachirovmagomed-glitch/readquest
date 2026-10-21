@@ -90,6 +90,18 @@ ok('dragging the slider: the tip shows the chapter at that place and the page', 
 await p.evaluate(() => { const t = document.getElementById('pgTip'); t.classList.remove('hidden'); }); await shot('360-3-glava-na-polzunke');
 const tp0 = await tip(0); ok('page 1 = «Глава 1» (the book starts with it)', tp0.ch === 'Глава 1' && /стр\. 1$/.test(tp0.txt), tp0);
 await p.evaluate(() => { document.getElementById('pgTip').classList.add('hidden'); el('pgSlider').value = R.page; pgArtSync(); });
+/* 3б. 21.10 (Джессика): the bars must not hide while a finger holds / drags the page slider, and stay a while after letting go */
+await p.evaluate(() => revealChrome()); await sleep(400);
+const th = await p.evaluate(() => { const g = pgThumbGeom(); return { x: g.cx, y: g.cy }; });
+await p.touchscreen.touchStart(th.x, th.y); await sleep(300);
+for (let k = 1; k <= 9; k++) { await p.touchscreen.touchMove(th.x + k * 6, th.y); await sleep(500); }
+const hold = await p.evaluate(() => ({ off: el('reader').classList.contains('barsoff'), dragging: PG.id != null }));
+await p.touchscreen.touchEnd(); await sleep(1500);
+const after = await p.evaluate(() => el('reader').classList.contains('barsoff'));
+await sleep(2600);
+const later = await p.evaluate(() => el('reader').classList.contains('barsoff'));
+ok('holding the page slider 4.8 s (past the 3.2 s auto-hide): bars stay; still shown 1.5 s after letting go; hidden after that', hold.dragging && !hold.off && !after && later, { hold, after, later });
+await p.evaluate(() => { const j = el('jumpBack'); if (j && !j.classList.contains('hidden')) j.click(); }); await sleep(400);
 /* 4. PDF: bookmarks → «Главы» + ticks; search by the text layer; highlight on the page */
 await p.evaluate(() => closeReader({ quiet: true })); await sleep(800);
 await open(1);

@@ -767,6 +767,8 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
 #pdfSheet canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #pinchHint.pct b{display:none}
 .textLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;line-height:1;text-align:initial;z-index:2}
+.textLayer .pdfhls{position:absolute;inset:0;z-index:0;pointer-events:none}.textLayer .pdfhls i{position:absolute;border-radius:2px;mix-blend-mode:multiply} /* 21.10 quote colours on a PDF page */
+#reader[data-page="night"] .textLayer .pdfhls i{mix-blend-mode:screen}
 .textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent;z-index:1}
 /* 19.10 selection in gaps (selectionchange in js/pdf.js, as pdf.js does): under the text, covers the layer only while selecting */
 .textLayer br::selection{background:transparent}

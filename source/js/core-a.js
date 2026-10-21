@@ -112,13 +112,15 @@ async function pdfTextLevel(doc,alive){
   if(alive&&!alive())return null;
   return G.textLevel(parts.join('\n'));
 }
-/** once per PDF card: store lvlText (arch.md), one save(); then the open session (if this book) gets the new level */
+/** once per PDF card (and once more per new LVL_ALGO): store lvlText + lvlV (arch.md), one save(); then the open session (if this book) gets the new level */
 async function pdfLvlCheck(b,doc){
-  if(!b||b.type!=='pdf'||!lvlOn()||Number.isInteger(b.lvlText))return;
+  if(!b||b.type!=='pdf'||!lvlOn())return;
+  const V=window.__rqGame.LVL_ALGO;
+  if(Number.isInteger(b.lvlText)&&b.lvlV===V)return; /* 21.10: an older rule's result is re-checked once */
   await new Promise(function(r){setTimeout(r,1500);}); /* after the first page is drawn */
   let l=null;try{l=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
-  if(l==null||Number.isInteger(b.lvlText))return;
-  b.lvlText=l;save();
+  if(l==null||(Number.isInteger(b.lvlText)&&b.lvlV===V))return;
+  b.lvlText=l;b.lvlV=V;save();
   if(R&&R.book===b&&__tracker&&__tracker.setLevel){const o=trackerOpts();__tracker.setLevel(o.level,o.capMs);}
 }
 /** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */

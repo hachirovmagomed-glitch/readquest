@@ -122,11 +122,11 @@ c.save()`;
     for (const [name, b] of Object.entries(files)) {
       const bin = Uint8Array.from(atob(b), ch => ch.charCodeAt(0));
       const bk = await importBookFile(new File([bin], name, { type: 'application/pdf' }), () => {});
-      out[name] = { id: bk.id, lvlText: bk.lvlText, auto: bookLvlAuto(bk) };
+      out[name] = { id: bk.id, lvlText: bk.lvlText, lvlV: bk.lvlV, auto: bookLvlAuto(bk) };
     }
     return out;
   }, { 'phil.pdf': b64('phil.pdf'), 'kids.pdf': b64('kids.pdf'), 'scan.pdf': b64('scan.pdf') });
-  ok('импорт PDF: философия → lvlText 2, детский → 0, скан без текста → 0', imp['phil.pdf'].lvlText === 2 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0, imp);
+  ok('импорт PDF: философия → lvlText 2, детский → 0, скан без текста → 0; версия правила записана', imp['phil.pdf'].lvlText === 2 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0 && imp['phil.pdf'].lvlV === 2, imp);
   const pc = await card(p, imp['phil.pdf'].id);
   ok('карточка PDF-философии: выбрана «Очень сложная», «Определена по тексту»', pc.chips[2] && pc.chips[2].on && /Определена по тексту/.test(pc.note), pc);
   /* an older card (imported before this build) has no lvlText: checked once when the book is opened */
@@ -139,6 +139,16 @@ c.save()`;
     return { before, after, lvlText: b.lvlText, cap: snap.pageCapMs, row: SESS.slice(-1)[0] };
   }, imp['phil.pdf'].id);
   ok('старая карточка PDF: при открытии уровень 0, через пару секунд текст проверен (lvlText 2), лимит страницы 7 мин', op.before === 0 && op.after === 2 && op.lvlText === 2 && op.cap === 7 * 60000, op);
+  /* 21.10: a card checked by the older rule (lvlText 1, no lvlV) is re-checked once on open */
+  const rv = await p.evaluate(async (id) => {
+    const b = allBooks().find(x => x.id === id); b.lvlText = 1; delete b.lvlV; delete __lvlAuto[id]; save();
+    await openBook(id); const before = trackerOpts().level;
+    for (let i = 0; i < 60 && b.lvlV !== window.__rqGame.LVL_ALGO; i++) await new Promise(r => setTimeout(r, 100));
+    const after = trackerOpts().level; await closeReader({ quiet: true });
+    await openBook(id); await new Promise(r => setTimeout(r, 2500)); const again = b.lvlV; await closeReader({ quiet: true });
+    return { before, after, lvlText: b.lvlText, lvlV: b.lvlV, again };
+  }, imp['phil.pdf'].id);
+  ok('карточка PDF со старым правилом: сначала старый уровень 1, потом пересчёт до 2 (lvlV 2), второй раз не считается', rv.before === 1 && rv.after === 2 && rv.lvlText === 2 && rv.lvlV === 2 && rv.again === 2, rv);
   await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
   const kept = await p.evaluate((ids) => ids.map(id => (allBooks().find(x => x.id === id) || {}).lvlText), [imp['phil.pdf'].id, imp['scan.pdf'].id]);
   ok('после перезагрузки lvlText в карточках на месте (2 и 0), повторно не считается', kept[0] === 2 && kept[1] === 0, kept);

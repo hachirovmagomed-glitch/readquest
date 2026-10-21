@@ -615,7 +615,8 @@ mark.hl-g{background:var(--hl-g)}mark.hl-b{background:var(--hl-b)}mark.hl-p{back
    row + «Читаете» tag; the skins draw their own (pencil below in its block, the shop skins in skins.css) */
 #panelBody .prow.on{position:relative;background:var(--accent);color:var(--on-accent);font-weight:700;padding-top:13px;padding-bottom:13px;box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 35%,transparent)}
 #panelBody .prow .ptt{flex:1;min-width:0}
-.pnow{flex:none;padding:3px 9px;border-radius:var(--rq-radius-pill,999px);background:color-mix(in srgb,currentColor 16%,transparent);font-size:0.75rem;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.pnow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,currentColor 16%,transparent)}
+.pnow .ic{display:block}
 .prow.add{color:var(--accent2);justify-content:center}
 .pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:0.875rem}
 #panel{max-height:70%}
@@ -1437,7 +1438,7 @@ html[data-skin="pencil"] .botnav-btn.on{color:var(--rq-skin-tab-active);backgrou
 html[data-skin="pencil"] #reader .rfoot{position:relative}
 html[data-skin="pencil"] #pgArt{display:block}
 html[data-skin="pencil"] #panelBody .prow.on{background:var(--rq-surface);color:var(--rq-text);border:2px solid var(--rq-text);border-radius:14px 7px 12px 8px/8px 13px 7px 12px;box-shadow:3px 3px 0 var(--rq-accent)} /* 21.10: current chapter = a pencil-drawn frame with a coloured shadow */
-html[data-skin="pencil"] #panelBody .prow.on .pnow{background:none;border-radius:0;padding:0 2px;color:var(--rq-accent-text);text-decoration:underline wavy var(--rq-accent) 1.5px;text-underline-offset:4px}
+html[data-skin="pencil"] #panelBody .prow.on .pnow{background:none;border:1.5px solid var(--rq-accent);border-radius:52% 46% 55% 44%/48% 55% 45% 52%;color:var(--rq-accent-text);transform:rotate(-6deg)}
 html[data-skin="pencil"] #pgTicks i{top:-7px;width:2px;height:12px;margin-left:-1px;background:var(--rq-text-2);opacity:.8;border-radius:1px 2px 1px 2px;transform:rotate(-7deg)} /* 20.10: chapter ticks = pencil strokes */
 html[data-skin="pencil"] #pgTicks i:nth-child(even){height:10px;top:-6px;transform:rotate(6deg)}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-runnable-track{background:transparent}

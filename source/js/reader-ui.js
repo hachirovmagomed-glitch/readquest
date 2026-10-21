@@ -431,6 +431,8 @@ function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
 function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1;
   toc.forEach(function(x,i){const p=x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0);if(p<=pg&&(c<0||p>=(toc[c].page!=null?toc[c].page:Math.round(toc[c].off/len*(N-1)))))c=i;});
   tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
+/* 21.10 (Джессика: «вместо слова "читаете" значок»): each skin its own mark (Бабочковый / Небесный draw theirs in skins.css) */
+function tocNowIcon(){const k=document.documentElement.dataset.skin||'';return k==='ellada'?'amphora':k==='pencil'?'pencil':'book-open';}
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
   if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
@@ -448,7 +450,7 @@ function renderPanel(tab){
     const toc=tocOf(b);
     body.innerHTML=toc.length
       ?toc.map((ch,i)=>i===tocCur(b,toc)
-        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow">Читаете</span></button>'
+        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow" role="img" aria-label="Читаете" title="Читаете">'+rqIcon(tocNowIcon(),18)+'</span></button>'
         :'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
       :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
     const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */

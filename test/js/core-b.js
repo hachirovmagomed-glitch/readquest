@@ -115,6 +115,68 @@ SKIN_ICONS.celestial={
  'user-round':'<path d="M15 3a8 8 0 1 0 6 11.5A6.5 6.5 0 1 1 15 3z"/><path d="M8.5 9.5v.01M11 13.5q-1.5 1-3 0"/>'
 };
 SKIN_ICONS.babochkovyi=SKIN_ICONS_BB; /* «Бабочковый»: цветник, цветок, бабочка, кокон, шелкопряд (flower/flower-2 = Lucide, the rest our drawings) */
+/* 21.10 (Джессика: «чтобы иконки в разных скинах сильнее отличались, но оставляли дух скина»): v2 — у каждого скина своя манера,
+   а не Lucide с наклейкой. Карандашный: всё обведено дважды, штриховка; Эллада: прямые углы (skins.css: square/miter), стела, Селена, Вергина, лабиринт;
+   Небесный: тонкая линия, золотые искры (--ic-fill); Бабочковый: круглое, лепестки и крылья с заливкой (--ic-soft). Поверх наборов выше. */
+const icN=n=>Math.round(n*100)/100;
+/* filled accent piece: --ic-fill per skin (gold / wing colour), currentColor elsewhere */
+const IC_FILL=' style="fill:var(--ic-fill,currentColor);stroke:none"';
+const IC_SOFT=' style="fill:var(--ic-soft,currentColor);fill-opacity:var(--ic-soft-o,.22)"';
+/* 4-point sparkle */
+function icSpark(x,y,r){return 'M'+icN(x)+' '+icN(y-r)+'Q'+icN(x)+' '+icN(y)+' '+icN(x+r)+' '+icN(y)+'Q'+icN(x)+' '+icN(y)+' '+icN(x)+' '+icN(y+r)+'Q'+icN(x)+' '+icN(y)+' '+icN(x-r)+' '+icN(y)+'Q'+icN(x)+' '+icN(y)+' '+icN(x)+' '+icN(y-r)+'Z';}
+function icStar(n,ro,ri,cx,cy,rot){cx=cx||12;cy=cy||12;rot=rot||-90;let d='';for(let i=0;i<n*2;i++){const r=i%2?ri:ro,a=(rot+i*180/n)*Math.PI/180;d+=(i?'L':'M')+icN(cx+r*Math.cos(a))+' '+icN(cy+r*Math.sin(a));}return d+'Z';}
+function icVergina(){let d='';for(let i=0;i<8;i++){const a=i*45*Math.PI/180,b=0.32;
+  d+='M'+icN(12+4*Math.cos(a-b))+' '+icN(12+4*Math.sin(a-b))+'L'+icN(12+10*Math.cos(a))+' '+icN(12+10*Math.sin(a))+'L'+icN(12+4*Math.cos(a+b))+' '+icN(12+4*Math.sin(a+b));
+  const c=a+Math.PI/8;d+='M'+icN(12+4.6*Math.cos(c))+' '+icN(12+4.6*Math.sin(c))+'L'+icN(12+7.6*Math.cos(c))+' '+icN(12+7.6*Math.sin(c));}
+  return '<circle cx="12" cy="12" r="2.4"/><path d="'+d+'"/>';}
+function icTicks(n,r1,r2,off){let d='';for(let i=0;i<n;i++){const a=(off+i*360/n)*Math.PI/180;d+='M'+icN(12+r1*Math.cos(a))+' '+icN(12+r1*Math.sin(a))+'L'+icN(12+r2*Math.cos(a))+' '+icN(12+r2*Math.sin(a));}return d;}
+/* «Карандашный»: every icon drawn twice, the second pass a hair off and lighter = a pencil sketch; hatching instead of fills */
+function icSketch(b){return '<g>'+b+'</g><g transform="translate(.25 .15) rotate(-3.4 12 12)" opacity=".55">'+b+'</g>';}
+
+const SKIN_ICONS_V2={
+pencil:{ /* тетрадь: оглавление в тетради на пружине, библиотека = стопка тетрадей, путь = карта сокровищ с крестиком */
+ 'list':icSketch('<path d="M7 3h13v18H7z"/><path d="M4.5 6h4M4.5 10h4M4.5 14h4M4.5 18h4"/><path d="M10.5 8h6.5M10.5 12h6.5M10.5 16h4"/>'),
+ 'moon':icSketch('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M5 14.5l3.5-3.5M6 17.5l4.5-4.5M8.5 19.5l4-4M12 20.5l3-3"/>'),
+ 'sun':icSketch('<circle cx="12" cy="12" r="4.3"/><path d="M10 14l4-4M9.5 12l2.5-2.5"/><path d="M12 2.5v3M12.3 18.5l-.3 3M2.5 11.7l3 .3M18.5 12h3M5 5.3l2.1 2M17 17l2 2.2M5.2 19l2-2.2M16.8 7.1 19 5"/>'),
+ 'focus':icSketch('<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><path d="M9 15l1-3.5 4.5-4.5 2.5 2.5-4.5 4.5z"/><path d="M14 7.5l2.5 2.5"/>'),
+ 'settings':icSketch('<path d="M10.3 2.5h3.4l.5 2.6 1.8.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.8 2.6.5v3.4l-2.6.5-.8 1.8 1.5 2.2-2.4 2.4-2.2-1.5-1.8.8-.5 2.6h-3.4l-.5-2.6-1.8-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.8-2.6-.5v-3.4l2.6-.5.8-1.8-1.5-2.2 2.4-2.4 2.2 1.5 1.8-.8z"/><circle cx="12" cy="12" r="3"/>'),
+ 'book-open':icSketch('<path d="M3 16.5h17v4H3zM4.5 11h15v5.5h-15zM3.5 5.5h16V11h-16z"/><path d="M6 18.5h4M7 13.5h3M6 8h4"/>'),
+ 'map':icSketch('<path d="M3 6l6-2.5 6 2.5 6-2.5v15L15 21l-6-2.5L3 21z"/><path d="M5.5 16c1.5-1 2.5-3 4.5-3.5" stroke-dasharray="1.6 1.6"/><path d="M13 9.5l3.5 3.5M16.5 9.5 13 13"/>'),
+ 'gift':icSketch('<path d="M4 10h16v11H4zM3 7h18v3H3z"/><path d="M12 7v14"/><path d="M12 7C10 3 6.5 3.5 7.5 6M12 7c2-4 5.5-3.5 4.5-1"/><path d="M5.5 13l2-2M5.5 17l5-5M7 20l3.5-3.5"/>'),
+ 'user-round':icSketch('<circle cx="12" cy="13" r="7.5"/><path d="M5.5 9.5 7 7l1.5 1.5L10 5.5l1.5 2L13 5l1.5 2.5L16 6l1 2.5L18.5 9"/><path d="M9.5 12.5v.5M14.5 12.5v.5M9.5 16q2.5 2 5 0"/>')
+},
+ellada:{ /* камень и бронза: прямые углы, меандр, стела, монета Селены, солнце Вергины, лабиринт */
+ 'list':'<path d="M3 8.5 12 3l9 5.5z"/><path d="M5 8.5V21M19 8.5V21M3 21h18"/><path d="M8 12h8M8 15h8M8 18h5"/>',
+ 'moon':'<circle cx="12" cy="12" r="9.5"/><path d="M13.5 6.8A5.4 5.4 0 1 0 13.5 17.2A6.6 6.6 0 0 1 13.5 6.8Z"/><path d="M17 9.5h.01M18 13h.01M16.5 16h.01"/>',
+ 'sun':icVergina(),
+ 'focus':'<path d="M3 8V3h5v3H6M16 3h5v5h-3V6M21 16v5h-5v-3h2M8 21H3v-5h3v2"/><path d="M12 8.5 15.5 12 12 15.5 8.5 12z"/>',
+ 'settings':'<path d="M6 21h12"/><path d="M7.5 21C4.5 16 4.5 10 7 6.5 8 5 7.6 3.6 6 3M16.5 21c3-5 3-11 .5-14.5-1-1.5-.6-2.9 1-3.5"/><path d="M6.8 7.5h10.4"/><path d="M10 7.5V19M12 7.5V19M14 7.5V19"/>',
+ 'map':'<path d="M12 12h2v3H9V9h8v10H5V5h16v16h-4"/>',
+ 'gift':'<path d="M9 2.5h6M10 2.5v4C7 8 6 11 6.5 14c.5 3.5 3 6 5.5 7.5M14 2.5v4c3 1.5 4 4.5 3.5 7.5-.5 3.5-3 6-5.5 7.5"/><path d="M10 4.5H8a2 2 0 0 0 0 4M14 4.5h2a2 2 0 0 1 0 4"/><path d="M7 12.5h10M7 15h10"/><path d="M9 21.5h6"/>'
+},
+celestial:{ /* астролябия: тонкая линия, золотые искры-звёзды, круги и ромбы */
+ 'list':'<path d="M10 6h11M10 12h11M10 18h11"/><path d="'+icSpark(5,6,2.8)+icSpark(5,12,2.8)+icSpark(5,18,2.8)+'"'+IC_FILL+'/>',
+ 'moon':'<path d="M14.5 3.2A9 9 0 1 0 20.8 15.6 7 7 0 0 1 14.5 3.2Z"/><path d="M3.5 17.5c4 2.5 13 2.5 17-4" stroke-dasharray="1 1.8"/><path d="'+icSpark(18.5,6.5,3)+'"'+IC_FILL+'/>',
+ 'sun':'<path d="'+icStar(8,10,4.6,12,12,-90)+'"/><circle cx="12" cy="12" r="2.1"'+IC_FILL+'/>',
+ 'focus':'<path d="M3 7V3h4M17 3h4v4M21 17v4h-4M7 21H3v-4"/><circle cx="12" cy="12" r="5"/><path d="M12 5v1.5M12 17.5V19M5 12h1.5M17.5 12H19"/><path d="'+icSpark(12,12,2.6)+'"'+IC_FILL+'/>',
+ 'settings':'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="5"/><path d="'+icTicks(8,8,10.5,0)+'"/><path d="'+icTicks(8,8,9,22.5)+'"/><path d="'+icSpark(12,12,3.2)+'"'+IC_FILL+'/>',
+ 'book-open':'<path d="M2 19c3-1.4 7-1.4 10 0 3-1.4 7-1.4 10 0V9c-3-1.4-7-1.4-10 0-3-1.4-7-1.4-10 0z"/><path d="M12 9v10"/><path d="'+icSpark(12,3.8,2.6)+icSpark(5.5,4.8,1.5)+icSpark(18.5,4.8,1.5)+'"'+IC_FILL+'/>',
+ 'map':'<path d="M4 19.5 9 15 8 9 13.5 7.5 18 4.8"/><circle cx="4" cy="19.5" r="1.4"'+IC_FILL+'/><circle cx="9" cy="15" r="1.4"'+IC_FILL+'/><circle cx="8" cy="9" r="1.4"'+IC_FILL+'/><circle cx="13.5" cy="7.5" r="1.4"'+IC_FILL+'/><path d="'+icSpark(19.2,4.2,3.4)+'"'+IC_FILL+'/>',
+ 'gift':'<path d="M3 9.5h18v3.5H3zM5 13v8h14v-8M12 9.5V21"/><path d="M12 9.5C10.5 5.5 7.5 5 7 7s2 2.5 5 2.5zM12 9.5c1.5-4 4.5-4.5 5-2.5s-2 2.5-5 2.5z"/><path d="'+icSpark(19.5,3.5,2.6)+icSpark(4,4.5,1.6)+'"'+IC_FILL+'/>',
+ 'user-round':'<path d="M15 3a8 8 0 1 0 6 11.5A6.5 6.5 0 1 1 15 3z"/><path d="M8.5 9.5v.01M11 13.5q-1.5 1-3 0"/><path d="'+icSpark(19,5,2.6)+'"'+IC_FILL+'/>'
+},
+babochkovyi:{ /* луг: всё мягкое и круглое, крылья и лепестки с полупрозрачной заливкой */
+ 'list':'<path data-bb="" d="M10 6q2.75-1.6 5.5 0t5.5 0M10 12q2.75-1.6 5.5 0t5.5 0M10 18q2.75-1.6 5.5 0t5.5 0"/><path d="M3 7.5c0-2 1.3-3 3.5-3 0 2-1.3 3-3.5 3zM3 13.5c0-2 1.3-3 3.5-3 0 2-1.3 3-3.5 3zM3 19.5c0-2 1.3-3 3.5-3 0 2-1.3 3-3.5 3z"'+IC_SOFT+'/>',
+ 'moon':'<path data-bb="" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"'+IC_SOFT+'/><path d="M18 6c.8-2.2 2.8-2.6 3.2-1.6.3 1-1.3 1.6-3.2 1.6zm0 0c-.8-2.2-2.8-2.6-3.2-1.6-.3 1 1.3 1.6 3.2 1.6z"/>',
+ 'sun':'<path data-bb="" d="M12 9.5C9.5 7 10 3 12 3s2.5 4 0 6.5zM14.5 12C17 9.5 21 10 21 12s-4 2.5-6.5 0zM12 14.5c2.5 2.5 2 6.5 0 6.5s-2.5-4 0-6.5zM9.5 12C7 14.5 3 14 3 12s4-2.5 6.5 0z"'+IC_SOFT+'/><path d="M10.2 10.2C8 8 5.5 7 5.3 5.3 7 5.5 8 8 10.2 10.2zM13.8 10.2C16 8 18.5 7 18.7 5.3 17 5.5 16 8 13.8 10.2zM13.8 13.8C16 16 18.5 17 18.7 18.7 17 18.5 16 16 13.8 13.8zM10.2 13.8C8 16 5.5 17 5.3 18.7 7 18.5 8 16 10.2 13.8z"/><circle cx="12" cy="12" r="2.3"'+IC_FILL+'/>',
+ 'focus':'<path data-bb="" d="M3 8c0-3 2-5 5-5M16 3c3 0 5 2 5 5M21 16c0 3-2 5-5 5M8 21c-3 0-5-2-5-5"/><path d="M12 12c-1.2-3.5-4.5-5-5.6-3.8-1 1.2.6 3.8 5.6 3.8zm0 0c1.2-3.5 4.5-5 5.6-3.8 1 1.2-.6 3.8-5.6 3.8zm0 0c-1.2 2.4-3.6 3.6-4.4 2.8-.6-.8 1-2.8 4.4-2.8zm0 0c1.2 2.4 3.6 3.6 4.4 2.8.6-.8-1-2.8-4.4-2.8z"'+IC_SOFT+'/>',
+ 'settings':'<path data-bb="" d="M12 4.8A2.9 2.9 0 0 1 17.1 6.9A2.9 2.9 0 0 1 19.2 12A2.9 2.9 0 0 1 17.1 17.1A2.9 2.9 0 0 1 12 19.2A2.9 2.9 0 0 1 6.9 17.1A2.9 2.9 0 0 1 4.8 12A2.9 2.9 0 0 1 6.9 6.9A2.9 2.9 0 0 1 12 4.8z"'+IC_SOFT+'/><circle cx="12" cy="12" r="2.6"/>',
+ 'book-open':'<path d="M12 7.5C9.5 4.5 5 4 2.5 5.5V18c3-1.5 7-.8 9.5 2C14.5 17.2 18.5 16.5 21.5 18V5.5C19 4 14.5 4.5 12 7.5z"'+IC_SOFT+'/><path d="M12 7.5v12.5"/><path d="M12 7.5c-.3-2-1.2-3.3-2.6-4M12 7.5c.3-2 1.2-3.3 2.6-4"/>',
+ 'map':'<path d="M5.5 21.5c-1.5-4 1.5-6.5 5-8s6-3.5 5-8.5"/><path d="M8 15C4.8 14.4 3.4 11.6 4.2 9.2 6.8 9.6 8.6 12.2 8 15zM13.2 11.6c.8-3 3.8-4.4 6.4-3.6-.3 2.7-3.3 4.2-6.4 3.6z"'+IC_SOFT+'/><circle cx="15.5" cy="4.5" r="2.2"'+IC_FILL+'/>',
+ 'gift':'<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"'+IC_FILL+'/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"'+IC_SOFT+'/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"'+IC_SOFT+'/>',
+ 'user-round':'<circle cx="12" cy="14" r="6"'+IC_SOFT+'/><path d="M10 8.5 7.5 3.5M14 8.5l2.5-5"/><path d="M6.5 3.5h2M15.5 3.5h2"/><path d="M4 12c-2-1-2.5-4 0-5 1.5.5 2.5 2 2.8 3.5M20 12c2-1 2.5-4 0-5-1.5.5-2.5 2-2.8 3.5"/><path d="M10 13.5v.01M14 13.5v.01M10.5 16.5q1.5 1 3 0"/>'
+}};
+Object.keys(SKIN_ICONS_V2).forEach(function(k){Object.assign(SKIN_ICONS[k],SKIN_ICONS_V2[k]);});
 /* Confetti per skin (Джессика 17.10): sprite symbol names; unknown skin / no skin → default. A new skin adds its line here.
    «Эллада»: амфора, свиток, Гелиос, венок; «Бабочковый»: бабочка, цветы, кокон; «Карандашный»: карандаш, тетрадь. */
 const CONFETTI_SKIN={'':['sparkles','star','book-open','check'],pencil:['pencil','notebook-pen','star','sparkles'],

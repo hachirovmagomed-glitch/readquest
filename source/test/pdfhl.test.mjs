@@ -33,7 +33,7 @@ const boxes = (n, rr) => p.evaluate((n, rr) => {
   const tl = flipGet().mode === 'scroll' ? document.querySelector('#pdfScroll .psl[data-n="' + n + '"] .textLayer') : document.getElementById('pdfText');
   const bs = tl ? [...tl.querySelectorAll('.pdfhls i')] : [];
   const hit = rr && bs.find(b => { const r = b.getBoundingClientRect(); return Math.abs(r.left - rr[0]) < 2 && Math.abs(r.top - rr[1]) < 2 && Math.abs(r.width - rr[2]) < 2 && Math.abs(r.height - rr[3]) < 2; });
-  return { n: bs.length, bg: hit ? hit.style.background : '', cover: !!hit, under: !!bs[0] && getComputedStyle(bs[0].parentNode).zIndex === '0' && getComputedStyle(bs[0].parentNode).pointerEvents === 'none' };
+  return { n: bs.length, bg: hit ? hit.className + ' ' + hit.style.getPropertyValue('--hc') : '', cover: !!hit, under: !!bs[0] && getComputedStyle(bs[0].parentNode).zIndex === '0' && getComputedStyle(bs[0].parentNode).pointerEvents === 'none' };
 }, n, rr);
 
 ok('0 PDF open in «Прокрутка» with a text layer', await p.evaluate(() => R.mode === 'pdf' && flipGet().mode === 'scroll' && !!document.querySelector('#pdfScroll .textLayer span')));
@@ -43,25 +43,65 @@ let s1 = await select(0); await sleep(300);
 await tap('#spColors button[data-c="g"]');
 let q = await quotes(); let bx = await boxes(s1.page, s1.rr);
 ok('1 «Прокрутка»: green → quote c=g with q.pdf {p, r: boxes in 0…1}', q.length === 1 && q[0].t === s1.t && q[0].c === 'g' && q[0].pdf && q[0].pdf.p === s1.page && q[0].pdf.r.length >= 1 && q[0].pdf.r.every(r => r.length === 4 && r.every(v => v >= 0 && v <= 1)), q[0]);
-ok('1b the words are painted green on their page (boxes under the text, no taps taken)', bx.n >= 1 && /--hl-g/.test(bx.bg) && bx.cover && bx.under, bx);
+ok('1b the words are painted green on their page (boxes under the text, no taps taken)', bx.n >= 1 && /hl-g/.test(bx.bg) && bx.cover && bx.under, bx);
 await p.screenshot({ path: SHOTS + 'pdfhl-scroll.png' });
 
 // 2. own colour in the PDF
 let s2 = await select(2); await sleep(300); await tap('#spOwn');
 await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); i.value = '#d0306a'; i.dispatchEvent(new Event('change')); }); await sleep(300);
 q = await quotes(); bx = await boxes(s2.page, s2.rr);
-ok('2 own colour: quote #d0306a with place, pink boxes', q.length === 2 && q[1].c === '#d0306a' && q[1].pdf && /rgba\(208, 48, 106/.test(bx.bg) && bx.cover, { q: q[1], bx });
+ok('2 own colour: quote #d0306a with place, pink boxes', q.length === 2 && q[1].c === '#d0306a' && q[1].pdf && /rgba\(208, ?48, ?106/.test(bx.bg) && bx.cover, { q: q[1], bx });
 
 // 3. reopen in «Страницы»: the page shows the boxes again
 await p.evaluate(async (id) => { await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); rqSaveSetGated(); S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await new Promise(r => setTimeout(r, 3500)); }, bid);
-bx = await p.evaluate((r) => { const tl = document.getElementById('pdfText'), b = tl.getBoundingClientRect(); const bs = [...tl.querySelectorAll('.pdfhls i')]; const hit = bs.find(x => { const q = x.getBoundingClientRect(); return Math.abs((q.left - b.left) / b.width - r[0]) < .003 && Math.abs((q.top - b.top) / b.height - r[1]) < .003; }); return { n: bs.length, cover: !!hit, bg: hit ? hit.style.background : '' }; }, (await quotes())[0].pdf.r[0]);
-ok('3 reopen in «Страницы» on page 1: green boxes are back over the same words', s1.page !== 0 || (bx.n >= 2 && bx.cover && /--hl-g/.test(bx.bg)), { page: s1.page, bx });
+bx = await p.evaluate((r) => { const tl = document.getElementById('pdfText'), b = tl.getBoundingClientRect(); const bs = [...tl.querySelectorAll('.pdfhls i')]; const hit = bs.find(x => { const q = x.getBoundingClientRect(); return Math.abs((q.left - b.left) / b.width - r[0]) < .003 && Math.abs((q.top - b.top) / b.height - r[1]) < .003; }); return { n: bs.length, cover: !!hit, bg: hit ? hit.className + ' ' + hit.style.getPropertyValue('--hc') : '' }; }, (await quotes())[0].pdf.r[0]);
+ok('3 reopen in «Страницы» on page 1: green boxes are back over the same words', s1.page !== 0 || (bx.n >= 2 && bx.cover && /hl-g/.test(bx.bg)), { page: s1.page, bx });
 
 // 4. «Страницы»: a new colour quote is painted at once
 let s4 = await select(1); await sleep(300); await tap('#spColors button[data-c="b"]');
 q = await quotes(); bx = await boxes(s4.page, s4.rr);
-ok('4 «Страницы»: blue → quote with place, blue boxes at once', q.length === 3 && q[2].c === 'b' && q[2].pdf && q[2].pdf.p === s4.page && /--hl-b/.test(bx.bg) && bx.cover, { q: q[2], bx });
+ok('4 «Страницы»: blue → quote with place, blue boxes at once', q.length === 3 && q[2].c === 'b' && q[2].pdf && q[2].pdf.p === s4.page && /hl-b/.test(bx.bg) && bx.cover, { q: q[2], bx });
 await p.screenshot({ path: SHOTS + 'pdfhl-page.png' });
+
+// 5. several lines (Джессика 21.10 «не очень эстетично»): one even box per line, neighbours touch but never overlap, no box wider than the text
+const m5 = await p.evaluate(() => {
+  const tl = document.getElementById('pdfText'), sp = [...tl.querySelectorAll('span')].filter(s => s.textContent.trim().length > 12 && s.getBoundingClientRect().top > 300 && s.getBoundingClientRect().bottom < innerHeight - 280);
+  const a = sp[0], z = sp[4]; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(a.firstChild, 3); rg.setEnd(z.firstChild, Math.min(8, z.firstChild.length)); g.addRange(rg); updSelPop();
+  const xs = sp.slice(0, 5).map(s => s.getBoundingClientRect()); return { l: Math.min(...xs.map(r => r.left)), r: Math.max(...xs.map(r => r.right)), n0: S.quotes[R.book.id].length };
+}); await sleep(300); await tap('#spColors button[data-c="o"]');
+const g5 = await p.evaluate((n0) => { const q = S.quotes[R.book.id][n0]; const tl = document.getElementById('pdfText'), b = tl.getBoundingClientRect();
+  const bs = [...tl.querySelectorAll('.pdfhls i.hl-o')].map(x => x.getBoundingClientRect()).sort((u, v) => u.top - v.top);
+  return { rs: q && q.pdf && q.pdf.r.length, n: bs.length, overlap: bs.some((u, i) => i && u.top < bs[i - 1].bottom - 0.5), l: Math.min(...bs.map(u => u.left)), r: Math.max(...bs.map(u => u.right)), tw: b.width }; }, m5.n0);
+ok('5 five lines → five boxes (one per line), no overlaps, inside the text column', g5.rs === 5 && g5.n === 5 && !g5.overlap && g5.l >= m5.l - 2 && g5.r <= m5.r + 2, { g5, m5 });
+// 5b. old data with a whole-width container box and doubled line boxes is drawn clean
+const g5b = await p.evaluate(() => { S.quotes[R.book.id].push({ text: 'x', note: '', date: today(), c: 'p', pdf: { p: R.page, r: [[0, 0.5, 1, 0.06], [0.1, 0.5, 0.3, 0.02], [0.1, 0.51, 0.3, 0.021], [0.1, 0.515, 0.5, 0.02]] } }); pdfHlRefresh();
+  const tl = document.getElementById('pdfText'), b = tl.getBoundingClientRect(); const bs = [...tl.querySelectorAll('.pdfhls i.hl-p')].map(x => x.getBoundingClientRect()); S.quotes[R.book.id].pop(); pdfHlRefresh();
+  return { n: bs.length, wide: bs.some(u => u.width > b.width * 0.9) }; });
+ok('5b old quote with a whole-width box and doubled lines → one box, not full width', g5b.n === 1 && !g5b.wide, g5b);
+await p.screenshot({ path: SHOTS + 'pdfhl-lines.png' });
+
+// 6. Джессика 21.10 «выделяю два цвета на одной странице — выбрасывает»: a real tap / click on a dot at the right edge of the bar keeps the page
+await p.evaluate(async () => { jumpTo(2); await new Promise(r => setTimeout(r, 1500)); });
+for (const how of ['touch', 'mouse']) {
+  const s6 = await select(3); await sleep(300);
+  const pt = await p.evaluate(() => { const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
+  if (how === 'touch') await p.touchscreen.tap(pt.x, pt.y); else await p.mouse.click(pt.x, pt.y);
+  await sleep(700);
+  const a6 = await p.evaluate(() => ({ pg: R.page, n: S.quotes[R.book.id].length }));
+  ok('6 «Страницы», page 3: ' + how + ' on the orange dot (right half of the screen) saves the quote and stays on the page', s6 && pt.pg === 2 && pt.x > 195 && a6.pg === pt.pg && a6.n === pt.n + 1, { pt, a6 });
+}
+// 7. Джессика 21.10 «нажимаю на цитаты — бросает в ебеня»: a quote in the reader's list opens its own page (+ «вернуться»)
+const far = await p.evaluate(async () => { const to = 7; jumpTo(to); await new Promise(r => setTimeout(r, 1500)); return R.page; });
+const qi = await p.evaluate(() => S.quotes[R.book.id].length - 1); // the orange quote on page 3
+const want = (await quotes())[qi].pdf.p;
+await p.evaluate(async (i) => { renderPanel('qts'); }, qi).catch(() => {});
+const btn = await p.evaluate((i) => { const b = [...document.querySelectorAll('#panel [onclick^="quoteGo("]')][i]; if (b) b.click(); return !!b; }, qi); await sleep(1800);
+let a7 = await p.evaluate(() => ({ pg: R.page, back: !document.getElementById('jumpBack').classList.contains('hidden'), panel: document.getElementById('panel').classList.contains('hidden') }));
+ok('7 panel «Цитаты» → the quote\'s page (not page 1), «вернуться» shown, panel closed', btn && far === 7 && want === 2 && a7.pg === want && a7.back && a7.panel, { btn, far, want, a7 });
+// 7b an older PDF quote saved without its place: found by its words, the place is remembered
+const n7 = await p.evaluate(async (i) => { const q = S.quotes[R.book.id][i], c = { text: q.text, note: '', date: today(), c: 'g' }; S.quotes[R.book.id].push(c); save(); jumpTo(Math.min(R.pageCount - 1, q.pdf.p + 4)); await new Promise(r => setTimeout(r, 1500)); await quoteGo(S.quotes[R.book.id].length - 1); await new Promise(r => setTimeout(r, 1500));
+  const z = S.quotes[R.book.id].pop(); save(); return { pg: R.page, want: q.pdf.p, saved: z.pdf && z.pdf.p }; }, m5.n0);
+ok('7b old PDF quote without q.pdf: found by its words on its page, place remembered', n7.pg === n7.want && n7.saved === n7.want, n7);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

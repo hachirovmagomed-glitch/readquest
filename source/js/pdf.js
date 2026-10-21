@@ -832,6 +832,7 @@ function jumpTo(p){
 }
 let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
+  if(e.target&&e.target.closest&&e.target.closest('#selpop'))return; /* 21.10: a tap on the selection bar (a colour on the right / left) is not a page turn */
   if(suppressClick){suppressClick=false;return;}
   if(Date.now()<pinchQuietUntil)return; /* trailing click right after a two-finger gesture */
   if(Date.now()-touchTapAt<800)return;   /* already handled as a touch tap (see touchend) */

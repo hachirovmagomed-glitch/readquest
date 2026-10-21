@@ -64,7 +64,7 @@ async function trGunzip(resp){
 async function trEngine(){
   if(trEng)return trEng;
   trEng=(async()=>{
-    const m=await import(trUrl(TR_ENGINE[0]));
+    const m=await (new Function('u','return import(u)'))(trUrl(TR_ENGINE[0])); /* dynamic import in a classic script; written as a string so test/hoist-map.mjs (esprima, no import()) can parse the file */
     class Backing extends m.TranslatorBacking{
       async loadModelRegistery(){const r=await trRegistry();return Object.keys(r.pairs).map(k=>({from:k.slice(0,2),to:k.slice(2,4),files:r.pairs[k].files}));}
       async fetch(name){const c=await caches.open(TR_CACHE);const r=await c.match(TR_BASE+name);if(!r)throw new Error('пакет не скачан');return /\.gz$/.test(name)?trGunzip(r):r.arrayBuffer();}

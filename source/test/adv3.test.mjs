@@ -86,6 +86,7 @@ p.on('request', r => {
     else r.respond({ status: 404, headers: CORS, body: '' });
   } else if (u.host === 'www.gutenberg.org') r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: '<feed xmlns="http://www.w3.org/2005/Atom"></feed>' });
   else if (u.host === 'cdnjs.cloudflare.com' && /jszip/.test(u.pathname) && JSZIP) r.respond({ status: 200, contentType: 'application/javascript', body: JSZIP });
+  else if (u.host === 'archive.org') r.respond({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ response: { numFound: 0, docs: [] } }) }); /* Internet Archive: nothing, so «Везде» shows only the mocked libraries */
   else r.continue();
 });
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };

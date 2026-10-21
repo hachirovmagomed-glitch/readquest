@@ -50,6 +50,7 @@ p.on('request', r => {
       r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: atom(ENTRY(2142, 'Childhood', 'graf Leo Tolstoy') + ENTRY(1342, 'Pride and Prejudice', 'Jane Austen')) }); }
     else r.respond({ status: 404, body: '' });
   } else if (u.host === 'standardebooks.org') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: '<html><body><ol class="ebooks-list list"></ol></body></html>' }); /* the real catalogue answers in CI: kept out of the «Везде» check */
+  else if (u.host === 'archive.org') r.respond({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ response: { numFound: 0, docs: [] } }) }); /* Internet Archive: nothing, so «Везде» shows only the mocked libraries */
   else r.continue();
 });
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };

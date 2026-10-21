@@ -1325,19 +1325,19 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
 /* 20.10 (Джессика, ReadEra): «Яркость» slider under the top bar — opens and hides with the bars, = SET.bright (same as the sheet row and the
    left-edge drag). Filled part up to --v (set by applySet). Each skin draws its own track and thumb (pencil here, the rest in skins.css) */
 #reader .rhead{flex-wrap:wrap}
-.rbright{flex:1 1 100%;display:flex;align-items:center;gap:10px;padding:0 8px;color:rgba(255,255,255,.86)}
-.rbright .ic{flex:none}.rbright .ic.lo{opacity:.75}
-#barBright{flex:1;min-width:0;height:40px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;--v:100%;touch-action:pan-x}
-#barBright::-webkit-slider-runnable-track{height:4px;border-radius:var(--rq-radius-xs);background:linear-gradient(90deg,#fff var(--v),rgba(255,255,255,.28) var(--v))}
-#barBright::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:linear-gradient(90deg,#fff var(--v),rgba(255,255,255,.28) var(--v))}
-#barBright::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent-on-dark,#9ec5ff);box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-#barBright::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--rq-accent-on-dark,#9ec5ff);box-sizing:border-box}
-/* pencil: a pencil line — solid where drawn, dashed sketch beyond; the thumb a hand-drawn ring */
+.rbright{flex:1 1 100%;display:flex;align-items:center;gap:12px;padding:0 22px;color:rgba(255,255,255,.86)} /* 21.10 (Джессика, ReadEra): smaller, the thumb unlike the page slider's */
+.rbright .ic{flex:none;width:14px;height:14px}.rbright .ic:last-child{width:18px;height:18px}.rbright .ic.lo{opacity:.7}
+#barBright{flex:1;min-width:0;height:30px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;--v:100%;touch-action:pan-x}
+#barBright::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.9) var(--v),rgba(255,255,255,.25) var(--v))}
+#barBright::-moz-range-track{height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.9) var(--v),rgba(255,255,255,.25) var(--v))}
+#barBright::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+#barBright::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0}
+/* pencil: a thin pencil line — solid where drawn, dashed beyond; the thumb a small filled pencil dot */
 html[data-skin="pencil"] .rbright{color:var(--rq-text)}
-html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:3px;border-radius:2px 1px 2px 1px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 7px,transparent 7px 12px)}
-html[data-skin="pencil"] #barBright::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 7px,transparent 7px 12px)}
-html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:22px;height:20px;margin-top:-9px;border-radius:52% 46% 55% 44%/48% 55% 45% 52%;background:var(--rq-bg);border:2px solid var(--rq-text);box-shadow:1px 1px 0 var(--rq-text);transform:rotate(-8deg)}
-html[data-skin="pencil"] #barBright::-moz-range-thumb{width:22px;height:20px;border-radius:52% 46% 55% 44%/48% 55% 45% 52%;background:var(--rq-bg);border:2px solid var(--rq-text)}
+html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px)}
+html[data-skin="pencil"] #barBright::-moz-range-track{height:2px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px)}
+html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:12px;height:12px;margin-top:-5px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0;box-shadow:none}
+html[data-skin="pencil"] #barBright::-moz-range-thumb{width:12px;height:12px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0}
 #reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
 /* audit 19.10 RD-PANEL-02: a soft 24 px fade at the panels' inner edges, so a cut line reads as covered, not broken */
 #reader .rhead::after,#reader .rbot::before{content:"";position:absolute;left:0;right:0;height:24px;pointer-events:none}

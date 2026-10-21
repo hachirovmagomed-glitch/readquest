@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261022-0102',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261022-0127',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261022-0102"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261022-0127"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -1200,6 +1200,8 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 #trBody .tr-acts{display:flex;flex-wrap:wrap}
 #trBody .tr-alt{display:flex;flex-wrap:wrap;margin-top:6px}
 #trBody .tr-alt .ghostbtn{margin-bottom:0}
+/* 22.10: крестик над заголовком (в скинах h3 position:relative перекрывал его), зона 48×48 */
+:is(#aiSheet,#trSheet)>.closes{z-index:5;min-width:48px;min-height:48px;top:2px;right:4px}
 #trList .tr-row .ghostbtn{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;flex:none}
 @media (prefers-reduced-motion:reduce){#trBody .tr-prog i{transition:none}}
 .nncard .nnbox{padding:4px 2px 8px}
@@ -1597,7 +1599,7 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261022-0102"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261022-0127"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2242,37 +2244,37 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261022-0102"></script>
-<script src="js/books-builtin.js?v=20261022-0102"></script>
-<script src="js/core-b.js?v=20261022-0102"></script>
-<script src="js/library.js?v=20261022-0102"></script>
-<script src="js/reader.js?v=20261022-0102"></script>
-<script src="js/pdf.js?v=20261022-0102"></script>
-<script src="js/pdf-scroll.js?v=20261022-0102"></script>
-<script src="js/page-curl.js?v=20261022-0102"></script>
-<script src="js/page-grid.js?v=20261022-0102"></script>
-<script src="js/reader-ui.js?v=20261022-0102"></script>
-<script src="js/book-find.js?v=20261022-0102"></script>
-<script src="js/rpg.js?v=20261022-0102"></script>
-<script src="js/content.js?v=20261022-0102"></script>
-<script src="js/translate.js?v=20261022-0102"></script>
-<script src="js/hero-pencil.js?v=20261022-0102"></script>
-<script src="js/hero-celestial.js?v=20261022-0102"></script>
-<script src="js/hero.js?v=20261022-0102"></script>
-<script src="js/settings.js?v=20261022-0102"></script>
-<script src="js/v6-extras.js?v=20261022-0102"></script>
-<script src="js/ach-core.js?v=20261022-0102"></script>
-<script src="js/achievements.js?v=20261022-0102"></script>
-<script src="js/path.js?v=20261022-0102"></script>
-<script src="js/adv.js?v=20261022-0102"></script>
-<script src="js/start.js?v=20261022-0102"></script>
+<script src="js/core-a.js?v=20261022-0127"></script>
+<script src="js/books-builtin.js?v=20261022-0127"></script>
+<script src="js/core-b.js?v=20261022-0127"></script>
+<script src="js/library.js?v=20261022-0127"></script>
+<script src="js/reader.js?v=20261022-0127"></script>
+<script src="js/pdf.js?v=20261022-0127"></script>
+<script src="js/pdf-scroll.js?v=20261022-0127"></script>
+<script src="js/page-curl.js?v=20261022-0127"></script>
+<script src="js/page-grid.js?v=20261022-0127"></script>
+<script src="js/reader-ui.js?v=20261022-0127"></script>
+<script src="js/book-find.js?v=20261022-0127"></script>
+<script src="js/rpg.js?v=20261022-0127"></script>
+<script src="js/content.js?v=20261022-0127"></script>
+<script src="js/translate.js?v=20261022-0127"></script>
+<script src="js/hero-pencil.js?v=20261022-0127"></script>
+<script src="js/hero-celestial.js?v=20261022-0127"></script>
+<script src="js/hero.js?v=20261022-0127"></script>
+<script src="js/settings.js?v=20261022-0127"></script>
+<script src="js/v6-extras.js?v=20261022-0127"></script>
+<script src="js/ach-core.js?v=20261022-0127"></script>
+<script src="js/achievements.js?v=20261022-0127"></script>
+<script src="js/path.js?v=20261022-0127"></script>
+<script src="js/adv.js?v=20261022-0127"></script>
+<script src="js/start.js?v=20261022-0127"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261022-0102"></script>
+<script src="js/pwa-lock.js?v=20261022-0127"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2280,9 +2282,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261022-0102';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261022-0102';
-import * as game from './game-awards.js?v=20261022-0102';
+} from './storage/index.js?v=20261022-0127';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261022-0127';
+import * as game from './game-awards.js?v=20261022-0127';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

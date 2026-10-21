@@ -68,9 +68,21 @@ ok('system «назад» closes only the search, the book stays open', o3.close
 await p.click('#bfEnd'); await sleep(200);
 const e1 = await p.evaluate(() => ({ pill: document.getElementById('bfPill').classList.contains('hidden'), hl: CSS.highlights.has('rq-find') || CSS.highlights.has('rq-find-cur'), q: BF.q }));
 ok('✕ on the plaque ends the search: no plaque, no highlight', e1.pill && !e1.hl && e1.q === '', e1);
-/* the old «Поиск» tab of «Оглавление» opens the same screen */
-await p.evaluate(() => { el('btnPanel').click(); }); await sleep(200); await p.evaluate(() => el('tabFind').click()); await sleep(200);
-ok('«Оглавление» → «Поиск» opens the same search screen', await p.evaluate(() => !document.getElementById('bookFind').hidden && document.getElementById('panel').classList.contains('hidden')));
+/* 22.10 (Джессика): no «Поиск» tab in «Навигация»; the magnifier is the only way in */
+await p.evaluate(() => { el('btnPanel').click(); }); await sleep(200);
+ok('«Навигация» has no «Поиск» tab', await p.evaluate(() => !document.getElementById('tabFind') && ![...document.querySelectorAll('#panel button')].some(b => b.textContent.trim() === 'Поиск')));
+await p.evaluate(() => { el('panelClose').click(); }); await sleep(200);
+/* 22.10: the keyboard shrinks the viewport — the book is NOT re-paginated under the search screen (it went black for seconds); once on close */
+{ await p.evaluate(() => { window.__lay = 0; const f = window.layout; window.layout = function () { window.__lay++; return f.apply(this, arguments); }; el('btnFind').click(); }); await sleep(300);
+  await p.setViewport({ width: 360, height: 460, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(500);
+  const kb = await p.evaluate(() => ({ lay: window.__lay, open: !document.getElementById('bookFind').hidden }));
+  await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
+  await p.setViewport({ width: 360, height: 700, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
+  await p.click('#bfBack'); await sleep(800);
+  const cl = await p.evaluate(() => ({ lay: window.__lay, key: R.layoutKey === layoutKey(el('viewer').clientWidth, el('viewer').clientHeight) }));
+  await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(800);
+  ok('keyboard over the search screen: no re-pagination while it is open; one after closing, for the size left behind', kb.open && kb.lay === 0 && cl.lay === 1 && cl.key, { kb, cl }); }
+await p.evaluate(() => el('btnFind').click()); await sleep(300);
 await typeQ('ы'); ok('one letter: asks for 2', await p.evaluate(() => /2 букв/.test(document.getElementById('bfStat').textContent) && !BF.hits.length));
 await typeQ('zzqqxx'); ok('nothing found → «Ничего не найдено»', await p.evaluate(() => /Ничего не найдено/.test(document.getElementById('bfList').textContent)));
 await p.click('#bfBack'); await sleep(300);

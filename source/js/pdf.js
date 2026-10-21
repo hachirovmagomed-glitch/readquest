@@ -592,6 +592,7 @@ function pageOfAnchor(a){
 function relayout(opts){
   const o=opts||{};
   if(el('reader').classList.contains('hidden'))return;
+  if(window.__rqFindOpen&&!o.force){R.relayDue=true;return;} /* 22.10: the keyboard of the search screen shrinks the viewport — no re-pagination of the whole book under it (black screen); done once on close */
   if(R.mode==='pdf'){pdfOnResize();return;} /* CSS-scale now, one re-render when the size is stable */
   const v=el('viewer');
   if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */

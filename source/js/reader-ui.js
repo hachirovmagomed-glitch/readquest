@@ -172,7 +172,7 @@ function flashMsg(t,o){
   if(inReader){const pg=el('reader').dataset.page;d.classList.add('rd',pg==='night'?'n':'d');if(pg==='night')d.dataset.theme='night';} /* night page → night toast tokens */
   d.onclick=function(){d.remove();};
   document.body.appendChild(d);
-  if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12)+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title */
+  if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12+(el('bnRead')?32:0))+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title; 20.10: and over the «Читать» bump */
   if(inReader){const rb=el('reader').querySelector('.rbot');if(rb&&!el('reader').classList.contains('barsoff')){const h=window.innerHeight-rb.getBoundingClientRect().top;if(rb.offsetHeight&&h>40&&h<window.innerHeight/2)d.style.setProperty('bottom',Math.round(h+12)+'px','important');}} /* audit 19.10: over the panel, not on it */
   if(d.scrollWidth>d.clientWidth+1)d.classList.add('imp'); /* long text wraps instead of running off the screen */
   const dur=ms!=null?ms:(inReader?3000:1600);
@@ -231,6 +231,31 @@ function hlPaintCustom(){
       while(a>0.03&&cr(tx,c.map((v,i)=>v*a+page[i]*(1-a)))<7.05)a-=0.01;memo[key]='rgba('+c.join(',')+','+a.toFixed(2)+')';}
     m.style.background=memo[key];});
 }
+/* 21.10 (Джессика: «выделяю в PDF, жму цвет — ничего не происходит»): in a PDF the quote also keeps where it is —
+   q.pdf = {p: page index, r: [[x,y,w,h],…] in 0…1 of the page's text layer}; the highlight is drawn as boxes in that layer */
+function pdfSelGeo(){
+  try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
+    let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
+    const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
+    const r=[];Array.prototype.forEach.call(rg.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right),y0=Math.max(q.top,b.top),y1=Math.min(q.bottom,b.bottom);
+      if(x1-x0<1||y1-y0<1)return;const k=[(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height].map(v=>Math.round(v*1e4)/1e4);
+      if(!r.some(o=>Math.abs(o[0]-k[0])<.002&&Math.abs(o[1]-k[1])<.002&&Math.abs(o[2]-k[2])<.002))r.push(k);});
+    return r.length?{p:p,r:r.slice(0,200)}:null;}catch(e){return null;}
+}
+function pdfHlPaint(tl,p){
+  if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
+  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&q.pdf.p===p&&Array.isArray(q.pdf.r));if(!qs.length)return;
+  const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
+  qs.forEach(q=>{const c=hlKey(q.c),bg=c[0]==='#'?'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+',.35)':'var(--hl-'+c+')';
+    q.pdf.r.forEach(k=>{if(!Array.isArray(k)||k.length!==4||!k.every(v=>typeof v==='number'&&isFinite(v)))return;const d=document.createElement('i');
+      d.style.cssText='left:'+k[0]*100+'%;top:'+k[1]*100+'%;width:'+k[2]*100+'%;height:'+k[3]*100+'%;background:'+bg;box.appendChild(d);});});
+  tl.insertBefore(box,tl.firstChild);
+}
+function pdfHlRefresh(){
+  if(!R.book||R.mode!=='pdf')return;
+  document.querySelectorAll('#pdfScroll .psl .textLayer').forEach(tl=>pdfHlPaint(tl,+tl.closest('.psl').dataset.n));
+  const t=el('pdfText');if(t&&t.childNodes.length)pdfHlPaint(t,R.page);
+}
 function markInContent(t,c){
   const c0=el('content');const k=esc(t);
   if(c0.innerHTML.includes(k)){c0.innerHTML=c0.innerHTML.replace(k,markHtml(k,hlKey(c)));hlPaintCustom();}
@@ -247,7 +272,7 @@ function hlOwnInput(){let i=el('hlOwnIn');if(!i){i=document.createElement('input
   i.addEventListener('change',()=>{const v=hlKey(i.value),pk=hlPick;hlPick=null;if(v[0]!=='#'||!pk)return;SET.hlx=v;addQuote(false,v,pk);});}
   return i;}
 function hlOwnOpen(){
-  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id};
+  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo()};
   const i=hlOwnInput();i.value=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0';
   try{if(i.showPicker)i.showPicker();else i.click();}catch(e){i.click();}
 }
@@ -259,6 +284,7 @@ function selMark(){
 function selDone(){if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
 function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the colour picker opened */
   const m=pick?pick.m:selMark(),t=pick?pick.t:(m?m.textContent:selText());if(!t||!R.book||(pick&&pick.bid!==R.book.id))return;
+  const geo=pick?pick.geo:pdfSelGeo();
   if(m&&!m.isConnected)return;
   const bid=R.book.id,c=hlKey(color||SET.hlc);
   if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
@@ -269,7 +295,8 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     put(null);selDone();return;
   }
   const commit=(note)=>{
-    (S.quotes[bid]=S.quotes[bid]||[]).push({text:t,note,date:today(),c});
+    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;
+    (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(t);
     if(!(window.__rqWriter&&__rqWriter.noLocks)){
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
@@ -277,7 +304,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     } /* no locks → no coins */
     save();
     if(!R.book||R.book.id!==bid)return;
-    markInContent(t,c);
+    markInContent(t,c);if(geo)pdfHlRefresh();
   };
   if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
     selDone();

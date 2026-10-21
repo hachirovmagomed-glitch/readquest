@@ -37,22 +37,24 @@ const NAV_CATALOG=[
 /* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
 const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path']},{t:'Герой',ids:['profile','quests','stats']},{t:'Магазины',ids:['rewards','look']}];
 const NAV_ALIAS={notes:'stats',vocab:'stats'}; /* stored NS_set.nav from before 17.10 */
-const NAV_DEF=['library','rewards','profile'], NAV_MAX=5;
+/* 20.10 (Джессика: «5 вкладок базой, количество менять нельзя, только что в них»): the bar always has NAV_N tabs around «Читать»
+   (2 + 2, as in Habitica); stored lists that are short get the defaults / catalog appended, long ones are cut — in memory, never written back */
+const NAV_N=4, NAV_DEF=['library','path','rewards','profile'], NAV_MAX=NAV_N;
 /* ONE flag: in MVP mode, show the extra sections (quests, «Инвентарь», «Внешний вид») in the drawer, bottom bar and «Нижняя панель».
    false → MVP shows only library/rewards/profile (+ settings); stored NS_set.nav is never rewritten by this. Outside MVP they always show. */
 const RQ_MVP_DRAWER_EXTRAS=true;
 function navAvail(id){
-  return !isMvp()||RQ_MVP_DRAWER_EXTRAS||NAV_DEF.indexOf(id)>=0||id==='settings';}
-function navShown(){return navGet().filter(navAvail);} /* view only: what the bar shows now */
+  return !isMvp()||RQ_MVP_DRAWER_EXTRAS||['library','rewards','profile'].indexOf(id)>=0||id==='settings';}
+function navFill(out,ok){NAV_DEF.concat(NAV_CATALOG.map(function(it){return it.id;})).forEach(function(x){if(out.length<NAV_N&&out.indexOf(x)<0&&ok(x))out.push(x);});return out;}
+function navShown(){return navFill(navGet().filter(navAvail),navAvail);} /* view only: what the bar shows now (a hidden section's slot is filled from the shown ones) */
 const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
 const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
-  if(!Array.isArray(v))return NAV_DEF.slice();
-  const out=[];v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
-  if(!out.length)return NAV_DEF.slice();
+  const out=[];if(Array.isArray(v))v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
   const i=out.indexOf('library');if(i>0)out.splice(i,1);if(i!==0)out.unshift('library');
-  return out.slice(0,NAV_MAX);
+  navFill(out,function(){return true;});
+  return out.slice(0,NAV_N);
 }
 function navGet(){return navRead(typeof SET!=='undefined'&&SET?SET.nav:null);}
 function navSave(arr){
@@ -77,13 +79,24 @@ function navGo(id){
     else if(id==='settings'){renderSettings();show('settings');}
   }finally{__navAllow=false;}
 }
+/* «Читать»: the book from «Продолжить чтение» (last opened, not finished); none → the library to pick one */
+function navReadBook(){const lid=S.lastRead;return lid&&!S.finished.includes(lid)&&allBooks().some(function(x){return x.id===lid;})?lid:null;}
+function navReadNow(){const id=navReadBook();
+  if(id){closeDrawer();try{closeRewardsSheet();}catch(e){}openBook(id);return;}
+  navGo('library');flashMsg('Выберите книгу в библиотеке',{kind:'info',icon:'book-open'});}
 function renderNav(){
   const nav=navShown();
   const bn=el('botnav');
-  if(bn){bn.innerHTML=nav.map(function(id){const it=navItem(id);
-      return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';}).join('');
+  if(bn){const tab=function(id){const it=navItem(id);
+      return '<button class="botnav-btn" id="'+NAV_BN[id]+'" data-nav="'+id+'" type="button">'+rqIcon(it.ic,22)+'<span>'+esc(it.s||it.t)+'</span></button>';};
+    /* 20.10 (Джессика, как в Habitica): big «Читать» in the middle, the chosen sections split left / right of it; the odd one goes right, so «Библиотека» (always first, the longest label) keeps a wide slot at 360 */
+    const half=Math.floor(nav.length/2)||nav.length;
+    bn.innerHTML='<div class="botnav-side">'+nav.slice(0,half).map(tab).join('')+'</div>'+
+      '<div class="botnav-mid"><button class="botnav-read" id="bnRead" type="button"><span class="brd">'+rqIcon('book-marked',28)+'</span><span class="brl">Читать</span></button></div>'+
+      '<div class="botnav-side">'+nav.slice(half).map(tab).join('')+'</div>';
     bn.dataset.n=nav.length;
     bn.querySelectorAll('.botnav-btn').forEach(function(b){b.onclick=function(){navGo(b.dataset.nav);};});
+    el('bnRead').onclick=navReadNow;
     try{applyMvpChrome();}catch(e){}}
   const list=el('dList');
   if(list){

@@ -794,3 +794,12 @@ html[data-skin="celestial"] #panelBody .prow.on .pnow .ic{display:none}
 html[data-skin="celestial"] #panelBody .prow.on .pnow::before{content:"";width:18px;height:18px;background:var(--cl-gold-l);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
 html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow{box-shadow:inset 0 0 0 1px var(--cl-gold-d)}
 html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow::before{background:var(--cl-gold-d)}
+/* 21.10 иконки v2 (Джессика: «сильнее отличались, но с духом скина»): у каждого скина своя линия; «Aa» на кнопке шрифта — шрифтом скина */
+html[data-skin="pencil"]{--rq-icon-stroke:1.35}
+html[data-skin="ellada"] .ic{stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:6}
+html[data-skin="celestial"]{--rq-icon-stroke:1.35;--ic-fill:var(--cl-gold)}
+html[data-skin="babochkovyi"]{--rq-icon-stroke:1.9;--ic-soft:var(--bb-iri-2);--ic-soft-o:.55;--ic-fill:var(--bb-iri-3)}
+html[data-skin="pencil"] .rbar .aa{font:700 24px/22px Caveat,var(--rq-font-ui)}
+html[data-skin="ellada"] .rbar .aa{font:700 21px/22px var(--rq-font-display)}
+html[data-skin="celestial"] .rbar .aa{font:700 24px/22px var(--rq-font-display)}
+html[data-skin="babochkovyi"] .rbar .aa{font:400 22px/22px var(--rq-font-display)}

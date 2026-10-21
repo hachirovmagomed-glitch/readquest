@@ -32,7 +32,7 @@ function exitFullscreenSafe(){
   const fn=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
   if(fn&&fsActive()){try{const pr=fn.call(document);if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
 }
-function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(window.__rqWriter&&__rqWriter.passive)return; /* passive window under the overlay: no relayout / fullscreen */if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;concealChrome('timer');},3200);}
+function armChromeHide(){clearTimeout(chromeTimer);chromeTimer=setTimeout(function(){const r=el('reader');if(!r||r.classList.contains('hidden'))return;if(window.__rqWriter&&__rqWriter.passive)return; /* passive window under the overlay: no relayout / fullscreen */if(!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden'))return;if(selText&&selText())return;if(PG.id!=null||R.slideFrom!=null)return armChromeHide(); /* 21.10: finger still on the page slider (looking through chapters) → keep the bars */concealChrome('timer');},3200);}
 /** reading state: hide our bars + (re)enter fullscreen */
 function concealChrome(how){
   const r=el('reader');if(!r)return;clearTimeout(chromeTimer);

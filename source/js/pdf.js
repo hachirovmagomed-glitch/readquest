@@ -798,11 +798,11 @@ function pgTipShow(){const g=pgThumbGeom(),t=el('pgTip'),v=+el('pgSlider').value
 const PG={id:null,off:0,g:null};
 (function(){const ft=el('pgSlider').closest('footer');if(!ft)return;
   ft.addEventListener('pointerdown',function(e){if(PG.id!=null)return;const g=pgHit(e.clientX,e.clientY);if(!g)return;
-    e.preventDefault();e.stopPropagation();PG.id=e.pointerId;PG.g=g;PG.off=e.clientX-g.cx;try{ft.setPointerCapture(e.pointerId);}catch(_){}pgTipShow();},true);
+    e.preventDefault();e.stopPropagation();PG.id=e.pointerId;PG.g=g;PG.off=e.clientX-g.cx;armChromeHide();try{ft.setPointerCapture(e.pointerId);}catch(_){}pgTipShow();},true);
   ft.addEventListener('pointermove',function(e){if(e.pointerId!==PG.id)return;e.preventDefault();const sl=el('pgSlider'),v=pgValAt(e.clientX-PG.off,PG.g);
     if(v!==+sl.value){sl.value=v;sl.dispatchEvent(new Event('input',{bubbles:true}));}pgTipShow();},true);
   const up=function(e){if(e.pointerId!==PG.id)return;PG.id=null;el('pgTip').classList.add('hidden');try{ft.releasePointerCapture(e.pointerId);}catch(_){}
-    if(R.slideFrom!=null)el('pgSlider').dispatchEvent(new Event('change',{bubbles:true}));};
+    if(R.slideFrom!=null)el('pgSlider').dispatchEvent(new Event('change',{bubbles:true}));armChromeHide(); /* 3.2 s of bars after letting go */};
   ft.addEventListener('pointerup',up,true);ft.addEventListener('pointercancel',up,true);})();
 /* 1б-fix #1: return plaque. The old page lives ONLY in R (memory of the open book): never in S, backup or export;
    openBook resets R → gone on close. Hidden after the first normal flip or a tap on it (the return is a jump too). */
@@ -832,7 +832,7 @@ function jumpTo(p){
 }
 let touchTapAt=0;
 el('viewer').addEventListener('click',e=>{
-  if(e.target&&e.target.closest&&e.target.closest('#selpop'))return; /* 21.10: a tap on the selection bar (a colour on the right / left) is not a page turn */
+  if(e.target&&e.target.closest&&e.target.closest('#selpop'))return; /* a tap on the selection bar (a colour on the right / left; keyboard Enter = click at 0,0) is not a page turn */
   if(suppressClick){suppressClick=false;return;}
   if(Date.now()<pinchQuietUntil)return; /* trailing click right after a two-finger gesture */
   if(Date.now()-touchTapAt<800)return;   /* already handled as a touch tap (see touchend) */

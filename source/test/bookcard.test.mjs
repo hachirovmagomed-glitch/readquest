@@ -22,6 +22,12 @@ const card = async (w, mvp) => {
       pct: (body.querySelector('[data-rq="pct"]') || {}).textContent, time: (body.querySelector('[data-rq="time"]') || {}).textContent, sub: (body.querySelector('.bk-sub') || {}).textContent, over, favOn,
       acts: [...body.querySelectorAll('.bk-act')].map(b => b.textContent), lines: [...body.querySelectorAll('.bk-line')].map(b => b.textContent), sw };
   }, mvp);
+  /* 20.10 (Джессика: «полоска сверху съезжает»): the compact header neither moves the card nor flips back, and covers the sheet edge to edge */
+  r.stick = await p.evaluate(async () => { const sh = el('bookSheet'), w = () => new Promise(x => setTimeout(x, 250)); bookInfo('u_bc'); sh.scrollTop = 0; await w();
+    const prog = () => Math.round(sh.querySelector('.bk-prog').getBoundingClientRect().top + sh.scrollTop), p0 = prog(), out = [];
+    for (const y of [25, 30, 60, 10]) { sh.scrollTop = y; await w(); const h = sh.querySelector('.bk-head').getBoundingClientRect(), s = sh.getBoundingClientRect();
+      out.push({ y, st: sh.scrollTop, stuck: sh.classList.contains('stuck'), prog: prog() - p0, full: Math.round(h.left - s.left) === 0 && Math.round(s.right - h.right) === 0 }); }
+    return out; });
   await p.close(); return r;
 };
 for (const w of [360, 390]) {
@@ -33,6 +39,7 @@ for (const w of [360, 390]) {
   ok(w + ' MVP: author == genre shown once («PDF»)', a.sub === 'PDF', a.sub);
   ok(w + ' MVP: 3 quick actions, cover + 2 removal lines', a.acts.length === 3 && a.lines.length === 3, [a.acts, a.lines]);
   ok(w + ' MVP: favourite toggles the on-state', a.favOn);
+  ok(w + ' compact header: scroll stays put, card does not move, header full width', a.stick.every(x => x.st === x.y && x.stuck === (x.y > 24) && x.prog === 0 && x.full), a.stick);
   ok(w + ' nothing sticks out of the sheet', a.over.length === 0, a.over.slice(0, 5));
   const d = await card(w, false);
   ok(w + ' outside MVP: sliders and reward tiles still there, no emoji', d.slider && d.reward && d.emoji.length === 0, d.emoji);

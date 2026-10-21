@@ -49,7 +49,7 @@ for (const w of [360, 390]) {
   const k = await card(p, 'u_kids');
   ok(w + ' детская книга: «Обычная» выбрана, остальные неактивны', k.has && k.chips[0].on && k.chips.slice(1).every(x => x.off), k.chips);
   const hg = await card(p, 'u_hegel');
-  ok(w + ' PDF без текста: уровень по автору (Гегель → «Экспертная»)', hg.has && hg.chips[3].on && hg.chips[4].off, hg.chips);
+  ok(w + ' PDF без текста: уровень по автору (Гегель → «Запредельная»)', hg.has && hg.chips[4].on, hg.chips);
   const s1 = await p.evaluate(() => { setBookLvl('u_phil', 1); const a = S.bookLvl.u_phil; setBookLvl('u_kids', 2); const b = 'u_kids' in S.bookLvl;
     const o = trackerOpts.call(null); return { a, b, lvl: bookLvlOf(allBooks().find(x => x.id === 'u_phil')) }; });
   ok(w + ' понизить: «Сложная» сохраняется (bookLvl 1); повысить детскую нельзя (ничего не пишется)', s1.a === 1 && !s1.b && s1.lvl === 1, s1);
@@ -120,9 +120,12 @@ def mk(fn,txt,pages):
 mk(sys.argv[1],sys.argv[3],30); mk(sys.argv[2],sys.argv[4],30)
 c=canvas.Canvas(sys.argv[5])
 for i in range(10): c.rect(40,40,500,700,fill=1); c.showPage()
+c.save()
+c=canvas.Canvas(sys.argv[6]); c.setAuthor('Jacques Derrida'); c.setTitle('scan_0001')
+for i in range(10): c.rect(40,40,500,700,fill=1); c.showPage()
 c.save()`;
   const f = n => path.join(dir, n);
-  execFileSync('python3', ['-c', py, f('phil.pdf'), f('kids.pdf'), EN_PHIL, EN_KIDS, f('scan.pdf')]);
+  execFileSync('python3', ['-c', py, f('phil.pdf'), f('kids.pdf'), EN_PHIL, EN_KIDS, f('scan.pdf'), f('derrida.pdf')]);
   const b64 = n => fs.readFileSync(f(n)).toString('base64');
   const { p, c } = await page(BASE, 390);
   const imp = await p.evaluate(async (files) => {
@@ -133,8 +136,8 @@ c.save()`;
       out[name] = { id: bk.id, lvlText: bk.lvlText, lvlV: bk.lvlV, auto: bookLvlAuto(bk) };
     }
     return out;
-  }, { 'phil.pdf': b64('phil.pdf'), 'kids.pdf': b64('kids.pdf'), 'scan.pdf': b64('scan.pdf') });
-  ok('импорт PDF: философия → lvlText 4, детский → 0, скан без текста → 0; версия правила записана', imp['phil.pdf'].lvlText === 4 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0 && imp['phil.pdf'].lvlV === 3, imp);
+  }, { 'phil.pdf': b64('phil.pdf'), 'kids.pdf': b64('kids.pdf'), 'scan.pdf': b64('scan.pdf'), 'derrida.pdf': b64('derrida.pdf') });
+  ok('импорт PDF: философия → lvlText 4, детский → 0, скан без текста → 0, скан с автором Деррида в свойствах PDF → 4; версия правила записана', imp['phil.pdf'].lvlText === 4 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0 && imp['phil.pdf'].lvlV === 4 && imp['derrida.pdf'].lvlText === 4 && imp['derrida.pdf'].auto === 4, imp);
   const pc = await card(p, imp['phil.pdf'].id);
   ok('карточка PDF-философии: выбрана «Запредельная», «Определена по тексту»', pc.chips[4] && pc.chips[4].on && /Определена по тексту/.test(pc.note), pc);
   /* an older card (imported before this build) has no lvlText: checked once when the book is opened */
@@ -156,7 +159,7 @@ c.save()`;
     await openBook(id); await new Promise(r => setTimeout(r, 2500)); const again = b.lvlV; await closeReader({ quiet: true });
     return { before, after, lvlText: b.lvlText, lvlV: b.lvlV, again };
   }, imp['phil.pdf'].id);
-  ok('карточка PDF со старым правилом: сначала старый уровень 1, потом пересчёт до 4 (lvlV 3), второй раз не считается', rv.before === 1 && rv.after === 4 && rv.lvlText === 4 && rv.lvlV === 3 && rv.again === 3, rv);
+  ok('карточка PDF со старым правилом: сначала старый уровень 1, потом пересчёт до 4 (lvlV 4), второй раз не считается', rv.before === 1 && rv.after === 4 && rv.lvlText === 4 && rv.lvlV === 4 && rv.again === 4, rv);
   await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
   const kept = await p.evaluate((ids) => ids.map(id => (allBooks().find(x => x.id === id) || {}).lvlText), [imp['phil.pdf'].id, imp['scan.pdf'].id]);
   ok('после перезагрузки lvlText в карточках на месте (4 и 0), повторно не считается', kept[0] === 4 && kept[1] === 0, kept);

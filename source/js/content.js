@@ -507,7 +507,7 @@ function bookLvlHtml(b){
     L.map(function(x,i){const on=i===cur,off=i>auto;
       const nm=lvlName(i);
       return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'"'+(off?' disabled aria-disabled="true" title="Повысить сложность нельзя"':nm!==x.n?' title="'+esc(x.n)+'"':'')+' onclick="setBookLvl(\''+b.id+'\','+i+')">'+(on?rqIcon('check',14):off?rqIcon('lock',14):'')+esc(nm)+(i?' ×'+m(i):'')+'</button>';}).join('')+
-    '</div><div class="bk-note">'+(auto?'Определена по тексту, терминам и автору. ':'')+'Чем сложнее книга, тем больше опыта (до ×'+m(L.length-1)+') и бонус +'+L[1].coins+'…+'+L[L.length-1].coins+' монет за каждые 10 минут, не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
+    '</div><div class="bk-note">'+(auto?'Определена по тексту, терминам, автору и названию. ':'')+'Чем сложнее книга, тем больше опыта (до ×'+m(L.length-1)+') и бонус +'+L[1].coins+'…+'+L[L.length-1].coins+' монет за каждые 10 минут, не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
 }
 function setBookLvl(id,l){
   const b=allBooks().find(x=>x.id===id);if(!b||!lvlOn())return;

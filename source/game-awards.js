@@ -262,15 +262,19 @@ export function rowLevel(r) {
 /* Authors whose books are hard whatever the text statistics say (dialogues of Plato read «easy» by numbers).
    Match: any word of the card's author equals one of these (Russian or the Latin spelling Gutenberg uses). */
 const AUTHOR_LVL = [
-  [3, ['кант', 'kant', 'гегель', 'hegel', 'витгенштейн', 'wittgenstein', 'хайдеггер', 'heidegger', 'гуссерль', 'husserl', 'фихте', 'fichte']],
-  [2, ['спиноза', 'spinoza']],
+  /* 21.10 (Джессика: «книгу Жака Дерриды назвал обычной»): XX век и самые тёмные тексты — на ступень выше Канта */
+  [4, ['гегель', 'hegel', 'деррида', 'derrida', 'хайдеггер', 'heidegger', 'гуссерль', 'husserl', 'лакан', 'lacan', 'делёз', 'делез', 'deleuze', 'гваттари', 'guattari']],
+  [3, ['кант', 'kant', 'витгенштейн', 'wittgenstein', 'фихте', 'fichte', 'шеллинг', 'schelling', 'фуко', 'foucault', 'адорно', 'adorno',
+    'хабермас', 'habermas', 'бодрийяр', 'baudrillard', 'левинас', 'levinas', 'мерло-понти', 'merleau-ponty', 'бадью', 'badiou', 'жижек', 'žižek', 'zizek',
+    'агамбен', 'agamben', 'гадамер', 'gadamer', 'рикёр', 'рикер', 'ricoeur', 'лиотар', 'lyotard', 'бланшо', 'blanchot', 'кристева', 'kristeva']],
+  [2, ['спиноза', 'spinoza', 'сартр', 'sartre', 'батай', 'bataille', 'маркс', 'marx', 'кейнс', 'keynes', 'фрейд', 'freud', 'соссюр', 'saussure', 'лосев', 'бахтин', 'лотман']],
   [1, ['платон', 'plato', 'аристотель', 'aristotle', 'юм', 'hume', 'локк', 'locke', 'декарт', 'descartes', 'лейбниц', 'leibniz',
     'ницше', 'nietzsche', 'шопенгауэр', 'schopenhauer', 'кьеркегор', 'kierkegaard', 'гоббс', 'hobbes', 'беркли', 'berkeley',
     'паскаль', 'pascal', 'монтень', 'montaigne', 'сенека', 'seneca', 'лукреций', 'lucretius', 'аврелий', 'aurelius',
     'плотин', 'plotinus', 'цицерон', 'cicero', 'макиавелли', 'machiavelli', 'милль', 'mill', 'руссо', 'rousseau', 'соловьёв', 'соловьев']],
 ];
 export function authorLevel(author) {
-  const w = String(author || '').toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
+  const w = String(author || '').toLowerCase().split(/[^\p{L}-]+/u).flatMap(function (x) { return x.indexOf('-') > 0 ? [x].concat(x.split('-')) : [x]; }).filter(Boolean);
   for (const [lvl, names] of AUTHOR_LVL) if (names.some(function (x) { return w.indexOf(x) >= 0; })) return lvl;
   return 0;
 }
@@ -280,6 +284,16 @@ export function genreLevel(genre) {
 }
 
 /**
+ * 21.10: title of the card. A PDF card has author «PDF» and the file name as its title («Деррида Ж. – О грамматологии»), so the author
+ * is looked for in the title too; a term root in the title («грамматологии», «Макроэкономика») or a genre word → at least 1.
+ */
+export function titleLevel(title) {
+  const t = String(title || '');
+  let l = Math.max(authorLevel(t), genreLevel(t));
+  if (!l && (t.match(/\p{L}+/gu) || []).some(function (w) { return w.length > 5 && (TERM_RU.test(w) || TERM_EN.test(w)); })) l = 1;
+  return l;
+}
+/**
  * Text statistics on three 20 000-character samples (15 %, 45 %, 75 % of the text — away from title pages and notes):
  *   abs  = % of «abstract» words (-ость/-ние/-ство/-ция/-изм…, -tion/-ity/-ness/-ism/-ence…),
  *   long = % of long words (≥ 5 syllables Russian, ≥ 4 English), asl = words per sentence.
@@ -288,7 +302,7 @@ export function genreLevel(genre) {
  * Fewer than 1500 words → no verdict (0).
  */
 const TERM_RU = /(логи[чяиюе]|метри[чя]|теор[еи]|метод|систем|структур|функци|концеп|категор|диалект|трансцендент|феномен|онтолог|эпистем|гносеолог|эмпири|рацион|абстракт|имманент|априор|детермин|парадигм|инфляц|дефляц|эластичн|мультипликат|коэффициент|параметр|интеграл|дифференц|вектор|матриц|алгоритм|молекул|потенциал|квант|инвестиц|капитал|монетарн|фискальн|эквивалент|тождеств|субъект|объект|субстанц|аксиом|теорем|постулат|корреляц|регресс|дисперс|статистик|экспонент|логарифм|производн|спекуляц|синтез|анализ|гипотез|принцип|индивид|универсал|трансформ|интерпрет|макро|микро|агрегат|равновеси|предельн|сбережени|потреблени|номинальн|эффективн|конкретн|содержани|определени|понят[ия]|познани|сознани|суждени)/iu;
-const TERM_EN = /(ology|ologic|ograph|ometr|theor|method|system|structur|function|concept|categor|dialect|transcend|phenomen|ontolog|epistem|empiric|rational|abstract|immanent|priori|determin|paradigm|inflation|deflation|elastic|multiplier|coefficient|parameter|integral|differenti|vector|matri[cx]|algorithm|molecul|potential|quantum|invest|capital|monetar|fiscal|equivalen|identity|subject|object|substan|axiom|theorem|postulat|correlat|regress|varianc|statistic|exponent|logarithm|derivativ|speculat|synthe|analy[st]|hypothe|principle|individual|universal|transform|interpret|macro|micro|aggregat|equilibri|marginal|consumption|nominal|cognition|perception|judgment|judgement|predicat|proposition|premise|inference)/i;
+const TERM_EN = /(ology|ologic|ometr|theor|method|system|structur|function|concept|categor|dialect|transcend|phenomen|ontolog|epistem|empiric|rational|abstract|immanent|priori|determin|paradigm|inflation|deflation|elastic|multiplier|coefficient|parameter|integral|differenti|vector|matri[cx]|algorithm|molecul|potential|quantum|invest|capital|monetar|fiscal|equivalen|identity|subject|object|substan|axiom|theorem|postulat|correlat|regress|varianc|statistic|exponent|logarithm|derivativ|speculat|synthe|analy[st]|hypothe|principle|individual|universal|transform|interpret|macro|micro|aggregat|equilibri|marginal|consumption|nominal|cognition|perception|judgment|judgement|predicat|proposition|premise|inference)/i;
 export function textStats(text) {
   let t = String(text || '');
   /* a Project Gutenberg .txt carries its licence (legal prose, scores «hard») before and after the book */
@@ -330,8 +344,8 @@ export function textStats(text) {
   return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, terms: terms, score: score };
 }
 /** version of the text rule; a PDF card whose lvlText was computed by an older rule (lvlV ≠ this) is re-checked once on open.
- *  1 = 19.10, 2 = 21.10 (formulas), 3 = 21.10 (terms, five levels). */
-export const LVL_ALGO = 3;
+ *  1 = 19.10, 2 = 21.10 (formulas), 3 = 21.10 (terms, five levels), 4 = 22.10 (PDF metadata: author, title, subject). */
+export const LVL_ALGO = 4;
 /** score thresholds per language: [Сложная, Очень сложная, Экспертная, Запредельная]. With terms (21.10): Kant (en) 31.8,
  *  Hume 14.5–15.7, Nietzsche 14.8, Gutenberg novels ≤ 7.4, Russian fiction of the shelf ≤ 9.6. */
 export const LVL_SCORE = { ru: [14, 22, 32, 44], en: [10, 16, 24, 32] };
@@ -351,7 +365,7 @@ export function textLevel(text) {
 export function autoLevel(book) {
   const b = book || {};
   const lt = Number.isInteger(b.lvlText) && b.lvlText >= 0 && b.lvlText <= LVL_MAX ? b.lvlText : 0;
-  return Math.max(b.text ? textLevel(b.text) : lt, authorLevel(b.author), genreLevel(b.genre));
+  return Math.max(b.text ? textLevel(b.text) : lt, authorLevel(b.author), genreLevel(b.genre), titleLevel(b.title));
 }
 /** pages of a PDF to sample for textLevel: up to `n`, spread over 10…90 % of the book (title pages and index left out) */
 export function pdfSamplePages(numPages, n) {

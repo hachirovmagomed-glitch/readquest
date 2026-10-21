@@ -97,7 +97,7 @@ function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__
 const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
 function bookLvlAuto(b){
   if(!b||!window.__rqGame)return 0;
-  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+b.lvlText,c=__lvlAuto[b.id];
+  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+(b.title||'')+'|'+b.lvlText,c=__lvlAuto[b.id];
   if(c&&c.k===k)return c.l;
   let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
   __lvlAuto[b.id]={k:k,l:l};return l;
@@ -110,7 +110,10 @@ async function pdfTextLevel(doc,alive){
     try{const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}catch(e){}
   }
   if(alive&&!alive())return null;
-  return G.textLevel(parts.join('\n'));
+  /* 22.10 (Джессика: Деррида-скан вышел «Обычной»): a scan has no text layer, so the PDF's own author/title/subject/keywords count too */
+  let md=0;try{const m=await doc.getMetadata(),i=(m&&m.info)||{};md=Math.max(G.authorLevel(i.Author),G.titleLevel([i.Title,i.Subject,i.Keywords].filter(Boolean).join(' ')));}catch(e){}
+  if(alive&&!alive())return null;
+  return Math.max(G.textLevel(parts.join('\n')),md);
 }
 /** once per PDF card (and once more per new LVL_ALGO): store lvlText + lvlV (arch.md), one save(); then the open session (if this book) gets the new level */
 async function pdfLvlCheck(b,doc){

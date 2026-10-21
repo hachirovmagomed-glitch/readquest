@@ -32,7 +32,7 @@ ok('лицензия Гутенберга не делает детскую кн�
   const sm = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).math.toFixed(2)]));
   ok('художественная полка: формул почти нет (меньше 0,1 на 100 слов)', Object.values(sm).every(x => x < 0.1), sm);
   ok('жанр «Экономика», «Учебник математики» → 1', G.genreLevel('Экономика') === 1 && G.genreLevel('Учебник математики') === 1);
-  ok('версия правила LVL_ALGO = 3 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 3);
+  ok('версия правила LVL_ALGO = 4 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 4);
 }
 
 /* --- 21.10: five levels and terms (Джессика: «более вариативное ранжирование», «сложность терминологии») --- */
@@ -52,10 +52,17 @@ ok('лицензия Гутенберга не делает детскую кн�
   ok('сессия «Запредельной» (4) хранится, 5 и «2» нет', G.rowLevel({ lvl: 4 }) === 4 && G.rowLevel({ lvl: 5 }) === 0 && G.rowLevel({ lvl: '2' }) === 0);
 }
 
+/* --- 22.10: Деррида-скан вышел «Обычной» (Джессика): автор и термины в названии --- */
+ok('название: «Деррида Ж. – О грамматологии» → 4, «Мерло-Понти. Феноменология восприятия» → 3, «Макроэкономика. Учебник» → 1',
+  G.titleLevel('Деррида Ж. – О грамматологии') === 4 && G.titleLevel('Морис Мерло-Понти. Феноменология восприятия') === 3 && G.titleLevel('Макроэкономика. Учебник') === 1);
+ok('название: «Война и мир», «Benjamin Franklin Autobiography», «Стишки» → 0', G.titleLevel('Война и мир') === 0 && G.titleLevel('Benjamin Franklin Autobiography') === 0 && G.titleLevel('Стишки') === 0);
+ok('карточка PDF-скана: автор «PDF», текста нет, но в названии Деррида → 4', G.autoLevel({ type: 'pdf', author: 'PDF', genre: 'PDF', title: 'Деррида Ж. – О грамматологии', lvlText: 0 }) === 4);
+ok('встроенная полка: названия ничего не поднимают', shelf.every(f => G.titleLevel(f.replace(/\.txt$/, '')) === 0));
+
 /* --- author, genre, auto, manual --- */
 ok('автор: Кант → 3, Спиноза → 2, Платон → 1, Plato → 1, Эзоп → 0, «Канторович» не Кант', G.authorLevel('Иммануил Кант') === 3 && G.authorLevel('Бенедикт Спиноза') === 2 && G.authorLevel('Платон') === 1 && G.authorLevel('Plato') === 1 && G.authorLevel('Эзоп') === 0 && G.authorLevel('Канторович') === 0);
 ok('жанр FB2 sci_philosophy → 1, «Сказки» → 0', G.genreLevel('sci_philosophy') === 1 && G.genreLevel('Сказки') === 0);
-ok('авто = максимум (текст детский, автор Аристотель → 1); PDF без текста — по автору', G.autoLevel({ author: 'Аристотель', text: rep(RU_KIDS, 40) }) === 1 && G.autoLevel({ author: 'Гегель', type: 'pdf' }) === 3);
+ok('авто = максимум (текст детский, автор Аристотель → 1); PDF без текста — по автору', G.autoLevel({ author: 'Аристотель', text: rep(RU_KIDS, 40) }) === 1 && G.autoLevel({ author: 'Гегель', type: 'pdf' }) === 4);
 ok('выбор читателя только понижает: авто 1, выбрал 2 → 1; выбрал 0 → 0; без выбора → 1', G.effLevel(1, 2) === 1 && G.effLevel(1, 0) === 0 && G.effLevel(1, undefined) === 1);
 
 /* --- PDF: lvlText from sampled pages --- */

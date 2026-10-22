@@ -556,8 +556,8 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 #spColors i{width:26px;height:26px;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 #spColors button.on i{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
 #spColors i.own{background:conic-gradient(#f5c518,#f39237,#e86fb0,#a97be0,#4aa3ec,#2ec4b6,#5cb85c,#f5c518)} /* «свой цвет»: всегда радуга (22.10 Джессика: без последнего своего в центре) */
-#hlPk .hlpk-g{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin:4px 0 14px}
-#hlPk .hlpk-g button{aspect-ratio:1;min-height:36px;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+#hlPk .hlpk-g{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:4px 0 14px;justify-items:center}
+#hlPk .hlpk-g button{box-sizing:border-box;width:100%;max-width:52px;min-width:0;aspect-ratio:1;min-height:0;padding:0;border:0;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)} /* 22.10: never wider than the sheet (Джессика: кружки выходили вправо) */
 #hlPk .hlpk-g button.on{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
 #hlPk .hlpk-h{display:flex;align-items:center;gap:12px;margin:0 0 14px;font-size:0.9375rem}
 #hlPk .hlpk-h input{flex:1;height:28px;-webkit-appearance:none;appearance:none;border-radius:14px;background:linear-gradient(90deg,#e05252,#e0b052,#9be052,#52e07a,#52e0e0,#527ae0,#9b52e0,#e052b0,#e05252)}

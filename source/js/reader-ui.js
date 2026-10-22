@@ -362,8 +362,8 @@ function renderSpColors(on){
 /* own colour: the system colour picker (input type=color outside the bar, so hiding the bar never closes it); the selection is taken BEFORE it opens */
 let hlPick=null;
 /* 22.10 (Джессика: «Свой вариант» в системном окне цвета еле влазит): our own sheet instead of the system picker —
-   16 colours (no pure red: reader rule) + a «Оттенок» rainbow slider; the chosen one is shown big; «Готово» saves */
-const HL_PICK=['#f5c518','#ffd166','#f39237','#ff8fab','#e86fb0','#d0306a','#c77dff','#a97be0','#7aa2ff','#4aa3ec','#00b4d8','#2ec4b6','#5cb85c','#9bd65c','#b08968','#8d99ae'];
+   12 colours (no pure red: reader rule) + a «Оттенок» rainbow slider; the chosen one is shown big; «Готово» saves */
+const HL_PICK=['#f5c518','#f39237','#e86fb0','#d0306a','#c77dff','#a97be0','#4aa3ec','#00b4d8','#2ec4b6','#5cb85c','#b08968','#8d99ae']; /* 12: two rows of 6, each ≥ 44 px at 360 */
 function hlPickHtml(){return '<div id="hlPk"><div class="hlpk-g" role="group" aria-label="Цвета">'+HL_PICK.map(c=>'<button type="button" data-c="'+c+'" aria-label="Цвет '+c+'" style="--d:'+c+'"></button>').join('')+'</div>'+
   '<label class="hlpk-h"><span>Оттенок</span><input type="range" id="hlPkHue" min="0" max="359" step="1" aria-label="Оттенок"></label><div class="hlpk-v"><i id="hlPkDot" aria-hidden="true"></i><span>Выбранный цвет</span></div></div>';}
 function hlHsl(h){const s=.72,l=.58,k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));return '#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');}

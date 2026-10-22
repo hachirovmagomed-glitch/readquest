@@ -62,7 +62,7 @@ html[data-skin="ellada"][data-theme="night"] body{background:var(--el-wall);back
 html[data-skin="ellada"]:not([data-theme="night"]) body:has(#library:not(.hidden))::before{content:"";position:fixed;left:0;right:0;bottom:0;height:150px;pointer-events:none;
   background:var(--el-crest) 0 0/38px 10px repeat-x,linear-gradient(#5b93c4,var(--el-sea) 40%,#2f6a9c);opacity:.9}
 /* screen titles: Cormorant Unicase */
-html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h3,#settings h1,#look h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
+html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h1,#settings h1,#look h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
 html[data-skin="ellada"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
 /* library header = black-glaze frieze: terracotta meander on top, marble running wave below; the title ≥14px from the meander */
 html[data-skin="ellada"] #libHead{position:relative;margin:-20px -18px 8px;padding:12px 14px 14px;background:var(--el-glaze);color:#f6ead6}
@@ -189,7 +189,7 @@ html[data-skin="babochkovyi"]{background:linear-gradient(#eef0fb,#f6f1f7 60%,#e3
 html[data-skin="babochkovyi"] body{font-weight:500;background:transparent}
 html[data-skin="babochkovyi"][data-theme="night"]{background:radial-gradient(120% 70% at 75% 0%,#2a3156,#141831 50%,#0b0d1a) fixed}
 /* titles: Poiret One (≥24px), numbers: Bellota Text */
-html[data-skin="babochkovyi"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3){font-family:var(--rq-font-display);font-weight:400;letter-spacing:.01em}
+html[data-skin="babochkovyi"] :is(#libTitle,.wrap > .row > h1){font-family:var(--rq-font-display);font-weight:400;letter-spacing:.01em}
 html[data-skin="babochkovyi"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:700}
 /* library header = wing: iridescent turquoise → lilac → pink, white scales, wavy bottom edge; butterflies in the strip under the row (18.10: band 72px, as tall as the other skins' headers; never next to the title: Poiret is wide and the row has no room) */
 html[data-skin="babochkovyi"] #libHead{position:relative;margin:-20px -18px 6px;padding:12px 14px 16px;background:var(--bb-head-fly) 100% 0/390px 72px no-repeat,var(--bb-scales) 0 0/10px 6px,var(--bb-iridescent);background-size:390px 72px,10px 6px,200% 100%;color:var(--rq-text);
@@ -295,9 +295,6 @@ html[data-skin="babochkovyi"] .screen:not(#reader){background:transparent}
 html[data-skin="babochkovyi"] #library .wrap::after{content:"";display:block;width:120px;height:84px;margin:4px 0 0 auto;background:var(--bb-flock) center/contain no-repeat}
 html[data-skin="babochkovyi"][data-theme="night"] #library .wrap::after{background-image:var(--bb-flock-n)}
 /* rewards: mascot by the title; every reward card = petal with the scale edge and a «Цветник» drawing (vase, hat, watering can) */
-html[data-skin="babochkovyi"] #rewardsSheet .rewhead h3{display:flex;align-items:center;gap:8px}
-html[data-skin="babochkovyi"] #rewardsSheet .rewhead h3::after{content:"";flex:none;width:34px;height:34px;background:var(--bb-hatch-on) center/contain no-repeat}
-html[data-skin="babochkovyi"][data-theme="night"] #rewardsSheet .rewhead h3::after{background-image:var(--bb-hatch-on-n)}
 html[data-skin="babochkovyi"] #rewSlots .pcard{position:relative;padding-top:24px}
 html[data-skin="babochkovyi"] #rewSlots .pcard::before{content:"";position:absolute;left:14px;right:14px;top:8px;height:6px;background:var(--bb-edge) 0 0/9px 6px repeat-x;pointer-events:none}
 html[data-skin="babochkovyi"][data-theme="night"] #rewSlots .pcard::before{background-image:var(--bb-edge-n)}
@@ -362,8 +359,8 @@ html[data-skin="babochkovyi"] #settings.screen:not(#reader):not(#library) .wrap 
 html[data-skin="babochkovyi"][data-theme="night"] #settings.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-mo-1)}
 html[data-skin="babochkovyi"] #shelfScreen.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-sp-7)}
 html[data-skin="babochkovyi"][data-theme="night"] #shelfScreen.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-mo-3)}
-html[data-skin="babochkovyi"] #rewardsSheet .rewhead h3::after{background-image:var(--bb-sp-1)}
-html[data-skin="babochkovyi"][data-theme="night"] #rewardsSheet .rewhead h3::after{background-image:var(--bb-mo-3)}
+html[data-skin="babochkovyi"] #rewardsSheet.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-sp-1)}
+html[data-skin="babochkovyi"][data-theme="night"] #rewardsSheet.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-mo-3)}
 .bbhatch{display:none}
 /* covers (bbCover in js/library.js) */
 html[data-skin="babochkovyi"] .cover{border-radius:10px;background:none;box-shadow:0 0 0 1px var(--rq-line)}
@@ -419,7 +416,7 @@ html[data-skin] .screen > .scroll{overflow-x:hidden}
 html[data-skin="celestial"] .screen:not(#reader),html[data-skin="celestial"] #summary{background:transparent}
 html[data-skin="celestial"] #reader{background:var(--r-bg)} /* the book page stays flat paper: no sky, no stars behind the text */
 /* titles: Cormorant Garamond 700 in ink; numbers in Manrope */
-html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
+html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h1,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
 html[data-skin="celestial"] #libTitle{font-size:2rem;line-height:1.1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} /* gives way to «230 монет» (bug 17.10: header wider than the phone) */
 html[data-skin="celestial"] #goldChip{flex:none}
 html[data-skin="celestial"] .wrap > .row > h1{font-size:1.875rem;line-height:1.1}
@@ -450,9 +447,6 @@ html[data-skin="celestial"] #botnav .botnav-btn.on{background:var(--rq-coin-tint
 html[data-skin="celestial"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){position:relative;padding-bottom:16px;margin-bottom:6px}
 html[data-skin="celestial"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:10px;background:var(--cl-div) center/160px 10px no-repeat,linear-gradient(90deg,transparent,var(--cl-gold-l) 20%,var(--cl-gold-l) 80%,transparent) center/100% 1px no-repeat;opacity:.9;pointer-events:none}
 html[data-skin="celestial"][data-theme="night"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::after{background-image:var(--cl-div-n),linear-gradient(90deg,transparent,var(--cl-gold) 20%,var(--cl-gold) 80%,transparent)}
-html[data-skin="celestial"] #rewardsSheet .rewhead h3{display:flex;align-items:center;gap:8px}
-html[data-skin="celestial"] #rewardsSheet .rewhead h3::after{content:"";flex:none;width:20px;height:20px;background:var(--cl-spark) center/contain no-repeat}
-html[data-skin="celestial"][data-theme="night"] #rewardsSheet .rewhead h3::after{background-image:var(--cl-spark-n)}
 /* empty hints: a crescent over a cloud */
 html[data-skin="celestial"] .emptyhint::before{content:"";display:block;width:96px;height:96px;margin:0 auto 12px;background:var(--cl-empty) center/contain no-repeat}
 html[data-skin="celestial"][data-theme="night"] .emptyhint::before{background-image:var(--cl-empty-n)}

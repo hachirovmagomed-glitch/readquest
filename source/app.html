@@ -577,7 +577,8 @@ html[data-skin="celestial"] #spColors button.on i:not(.own){box-shadow:none}
 html[data-skin="pencil"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(-58deg,var(--hc) 0 2.2px,transparent 2.2px 3.4px,var(--hc2) 3.4px 5.6px,transparent 5.6px 6.8px) left/100% 100% no-repeat;border-radius:.25em .7em .35em .8em/.7em .3em .8em .4em} /* Карандашный: штриховка двумя карандашами, края неровные */
 html[data-skin="ellada"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(90deg,var(--hs) 0 6px,transparent 6px 8px,var(--hs2) 8px 10px,transparent 10px 12px) bottom/100% 2px no-repeat,linear-gradient(90deg,var(--hc),var(--hc2) 50%,var(--hc)) bottom/100% 62% no-repeat;border-radius:0} /* Эллада: строка в два тона с орнаментом-бусами снизу, как кайма на амфоре */
 html[data-skin="babochkovyi"] :is(#content mark,.pdfhls i){background:radial-gradient(circle,var(--hs2) 0 .8px,transparent 1.2px) 0 0/8px 4px repeat-x,linear-gradient(90deg,transparent,var(--hc) .45em,var(--hc2) 50%,var(--hc) calc(100% - .45em),transparent);border-radius:1em} /* Бабочковый: переливается, как крыло, с пыльцой по верху */
-html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:radial-gradient(circle,rgba(255,255,255,.95) 0 .7px,transparent 1.1px) 3px 0/13px 22% repeat-x,radial-gradient(circle,rgba(255,255,255,.85) 0 .6px,transparent 1px) 9px 100%/17px 22% repeat-x,linear-gradient(100deg,var(--hc),var(--hc2));box-shadow:0 0 .55em .12em var(--hc2);border-radius:.35em} /* Небесный: туманность из двух цветов, звёздная пыль по краям строки (не на буквах) и свечение */
+html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:radial-gradient(circle,var(--star,rgba(255,255,255,.95)) 0 .7px,transparent 1.1px) 3px 0/13px 20% repeat-x,radial-gradient(circle,var(--star,rgba(255,255,255,.75)) 0 .5px,transparent .9px) 9px 2px/19px 20% repeat-x,linear-gradient(100deg,var(--hc),var(--hc2));box-shadow:inset 0 0 .45em .02em color-mix(in srgb,var(--hc2) 75%,transparent);border-radius:.45em} /* Небесный: туманность из двух цветов, свечение внутрь (край страницы его не режет), звёздная пыль по верху строки */
+html[data-skin="celestial"] #reader[data-page="night"]{--star:rgba(255,255,255,.5)} /* ночью пыль тише, не рябит на буквах */
 /* a just-made (or recoloured) quote: once, in the skin's own way. No motion for «уменьшить движение» */
 :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlNew .9s ease-out}
 @keyframes hlNew{from{filter:brightness(1.25) saturate(1.5)}to{filter:none}}
@@ -587,8 +588,8 @@ html[data-skin="ellada"] :is(#content mark,.pdfhls i)[data-hlnew]{background:lin
 @keyframes hlGold{from{background-position:-150% 0,bottom,bottom}to{background-position:250% 0,bottom,bottom}}
 html[data-skin="babochkovyi"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlWing 1.2s ease-in-out} /* крыло переливается */
 @keyframes hlWing{0%{filter:none}35%{filter:hue-rotate(35deg) saturate(1.5)}70%{filter:hue-rotate(-25deg) saturate(1.3)}100%{filter:none}}
-html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlStar 1.2s ease-out} /* вспышка звезды */
-@keyframes hlStar{0%{box-shadow:0 0 0 0 var(--hc2);filter:brightness(1.35)}30%{box-shadow:0 0 1.4em .45em var(--hc2)}100%{box-shadow:0 0 .55em .12em var(--hc2);filter:none}}
+html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlStar 1.3s ease-out} /* звёздная пыль пролетает по строке, строка вспыхивает */
+@keyframes hlStar{0%{background-position:-60px 0,-90px 2px,0 0;filter:brightness(1.3) saturate(1.3)}100%{background-position:3px 0,9px 2px,0 0;filter:none}}
 @media (prefers-reduced-motion:reduce){:is(#content mark,.pdfhls i)[data-hlnew]{animation:none!important}}
 #spColors{flex-basis:100%;display:flex;justify-content:center;gap:4px;padding-bottom:2px;border-bottom:1px solid var(--rq-line,rgba(127,127,127,.25));margin-bottom:2px}
 #spColors button{min-width:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center}

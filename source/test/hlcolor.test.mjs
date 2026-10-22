@@ -170,6 +170,19 @@ r10 = await m10(); ok('10b after reopening: both marks are back', r10.n === 2 &&
 await p.evaluate(() => { const q = S.quotes[R.book.id].at(-1), m = quoteMarks(q)[1]; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); g.addRange(rg); updSelPop(); });
 await sleep(300); const n10 = await p.evaluate(() => S.quotes[R.book.id].length); await tap('#spColors button[data-c="g"]');
 r10 = await m10(); ok('10c green inside the second paragraph recolours the whole quote, no copy', r10.c === 'g' && r10.n === 2 && r10.cls.every(c => c === 'hl-g') && (await p.evaluate(() => S.quotes[R.book.id].length)) === n10, r10);
+// 11. Джессика 22.10 «уникализировать кружочки … под каждый скин»: each skin has its own five colours (dots and highlight), its own names and its own dot shape
+const sk = {};
+for (const k of ['sepia', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  sk[k] = await p.evaluate(async (k) => { if (k !== 'sepia') { S.gold = 9000; save(); try { buy('skin-' + k); } catch (e) {} } SET.theme = k; saveSet(); applySet(); await new Promise(r => setTimeout(r, 150));
+    renderSpColors(); const d = [...document.querySelectorAll('#spColors button[data-c]')], m = document.createElement('mark'); document.getElementById('content').appendChild(m);
+    const hl = ['y', 'g', 'b', 'p', 'o'].map(c => { m.className = c === 'y' ? '' : 'hl-' + c; return getComputedStyle(m).getPropertyValue('--hc').trim(); }); m.remove();
+    const i = getComputedStyle(d[0].querySelector('i'));
+    return { dots: d.map(x => getComputedStyle(x.querySelector('i')).backgroundColor + getComputedStyle(x.querySelector('i')).backgroundImage).join(), names: d.map(x => x.title).join(), hl: hl.join(), shape: i.borderRadius + i.clipPath + i.transform }; }, k);
+  if (k !== 'sepia') await p.screenshot({ path: SHOTS + 'hlcolor-dots-' + k + '.png', clip: await p.evaluate(() => { const r = document.getElementById('spColors').getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; }) }).catch(() => {});
+}
+const uniq = (f) => new Set(Object.values(sk).map(f)).size;
+ok('11 every skin: own dot colours, own names, own highlight colours, own dot shape', uniq(x => x.dots) === 5 && uniq(x => x.names) === 5 && uniq(x => x.hl) === 5 && uniq(x => x.shape) === 5, sk);
+await p.evaluate(() => { SET.theme = 'sepia'; saveSet(); applySet(); });
 ok('no page errors, no system dialogs', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

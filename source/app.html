@@ -545,6 +545,34 @@ mark{--hc:var(--hl-y);--hs:var(--hs-y);background:var(--hc);color:inherit;border
 #reader[data-page="night"]{--hl-y:rgba(255,205,60,.16);--hl-g:rgba(110,200,90,.22);--hl-b:rgba(80,170,240,.24);--hl-p:rgba(185,135,235,.24);--hl-o:rgba(255,150,50,.22)}
 #content mark{color:color-mix(in srgb,currentColor 70%,#000)}#reader[data-page="night"] #content mark{color:color-mix(in srgb,currentColor 65%,#fff)} /* text under a colour a bit deeper (day) / brighter (night): sepia and «Чёрная» are only 7.5:1 bare */
 .pdfhls i{--hc:var(--hl-y);--hs:var(--hs-y)}
+/* 22.10 (Джессика: «уникализировать кружочки, выделение цветов под каждый конкретный скин»): every skin has its own five quote colours
+   (same keys y g b p o in quotes[].c, so a quote takes the skin's colour), its own names (HL_NAMES) and its own dot shape */
+:root{--dot-y:#f5c518;--dot-g:#5cb85c;--dot-b:#4aa3ec;--dot-p:#a97be0;--dot-o:#f39237}
+html[data-skin="pencil"]{--dot-y:#e6b43c;--dot-g:#5a9650;--dot-b:#4682c8;--dot-p:#8c64be;--dot-o:#cd6e3c}
+html[data-skin="pencil"] #reader{--hl-y:rgba(230,180,60,0.45);--hl-g:rgba(90,150,80,0.38);--hl-b:rgba(70,130,200,0.32);--hl-p:rgba(140,100,190,0.34);--hl-o:rgba(205,110,60,0.36);--hs-y:#b38c2e;--hs-g:#46753e;--hs-b:#36659c;--hs-p:#6d4e94;--hs-o:#9f552e}
+html[data-skin="pencil"] #reader[data-page="night"]{--hl-y:rgba(230,180,60,0.16);--hl-g:rgba(90,150,80,0.22);--hl-b:rgba(70,130,200,0.24);--hl-p:rgba(140,100,190,0.24);--hl-o:rgba(205,110,60,0.22)}
+html[data-skin="pencil"] .textLayer .pdfhls{--hl-y:rgba(230,180,60,0.45);--hl-g:rgba(90,150,80,0.38);--hl-b:rgba(70,130,200,0.32);--hl-p:rgba(140,100,190,0.34);--hl-o:rgba(205,110,60,0.36)}
+html[data-skin="ellada"]{--dot-y:#d6aa3c;--dot-g:#808c3c;--dot-b:#286eaa;--dot-p:#963c78;--dot-o:#c4623a}
+html[data-skin="ellada"] #reader{--hl-y:rgba(214,170,60,0.45);--hl-g:rgba(128,140,60,0.38);--hl-b:rgba(40,110,170,0.32);--hl-p:rgba(150,60,120,0.34);--hl-o:rgba(196,98,58,0.36);--hs-y:#a6842e;--hs-g:#636d2e;--hs-b:#1f5584;--hs-p:#752e5d;--hs-o:#984c2d}
+html[data-skin="ellada"] #reader[data-page="night"]{--hl-y:rgba(214,170,60,0.16);--hl-g:rgba(128,140,60,0.22);--hl-b:rgba(40,110,170,0.24);--hl-p:rgba(150,60,120,0.24);--hl-o:rgba(196,98,58,0.22)}
+html[data-skin="ellada"] .textLayer .pdfhls{--hl-y:rgba(214,170,60,0.45);--hl-g:rgba(128,140,60,0.38);--hl-b:rgba(40,110,170,0.32);--hl-p:rgba(150,60,120,0.34);--hl-o:rgba(196,98,58,0.36)}
+html[data-skin="babochkovyi"]{--dot-y:#fadc5a;--dot-g:#78d2aa;--dot-b:#78aafa;--dot-p:#be96f0;--dot-o:#ffa082}
+html[data-skin="babochkovyi"] #reader{--hl-y:rgba(250,220,90,0.45);--hl-g:rgba(120,210,170,0.38);--hl-b:rgba(120,170,250,0.32);--hl-p:rgba(190,150,240,0.34);--hl-o:rgba(255,160,130,0.36);--hs-y:#c3ab46;--hs-g:#5da384;--hs-b:#5d84c3;--hs-p:#9475bb;--hs-o:#c67c65}
+html[data-skin="babochkovyi"] #reader[data-page="night"]{--hl-y:rgba(250,220,90,0.16);--hl-g:rgba(120,210,170,0.22);--hl-b:rgba(120,170,250,0.24);--hl-p:rgba(190,150,240,0.24);--hl-o:rgba(255,160,130,0.22)}
+html[data-skin="babochkovyi"] .textLayer .pdfhls{--hl-y:rgba(250,220,90,0.45);--hl-g:rgba(120,210,170,0.38);--hl-b:rgba(120,170,250,0.32);--hl-p:rgba(190,150,240,0.34);--hl-o:rgba(255,160,130,0.36)}
+html[data-skin="celestial"]{--dot-y:#f5be3c;--dot-g:#3caa8c;--dot-b:#466ed2;--dot-p:#965ad2;--dot-o:#eb8228}
+html[data-skin="celestial"] #reader{--hl-y:rgba(245,190,60,0.45);--hl-g:rgba(60,170,140,0.38);--hl-b:rgba(70,110,210,0.32);--hl-p:rgba(150,90,210,0.34);--hl-o:rgba(235,130,40,0.36);--hs-y:#bf942e;--hs-g:#2e846d;--hs-b:#3655a3;--hs-p:#7546a3;--hs-o:#b7651f}
+html[data-skin="celestial"] #reader[data-page="night"]{--hl-y:rgba(245,190,60,0.16);--hl-g:rgba(60,170,140,0.22);--hl-b:rgba(70,110,210,0.24);--hl-p:rgba(150,90,210,0.24);--hl-o:rgba(235,130,40,0.22)}
+html[data-skin="celestial"] .textLayer .pdfhls{--hl-y:rgba(245,190,60,0.45);--hl-g:rgba(60,170,140,0.38);--hl-b:rgba(70,110,210,0.32);--hl-p:rgba(150,90,210,0.34);--hl-o:rgba(235,130,40,0.36)}
+html[data-skin="pencil"] #spColors i:not(.own){border-radius:46% 54% 50% 50%/55% 45% 55% 45%;background:repeating-linear-gradient(-55deg,var(--d) 0 3px,color-mix(in srgb,var(--d) 45%,transparent) 3px 4.5px);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--d) 70%,#000)}
+html[data-skin="pencil"] #spColors button.on i:not(.own){box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--d) 70%,#000),0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
+html[data-skin="ellada"] #spColors i{border-radius:5px;box-shadow:inset 0 0 0 2px var(--sheet),inset 0 0 0 3px color-mix(in srgb,var(--d) 60%,#000)}
+html[data-skin="ellada"] #spColors button.on i{box-shadow:inset 0 0 0 2px var(--sheet),inset 0 0 0 3px color-mix(in srgb,var(--d) 60%,#000),0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
+html[data-skin="babochkovyi"] #spColors i{border-radius:0 50% 50% 50%;transform:rotate(45deg);width:24px;height:24px}
+html[data-skin="celestial"] #spColors i{width:30px;height:30px;border-radius:0;box-shadow:none;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+html[data-skin="celestial"] #spColors i.own{clip-path:none;border-radius:50%;width:26px;height:26px}
+html[data-skin="celestial"] #spColors button.on{border-radius:50%;box-shadow:inset 0 0 0 2px var(--txt)}
+html[data-skin="celestial"] #spColors button.on i:not(.own){box-shadow:none}
 :is(mark,.pdfhls i).hl-g{--hc:var(--hl-g);--hs:var(--hs-g)}:is(mark,.pdfhls i).hl-b{--hc:var(--hl-b);--hs:var(--hs-b)}:is(mark,.pdfhls i).hl-p{--hc:var(--hl-p);--hs:var(--hs-p)}:is(mark,.pdfhls i).hl-o{--hc:var(--hl-o);--hs:var(--hs-o)}
 /* 21.10 (Джессика: «уникальные выделения для каждого скина»): one look per skin, same in books and PDF. --hc = wash (≥ 7:1 text), --hs = line colour (never under the letters) */
 html[data-skin="pencil"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(-58deg,var(--hc) 0 2.2px,transparent 2.2px 3.6px);border-radius:.25em .7em .35em .8em/.7em .3em .8em .4em} /* Карандашный: штриховка карандашом, края неровные */

@@ -260,8 +260,10 @@ function quoteDel(){
    Свой цвет (Джессика: «кастомным цветом») — q.c = '#rrggbb', последний свой — SET.hlx; прозрачность подбирается под страницу, текст книги ≥ 7:1 */
 const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
 const HL_HEX=/^#[0-9a-f]{6}$/;
+const HL_NAMES={pencil:{y:'Охра',g:'Хвоя',b:'Лазурь',p:'Фиалка',o:'Кирпич'},ellada:{y:'Золото',g:'Олива',b:'Эгейский',p:'Пурпур',o:'Терракота'},babochkovyi:{y:'Лимонница',g:'Мята',b:'Голубянка',p:'Лаванда',o:'Персик'},celestial:{y:'Солнце',g:'Нефрит',b:'Лазурит',p:'Аметист',o:'Янтарь'}}; /* 22.10: the skin's own colour names */
+function hlName(k){const s=document.documentElement.dataset.skin,m=s&&HL_NAMES[s];return (m&&m[k])||HL_COLORS.find(x=>x.k===k).n;}
 function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
-function hlDot(c){const k=hlKey(c);return k[0]==='#'?k:HL_COLORS.find(x=>x.k===k).d;}
+function hlDot(c){const k=hlKey(c);return k[0]==='#'?k:'var(--dot-'+k+','+HL_COLORS.find(x=>x.k===k).d+')';} /* 22.10: the skin's own dot colour */
 /** colour of a highlighted string = the colour of its quote (S.hl keeps plain strings, as before) */
 function quoteColor(bid,t,j){const q=hlSame(bid,t)[j||0];return hlKey(q&&q.c);}
 /* 21.10 (Джессика: «нажимаю на цитату — бросает в ебеня»): the same words can stand on many pages. A text-book quote keeps q.n = which occurrence
@@ -356,7 +358,7 @@ function markInContent(t,c,n){
 }
 function renderSpColors(on){
   const box=el('spColors');if(!box)return;const cur=on||hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';
-  box.innerHTML=HL_COLORS.map(x=>'<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+x.n.toLowerCase()+'" title="'+x.n+'" style="--d:'+x.d+'"><i aria-hidden="true"></i></button>').join('')+
+  box.innerHTML=HL_COLORS.map(x=>{const n=hlName(x.k);return '<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+n.toLowerCase()+'" title="'+n+'" style="--d:'+hlDot(x.k)+'"><i aria-hidden="true"></i></button>';}).join('')+
     '<button type="button" id="spOwn"'+(cur[0]==='#'?' class="on"':'')+' aria-label="Цитата, свой цвет" title="Свой цвет"'+(own?' style="--d:'+own+'"':'')+'><i class="own'+(own?' set':'')+'" aria-hidden="true"></i></button>';
 }
 /* own colour: the system colour picker (input type=color outside the bar, so hiding the bar never closes it); the selection is taken BEFORE it opens */

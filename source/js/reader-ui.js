@@ -243,7 +243,7 @@ function quoteClose(){quoteMark(false);SQ=null;el('selpop').classList.remove('qm
 function quoteEdit(sq,withNote,color){
   const q=sq.q,qs=S.quotes[sq.bid]||[];if(qs.indexOf(q)<0){quoteClose();return;}
   const c=hlKey(color||q.c);if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
-  const put=(note)=>{q.c=c;if(note!=null)q.note=note;save();sq.ms.forEach(m=>{if(m.isConnected)hlSetMark(m,c);});pdfHlRefresh();};
+  const put=(note)=>{q.c=c;if(note!=null)q.note=note;save();sq.ms.forEach(m=>{if(m.isConnected)hlSetMark(m,c);});pdfHlRefresh();hlFlash(sq.bid,q);};
   quoteClose();el('selpop').classList.add('hidden');
   if(withNote)return rqAsk({t:'Заметка к цитате',p:'«'+q.text.slice(0,140)+(q.text.length>140?'…':'')+'»',ok:'Сохранить',input:q.note||''}).then(v=>{if(v!==null)put(v);});
   put(null);
@@ -260,9 +260,10 @@ function quoteDel(){
    Свой цвет (Джессика: «кастомным цветом») — q.c = '#rrggbb', последний свой — SET.hlx; прозрачность подбирается под страницу, текст книги ≥ 7:1 */
 const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
 const HL_HEX=/^#[0-9a-f]{6}$/;
-const HL_NAMES={pencil:{y:'Охра',g:'Хвоя',b:'Лазурь',p:'Фиалка',o:'Кирпич'},ellada:{y:'Золото',g:'Олива',b:'Эгейский',p:'Пурпур',o:'Терракота'},babochkovyi:{y:'Лимонница',g:'Мята',b:'Голубянка',p:'Лаванда',o:'Персик'},celestial:{y:'Солнце',g:'Нефрит',b:'Лазурит',p:'Аметист',o:'Янтарь'}}; /* 22.10: the skin's own colour names */
+const HL_NAMES={pencil:{y:'Лимонад',g:'Мята',b:'Васильки',p:'Малина',o:'Охра'},ellada:{y:'Золото',g:'Лавр',b:'Эгейское',p:'Пурпур',o:'Амфора'},babochkovyi:{y:'Лимонница',g:'Мятница',b:'Голубянка',p:'Павлиний глаз',o:'Зорька'},celestial:{y:'Рассвет',g:'Аврора',b:'Туманность',p:'Аметист',o:'Комета'}}; /* 22.10: the skin's own names of its two-colour combos */
 function hlName(k){const s=document.documentElement.dataset.skin,m=s&&HL_NAMES[s];return (m&&m[k])||HL_COLORS.find(x=>x.k===k).n;}
 function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
+function hlDot2(c){const k=hlKey(c);return k[0]==='#'?k:'var(--dot2-'+k+','+hlDot(k)+')';} /* 22.10: the combo's second colour (no skin: the same) */
 function hlDot(c){const k=hlKey(c);return k[0]==='#'?k:'var(--dot-'+k+','+HL_COLORS.find(x=>x.k===k).d+')';} /* 22.10: the skin's own dot colour */
 /** colour of a highlighted string = the colour of its quote (S.hl keeps plain strings, as before) */
 function quoteColor(bid,t,j){const q=hlSame(bid,t)[j||0];return hlKey(q&&q.c);}
@@ -294,9 +295,13 @@ function hlSelN(t){
 function quoteOfMark(bid,m){const t=m.textContent,ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===t);
   return hlSame(bid,t)[Math.max(0,ms.indexOf(m))]||(S.quotes[bid]||[]).find(q=>q&&/\n/.test(q.text)&&String(q.text).split(/\s*\n\s*/).includes(t))||null;}
 /** all marks of a quote (a quote over several paragraphs has one per paragraph) */
+/** 22.10: the skin's one-time effect on a just-made / recoloured quote (CSS [data-hlnew]), in the book and on PDF pages */
+function hlFlash(bid,q){if(!R.book||R.book.id!==bid)return;const qi=(S.quotes[bid]||[]).indexOf(q);
+  const ms=quoteMarks(q).concat([...document.querySelectorAll('.textLayer .pdfhls i[data-q="'+qi+'"]')]);
+  ms.forEach(m=>{delete m.dataset.hlnew;void m.offsetWidth;m.dataset.hlnew='';setTimeout(()=>{delete m.dataset.hlnew;},1400);});} /* an attribute, not a class: className stays the colour */
 function quoteMarks(q){const ps=String(q.text).split(/\s*\n\s*/).filter(Boolean);return [...el('content').querySelectorAll('mark')].filter(x=>ps.includes(x.textContent));}
 function markHtml(k,c){return c&&c[0]==='#'?'<mark data-hc="'+c+'">'+k+'</mark>':'<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
-function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;m.style.removeProperty('--hc');m.style.removeProperty('--hs');hlPaintCustom();}
+function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;['--hc','--hc2','--hs','--hs2'].forEach(v=>m.style.removeProperty(v));hlPaintCustom();}
 /** own colours: the strongest alpha (day ≤ .45, night ≤ .30) at which the book text over it stays ≥ 7:1 on this page */
 function hlPaintCustom(){
   const ms=document.querySelectorAll('#content mark[data-hc]');if(!ms.length)return;
@@ -307,7 +312,7 @@ function hlPaintCustom(){
   ms.forEach(m=>{const hc=hlKey(m.dataset.hc);if(hc[0]!=='#')return;const tx=rgb(getComputedStyle(m).color);
     const key=hc+tx.join();if(!(key in memo)){const c=[1,3,5].map(i=>parseInt(hc.slice(i,i+2),16));let a=night?0.30:0.45;
       while(a>0.03&&cr(tx,c.map((v,i)=>v*a+page[i]*(1-a)))<7.05)a-=0.01;memo[key]='rgba('+c.join(',')+','+a.toFixed(2)+')';}
-    m.style.setProperty('--hc',memo[key]);m.style.setProperty('--hs',hlRgba(hc,night?.75:.85));});
+    m.style.setProperty('--hc',memo[key]);m.style.setProperty('--hc2',memo[key]);m.style.setProperty('--hs',hlRgba(hc,night?.75:.85));m.style.setProperty('--hs2',hlRgba(hc,night?.75:.85));});
 }
 /* 21.10 (Джессика: «выделяю в PDF, жму цвет — ничего не происходит»): in a PDF the quote also keeps where it is —
    q.pdf = {p: page index, r: [[x,y,w,h],…] in 0…1 of the page's text layer}; the highlight is drawn as boxes in that layer */
@@ -343,7 +348,7 @@ function pdfHlPaint(tl,p){
   const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
   const all=S.quotes[R.book.id];
   qs.forEach(q=>{const c=hlKey(q.c),qi=all.indexOf(q);
-    hlLines(q.pdf.r).forEach(k=>{const d=document.createElement('i');d.dataset.q=qi;if(SQ&&SQ.q===q)d.classList.add('qon');if(c[0]==='#'){d.style.setProperty('--hc',hlRgba(c,.35));d.style.setProperty('--hs',hlRgba(c,.85));}else if(c!=='y')d.classList.add('hl-'+c);
+    hlLines(q.pdf.r).forEach(k=>{const d=document.createElement('i');d.dataset.q=qi;if(SQ&&SQ.q===q)d.classList.add('qon');if(c[0]==='#'){d.style.setProperty('--hc',hlRgba(c,.35));d.style.setProperty('--hc2',hlRgba(c,.35));d.style.setProperty('--hs',hlRgba(c,.85));d.style.setProperty('--hs2',hlRgba(c,.85));}else if(c!=='y')d.classList.add('hl-'+c);
       d.style.left=k[0]*100+'%';d.style.top=(k[1]+(q.pdf.v===2?0:k[3]*0.23))*100+'%'; /* boxes saved before 21.10 evening: down to the page's line */d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);});});
   tl.insertBefore(box,tl.firstChild);
 }
@@ -358,7 +363,7 @@ function markInContent(t,c,n){
 }
 function renderSpColors(on){
   const box=el('spColors');if(!box)return;const cur=on||hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';
-  box.innerHTML=HL_COLORS.map(x=>{const n=hlName(x.k);return '<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+n.toLowerCase()+'" title="'+n+'" style="--d:'+hlDot(x.k)+'"><i aria-hidden="true"></i></button>';}).join('')+
+  box.innerHTML=HL_COLORS.map(x=>{const n=hlName(x.k);return '<button type="button" data-c="'+x.k+'"'+(x.k===cur?' class="on"':'')+' aria-label="Цитата, '+n.toLowerCase()+'" title="'+n+'" style="--d:'+hlDot(x.k)+';--d2:'+hlDot2(x.k)+'"><i aria-hidden="true"></i></button>';}).join('')+
     '<button type="button" id="spOwn"'+(cur[0]==='#'?' class="on"':'')+' aria-label="Цитата, свой цвет" title="Свой цвет"'+(own?' style="--d:'+own+'"':'')+'><i class="own'+(own?' set':'')+'" aria-hidden="true"></i></button>';
 }
 /* own colour: the system colour picker (input type=color outside the bar, so hiding the bar never closes it); the selection is taken BEFORE it opens */
@@ -396,7 +401,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
   if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
   const old=m?quoteOfMark(bid,m):null,n=m?0:pick?pick.n||0:hlSelN(t);
   if(old){ /* recolour / re-note the quote under the selection */
-    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();(/\n/.test(old.text)?quoteMarks(old):[m]).forEach(x=>hlSetMark(x,c));};
+    const put=(note)=>{old.c=c;if(note!=null)old.note=note;save();(/\n/.test(old.text)?quoteMarks(old):[m]).forEach(x=>hlSetMark(x,c));hlFlash(bid,old);};
     if(withNote){selDone();return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:old.note||''}).then(v=>{if(v!==null)put(v);});}
     put(null);selDone();return;
   }
@@ -410,7 +415,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     } /* no locks → no coins */
     save();
     if(!R.book||R.book.id!==bid)return;
-    markInContent(t,c,n);if(geo)pdfHlRefresh();
+    markInContent(t,c,n);if(geo)pdfHlRefresh();hlFlash(bid,q);
   };
   if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
     selDone();
@@ -615,7 +620,7 @@ function renderPanel(tab){
        a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there */
     body.innerHTML=qs.length
       ?qs.map((q,i)=>{const on=i===qOpen.i,t=String(q.text).replace(/\s*\n\s*/g,on?'\n':' ');
-        return '<div class="prow pq'+(on?' on':'')+'"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
+        return '<div class="prow pq'+(on?' on':'')+'"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+';--d2:'+hlDot2(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
           (on&&q.note?'<span class="pqn">'+esc(q.note)+'</span>':'')+'</span></button>'+
           (on?'<button class="pqgo" onclick="quoteGo('+i+')">'+rqIcon('book-open',16)+' Открыть в книге</button>':'')+'</div>';
       }).join('')

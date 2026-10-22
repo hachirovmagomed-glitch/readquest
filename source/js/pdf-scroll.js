@@ -10,6 +10,8 @@
    22.10 (Джессика: «расстояние между листами слишком большое, в ReadEra намного меньше»): the empty white strips above
    and below the content of each page are cut off (like ReadEra), so the pages go one after another with a small gap.
    22.10 (second look, «в ReadEra расстояние минимально»): 2 px between pages, a thin line instead of a strip, 1.2% margin left.
+   22.10 («эти тонкие полосы делать в стиле каждого скина»): the divider between pages is a .psd element drawn by the skin
+   (skins/skins.css); its height = CSS --ps-gap on #pdfScroll (2px without a skin). A skin switch re-lays the strip in place.
    PS.asp[n] = the visible height / width of page n (after the cut); PS.crop[n] = {t,b} = the cut, parts of the page height. */
 const PS_MAX_PX=6e6, PS_GAP=2, PS_KEEP=1, PS_CROP_PAD=0.012, PS_CROP_MAX=0.3;
 const PS={on:false,gap:PS_GAP,seq:0,aspect:1.414,asp:[],crop:[],tops:[],w:0,cv:new Map(),busy:false,want:[],progTop:null,settleT:0,rsT:0,g:null,renders:0};
@@ -18,8 +20,10 @@ function psOn(){return typeof R!=='undefined'&&R&&R.mode==='pdf'&&flipGet().mode
 function psBox(){return el('pdfScroll');}
 /** slot tops from the per-page proportions (fit to the scroller width) */
 function psMeasure(){
-  const b=psBox(),w=b.clientWidth;PS.w=w;let y=PS_GAP;PS.tops=[];
-  for(let i=0;i<R.pageCount;i++){PS.tops.push(y);y+=Math.round(w*(PS.asp[i]||PS.aspect))+PS_GAP;}
+  const b=psBox(),w=b.clientWidth;PS.w=w;
+  const g=parseFloat(getComputedStyle(b).getPropertyValue('--ps-gap'));PS.gap=g>=0&&g<40?Math.round(g):PS_GAP;
+  let y=PS.gap;PS.tops=[];
+  for(let i=0;i<R.pageCount;i++){PS.tops.push(y);y+=Math.round(w*(PS.asp[i]||PS.aspect))+PS.gap;}
   PS.tops.push(y);
 }
 function psBuild(){
@@ -27,16 +31,20 @@ function psBuild(){
   const frag=document.createDocumentFragment();
   for(let i=0;i<R.pageCount;i++){
     const s=document.createElement('div');s.className='psl';s.dataset.n=i;
-    s.style.top=PS.tops[i]+'px';s.style.height=(PS.tops[i+1]-PS.tops[i]-PS_GAP)+'px';
+    s.style.top=PS.tops[i]+'px';s.style.height=(PS.tops[i+1]-PS.tops[i]-PS.gap)+'px';
     const l=document.createElement('span');l.className='psn';l.textContent=pdfLabel(i);s.appendChild(l);
     frag.appendChild(s);
+    if(i<R.pageCount-1){const d=document.createElement('div');d.className='psd';d.dataset.n=i;psDivPos(d,i);frag.appendChild(d);}
   }
   const end=document.createElement('div');end.className='psend';end.style.top=PS.tops[R.pageCount]+'px';frag.appendChild(end);
   b.appendChild(frag);
 }
+/** the divider under page i: the gap between its slot and the next one */
+function psDivPos(d,i){d.style.top=(PS.tops[i+1]-PS.gap)+'px';d.style.height=PS.gap+'px';}
 function psRelayoutSlots(){
   const b=psBox();psMeasure();
-  b.querySelectorAll('.psl').forEach(function(s){const i=+s.dataset.n;s.style.top=PS.tops[i]+'px';s.style.height=(PS.tops[i+1]-PS.tops[i]-PS_GAP)+'px';});
+  b.querySelectorAll('.psl').forEach(function(s){const i=+s.dataset.n;s.style.top=PS.tops[i]+'px';s.style.height=(PS.tops[i+1]-PS.tops[i]-PS.gap)+'px';});
+  b.querySelectorAll('.psd').forEach(function(d){psDivPos(d,+d.dataset.n);});
   const e=b.querySelector('.psend');if(e)e.style.top=PS.tops[R.pageCount]+'px';
 }
 /** page under the upper third of the screen; the very end of the document = the last page */
@@ -66,7 +74,7 @@ async function psOpen(p){
   if(seq!==PS.seq||!R.pdf)return;
   PS.asp=[];PS.crop=[];psBuild();
   P.target=p;P.shown=p;R.page=p;
-  psScrollTo(PS.tops[p]-PS_GAP,false);
+  psScrollTo(PS.tops[p]-PS.gap,false);
   pdfBackdrop(null);pdfNumbers(p);
   if(__tracker&&__tracker.pageShown)__tracker.pageShown(p);
   psUpdate();
@@ -162,6 +170,13 @@ function psResize(){
     psRelayoutSlots();psScrollTo(PS.tops[p]+f*(PS.tops[p+1]-PS.tops[p]),false);psUpdate();
   },150);
 }
+/** the skin (or day / night) changed while scrolling: its divider may have another height → same page, same place */
+function psRegap(){
+  if(!PS.on)return;const b=psBox();if(!b||b.clientWidth<8)return;
+  const g=parseFloat(getComputedStyle(b).getPropertyValue('--ps-gap')),ng=g>=0&&g<40?Math.round(g):PS_GAP;if(ng===PS.gap)return;
+  const p=psPageAt(b.scrollTop),f=(b.scrollTop-PS.tops[p])/Math.max(1,PS.tops[p+1]-PS.tops[p]);
+  psRelayoutSlots();psScrollTo(PS.tops[p]+f*(PS.tops[p+1]-PS.tops[p]),false);psUpdate();
+}
 /** report a page (same rules as pdfGo/pdfSwap): kind 'turn' | 'jump' | 'tts' | 'slide' (slider preview, nothing written) */
 function psReport(np,kind){
   const prev=P.shown;if(np===prev&&kind!=='jump')return;
@@ -182,7 +197,7 @@ function psReport(np,kind){
 function psGo(np,why){
   np=Math.max(0,Math.min(R.pageCount-1,np));
   if(why==='tts'||why==='slider'||why==='nav'){
-    psScrollTo(PS.tops[np]-PS_GAP,false);psUpdate();
+    psScrollTo(PS.tops[np]-PS.gap,false);psUpdate();
     if(why==='tts')psReport(np,'tts');
     else if(why==='slider'&&P.sliding)psReport(np,'slide');
     else{P.jump=false;psReport(np,'jump');}
@@ -244,3 +259,4 @@ psBox().addEventListener('scroll',function(){if(!PS.on)return;psSoon();if(!PS.ra
 document.addEventListener('visibilitychange',function(){if(document.visibilityState!=='hidden')setTimeout(psCheck,60);});
 window.addEventListener('pageshow',function(){setTimeout(psCheck,60);});
 window.addEventListener('focus',function(){setTimeout(psCheck,60);});
+if(window.MutationObserver)new MutationObserver(psRegap).observe(document.documentElement,{attributes:true,attributeFilter:['data-skin','data-theme']});

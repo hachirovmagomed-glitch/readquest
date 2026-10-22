@@ -36,8 +36,8 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261022-1138';
-import { paceLevel } from './game-awards.js?v=20261022-1138';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261022-1245';
+import { paceLevel } from './game-awards.js?v=20261022-1245';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';

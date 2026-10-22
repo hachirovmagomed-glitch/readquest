@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261022-1138',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261022-1245',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261022-1138"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261022-1245"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -793,6 +793,19 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}
 #warmer{position:absolute;inset:0;background:var(--rq-warm);mix-blend-mode:multiply;opacity:0;pointer-events:none;z-index:44} /* 18.10 SET.warm: night-light tint, under #dimmer */
 #brightRange,#warmRange{--rq-accent:var(--rq-accent-on-dark)}
+/* 22.10 (Джессика: «ползунки яркости и тёплого оттенка во всех скинах одинаковые»): #brightRange / #warmRange are drawn, each skin its own.
+   Filled part = --sl-fill up to the thumb centre --sl-x (--p 0…1 set by applySet), the rest --sl-rest; a skin may replace the whole track (--sl-bg).
+   Thumbs --sl-b-th («Яркость») / --sl-w-th («Тёплый оттенок»). Base and pencil here, the shop skins in skins.css */
+#sheet :is(#brightRange,#warmRange){-webkit-appearance:none;appearance:none;background:transparent;margin:0;height:44px;touch-action:pan-y;--p:1;--sl-h:4px;--sl-ts:22px;
+  --sl-x:calc(var(--sl-ts) / 2 + (100% - var(--sl-ts)) * var(--p));--sl-rest:color-mix(in srgb,var(--txt) 22%,transparent);
+  --sl-b-fill:linear-gradient(90deg,color-mix(in srgb,var(--rq-accent-on-dark) 45%,transparent),var(--rq-accent-on-dark));--sl-w-fill:linear-gradient(90deg,#f2c879,#e8894a);
+  --sl-b-th:radial-gradient(circle,#fff 0 5px,var(--rq-accent-on-dark) 5.5px 9px,#fff 9.5px);--sl-w-th:radial-gradient(circle,#fff 0 5px,#e8894a 5.5px 9px,#fff 9.5px)}
+#brightRange{--sl-fill:var(--sl-b-fill);--sl-th:var(--sl-b-th)}
+#warmRange{--sl-fill:var(--sl-w-fill);--sl-th:var(--sl-w-th)}
+#sheet :is(#brightRange,#warmRange)::-webkit-slider-runnable-track{height:var(--sl-h);border-radius:var(--sl-r,999px);background:var(--sl-bg,var(--sl-fill) 0 0/var(--sl-x) 100% no-repeat,var(--sl-rest))}
+#sheet :is(#brightRange,#warmRange)::-moz-range-track{height:var(--sl-h);border-radius:var(--sl-r,999px);background:var(--sl-bg,var(--sl-fill) 0 0/var(--sl-x) 100% no-repeat,var(--sl-rest))}
+#sheet :is(#brightRange,#warmRange)::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:var(--sl-ts);height:var(--sl-ts);margin-top:calc((var(--sl-h) - var(--sl-ts)) / 2);border:0;border-radius:var(--sl-tr,50%);background:var(--sl-th) center/contain no-repeat;box-shadow:var(--sl-tsh,0 1px 3px rgba(0,0,0,.35))}
+#sheet :is(#brightRange,#warmRange)::-moz-range-thumb{width:var(--sl-ts);height:var(--sl-ts);border:0;border-radius:var(--sl-tr,50%);background:var(--sl-th) center/contain no-repeat;box-shadow:var(--sl-tsh,0 1px 3px rgba(0,0,0,.35))}
 .imm .rhead,.imm .rfoot{display:none}
 .quest.locked{opacity:.45}
 #content.noind p,.rqCurlTxt.noind p{text-indent:0;margin-bottom:.7em}
@@ -1465,6 +1478,13 @@ html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:2px;bo
 html[data-skin="pencil"] #barBright::-moz-range-track{height:2px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px)}
 html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:12px;height:12px;margin-top:-5px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0;box-shadow:none}
 html[data-skin="pencil"] #barBright::-moz-range-thumb{width:12px;height:12px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0}
+/* 22.10 pencil «Яркость» / «Тёплый оттенок» in the sheet: shading with a pencil (graphite / ochre crayon) over a dashed line; a hand-drawn sun and flame */
+html[data-skin="pencil"]{--pc-sl-b:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%233d3d3a' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M14 2.2v3.4M14.3 22.6v3.3M2.3 14.2h3.3M22.5 13.8h3.3M5.6 5.4l2.3 2.5M20.2 20.3l2.4 2.2M5.8 22.4l2.3-2.3M20 7.9l2.5-2.4'/%3E%3C/g%3E%3Cpath d='M14.4 7.9c3.6.1 6 2.8 5.8 6.3-.2 3.5-2.9 5.9-6.4 5.8-3.4-.1-5.9-2.9-5.7-6.3.2-3.3 2.6-5.9 6.3-5.8z' fill='%23fbfaf6' stroke='%233d3d3a' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10.6 15.8l5.2-5.4M12 17.6l5.6-5.8' stroke='%233d3d3a' stroke-opacity='.35' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");--pc-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14.2 2.8c3.4 4.9 7.6 8.6 7 14.2-.5 4.6-3.6 7.9-7.4 7.9-4 0-7.3-3.1-7.1-7.6.1-3.4 2.2-5.4 3.6-8.4 1 2.3 1.6 3.6 2.9 4.4.9-3.3 1.3-6.2 1-10.5z' fill='%23c97a2b' fill-opacity='.55' stroke='%233d3d3a' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10 21l6-6.3M11.4 23.2l6.4-6.7M9.3 18l4.4-4.6' stroke='%23c97a2b' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M14 24.6c-2-.4-3-2-2.6-3.8.3-1.3 1.4-2.2 1.9-3.6 1.4 1.4 3 2.8 2.9 4.7-.1 1.6-1 2.6-2.2 2.7z' fill='none' stroke='%233d3d3a' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html[data-skin="pencil"][data-theme="night"]{--pc-sl-b:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%23cfccc3' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M14 2.2v3.4M14.3 22.6v3.3M2.3 14.2h3.3M22.5 13.8h3.3M5.6 5.4l2.3 2.5M20.2 20.3l2.4 2.2M5.8 22.4l2.3-2.3M20 7.9l2.5-2.4'/%3E%3C/g%3E%3Cpath d='M14.4 7.9c3.6.1 6 2.8 5.8 6.3-.2 3.5-2.9 5.9-6.4 5.8-3.4-.1-5.9-2.9-5.7-6.3.2-3.3 2.6-5.9 6.3-5.8z' fill='%23262a31' stroke='%23cfccc3' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10.6 15.8l5.2-5.4M12 17.6l5.6-5.8' stroke='%23cfccc3' stroke-opacity='.35' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");--pc-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14.2 2.8c3.4 4.9 7.6 8.6 7 14.2-.5 4.6-3.6 7.9-7.4 7.9-4 0-7.3-3.1-7.1-7.6.1-3.4 2.2-5.4 3.6-8.4 1 2.3 1.6 3.6 2.9 4.4.9-3.3 1.3-6.2 1-10.5z' fill='%23e0a35a' fill-opacity='.55' stroke='%23cfccc3' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10 21l6-6.3M11.4 23.2l6.4-6.7M9.3 18l4.4-4.6' stroke='%23e0a35a' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M14 24.6c-2-.4-3-2-2.6-3.8.3-1.3 1.4-2.2 1.9-3.6 1.4 1.4 3 2.8 2.9 4.7-.1 1.6-1 2.6-2.2 2.7z' fill='none' stroke='%23cfccc3' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html[data-skin="pencil"] #sheet :is(#brightRange,#warmRange){--sl-h:8px;--sl-ts:30px;--sl-r:0;--sl-tr:0;--sl-tsh:none;--sl-b-th:var(--pc-sl-b);--sl-w-th:var(--pc-sl-w);
+  --sl-rest:repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px) 0 50%/100% 2px no-repeat;
+  --sl-b-fill:repeating-linear-gradient(115deg,var(--rq-text) 0 1.4px,transparent 1.4px 3.4px);--sl-w-fill:repeating-linear-gradient(115deg,#c97a2b 0 1.6px,transparent 1.6px 3.4px)}
+html[data-skin="pencil"][data-theme="night"] #sheet #warmRange{--sl-w-fill:repeating-linear-gradient(115deg,#e0a35a 0 1.6px,transparent 1.6px 3.4px)}
 #reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
 /* audit 19.10 RD-PANEL-02: a soft 24 px fade at the panels' inner edges, so a cut line reads as covered, not broken */
 #reader .rhead::after,#reader .rbot::before{content:"";position:absolute;left:0;right:0;height:24px;pointer-events:none}
@@ -1657,7 +1677,7 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261022-1138"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261022-1245"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2302,37 +2322,37 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261022-1138"></script>
-<script src="js/books-builtin.js?v=20261022-1138"></script>
-<script src="js/core-b.js?v=20261022-1138"></script>
-<script src="js/library.js?v=20261022-1138"></script>
-<script src="js/reader.js?v=20261022-1138"></script>
-<script src="js/pdf.js?v=20261022-1138"></script>
-<script src="js/pdf-scroll.js?v=20261022-1138"></script>
-<script src="js/page-curl.js?v=20261022-1138"></script>
-<script src="js/page-grid.js?v=20261022-1138"></script>
-<script src="js/reader-ui.js?v=20261022-1138"></script>
-<script src="js/book-find.js?v=20261022-1138"></script>
-<script src="js/rpg.js?v=20261022-1138"></script>
-<script src="js/content.js?v=20261022-1138"></script>
-<script src="js/translate.js?v=20261022-1138"></script>
-<script src="js/hero-pencil.js?v=20261022-1138"></script>
-<script src="js/hero-celestial.js?v=20261022-1138"></script>
-<script src="js/hero.js?v=20261022-1138"></script>
-<script src="js/settings.js?v=20261022-1138"></script>
-<script src="js/v6-extras.js?v=20261022-1138"></script>
-<script src="js/ach-core.js?v=20261022-1138"></script>
-<script src="js/achievements.js?v=20261022-1138"></script>
-<script src="js/path.js?v=20261022-1138"></script>
-<script src="js/adv.js?v=20261022-1138"></script>
-<script src="js/start.js?v=20261022-1138"></script>
+<script src="js/core-a.js?v=20261022-1245"></script>
+<script src="js/books-builtin.js?v=20261022-1245"></script>
+<script src="js/core-b.js?v=20261022-1245"></script>
+<script src="js/library.js?v=20261022-1245"></script>
+<script src="js/reader.js?v=20261022-1245"></script>
+<script src="js/pdf.js?v=20261022-1245"></script>
+<script src="js/pdf-scroll.js?v=20261022-1245"></script>
+<script src="js/page-curl.js?v=20261022-1245"></script>
+<script src="js/page-grid.js?v=20261022-1245"></script>
+<script src="js/reader-ui.js?v=20261022-1245"></script>
+<script src="js/book-find.js?v=20261022-1245"></script>
+<script src="js/rpg.js?v=20261022-1245"></script>
+<script src="js/content.js?v=20261022-1245"></script>
+<script src="js/translate.js?v=20261022-1245"></script>
+<script src="js/hero-pencil.js?v=20261022-1245"></script>
+<script src="js/hero-celestial.js?v=20261022-1245"></script>
+<script src="js/hero.js?v=20261022-1245"></script>
+<script src="js/settings.js?v=20261022-1245"></script>
+<script src="js/v6-extras.js?v=20261022-1245"></script>
+<script src="js/ach-core.js?v=20261022-1245"></script>
+<script src="js/achievements.js?v=20261022-1245"></script>
+<script src="js/path.js?v=20261022-1245"></script>
+<script src="js/adv.js?v=20261022-1245"></script>
+<script src="js/start.js?v=20261022-1245"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261022-1138"></script>
+<script src="js/pwa-lock.js?v=20261022-1245"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2340,9 +2360,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261022-1138';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261022-1138';
-import * as game from './game-awards.js?v=20261022-1138';
+} from './storage/index.js?v=20261022-1245';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261022-1245';
+import * as game from './game-awards.js?v=20261022-1245';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

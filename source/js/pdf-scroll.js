@@ -9,9 +9,10 @@
    slider / contents = a jump on release; read-aloud = via:'tts'. Programmatic scrolls are never reported twice.
    22.10 (Джессика: «расстояние между листами слишком большое, в ReadEra намного меньше»): the empty white strips above
    and below the content of each page are cut off (like ReadEra), so the pages go one after another with a small gap.
+   22.10 (second look, «в ReadEra расстояние минимально»): 2 px between pages, a thin line instead of a strip, 1.2% margin left.
    PS.asp[n] = the visible height / width of page n (after the cut); PS.crop[n] = {t,b} = the cut, parts of the page height. */
-const PS_MAX_PX=6e6, PS_GAP=8, PS_KEEP=1, PS_CROP_PAD=0.02, PS_CROP_MAX=0.3;
-const PS={on:false,seq:0,aspect:1.414,asp:[],crop:[],tops:[],w:0,cv:new Map(),busy:false,want:[],progTop:null,settleT:0,rsT:0,g:null,renders:0};
+const PS_MAX_PX=6e6, PS_GAP=2, PS_KEEP=1, PS_CROP_PAD=0.012, PS_CROP_MAX=0.3;
+const PS={on:false,gap:PS_GAP,seq:0,aspect:1.414,asp:[],crop:[],tops:[],w:0,cv:new Map(),busy:false,want:[],progTop:null,settleT:0,rsT:0,g:null,renders:0};
 window.__rqPdfScroll=PS; /* diagnostics for tests (read-only) */
 function psOn(){return typeof R!=='undefined'&&R&&R.mode==='pdf'&&flipGet().mode==='scroll';}
 function psBox(){return el('pdfScroll');}

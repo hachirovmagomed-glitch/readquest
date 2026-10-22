@@ -149,9 +149,9 @@ if (want('scrollpdf')) {
   /* user scroll to page 2 → a turn; then far → a jump */
   const b = await p.evaluate(async () => {
     const s = document.getElementById('pdfScroll'), P2 = __rqPdfScroll; __ev.length = 0;
-    s.scrollTop = P2.tops[1] - 8; await new Promise(r => setTimeout(r, 450));
+    s.scrollTop = P2.tops[1] - P2.gap; await new Promise(r => setTimeout(r, 450));
     const t1 = { page: R.page, ev: __ev.map(e => e[0]).join(','), num: document.getElementById('rPage').textContent };
-    __ev.length = 0; s.scrollTop = P2.tops[20] - 8; await new Promise(r => setTimeout(r, 450));
+    __ev.length = 0; s.scrollTop = P2.tops[20] - P2.gap; await new Promise(r => setTimeout(r, 450));
     const t2 = { page: R.page, ev: __ev.map(e => e[0]).join(','), canv: s.querySelectorAll('canvas').length,
       far: [...s.querySelectorAll('canvas')].map(c => +c.parentElement.dataset.n) };
     return { t1, t2 };
@@ -162,7 +162,7 @@ if (want('scrollpdf')) {
   const c = await p.evaluate(async () => {
     const s = document.getElementById('pdfScroll'); __ev.length = 0;
     jumpTo(5); await new Promise(r => setTimeout(r, 400));
-    const j = { page: R.page, ev: __ev.map(e => e[0]).join(','), top: Math.round(s.scrollTop), slot: __rqPdfScroll.tops[5] - 8 };
+    const j = { page: R.page, ev: __ev.map(e => e[0]).join(','), top: Math.round(s.scrollTop), slot: __rqPdfScroll.tops[5] - __rqPdfScroll.gap };
     const top0 = s.scrollTop, vr = document.getElementById('viewer').getBoundingClientRect();
     __ev.length = 0; pdfSingleTap(0.9, 0.5); await new Promise(r => setTimeout(r, 900));
     return { j, tap: { moved: Math.round(s.scrollTop - top0), h: s.clientHeight, ev: __ev.map(e => e[0]).join(',') } };

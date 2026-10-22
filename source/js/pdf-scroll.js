@@ -6,9 +6,12 @@
    Only the pages on screen ±1 have a canvas (≤ 6 MP each); farther canvases are freed. No zoom in this mode
    (pinch / double tap do nothing; zoom = «Страницы»). The page on screen = the page under the upper third.
    Tracker: the same rule as text scroll — a settled user scroll to the next/previous page = a turn, farther = a jump;
-   slider / contents = a jump on release; read-aloud = via:'tts'. Programmatic scrolls are never reported twice. */
-const PS_MAX_PX=6e6, PS_GAP=8, PS_KEEP=1;
-const PS={on:false,seq:0,aspect:1.414,asp:[],tops:[],w:0,cv:new Map(),busy:false,want:[],progTop:null,settleT:0,rsT:0,g:null,renders:0};
+   slider / contents = a jump on release; read-aloud = via:'tts'. Programmatic scrolls are never reported twice.
+   22.10 (Джессика: «расстояние между листами слишком большое, в ReadEra намного меньше»): the empty white strips above
+   and below the content of each page are cut off (like ReadEra), so the pages go one after another with a small gap.
+   PS.asp[n] = the visible height / width of page n (after the cut); PS.crop[n] = {t,b} = the cut, parts of the page height. */
+const PS_MAX_PX=6e6, PS_GAP=8, PS_KEEP=1, PS_CROP_PAD=0.02, PS_CROP_MAX=0.3;
+const PS={on:false,seq:0,aspect:1.414,asp:[],crop:[],tops:[],w:0,cv:new Map(),busy:false,want:[],progTop:null,settleT:0,rsT:0,g:null,renders:0};
 window.__rqPdfScroll=PS; /* diagnostics for tests (read-only) */
 function psOn(){return typeof R!=='undefined'&&R&&R.mode==='pdf'&&flipGet().mode==='scroll';}
 function psBox(){return el('pdfScroll');}
@@ -53,8 +56,14 @@ async function psOpen(p){
   const seq=++PS.seq;PS.on=true;
   el('pdfWrap').classList.add('hidden');const b=psBox();b.classList.remove('hidden');
   try{const pg=await R.pdf.getPage(1);const v=pg.getViewport({scale:1});PS.aspect=v.height/v.width||1.414;}catch(e){}
+  /* the slots of pages not drawn yet: as the opening page after its cut (a small quick render) */
+  try{const pg=await R.pdf.getPage(Math.min(R.pageCount,Math.max(1,p+1)));const v=pg.getViewport({scale:1}),sc=160/v.width;
+    const vp=pg.getViewport({scale:sc}),cv=document.createElement('canvas');cv.width=Math.max(1,Math.floor(vp.width));cv.height=Math.max(1,Math.floor(vp.height));
+    const ctx=cv.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+    await pg.render({canvasContext:ctx,viewport:vp}).promise;
+    const c=await psCropOf(pg,cv,vp);cv.width=0;cv.height=0;PS.aspect=v.height/v.width*(1-c.t-c.b)||PS.aspect;}catch(e){}
   if(seq!==PS.seq||!R.pdf)return;
-  PS.asp=[];psBuild();
+  PS.asp=[];PS.crop=[];psBuild();
   P.target=p;P.shown=p;R.page=p;
   psScrollTo(PS.tops[p]-PS_GAP,false);
   pdfBackdrop(null);pdfNumbers(p);
@@ -65,6 +74,30 @@ function psReset(){
   PS.seq++;PS.on=false;clearTimeout(PS.settleT);clearTimeout(PS.rsT);PS.want=[];PS.g=null;
   PS.cv.forEach(function(cv){cv.width=0;cv.height=0;});PS.cv.clear();
   const b=psBox();if(b){b.textContent='';b.classList.add('hidden');b.scrollTop=0;}
+}
+/** the empty strips above and below a page's content → {t,b}, parts of the page height.
+    Content = pixels of another colour than the paper (looked at small) or PDF text (drawn by the text layer when SET.pdfFont mutes it).
+    A small margin stays; an empty page is not cut; each side at most PS_CROP_MAX. */
+async function psCropOf(page,cv,vp){
+  const H=vp.height;let top=Infinity,bot=-Infinity;
+  try{
+    const sw=Math.min(160,cv.width),sh=Math.max(1,Math.round(cv.height*sw/cv.width)),k=H/sh;
+    const c=document.createElement('canvas');c.width=sw;c.height=sh;const x=c.getContext('2d',{willReadFrequently:true});
+    x.fillStyle='#fff';x.fillRect(0,0,sw,sh);x.drawImage(cv,0,0,sw,sh);
+    const d=x.getImageData(0,0,sw,sh).data;
+    /* the paper colour = the median of the top and bottom rows (white, beige, a grey scan…); content = clearly another colour */
+    const bg=[0,1,2].map(function(ch){const v=[];for(let i=0;i<sw;i++){v.push(d[i*4+ch]);v.push(d[((sh-1)*sw+i)*4+ch]);}v.sort(function(a,b){return a-b;});return v[v.length>>1];});
+    for(let y=0;y<sh;y++){const o=y*sw*4;for(let i=0;i<sw;i++){const j=o+i*4;if(Math.max(Math.abs(d[j]-bg[0]),Math.abs(d[j+1]-bg[1]),Math.abs(d[j+2]-bg[2]))>40){if(y*k<top)top=y*k;bot=(y+1)*k;break;}}}
+    c.width=0;c.height=0;
+  }catch(e){return {t:0,b:0};}
+  try{
+    const tc=await page.getTextContent();
+    tc.items.forEach(function(it){if(!it.str||!it.str.trim()||!it.transform)return;const tr=it.transform,q=vp.convertToViewportPoint(tr[4],tr[5]),h=Math.hypot(tr[2],tr[3])*vp.scale;
+      if(q[1]-h<top)top=q[1]-h;if(q[1]+h*0.3>bot)bot=q[1]+h*0.3;});
+  }catch(e){}
+  if(!(bot>top))return {t:0,b:0};
+  const pad=H*PS_CROP_PAD;
+  return {t:Math.min(PS_CROP_MAX,Math.max(0,(top-pad)/H)),b:Math.min(PS_CROP_MAX,Math.max(0,(H-bot-pad)/H))};
 }
 /** canvases for the pages on screen ±1; free the rest; render the nearest first */
 /** a page's canvas leaves the strip: its bitmap and its text layer go with it */
@@ -93,7 +126,6 @@ async function psPump(){
 async function psRender(n,seq){
   const page=await R.pdf.getPage(n+1);if(seq!==PS.seq)return;
   const v1=page.getViewport({scale:1}),asp=v1.height/v1.width;
-  if(Math.abs(asp-(PS.asp[n]||PS.aspect))>0.005)psFixAspect(n,asp);
   const w=PS.w,dpr=Math.max(1,window.devicePixelRatio||1);
   let sc=w/v1.width*dpr;if(v1.width*sc*v1.height*sc>PS_MAX_PX)sc=Math.sqrt(PS_MAX_PX/(v1.width*v1.height));
   const vp=page.getViewport({scale:sc}),cv=document.createElement('canvas');
@@ -102,10 +134,15 @@ async function psRender(n,seq){
   const gl=pdfMuteText(ctx); /* 20.10 SET.pdfFont */
   await page.render({canvasContext:ctx,viewport:vp}).promise;PS.renders++;
   if(seq!==PS.seq){cv.width=0;cv.height=0;return;}
+  const c=PS.crop[n]||(PS.crop[n]=await psCropOf(page,cv,vp));if(seq!==PS.seq){cv.width=0;cv.height=0;return;}
+  const eff=asp*(1-c.t-c.b);if(Math.abs(eff-(PS.asp[n]||PS.aspect))>0.005)psFixAspect(n,eff);
   const s=psBox().querySelector('.psl[data-n="'+n+'"]');if(!s){cv.width=0;cv.height=0;return;}
+  /* the whole page, shifted up by the cut top; the slot shows only the visible part */
+  const fh=w*asp,ft=(-c.t*fh).toFixed(2)+'px';cv.style.top=ft;cv.style.height=fh.toFixed(2)+'px';
   /* 19.10: a text layer per page, so text can be selected / quoted / copied in «Прокрутка» too (same builder as «Страницы») */
   const tl=document.createElement('div');tl.className='textLayer';tl.appendChild(await pdfTextLayer(page,w/v1.width,gl&&{g:gl,k:w/v1.width/sc}));
   if(seq!==PS.seq||!s.isConnected){cv.width=0;cv.height=0;return;}
+  tl.style.top=ft;tl.style.bottom='auto';tl.style.height=fh.toFixed(2)+'px';
   cv._w=w;cv._tl=tl;const old=PS.cv.get(n);s.appendChild(cv);s.appendChild(tl);if(typeof pdfHlPaint==='function')pdfHlPaint(tl,n);PS.cv.set(n,cv);s.classList.add('done');
   if(old&&old!==cv)psFree(old);
 }

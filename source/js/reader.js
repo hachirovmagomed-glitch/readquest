@@ -63,7 +63,9 @@ function applySet(){
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
   {const bp=Math.round((SET.bright==null?1:SET.bright)*100),wp=Math.round((SET.warm||0)*100);
-   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';}
+   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';
+     /* 22.10: the drawn sliders fill up to the thumb (--p 0…1, app.html #brightRange) */
+     el('brightRange').style.setProperty('--p',((bp-30)/70).toFixed(3));el('warmRange').style.setProperty('--p',(wp/60).toFixed(3));}
    const bb=el('barBright');if(bb){bb.value=bp;bb.style.setProperty('--v',Math.round((bp-30)/70*100)+'%');}}
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}

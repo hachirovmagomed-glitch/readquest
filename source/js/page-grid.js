@@ -50,7 +50,7 @@ function rqGridPump(seq){
 function rqGridText(t){
   const box=t.querySelector('.pgth'),v=el('viewer'),W=v.clientWidth,H=v.clientHeight,w=box.clientWidth;
   if(!w||!W)return;
-  const sheet=rqTextPageCopy(+t.dataset.n);if(!sheet)return;
+  const sheet=rqScrollMode()?rqGridScrollCopy(+t.dataset.n):rqTextPageCopy(+t.dataset.n);if(!sheet)return;
   const m=SET.margin||0,sc=document.createElement('div'),pg=document.createElement('div');sc.className='pgsc';pg.className='pgtx';
   sc.style.width=(W+2*m)+'px';sc.style.height=H+'px';sc.style.transform='scale('+(w/(W+2*m)).toFixed(5)+')';
   pg.style.left=m+'px';pg.style.width=W+'px';pg.style.height=H+'px';pg.appendChild(sheet);sc.appendChild(pg);box.appendChild(sc);t.classList.add('done');GRID.live.add(t);GRID.renders++;
@@ -64,4 +64,25 @@ async function rqGridPdf(t,seq){
   await page.render({canvasContext:g,viewport:vp}).promise;
   if(seq!==GRID.seq||!t.isConnected||!GRID.io){cv.width=0;cv.height=0;return;}
   box.textContent='';box.appendChild(cv);t.classList.add('done');GRID.live.add(t);GRID.renders++;
+}
+/** 22.10 (Джессика: «Обзор» in a TXT is empty): «Прокрутка» has no columns, so rqTextPageCopy gives nothing. A «page» there is
+    one screen of the scroll (R.step high, page n starts at n·R.step): copy the blocks that cross it, shifted so the screen's
+    first line sits at the top, like the paged copy. */
+function rqGridScrollCopy(n){
+  try{
+    const v=el('viewer'),c=el('content'),h=R.step,kids=c.children,cnt=kids.length;if(!h||!cnt)return null;
+    const ct=c.getBoundingClientRect().top,Y=n*h,W=v.clientWidth;
+    const top=function(e){return e.getBoundingClientRect().top-ct;},bot=function(e){return e.getBoundingClientRect().bottom-ct;};
+    let lo=0,hi=cnt-1;while(lo<hi){const m=(lo+hi)>>1;if(bot(kids[m])<=Y)lo=m+1;else hi=m;}
+    const first=lo;let last=first;while(last+1<cnt&&top(kids[last+1])<Y+h)last++;
+    const sheet=document.createElement('div');sheet.className='rqCurlSheet';sheet.style.visibility='hidden';
+    const clip=document.createElement('div');clip.className='rqCurlClip';clip.style.width=W+'px';clip.style.height=h+'px';
+    const t=document.createElement('div');t.className='rqCurlTxt'+(c.classList.contains('noind')?' noind':'');t.lang=c.lang;
+    t.style.cssText=c.style.cssText;t.style.columnWidth='auto';t.style.height='auto';t.style.width=W+'px';t.style.transform='none';
+    for(let i=first;i<=last;i++)t.appendChild(kids[i].cloneNode(true));
+    clip.appendChild(t);sheet.appendChild(clip);v.appendChild(sheet);
+    const off=t.firstChild.getBoundingClientRect().top-sheet.getBoundingClientRect().top; /* where the first block lands in the copy */
+    t.style.marginTop=(top(kids[first])-Y-off).toFixed(3)+'px';
+    sheet.remove();sheet.style.visibility='';return sheet;
+  }catch(e){return null;}
 }

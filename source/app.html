@@ -441,7 +441,7 @@ body.rq-nolocks #rqNoXp{display:block}
 #bfQ::placeholder{color:inherit;opacity:.7}
 #bfQ:focus-visible{outline:none;box-shadow:inset 0 -2px 0 var(--rq-accent,var(--accent))}
 .bfstat{flex:none;padding:10px 16px 2px;font-size:0.8125rem;color:var(--muted);min-height:1.2em;font-variant-numeric:tabular-nums}
-.bflist{flex:1;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding:6px 10px calc(16px + env(safe-area-inset-bottom))}
+.bflist{flex:1;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding:6px 10px calc(16px + max(env(safe-area-inset-bottom),env(keyboard-inset-height,0px)))}
 .bfrow{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;margin:0 0 6px;padding:10px 12px 10px 14px;border:0;border-radius:var(--rq-radius-sm,10px);background:var(--card);color:var(--txt);text-align:left;font:inherit;font-size:0.9375rem;line-height:1.35}
 .bfrow.on{box-shadow:inset 3px 0 0 var(--rq-accent,var(--accent))}
 .bfsn{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -620,7 +620,12 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 /* 21.10 (Джессика: «глава, которую читаешь, должна выделяться больше», в каждом скине): the chapter being read = a filled accent
    row + «Читаете» tag; the skins draw their own (pencil below in its block, the shop skins in skins.css) */
 #panelBody .prow.on{position:relative;background:var(--accent);color:var(--on-accent);font-weight:700;padding-top:13px;padding-bottom:13px;box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 35%,transparent)}
-#panelBody .prow .ptt{flex:1;min-width:0}
+#panelBody .prow .pcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#panelBody .prow .ptt{min-width:0}
+#panelBody .prow .psub{font-size:0.75rem;font-weight:500;line-height:1.25}
+#panelBody .prow .ppg{flex:none;min-width:2.2em;text-align:right;font-size:0.75rem;font-weight:500;font-variant-numeric:tabular-nums}
+#panelBody .prow .pck{flex:none;display:inline-flex;color:var(--accent)}
+#panelBody .ptocsum{font-size:0.75rem;color:var(--muted);padding:0 4px 8px}
 .pnow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,currentColor 16%,transparent)}
 .pnow .ic{display:block}
 .prow.add{color:var(--accent2);justify-content:center}

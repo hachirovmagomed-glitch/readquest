@@ -34,7 +34,8 @@ function bfBuild(){
     '<button id="bfEnd" type="button" aria-label="Закончить поиск">'+rqIcon('x',18)+'</button>';
   el('reader').appendChild(p);
   el('bfBack').onclick=bfBack;
-  el('bfClr').onclick=function(){const i=el('bfQ');i.value='';bfSet('');i.focus();};
+  el('bfClr').onclick=function(){const i=el('bfQ');if(!i.value){bfBack();return;} /* 22.10 (Джессика): ✕ on an empty field closes the search */i.value='';bfSet('');bfClrSync();i.focus();};
+  el('bfQ').addEventListener('input',bfClrSync);
   let t=null;
   el('bfQ').addEventListener('input',function(e){clearTimeout(t);const v=e.target.value;t=setTimeout(function(){bfSet(v);},220);});
   el('bfQ').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();clearTimeout(t);bfSet(e.target.value);e.target.blur();}
@@ -53,13 +54,18 @@ function bfOpen(){
   if(BF.book!==R.book.id||BF.rid!==R)bfReset();
   BF.book=R.book.id;BF.rid=R;
   el('panel').classList.add('hidden');el('sheet').classList.add('hidden');el('selpop').classList.add('hidden');
-  const o=el('bookFind');o.hidden=false;el('bfPill').classList.add('hidden');window.__rqFindOpen=true;
+  const o=el('bookFind');o.hidden=false;el('bfPill').classList.add('hidden');window.__rqFindOpen=true;bfKbOver(true);
   navPush('find');
-  const i=el('bfQ');i.value=BF.q;
+  const i=el('bfQ');i.value=BF.q;bfClrSync();
   bfRender(true);
   if(!BF.q)setTimeout(function(){try{i.focus();}catch(e){}},0);
 }
-function bfHide(){const o=el('bookFind');if(o)o.hidden=true;try{const i=el('bfQ');if(i)i.blur();}catch(e){}window.__rqFindOpen=false;
+function bfClrSync(){const b=el('bfClr'),i=el('bfQ');if(b&&i)b.setAttribute('aria-label',i.value?'Очистить':'Закрыть поиск');}
+/* 22.10 (Джессика: «в поиске сверху всё ещё чёрный экран»): the keyboard resized the whole (fullscreen) page, and Chrome shows
+   black until it is redrawn. While the search is open the keyboard lies OVER the page (VirtualKeyboard API, Chrome Android);
+   the list keeps its last rows above it with env(keyboard-inset-height). Elsewhere it does nothing. */
+function bfKbOver(on){try{if(navigator.virtualKeyboard)navigator.virtualKeyboard.overlaysContent=!!on;}catch(e){}}
+function bfHide(){bfKbOver(false);const o=el('bookFind');if(o)o.hidden=true;try{const i=el('bfQ');if(i)i.blur();}catch(e){}window.__rqFindOpen=false;
   if(R&&R.relayDue){R.relayDue=false;setTimeout(function(){relayout();},400);} /* the viewport the keyboard left behind */
   bfPillSync();}
 function bfBack(){const was=bfOpenNow();bfHide();if(was&&navState()==='find')try{history.back();}catch(e){}}

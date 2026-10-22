@@ -125,6 +125,34 @@ await sleep(2600);
 const later = await p.evaluate(() => el('reader').classList.contains('barsoff'));
 ok('holding the page slider 4.8 s (past the 3.2 s auto-hide): bars stay; still shown 1.5 s after letting go; hidden after that', hold.dragging && !hold.off && !after && later, { hold, after, later });
 await p.evaluate(() => { const j = el('jumpBack'); if (j && !j.classList.contains('hidden')) j.click(); }); await sleep(400);
+/* 22.10 (Джессика: «через крестик невозможно выйти»): ✕ clears a typed word; on an empty field it closes the search */
+{ await p.evaluate(() => { showChrome(); el('btnFind').click(); }); await sleep(300); await typeQ('собак');
+  const kb = await p.evaluate(() => ({ has: !!navigator.virtualKeyboard, over: navigator.virtualKeyboard ? navigator.virtualKeyboard.overlaysContent : null }));
+  const l1 = await p.evaluate(() => el('bfClr').getAttribute('aria-label'));
+  await p.click('#bfClr'); await sleep(300);
+  const a = await p.evaluate(() => ({ open: !document.getElementById('bookFind').hidden, q: el('bfQ').value, label: el('bfClr').getAttribute('aria-label') }));
+  await p.click('#bfClr'); await sleep(400);
+  const z = await p.evaluate(() => ({ open: !document.getElementById('bookFind').hidden, st: history.state && history.state.rq, over: navigator.virtualKeyboard ? navigator.virtualKeyboard.overlaysContent : null }));
+  ok('search ✕: with a word it clears (stays open, «Закрыть поиск» on an empty field); on an empty field it closes the search (back to the reader)', l1 === 'Очистить' && a.open && a.q === '' && a.label === 'Закрыть поиск' && !z.open && z.st === 'reader', { l1, a, z });
+  ok('search open: the keyboard lies over the page (no resize → no black screen); released on close', !kb.has || (kb.over === true && z.over === false), { kb, z }); }
+/* 22.10 (Джессика: «"Обзор" в TXT — нифига не видно»): in «Прокрутка» the page tiles have the text of that screen */
+{ await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll', anim: 'none' }); applySet(); relayout({ force: true }); }); await sleep(600);
+  await p.evaluate(() => goPage(Math.min(R.pageCount - 2, 20), false)); await sleep(400);
+  await p.evaluate(() => { showChrome(); el('btnPanel').click(); renderPanel('grid'); }); await sleep(1500);
+  const g = await p.evaluate(() => { const c = document.querySelector('.pgt.cur'), n = R.page, scr = el('viewer').scrollTop;
+    const t = c && c.querySelector('.pgth'); const first = t && t.querySelector('.rqCurlTxt'); return { scroll: rqScrollMode(), done: document.querySelectorAll('.pgt.done').length, curDone: !!c && c.classList.contains('done'), chars: t ? t.textContent.trim().length : 0, n }; });
+  ok('«Прокрутка»: «Обзор» tiles show the text of their screen (the current one and its neighbours)', g.scroll && g.curDone && g.done >= 3 && g.chars > 200, g);
+  if (SHOTS) await shot('360-9-obzor-prokrutka');
+  await p.evaluate(() => { el('panelClose').click(); SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); applySet(); relayout({ force: true }); }); await sleep(600); }
+/* 22.10 (Джессика: «улучшить навигацию во вкладке "Главы"»): summary line, a page number on every chapter, checks on the read ones, how far into the current one */
+{ await p.evaluate(() => { const ch = bfChapters(); goPage(ch[4].page + 1, false); }); await sleep(300);
+  await p.evaluate(() => { showChrome(); el('btnPanel').click(); renderPanel('toc'); }); await sleep(400);
+  const t = await p.evaluate(() => { const rows = [...document.querySelectorAll('#panelBody .prow')], ch = bfChapters(), on = document.querySelector('#panelBody .prow.on');
+    return { sum: (document.querySelector('#panelBody .ptocsum') || {}).textContent, pages: rows.map(r => r.querySelector('.ppg').textContent), want: ch.map(c => String(c.page + 1)),
+      done: rows.map(r => r.classList.contains('pdone')), onIdx: rows.indexOf(on), sub: on && on.querySelector('.psub').textContent }; });
+  ok('«Главы»: «Глава 5 из 8 · книга прочитана на N%», every chapter shows its page, chapters 1-4 checked, the current one says how far into it', /^Глава 5 из 8 · книга прочитана на \d+%$/.test(t.sum) && JSON.stringify(t.pages) === JSON.stringify(t.want) && t.onIdx === 4 && t.done.join() === 'true,true,true,true,false,false,false,false' && /^\d+% главы · (ещё \d+ стр\.|последняя страница)$/.test(t.sub), t);
+  if (SHOTS) await shot('360-9-glavy');
+  await p.evaluate(() => el('panelClose').click()); await sleep(300); }
 /* 4. PDF: bookmarks → «Главы» + ticks; search by the text layer; highlight on the page */
 await p.evaluate(() => closeReader({ quiet: true })); await sleep(800);
 await open(1);
@@ -198,9 +226,9 @@ for (const sk of ['', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
       const bgOf = e => { for (let x = e; x; x = x.parentElement) { const cs = getComputedStyle(x), g = cs.backgroundImage.match(/rgba?\([^)]*\)/g); if (g && /gradient/.test(cs.backgroundImage)) return g[g.length - 1]; const b = cs.backgroundColor, al = /^rgba/.test(b) ? +b.match(/[\d.]+/g)[3] : /^color\(.*\/\s*([\d.]+)\)/.test(b) ? +b.match(/\/\s*([\d.]+)\)/)[1] : /^color\(/.test(b) ? NaN : 1; if (isNaN(al)) return b.replace(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+).*$/, (m, r, g, bb) => `rgb(${r * 255},${g * 255},${bb * 255})`); if (b && al >= 0.5) return b; } return 'rgb(255,255,255)'; }; /* a faint tint (tag chip) counts as its parent's colour */
       const cr = e => { const a = L(getComputedStyle(e).color), b = L(bgOf(e)); return +((Math.max(a, b) + .05) / (Math.min(a, b) + .05)).toFixed(2); };
       el('btnPanel').click(); await new Promise(q => setTimeout(q, 250)); renderPanel('toc');
-      const toc = [...document.querySelectorAll('#panelBody .prow')].slice(0, 3).map(cr);
       const onEl = document.querySelector('#panelBody .prow.on'), onTxt = onEl ? onEl.querySelector('.ptt').textContent : null, want = (bfChapterAt(R.page) || {}).t || null;
       const other = document.querySelector('#panelBody .prow:not(.on)');
+      const toc = [...document.querySelectorAll('#panelBody .prow')].slice(0, 3).map(cr).concat([document.querySelector('#panelBody .prow:not(.on) .ppg'), document.querySelector('#panelBody .ptocsum'), onEl && onEl.querySelector('.psub'), onEl && onEl.querySelector('.ppg')].map(e => e ? cr(e) : 0)); /* 22.10: page numbers, the summary line, «N% главы» */
       const look = e => { const cs = getComputedStyle(e); return cs.backgroundColor + cs.backgroundImage + cs.boxShadow + cs.borderTopColor + cs.borderTopWidth; };
       const cur = onEl ? { txt: cr(onEl.querySelector('.ptt')), tag: cr(onEl.querySelector('.pnow')), tagText: onEl.querySelector('.pnow').getAttribute('aria-label'), mark: (() => { const n = onEl.querySelector('.pnow'), sv = n.querySelector('svg'), bf = getComputedStyle(n, '::before'); return (sv && getComputedStyle(sv).display !== 'none' && sv.getBoundingClientRect().width >= 16) || (bf.content !== 'none' && parseFloat(bf.width) >= 16); })(), noWord: !/Читаете/.test(onEl.textContent), differs: !!other && look(onEl) !== look(other), bold: +getComputedStyle(onEl).fontWeight >= 700,
         inView: (() => { const r = onEl.getBoundingClientRect(), pb = document.getElementById('panelBody').getBoundingClientRect(); return r.top >= pb.top - 1 && r.bottom <= pb.bottom + 1; })() } : null;

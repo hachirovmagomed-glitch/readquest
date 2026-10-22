@@ -531,7 +531,7 @@ el('panelClose').onclick=()=>el('panel').classList.add('hidden');
 el('tabToc').onclick=()=>renderPanel('toc');
 el('tabMarks').onclick=()=>renderPanel('marks');
 el('tabQts').onclick=()=>renderPanel('qts');
-el('tabFind').onclick=()=>bfOpen(); /* 20.10: the one search screen (js/book-find.js), the same as the magnifier in the header */
+/* 22.10 (Джессика): no «Поиск» tab in «Навигация» — search is the magnifier in the header only (js/book-find.js) */
 el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
 /* 21.10 (Джессика: «нажимаю на цитату — бросает в ебеня»): the quote's own page, not a guess from b.text (a PDF has no b.text → page 1).

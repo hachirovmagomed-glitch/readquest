@@ -441,7 +441,7 @@ body.rq-nolocks #rqNoXp{display:block}
 #bfQ::placeholder{color:inherit;opacity:.7}
 #bfQ:focus-visible{outline:none;box-shadow:inset 0 -2px 0 var(--rq-accent,var(--accent))}
 .bfstat{flex:none;padding:10px 16px 2px;font-size:0.8125rem;color:var(--muted);min-height:1.2em;font-variant-numeric:tabular-nums}
-.bflist{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:6px 10px calc(16px + env(safe-area-inset-bottom))}
+.bflist{flex:1;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding:6px 10px calc(16px + env(safe-area-inset-bottom))}
 .bfrow{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;margin:0 0 6px;padding:10px 12px 10px 14px;border:0;border-radius:var(--rq-radius-sm,10px);background:var(--card);color:var(--txt);text-align:left;font:inherit;font-size:0.9375rem;line-height:1.35}
 .bfrow.on{box-shadow:inset 3px 0 0 var(--rq-accent,var(--accent))}
 .bfsn{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -633,7 +633,9 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 .pnow .ic{display:block}
 .prow.add{color:var(--accent2);justify-content:center}
 .pempty{color:var(--muted);text-align:center;padding:30px 0;font-size:0.875rem}
-#panel{max-height:70%}
+#panel{max-height:70%;display:flex;flex-direction:column;overflow:hidden} /* 22.10 (Джессика): title, ✕ and tabs stay put; only the list scrolls */
+#panel>.phead,#panel>.ptabs{flex:none}
+#panelBody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;margin:0 -16px;padding:0 16px 4px}
 
 /* ===== Drawer, настройки, карточка книги ===== */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:80}
@@ -2171,7 +2173,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <button id="tabToc" class="on">Главы</button>
       <button id="tabMarks">Закладки</button>
       <button id="tabQts">Цитаты</button>
-      <button id="tabFind">Поиск</button>
       <button id="tabGrid">Обзор</button>
     </div>
     <div id="panelBody"></div>

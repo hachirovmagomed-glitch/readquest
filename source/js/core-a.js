@@ -97,11 +97,22 @@ function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__
 const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
 function bookLvlAuto(b){
   if(!b||!window.__rqGame)return 0;
-  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+(b.title||'')+'|'+b.lvlText,c=__lvlAuto[b.id];
+  const ai=((S.bookLvlAi||{})[b.id]||{}).l;
+  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+(b.title||'')+'|'+b.lvlText+'|'+SESS.length+'|'+ai,c=__lvlAuto[b.id];
   if(c&&c.k===k)return c.l;
-  let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
-  __lvlAuto[b.id]={k:k,l:l};return l;
+  const G=window.__rqGame;let l=0,r=0;
+  try{l=G.autoLevel(b);r=bookPaceRatio(b);l=Math.max(l,G.paceAutoLevel(r),Number.isInteger(ai)?ai:0);}catch(e){console.warn('[rq] level',e);}
+  __lvlAuto[b.id]={k:k,l:l,r:r};return l;
 }
+/* 22.10: the reader's pace on this book against their other books of the same kind (game-awards.js paceRatio) */
+function bookPaceRatio(b){
+  const pdf={};BOOKS.concat(S.userBooks||[]).forEach(function(x){pdf[x.id]=x.type==='pdf';});
+  const me=b.type==='pdf',mine=[],base=[];
+  (SESS||[]).forEach(function(r){if(!r)return;if(r.bookId===b.id)mine.push(r);else if(r.bookId in pdf&&pdf[r.bookId]===me)base.push(r);});
+  return window.__rqGame.paceRatio(mine,base);
+}
+/** why the automatic level is what it is (card note): pace ratio and the neural network's verdict */
+function bookLvlWhy(b){bookLvlAuto(b);const c=__lvlAuto[b.id]||{};return {r:c.r||0,pace:window.__rqGame.paceAutoLevel(c.r||0),ai:(S.bookLvlAi||{})[b.id]||null};}
 /** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…LVL_MAX (game-awards textLevel); scans → 0. */
 async function pdfTextLevel(doc,alive){
   const G=window.__rqGame,parts=[];

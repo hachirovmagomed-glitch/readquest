@@ -59,6 +59,8 @@ export const PROGRESS_DEF = {
   bookDiff: {},
   /** 19.10 (arch.md «Сложность книги»): id → level 0…2 chosen by the reader; only LOWERS the automatic level */
   bookLvl: {},
+  /** 22.10 (arch.md): id → {l: 0…4, w: why ≤ 160} — the neural network's level of the book (reader's own key); raises the automatic level */
+  bookLvlAi: {},
   /** arch.md 20.10: «Обсудить книгу» — {bookId: [{r:'u'|'a', t, d}]}, ≤ 20 сообщений на книгу, t ≤ 1500 */
   aiChat: {},
   bookStat: {},
@@ -259,6 +261,16 @@ function aiChatMap(o) {
   }
   return out;
 }
+function lvlAiMap(o) {
+  const out = {};
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    Object.keys(o).forEach(function (k) {
+      const v = o[k];
+      if (v && Number.isInteger(v.l) && v.l >= 0 && v.l <= 4) out[k] = { l: v.l, w: typeof v.w === 'string' ? v.w.slice(0, 160) : '' };
+    });
+  }
+  return out;
+}
 function intMap(o, max, keyRe) {
   const out = {};
   if (o && typeof o === 'object' && !Array.isArray(o)) {
@@ -284,6 +296,7 @@ export function hydrateProgress(p) {
   out.bookStats = out.bookStats || {};
   out.bookDiff = out.bookDiff || {};
   out.bookLvl = intMap(out.bookLvl, 4); // 0…LVL_MAX (game-awards.js; 5 levels since 21.10)
+  out.bookLvlAi = lvlAiMap(out.bookLvlAi);
   out.aiChat = aiChatMap(out.aiChat);
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};

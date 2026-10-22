@@ -211,7 +211,7 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},lvlPaid:{}};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},lvlPaid:{}};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
@@ -219,6 +219,7 @@ let __tracker=null;     // reader-session tracker
 const DEFAULT_SKILLS=['Концентрация','Дисциплина','Аналитика','Скорочтение'];
 const DEFAULT_SKILL_LINKS={Концентрация:{Воля:100,Интеллект:30},Дисциплина:{Воля:100},Аналитика:{Интеллект:100,Мудрость:40},Скорочтение:{Интеллект:60}};
 /** 19.10 (arch.md): {key: whole number 0…max} — anything else dropped */
+function lvlAiMap(o){const out={};if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){const v=o[k];if(v&&Number.isInteger(v.l)&&v.l>=0&&v.l<=4)out[k]={l:v.l,w:typeof v.w==='string'?v.w.slice(0,160):''};});return out;}
 function lvlMap(o,max,keyRe){const out={};if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){const v=o[k];if(Number.isInteger(v)&&v>=0&&v<=max&&(!keyRe||keyRe.test(k)))out[k]=v;});return out;}
 function hydrateS(raw){
   S=Object.assign({},DEF,raw||{});
@@ -229,7 +230,7 @@ function hydrateS(raw){
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
   S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
   S.dailyPaidDays=Array.isArray(S.dailyPaidDays)?S.dailyPaidDays:[];S.weeklyPaidWeeks=Array.isArray(S.weeklyPaidWeeks)?S.weeklyPaidWeeks:[];
-  S.bookLvl=lvlMap(S.bookLvl,4);S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 19.10 book level (arch.md) */
+  S.bookLvl=lvlMap(S.bookLvl,4);S.bookLvlAi=lvlAiMap(S.bookLvlAi); /* 22.10 = storage/schema.js lvlAiMap */S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 19.10 book level (arch.md) */
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};

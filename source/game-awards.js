@@ -367,6 +367,42 @@ export function autoLevel(book) {
   const lt = Number.isInteger(b.lvlText) && b.lvlText >= 0 && b.lvlText <= LVL_MAX ? b.lvlText : 0;
   return Math.max(b.text ? textLevel(b.text) : lt, authorLevel(b.author), genreLevel(b.genre), titleLevel(b.title));
 }
+/*
+ * 22.10 (Джессика: «Давай первое» — the reader's own pace on this book). Minutes per page turn on this book against the same reader's
+ * other books of the same kind (PDF with PDF, text with text): a book read much slower than usual is harder than its text shows
+ * (a scan has no text at all). Only sessions with ≥ 3 turns; the book needs ≥ PACE_MIN.sessions sessions and ≥ PACE_MIN.turns turns,
+ * the baseline ≥ PACE_MIN.baseTurns turns from ≥ PACE_MIN.baseBooks other books. Minutes are the counted ones (page cap, idle cut),
+ * so a book left open does not slow the pace much. Not enough data → 0 (no verdict).
+ */
+export const PACE_MIN = { sessions: 3, turns: 30, baseTurns: 60, baseBooks: 2 };
+/** ratio → level: ≥ 1.6 «Сложная», ≥ 2.4 «Очень сложная», ≥ 3.2 «Экспертная»; pace alone never gives more */
+export const PACE_LVL = [1.6, 2.4, 3.2];
+export function paceRatio(bookRows, baseRows) {
+  const use = function (rs) { return (rs || []).filter(function (r) { return r && (Number(r.pageTurns) || 0) >= 3 && (Number(r.minutes) || 0) > 0; }); };
+  const sum = function (rs, k) { return rs.reduce(function (s, r) { return s + (Number(r[k]) || 0); }, 0); };
+  const b = use(bookRows), a = use(baseRows), bt = sum(b, 'pageTurns'), at = sum(a, 'pageTurns');
+  const books = {}; a.forEach(function (r) { books[r.bookId] = 1; });
+  if (b.length < PACE_MIN.sessions || bt < PACE_MIN.turns || at < PACE_MIN.baseTurns || Object.keys(books).length < PACE_MIN.baseBooks) return 0;
+  const base = sum(a, 'minutes') / at;
+  return base > 0 ? (sum(b, 'minutes') / bt) / base : 0;
+}
+export function paceAutoLevel(ratio) {
+  let l = 0;
+  while (l < PACE_LVL.length && ratio >= PACE_LVL[l]) l++;
+  return l;
+}
+/*
+ * 22.10 (Джессика: «И четвертое» — a neural network on the reader's own key). The answer is asked as JSON {"level": 0…4, "why": "…"};
+ * anything else → null (nothing is stored).
+ */
+export function parseAiLevel(s) {
+  const t = String(s || ''), m = t.match(/\{[\s\S]*?\}/);
+  let o = null;
+  if (m) { try { o = JSON.parse(m[0]); } catch (e) { o = null; } }
+  const l = o && typeof o.level === 'string' && /^\d$/.test(o.level) ? Number(o.level) : o && o.level;
+  if (!Number.isInteger(l) || l < 0 || l > LVL_MAX) return null;
+  return { l: l, w: String((o && o.why) || '').replace(/\s+/g, ' ').trim().slice(0, 160) };
+}
 /** pages of a PDF to sample for textLevel: up to `n`, spread over 10…90 % of the book (title pages and index left out) */
 export function pdfSamplePages(numPages, n) {
   const k = Math.max(1, Math.min(n || 12, numPages | 0)), out = [];

@@ -29,7 +29,7 @@ const card = (p, id) => p.evaluate((id) => {
   const R = sheet.getBoundingClientRect();
   const over = [...body.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > R.right + 0.5 || b.left < R.left - 0.5); }).map(e => e.className || e.tagName);
   return { has: i >= 0, chips: chips.map(b => ({ t: b.textContent, on: b.getAttribute('aria-checked') === 'true', off: b.disabled, h: Math.round(b.getBoundingClientRect().height) })),
-    note: i < 0 ? '' : (body.querySelectorAll('.bk-h')[i].nextElementSibling.nextElementSibling || {}).textContent, over, emoji: body.textContent.match(/\p{Extended_Pictographic}/gu) || [] };
+    note: i < 0 ? '' : (() => { let t = '', e = body.querySelectorAll('.bk-h')[i].nextElementSibling.nextElementSibling; while (e && !e.classList.contains('bk-h')) { t += e.textContent + ' '; e = e.nextElementSibling; } return t; })(), over, emoji: body.textContent.match(/\p{Extended_Pictographic}/gu) || [] };
 }, id);
 
 for (const w of [360, 390]) {
@@ -57,6 +57,40 @@ for (const w of [360, 390]) {
   ok(w + ' после понижения выбрана «Сложная», «Запредельная» всё ещё доступна (можно вернуть)', a.chips[1].on && !a.chips[4].off, a.chips);
   const s2 = await p.evaluate(() => { setBookLvl('u_phil', 4); return 'u_phil' in S.bookLvl; });
   ok(w + ' вернуть авто: ключ удаляется', !s2);
+  await c.close();
+}
+
+/* 22.10: own pace and the neural network (Джессика: «Давай первое. И четвертое») */
+{ const { p, c } = await page(BASE, 390); await addBooks(p, PHIL, KIDS);
+  const r = await p.evaluate(async () => {
+    const out = {}; const b0 = BOOKS[0].id, b1 = BOOKS[1].id;
+    const row = (id, min, turns) => ({ id: 's' + Math.random(), date: today(), bookId: id, minutes: min, pageTurns: turns });
+    SESS.push(row(b0, 10, 20), row(b0, 10, 20), row(b1, 10, 20), row(b1, 10, 20), row(b1, 10, 20));
+    SESS.push(row('u_kids', 15, 10), row('u_kids', 15, 10), row('u_kids', 15, 10)); /* 1.5 min/turn vs 0.5 → ratio 3 */
+    show('library'); bookInfo('u_kids');
+    const chips = () => [...el('bookSheetBody').querySelectorAll('.chips[aria-label="Сложность книги"] button')].map(b => b.getAttribute('aria-checked') === 'true');
+    out.pace = chips(); out.paceNote = (el('bkLvlPace') || {}).textContent || ''; out.hint = !!el('bkLvlAiHint') && !el('bkLvlAiBtn');
+    S.ai = Object.assign({}, S.ai || {}, { prov: 'openai', key: 'test-key' });
+    let asked = null; window.aiViaKey = async (m) => { asked = m; return 'Ответ: {"level": 3, "why": "Плотные философские термины"}'; };
+    bookInfo('u_kids'); el('bkLvlAiBtn').click();
+    for (let i = 0; i < 50 && !(S.bookLvlAi && S.bookLvlAi.u_kids); i++) await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, 200));
+    out.ai = S.bookLvlAi && S.bookLvlAi.u_kids; out.aiChips = chips(); out.aiNote = (el('bkLvlAiRes') || {}).textContent || '';
+    out.askedText = !!(asked && /Отрывки из книги/.test(asked.user) && /Жил-был кот/.test(asked.user)); out.btnAgain = (el('bkLvlAiBtn') || {}).textContent || '';
+    window.aiViaKey = async () => 'не знаю'; el('bkLvlAiBtn').click(); await new Promise(r => setTimeout(r, 400));
+    out.keptAfterBad = S.bookLvlAi.u_kids.l;
+    out.lvlOf = bookLvlOf(allBooks().find(x => x.id === 'u_kids'));
+    save(); const ex = await __rq.exportBackup(); out.ex = ex.progress && ex.progress.bookLvlAi;
+    return out;
+  });
+  ok('темп: детская книга, которую читаешь втрое медленнее обычного → «Очень сложная», пояснение в карточке', r.pace[2] && /в 3 раза дольше/.test(r.paceNote), r);
+  ok('без ключа: вместо кнопки подсказка про «Нейросети»', r.hint);
+  ok('нейросеть: кнопка отправляет отрывки, ответ 3 → «Экспертная» выбрана, пояснение и «ещё раз»', r.ai && r.ai.l === 3 && r.aiChips[3] && r.askedText && /Экспертная/.test(r.aiNote) && /Плотные философские/.test(r.aiNote) && /ещё раз/.test(r.btnAgain), r);
+  ok('нейросеть: непонятный ответ ничего не портит; уровень книги 3; экспорт несёт bookLvlAi', r.keptAfterBad === 3 && r.lvlOf === 3 && r.ex && r.ex.u_kids && r.ex.u_kids.l === 3, r);
+  await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+  const kept = await p.evaluate(() => S.bookLvlAi && S.bookLvlAi.u_kids);
+  ok('после перезагрузки оценка нейросети на месте', kept && kept.l === 3 && kept.w === 'Плотные философские термины', kept);
+  if (SHOTS) { await p.evaluate(() => { show('library'); bookInfo('u_kids'); const h = [...el('bookSheetBody').querySelectorAll('.bk-h')].find(x => x.textContent === 'Сложность'); h.scrollIntoView({ block: 'start' }); }); await sleep(300); await p.screenshot({ path: SHOTS + '/card-ai-390.png' }); }
   await c.close();
 }
 

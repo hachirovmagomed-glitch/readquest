@@ -507,7 +507,50 @@ function bookLvlHtml(b){
     L.map(function(x,i){const on=i===cur,off=i>auto;
       const nm=lvlName(i);
       return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'"'+(off?' disabled aria-disabled="true" title="Повысить сложность нельзя"':nm!==x.n?' title="'+esc(x.n)+'"':'')+' onclick="setBookLvl(\''+b.id+'\','+i+')">'+(on?rqIcon('check',14):off?rqIcon('lock',14):'')+esc(nm)+(i?' ×'+m(i):'')+'</button>';}).join('')+
-    '</div><div class="bk-note">'+(auto?'Определена по тексту, терминам, автору и названию. ':'')+'Чем сложнее книга, тем больше опыта (до ×'+m(L.length-1)+') и бонус +'+L[1].coins+'…+'+L[L.length-1].coins+' монет за каждые 10 минут, не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
+    '</div>'+bookLvlWhyHtml(b)+'<div class="bk-note">'+(auto?'Определена по тексту, терминам, автору и названию, твоему темпу и оценке нейросети. ':'')+'Чем сложнее книга, тем больше опыта (до ×'+m(L.length-1)+') и бонус +'+L[1].coins+'…+'+L[L.length-1].coins+' монет за каждые 10 минут, не больше +'+G.LVL_DAY_CAP+' в день. Понизить можно, повысить нельзя.</div>';
+}
+/* 22.10 (Джессика: «Давай первое. И четвертое»): what raised the level — the reader's pace and the neural network (own key) */
+function bookLvlWhyHtml(b){
+  const w=bookLvlWhy(b),out=[];
+  if(w.pace>0)out.push('<div class="bk-note" id="bkLvlPace">'+rqIcon('clock',14)+' Твой темп: на странице в '+String(Math.round(w.r*10)/10).replace('.',',')+' раза дольше, чем в других твоих книгах, это «'+esc(lvlName(w.pace))+'».</div>');
+  if(w.ai)out.push('<div class="bk-note" id="bkLvlAiRes">'+rqIcon('sparkles',14)+' Нейросеть: «'+esc(lvlName(w.ai.l))+'»'+(w.ai.w?'. '+esc(w.ai.w):'')+'</div>');
+  out.push(aiOn()?'<button type="button" class="ghostbtn" id="bkLvlAiBtn" onclick="bookLvlAiRun(\''+b.id+'\')">'+rqIcon('sparkles',16)+' '+(w.ai?'Оценить нейросетью ещё раз':'Оценить нейросетью')+'</button>'
+    :'<div class="bk-note" id="bkLvlAiHint">Нейросеть может оценить сложность, если вписать свой ключ в «Нейросети» в настройках.</div>');
+  return out.join('');
+}
+const LVL_AI_SYS='Ты оцениваешь, насколько трудно читать книгу. Шкала: 0 — обычная (художественная проза, детские книги, лёгкий нон-фикшн); '+
+  '1 — сложная (плотная классика, серьёзный научпоп); 2 — очень сложная (философия, учебники, научные книги); '+
+  '3 — экспертная (академические монографии, тяжёлая философия уровня Канта); 4 — запредельная (Гегель, Хайдеггер, Деррида, Лакан, плотная математика). '+
+  'Учитывай язык, термины, абстрактность, формулы. Ответь только JSON без пояснений вокруг: {"level": число 0–4, "why": "почему, по-русски, до 120 знаков"}.';
+async function bookLvlAiSample(b){
+  try{
+    if(b.text){const t=String(b.text),L=t.length;return [0.15,0.45,0.75].map(function(p){const a=Math.floor(L*p);return t.slice(a,a+1200);}).join('\n…\n');}
+    if(b.type==='pdf'&&typeof loadPdfJs==='function'&&typeof idbGet==='function'){
+      const buf=await idbGet('pdf:'+b.id);if(!buf)return '';await loadPdfJs();
+      const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise,parts=[];
+      try{for(const n of window.__rqGame.pdfSamplePages(doc.numPages,4)){const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' ').slice(0,1000));}}
+      finally{try{doc.destroy();}catch(_){}}
+      return parts.join('\n…\n').replace(/[ \t]+/g,' ').trim();
+    }
+  }catch(e){console.warn('[rq] ai sample',e);}
+  return '';
+}
+let lvlAiBusy=false;
+async function bookLvlAiRun(id){
+  const b=allBooks().find(function(x){return x.id===id;});if(!b||!lvlOn()||!aiOn()||lvlAiBusy)return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+  if(navigator.onLine===false){flashMsg('Нужен интернет','info');return;}
+  const btn=el('bkLvlAiBtn');lvlAiBusy=true;if(btn){btn.disabled=true;btn.textContent='Оцениваю…';}
+  let res=null,err='';
+  try{const smp=await bookLvlAiSample(b);
+    const out=await aiViaKey({system:LVL_AI_SYS,user:'Книга: «'+(b.title||'')+'»'+(b.author&&b.author!=='PDF'&&b.author!=='Моя книга'?', автор: '+b.author:'')+
+      (smp?'\nОтрывки из книги:\n'+smp:'\nТекста нет (скан), оцени по названию и автору.')},200);
+    res=window.__rqGame.parseAiLevel(out);if(!res)err='непонятный ответ';}
+  catch(e){err=e&&e.message||'ошибка';}
+  lvlAiBusy=false;
+  if(res){S.bookLvlAi=S.bookLvlAi||{};S.bookLvlAi[id]=res;save();flashMsg('Нейросеть: «'+lvlName(res.l)+'»');}
+  else flashMsg('Не получилось оценить'+(err?': '+err:''),'info');
+  if(el('bookSheet')&&!el('bookSheet').classList.contains('hidden'))bookInfo(id);
 }
 function setBookLvl(id,l){
   const b=allBooks().find(x=>x.id===id);if(!b||!lvlOn())return;

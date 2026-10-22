@@ -59,6 +59,20 @@ ok('название: «Война и мир», «Benjamin Franklin Autobiograph
 ok('карточка PDF-скана: автор «PDF», текста нет, но в названии Деррида → 4', G.autoLevel({ type: 'pdf', author: 'PDF', genre: 'PDF', title: 'Деррида Ж. – О грамматологии', lvlText: 0 }) === 4);
 ok('встроенная полка: названия ничего не поднимают', shelf.every(f => G.titleLevel(f.replace(/\.txt$/, '')) === 0));
 
+/* --- 22.10: own pace on the book; neural network level (Джессика: «Давай первое. И четвертое») --- */
+{ const R = (book, n, min, turns) => Array.from({ length: n }, () => ({ bookId: book, minutes: min, pageTurns: turns }));
+  const base = R('a', 3, 10, 20).concat(R('b', 2, 10, 20)); /* 0.5 min per turn, 100 turns, two books */
+  ok('темп: книга вдвое медленнее обычного → ratio 2, «Сложная»', Math.abs(G.paceRatio(R('x', 3, 10, 10), base) - 2) < 1e-9 && G.paceAutoLevel(2) === 1);
+  ok('темп: 2,5 → «Очень сложная», 3,5 → «Экспертная», больше темп не даёт', G.paceAutoLevel(2.5) === 2 && G.paceAutoLevel(3.5) === 3 && G.paceAutoLevel(10) === 3 && G.paceAutoLevel(1.5) === 0);
+  ok('темп: мало данных — нет вердикта (2 сессии; 29 перелистываний; база из одной книги; база < 60)',
+    G.paceRatio(R('x', 2, 30, 20), base) === 0 && G.paceRatio(R('x', 3, 30, 9).concat(R('x', 1, 0, 2)), base) === 0 &&
+    G.paceRatio(R('x', 3, 30, 20), R('a', 5, 10, 20)) === 0 && G.paceRatio(R('x', 3, 30, 20), R('a', 1, 10, 20).concat(R('b', 1, 10, 20))) === 0);
+  ok('темп: сессии меньше 3 перелистываний не считаются', G.paceRatio(R('x', 3, 10, 10).concat(R('x', 5, 60, 2)), base) === G.paceRatio(R('x', 3, 10, 10), base));
+  ok('нейросеть: JSON с уровнем → {l, w}', JSON.stringify(G.parseAiLevel('Вот: {"level": 4, "why": "Деконструкция, плотные термины"}')) === '{"l":4,"w":"Деконструкция, плотные термины"}');
+  ok('нейросеть: «3» строкой годится; 5, -1, 2.5, текст без JSON → null', G.parseAiLevel('{"level":"3","why":"x"}').l === 3 && G.parseAiLevel('{"level":5}') === null &&
+    G.parseAiLevel('{"level":-1}') === null && G.parseAiLevel('{"level":2.5}') === null && G.parseAiLevel('уровень 3') === null);
+}
+
 /* --- author, genre, auto, manual --- */
 ok('автор: Кант → 3, Спиноза → 2, Платон → 1, Plato → 1, Эзоп → 0, «Канторович» не Кант', G.authorLevel('Иммануил Кант') === 3 && G.authorLevel('Бенедикт Спиноза') === 2 && G.authorLevel('Платон') === 1 && G.authorLevel('Plato') === 1 && G.authorLevel('Эзоп') === 0 && G.authorLevel('Канторович') === 0);
 ok('жанр FB2 sci_philosophy → 1, «Сказки» → 0', G.genreLevel('sci_philosophy') === 1 && G.genreLevel('Сказки') === 0);

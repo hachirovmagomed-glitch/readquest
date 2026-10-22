@@ -539,32 +539,30 @@ input[type=color]{width:38px;height:38px;border:none;background:none;padding:0;b
 .pop{animation:pop .5s ease both}
 
 /* ===== Цитаты, магазин, квесты ===== */
-mark{--hc:var(--hl-y);--hs:var(--hs-y);background:var(--hc);color:inherit;border-radius:var(--rq-radius-xs);padding:0;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+mark{--hc:var(--hl-y);--hs:var(--hs-y);--hc2:var(--hl2-y);--hs2:var(--hs2-y);background:var(--hc);color:inherit;border-radius:var(--rq-radius-xs);padding:0;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 /* 20.10 цвета цитат (Джессика: «вариативность выбора цвета», как в ReadEra). Без красного (правило читалки); ночью прозрачнее, текст под цветом чуть темнее/светлее — текст книги ≥ 7:1 (test/hlcolor) */
 #reader{--hl-y:rgba(255,205,60,.45);--hl-g:rgba(110,200,90,.38);--hl-b:rgba(80,170,240,.32);--hl-p:rgba(185,135,235,.34);--hl-o:rgba(255,150,50,.36);--hs-y:#d9a400;--hs-g:#4f9a3e;--hs-b:#2f84c8;--hs-p:#8a5cc4;--hs-o:#d9741c}
 #reader[data-page="night"]{--hl-y:rgba(255,205,60,.16);--hl-g:rgba(110,200,90,.22);--hl-b:rgba(80,170,240,.24);--hl-p:rgba(185,135,235,.24);--hl-o:rgba(255,150,50,.22)}
 #content mark{color:color-mix(in srgb,currentColor 70%,#000)}#reader[data-page="night"] #content mark{color:color-mix(in srgb,currentColor 65%,#fff)} /* text under a colour a bit deeper (day) / brighter (night): sepia and «Чёрная» are only 7.5:1 bare */
-.pdfhls i{--hc:var(--hl-y);--hs:var(--hs-y)}
-/* 22.10 (Джессика: «уникализировать кружочки, выделение цветов под каждый конкретный скин»): every skin has its own five quote colours
-   (same keys y g b p o in quotes[].c, so a quote takes the skin's colour), its own names (HL_NAMES) and its own dot shape */
+.pdfhls i{--hc:var(--hl-y);--hs:var(--hs-y);--hc2:var(--hl2-y);--hs2:var(--hs2-y)}
+/* 22.10 (Джессика: «у всех скинов свои наборы цветов … одно выделение совмещает несколько цветов, комбо … и спецэффекты под скин»):
+   every skin has its own five COMBOS of two colours (same keys y g b p o in quotes[].c, so a quote takes the skin's combo), its own names (HL_NAMES),
+   its own dot shape and its own look + a one-time effect when a quote is made ([data-hlnew]). Alphas: book text ≥ 7:1 over each colour (tools: generated, test/hlcolor 8) */
 :root{--dot-y:#f5c518;--dot-g:#5cb85c;--dot-b:#4aa3ec;--dot-p:#a97be0;--dot-o:#f39237}
-html[data-skin="pencil"]{--dot-y:#e6b43c;--dot-g:#5a9650;--dot-b:#4682c8;--dot-p:#8c64be;--dot-o:#cd6e3c}
-html[data-skin="pencil"] #reader{--hl-y:rgba(230,180,60,0.45);--hl-g:rgba(90,150,80,0.38);--hl-b:rgba(70,130,200,0.32);--hl-p:rgba(140,100,190,0.34);--hl-o:rgba(205,110,60,0.36);--hs-y:#b38c2e;--hs-g:#46753e;--hs-b:#36659c;--hs-p:#6d4e94;--hs-o:#9f552e}
-html[data-skin="pencil"] #reader[data-page="night"]{--hl-y:rgba(230,180,60,0.16);--hl-g:rgba(90,150,80,0.22);--hl-b:rgba(70,130,200,0.24);--hl-p:rgba(140,100,190,0.24);--hl-o:rgba(205,110,60,0.22)}
-html[data-skin="pencil"] .textLayer .pdfhls{--hl-y:rgba(230,180,60,0.45);--hl-g:rgba(90,150,80,0.38);--hl-b:rgba(70,130,200,0.32);--hl-p:rgba(140,100,190,0.34);--hl-o:rgba(205,110,60,0.36)}
-html[data-skin="ellada"]{--dot-y:#d6aa3c;--dot-g:#808c3c;--dot-b:#286eaa;--dot-p:#963c78;--dot-o:#c4623a}
-html[data-skin="ellada"] #reader{--hl-y:rgba(214,170,60,0.45);--hl-g:rgba(128,140,60,0.38);--hl-b:rgba(40,110,170,0.32);--hl-p:rgba(150,60,120,0.34);--hl-o:rgba(196,98,58,0.36);--hs-y:#a6842e;--hs-g:#636d2e;--hs-b:#1f5584;--hs-p:#752e5d;--hs-o:#984c2d}
-html[data-skin="ellada"] #reader[data-page="night"]{--hl-y:rgba(214,170,60,0.16);--hl-g:rgba(128,140,60,0.22);--hl-b:rgba(40,110,170,0.24);--hl-p:rgba(150,60,120,0.24);--hl-o:rgba(196,98,58,0.22)}
-html[data-skin="ellada"] .textLayer .pdfhls{--hl-y:rgba(214,170,60,0.45);--hl-g:rgba(128,140,60,0.38);--hl-b:rgba(40,110,170,0.32);--hl-p:rgba(150,60,120,0.34);--hl-o:rgba(196,98,58,0.36)}
-html[data-skin="babochkovyi"]{--dot-y:#fadc5a;--dot-g:#78d2aa;--dot-b:#78aafa;--dot-p:#be96f0;--dot-o:#ffa082}
-html[data-skin="babochkovyi"] #reader{--hl-y:rgba(250,220,90,0.45);--hl-g:rgba(120,210,170,0.38);--hl-b:rgba(120,170,250,0.32);--hl-p:rgba(190,150,240,0.34);--hl-o:rgba(255,160,130,0.36);--hs-y:#c3ab46;--hs-g:#5da384;--hs-b:#5d84c3;--hs-p:#9475bb;--hs-o:#c67c65}
-html[data-skin="babochkovyi"] #reader[data-page="night"]{--hl-y:rgba(250,220,90,0.16);--hl-g:rgba(120,210,170,0.22);--hl-b:rgba(120,170,250,0.24);--hl-p:rgba(190,150,240,0.24);--hl-o:rgba(255,160,130,0.22)}
-html[data-skin="babochkovyi"] .textLayer .pdfhls{--hl-y:rgba(250,220,90,0.45);--hl-g:rgba(120,210,170,0.38);--hl-b:rgba(120,170,250,0.32);--hl-p:rgba(190,150,240,0.34);--hl-o:rgba(255,160,130,0.36)}
-html[data-skin="celestial"]{--dot-y:#f5be3c;--dot-g:#3caa8c;--dot-b:#466ed2;--dot-p:#965ad2;--dot-o:#eb8228}
-html[data-skin="celestial"] #reader{--hl-y:rgba(245,190,60,0.45);--hl-g:rgba(60,170,140,0.38);--hl-b:rgba(70,110,210,0.32);--hl-p:rgba(150,90,210,0.34);--hl-o:rgba(235,130,40,0.36);--hs-y:#bf942e;--hs-g:#2e846d;--hs-b:#3655a3;--hs-p:#7546a3;--hs-o:#b7651f}
-html[data-skin="celestial"] #reader[data-page="night"]{--hl-y:rgba(245,190,60,0.16);--hl-g:rgba(60,170,140,0.22);--hl-b:rgba(70,110,210,0.24);--hl-p:rgba(150,90,210,0.24);--hl-o:rgba(235,130,40,0.22)}
-html[data-skin="celestial"] .textLayer .pdfhls{--hl-y:rgba(245,190,60,0.45);--hl-g:rgba(60,170,140,0.38);--hl-b:rgba(70,110,210,0.32);--hl-p:rgba(150,90,210,0.34);--hl-o:rgba(235,130,40,0.36)}
-html[data-skin="pencil"] #spColors i:not(.own){border-radius:46% 54% 50% 50%/55% 45% 55% 45%;background:repeating-linear-gradient(-55deg,var(--d) 0 3px,color-mix(in srgb,var(--d) 45%,transparent) 3px 4.5px);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--d) 70%,#000)}
+#reader{--hl2-y:var(--hl-y);--hl2-g:var(--hl-g);--hl2-b:var(--hl-b);--hl2-p:var(--hl-p);--hl2-o:var(--hl-o);--hs2-y:var(--hs-y);--hs2-g:var(--hs-g);--hs2-b:var(--hs-b);--hs2-p:var(--hs-p);--hs2-o:var(--hs-o)} /* no skin: one colour */
+html[data-skin="pencil"]{--dot-y:#f0c419;--dot2-y:#8cc63f;--dot-g:#4fb286;--dot2-g:#2bb3c0;--dot-b:#4a8fd8;--dot2-b:#7a6fd8;--dot-p:#e46aa0;--dot2-p:#a77bd6;--dot-o:#e09a3a;--dot2-o:#c8643c}
+html[data-skin="pencil"] :is(#reader,.textLayer .pdfhls){--hl-y:rgba(240,196,25,0.45);--hl2-y:rgba(140,198,63,0.45);--hs-y:#b49312;--hs2-y:#69942f;--hl-g:rgba(79,178,134,0.45);--hl2-g:rgba(43,179,192,0.45);--hs-g:#3b8564;--hs2-g:#208690;--hl-b:rgba(74,143,216,0.45);--hl2-b:rgba(122,111,216,0.45);--hs-b:#376ba2;--hs2-b:#5b53a2;--hl-p:rgba(228,106,160,0.45);--hl2-p:rgba(167,123,214,0.45);--hs-p:#ab4f78;--hs2-p:#7d5ca0;--hl-o:rgba(224,154,58,0.45);--hl2-o:rgba(200,100,60,0.45);--hs-o:#a8732b;--hs2-o:#964b2d}
+html[data-skin="pencil"] #reader[data-page="night"]{--hl-y:rgba(240,196,25,0.22);--hl2-y:rgba(140,198,63,0.25);--hl-g:rgba(79,178,134,0.26);--hl2-g:rgba(43,179,192,0.26);--hl-b:rgba(74,143,216,0.26);--hl2-b:rgba(122,111,216,0.26);--hl-p:rgba(228,106,160,0.26);--hl2-p:rgba(167,123,214,0.26);--hl-o:rgba(224,154,58,0.26);--hl2-o:rgba(200,100,60,0.26)}
+html[data-skin="ellada"]{--dot-y:#d4a017;--dot2-y:#2fa3b0;--dot-g:#7d8a2e;--dot2-g:#d4a017;--dot-b:#1f6fb2;--dot2-b:#2fb0a0;--dot-p:#8e2c6e;--dot2-p:#d4a017;--dot-o:#c4623a;--dot2-o:#e3a43a}
+html[data-skin="ellada"] :is(#reader,.textLayer .pdfhls){--hl-y:rgba(212,160,23,0.45);--hl2-y:rgba(47,163,176,0.45);--hs-y:#9f7811;--hs2-y:#237a84;--hl-g:rgba(125,138,46,0.45);--hl2-g:rgba(212,160,23,0.45);--hs-g:#5d6722;--hs2-g:#9f7811;--hl-b:rgba(31,111,178,0.45);--hl2-b:rgba(47,176,160,0.45);--hs-b:#175385;--hs2-b:#238478;--hl-p:rgba(142,44,110,0.45);--hl2-p:rgba(212,160,23,0.45);--hs-p:#6a2152;--hs2-p:#9f7811;--hl-o:rgba(196,98,58,0.45);--hl2-o:rgba(227,164,58,0.45);--hs-o:#93492b;--hs2-o:#aa7b2b}
+html[data-skin="ellada"] #reader[data-page="night"]{--hl-y:rgba(212,160,23,0.26);--hl2-y:rgba(47,163,176,0.26);--hl-g:rgba(125,138,46,0.26);--hl2-g:rgba(212,160,23,0.26);--hl-b:rgba(31,111,178,0.26);--hl2-b:rgba(47,176,160,0.26);--hl-p:rgba(142,44,110,0.26);--hl2-p:rgba(212,160,23,0.26);--hl-o:rgba(196,98,58,0.26);--hl2-o:rgba(227,164,58,0.26)}
+html[data-skin="babochkovyi"]{--dot-y:#f5d547;--dot2-y:#a6dd7c;--dot-g:#6fd3a8;--dot2-g:#7cc7f2;--dot-b:#7fa8f7;--dot2-b:#c29cf2;--dot-p:#f08fc0;--dot2-p:#9c8cf0;--dot-o:#ffa07a;--dot2-o:#ffb3d9}
+html[data-skin="babochkovyi"] :is(#reader,.textLayer .pdfhls){--hl-y:rgba(245,213,71,0.45);--hl2-y:rgba(166,221,124,0.45);--hs-y:#b79f35;--hs2-y:#7ca55d;--hl-g:rgba(111,211,168,0.45);--hl2-g:rgba(124,199,242,0.45);--hs-g:#539e7e;--hs2-g:#5d95b5;--hl-b:rgba(127,168,247,0.45);--hl2-b:rgba(194,156,242,0.45);--hs-b:#5f7eb9;--hs2-b:#9175b5;--hl-p:rgba(240,143,192,0.45);--hl2-p:rgba(156,140,240,0.45);--hs-p:#b46b90;--hs2-p:#7569b4;--hl-o:rgba(255,160,122,0.45);--hl2-o:rgba(255,179,217,0.45);--hs-o:#bf785b;--hs2-o:#bf86a2}
+html[data-skin="babochkovyi"] #reader[data-page="night"]{--hl-y:rgba(245,213,71,0.26);--hl2-y:rgba(166,221,124,0.26);--hl-g:rgba(111,211,168,0.26);--hl2-g:rgba(124,199,242,0.26);--hl-b:rgba(127,168,247,0.26);--hl2-b:rgba(194,156,242,0.26);--hl-p:rgba(240,143,192,0.26);--hl2-p:rgba(156,140,240,0.26);--hl-o:rgba(255,160,122,0.26);--hl2-o:rgba(255,179,217,0.26)}
+html[data-skin="celestial"]{--dot-y:#f5be3c;--dot2-y:#f28aa0;--dot-g:#3cc8a0;--dot2-g:#6a8ef0;--dot-b:#466ed2;--dot2-b:#a05ad2;--dot-p:#965ad2;--dot2-p:#e070c0;--dot-o:#eb8228;--dot2-o:#f5d25a}
+html[data-skin="celestial"] :is(#reader,.textLayer .pdfhls){--hl-y:rgba(245,190,60,0.45);--hl2-y:rgba(242,138,160,0.45);--hs-y:#b78e2d;--hs2-y:#b56778;--hl-g:rgba(60,200,160,0.45);--hl2-g:rgba(106,142,240,0.45);--hs-g:#2d9678;--hs2-g:#4f6ab4;--hl-b:rgba(70,110,210,0.45);--hl2-b:rgba(160,90,210,0.45);--hs-b:#34529d;--hs2-b:#78439d;--hl-p:rgba(150,90,210,0.45);--hl2-p:rgba(224,112,192,0.45);--hs-p:#70439d;--hs2-p:#a85490;--hl-o:rgba(235,130,40,0.45);--hl2-o:rgba(245,210,90,0.45);--hs-o:#b0611e;--hs2-o:#b79d43}
+html[data-skin="celestial"] #reader[data-page="night"]{--hl-y:rgba(245,190,60,0.26);--hl2-y:rgba(242,138,160,0.26);--hl-g:rgba(60,200,160,0.26);--hl2-g:rgba(106,142,240,0.26);--hl-b:rgba(70,110,210,0.26);--hl2-b:rgba(160,90,210,0.26);--hl-p:rgba(150,90,210,0.26);--hl2-p:rgba(224,112,192,0.26);--hl-o:rgba(235,130,40,0.26);--hl2-o:rgba(245,210,90,0.26)}
+html[data-skin="pencil"] #spColors i:not(.own){border-radius:46% 54% 50% 50%/55% 45% 55% 45%;background:repeating-linear-gradient(-55deg,var(--d) 0 3px,var(--d2,var(--d)) 3px 6px);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--d) 70%,#000)}
 html[data-skin="pencil"] #spColors button.on i:not(.own){box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--d) 70%,#000),0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
 html[data-skin="ellada"] #spColors i{border-radius:5px;box-shadow:inset 0 0 0 2px var(--sheet),inset 0 0 0 3px color-mix(in srgb,var(--d) 60%,#000)}
 html[data-skin="ellada"] #spColors button.on i{box-shadow:inset 0 0 0 2px var(--sheet),inset 0 0 0 3px color-mix(in srgb,var(--d) 60%,#000),0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
@@ -573,15 +571,29 @@ html[data-skin="celestial"] #spColors i{width:30px;height:30px;border-radius:0;b
 html[data-skin="celestial"] #spColors i.own{clip-path:none;border-radius:50%;width:26px;height:26px}
 html[data-skin="celestial"] #spColors button.on{border-radius:50%;box-shadow:inset 0 0 0 2px var(--txt)}
 html[data-skin="celestial"] #spColors button.on i:not(.own){box-shadow:none}
-:is(mark,.pdfhls i).hl-g{--hc:var(--hl-g);--hs:var(--hs-g)}:is(mark,.pdfhls i).hl-b{--hc:var(--hl-b);--hs:var(--hs-b)}:is(mark,.pdfhls i).hl-p{--hc:var(--hl-p);--hs:var(--hs-p)}:is(mark,.pdfhls i).hl-o{--hc:var(--hl-o);--hs:var(--hs-o)}
-/* 21.10 (Джессика: «уникальные выделения для каждого скина»): one look per skin, same in books and PDF. --hc = wash (≥ 7:1 text), --hs = line colour (never under the letters) */
-html[data-skin="pencil"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(-58deg,var(--hc) 0 2.2px,transparent 2.2px 3.6px);border-radius:.25em .7em .35em .8em/.7em .3em .8em .4em} /* Карандашный: штриховка карандашом, края неровные */
-html[data-skin="ellada"] :is(#content mark,.pdfhls i){background:linear-gradient(transparent 38%,var(--hc) 38%);box-shadow:inset 0 -2px 0 var(--hs);border-radius:0} /* Эллада: подчёркнутая строка, как в рукописи */
-html[data-skin="babochkovyi"] :is(#content mark,.pdfhls i){background:linear-gradient(90deg,transparent,var(--hc) .45em calc(100% - .45em),transparent);border-radius:1em} /* Бабочковый: мягкая лепесток-капсула */
-html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);box-shadow:0 0 .5em .12em var(--hc);border-radius:.35em} /* Небесный: свечение звезды */
+:is(mark,.pdfhls i).hl-g{--hc:var(--hl-g);--hs:var(--hs-g);--hc2:var(--hl2-g);--hs2:var(--hs2-g)}:is(mark,.pdfhls i).hl-b{--hc:var(--hl-b);--hs:var(--hs-b);--hc2:var(--hl2-b);--hs2:var(--hs2-b)}:is(mark,.pdfhls i).hl-p{--hc:var(--hl-p);--hs:var(--hs-p);--hc2:var(--hl2-p);--hs2:var(--hs2-p)}:is(mark,.pdfhls i).hl-o{--hc:var(--hl-o);--hs:var(--hs-o);--hc2:var(--hl2-o);--hs2:var(--hs2-o)}
+/* 21.10 one look per skin, same in books and PDF; 22.10 each look mixes the combo's two colours. --hc/--hc2 = washes (≥ 7:1 text), --hs/--hs2 = line colours (never under the letters).
+   Colours never stack on each other (stripes / halves side by side), so the text over any point is over one wash only */
+html[data-skin="pencil"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(-58deg,var(--hc) 0 2.2px,transparent 2.2px 3.4px,var(--hc2) 3.4px 5.6px,transparent 5.6px 6.8px) left/100% 100% no-repeat;border-radius:.25em .7em .35em .8em/.7em .3em .8em .4em} /* Карандашный: штриховка двумя карандашами, края неровные */
+html[data-skin="ellada"] :is(#content mark,.pdfhls i){background:repeating-linear-gradient(90deg,var(--hs) 0 6px,transparent 6px 8px,var(--hs2) 8px 10px,transparent 10px 12px) bottom/100% 2px no-repeat,linear-gradient(90deg,var(--hc),var(--hc2) 50%,var(--hc)) bottom/100% 62% no-repeat;border-radius:0} /* Эллада: строка в два тона с орнаментом-бусами снизу, как кайма на амфоре */
+html[data-skin="babochkovyi"] :is(#content mark,.pdfhls i){background:radial-gradient(circle,var(--hs2) 0 .8px,transparent 1.2px) 0 0/8px 4px repeat-x,linear-gradient(90deg,transparent,var(--hc) .45em,var(--hc2) 50%,var(--hc) calc(100% - .45em),transparent);border-radius:1em} /* Бабочковый: переливается, как крыло, с пыльцой по верху */
+html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:radial-gradient(circle,var(--star,rgba(255,255,255,.95)) 0 .7px,transparent 1.1px) 3px 0/13px 20% repeat-x,radial-gradient(circle,var(--star,rgba(255,255,255,.75)) 0 .5px,transparent .9px) 9px 2px/19px 20% repeat-x,linear-gradient(100deg,var(--hc),var(--hc2));box-shadow:inset 0 0 .45em .02em color-mix(in srgb,var(--hc2) 75%,transparent);border-radius:.45em} /* Небесный: туманность из двух цветов, свечение внутрь (край страницы его не режет), звёздная пыль по верху строки */
+html[data-skin="celestial"] #reader[data-page="night"]{--star:rgba(255,255,255,.5)} /* ночью пыль тише, не рябит на буквах */
+/* a just-made (or recoloured) quote: once, in the skin's own way. No motion for «уменьшить движение» */
+:is(#content mark,.pdfhls i)[data-hlnew]{animation:hlNew .9s ease-out}
+@keyframes hlNew{from{filter:brightness(1.25) saturate(1.5)}to{filter:none}}
+html[data-skin="pencil"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlPencil .7s cubic-bezier(.3,.7,.4,1)} /* штрих ложится слева направо */
+@keyframes hlPencil{from{background-size:0 100%}to{background-size:100% 100%}}
+html[data-skin="ellada"] :is(#content mark,.pdfhls i)[data-hlnew]{background:linear-gradient(105deg,transparent 35%,rgba(255,240,190,.85) 50%,transparent 65%) -150% 0/60% 100% no-repeat,repeating-linear-gradient(90deg,var(--hs) 0 6px,transparent 6px 8px,var(--hs2) 8px 10px,transparent 10px 12px) bottom/100% 2px no-repeat,linear-gradient(90deg,var(--hc),var(--hc2) 50%,var(--hc)) bottom/100% 62% no-repeat;animation:hlGold 1.1s ease-in-out} /* по строке пробегает блик сусального золота */
+@keyframes hlGold{from{background-position:-150% 0,bottom,bottom}to{background-position:250% 0,bottom,bottom}}
+html[data-skin="babochkovyi"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlWing 1.2s ease-in-out} /* крыло переливается */
+@keyframes hlWing{0%{filter:none}35%{filter:hue-rotate(35deg) saturate(1.5)}70%{filter:hue-rotate(-25deg) saturate(1.3)}100%{filter:none}}
+html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlStar 1.3s ease-out} /* звёздная пыль пролетает по строке, строка вспыхивает */
+@keyframes hlStar{0%{background-position:-60px 0,-90px 2px,0 0;filter:brightness(1.3) saturate(1.3)}100%{background-position:3px 0,9px 2px,0 0;filter:none}}
+@media (prefers-reduced-motion:reduce){:is(#content mark,.pdfhls i)[data-hlnew]{animation:none!important}}
 #spColors{flex-basis:100%;display:flex;justify-content:center;gap:4px;padding-bottom:2px;border-bottom:1px solid var(--rq-line,rgba(127,127,127,.25));margin-bottom:2px}
 #spColors button{min-width:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-#spColors i{width:26px;height:26px;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+#spColors i{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 #spColors button.on i{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
 #spColors i.own{background:conic-gradient(#f5c518,#f39237,#e86fb0,#a97be0,#4aa3ec,#2ec4b6,#5cb85c,#f5c518)} /* «свой цвет»: всегда радуга (22.10 Джессика: без последнего своего в центре) */
 #hlPk .hlpk-g{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:4px 0 14px;justify-items:center}
@@ -662,7 +674,7 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 #panelBody .prow.pq{flex-direction:column;align-items:stretch;gap:0;padding:0}
 #panelBody .pq .pqt{display:flex;align-items:flex-start;gap:10px;width:100%;padding:10px 12px;text-align:left;font:inherit;white-space:pre-line}
 #panelBody .pq.on .pqt{padding-top:13px}
-#panelBody .pq .pqd{flex:none;width:10px;height:10px;margin-top:5px;border-radius:50%;background:var(--d);box-shadow:0 0 0 2px color-mix(in srgb,currentColor 25%,transparent)}
+#panelBody .pq .pqd{flex:none;width:10px;height:10px;margin-top:5px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%);box-shadow:0 0 0 2px color-mix(in srgb,currentColor 25%,transparent)}
 #panelBody .pq .pqn{display:block;margin-top:6px;font-style:italic;opacity:.85;white-space:pre-line}
 #panelBody .pq .pqgo{display:inline-flex;align-items:center;gap:6px;align-self:flex-end;margin:0 8px 8px;padding:8px 12px;min-height:44px;border-radius:var(--rq-radius-sm);font-weight:700;background:color-mix(in srgb,currentColor 12%,transparent)}
 .pnow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,currentColor 16%,transparent)}
@@ -781,6 +793,19 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 #dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}
 #warmer{position:absolute;inset:0;background:var(--rq-warm);mix-blend-mode:multiply;opacity:0;pointer-events:none;z-index:44} /* 18.10 SET.warm: night-light tint, under #dimmer */
 #brightRange,#warmRange{--rq-accent:var(--rq-accent-on-dark)}
+/* 22.10 (Джессика: «ползунки яркости и тёплого оттенка во всех скинах одинаковые»): #brightRange / #warmRange are drawn, each skin its own.
+   Filled part = --sl-fill up to the thumb centre --sl-x (--p 0…1 set by applySet), the rest --sl-rest; a skin may replace the whole track (--sl-bg).
+   Thumbs --sl-b-th («Яркость») / --sl-w-th («Тёплый оттенок»). Base and pencil here, the shop skins in skins.css */
+#sheet :is(#brightRange,#warmRange){-webkit-appearance:none;appearance:none;background:transparent;margin:0;height:44px;touch-action:pan-y;--p:1;--sl-h:4px;--sl-ts:22px;
+  --sl-x:calc(var(--sl-ts) / 2 + (100% - var(--sl-ts)) * var(--p));--sl-rest:color-mix(in srgb,var(--txt) 22%,transparent);
+  --sl-b-fill:linear-gradient(90deg,color-mix(in srgb,var(--rq-accent-on-dark) 45%,transparent),var(--rq-accent-on-dark));--sl-w-fill:linear-gradient(90deg,#f2c879,#e8894a);
+  --sl-b-th:radial-gradient(circle,#fff 0 5px,var(--rq-accent-on-dark) 5.5px 9px,#fff 9.5px);--sl-w-th:radial-gradient(circle,#fff 0 5px,#e8894a 5.5px 9px,#fff 9.5px)}
+#brightRange{--sl-fill:var(--sl-b-fill);--sl-th:var(--sl-b-th)}
+#warmRange{--sl-fill:var(--sl-w-fill);--sl-th:var(--sl-w-th)}
+#sheet :is(#brightRange,#warmRange)::-webkit-slider-runnable-track{height:var(--sl-h);border-radius:var(--sl-r,999px);background:var(--sl-bg,var(--sl-fill) 0 0/var(--sl-x) 100% no-repeat,var(--sl-rest))}
+#sheet :is(#brightRange,#warmRange)::-moz-range-track{height:var(--sl-h);border-radius:var(--sl-r,999px);background:var(--sl-bg,var(--sl-fill) 0 0/var(--sl-x) 100% no-repeat,var(--sl-rest))}
+#sheet :is(#brightRange,#warmRange)::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:var(--sl-ts);height:var(--sl-ts);margin-top:calc((var(--sl-h) - var(--sl-ts)) / 2);border:0;border-radius:var(--sl-tr,50%);background:var(--sl-th) center/contain no-repeat;box-shadow:var(--sl-tsh,0 1px 3px rgba(0,0,0,.35))}
+#sheet :is(#brightRange,#warmRange)::-moz-range-thumb{width:var(--sl-ts);height:var(--sl-ts);border:0;border-radius:var(--sl-tr,50%);background:var(--sl-th) center/contain no-repeat;box-shadow:var(--sl-tsh,0 1px 3px rgba(0,0,0,.35))}
 .imm .rhead,.imm .rfoot{display:none}
 .quest.locked{opacity:.45}
 #content.noind p,.rqCurlTxt.noind p{text-indent:0;margin-bottom:.7em}
@@ -1094,10 +1119,12 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 .botnav-btn{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:0.75rem;padding:8px 4px;border-radius:var(--rq-radius-md);display:flex;flex-direction:column;align-items:center;gap:2px}
 .botnav-btn .ico{font-size:1.25rem;line-height:1}
 .botnav-btn.on{color:var(--accent);background:var(--card2)} /* 16.10: was teal 12% → grey on Багрянец */
-#rewardsSheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:85;background:var(--sheet);border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
-#rewardsSheet.open{transform:translateY(0);visibility:visible;transition:transform .25s ease} /* 16.10: closed sheet not painted — open() lifts it by the nav height, so 110% left its top edge (and shadow) above the screen bottom: white strip in Эллада */
+/* 22.10 (Джессика: «плашка с наградами вылезает очень криво»): «Награды» is a tab → a page like «Квесты», not a sheet sliding over the dimmed previous screen.
+   Same .screen frame (starts under the TEST banner, runs under the bottom nav, skin headers), shown at once; the screen under it is not painted. */
+#rewardsSheet{z-index:60;visibility:hidden}
+#rewardsSheet.open{visibility:visible}
+body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 /* shop build 14.10: «Награды» = «Из жизни» / «Магазин», balance as text, no coin icons */
-.rewhead{align-items:center;margin:0 36px 10px 0}
 .rewtabs{display:flex;gap:6px;background:var(--card);border-radius:var(--rq-radius-md);padding:4px;margin-bottom:12px}
 .rewtabs button{flex:1;min-height:40px;border-radius:var(--rq-radius-sm);font-weight:600;color:var(--muted)}
 .rewtabs button.on{background:var(--card2);color:var(--txt)}
@@ -1200,7 +1227,6 @@ body.mvp #reader > .scroll,body.mvp #summary{padding-bottom:0}
 #btnAdd.addicon{margin-left:6px;background:var(--card2);border:1.5px solid var(--muted)}html[data-skin="pencil"] #btnAdd.addicon{border:2px solid var(--rq-skin-border)}#btnAdd[aria-busy="true"]{opacity:.5}
 html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box-shadow:none}
 
-#rewardsScrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:84}
 .tierseg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
 .tierseg button{flex:1;min-width:90px;background:var(--card2);border-radius:var(--rq-radius-sm);padding:8px;font-size:0.75rem;color:var(--muted)}
 .tierseg button.on{background:var(--accent);color:var(--on-accent)}
@@ -1454,6 +1480,13 @@ html[data-skin="pencil"] #barBright::-webkit-slider-runnable-track{height:2px;bo
 html[data-skin="pencil"] #barBright::-moz-range-track{height:2px;background:linear-gradient(90deg,var(--rq-text) var(--v),transparent var(--v)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px)}
 html[data-skin="pencil"] #barBright::-webkit-slider-thumb{width:12px;height:12px;margin-top:-5px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0;box-shadow:none}
 html[data-skin="pencil"] #barBright::-moz-range-thumb{width:12px;height:12px;border-radius:55% 45% 50% 50%/45% 55% 50% 50%;background:var(--rq-text);border:0}
+/* 22.10 pencil «Яркость» / «Тёплый оттенок» in the sheet: shading with a pencil (graphite / ochre crayon) over a dashed line; a hand-drawn sun and flame */
+html[data-skin="pencil"]{--pc-sl-b:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%233d3d3a' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M14 2.2v3.4M14.3 22.6v3.3M2.3 14.2h3.3M22.5 13.8h3.3M5.6 5.4l2.3 2.5M20.2 20.3l2.4 2.2M5.8 22.4l2.3-2.3M20 7.9l2.5-2.4'/%3E%3C/g%3E%3Cpath d='M14.4 7.9c3.6.1 6 2.8 5.8 6.3-.2 3.5-2.9 5.9-6.4 5.8-3.4-.1-5.9-2.9-5.7-6.3.2-3.3 2.6-5.9 6.3-5.8z' fill='%23fbfaf6' stroke='%233d3d3a' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10.6 15.8l5.2-5.4M12 17.6l5.6-5.8' stroke='%233d3d3a' stroke-opacity='.35' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");--pc-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14.2 2.8c3.4 4.9 7.6 8.6 7 14.2-.5 4.6-3.6 7.9-7.4 7.9-4 0-7.3-3.1-7.1-7.6.1-3.4 2.2-5.4 3.6-8.4 1 2.3 1.6 3.6 2.9 4.4.9-3.3 1.3-6.2 1-10.5z' fill='%23c97a2b' fill-opacity='.55' stroke='%233d3d3a' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10 21l6-6.3M11.4 23.2l6.4-6.7M9.3 18l4.4-4.6' stroke='%23c97a2b' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M14 24.6c-2-.4-3-2-2.6-3.8.3-1.3 1.4-2.2 1.9-3.6 1.4 1.4 3 2.8 2.9 4.7-.1 1.6-1 2.6-2.2 2.7z' fill='none' stroke='%233d3d3a' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html[data-skin="pencil"][data-theme="night"]{--pc-sl-b:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='none' stroke='%23cfccc3' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M14 2.2v3.4M14.3 22.6v3.3M2.3 14.2h3.3M22.5 13.8h3.3M5.6 5.4l2.3 2.5M20.2 20.3l2.4 2.2M5.8 22.4l2.3-2.3M20 7.9l2.5-2.4'/%3E%3C/g%3E%3Cpath d='M14.4 7.9c3.6.1 6 2.8 5.8 6.3-.2 3.5-2.9 5.9-6.4 5.8-3.4-.1-5.9-2.9-5.7-6.3.2-3.3 2.6-5.9 6.3-5.8z' fill='%23262a31' stroke='%23cfccc3' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10.6 15.8l5.2-5.4M12 17.6l5.6-5.8' stroke='%23cfccc3' stroke-opacity='.35' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");--pc-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14.2 2.8c3.4 4.9 7.6 8.6 7 14.2-.5 4.6-3.6 7.9-7.4 7.9-4 0-7.3-3.1-7.1-7.6.1-3.4 2.2-5.4 3.6-8.4 1 2.3 1.6 3.6 2.9 4.4.9-3.3 1.3-6.2 1-10.5z' fill='%23e0a35a' fill-opacity='.55' stroke='%23cfccc3' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M10 21l6-6.3M11.4 23.2l6.4-6.7M9.3 18l4.4-4.6' stroke='%23e0a35a' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M14 24.6c-2-.4-3-2-2.6-3.8.3-1.3 1.4-2.2 1.9-3.6 1.4 1.4 3 2.8 2.9 4.7-.1 1.6-1 2.6-2.2 2.7z' fill='none' stroke='%23cfccc3' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html[data-skin="pencil"] #sheet :is(#brightRange,#warmRange){--sl-h:8px;--sl-ts:30px;--sl-r:0;--sl-tr:0;--sl-tsh:none;--sl-b-th:var(--pc-sl-b);--sl-w-th:var(--pc-sl-w);
+  --sl-rest:repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 45%,transparent) 0 5px,transparent 5px 9px) 0 50%/100% 2px no-repeat;
+  --sl-b-fill:repeating-linear-gradient(115deg,var(--rq-text) 0 1.4px,transparent 1.4px 3.4px);--sl-w-fill:repeating-linear-gradient(115deg,#c97a2b 0 1.6px,transparent 1.6px 3.4px)}
+html[data-skin="pencil"][data-theme="night"] #sheet #warmRange{--sl-w-fill:repeating-linear-gradient(115deg,#e0a35a 0 1.6px,transparent 1.6px 3.4px)}
 #reader .rbot{position:absolute;left:0;right:0;bottom:0;z-index:30;display:flex;flex-direction:column}
 /* audit 19.10 RD-PANEL-02: a soft 24 px fade at the panels' inner edges, so a cut line reads as covered, not broken */
 #reader .rhead::after,#reader .rbot::before{content:"";position:absolute;left:0;right:0;height:24px;pointer-events:none}
@@ -1550,8 +1583,7 @@ html[data-skin="pencil"] svg.pc-only,html[data-skin="pencil"] span.pc-only{displ
 html[data-skin="pencil"] div.pc-only{display:block!important}
 html[data-skin="pencil"]{--pc-frame:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%233d3d3a' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%233d3d3a' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-frame-n:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M14.8,2.6 L23.9,2.5 L32.5,2.9 L40.8,3.0 L49.5,2.9 L58.3,2.5 L67.4,3.4 L75.8,2.7 L85.1,3.5 L89.7,3.8 L94.0,6.0 L96.5,10.2 L96.6,14.6 L96.8,24.1 L96.6,32.6 L97.2,41.1 L97.1,49.5 L96.5,58.4 L97.2,67.4 L96.8,76.3 L96.9,84.8 L96.4,89.8 L93.2,93.6 L89.6,96.5 L85.3,96.8 L76.8,96.6 L67.4,97.3 L58.4,97.0 L49.5,97.2 L41.5,97.1 L32.9,96.8 L24.0,97.1 L15.1,97.0 L10.8,96.6 L6.5,93.7 L3.4,89.8 L3.2,85.5 L3.4,76.0 L2.9,67.7 L2.5,58.7 L2.6,49.6 L2.5,41.5 L2.6,32.2 L2.9,24.2 L2.5,14.9 L4.0,10.8 L6.9,6.9 L10.2,3.8 L16.0,2.2' fill='none' stroke='%23cfccc3' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M15.5,4.0 L25.1,2.9 L32.7,3.0 L41.6,3.4 L50.8,3.1 L58.8,3.3 L68.0,3.5 L77.6,3.7 L85.7,3.6 L90.5,3.7 L94.7,7.3 L97.3,11.2 L97.5,15.3 L97.1,24.4 L97.1,32.3 L97.3,41.2 L97.5,49.8 L97.0,58.7 L97.1,67.7 L97.0,77.2 L97.9,84.9 L96.4,89.8 L94.0,93.4 L90.8,97.2 L85.7,97.4 L76.4,96.9 L68.0,97.1 L59.9,96.9 L50.0,98.1 L42.0,96.9 L33.3,96.8 L24.5,98.1 L16.2,97.7 L10.8,96.3 L6.7,94.3 L4.7,90.4 L3.5,85.0 L4.1,77.3 L4.2,68.3 L4.1,59.5 L3.3,50.4 L3.5,41.0 L3.0,32.6 L3.4,24.4 L4.3,15.3 L5.2,11.5 L7.9,6.7 L10.7,4.0 L16.7,3.6' fill='none' stroke='%23cfccc3' stroke-opacity='.45' stroke-width='1' stroke-linejoin='round'/%3E%3C/svg%3E");--pc-fw:12px;--rq-page-bg:#fbfaf6;--rq-slider-track:#8f8c84}
 html[data-skin="pencil"][data-theme="night"]{--pc-frame:var(--pc-frame-n);--rq-page-bg:#262a31;--rq-slider-track:#7c828c}
-html[data-skin="pencil"] #libTitle,html[data-skin="pencil"] #profile h1,html[data-skin="pencil"] #rewardsSheet h3{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:2rem;line-height:1.1;letter-spacing:0}
-html[data-skin="pencil"] #rewardsSheet h3{font-size:1.75rem}
+html[data-skin="pencil"] #libTitle,html[data-skin="pencil"] #profile h1,html[data-skin="pencil"] #rewardsSheet h1{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:2rem;line-height:1.1;letter-spacing:0}
 /* pencil section labels in sentence case («Моя полка», «Задания»), not uppercase; ids/keys unchanged */
 html[data-skin="pencil"] :is(#shelfH,#mvpQuestH){text-transform:none;letter-spacing:0;font-size:1.125rem;font-weight:700;color:var(--rq-text)}
 /* baked hand-drawn outline: 9-slice SVG (two jittered strokes) on a pseudo element — text never filtered */
@@ -2096,17 +2128,17 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button class="botnav-btn" id="bnRew" type="button"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg>Награды</button>
   <button class="botnav-btn" id="bnProf" type="button"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-user-round"/></svg>Профиль</button>
 </nav>
-<div id="rewardsScrim" class="hidden"></div>
-<div id="rewardsSheet" role="dialog" aria-label="Награды">
-  <button class="closes" id="rewardsClose" type="button" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
-  <div class="row rewhead"><h3 style="margin:0">Награды</h3><div class="spacer"></div><span class="chip" id="rewBalance">0 монет</span></div>
+<div id="rewardsSheet" class="screen" role="region" aria-label="Награды">
+  <div class="scroll rewscroll"><div class="wrap">
+    <div class="row rewhead" style="margin-bottom:10px"><button class="menubtn" id="menuRew" type="button" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1><svg class="ic" width="24" height="24" aria-hidden="true" focusable="false"><use href="#i-gift"/></svg> Награды</h1><div class="spacer"></div><span class="chip" id="rewBalance">0 монет</span></div>
     <div id="rewPaneLife" role="tabpanel">
     <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Назначьте себе награды за чтение. Цена только по ступени, монеты дают квесты за чтение.</div>
     <div class="row" style="margin-bottom:10px"><div class="spacer"></div><button class="ghostbtn" id="btnAddRewardSlot" type="button"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg>Слот</button></div>
     <div id="rewSlots"></div>
     <h2 style="font-size:14px;margin-top:16px">История</h2>
     <ul class="mvp-hist" id="rewHist"></ul>
-  </div>
+    </div>
+  </div></div>
 </div>
 
 <div id="shopDetailScrim" hidden onclick="closeShopDetail()"></div>

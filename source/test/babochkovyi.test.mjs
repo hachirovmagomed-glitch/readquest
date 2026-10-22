@@ -112,7 +112,7 @@ const v3 = await p.evaluate(() => { const svg = x => /data:image\/svg/.test(x ||
   const lug = pse(document.body, '::before'), lugLib = { bg: svg(lug.backgroundImage), z: lug.zIndex, pos: lug.position };
   const mw = pse(document.querySelector('#library .wrap'), '::after'), masc = svg(mw.backgroundImage) && mw.width === '120px' && !/fff8ec/i.test(mw.backgroundImage); /* 17.10: three plain butterflies, not the mascot with eyes (body #fff8ec) */
   __navAllow = true; show('stats'); __navAllow = false; const lugStats = svg(pse(document.body, '::before').backgroundImage);
-  openRewardsSheet(); const rhs = pse(document.querySelector('#rewardsSheet .rewhead h3'), '::after').backgroundImage, rh = svg(rhs) && !/fff8ec/i.test(rhs);
+  openRewardsSheet(); const rhs = pse(document.querySelector('#rewardsSheet .rewhead'), '::before').backgroundImage /* 22.10: «Награды» is a page — the butterfly of every page header */, rh = svg(rhs) && !/fff8ec/i.test(rhs);
   const arts = [...document.querySelectorAll('#rewSlots .pcard > .row:last-child')].map(r => (pse(r, '::before').backgroundImage.match(/width='(\d+)'/) || [])[1]);
   closeRewardsSheet && closeRewardsSheet();
   renderSummary({ xp: 180, gold: 30, pages: 14, min: 18, stat: 'Мудрость', statGain: 1, newB: [], lvBefore: level(S.xp), justFinished: false, mult: 1, flipped: 14, cheatFinish: false, dName: DIFFS[0].n, dmul: 1, newAch: [], achNew: [], day: null, quest: 0, title: '' });

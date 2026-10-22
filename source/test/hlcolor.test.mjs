@@ -72,13 +72,13 @@ ok('4 inside a highlight: blue recolours that quote (c=b, mark hl-b), still 2 qu
 const t4b = await select(3); await sleep(300); await tap('#spOwn');
 const pv = await p.evaluate(() => { const d = document.getElementById('rqAsk'), k = document.getElementById('hlPk'), sw = k ? [...k.querySelectorAll('.hlpk-g button')] : [];
   const r = d.getBoundingClientRect(), hue = document.getElementById('hlPkHue'); const h0 = k && k.dataset.v; if (hue) { hue.value = 200; hue.dispatchEvent(new Event('input')); }
-  return { open: !d.hidden, t: document.getElementById('rqAskT').textContent, n: sw.length, red: sw.some(b => /^#(ff0000|f00)$/i.test(b.dataset.c)), v0: h0, hue: k && k.dataset.v, inside: r.left >= 0 && r.right <= innerWidth, words: d.textContent }; });
+  return { open: !d.hidden, t: document.getElementById('rqAskT').textContent, n: sw.length, red: sw.some(b => /^#(ff0000|f00)$/i.test(b.dataset.c)), fit: sw.every(b => { const q = b.getBoundingClientRect(); return q.left >= r.left && q.right <= r.right - 8 && q.width >= 44; }), v0: h0, hue: k && k.dataset.v, inside: r.left >= 0 && r.right <= innerWidth, words: d.textContent }; });
 let n4 = (await qs()).length;
 await tap('#hlPk .hlpk-g button[data-c="#d0306a"]'); await tap('#rqAskOk'); await sleep(250);
 q = await qs(); const own = await p.evaluate(() => { const m = document.querySelector('#content mark[data-hc]'); return m ? { hc: m.dataset.hc, bg: m.style.getPropertyValue('--hc'), t: m.textContent } : null; });
 const hx = await p.evaluate(() => [SET.hlc, SET.hlx]);
 await p.screenshot({ path: SHOTS + 'hlcolor-own-sheet.png' });
-ok('4b own colour: our sheet «Свой цвет» (16 colours, no red, «Оттенок» slider, starts on pink) → quote c=#d0306a, mark data-hc + rgba background, SET.hlc/hlx = it', pv.open && pv.t === 'Свой цвет' && pv.n === 16 && !pv.red && pv.v0 === '#e86fb0' && /^#[0-9a-f]{6}$/.test(pv.hue) && pv.hue !== pv.v0 && pv.inside && !/Свой вариант/.test(pv.words) && q.length === n4 + 1 && q[n4].t === t4b && q[n4].c === '#d0306a' && own && own.hc === '#d0306a' && /rgba\(208, ?48, ?106/.test(own.bg) && hx[0] === '#d0306a' && hx[1] === '#d0306a', { pv, q: q[n4], own, hx });
+ok('4b own colour: our sheet «Свой цвет» (12 colours inside the sheet, no red, «Оттенок» slider, starts on pink) → quote c=#d0306a, mark data-hc + rgba background, SET.hlc/hlx = it', pv.open && pv.t === 'Свой цвет' && pv.n === 12 && pv.fit && !pv.red && pv.v0 === '#e86fb0' && /^#[0-9a-f]{6}$/.test(pv.hue) && pv.hue !== pv.v0 && pv.inside && !/Свой вариант/.test(pv.words) && q.length === n4 + 1 && q[n4].t === t4b && q[n4].c === '#d0306a' && own && own.hc === '#d0306a' && /rgba\(208, ?48, ?106/.test(own.bg) && hx[0] === '#d0306a' && hx[1] === '#d0306a', { pv, q: q[n4], own, hx });
 await select(4); await sleep(300);
 const ring = await p.evaluate(() => { const b = document.getElementById('spOwn'); return { on: b.classList.contains('on'), bg: getComputedStyle(b.querySelector('i')).backgroundImage }; });
 await tap('#spOwn'); await sleep(100); const v4c = await p.evaluate(() => document.getElementById('hlPk').dataset.v); n4 = (await qs()).length; await tap('#rqAskNo'); await p.evaluate(() => selDone());
@@ -170,6 +170,19 @@ r10 = await m10(); ok('10b after reopening: both marks are back', r10.n === 2 &&
 await p.evaluate(() => { const q = S.quotes[R.book.id].at(-1), m = quoteMarks(q)[1]; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); g.addRange(rg); updSelPop(); });
 await sleep(300); const n10 = await p.evaluate(() => S.quotes[R.book.id].length); await tap('#spColors button[data-c="g"]');
 r10 = await m10(); ok('10c green inside the second paragraph recolours the whole quote, no copy', r10.c === 'g' && r10.n === 2 && r10.cls.every(c => c === 'hl-g') && (await p.evaluate(() => S.quotes[R.book.id].length)) === n10, r10);
+// 11. Джессика 22.10 «уникализировать кружочки … под каждый скин»: each skin has its own five colours (dots and highlight), its own names and its own dot shape
+const sk = {};
+for (const k of ['sepia', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  sk[k] = await p.evaluate(async (k) => { if (k !== 'sepia') { S.gold = 9000; save(); try { buy('skin-' + k); } catch (e) {} } SET.theme = k; saveSet(); applySet(); await new Promise(r => setTimeout(r, 150));
+    renderSpColors(); const d = [...document.querySelectorAll('#spColors button[data-c]')], m = document.createElement('mark'); document.getElementById('content').appendChild(m);
+    const hl = ['y', 'g', 'b', 'p', 'o'].map(c => { m.className = c === 'y' ? '' : 'hl-' + c; return getComputedStyle(m).getPropertyValue('--hc').trim(); }); m.remove();
+    const i = getComputedStyle(d[0].querySelector('i'));
+    return { dots: d.map(x => getComputedStyle(x.querySelector('i')).backgroundColor + getComputedStyle(x.querySelector('i')).backgroundImage).join(), names: d.map(x => x.title).join(), hl: hl.join(), shape: i.borderRadius + i.clipPath + i.transform }; }, k);
+  if (k !== 'sepia') await p.screenshot({ path: SHOTS + 'hlcolor-dots-' + k + '.png', clip: await p.evaluate(() => { const r = document.getElementById('spColors').getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; }) }).catch(() => {});
+}
+const uniq = (f) => new Set(Object.values(sk).map(f)).size;
+ok('11 every skin: own dot colours, own names, own highlight colours, own dot shape', uniq(x => x.dots) === 5 && uniq(x => x.names) === 5 && uniq(x => x.hl) === 5 && uniq(x => x.shape) === 5, sk);
+await p.evaluate(() => { SET.theme = 'sepia'; saveSet(); applySet(); });
 ok('no page errors, no system dialogs', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

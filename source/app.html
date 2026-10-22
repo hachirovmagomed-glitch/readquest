@@ -555,7 +555,15 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i){background:var(--hc);bo
 #spColors button{min-width:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 #spColors i{width:26px;height:26px;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 #spColors button.on i{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
-#spColors i.own{background:conic-gradient(#f5c518,#f39237,#e86fb0,#a97be0,#4aa3ec,#5cb85c,#f5c518)}#spColors i.own.set{background:radial-gradient(circle,var(--d) 0 8px,transparent 8.5px),conic-gradient(#f5c518,#f39237,#e86fb0,#a97be0,#4aa3ec,#5cb85c,#f5c518)} /* «свой цвет»: радуга, внутри последний свой */
+#spColors i.own{background:conic-gradient(#f5c518,#f39237,#e86fb0,#a97be0,#4aa3ec,#2ec4b6,#5cb85c,#f5c518)} /* «свой цвет»: всегда радуга (22.10 Джессика: без последнего своего в центре) */
+#hlPk .hlpk-g{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin:4px 0 14px}
+#hlPk .hlpk-g button{aspect-ratio:1;min-height:36px;border-radius:50%;background:var(--d);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+#hlPk .hlpk-g button.on{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--txt)}
+#hlPk .hlpk-h{display:flex;align-items:center;gap:12px;margin:0 0 14px;font-size:0.9375rem}
+#hlPk .hlpk-h input{flex:1;height:28px;-webkit-appearance:none;appearance:none;border-radius:14px;background:linear-gradient(90deg,#e05252,#e0b052,#9be052,#52e07a,#52e0e0,#527ae0,#9b52e0,#e052b0,#e05252)}
+#hlPk .hlpk-h input::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4),inset 0 0 0 2px rgba(0,0,0,.2)}
+#hlPk .hlpk-v{display:flex;align-items:center;gap:12px;margin:0 0 16px;font-size:0.9375rem}
+#hlPk #hlPkDot{width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .qcard[data-c]{box-shadow:inset 4px 0 0 var(--d)}
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}

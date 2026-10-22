@@ -49,7 +49,7 @@ await p.screenshot({ path: SHOTS + 'pdfhl-scroll.png' });
 
 // 2. own colour in the PDF
 let s2 = await select(2); await sleep(300); await tap('#spOwn');
-await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); i.value = '#d0306a'; i.dispatchEvent(new Event('change')); }); await sleep(300);
+await tap('#hlPk .hlpk-g button[data-c="#d0306a"]'); await tap('#rqAskOk'); await sleep(300); /* 22.10: our «Свой цвет» sheet */
 q = await quotes(); bx = await boxes(s2.page, s2.rr);
 ok('2 own colour: quote #d0306a with place, pink boxes', q.length === 2 && q[1].c === '#d0306a' && q[1].pdf && /rgba\(208, ?48, ?106/.test(bx.bg) && bx.cover, { q: q[1], bx });
 

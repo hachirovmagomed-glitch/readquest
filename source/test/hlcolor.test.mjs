@@ -67,18 +67,22 @@ await sleep(300); await tap('#spColors button[data-c="b"]');
 q = await qs(); mk = await p.evaluate(() => [...document.querySelectorAll('#content mark')].map(m => m.className));
 ok('4 inside a highlight: blue recolours that quote (c=b, mark hl-b), still 2 quotes, no coins', q.length === 2 && q[0].c === 'b' && mk[0] === 'hl-b' && (await p.evaluate(() => S.gold)) === g4, { q, mk });
 
-// 4b. own colour: picker → quote '#d0306a' (pink), mark data-hc with an alpha that keeps 7:1, SET.hlx, ring on «свой»; «Отмена» in the picker saves nothing
+// 4b. own colour (22.10: our sheet «Свой цвет» instead of the system picker, Джессика: «"свой вариант" еле влазит»):
+//     16 colours (no pure red) + «Оттенок» slider + the chosen one shown; a colour + «Готово» → quote '#d0306a', mark data-hc with an alpha that keeps 7:1, SET.hlx
 const t4b = await select(3); await sleep(300); await tap('#spOwn');
-const pv = await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); return { has: !!i, type: i && i.type, v: i && i.value, inBar: !!(i && i.closest('#selpop')) }; });
+const pv = await p.evaluate(() => { const d = document.getElementById('rqAsk'), k = document.getElementById('hlPk'), sw = k ? [...k.querySelectorAll('.hlpk-g button')] : [];
+  const r = d.getBoundingClientRect(), hue = document.getElementById('hlPkHue'); const h0 = k && k.dataset.v; if (hue) { hue.value = 200; hue.dispatchEvent(new Event('input')); }
+  return { open: !d.hidden, t: document.getElementById('rqAskT').textContent, n: sw.length, red: sw.some(b => /^#(ff0000|f00)$/i.test(b.dataset.c)), v0: h0, hue: k && k.dataset.v, inside: r.left >= 0 && r.right <= innerWidth, words: d.textContent }; });
 let n4 = (await qs()).length;
-await p.evaluate(() => { const i = document.getElementById('hlOwnIn'); i.value = '#d0306a'; i.dispatchEvent(new Event('change')); }); await sleep(250);
+await tap('#hlPk .hlpk-g button[data-c="#d0306a"]'); await tap('#rqAskOk'); await sleep(250);
 q = await qs(); const own = await p.evaluate(() => { const m = document.querySelector('#content mark[data-hc]'); return m ? { hc: m.dataset.hc, bg: m.style.getPropertyValue('--hc'), t: m.textContent } : null; });
 const hx = await p.evaluate(() => [SET.hlc, SET.hlx]);
-ok('4b own colour: picker (input type=color outside the bar, default pink) → quote c=#d0306a, mark data-hc + rgba background, SET.hlc/hlx = it', pv.has && pv.type === 'color' && !pv.inBar && pv.v === '#e86fb0' && q.length === n4 + 1 && q[n4].t === t4b && q[n4].c === '#d0306a' && own && own.hc === '#d0306a' && /rgba\(208, ?48, ?106/.test(own.bg) && hx[0] === '#d0306a' && hx[1] === '#d0306a', { pv, q: q[n4], own, hx });
+await p.screenshot({ path: SHOTS + 'hlcolor-own-sheet.png' });
+ok('4b own colour: our sheet «Свой цвет» (16 colours, no red, «Оттенок» slider, starts on pink) → quote c=#d0306a, mark data-hc + rgba background, SET.hlc/hlx = it', pv.open && pv.t === 'Свой цвет' && pv.n === 16 && !pv.red && pv.v0 === '#e86fb0' && /^#[0-9a-f]{6}$/.test(pv.hue) && pv.hue !== pv.v0 && pv.inside && !/Свой вариант/.test(pv.words) && q.length === n4 + 1 && q[n4].t === t4b && q[n4].c === '#d0306a' && own && own.hc === '#d0306a' && /rgba\(208, ?48, ?106/.test(own.bg) && hx[0] === '#d0306a' && hx[1] === '#d0306a', { pv, q: q[n4], own, hx });
 await select(4); await sleep(300);
-const ring = await p.evaluate(() => { const b = document.getElementById('spOwn'); return { on: b.classList.contains('on'), set: b.querySelector('i').classList.contains('set'), d: b.style.getPropertyValue('--d') }; });
-await tap('#spOwn'); await sleep(100); n4 = (await qs()).length; await tap('#spCopy');
-ok('4c next selection: ring on «свой», it shows the last own colour; closing the picker without a colour saves nothing', ring.on && ring.set && ring.d === '#d0306a' && (await qs()).length === n4, { ring, n: (await qs()).length, n4 });
+const ring = await p.evaluate(() => { const b = document.getElementById('spOwn'); return { on: b.classList.contains('on'), bg: getComputedStyle(b.querySelector('i')).backgroundImage }; });
+await tap('#spOwn'); await sleep(100); const v4c = await p.evaluate(() => document.getElementById('hlPk').dataset.v); n4 = (await qs()).length; await tap('#rqAskNo'); await p.evaluate(() => selDone());
+ok('4c next selection: ring on «свой», the dot is a plain rainbow (no last colour in the middle); the sheet opens on the last own colour; «Отмена» saves nothing', ring.on && /conic/.test(ring.bg) && !/radial/.test(ring.bg) && v4c === '#d0306a' && (await qs()).length === n4, { ring, v4c, n: (await qs()).length, n4 });
 await p.evaluate(() => { SET.hlc = 'b'; saveSet(); });
 
 // 5. reopen: marks keep their colours

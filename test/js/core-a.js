@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261022-1245'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261022-1246'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
@@ -183,15 +183,13 @@ function openRewardsSheet(tab){
   if(tab==='shop'){openLook(true);return;}
   clearConfetti();clearToasts();
   renderRewardsSheet();
-  {const rs=el('rewardsSheet'),nh=(typeof rqNavH==='function'?rqNavH():0);rs.style.bottom=nh+'px';rs.scrollTop=0;el('rewardsScrim').style.bottom=nh+'px';} /* scrim stops above the bottom nav: tabs stay tappable */
-  el('rewardsScrim').classList.remove('hidden');
-  el('rewardsSheet').classList.add('open');
+  {const sc=document.querySelector('#rewardsSheet .rewscroll');if(sc)sc.scrollTop=0;} /* always opens at the top */
+  el('rewardsSheet').classList.add('open');document.body.classList.add('rew-open');
   applyMvpChrome(); /* bottom nav: «Награды» selected */
 }
 function closeRewardsSheet(){
   try{closeShopDetail();}catch(e){} /* примерка ends when the shop closes */
-  el('rewardsSheet').classList.remove('open');
-  el('rewardsScrim').classList.add('hidden');
+  el('rewardsSheet').classList.remove('open');document.body.classList.remove('rew-open');
   applyMvpChrome();
 }
 function ensureMvpRewards(){

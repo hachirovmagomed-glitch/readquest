@@ -185,12 +185,13 @@ function rqAlert(t){flashMsg(String(t||''),{ms:4000,kind:/^Не удал|^Не �
 function rqAsk(o){return new Promise(function(res){
   let sc=el('rqAskScrim'),d=el('rqAsk');
   if(!d){sc=document.createElement('div');sc.id='rqAskScrim';d=document.createElement('div');d.id='rqAsk';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby','rqAskT');document.body.appendChild(sc);document.body.appendChild(d);}
-  const inp=o.input!=null;
-  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p>'+(inp?'<textarea id="rqAskIn" rows="3" maxlength="1000" aria-labelledby="rqAskT"></textarea>':'')+'<div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
+  const inp=o.input!=null,col=o.color!=null;
+  d.innerHTML='<div class="grab" aria-hidden="true"></div><h3 id="rqAskT"></h3><p id="rqAskP"></p>'+(inp?'<textarea id="rqAskIn" rows="3" maxlength="1000" aria-labelledby="rqAskT"></textarea>':'')+(col?hlPickHtml():'')+'<div class="rqaskb"><button type="button" class="ghostbtn" id="rqAskNo">Отмена</button><button type="button" id="rqAskOk"></button></div>';
   el('rqAskT').textContent=o.t||'';el('rqAskP').textContent=o.p||'';el('rqAskP').hidden=!o.p;el('rqAskOk').textContent=o.ok||'Да';el('rqAskOk').className=o.danger?'danger':'cta';
   const kd=function(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}};
   if(inp)el('rqAskIn').value=String(o.input);
-  const done=function(v){const tv=inp?(v?el('rqAskIn').value.trim().slice(0,1000):null):v;sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(tv);};
+  if(col)hlPickInit(o.color);
+  const done=function(v){const tv=inp?(v?el('rqAskIn').value.trim().slice(0,1000):null):col?(v?el('hlPk').dataset.v:null):v;sc.hidden=true;d.hidden=true;document.removeEventListener('keydown',kd,true);res(tv);};
   el('rqAskNo').onclick=function(){done(false);};el('rqAskOk').onclick=function(){done(true);};sc.onclick=function(){done(false);};
   sc.hidden=false;d.hidden=false;document.addEventListener('keydown',kd,true);try{el(inp?'rqAskIn':'rqAskNo').focus({preventScroll:true});}catch(e){}
 });}
@@ -360,14 +361,23 @@ function renderSpColors(on){
 }
 /* own colour: the system colour picker (input type=color outside the bar, so hiding the bar never closes it); the selection is taken BEFORE it opens */
 let hlPick=null;
-function hlOwnInput(){let i=el('hlOwnIn');if(!i){i=document.createElement('input');i.type='color';i.id='hlOwnIn';i.tabIndex=-1;i.setAttribute('aria-hidden','true');
-  i.style.cssText='position:fixed;left:50%;bottom:120px;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none';document.body.appendChild(i);
-  i.addEventListener('change',()=>{const v=hlKey(i.value),pk=hlPick;hlPick=null;if(v[0]!=='#'||!pk)return;SET.hlx=v;addQuote(false,v,pk);});}
-  return i;}
+/* 22.10 (Джессика: «Свой вариант» в системном окне цвета еле влазит): our own sheet instead of the system picker —
+   16 colours (no pure red: reader rule) + a «Оттенок» rainbow slider; the chosen one is shown big; «Готово» saves */
+const HL_PICK=['#f5c518','#ffd166','#f39237','#ff8fab','#e86fb0','#d0306a','#c77dff','#a97be0','#7aa2ff','#4aa3ec','#00b4d8','#2ec4b6','#5cb85c','#9bd65c','#b08968','#8d99ae'];
+function hlPickHtml(){return '<div id="hlPk"><div class="hlpk-g" role="group" aria-label="Цвета">'+HL_PICK.map(c=>'<button type="button" data-c="'+c+'" aria-label="Цвет '+c+'" style="--d:'+c+'"></button>').join('')+'</div>'+
+  '<label class="hlpk-h"><span>Оттенок</span><input type="range" id="hlPkHue" min="0" max="359" step="1" aria-label="Оттенок"></label><div class="hlpk-v"><i id="hlPkDot" aria-hidden="true"></i><span>Выбранный цвет</span></div></div>';}
+function hlHsl(h){const s=.72,l=.58,k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));return '#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');}
+function hlHue(c){const r=parseInt(c.slice(1,3),16)/255,g=parseInt(c.slice(3,5),16)/255,b=parseInt(c.slice(5,7),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(!d)return 0;
+  let h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;return Math.round((h*60+360)%360);}
+function hlPickInit(c){
+  const box=el('hlPk'),set=(v,from)=>{box.dataset.v=v;el('hlPkDot').style.background=v;box.querySelectorAll('.hlpk-g button').forEach(b=>b.classList.toggle('on',b.dataset.c===v));if(from!=='hue')el('hlPkHue').value=hlHue(v);};
+  box.querySelector('.hlpk-g').onclick=e=>{const b=e.target.closest('button');if(b)set(b.dataset.c);};
+  el('hlPkHue').oninput=e=>set(hlHsl(+e.target.value),'hue');
+  set(HL_HEX.test(c)?c:HL_PICK[4]);
+}
 function hlOwnOpen(){
   const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo(),n:m?0:hlSelN(t),sq:SQ};
-  const i=hlOwnInput();i.value=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0';
-  try{if(i.showPicker)i.showPicker();else i.click();}catch(e){i.click();}
+  const pk=hlPick;rqAsk({t:'Свой цвет',color:hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0',ok:'Готово'}).then(v=>{if(hlPick!==pk)return;hlPick=null;v=v&&hlKey(v);if(!v||v[0]!=='#')return;SET.hlx=v;addQuote(false,v,pk);});
 }
 /** an already highlighted quote the selection sits in (then a colour recolours it instead of adding a copy) */
 function selMark(){

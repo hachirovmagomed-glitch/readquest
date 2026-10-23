@@ -498,12 +498,12 @@ async function importBookFile(f,setBusy){
     const buf=await f.arrayBuffer();
     const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
     const nPages=doc.numPages;
-    let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText */
+    let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText; 23.10 {l, w} */
     try{doc.destroy();}catch(_){}
     const id=newBookId();
     await idbPut('pdf:'+id,buf);
     b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
-    if(Number.isInteger(lt)){b.lvlText=lt;b.lvlV=window.__rqGame.LVL_ALGO;}
+    if(lt&&Number.isInteger(lt.l)){b.lvlText=lt.l;b.lvlWords=lt.w;b.lvlV=window.__rqGame.LVL_ALGO;}
   }else if(/\.fb2$/i.test(f.name)){
     setBusy('Разбираю FB2...');
     const r=await parseFb2(f);

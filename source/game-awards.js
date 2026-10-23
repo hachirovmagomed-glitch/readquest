@@ -303,6 +303,7 @@ export function titleLevel(title) {
  */
 const TERM_RU = /(логи[чяиюе]|метри[чя]|теор[еи]|метод|систем|структур|функци|концеп|категор|диалект|трансцендент|феномен|онтолог|эпистем|гносеолог|эмпири|рацион|абстракт|имманент|априор|детермин|парадигм|инфляц|дефляц|эластичн|мультипликат|коэффициент|параметр|интеграл|дифференц|вектор|матриц|алгоритм|молекул|потенциал|квант|инвестиц|капитал|монетарн|фискальн|эквивалент|тождеств|субъект|объект|субстанц|аксиом|теорем|постулат|корреляц|регресс|дисперс|статистик|экспонент|логарифм|производн|спекуляц|синтез|анализ|гипотез|принцип|индивид|универсал|трансформ|интерпрет|макро|микро|агрегат|равновеси|предельн|сбережени|потреблени|номинальн|эффективн|конкретн|содержани|определени|понят[ия]|познани|сознани|суждени)/iu;
 const TERM_EN = /(ology|ologic|ometr|theor|method|system|structur|function|concept|categor|dialect|transcend|phenomen|ontolog|epistem|empiric|rational|abstract|immanent|priori|determin|paradigm|inflation|deflation|elastic|multiplier|coefficient|parameter|integral|differenti|vector|matri[cx]|algorithm|molecul|potential|quantum|invest|capital|monetar|fiscal|equivalen|identity|subject|object|substan|axiom|theorem|postulat|correlat|regress|varianc|statistic|exponent|logarithm|derivativ|speculat|synthe|analy[st]|hypothe|principle|individual|universal|transform|interpret|macro|micro|aggregat|equilibri|marginal|consumption|nominal|cognition|perception|judgment|judgement|predicat|proposition|premise|inference)/i;
+const SCI_RE = /§|\bibid\b|\bop\.\s?cit\b|\bcf\.|(?<![\p{L}])см\.|(?<![\p{L}])там же(?![\p{L}])|\[\d{1,3}\]|(?<![\p{L}])(?:с|стр|p|pp)\.\s?\d{1,4}\b|\b\d{1,2}\.\d{1,2}(?:\.\d{1,2})?\.?[ \t]+[A-ZА-ЯЁ]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+/giu;
 export function textStats(text) {
   let t = String(text || '');
   /* a Project Gutenberg .txt carries its licence (legal prose, scores «hard») before and after the book */
@@ -340,21 +341,31 @@ export function textStats(text) {
   const TR = cyr ? TERM_RU : TERM_EN;
   words.forEach(function (w) { if (w.length > 5 && TR.test(w)) term++; });
   const terms = 100 * term / n;
-  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math) + Math.min(15, 1.5 * terms);
-  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, terms: terms, score: score };
+  /* 23.10 (Джессика: научная разметка): references and notes per 1000 words — §, ibid, op. cit., cf., см., там же, [12], с. 12 / p. 12,
+     numbered sections «1.2 Title», superscript note marks. Checked on the golden shelf: fiction 0, Hume 0.4, Bergson 1.4, Keynes 2.9, Darwin 4.8. */
+  const sci = 1000 * (s.match(SCI_RE) || []).length / n;
+  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math) + Math.min(15, 1.5 * terms) + Math.min(6, 2 * sci);
+  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, terms: terms, sci: sci, score: score };
 }
 /** version of the text rule; a PDF card whose lvlText was computed by an older rule (lvlV ≠ this) is re-checked once on open.
- *  1 = 19.10, 2 = 21.10 (formulas), 3 = 21.10 (terms, five levels), 4 = 22.10 (PDF metadata: author, title, subject). */
-export const LVL_ALGO = 4;
+ *  1 = 19.10, 2 = 21.10 (formulas), 3 = 21.10 (terms, five levels), 4 = 22.10 (PDF metadata: author, title, subject),
+ *  5 = 23.10 (notes and references; PDF page density). */
+export const LVL_ALGO = 5;
 /** score thresholds per language: [Сложная, Очень сложная, Экспертная, Запредельная]. With terms (21.10): Kant (en) 31.8,
  *  Hume 14.5–15.7, Nietzsche 14.8, Gutenberg novels ≤ 7.4, Russian fiction of the shelf ≤ 9.6. */
 export const LVL_SCORE = { ru: [14, 22, 32, 44], en: [10, 16, 24, 32] };
-export function textLevel(text) {
+/** 23.10: a PDF page this dense (characters of text per page, sampled pages) is a textbook/monograph layout — but an A4 novel is
+ *  dense too, so it counts only together with terms or references: +PDF_DENSE_BONUS to the score. */
+export const PDF_DENSE_CPP = 3200;
+export const PDF_DENSE_BONUS = 3;
+export function textLevel(text, opt) {
   const st = textStats(text);
   if (st.words < 1500) return 0;
   const th = st.cyr ? LVL_SCORE.ru : LVL_SCORE.en;
+  const cpp = opt && opt.cpp;
+  const score = st.score + (cpp >= PDF_DENSE_CPP && (st.sci >= 0.3 || st.terms >= 1) ? PDF_DENSE_BONUS : 0);
   let l = 0;
-  while (l < th.length && st.score >= th[l]) l++;
+  while (l < th.length && score >= th[l]) l++;
   return l;
 }
 /**

@@ -121,10 +121,13 @@ async function pdfTextLevel(doc,alive){
     try{const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}catch(e){}
   }
   if(alive&&!alive())return null;
+  const txt=parts.join('\n'),withText=parts.filter(function(p){return p.replace(/\s+/g,'').length>200;}),
+    cpp=withText.length?withText.reduce(function(a,p){return a+p.replace(/\s+/g,' ').length;},0)/withText.length:0;
   /* 22.10 (Джессика: Деррида-скан вышел «Обычной»): a scan has no text layer, so the PDF's own author/title/subject/keywords count too */
   let md=0;try{const m=await doc.getMetadata(),i=(m&&m.info)||{};md=Math.max(G.authorLevel(i.Author),G.titleLevel([i.Title,i.Subject,i.Keywords].filter(Boolean).join(' ')));}catch(e){}
   if(alive&&!alive())return null;
-  return Math.max(G.textLevel(parts.join('\n')),md);
+  /* 23.10: {l, w}: w = words in the sample (≈ 0 → a scan without text; the card says so, «признаки спорят») */
+  return {l:Math.max(G.textLevel(txt,{cpp:cpp}),md),w:(txt.match(/\p{L}+/gu)||[]).length};
 }
 /** once per PDF card (and once more per new LVL_ALGO): store lvlText + lvlV (arch.md), one save(); then the open session (if this book) gets the new level */
 async function pdfLvlCheck(b,doc){
@@ -132,9 +135,9 @@ async function pdfLvlCheck(b,doc){
   const V=window.__rqGame.LVL_ALGO;
   if(Number.isInteger(b.lvlText)&&b.lvlV===V)return; /* 21.10: an older rule's result is re-checked once */
   await new Promise(function(r){setTimeout(r,1500);}); /* after the first page is drawn */
-  let l=null;try{l=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
-  if(l==null||(Number.isInteger(b.lvlText)&&b.lvlV===V))return;
-  b.lvlText=l;b.lvlV=V;save();
+  let r=null;try{r=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
+  if(r==null||(Number.isInteger(b.lvlText)&&b.lvlV===V))return;
+  b.lvlText=r.l;b.lvlWords=r.w;b.lvlV=V;save();
   if(R&&R.book===b&&__tracker&&__tracker.setLevel){const o=trackerOpts();__tracker.setLevel(o.level,o.capMs);}
 }
 /** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */

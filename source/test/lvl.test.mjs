@@ -32,7 +32,7 @@ ok('лицензия Гутенберга не делает детскую кн�
   const sm = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).math.toFixed(2)]));
   ok('художественная полка: формул почти нет (меньше 0,1 на 100 слов)', Object.values(sm).every(x => x < 0.1), sm);
   ok('жанр «Экономика», «Учебник математики» → 1', G.genreLevel('Экономика') === 1 && G.genreLevel('Учебник математики') === 1);
-  ok('версия правила LVL_ALGO = 4 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 4);
+  ok('версия правила LVL_ALGO = 5 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 5);
 }
 
 /* --- 21.10: five levels and terms (Джессика: «более вариативное ранжирование», «сложность терминологии») --- */
@@ -71,6 +71,18 @@ ok('встроенная полка: названия ничего не подн
   ok('нейросеть: JSON с уровнем → {l, w}', JSON.stringify(G.parseAiLevel('Вот: {"level": 4, "why": "Деконструкция, плотные термины"}')) === '{"l":4,"w":"Деконструкция, плотные термины"}');
   ok('нейросеть: «3» строкой годится; 5, -1, 2.5, текст без JSON → null', G.parseAiLevel('{"level":"3","why":"x"}').l === 3 && G.parseAiLevel('{"level":5}') === null &&
     G.parseAiLevel('{"level":-1}') === null && G.parseAiLevel('{"level":2.5}') === null && G.parseAiLevel('уровень 3') === null);
+}
+
+/* --- 23.10: references/notes, PDF density --- */
+{ const st = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).sci.toFixed(2)]));
+  ok('встроенная полка: сносок и ссылок нет (0 на 1000 слов)', Object.values(st).every(x => x === 0), st);
+  const REF = 'Как показал Смит (см. с. 112), рост зависит от разделения труда [12]. Там же он пишет о рынке; ср. § 3 и op. cit., p. 45. ';
+  const PL = 'Утром мы пошли на речку, взяли удочки и хлеб, а вечером вернулись домой усталые и довольные, и мама напекла блинов. ';
+  ok('ссылки и сноски считаются (см., с. 112, [12], там же, ср., §, op. cit., p. 45)', G.textStats(rep(REF + PL, 80)).sci > 20 && G.textStats(rep(PL, 80)).sci === 0, G.textStats(rep(REF + PL, 80)).sci);
+  const plain = rep(PL, 100), near = rep(PL + REF + 'Инфляция снижает реальную ставку. ', 40);
+  ok('плотная страница PDF без терминов и ссылок (роман на А4) не поднимает уровень', G.textLevel(plain, { cpp: 4000 }) === G.textLevel(plain));
+  ok('плотная страница PDF со ссылками и терминами: +3 к баллу, но только от 3200 знаков на страницу', G.PDF_DENSE_CPP === 3200 && G.PDF_DENSE_BONUS === 3 &&
+    G.textLevel(near) === 1 && G.textLevel(near, { cpp: 3100 }) === 1 && G.textLevel(near, { cpp: 3500 }) === 2, G.textStats(near).score);
 }
 
 /* --- author, genre, auto, manual --- */

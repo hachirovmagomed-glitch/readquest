@@ -514,9 +514,57 @@ function bookLvlWhyHtml(b){
   const w=bookLvlWhy(b),out=[];
   if(w.pace>0)out.push('<div class="bk-note" id="bkLvlPace">'+rqIcon('clock',14)+' Твой темп: на странице в '+String(Math.round(w.r*10)/10).replace('.',',')+' раза дольше, чем в других твоих книгах, это «'+esc(lvlName(w.pace))+'».</div>');
   if(w.ai)out.push('<div class="bk-note" id="bkLvlAiRes">'+rqIcon('sparkles',14)+' Нейросеть: «'+esc(lvlName(w.ai.l))+'»'+(w.ai.w?'. '+esc(w.ai.w):'')+'</div>');
-  out.push(aiOn()?'<button type="button" class="ghostbtn" id="bkLvlAiBtn" onclick="bookLvlAiRun(\''+b.id+'\')">'+rqIcon('sparkles',16)+' '+(w.ai?'Оценить нейросетью ещё раз':'Оценить нейросетью')+'</button>'
-    :'<div class="bk-note" id="bkLvlAiHint">Нейросеть может оценить сложность, если вписать свой ключ в «Нейросети» в настройках.</div>');
+  /* 23.10 «признаки спорят»: the sources of the level disagree by 3+ steps, or a PDF without text (a scan) */
+  const dg=bookLvlDiag(b),scan=b.type==='pdf'&&Number.isInteger(b.lvlWords)&&b.lvlWords<300,op=[];
+  if(dg.tx!=null&&!scan)op.push(['текст',dg.tx]);if(dg.au2>0)op.push(['автор',dg.au2]);if(dg.ti>0)op.push(['название',dg.ti]);
+  if(w.pace>0)op.push(['твой темп',w.pace]);if(w.ai)op.push(['нейросеть',w.ai.l]);
+  const lo=op.reduce(function(a,x){return x[1]<a[1]?x:a;},op[0]||['',0]),hi=op.reduce(function(a,x){return x[1]>a[1]?x:a;},op[0]||['',0]);
+  const ask=(aiOn()&&!w.ai?' Проверь нейросетью или':'')+' Если уровень не тот, отметь «Оценка неверная».';
+  if(scan)out.push('<div class="bk-note" id="bkLvlScan">'+rqIcon('circle-alert',14)+' В PDF нет текста (скан): сложность только по автору, названию'+(w.pace>0?', темпу':'')+(w.ai?' и нейросети':'')+'.'+(aiOn()&&!w.ai?' Проверь нейросетью.':'')+'</div>');
+  else if(op.length>1&&hi[1]-lo[1]>=3)out.push('<div class="bk-note" id="bkLvlSpor">'+rqIcon('circle-alert',14)+' Признаки спорят: '+esc(lo[0])+' говорит «'+esc(lvlName(lo[1]))+'», '+esc(hi[0])+' «'+esc(lvlName(hi[1]))+'».'+ask+'</div>');
+  const rep=(S.bookLvlRep||{})[b.id];
+  out.push('<div class="bk-lvlbtns">'+(aiOn()?'<button type="button" class="ghostbtn" id="bkLvlAiBtn" onclick="bookLvlAiRun(\''+b.id+'\')">'+rqIcon('sparkles',16)+' '+(w.ai?'Оценить нейросетью ещё раз':'Оценить нейросетью')+'</button>':'')+
+    '<button type="button" class="ghostbtn" id="bkLvlRepBtn" aria-expanded="false" onclick="bookLvlRepOpen(\''+b.id+'\')">'+rqIcon('flag',16)+' '+(rep?'Отмечено: «'+esc(lvlName(rep.w))+'»':'Оценка неверная?')+'</button></div>'+
+    '<div id="bkLvlRep" class="hidden"></div>'+
+    (aiOn()?'':'<div class="bk-note" id="bkLvlAiHint">Нейросеть может оценить сложность, если вписать свой ключ в «Нейросети» в настройках.</div>'));
   return out.join('');
+}
+/* 23.10 (Джессика: «чтобы не облажаться», кнопка «Оценка неверная»): the reader marks which level the book should have. Nothing changes in
+   the rewards (raising stays impossible); the marks with the numbers behind the level (progress.bookLvlRep, arch.md) are copied and sent to us. */
+function bookLvlDiag(b){
+  const G=window.__rqGame,w=bookLvlWhy(b);let st=null;try{if(b.text)st=G.textStats(b.text);}catch(e){}
+  const r1=function(x){return Math.round(x*10)/10;};
+  return {t:String(b.title||'').slice(0,120),au:String(b.author||'').slice(0,80),k:b.type==='pdf'?'pdf':'text',a:bookLvlAuto(b),
+    tx:st?(st.words<1500?0:G.textLevel(b.text)):(Number.isInteger(b.lvlText)?b.lvlText:null),s:st?r1(st.score):null,tm:st?r1(st.terms):null,m:st?r1(st.math):null,
+    au2:G.authorLevel(b.author),ti:G.titleLevel(b.title),p:r1(w.r||0),ai:w.ai?w.ai.l:null};
+}
+function bookLvlRepOpen(id){
+  const box=el('bkLvlRep'),btn=el('bkLvlRepBtn');if(!box)return;
+  if(!box.classList.contains('hidden')){box.classList.add('hidden');if(btn)btn.setAttribute('aria-expanded','false');return;}
+  const b=allBooks().find(function(x){return x.id===id;});if(!b)return;
+  const L=window.__rqGame.LEVELS,rep=(S.bookLvlRep||{})[id],n=Object.keys(S.bookLvlRep||{}).length;
+  box.innerHTML='<div class="bk-note">Какая сложность у этой книги на самом деле? Награда не изменится, отметка поможет нам поправить подсчёт.</div>'+
+    '<div class="chips bk-shelves" role="radiogroup" aria-label="Какая должна быть сложность">'+L.map(function(x,i){const on=!!rep&&rep.w===i;
+      return '<button type="button" class="fchip'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" onclick="bookLvlRepSet(\''+id+'\','+i+')">'+(on?rqIcon('check',14):'')+esc(lvlName(i))+'</button>';}).join('')+'</div>'+
+    (n?'<div class="bk-lvlbtns"><button type="button" class="ghostbtn" id="bkLvlRepCopy" onclick="bookLvlRepCopy()">'+rqIcon('copy',16)+' Скопировать отметки ('+n+')</button>'+
+      (rep?'<button type="button" class="ghostbtn" id="bkLvlRepDel" onclick="bookLvlRepSet(\''+id+'\',-1)">'+rqIcon('x',16)+' Убрать отметку</button>':'')+'</div>'+
+      '<div class="bk-note">Скопируй и пришли нам в чат: в отметках название, автор и цифры подсчёта, без текста книги.</div>':'');
+  box.classList.remove('hidden');if(btn)btn.setAttribute('aria-expanded','true');
+}
+function bookLvlRepSet(id,l){
+  const b=allBooks().find(function(x){return x.id===id;});if(!b)return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+  S.bookLvlRep=S.bookLvlRep||{};
+  if(l<0)delete S.bookLvlRep[id];
+  else{const ks=Object.keys(S.bookLvlRep);if(!(id in S.bookLvlRep)&&ks.length>=200)delete S.bookLvlRep[ks[0]];
+    S.bookLvlRep[id]=Object.assign(bookLvlDiag(b),{w:l,d:today()});}
+  save();bookInfo(id);bookLvlRepOpen(id);
+  if(l>=0)flashMsg('Отмечено: «'+lvlName(l)+'». Спасибо!');
+}
+function bookLvlRepCopy(){
+  const r=S.bookLvlRep||{},ks=Object.keys(r);if(!ks.length)return;
+  copyText('Отметки сложности ReadQuest ('+ks.length+'), сборка '+RQ_BUILD+':\n'+JSON.stringify(ks.map(function(k){return r[k];})));
+  flashMsg('Скопировано, пришли в чат');
 }
 const LVL_AI_SYS='Ты оцениваешь, насколько трудно читать книгу. Шкала: 0 — обычная (художественная проза, детские книги, лёгкий нон-фикшн); '+
   '1 — сложная (плотная классика, серьёзный научпоп); 2 — очень сложная (философия, учебники, научные книги); '+

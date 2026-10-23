@@ -1,0 +1,294 @@
+[
+ {
+  "f": "en-11.txt.gz",
+  "pg": 11,
+  "title": "Alice's Adventures in Wonderland",
+  "author": "Lewis Carroll",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-16.txt.gz",
+  "pg": 16,
+  "title": "Peter Pan",
+  "author": "James M. Barrie",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-46.txt.gz",
+  "pg": 46,
+  "title": "A Christmas Carol",
+  "author": "Charles Dickens",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-55.txt.gz",
+  "pg": 55,
+  "title": "The Wonderful Wizard of Oz",
+  "author": "L. Frank Baum",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-61.txt.gz",
+  "pg": 61,
+  "title": "The Communist Manifesto",
+  "author": "Karl Marx and Friedrich Engels",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-74.txt.gz",
+  "pg": 74,
+  "title": "The Adventures of Tom Sawyer, Complete",
+  "author": "Mark Twain (Samuel Clemens)",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-76.txt.gz",
+  "pg": 76,
+  "title": "Adventures of Huckleberry Finn, Complete",
+  "author": "Mark Twain (Samuel Clemens)",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-84.txt.gz",
+  "pg": 84,
+  "title": "Frankenstein",
+  "author": "Mary Wollstonecraft (Godwin) Shelley",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-113.txt.gz",
+  "pg": 113,
+  "title": "The Secret Garden",
+  "author": "Frances Hodgson Burnett",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-120.txt.gz",
+  "pg": 120,
+  "title": "Treasure Island",
+  "author": "Robert Louis Stevenson",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-1342.txt.gz",
+  "pg": 1342,
+  "title": "Pride and Prejudice",
+  "author": "Jane Austen",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-1404.txt.gz",
+  "pg": 1404,
+  "title": "The Federalist Papers",
+  "author": "Alexander Hamilton, John Jay, and James Madison",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-1497.txt.gz",
+  "pg": 1497,
+  "title": "The Republic",
+  "author": "Plato",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-1661.txt.gz",
+  "pg": 1661,
+  "title": "The Adventures of Sherlock Holmes",
+  "author": "Arthur Conan Doyle",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-2300.txt.gz",
+  "pg": 2300,
+  "title": "The Descent of Man",
+  "author": "Charles Darwin",
+  "min": 0,
+  "max": 1
+ },
+ {
+  "f": "en-2529.txt.gz",
+  "pg": 2529,
+  "title": "The Analysis of Mind",
+  "author": "Bertrand Russell",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-2591.txt.gz",
+  "pg": 2591,
+  "title": "Grimms' Fairy Tales",
+  "author": "The Brothers Grimm",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-3207.txt.gz",
+  "pg": 3207,
+  "title": "Leviathan",
+  "author": "Thomas Hobbes",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-3300.txt.gz",
+  "pg": 3300,
+  "title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+  "author": "Adam Smith",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-3800.txt.gz",
+  "pg": 3800,
+  "title": "The Ethics",
+  "author": "Benedict de Spinoza",
+  "min": 2,
+  "max": 3
+ },
+ {
+  "f": "en-4280.txt.gz",
+  "pg": 4280,
+  "title": "The Critique of Pure Reason",
+  "author": "Immanuel Kant",
+  "min": 3,
+  "max": 4,
+  "txtMin": 3
+ },
+ {
+  "f": "en-4363.txt.gz",
+  "pg": 4363,
+  "title": "Beyond Good and Evil",
+  "author": "Friedrich Nietzsche",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-4705.txt.gz",
+  "pg": 4705,
+  "title": "A Treatise of Human Nature",
+  "author": "David Hume",
+  "min": 1,
+  "max": 3
+ },
+ {
+  "f": "en-4723.txt.gz",
+  "pg": 4723,
+  "title": "A Treatise Concerning the Principles of Human Knowledge",
+  "author": "George Berkeley",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-5001.txt.gz",
+  "pg": 5001,
+  "title": "Relativity: The Special and General Theory",
+  "author": "Albert Einstein",
+  "min": 2,
+  "max": 3,
+  "txtMin": 2
+ },
+ {
+  "f": "en-5683.txt.gz",
+  "pg": 5683,
+  "title": "The Critique of Practical Reason",
+  "author": "Immanuel Kant",
+  "min": 3,
+  "max": 4,
+  "txtMin": 2
+ },
+ {
+  "f": "en-5827.txt.gz",
+  "pg": 5827,
+  "title": "The Problems of Philosophy",
+  "author": "Bertrand Russell",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-9662.txt.gz",
+  "pg": 9662,
+  "title": "An Enquiry Concerning Human Understanding",
+  "author": "David Hume",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-10607.txt.gz",
+  "pg": 10607,
+  "title": "The Real Mother Goose",
+  "author": "(Illustrated by Blanche Fisher Wright)",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-11224.txt.gz",
+  "pg": 11224,
+  "title": "Utilitarianism",
+  "author": "John Stuart Mill",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-14838.txt.gz",
+  "pg": 14838,
+  "title": "The Tale of Peter Rabbit",
+  "author": "Beatrix Potter",
+  "min": 0,
+  "max": 0
+ },
+ {
+  "f": "en-15776.txt.gz",
+  "pg": 15776,
+  "title": "The Economic Consequences of the Peace",
+  "author": "John Maynard Keynes",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-26163.txt.gz",
+  "pg": 26163,
+  "title": "Creative Evolution",
+  "author": "Henri Bergson",
+  "min": 2,
+  "max": 3
+ },
+ {
+  "f": "en-33310.txt.gz",
+  "pg": 33310,
+  "title": "On The Principles of Political Economy, and Taxation",
+  "author": "David Ricardo",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-34901.txt.gz",
+  "pg": 34901,
+  "title": "On Liberty",
+  "author": "John Stuart Mill",
+  "min": 1,
+  "max": 2
+ },
+ {
+  "f": "en-39064.txt.gz",
+  "pg": 39064,
+  "title": "Hegel's Philosophy of Mind",
+  "author": "Georg Wilhelm Friedrich Hegel",
+  "min": 4,
+  "max": 4,
+  "txtMin": 2
+ }
+]

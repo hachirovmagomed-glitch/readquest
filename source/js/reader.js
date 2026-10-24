@@ -63,7 +63,9 @@ function applySet(){
   if(R_TXT2_MAIN.indexOf(SET.theme)>=0&&!SET.cBg&&!SET.cTxt)r.style.setProperty('--r-txt-2',t.txt);else r.style.removeProperty('--r-txt-2');
   applyFocusSet();
   {const bp=Math.round((SET.bright==null?1:SET.bright)*100),wp=Math.round((SET.warm||0)*100);
-   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';}
+   if(el('brightRange')){el('brightRange').value=bp;el('brightVal').textContent=bp+' %';el('warmRange').value=wp;el('warmVal').textContent=wp+' %';
+     /* 22.10: the drawn sliders fill up to the thumb (--p 0…1, app.html #brightRange) */
+     el('brightRange').style.setProperty('--p',((bp-30)/70).toFixed(3));el('warmRange').style.setProperty('--p',(wp/60).toFixed(3));}
    const bb=el('barBright');if(bb){bb.value=bp;bb.style.setProperty('--v',Math.round((bp-30)/70*100)+'%');}}
   {const nt=r.dataset.page==='night';el('btnDayNight').querySelector('use').setAttribute('href',nt?'#i-sun':'#i-moon');el('btnDayNightL').textContent=nt?'День':'Ночь';
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
@@ -263,7 +265,8 @@ async function openBook(id){
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
   let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
-  (S.hl[b.id]||[]).forEach(t=>{const k=esc(t);if(body.includes(k))body=body.replace(k,markHtml(k,quoteColor(b.id,t)));}); /* 20.10: in the quote's colour */
+  {const seen={};(S.hl[b.id]||[]).forEach(t=>{const k=esc(t),j=seen[t]=(seen[t]||0)+1,q=hlSame(b.id,t)[j-1];
+    if(body.includes(hlPieces(t)[0]||'\u0000'))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   hlPaintCustom(); /* own quote colours on this page */

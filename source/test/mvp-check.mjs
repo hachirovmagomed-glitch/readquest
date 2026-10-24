@@ -68,13 +68,13 @@ const hideB = await page.evaluate(() => {
   const h2 = [...document.querySelectorAll('#settings h2')].map(h => ({ t: h.textContent.trim(), vis: getComputedStyle(h).display !== 'none' && h.offsetParent !== null }));
   const pixel = document.getElementById('pixelTgl');
   const pixelVis = pixel && getComputedStyle(pixel).display !== 'none' && pixel.offsetParent !== null;
-  const ai = document.getElementById('aiKey');
+  const ai = document.getElementById('aiX'); /* 20.10: «ИИ-помощник» — свёрнутая строка в «Нейросетях» */
   const aiVis = ai && getComputedStyle(ai).display !== 'none' && ai.offsetParent !== null;
   return { h2, pixelVis, pixelTxt: pixel && pixel.textContent, aiVis };
 });
 /* 20.10 (Джессика): «ИИ-помощник» на своём ключе виден и в MVP (ai.test.mjs); «Сложность книг» и «Купить» по-прежнему скрыты */
-ok('B MVP: «Сложность книг» heading hidden; «Купить» (pixelTgl) hidden; «ИИ-помощник» with its key field shown (20.10)',
-  hideB.h2.every(h => !/Сложность книг/.test(h.t) || !h.vis) && hideB.h2.some(h => h.t === 'ИИ-помощник' && h.vis) && !hideB.pixelVis && hideB.aiVis, hideB);
+ok('B MVP: «Сложность книг» heading hidden; «Купить» (pixelTgl) hidden; «Нейросети» with the «ИИ-помощник» row shown (20.10)',
+  hideB.h2.every(h => !/Сложность книг/.test(h.t) || !h.vis) && hideB.h2.some(h => h.t === 'Нейросети' && h.vis) && !hideB.pixelVis && hideB.aiVis, hideB);
 await page.screenshot({ path: OUT + '/settings-mvp-bottom-after.png' });
 
 // ---- EN translation of the caption ----

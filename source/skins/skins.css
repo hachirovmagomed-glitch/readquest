@@ -44,9 +44,11 @@ html[data-skin]:not([data-skin="pencil"]) #sheet .rseg button.on{color:var(--rq-
 
 /* ===== 2. «Эллада» (handoff/skins/ellada): вазопись, белый мрамор, Эгейское море. Decor never in the reader. ===== */
 @font-face{font-family:"Cormorant Unicase";src:url(../fonts/ellada-cormorantunicase-bold.woff2) format("woff2");font-weight:700;font-display:swap}
-@font-face{font-family:"Alegreya Sans";src:url(../fonts/ellada-alegreyasans-medium.woff2) format("woff2");font-weight:500;font-display:swap}
-@font-face{font-family:"Alegreya Sans";src:url(../fonts/ellada-alegreyasans-bold.woff2) format("woff2");font-weight:700;font-display:swap}
-@font-face{font-family:"Alegreya Sans SC";src:url(../fonts/ellada-alegreyasanssc-extrabold.woff2) format("woff2");font-weight:800;font-display:swap}
+/* 22.10 (Джессика: «у Эллады очень маленький шрифт»): Alegreya Sans has x-height .47 vs .53 for Roboto/Manrope, so at the same px it read
+   ~12% smaller than the other skins. size-adjust scales the face itself (glyphs + line metrics): same letters, apparent size of the others. */
+@font-face{font-family:"Alegreya Sans";src:url(../fonts/ellada-alegreyasans-medium.woff2) format("woff2");font-weight:500;font-display:swap;size-adjust:113%}
+@font-face{font-family:"Alegreya Sans";src:url(../fonts/ellada-alegreyasans-bold.woff2) format("woff2");font-weight:700;font-display:swap;size-adjust:113%}
+@font-face{font-family:"Alegreya Sans SC";src:url(../fonts/ellada-alegreyasanssc-extrabold.woff2) format("woff2");font-weight:800;font-display:swap;size-adjust:110%}
 html[data-skin="ellada"]{--el-meander:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23c8642c'/%3E%3Cpath d='M0 14.4H12.8V3.2H3.2V9.6H8.0V6.4M12.8 14.4H16' fill='none' stroke='%2315110e' stroke-width='2.08' stroke-linecap='square'/%3E%3C/svg%3E");--el-wave-line:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Crect width='20' height='12' fill='%2315110e'/%3E%3Cpath d='M0 10.2C6.0 10.2 7.0 1.8 12.0 2.4C17.0 3.0 16.0 7.2 12.4 7.0C10.0 6.6 11.0 4.8 13.0 5.0M12.4 7.0C16.0 10.2 20 10.2 20 10.2' fill='none' stroke='%23f4f0e8' stroke-width='1.6'/%3E%3C/svg%3E");--el-wave-line-n:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Crect width='20' height='12' fill='%2315110e'/%3E%3Cpath d='M0 10.2C6.0 10.2 7.0 1.8 12.0 2.4C17.0 3.0 16.0 7.2 12.4 7.0C10.0 6.6 11.0 4.8 13.0 5.0M12.4 7.0C16.0 10.2 20 10.2 20 10.2' fill='none' stroke='%230d0a08' stroke-width='1.6'/%3E%3C/svg%3E");--el-crest:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='10' viewBox='0 0 38 10'%3E%3Cpath d='M0 6q9.5-6 19 0t19 0' fill='none' stroke='%23ffffff' stroke-opacity='.8' stroke-width='1.6'/%3E%3C/svg%3E")}
 /* 16.10 (Джессика): no full-screen veins (read as scribbles) — even marble --rq-bg + fine grain tile; thin terracotta meander (8px, 40%) under screen headers and over the bottom nav; amphora over empty hints */
 html[data-skin="ellada"]{--el-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .3 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='.1'/%3E%3C/svg%3E");--el-meander-line:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M0 14.4H12.8V3.2H3.2V9.6H8.0V6.4M12.8 14.4H16' fill='none' stroke='%23c8642c' stroke-width='2.4' stroke-linecap='square'/%3E%3C/svg%3E");--el-amphora:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='101' viewBox='0 0 100 105'%3E%3Cg fill='%23c8642c'%3E%3Cpath d='M38 22Q22 18 24 36M62 22Q78 18 76 36' fill='none' stroke='%23c8642c' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M38 14H62V20Q62 24 68 28Q84 40 80 62Q76 82 58 90H42Q24 82 20 62Q16 40 32 28Q38 24 38 20z'/%3E%3Crect x='34' y='11' width='32' height='5' rx='1.5'/%3E%3Cpath d='M42 90H58L60 98H40z'/%3E%3C/g%3E%3C/svg%3E")}
@@ -60,7 +62,7 @@ html[data-skin="ellada"][data-theme="night"] body{background:var(--el-wall);back
 html[data-skin="ellada"]:not([data-theme="night"]) body:has(#library:not(.hidden))::before{content:"";position:fixed;left:0;right:0;bottom:0;height:150px;pointer-events:none;
   background:var(--el-crest) 0 0/38px 10px repeat-x,linear-gradient(#5b93c4,var(--el-sea) 40%,#2f6a9c);opacity:.9}
 /* screen titles: Cormorant Unicase */
-html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h3,#settings h1,#look h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
+html[data-skin="ellada"] :is(#libTitle,#profile h1,#rewardsSheet h1,#settings h1,#look h1,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.02em}
 html[data-skin="ellada"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:800}
 /* library header = black-glaze frieze: terracotta meander on top, marble running wave below; the title ≥14px from the meander */
 html[data-skin="ellada"] #libHead{position:relative;margin:-20px -18px 8px;padding:12px 14px 14px;background:var(--el-glaze);color:#f6ead6}
@@ -187,7 +189,7 @@ html[data-skin="babochkovyi"]{background:linear-gradient(#eef0fb,#f6f1f7 60%,#e3
 html[data-skin="babochkovyi"] body{font-weight:500;background:transparent}
 html[data-skin="babochkovyi"][data-theme="night"]{background:radial-gradient(120% 70% at 75% 0%,#2a3156,#141831 50%,#0b0d1a) fixed}
 /* titles: Poiret One (≥24px), numbers: Bellota Text */
-html[data-skin="babochkovyi"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3){font-family:var(--rq-font-display);font-weight:400;letter-spacing:.01em}
+html[data-skin="babochkovyi"] :is(#libTitle,.wrap > .row > h1){font-family:var(--rq-font-display);font-weight:400;letter-spacing:.01em}
 html[data-skin="babochkovyi"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:700}
 /* library header = wing: iridescent turquoise → lilac → pink, white scales, wavy bottom edge; butterflies in the strip under the row (18.10: band 72px, as tall as the other skins' headers; never next to the title: Poiret is wide and the row has no room) */
 html[data-skin="babochkovyi"] #libHead{position:relative;margin:-20px -18px 6px;padding:12px 14px 16px;background:var(--bb-head-fly) 100% 0/390px 72px no-repeat,var(--bb-scales) 0 0/10px 6px,var(--bb-iridescent);background-size:390px 72px,10px 6px,200% 100%;color:var(--rq-text);
@@ -293,9 +295,6 @@ html[data-skin="babochkovyi"] .screen:not(#reader){background:transparent}
 html[data-skin="babochkovyi"] #library .wrap::after{content:"";display:block;width:120px;height:84px;margin:4px 0 0 auto;background:var(--bb-flock) center/contain no-repeat}
 html[data-skin="babochkovyi"][data-theme="night"] #library .wrap::after{background-image:var(--bb-flock-n)}
 /* rewards: mascot by the title; every reward card = petal with the scale edge and a «Цветник» drawing (vase, hat, watering can) */
-html[data-skin="babochkovyi"] #rewardsSheet .rewhead h3{display:flex;align-items:center;gap:8px}
-html[data-skin="babochkovyi"] #rewardsSheet .rewhead h3::after{content:"";flex:none;width:34px;height:34px;background:var(--bb-hatch-on) center/contain no-repeat}
-html[data-skin="babochkovyi"][data-theme="night"] #rewardsSheet .rewhead h3::after{background-image:var(--bb-hatch-on-n)}
 html[data-skin="babochkovyi"] #rewSlots .pcard{position:relative;padding-top:24px}
 html[data-skin="babochkovyi"] #rewSlots .pcard::before{content:"";position:absolute;left:14px;right:14px;top:8px;height:6px;background:var(--bb-edge) 0 0/9px 6px repeat-x;pointer-events:none}
 html[data-skin="babochkovyi"][data-theme="night"] #rewSlots .pcard::before{background-image:var(--bb-edge-n)}
@@ -360,8 +359,8 @@ html[data-skin="babochkovyi"] #settings.screen:not(#reader):not(#library) .wrap 
 html[data-skin="babochkovyi"][data-theme="night"] #settings.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-mo-1)}
 html[data-skin="babochkovyi"] #shelfScreen.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-sp-7)}
 html[data-skin="babochkovyi"][data-theme="night"] #shelfScreen.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-mo-3)}
-html[data-skin="babochkovyi"] #rewardsSheet .rewhead h3::after{background-image:var(--bb-sp-1)}
-html[data-skin="babochkovyi"][data-theme="night"] #rewardsSheet .rewhead h3::after{background-image:var(--bb-mo-3)}
+html[data-skin="babochkovyi"] #rewardsSheet.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-sp-1)}
+html[data-skin="babochkovyi"][data-theme="night"] #rewardsSheet.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{background-image:var(--bb-mo-3)}
 .bbhatch{display:none}
 /* covers (bbCover in js/library.js) */
 html[data-skin="babochkovyi"] .cover{border-radius:10px;background:none;box-shadow:0 0 0 1px var(--rq-line)}
@@ -417,7 +416,7 @@ html[data-skin] .screen > .scroll{overflow-x:hidden}
 html[data-skin="celestial"] .screen:not(#reader),html[data-skin="celestial"] #summary{background:transparent}
 html[data-skin="celestial"] #reader{background:var(--r-bg)} /* the book page stays flat paper: no sky, no stars behind the text */
 /* titles: Cormorant Garamond 700 in ink; numbers in Manrope */
-html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h3,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
+html[data-skin="celestial"] :is(#libTitle,.wrap > .row > h1,#rewardsSheet h1,#sumHead,.shopname){font-family:var(--rq-font-display);font-weight:700;letter-spacing:.01em;color:var(--rq-text)}
 html[data-skin="celestial"] #libTitle{font-size:2rem;line-height:1.1;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} /* gives way to «230 монет» (bug 17.10: header wider than the phone) */
 html[data-skin="celestial"] #goldChip{flex:none}
 html[data-skin="celestial"] .wrap > .row > h1{font-size:1.875rem;line-height:1.1}
@@ -448,9 +447,6 @@ html[data-skin="celestial"] #botnav .botnav-btn.on{background:var(--rq-coin-tint
 html[data-skin="celestial"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){position:relative;padding-bottom:16px;margin-bottom:6px}
 html[data-skin="celestial"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:10px;background:var(--cl-div) center/160px 10px no-repeat,linear-gradient(90deg,transparent,var(--cl-gold-l) 20%,var(--cl-gold-l) 80%,transparent) center/100% 1px no-repeat;opacity:.9;pointer-events:none}
 html[data-skin="celestial"][data-theme="night"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::after{background-image:var(--cl-div-n),linear-gradient(90deg,transparent,var(--cl-gold) 20%,var(--cl-gold) 80%,transparent)}
-html[data-skin="celestial"] #rewardsSheet .rewhead h3{display:flex;align-items:center;gap:8px}
-html[data-skin="celestial"] #rewardsSheet .rewhead h3::after{content:"";flex:none;width:20px;height:20px;background:var(--cl-spark) center/contain no-repeat}
-html[data-skin="celestial"][data-theme="night"] #rewardsSheet .rewhead h3::after{background-image:var(--cl-spark-n)}
 /* empty hints: a crescent over a cloud */
 html[data-skin="celestial"] .emptyhint::before{content:"";display:block;width:96px;height:96px;margin:0 auto 12px;background:var(--cl-empty) center/contain no-repeat}
 html[data-skin="celestial"][data-theme="night"] .emptyhint::before{background-image:var(--cl-empty-n)}
@@ -615,6 +611,112 @@ html[data-skin="pencil"] .fchip{padding:7px 12px}
 html[data-skin="pencil"] #botnav{background:var(--rq-bg);border-top:1.5px solid var(--rq-skin-border)}
 /* text on accent fills (night accent is pale blue: the app paints literal #fff there) */
 html[data-skin="pencil"] :is(.buy:not(.owned),.cta,.seg button.on){color:var(--rq-on-accent)}
+
+/* ===== 6. ИИ и озвучка по скинам (Джессика 20.10: «у каждого скина всё уникально»): «Нейросети» в настройках, окно «Объясни», чат «Обсудить книгу».
+   Only the app chrome: the selection bar and the book page stay as they are. Colours from the skin tokens; no motion. ===== */
+/* shared skeleton: the row icon sits in a 34px badge, sheet titles are real headings, room for the close button */
+html[data-skin] .nncard .xrow>svg:first-child{box-sizing:content-box;padding:6px;flex:none;border-radius:50%}
+html[data-skin] :is(#aiSheet h3,#trSheet h3,#aiChatH){position:relative;display:flex;align-items:center;gap:8px;padding:2px 44px 14px 0;margin:0 0 10px}
+html[data-skin] :is(#aiSheet h3,#trSheet h3,#aiChatH)::after{content:"";position:absolute;left:0;bottom:0;pointer-events:none}
+html[data-skin] :is(#aiSheet h3,#trSheet h3,#aiChatH)>svg{flex:none}
+html[data-skin] :is(#aiBody,#trBody) .ai-q{padding-left:12px;font-style:normal}
+
+/* «Эллада»: чернолаковые плитки и меандр. Rows = marble slabs, icon on a black-glaze tile, titles in Cormorant Unicase over a meander,
+   the person's words = black glaze with cream letters (vase painting), the answer = a marble slab */
+html[data-skin="ellada"] .nncard{position:relative;padding-top:26px}
+html[data-skin="ellada"] .nncard::before{content:"";position:absolute;left:10px;right:10px;top:6px;height:10px;background:var(--el-meander) 0 0/10px 10px repeat-x;pointer-events:none}
+html[data-skin="ellada"] .nncard .xrow{border-radius:var(--rq-radius-sm);background:var(--rq-surface-2);box-shadow:inset 0 0 0 1px var(--rq-line)}
+html[data-skin="ellada"] .nncard .xrow .xt{font-family:var(--rq-font-display);font-weight:700;font-size:1rem;letter-spacing:.02em}
+html[data-skin="ellada"] .nncard .xrow>svg:first-child{border-radius:var(--rq-radius-sm);background:var(--el-glaze);color:#f6ead6}
+html[data-skin="ellada"][data-theme="night"] .nncard .xrow>svg:first-child{background:var(--rq-accent);color:var(--rq-on-accent)}
+html[data-skin="ellada"] .nncard .xpick{border-radius:var(--rq-radius-sm);background:var(--rq-surface);border-color:var(--rq-border-strong)}
+html[data-skin="ellada"] .keyhow>summary{font-family:var(--rq-font-display);font-weight:700;font-size:1rem;letter-spacing:.02em}
+html[data-skin="ellada"] .keyhowb{border-left:3px solid var(--rq-border-strong);padding-left:12px}
+html[data-skin="ellada"] :is(#aiSheet h3,#trSheet h3,#aiChatH){font-family:var(--rq-font-display);font-weight:700;font-size:1.375rem;letter-spacing:.02em}
+html[data-skin="ellada"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::after{right:44px;height:8px;background:var(--el-meander-line) 0 0/8px 8px repeat-x;opacity:.4}
+html[data-skin="ellada"] :is(#aiBody,#trBody) .ai-q{border-left:3px solid var(--el-glaze)}
+html[data-skin="ellada"][data-theme="night"] :is(#aiBody,#trBody) .ai-q{border-left-color:var(--rq-accent)}
+html[data-skin="ellada"] #aiChatLog .cm{border-radius:var(--rq-radius-sm)}
+html[data-skin="ellada"] #aiChatLog .cm.u{background:var(--el-glaze);color:#f6ead6}
+html[data-skin="ellada"][data-theme="night"] #aiChatLog .cm.u{background:var(--rq-accent);color:var(--rq-on-accent)}
+html[data-skin="ellada"] #aiChatLog .cm.a{background:var(--rq-surface);box-shadow:inset 0 0 0 1px var(--rq-line)}
+html[data-skin="ellada"] #aiChatLog .cm.e{background:none;box-shadow:none}
+html[data-skin="ellada"] #aiChatChips button,html[data-skin="ellada"] #aiChatLog .cm.e button{border-radius:var(--rq-radius-sm);background:var(--rq-surface);box-shadow:inset 0 0 0 1px var(--rq-border-strong)}
+html[data-skin="ellada"] #aiChatIn{border-radius:var(--rq-radius-sm);border-color:var(--rq-border-strong)}
+html[data-skin="ellada"] #aiChatSend{border-radius:var(--rq-radius-sm);background:var(--el-glaze);color:#f6ead6}
+html[data-skin="ellada"][data-theme="night"] #aiChatSend{background:var(--rq-accent);color:var(--rq-on-accent)}
+
+/* «Бабочковый»: перламутровые крылья. Rows = pearl petals with the scale edge on top, the icon in a pearl ring,
+   «Как получить ключ» opens on a butterfly, titles in Poiret One with a butterfly, bubbles = petals (the person's one shimmers) */
+html[data-skin="babochkovyi"] .nncard{position:relative;padding-top:24px}
+html[data-skin="babochkovyi"] .nncard::before{content:"";position:absolute;left:14px;right:14px;top:6px;height:6px;background:var(--bb-edge) 0 0/9px 6px repeat-x;opacity:.9;pointer-events:none}
+html[data-skin="babochkovyi"] .nncard .xrow{border-radius:999px;background:var(--bb-iridescent);box-shadow:var(--rq-shadow-1)}
+html[data-skin="babochkovyi"] .nncard .xrow .xsub{color:var(--rq-text)}
+html[data-skin="babochkovyi"] .nncard .xrow>svg:first-child{padding:4px;border:2px solid transparent;background:linear-gradient(var(--rq-surface),var(--rq-surface)) padding-box,linear-gradient(135deg,var(--bb-iri-1),var(--bb-iri-2),var(--bb-iri-3)) border-box;color:var(--rq-accent-text)}
+html[data-skin="babochkovyi"] .nncard .xpick{border-radius:999px;background:var(--rq-surface);border-color:var(--rq-line)}
+html[data-skin="babochkovyi"] .nncard .tierseg button{border-radius:999px}
+html[data-skin="babochkovyi"] .keyhow>summary::before{width:20px;height:20px;border:0;transform:none;margin:0 8px 0 0;background:var(--bb-hatch-off) center/contain no-repeat}
+html[data-skin="babochkovyi"] .keyhow[open]>summary::before{transform:none;background-image:var(--bb-hatch-on)}
+html[data-skin="babochkovyi"][data-theme="night"] .keyhow>summary::before{background-image:var(--bb-hatch-off-n)}
+html[data-skin="babochkovyi"][data-theme="night"] .keyhow[open]>summary::before{background-image:var(--bb-hatch-on-n)}
+html[data-skin="babochkovyi"] .keyhowb{padding:10px 12px;border-radius:var(--rq-radius-sm);background:var(--rq-surface-2)}
+html[data-skin="babochkovyi"] :is(#aiSheet h3,#trSheet h3,#aiChatH){font-family:var(--rq-font-display);font-weight:400;font-size:1.5rem}
+html[data-skin="babochkovyi"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::after{right:66px;bottom:4px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--bb-iri-1),var(--bb-iri-2),var(--bb-iri-3))}
+html[data-skin="babochkovyi"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::before{content:"";position:absolute;right:44px;bottom:-6px;width:22px;height:22px;background:var(--bb-hatch-on) center/contain no-repeat;pointer-events:none}
+html[data-skin="babochkovyi"][data-theme="night"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::before{background-image:var(--bb-hatch-on-n)}
+html[data-skin="babochkovyi"] :is(#aiBody,#trBody) .ai-q{background:linear-gradient(var(--bb-iri-1),var(--bb-iri-2),var(--bb-iri-3)) 0 0/3px 100% no-repeat}
+html[data-skin="babochkovyi"] #aiChatLog .cm.u{background:var(--bb-iridescent);color:var(--rq-text);border-radius:18px 18px 6px 18px}
+html[data-skin="babochkovyi"] #aiChatLog .cm.a{background:var(--rq-surface);border-radius:18px 18px 18px 6px;box-shadow:inset 0 0 0 1px var(--rq-line)}
+html[data-skin="babochkovyi"] #aiChatLog .cm.e{background:none;box-shadow:none}
+html[data-skin="babochkovyi"] #aiChatChips button,html[data-skin="babochkovyi"] #aiChatLog .cm.e button{border-radius:999px;background:var(--rq-surface);box-shadow:inset 0 0 0 1px var(--rq-line)}
+html[data-skin="babochkovyi"] #aiChatIn{border-radius:22px}
+html[data-skin="babochkovyi"] #aiChatSend{border-radius:50%;border:2px solid transparent;background:linear-gradient(var(--rq-accent),var(--rq-accent)) padding-box,linear-gradient(135deg,var(--bb-iri-1),var(--bb-iri-2),var(--bb-iri-3)) border-box}
+
+/* «Небесный»: кремовая бумага в золотой рамке, чернильная синева. The icon sits in an ink medallion with a gold rim,
+   «Как получить ключ» ends with a gold diamond, titles in Cormorant over the gold divider, the person's words = ink with a gold rim */
+html[data-skin="celestial"] .nncard .xrow{border-radius:var(--rq-radius-sm);background:var(--rq-surface-2);box-shadow:inset 0 0 0 1px var(--cl-gold-l)}
+html[data-skin="celestial"] .nncard .xrow .xt{font-family:var(--rq-font-display);font-weight:700;font-size:1.0625rem}
+html[data-skin="celestial"] .nncard .xrow>svg:first-child{background:var(--cl-ink);color:var(--rq-on-accent);box-shadow:0 0 0 1.5px var(--cl-gold-l)}
+html[data-skin="celestial"] .nncard .xpick{border-radius:999px;background:var(--rq-surface);border-color:var(--cl-gold-l)}
+html[data-skin="celestial"] .nncard .tierseg button{border-radius:999px}
+html[data-skin="celestial"] .keyhow>summary::after{content:"";width:10px;height:10px;margin-left:8px;background:var(--cl-dia) center/contain no-repeat}
+html[data-skin="celestial"][data-theme="night"] .keyhow>summary::after{background-image:var(--cl-dia-n)}
+html[data-skin="celestial"] .keyhowb{padding:10px 12px;border-radius:var(--rq-radius-sm);background:var(--rq-surface);border:1px solid var(--cl-gold-l)}
+html[data-skin="celestial"] :is(#aiSheet h3,#trSheet h3,#aiChatH){font-family:var(--rq-font-display);font-weight:700;font-size:1.5rem;line-height:1.15}
+html[data-skin="celestial"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::after{right:44px;height:10px;background:var(--cl-div) 0 50%/160px 10px no-repeat,linear-gradient(90deg,var(--cl-gold) 0,var(--cl-gold) 70%,transparent) 0 50%/100% 1px no-repeat}
+html[data-skin="celestial"][data-theme="night"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::after{background-image:var(--cl-div-n),linear-gradient(90deg,var(--cl-gold) 0,var(--cl-gold) 70%,transparent)}
+html[data-skin="celestial"] :is(#aiSheet h3,#trSheet h3,#aiChatH)>svg{color:var(--cl-gold)}
+html[data-skin="celestial"][data-theme="night"] :is(#aiSheet h3,#trSheet h3,#aiChatH)>svg{color:var(--rq-accent)}
+html[data-skin="celestial"] :is(#aiBody,#trBody) .ai-q{border-left:2px solid var(--cl-gold-l)}
+html[data-skin="celestial"] #aiChatLog{padding:6px 5px 10px}
+html[data-skin="celestial"] #aiChatLog .cm.u{background:var(--cl-ink);color:var(--rq-on-accent);border-radius:16px 16px 4px 16px;box-shadow:0 0 0 1px var(--cl-gold-l)}
+html[data-skin="celestial"] #aiChatLog .cm.a{background:var(--rq-surface);border-radius:var(--rq-radius-sm);border:1px solid var(--cl-gold-l);box-shadow:var(--cl-frame)}
+html[data-skin="celestial"] #aiChatLog .cm.e{background:none;border:0;box-shadow:none}
+html[data-skin="celestial"] #aiChatChips button,html[data-skin="celestial"] #aiChatLog .cm.e button{border-radius:999px;background:var(--rq-surface);box-shadow:inset 0 0 0 1px var(--cl-gold-l)}
+html[data-skin="celestial"] #aiChatIn{border-radius:22px;border-color:var(--cl-gold-l)}
+html[data-skin="celestial"] #aiChatSend{border-radius:50%;background:var(--cl-ink);color:var(--rq-on-accent);box-shadow:0 0 0 1.5px var(--cl-gold-l)}
+
+/* «Карандашный»: тетрадь. Rows and bubbles are outlined by hand (uneven corners, graphite), the icon is circled, «Как получить ключ»
+   opens on a pencil arrow, titles in Caveat underlined by hand, the send button is circled in the accent */
+html[data-skin="pencil"] .nncard .xrow{background:var(--rq-surface);border:2px solid var(--rq-skin-border);border-radius:16px 6px 14px 5px/6px 14px 5px 16px}
+html[data-skin="pencil"] .nncard .xrow .xt{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:1.5rem;line-height:1}
+html[data-skin="pencil"] .nncard .xrow>svg:first-child{padding:4px;color:var(--rq-accent-text);border:1.5px solid var(--rq-accent-text);border-radius:52% 48% 55% 45%/46% 55% 45% 54%}
+html[data-skin="pencil"] .nncard .xpick{background:var(--rq-surface);border:2px dashed var(--rq-skin-border);border-radius:6px 14px 5px 16px/14px 5px 16px 6px}
+html[data-skin="pencil"] .keyhow>summary{font-family:var(--rq-skin-font-heading);font-weight:700;font-size:1.375rem;color:var(--rq-accent-text)}
+html[data-skin="pencil"] .keyhow>summary::before{width:18px;height:18px;border:0;transform:none;margin:0 8px 0 0;background:currentColor;-webkit-mask:var(--pc-arrow) center/contain no-repeat;mask:var(--pc-arrow) center/contain no-repeat}
+html[data-skin="pencil"] .keyhow[open]>summary::before{transform:rotate(90deg)}
+html[data-skin="pencil"] .keyhowb{padding:2px 0 4px 12px;background:repeating-linear-gradient(-45deg,var(--rq-skin-hatch) 0 1.2px,transparent 1.2px 3.6px) 0 0/4px 100% no-repeat}
+html[data-skin="pencil"] :is(#aiSheet h3,#trSheet h3,#aiChatH){font-family:var(--rq-skin-font-heading);font-weight:700;font-size:1.75rem;line-height:1.05}
+html[data-skin="pencil"] :is(#aiSheet h3,#trSheet h3,#aiChatH)::after{left:26px;width:150px;bottom:4px;height:9px;background:var(--rq-accent);-webkit-mask:var(--pc-under) 0 0/100% 100% no-repeat;mask:var(--pc-under) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] :is(#aiSheet h3,#trSheet h3,#aiChatH)>svg{color:var(--rq-accent-text)}
+html[data-skin="pencil"] :is(#aiBody,#trBody) .ai-q{background:repeating-linear-gradient(-45deg,var(--rq-skin-hatch) 0 1.2px,transparent 1.2px 3.6px) 0 0/4px 100% no-repeat}
+html[data-skin="pencil"] #aiChatLog .cm.u{background:var(--rq-accent-tint);color:var(--rq-text);border:1.5px solid var(--rq-accent-text);border-radius:14px 5px 4px 16px/5px 16px 14px 6px}
+html[data-skin="pencil"] #aiChatLog .cm.a{background:var(--rq-surface);border:1.5px solid var(--rq-skin-border);border-radius:5px 16px 14px 4px/16px 5px 6px 14px}
+html[data-skin="pencil"] #aiChatLog .cm.e{background:none;border:0}
+html[data-skin="pencil"] #aiChatChips button,html[data-skin="pencil"] #aiChatLog .cm.e button{background:var(--rq-surface);border:1.5px dashed var(--rq-skin-border);border-radius:14px 5px 16px 6px/5px 16px 6px 14px}
+html[data-skin="pencil"] #aiChatSend{position:relative;background:transparent;color:var(--rq-accent-text)}
+html[data-skin="pencil"] #aiChatSend::after{content:"";position:absolute;inset:-1px -4px;background:var(--rq-accent);pointer-events:none;-webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+@media (prefers-reduced-motion:reduce){html[data-skin] .keyhow>summary::before{transition:none}}
 /* 20.10 (Джессика, «как в Хабитике»): the raised «Читать» in each skin, outlined in the skin's bar face */
 html[data-skin]:not([data-skin="pencil"]) #botnav{--bn-face:var(--rq-surface)}
 html[data-skin]:not([data-skin="pencil"]) .botnav-read{color:var(--rq-text-2)}
@@ -671,6 +773,20 @@ html[data-skin="celestial"] #barBright::-webkit-slider-runnable-track{height:2px
 html[data-skin="celestial"] #barBright::-moz-range-track{height:2px;border-radius:999px;background:linear-gradient(90deg,var(--cl-gold,#d7a94b) var(--v),color-mix(in srgb,var(--cl-gold-l,#e8c98a) 45%,transparent) var(--v))}
 html[data-skin="celestial"] #barBright::-webkit-slider-thumb{width:18px;height:18px;margin-top:-8px;border:0;border-radius:50%;box-shadow:none;background:var(--cl-sun) center/contain no-repeat}
 html[data-skin="celestial"] #barBright::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:var(--cl-sun) center/contain no-repeat}
+/* 22.10 (Джессика): «Яркость» / «Тёплый оттенок» in «Настройки чтения → Страница», each skin its own (base and pencil in app.html).
+   Эллада — a band in a double hairline frame, meander in Aegean blue (brightness) / terracotta (warmth); thumbs a sun tile and an oil-lamp medallion.
+   Бабочковый — a meadow stem, green → lilac / green → peach; a butterfly and a flower. Небесный — a gold thread, sky → sun / sun → sunset; a sun and a crescent moon. */
+html[data-skin="ellada"]{--el-sl-b:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12.6' fill='%23f6efe2' stroke='%231f5a8c' stroke-width='1.6'/%3E%3Ccircle cx='14' cy='14' r='10.2' fill='none' stroke='%231f5a8c' stroke-width='.8' stroke-dasharray='1.6 1.6'/%3E%3Cg stroke='%231f5a8c' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M14 5.6v2.4M14 20v2.4M5.6 14H8M20 14h2.4M8.1 8.1l1.7 1.7M18.2 18.2l1.7 1.7M8.1 19.9l1.7-1.7M18.2 9.8l1.7-1.7'/%3E%3C/g%3E%3Ccircle cx='14' cy='14' r='3.4' fill='%231f5a8c'/%3E%3C/svg%3E");--el-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='12.6' fill='%23c8642c' stroke='%237a3a16' stroke-width='1.4'/%3E%3Cpath d='M6.4 17.6h12.4c1.6 0 2.6-.9 3.2-2.2l-3.3.3c-.5-1.4-2.5-2-5.2-2s-5.4.8-6.6 2.2c-.6.7-.9 1.2-.5 1.7z' fill='%23f6e7cf'/%3E%3Cpath d='M10 19.6h6' stroke='%23f6e7cf' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M22.2 15.2c-1.6-1.4-1.5-3.6.4-6.2.6 2 2.1 3.2 1.5 4.9-.3.8-1 1.2-1.9 1.3z' fill='%23f3d58a' stroke='%23f6e7cf' stroke-width='.6'/%3E%3C/svg%3E");--el-sl-mb:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231f5a8c'/%3E%3Cpath d='M0 14.4H12.8V3.2H3.2V9.6H8.0V6.4M12.8 14.4H16' fill='none' stroke='%23f6efe2' stroke-width='2.08' stroke-linecap='square'/%3E%3C/svg%3E")}
+html[data-skin="ellada"] #sheet :is(#brightRange,#warmRange){--sl-h:10px;--sl-ts:30px;--sl-r:0;--sl-tsh:0 1px 3px rgba(0,0,0,.3);--sl-b-th:var(--el-sl-b);--sl-w-th:var(--el-sl-w);--sl-b-fill:var(--el-sl-mb);--sl-w-fill:var(--el-meander);
+  --sl-bg:linear-gradient(90deg,transparent var(--sl-x),var(--rq-sheet) var(--sl-x)) 0 2px/100% 6px no-repeat,var(--sl-fill) 0 2px/6px 6px repeat-x,
+    linear-gradient(var(--rq-border-strong),var(--rq-border-strong)) 0 0/100% 1px no-repeat,linear-gradient(var(--rq-border-strong),var(--rq-border-strong)) 0 100%/100% 1px no-repeat}
+html[data-skin="babochkovyi"] #sheet :is(#brightRange,#warmRange){--sl-h:5px;--sl-ts:30px;--sl-tr:0;--sl-tsh:none;--sl-b-th:var(--bb-fly);--sl-w-th:var(--bb-sl-w);
+  --sl-rest:color-mix(in srgb,var(--rq-line) 90%,transparent);--sl-b-fill:linear-gradient(90deg,#9cc48a,#a996e6);--sl-w-fill:linear-gradient(90deg,#9cc48a,#f0a46a)}
+html[data-skin="babochkovyi"]{--bb-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg fill='%23f6b98a' stroke='%23b8603a' stroke-width='1.1'%3E%3Cellipse cx='14' cy='7.6' rx='4.3' ry='6' transform='rotate%280 14 14%29'/%3E%3Cellipse cx='14' cy='7.6' rx='4.3' ry='6' transform='rotate%2872 14 14%29'/%3E%3Cellipse cx='14' cy='7.6' rx='4.3' ry='6' transform='rotate%28144 14 14%29'/%3E%3Cellipse cx='14' cy='7.6' rx='4.3' ry='6' transform='rotate%28216 14 14%29'/%3E%3Cellipse cx='14' cy='7.6' rx='4.3' ry='6' transform='rotate%28288 14 14%29'/%3E%3C/g%3E%3Ccircle cx='14' cy='14' r='3.6' fill='%23f3d16a' stroke='%23b8603a' stroke-width='1.1'/%3E%3C/svg%3E")}
+html[data-skin="celestial"]{--cl-sl-b:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cg stroke='%23b8862e' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M14 1.6v3.2M14 23.2v3.2M1.6 14h3.2M23.2 14h3.2M5.2 5.2l2.2 2.2M20.6 20.6l2.2 2.2M5.2 22.8l2.2-2.2M20.6 7.4l2.2-2.2'/%3E%3C/g%3E%3Ccircle cx='14' cy='14' r='6.6' fill='%23f3d58a' stroke='%23b8862e' stroke-width='1.4'/%3E%3Ccircle cx='14' cy='14' r='3.4' fill='none' stroke='%23d7a94b' stroke-width='.9'/%3E%3C/svg%3E");--cl-sl-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M17.6 3.4A10.6 10.6 0 1 0 24.6 19 8.4 8.4 0 0 1 17.6 3.4z' fill='%23f3d58a' stroke='%23b8862e' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M21.6 4.2l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z' fill='%23d7a94b'/%3E%3C/svg%3E")}
+html[data-skin="celestial"] #sheet :is(#brightRange,#warmRange){--sl-h:3px;--sl-ts:30px;--sl-tr:0;--sl-tsh:none;--sl-b-th:var(--cl-sl-b);--sl-w-th:var(--cl-sl-w);
+  --sl-rest:color-mix(in srgb,var(--cl-gold-l,#e8c98a) 55%,transparent);--sl-b-fill:linear-gradient(90deg,#9db8ef,#d7a94b);--sl-w-fill:linear-gradient(90deg,#e8c98a,#e0784a)}
+html[data-skin="celestial"] #sheet :is(#brightRange,#warmRange)::-webkit-slider-thumb{filter:drop-shadow(0 0 3px rgba(231,180,80,.7))}
 
 /* ===== 21.10 «Главы»: the chapter being read, each skin its own (Джессика: «чтобы выделялась больше … у каждого скина») =====
    Эллада — Aegean-blue row with a meander band at the bottom; Бабочковый — lilac tint, accent outline, a butterfly mark;
@@ -688,3 +804,25 @@ html[data-skin="celestial"] #panelBody .prow.on .pnow .ic{display:none}
 html[data-skin="celestial"] #panelBody .prow.on .pnow::before{content:"";width:18px;height:18px;background:var(--cl-gold-l);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
 html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow{box-shadow:inset 0 0 0 1px var(--cl-gold-d)}
 html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow::before{background:var(--cl-gold-d)}
+/* 21.10 иконки v2 (Джессика: «сильнее отличались, но с духом скина»): у каждого скина своя линия; «Aa» на кнопке шрифта — шрифтом скина */
+html[data-skin="pencil"]{--rq-icon-stroke:1.35}
+html[data-skin="ellada"] .ic{stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:6}
+html[data-skin="celestial"]{--rq-icon-stroke:1.35;--ic-fill:var(--cl-gold)}
+html[data-skin="babochkovyi"]{--rq-icon-stroke:1.9;--ic-soft:var(--bb-iri-2);--ic-soft-o:.55;--ic-fill:var(--bb-iri-3)}
+html[data-skin="pencil"] .rbar .aa{font:700 24px/22px Caveat,var(--rq-font-ui)}
+html[data-skin="ellada"] .rbar .aa{font:700 21px/22px var(--rq-font-display)}
+html[data-skin="celestial"] .rbar .aa{font:700 24px/22px var(--rq-font-display)}
+html[data-skin="babochkovyi"] .rbar .aa{font:400 22px/22px var(--rq-font-display)}
+
+/* 22.10 (Джессика: «тонкие полосы между страницами PDF — в стиле каждого скина»): the divider in «Прокрутка» (.psd, js/pdf-scroll.js);
+   --ps-gap = its height; pages without a shadow, the divider separates them */
+html[data-skin] #pdfScroll .psl{box-shadow:none}
+html[data-skin="pencil"] #pdfScroll{--ps-gap:7px}
+html[data-skin="pencil"] #pdfScroll .psd{background:var(--rq-text-2);opacity:.7;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='7' viewBox='0 0 40 7'%3E%3Cpath d='M0 3.6c5-1.5 10 1.3 15 .2s10-1.2 15 .3 7 .7 10-.2' fill='none' stroke='%23000' stroke-width='1.15' stroke-linecap='round'/%3E%3C/svg%3E") 0 0/40px 7px repeat-x;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='7' viewBox='0 0 40 7'%3E%3Cpath d='M0 3.6c5-1.5 10 1.3 15 .2s10-1.2 15 .3 7 .7 10-.2' fill='none' stroke='%23000' stroke-width='1.15' stroke-linecap='round'/%3E%3C/svg%3E") 0 0/40px 7px repeat-x}
+html[data-skin="ellada"] #pdfScroll{--ps-gap:8px}
+html[data-skin="ellada"] #pdfScroll .psd{background:var(--el-meander-line) 0 0/8px 8px repeat-x;opacity:.6}
+html[data-skin="babochkovyi"] #pdfScroll{--ps-gap:10px}
+/* 22.10 (Джессика: «не слишком аутентичный… листики или крылышки бабочек»): a meadow stem with a leaf and a small butterfly */
+html[data-skin="babochkovyi"] #pdfScroll .psd{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10' viewBox='0 0 40 10'%3E%3Cpath d='M0 6.6c5-1.1 10 1.1 20 0s15-1.1 20 0' fill='none' stroke='%239cc48a' stroke-width='.8'/%3E%3Cpath d='M7 6.4c2-3.6 5.6-3.8 7.4-2.3-1.6 2.6-4.6 3.6-7.4 2.3z' fill='%239cc48a'/%3E%3Cpath d='M7.6 6.2l5.6-1.8' stroke='%236f9a5e' stroke-width='.45'/%3E%3Cg stroke='%236b5aa8' stroke-width='.5' stroke-linejoin='round'%3E%3Cpath d='M30 4.6C28 .8 24.4.9 24.9 3.4c.3 1.6 2.4 2 5.1 1.2z' fill='%23c3b4f2'/%3E%3Cpath d='M30 4.6C32 .8 35.6.9 35.1 3.4c-.3 1.6-2.4 2-5.1 1.2z' fill='%23c3b4f2'/%3E%3Cpath d='M30 4.8c-2.4.4-3.6 2.3-2.8 3.5.8.8 2.4-.8 2.8-3.5z' fill='%23f2b6d0'/%3E%3Cpath d='M30 4.8c2.4.4 3.6 2.3 2.8 3.5-.8.8-2.4-.8-2.8-3.5z' fill='%23f2b6d0'/%3E%3C/g%3E%3Cpath d='M30 2.6v5.6' stroke='%234a3f78' stroke-width='.9' stroke-linecap='round'/%3E%3C/svg%3E") center/40px 10px repeat-x}
+html[data-skin="celestial"] #pdfScroll{--ps-gap:8px}
+html[data-skin="celestial"] #pdfScroll .psd{background:var(--cl-gold);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='8' viewBox='0 0 56 8'%3E%3Crect y='3.6' width='56' height='.8'/%3E%3Cpath d='M28 .3l.95 2.75 2.75.95-2.75.95L28 7.7l-.95-2.75L24.3 4l2.75-.95z'/%3E%3C/svg%3E") center/56px 8px repeat-x;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='8' viewBox='0 0 56 8'%3E%3Crect y='3.6' width='56' height='.8'/%3E%3Cpath d='M28 .3l.95 2.75 2.75.95-2.75.95L28 7.7l-.95-2.75L24.3 4l2.75-.95z'/%3E%3C/svg%3E") center/56px 8px repeat-x}

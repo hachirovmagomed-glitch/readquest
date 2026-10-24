@@ -208,15 +208,13 @@ function openRewardsSheet(tab){
   if(tab==='shop'){openLook(true);return;}
   clearConfetti();clearToasts();
   renderRewardsSheet();
-  {const rs=el('rewardsSheet'),nh=(typeof rqNavH==='function'?rqNavH():0);rs.style.bottom=nh+'px';rs.scrollTop=0;el('rewardsScrim').style.bottom=nh+'px';} /* scrim stops above the bottom nav: tabs stay tappable */
-  el('rewardsScrim').classList.remove('hidden');
-  el('rewardsSheet').classList.add('open');
+  {const sc=document.querySelector('#rewardsSheet .rewscroll');if(sc)sc.scrollTop=0;} /* always opens at the top */
+  el('rewardsSheet').classList.add('open');document.body.classList.add('rew-open');
   applyMvpChrome(); /* bottom nav: «Награды» selected */
 }
 function closeRewardsSheet(){
   try{closeShopDetail();}catch(e){} /* примерка ends when the shop closes */
-  el('rewardsSheet').classList.remove('open');
-  el('rewardsScrim').classList.add('hidden');
+  el('rewardsSheet').classList.remove('open');document.body.classList.remove('rew-open');
   applyMvpChrome();
 }
 function ensureMvpRewards(){

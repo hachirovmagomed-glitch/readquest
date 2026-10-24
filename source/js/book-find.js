@@ -53,13 +53,15 @@ function bfOpen(){
   if(BF.book!==R.book.id||BF.rid!==R)bfReset();
   BF.book=R.book.id;BF.rid=R;
   el('panel').classList.add('hidden');el('sheet').classList.add('hidden');el('selpop').classList.add('hidden');
-  const o=el('bookFind');o.hidden=false;el('bfPill').classList.add('hidden');
+  const o=el('bookFind');o.hidden=false;el('bfPill').classList.add('hidden');window.__rqFindOpen=true;
   navPush('find');
   const i=el('bfQ');i.value=BF.q;
   bfRender(true);
   if(!BF.q)setTimeout(function(){try{i.focus();}catch(e){}},0);
 }
-function bfHide(){const o=el('bookFind');if(o)o.hidden=true;try{const i=el('bfQ');if(i)i.blur();}catch(e){}bfPillSync();}
+function bfHide(){const o=el('bookFind');if(o)o.hidden=true;try{const i=el('bfQ');if(i)i.blur();}catch(e){}window.__rqFindOpen=false;
+  if(R&&R.relayDue){R.relayDue=false;setTimeout(function(){relayout();},400);} /* the viewport the keyboard left behind */
+  bfPillSync();}
 function bfBack(){const was=bfOpenNow();bfHide();if(was&&navState()==='find')try{history.back();}catch(e){}}
 window.addEventListener('popstate',function(e){const st=(e.state&&e.state.rq)||null;if(bfOpenNow()&&st!=='find')bfHide();});
 /** forget the search (✕ on the pill, another book, the book closed); the return plaque «< на стр. N» stays as it is */

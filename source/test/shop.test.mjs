@@ -37,7 +37,7 @@ ok('SHOP_THEMES / buyTheme removed; S.devMoney kept as false', gone.SHOP_THEMES 
 await p.evaluate(() => { S.gold = 640; save(); }); await sleep(200);
 await p.click('#bnRew'); await sleep(400);
 const hdr = await p.evaluate(() => { const sh = document.getElementById('rewardsSheet'); const t = [...sh.querySelectorAll('[role=tab]')].map(b => b.textContent.trim());
-  const bal = document.getElementById('rewBalance'); return { tabs: t, bal: bal ? bal.textContent.trim() : null, h: (sh.querySelector('h3') || {}).textContent }; });
+  const bal = document.getElementById('rewBalance'); return { tabs: t, bal: bal ? bal.textContent.trim() : null, h: ((sh.querySelector('h1') || {}).textContent || '').trim() }; });
 ok('«Награды»: header «Награды», only «Из жизни» (17.10: the shop moved to «Внешний вид»)', hdr.h === 'Награды' && hdr.tabs.length === 0, hdr);
 ok('header balance reads S.gold as text «640 монет»', hdr.bal === '640 монет', hdr.bal);
 const lifeOk = await p.evaluate(() => { const life = document.getElementById('rewPaneLife'); return !!life && !life.hidden && !!life.querySelector('#rewSlots') && getComputedStyle(life).display !== 'none'; });

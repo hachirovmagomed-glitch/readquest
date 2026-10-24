@@ -85,7 +85,7 @@ if (want('nokey')) {
 if (want('deepseek')) {
   const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { role: 'assistant', content: 'Здесь это слово значит «тест». Объяснение от ИИ.' } }] } }));
   /* через настройки: сервис по умолчанию DeepSeek, вставляем ключ */
-  const d = await p.evaluate(() => { openGeneralSettings(false); const on = el('aiProvSeg').querySelector('button.on'); return { prov: on && on.textContent, base: el('aiBase').hidden, ph: el('aiModel').placeholder, sai: JSON.parse(JSON.stringify(S.ai)) }; });
+  const d = await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); const on = el('aiProvSeg').querySelector('button.on'); return { prov: on && on.textContent, base: el('aiBase').hidden, ph: el('aiModel').placeholder, sai: JSON.parse(JSON.stringify(S.ai)) }; });
   ok('deepseek: новый человек — DeepSeek по умолчанию, поле адреса скрыто, подсказка модели deepseek-chat', d.prov === 'DeepSeek' && d.base && /deepseek-chat/.test(d.ph) && d.sai.prov === 'deepseek', d);
   await p.type('#aiKey', 'sk-test-DS'); await sleep(100);
   await p.click('#aiTest'); await p.waitForFunction(() => /Работает|Не работает/.test(el('aiTestRes').textContent), { timeout: 10000 }).catch(() => {});
@@ -118,7 +118,7 @@ if (want('deepseek')) {
 
 if (want('anthropic')) {
   const { ctx, p, reqs } = await fresh(360, () => ({ status: 200, json: { content: [{ type: 'text', text: 'Это объяснение от Claude.' }] } }));
-  await p.evaluate(() => { openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => /Claude/.test(b.textContent)).click(); });
+  await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => /Claude/.test(b.textContent)).click(); });
   await p.type('#aiKey', 'sk-ant-TEST'); await sleep(100);
   await shot(p, '360-4-nastroyki-claude');
   await openAndSelect(p); await p.click('#spAI'); await waitAnswer(p);
@@ -131,7 +131,7 @@ if (want('anthropic')) {
 
 if (want('custom')) {
   const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { content: 'Свой сервис ответил.' } }] } }));
-  await p.evaluate(() => { openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Другой').click(); });
+  await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Другой').click(); });
   const vis = await p.evaluate(() => !el('aiBase').hidden);
   await p.type('#aiKey', 'k-1'); await p.type('#aiBase', 'https://ai.example.test/v1/'); await p.type('#aiModel', 'my-model'); await sleep(100);
   await openAndSelect(p); await p.click('#spAI'); await waitAnswer(p);
@@ -258,7 +258,7 @@ if (want('tts')) for (const W of [360, 390]) {
     if (/texttospeech/.test(q.url)) return { status: 200, json: { audioContent: wav(0.3).toString('base64') } };
     return { status: 200, raw: wav(0.4), type: 'audio/wav' };
   });
-  const d = await p.evaluate(() => { openGeneralSettings(false); const on = el('ttsProvSeg').querySelector('button.on'); return { prov: on && on.textContent, fields: el('ttsFields').hidden, sai: JSON.parse(JSON.stringify(S.tts)) }; });
+  const d = await p.evaluate(() => { NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); const on = el('ttsProvSeg').querySelector('button.on'); return { prov: on && on.textContent, fields: el('ttsFields').hidden, sai: JSON.parse(JSON.stringify(S.tts)) }; });
   ok('tts ' + W + ': по умолчанию «Телефон», полей ключа не видно', d.prov === 'Телефон' && d.fields && d.sai.prov === 'system', d);
   await p.evaluate(() => [...el('ttsProvSeg').querySelectorAll('button')].find(b => b.textContent === 'OpenAI').click());
   await p.type('#ttsKey', 'sk-tts'); await sleep(100);
@@ -316,6 +316,123 @@ if (want('tts')) {
   });
   ok('tts data: нормализация (мусор → «Телефон», строки), экспорт без ключа, импорт оставляет свой ключ и сервис', r.n1.prov === 'system' && r.n1.key === '' && r.n2.prov === 'system' && !r.raw && r.e.key === '' && r.e.prov === 'elevenlabs' && r.after.key === 'xi-OWN' && r.after.prov === 'elevenlabs', r);
   await ctx.close();
+}
+
+if (want('compact')) for (const W of [360, 390]) {
+  const { ctx, p } = await fresh(W);
+  const r = await p.evaluate(async () => {
+    openGeneralSettings(false); el('aiHead').scrollIntoView({ block: 'start' });
+    const h = (e) => Math.round(e.getBoundingClientRect().height), card = el('aiX').parentElement;
+    const r0 = { cardH: h(card), ai: el('aiCard').hidden, tts: el('ttsCard').hidden, aiRow: el('aiX').textContent, ttsRow: el('ttsHead').textContent };
+    el('aiX').click(); await new Promise(r => setTimeout(r, 50));
+    const r1 = { ai: el('aiCard').hidden, list: el('aiProvSeg').hidden, pick: el('aiProvX').textContent, key: h(el('aiKey')) };
+    el('aiProvX').click(); const r2 = { list: el('aiProvSeg').hidden, n: el('aiProvSeg').querySelectorAll('button').length };
+    [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Claude').click();
+    const r3 = { list: el('aiProvSeg').hidden, pick: el('aiProvX').textContent, prov: S.ai.prov, open: !el('aiCard').hidden };
+    return { r0, r1, r2, r3 };
+  });
+  ok('compact ' + W + ': «Нейросети» — три строки (ИИ, озвучка, перевод), всё свёрнуто, карточка не выше 210px', r.r0.ai && r.r0.tts && r.r0.cardH <= 210 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
+  ok('compact ' + W + ': строка ИИ раскрывается; список сервисов скрыт за кнопкой «Сервис DeepSeek»', !r.r1.ai && r.r1.list && /Сервис\s*DeepSeek/.test(r.r1.pick) && r.r1.key > 0, r.r1);
+  ok('compact ' + W + ': «Сервис» раскрывает 5 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 5 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
+  await p.evaluate(() => { NN_EXP.ai = false; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
+  await shot(p, W + '-13-neyroseti-svernuto');
+  await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.aiP = true; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
+  await shot(p, W + '-14-neyroseti-servis');
+  await ctx.close();
+}
+if (want('keyhow')) for (const W of [360, 390]) {
+  const { ctx, p } = await fresh(W);
+  const r = await p.evaluate(async () => {
+    NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); const out = {};
+    for (const b of [...el('aiProvSeg').querySelectorAll('button')]) { b.click(); out['ai:' + b.textContent] = { t: el('aiHowB').textContent, a: (el('aiHowB').querySelector('a') || {}).href || '', tgt: (el('aiHowB').querySelector('a') || {}).target || '' }; }
+    for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
+    return out;
+  });
+  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com' };
+  const bad = Object.keys(want_).filter(k => !r[k] || r[k].a.indexOf('https://' + want_[k]) !== 0 || !/как пароль/.test(r[k].t));
+  ok('keyhow ' + W + ': у каждого сервиса шаги, ссылка на страницу ключей и совет про пароль', !bad.length && r['ai:DeepSeek'].tgt === '_blank' && /Проверить ключ/.test(r['ai:DeepSeek'].t) && /Послушать/.test(r['tts:OpenAI'].t) && r['ai:Другой'].a === '' && /адрес API/.test(r['ai:Другой'].t), { bad, deep: r['ai:DeepSeek'] });
+  await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')][0].click(); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); });
+  await sleep(200);
+  const ov = await p.evaluate(() => { const c = el('aiCard').getBoundingClientRect(); return [...el('aiCard').querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 5); });
+  ok('keyhow ' + W + ': раскрытая инструкция не вылезает за карточку', ov.length === 0, ov);
+  await shot(p, W + '-11-kak-poluchit-klyuch');
+  await p.evaluate(() => { [...el('ttsProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Google').click(); el('ttsHow').open = true; el('ttsHead').scrollIntoView({ block: 'start' }); });
+  await sleep(200); await shot(p, W + '-12-kak-poluchit-klyuch-ozvuchka');
+  await ctx.close();
+}
+if (want('keyhow')) {
+  const { ctx, p } = await fresh(390);
+  await openAndSelect(p); await p.click('#spAI'); await sleep(300); await p.click('#aiOpenSet'); await sleep(500);
+  ok('keyhow: «Открыть настройки» из окна без ключа сразу раскрывает инструкцию', await p.evaluate(() => el('aiHow').open));
+  await ctx.close();
+}
+
+/* rows (Джессика 21.10 «плашки сходят с ума»): при любом сервисе и крупном шрифте название строки («ИИ-помощник», «Озвучка») не сжимается */
+if (want('rows')) for (const sk of ['', 'ellada', 'babochkovyi', 'celestial', 'pencil']) for (const fs of [16, 19]) {
+  const { ctx, p } = await fresh(360);
+  const r = await p.evaluate(async (sk, fs) => {
+    if (sk) { S.gold = 2000; save(); buy('skin-' + sk); wear('skin-' + sk); }
+    document.documentElement.style.fontSize = fs + 'px';
+    NN_EXP.ai = NN_EXP.tts = true; openGeneralSettings(false); await new Promise(r => setTimeout(r, 200));
+    const bad = [];
+    const chk = (tag) => { for (const id of ['aiX', 'ttsHead']) { const t = el(id).querySelector('.xt'), v = el(id).querySelector('.xv');
+      if (t.scrollWidth > t.clientWidth + 1 || v.scrollWidth > v.clientWidth + 1 || el(id).getBoundingClientRect().height > 60) bad.push(tag + ' ' + id + ': ' + t.textContent + ' ' + t.clientWidth + '/' + t.scrollWidth + ' | ' + v.textContent); } };
+    for (const b of [...el('aiProvSeg').querySelectorAll('button')]) { b.click(); S.ai.key = ''; renderNn(); chk('ai ' + b.textContent); S.ai.key = 'sk-x'; renderNn(); chk('ai+key ' + b.textContent); }
+    for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); chk('tts ' + b.textContent); }
+    return bad;
+  }, sk, fs);
+  ok('rows ' + (sk || 'base') + ' ' + fs + 'px: названия строк целиком при любом сервисе и с ключом и без', r.length === 0, r.slice(0, 4));
+  await ctx.close();
+}
+
+/* skins (Джессика 20.10: «у каждого скина всё уникально»): «Нейросети», «Объясни» и чат — свой вид в каждом скине, текст читается, 360 влезает */
+const SKINS = ['ellada', 'babochkovyi', 'celestial', 'pencil'];
+const look = (p) => p.evaluate(() => {
+  const rgb = (s) => (s.match(/rgba?\([^)]*\)/g) || []).map(c => c.match(/[\d.]+/g).map(Number)).filter(c => c.length < 4 || c[3] > 0.5);
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const bgs = (e) => { for (let n = e; n; n = n.parentElement) { const cs = getComputedStyle(n); const g = n === document.documentElement ? [] : rgb(cs.backgroundImage.replace(/url\([^)]*\)/g, '')); const b = rgb(cs.backgroundColor); if (g.length || b.length) return g.concat(b); } return [[255, 255, 255]]; };
+  const cr = (e) => { if (!e) return 0; const t = rgb(getComputedStyle(e).color)[0]; return Math.min(...bgs(e).map(b => { const a = lum(t), c = lum(b); return (Math.max(a, c) + 0.05) / (Math.min(a, c) + 0.05); })); };
+  const cs = (q, k) => { const e = document.querySelector(q); return e ? getComputedStyle(e)[k] : ''; };
+  const pick = (q) => document.querySelector(q);
+  return { u: cs('#aiChatLog .cm.u', 'backgroundImage') + '|' + cs('#aiChatLog .cm.u', 'backgroundColor') + '|' + cs('#aiChatLog .cm.u', 'borderRadius'),
+    h: cs('#aiChatH', 'fontFamily'), row: cs('#aiX', 'backgroundImage') + '|' + cs('#aiX', 'backgroundColor') + '|' + cs('#aiX', 'borderRadius'),
+    send: cs('#aiChatSend', 'borderRadius') + '|' + cs('#aiChatSend', 'backgroundColor') + '|' + cs('#aiChatSend', 'backgroundImage') + '|' + cs('#aiChatSend', 'color'),
+    th: document.documentElement.dataset.theme || 'day', c: { u: cr(pick('#aiChatLog .cm.u')), a: cr(pick('#aiChatLog .cm.a')), xt: cr(pick('#aiX .xt')), xsub: cr(pick('#aiX .xsub')), xv: cr(pick('#aiX .xv')), how: cr(pick('#aiHow > summary')), q: cr(pick('#aiBody .ai-a')) } };
+});
+if (want('skins')) {
+  const seen = {};
+  for (const sk of SKINS) for (const W of [360, 390]) {
+    const { ctx, p } = await fresh(W, () => ({ status: 200, json: { choices: [{ message: { content: 'Хамелеон — человек, который меняет мнение под начальство. Очумелов то ругает собаку, то хвалит.' } }] } }));
+    await p.evaluate((sk) => { S.gold = 2000; S.ai.key = 'sk-skin'; save(); buy('skin-' + sk); wear('skin-' + sk); }, sk); await sleep(400);
+    const views = W === 390 ? ['day', 'night'] : ['day'];
+    for (const v of views) {
+      const setTh = () => p.evaluate((sk, n) => { SET.theme = skinThemeKey(sk, n); SET.cBg = null; SET.cTxt = null; saveSet(); applySet(); }, sk, v === 'night');
+      await setTh(); await sleep(300);
+      const th = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin, theme: document.documentElement.dataset.theme || 'day' }));
+      /* настройки: ИИ раскрыт, инструкция открыта */
+      await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.tts = false; openGeneralSettings(false); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(300);
+      const ov = await p.evaluate(() => { const c = document.querySelector('.nncard').getBoundingClientRect(); return [...document.querySelectorAll('.nncard *')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 4); });
+      await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-neyroseti');
+      /* «Объясни» */
+      await p.evaluate(() => { __navAllow = true; show('library'); __navAllow = false; });
+      await p.evaluate(async () => { openBook(BOOKS[0].id); await new Promise(r => setTimeout(r, 2500)); }); await setTh(); await sleep(300);
+      await openAndSelect(p, 'Очумелов', true); await p.evaluate(() => el('spAI').click()); /* click without coordinates (keyboard) must not hit the day/night corner */ await waitAnswer(p); await sleep(200);
+      await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-obyasni');
+      /* чат с перепиской */
+      await p.evaluate(() => { el('aiSheet').classList.add('hidden'); S.aiChat[R.book.id] = [{ r: 'u', t: 'Кто такой Очумелов?', d: '2026-10-20' }, { r: 'a', t: 'Полицейский надзиратель. Он меняет мнение о собаке каждый раз, когда слышит, чья она.', d: '2026-10-20' }, { r: 'u', t: 'А Хрюкин?', d: '2026-10-20' }]; save(); openAiChat(); }); await sleep(300);
+      const r = await look(p);
+      const ovc = await p.evaluate(() => { const c = el('aiChat').getBoundingClientRect(); return [...el('aiChat').querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 4); });
+      await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-chat');
+      const low = Object.entries(r.c).filter(([k, x]) => x < 4.5);
+      ok('skins ' + sk + ' ' + v + ' ' + W + ': скин и тема те, текст в строках, инструкции, ответе и чате ≥ 4.5', th.skin === sk && th.theme === v && r.th === v && !low.length, { th, rth: r.th, c: r.c });
+      ok('skins ' + sk + ' ' + v + ' ' + W + ': «Нейросети» и чат не вылезают за край', !ov.length && !ovc.length, { ov, ovc });
+      if (v === 'day' && W === 390) seen[sk] = r;
+    }
+    await ctx.close();
+  }
+  const keys = ['u', 'h', 'row', 'send'];
+  const same = keys.filter(k => new Set(SKINS.map(s => seen[s] && seen[s][k])).size < SKINS.length);
+  ok('skins: у каждого скина своё — строка, заголовок чата, реплика человека, кнопка «Отправить»', !same.length, { same, seen: Object.fromEntries(SKINS.map(s => [s, seen[s] && { u: seen[s].u, h: seen[s].h, row: seen[s].row, send: seen[s].send }])) });
 }
 
 ok('no page errors', errs.length === 0, errs);

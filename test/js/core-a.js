@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261022-1402'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261024-1004'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
@@ -97,12 +97,23 @@ function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__
 const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
 function bookLvlAuto(b){
   if(!b||!window.__rqGame)return 0;
-  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+b.lvlText,c=__lvlAuto[b.id];
+  const ai=((S.bookLvlAi||{})[b.id]||{}).l;
+  const k=(b.text?b.text.length:0)+'|'+(b.author||'')+'|'+(b.genre||'')+'|'+(b.title||'')+'|'+b.lvlText+'|'+SESS.length+'|'+ai,c=__lvlAuto[b.id];
   if(c&&c.k===k)return c.l;
-  let l=0;try{l=window.__rqGame.autoLevel(b);}catch(e){console.warn('[rq] level',e);}
-  __lvlAuto[b.id]={k:k,l:l};return l;
+  const G=window.__rqGame;let l=0,r=0;
+  try{l=G.autoLevel(b);r=bookPaceRatio(b);l=Math.max(l,G.paceAutoLevel(r),Number.isInteger(ai)?ai:0);}catch(e){console.warn('[rq] level',e);}
+  __lvlAuto[b.id]={k:k,l:l,r:r};return l;
 }
-/** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…2 (game-awards textLevel); scans → 0. */
+/* 22.10: the reader's pace on this book against their other books of the same kind (game-awards.js paceRatio) */
+function bookPaceRatio(b){
+  const pdf={};BOOKS.concat(S.userBooks||[]).forEach(function(x){pdf[x.id]=x.type==='pdf';});
+  const me=b.type==='pdf',mine=[],base=[];
+  (SESS||[]).forEach(function(r){if(!r)return;if(r.bookId===b.id)mine.push(r);else if(r.bookId in pdf&&pdf[r.bookId]===me)base.push(r);});
+  return window.__rqGame.paceRatio(mine,base);
+}
+/** why the automatic level is what it is (card note): pace ratio and the neural network's verdict */
+function bookLvlWhy(b){bookLvlAuto(b);const c=__lvlAuto[b.id]||{};return {r:c.r||0,pace:window.__rqGame.paceAutoLevel(c.r||0),ai:(S.bookLvlAi||{})[b.id]||null};}
+/** PDF (Джессика 19.10 «Давай чтение по ПДФ»): text of up to 12 pages → level 0…LVL_MAX (game-awards textLevel); scans → 0. */
 async function pdfTextLevel(doc,alive){
   const G=window.__rqGame,parts=[];
   for(const n of G.pdfSamplePages(doc.numPages,12)){
@@ -110,7 +121,13 @@ async function pdfTextLevel(doc,alive){
     try{const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}catch(e){}
   }
   if(alive&&!alive())return null;
-  return G.textLevel(parts.join('\n'));
+  const txt=parts.join('\n'),withText=parts.filter(function(p){return p.replace(/\s+/g,'').length>200;}),
+    cpp=withText.length?withText.reduce(function(a,p){return a+p.replace(/\s+/g,' ').length;},0)/withText.length:0;
+  /* 22.10 (Джессика: Деррида-скан вышел «Обычной»): a scan has no text layer, so the PDF's own author/title/subject/keywords count too */
+  let md=0;try{const m=await doc.getMetadata(),i=(m&&m.info)||{};md=Math.max(G.authorLevel(i.Author),G.titleLevel([i.Title,i.Subject,i.Keywords].filter(Boolean).join(' ')));}catch(e){}
+  if(alive&&!alive())return null;
+  /* 23.10: {l, w}: w = words in the sample (≈ 0 → a scan without text; the card says so, «признаки спорят») */
+  return {l:Math.max(G.textLevel(txt,{cpp:cpp}),md),w:(txt.match(/\p{L}+/gu)||[]).length};
 }
 /** once per PDF card (and once more per new LVL_ALGO): store lvlText + lvlV (arch.md), one save(); then the open session (if this book) gets the new level */
 async function pdfLvlCheck(b,doc){
@@ -118,13 +135,21 @@ async function pdfLvlCheck(b,doc){
   const V=window.__rqGame.LVL_ALGO;
   if(Number.isInteger(b.lvlText)&&b.lvlV===V)return; /* 21.10: an older rule's result is re-checked once */
   await new Promise(function(r){setTimeout(r,1500);}); /* after the first page is drawn */
-  let l=null;try{l=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
-  if(l==null||(Number.isInteger(b.lvlText)&&b.lvlV===V))return;
-  b.lvlText=l;b.lvlV=V;save();
+  let r=null;try{r=await pdfTextLevel(doc,function(){return R.book===b&&R.pdf===doc;});}catch(e){console.warn('[rq] pdf level',e);return;}
+  if(r==null||(Number.isInteger(b.lvlText)&&b.lvlV===V))return;
+  b.lvlText=r.l;b.lvlWords=r.w;b.lvlV=V;save();
   if(R&&R.book===b&&__tracker&&__tracker.setLevel){const o=trackerOpts();__tracker.setLevel(o.level,o.capMs);}
 }
 /** level that pays: automatic, lowered by the reader's choice; 0 while the feature is off */
 function bookLvlOf(b){if(!b||!lvlOn())return 0;return window.__rqGame.effLevel(bookLvlAuto(b),(S.bookLvl||{})[b.id]);}
+/* 21.10 (Джессика: «название которых в каждом скине разное»): the level names of a shop skin, LEVELS order; no skin → LEVELS[i].n */
+const LVL_SKIN_NAMES={
+  pencil:['Набросок','Этюд','Штудия','Мастер-класс','Шедевр'],
+  ellada:['Смертный','Герой','Полубог','Титан','Олимп'],
+  babochkovyi:['Гусеница','Куколка','Бабочка','Махаон','Монарх'],
+  celestial:['Звезда','Созвездие','Туманность','Галактика','Вселенная']
+};
+function lvlName(i){const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!L[i])return '';const a=LVL_SKIN_NAMES[document.documentElement.dataset.skin||''];return (a&&a[i])||L[i].n;}
 function awardPendingSessions(){
   if(!window.__rqGame)return {xp:0,byId:{},ids:[],gold:0,daily:[],weekly:[],lvlGold:0};
   const G=window.__rqGame;

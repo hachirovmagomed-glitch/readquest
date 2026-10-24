@@ -11,8 +11,8 @@
  *
  * North-star: days/week with ≥10 minutes → daysMeetingThreshold({ minMinutes: 10 }).
  */
-import { IDB_STORE_SESSIONS } from './schema.js?v=20261022-1402';
-import { openDb } from './idb.js?v=20261022-1402';
+import { IDB_STORE_SESSIONS } from './schema.js?v=20261024-1004';
+import { openDb } from './idb.js?v=20261024-1004';
 
 /** Session UUID (reader-generated). crypto.randomUUID with a random v4 fallback. */
 export function newSessionId() {
@@ -134,7 +134,7 @@ export async function logSession(entry) {
   const xp = Number(entry.xp);
   if (entry.xp != null && Number.isFinite(xp) && xp >= 0) rec.xp = xp;
   /* optional (19.10, additive): book level of the session, game-awards LEVELS; only 1…2 is kept (0 = no field) */
-  if (entry.lvl === 1 || entry.lvl === 2) rec.lvl = entry.lvl;
+  if (Number.isInteger(entry.lvl) && entry.lvl >= 1 && entry.lvl <= 4) rec.lvl = entry.lvl; /* 1…LVL_MAX (game-awards.js) */
 
   const db = await openDb();
   return new Promise(function (res, rej) {

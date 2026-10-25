@@ -1,0 +1,57 @@
+# Temporary (thread up771x): fetch public-domain author portraits from Wikimedia Commons into source/hero/authors. Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: claude/project-thread-up771x }
+      - run: pip install -q pillow
+      - run: |
+          cat > /tmp/p.py <<'PY'
+          import json,urllib.request,urllib.parse,time,io,os,sys
+          from PIL import Image
+          UA={'User-Agent':'readquest-portraits/1.0 (github actions; public domain portraits)'}
+          def get(u):
+              for i in range(4):
+                  try: return urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60).read()
+                  except Exception as e: print('retry',u[:90],e); time.sleep(4)
+              raise SystemExit('failed '+u)
+          def api(host,params):
+              return json.loads(get('https://'+host+'/w/api.php?'+urllib.parse.urlencode(dict(params,format='json',formatversion=2))))
+          A=[('pushkin','Alexander Pushkin'),('gogol','Nikolai Gogol'),('tolstoy','Leo Tolstoy'),('chekhov','Anton Chekhov'),('homer','Homer'),('shakespeare','William Shakespeare'),
+             ('dante','Dante Alighieri'),('cervantes','Miguel de Cervantes'),('dickens','Charles Dickens'),('goethe','Johann Wolfgang von Goethe'),('verne','Jules Verne'),('andersen','Hans Christian Andersen')]
+          OVR=json.loads(os.environ.get('OVR','{}'))
+          out='source/hero/authors';os.makedirs(out,exist_ok=True);cred={}
+          for k,t in A:
+              f=OVR.get(k)
+              if not f:
+                  d=api('en.wikipedia.org',{'action':'query','titles':t,'prop':'pageimages','piprop':'name','redirects':1})
+                  f='File:'+d['query']['pages'][0]['pageimage']
+              m=api('commons.wikimedia.org',{'action':'query','titles':f,'prop':'imageinfo','iiprop':'url|extmetadata|size','iiurlwidth':320})
+              p=m['query']['pages'][0]
+              if 'imageinfo' not in p: print('NOFILE',k,f); continue
+              ii=p['imageinfo'][0];em=ii.get('extmetadata',{})
+              lic=em.get('LicenseShortName',{}).get('value','');art=em.get('Artist',{}).get('value','')
+              import re;art=re.sub('<[^>]+>','',art).strip()[:120]
+              print('IMG',k,f,ii['width'],ii['height'],'|',lic,'|',art)
+              im=Image.open(io.BytesIO(get(ii['thumburl']))).convert('RGB')
+              w,h=im.size;s=min(w,h);top=0 if h>w else 0;left=(w-s)//2
+              im=im.crop((left,int((h-s)*0.12) if h>w else 0,left+s,(int((h-s)*0.12) if h>w else 0)+s)).resize((192,192),Image.LANCZOS)
+              im.save(out+'/'+k+'.webp','WEBP',quality=78)
+              cred[k]={'file':f,'license':lic,'artist':art,'url':'https://commons.wikimedia.org/wiki/'+urllib.parse.quote(f.replace(' ','_'))}
+              time.sleep(1)
+          json.dump(cred,open(out+'/credits.json','w'),ensure_ascii=False,indent=1)
+          PY
+          python3 /tmp/p.py
+          ls -la source/hero/authors
+          git config user.name "github-actions[bot]"; git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add source/hero/authors && git commit -qm "Портреты авторов для «Приключений» (Wikimedia Commons, временный workflow)" && git push origin HEAD:claude/project-thread-up771x
+        env:
+          OVR: '{}'

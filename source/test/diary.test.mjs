@@ -137,6 +137,23 @@ const s6c = await p.evaluate(async () => { const w = (ms) => new Promise(r => se
   return { ln, made: !!diaryOf(BOOKS[1].id), view: DY.view, shown: !el('diary').classList.contains('hidden'), sheet: el('bookSheet').classList.contains('hidden') }; });
 ok('6c карточка книги: «Завести дневник книги» заводит и открывает его', s6c.ln[0] === 'Завести дневник книги' && s6c.made && s6c.view === 'book' && s6c.shown && s6c.sheet, s6c);
 
+// 6d. full screen (Джессика 25.10: «можно открывать дневники на весь экран»)
+const s6d = await p.evaluate(async () => {
+  const w = (ms) => new Promise(r => setTimeout(r, ms)), vis = (s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none'; }, r = {};
+  navGo('diary'); await w(100); r.navShelf = vis('#botnav');
+  const y = S.diaries.find(x => x.t === 'Мысли'); dyOpen(y.id); await w(150); r.navBook = vis('#botnav');
+  document.querySelector('#diary [data-act="full"]').click(); await w(200);
+  const pap = document.querySelector('#diary .dypaper').getBoundingClientRect();
+  r.full = { cls: el('diary').classList.contains('dyfull'), head: vis('#diary .dyhead'), top: vis('#diary .dytop'), x: Math.round(pap.left), w: Math.round(pap.width), h: Math.round(pap.height) >= innerHeight - 1, bar: vis('.dyfbar'), fab: vis('.dyfab') };
+  document.querySelector('.dyfab').click(); await w(150); r.edFull = DY.view === 'edit' && el('diary').classList.contains('dyfull') && vis('.dyfbar') && !vis('#diary .dyhead');
+  el('dyEX').value = 'на весь экран'; el('dyEX').dispatchEvent(new Event('input'));
+  document.querySelector('.dyfbar [data-act="back"]').click(); await w(300); r.saved = y.e.some(n => n.x === 'на весь экран') && DY.view === 'book' && DY.full;
+  document.querySelector('.dyfbar [data-act="full"]').click(); await w(150); r.off = !el('diary').classList.contains('dyfull') && vis('#diary .dyhead') && !document.querySelector('.dyfbar');
+  dyFull(true); await w(50); dyBack(); await w(300); r.shelfOff = DY.view === 'shelf' && !DY.full && !el('diary').classList.contains('dyfull');
+  return r; });
+ok('6d открытый дневник без нижней панели; «На весь экран» — только лист от края до края, кнопки в углу, новая запись тоже на весь экран; выход кнопкой и на полке',
+  s6d.navShelf && !s6d.navBook && s6d.full.cls && !s6d.full.head && !s6d.full.top && s6d.full.x === 0 && s6d.full.w === 390 && s6d.full.h && s6d.full.bar && s6d.full.fab && s6d.edFull && s6d.saved && s6d.off && s6d.shelfOff, s6d);
+
 // 7. export / import, bad data, economy
 await p.reload({ waitUntil: 'load' }); await boot();
 const s7 = await p.evaluate(async () => {

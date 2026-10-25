@@ -16,7 +16,7 @@ const DIARY_TPL=[
   {k:'quest',n:'Вопросы к книге',t:'Вопросы к книге',x:'- Почему…\n- Что будет, если…\n- \n'},
   {k:'scene',n:'Любимая сцена',t:'Любимая сцена',x:'Где это: \n\n> \n\nПочему запомнилась:\n'},
   {k:'final',n:'Итог книги',t:'Итог книги',x:'Оценка: из 5\n\nВ трёх словах: \n\nГлавная мысль:\n\nКому посоветую:\n'}];
-const DY={view:'shelf',id:null,eid:null,tab:'all',q:'',shelf:'all',sheet:null};
+const DY={view:'shelf',id:null,eid:null,tab:'all',q:'',shelf:'all',sheet:null,full:false};
 let __dyTimer=null;
 function dyMkId(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function dyList(){if(!Array.isArray(S.diaries))S.diaries=[];return S.diaries;}
@@ -86,6 +86,22 @@ function dyCoverHtml(y,big){
   return '<div class="dycov'+(big?' big':'')+'" data-cv="'+esc(DIARY_COVERS[y.cv]?y.cv:'school')+'" data-rb="'+esc(y.rb)+'" style="--cv:'+c[2]+'">'+
     '<span class="dylab"><span class="dylt">'+esc(dyTitle(y))+'</span>'+(y.b&&(y.ba||y.bt)?'<span class="dyla">'+esc(y.ba||'')+'</span>':'')+'</span><i class="dyrb" aria-hidden="true"></i></div>';
 }
+/* 25.10 (Джессика: «можно открывать дневники на весь экран»): открытый дневник всегда без нижней панели (CSS по data-view),
+   а «На весь экран» оставляет только лист, от края до края, и прячет строку состояния телефона; выйти — кнопкой в углу */
+function dyFullBtn(){return '<button type="button" class="dyhbtn" data-act="full" aria-label="На весь экран" title="На весь экран">'+rqIcon('maximize',20)+'</button>';}
+function dyFullBar(){
+  return '<div class="dyfbar">'+(DY.view==='edit'?'<button type="button" data-act="back" aria-label="Готово">'+rqIcon('check',22)+'</button>':'')+
+    '<button type="button" data-act="full" aria-label="Обычный вид" title="Обычный вид">'+rqIcon('minimize',22)+'</button></div>'+
+    (DY.view==='book'?'<button type="button" class="dyfab" data-act="newe" aria-label="Новая запись">'+rqIcon('notebook-pen',24)+'</button>':'');
+}
+function dyFsSet(on){
+  try{
+    const d=document.documentElement,act=!!(document.fullscreenElement||document.webkitFullscreenElement);
+    if(on&&!act){const fn=d.requestFullscreen||d.webkitRequestFullscreen;if(fn){const pr=fn.call(d,{navigationUI:'hide'});if(pr&&pr.catch)pr.catch(function(){});}}
+    else if(!on&&act){const fn=document.exitFullscreen||document.webkitExitFullscreen;if(fn){const pr=fn.call(document);if(pr&&pr.catch)pr.catch(function(){});}}
+  }catch(e){}
+}
+function dyFull(on){DY.full=!!on;dyFsSet(DY.full);dyRender();const s=el('diary').querySelector('.scroll');if(s&&DY.full)s.scrollTop=0;}
 function dyNight(){try{return appIsNight();}catch(e){return false;}}
 function dyHead(back,title,extra){
   return '<div class="row libhead dyhead">'+(back?'<button type="button" class="menubtn" data-act="back" aria-label="Назад">'+rqIcon('arrow-left',22)+'</button>':
@@ -126,7 +142,7 @@ function dySearchHtml(q){
 function dyPaperAttrs(y){return ' data-pp="'+y.pp+'" data-fn="'+y.fn+'" data-ink="'+y.ink+'" style="--dyfs:'+y.fs+'px"';}
 function dyBookHtml(y){
   const b=dyBook(y);
-  let h=dyHead(true,dyTitle(y),'<button type="button" class="dyhbtn" data-act="cfg" aria-label="Оформление дневника">'+rqIcon('palette',22)+'</button>');
+  let h=dyHead(true,dyTitle(y),dyFullBtn()+'<button type="button" class="dyhbtn" data-act="cfg" aria-label="Оформление дневника">'+rqIcon('palette',22)+'</button>');
   h+='<div class="dytop">'+dyCoverHtml(y,true)+'<div class="dytopr">'+(y.b?'<b>'+esc((b&&b.title)||y.bt)+'</b>'+((b?bookAuthor(b):y.ba)?'<span>'+esc(b?bookAuthor(b):y.ba)+'</span>':'')+
     (b?'<button type="button" class="buy dygo" data-act="read">'+rqIcon('book-open',16)+' Открыть книгу</button>':'<small class="dygone">Книги больше нет на полке, записи остались</small>'):'<b>Блокнот</b><span>Заведён '+esc(dyFmtDay(y.d))+'</span>')+
     '<small class="dyst2">'+esc(dyStats(y))+'</small></div></div>';
@@ -156,7 +172,7 @@ function dyBookHtml(y){
 /* ===== запись ===== */
 function dyEditHtml(y,n){
   const where=[n.ch,n.pg?'стр. '+n.pg:''].filter(Boolean).join(' · ');
-  let h=dyHead(true,n.t||'Запись','<button type="button" class="dyhbtn'+(n.pin?' on':'')+'" data-act="pin" aria-pressed="'+n.pin+'" aria-label="Закрепить">'+rqIcon('pin',20)+'</button>'+
+  let h=dyHead(true,n.t||'Запись',dyFullBtn()+'<button type="button" class="dyhbtn'+(n.pin?' on':'')+'" data-act="pin" aria-pressed="'+n.pin+'" aria-label="Закрепить">'+rqIcon('pin',20)+'</button>'+
     '<button type="button" class="dyhbtn" data-act="dele" aria-label="Удалить запись">'+rqIcon('trash-2',20)+'</button>');
   h+='<div class="dyedmeta">'+esc(dyTitle(y))+(where?' · '+esc(where):'')+' · '+esc(dyFmtDay(n.d))+'</div>';
   h+='<div class="dypaper dyed"'+dyPaperAttrs(y)+'><input id="dyET" class="dyet" type="text" maxlength="120" placeholder="Заголовок" aria-label="Заголовок" value="'+esc(n.t)+'">'+
@@ -198,8 +214,9 @@ function dyRender(){
   if(DY.view!=='shelf'&&!y){DY.view='shelf';DY.id=null;}
   const n=DY.view==='edit'&&y?y.e.find(function(x){return x.id===DY.eid;}):null;
   if(DY.view==='edit'&&!n)DY.view='book';
-  const sc=el('diary');if(sc){sc.dataset.view=DY.view;sc.classList.toggle('dyn',dyNight());}
-  box.innerHTML=DY.view==='shelf'?dyShelfHtml():DY.view==='book'?dyBookHtml(y):dyEditHtml(y,n);
+  if(DY.view==='shelf'&&DY.full){DY.full=false;dyFsSet(false);}
+  const sc=el('diary');if(sc){sc.dataset.view=DY.view;sc.classList.toggle('dyn',dyNight());sc.classList.toggle('dyfull',DY.full);}
+  box.innerHTML=(DY.view==='shelf'?dyShelfHtml():DY.view==='book'?dyBookHtml(y):dyEditHtml(y,n))+(DY.full?dyFullBar():'');
   const m=el('menuDiary');if(m)m.onclick=openDrawer;
   const q=el('dyQ');if(q)q.oninput=function(){DY.q=q.value;const pos=q.selectionStart;dyRender();const q2=el('dyQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos);}catch(e){}}};
   if(DY.view==='edit')dyEditBind(y,n);
@@ -243,7 +260,7 @@ function dyFmt(v){
   x.value=ins.slice(0,20000);x.focus();try{x.setSelectionRange(Math.max(0,ca),Math.max(0,cz));}catch(e){}x.dispatchEvent(new Event('input'));
 }
 /* ===== навигация (системный «назад»: лист → запись → дневник → полка) ===== */
-function openDiary(){DY.view='shelf';DY.id=null;DY.eid=null;DY.q='';DY.sheet=null;dyRender();show('diary');const s=el('diary').querySelector('.scroll');if(s)s.scrollTop=0;}
+function openDiary(){DY.full=false;DY.view='shelf';DY.id=null;DY.eid=null;DY.q='';DY.sheet=null;dyRender();show('diary');const s=el('diary').querySelector('.scroll');if(s)s.scrollTop=0;}
 function dyOpen(id,tab){DY.id=id;DY.view='book';DY.tab=tab||'all';DY.q='';dyRender();navPush('diary');const s=el('diary').querySelector('.scroll');if(s)s.scrollTop=0;}
 function dyOpenEntry(id,eid){DY.id=id;DY.eid=eid;DY.view='edit';DY.q='';dyRender();navPush('diaryEd');const s=el('diary').querySelector('.scroll');if(s)s.scrollTop=0;}
 function dySheet(k){DY.sheet=k;dySheetRender();navPush('diarySh');}
@@ -276,6 +293,7 @@ function dyExportText(y){
 }
 async function dyGoBook(y,fn){
   const b=dyBook(y);if(!b)return;
+  if(DY.full){DY.full=false;dyFsSet(false);}
   try{await openBook(b.id);}catch(e){console.warn('[rq] diary open',e);return;}
   if(!R.book||R.book.id!==b.id)return;
   setTimeout(function(){try{fn();}catch(e){console.warn('[rq] diary go',e);}},250);
@@ -285,6 +303,7 @@ function dyClick(e){
   const a=t.dataset.act,y=DY.id?dyGet(DY.id):null;
   if(a==='back')return dyBack();
   if(a==='new')return dySheet('new');
+  if(a==='full')return dyFull(!DY.full);
   if(a==='shx')return dyBack();
   if(a==='shelf'){DY.shelf=t.dataset.v;return dyRender();}
   if(a==='open')return dyOpen(t.dataset.id,t.dataset.tab);

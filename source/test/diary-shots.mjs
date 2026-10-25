@@ -41,7 +41,11 @@ for (const sk of SKINS) for (const night of [false, true]) {
   await p.screenshot({ path: `${OUT}/${tag}-3diary-low.png` });
   await p.evaluate(() => { const y = S.diaries.find(x => x.b && x.cc === 'blue'); const n = y.e.find(e => e.pin); dyOpenEntry(y.id, n.id); }); await sleep(400);
   await p.screenshot({ path: `${OUT}/${tag}-4edit.png` });
+  await p.evaluate(() => { dyFull(true); }); await sleep(300);
+  await p.screenshot({ path: `${OUT}/${tag}-7edit-full.png` });
   await p.evaluate(() => { dyBack(); }); await sleep(400);
+  await p.screenshot({ path: `${OUT}/${tag}-8diary-full.png` });
+  await p.evaluate(() => { dyFull(false); }); await sleep(300);
   await p.evaluate(() => dySheet('cfg')); await sleep(300);
   await p.screenshot({ path: `${OUT}/${tag}-5cfg.png` });
   await p.evaluate(() => { el('dySheet').scrollTop = 600; }); await sleep(200);

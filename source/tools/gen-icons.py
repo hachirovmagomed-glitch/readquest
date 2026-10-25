@@ -13,7 +13,8 @@ chevron-left bookmark info circle-alert download zoom-in vibrate smartphone chec
 align-justify book-marked circle circle-check
 pin circle-minus circle-plus chevron-up share-2 trash-2 image folder
 amphora notebook quote layers chevron-down flower flower-2 map castle scroll-text
-footprints sunrise zap flag package ellipsis-vertical message-circle send'''.split()
+footprints sunrise zap flag package ellipsis-vertical message-circle send
+maximize minimize'''.split()
 out = []
 for n in NAMES:
     p = os.path.join(HAND, n + '.svg')

@@ -589,6 +589,26 @@ function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return toc
   tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
 /* 21.10 (Джессика: «вместо слова "читаете" значок»): each skin its own mark (Бабочковый / Небесный draw theirs in skins.css) */
 function tocNowIcon(){const k=document.documentElement.dataset.skin||'';return k==='ellada'?'amphora':k==='pencil'?'pencil':'book-open';}
+/* 22.10 (Джессика: «накидай идей, как улучшить навигацию в "Главах"»): a line on top «Глава K из N · книга прочитана на P%»;
+   every chapter shows its page; chapters already behind get a check; the chapter being read says how far into it you are
+   and how many pages are left in it; PDF sub-bookmarks are indented. */
+function tocPg(b,x){const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0;return Math.max(0,Math.min(N-1,x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0)));}
+function tocPgLabel(p){return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(p):String(p+1);}
+function tocRows(b,toc){
+  const cur=tocCur(b,toc),N=Math.max(1,R.pageCount),pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;
+  const pct=function(a,z){return Math.max(0,Math.min(100,Math.round(a/Math.max(1,z)*100)));};
+  let h='<div class="ptocsum">'+(cur>=0?'Глава '+(cur+1)+' из '+toc.length+' · ':'')+'книга прочитана на '+pct(pg,N-1)+'%</div>';
+  toc.forEach(function(ch,i){
+    const st=tocPg(b,ch),nx=i+1<toc.length?tocPg(b,toc[i+1]):N,end=Math.max(st,nx-1),on=i===cur,done=cur>=0&&i<cur;
+    const lv=ch.lvl>0?' style="padding-left:'+(12+14*Math.min(3,ch.lvl))+'px"':'';
+    const sub=on?'<small class="psub">'+pct(pg-st+1,end-st+1)+'% главы · '+(end>pg?'ещё '+(end-pg)+' стр.':'последняя страница')+'</small>':'';
+    h+='<button class="prow'+(on?' on':'')+(done?' pdone':'')+'"'+(on?' aria-current="true"':'')+lv+' onclick="jumpToc('+i+')">'+
+      '<span class="pcol"><span class="ptt">'+esc(ch.t)+'</span>'+sub+'</span>'+
+      (done?'<span class="pck" role="img" aria-label="Прочитано">'+rqIcon('check',14)+'</span>':'')+
+      '<span class="ppg" aria-label="страница '+tocPgLabel(st)+'">'+tocPgLabel(st)+'</span>'+
+      (on?'<span class="pnow" role="img" aria-label="Читаете" title="Читаете">'+rqIcon(tocNowIcon(),18)+'</span>':'')+'</button>';});
+  return h;
+}
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
   if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
@@ -604,11 +624,7 @@ function renderPanel(tab){
   if(tab==='grid'){rqGridRender(body);return;} /* 18.10: real page thumbnails, js/page-grid.js */
   if(tab==='toc'){
     const toc=tocOf(b);
-    body.innerHTML=toc.length
-      ?toc.map((ch,i)=>i===tocCur(b,toc)
-        ?'<button class="prow on" aria-current="true" onclick="jumpToc('+i+')"><span class="ptt">'+esc(ch.t)+'</span><span class="pnow" role="img" aria-label="Читаете" title="Читаете">'+rqIcon(tocNowIcon(),18)+'</span></button>'
-        :'<button class="prow" onclick="jumpToc('+i+')">'+esc(ch.t)+'</button>').join('')
-      :'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
+    body.innerHTML=toc.length?tocRows(b,toc):'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
     const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
@@ -782,7 +798,7 @@ function closeReader(opts){
 async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
-  if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo)fo.hidden=true;} /* 20.10: the search lives with the open book only */
+  if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo&&!fo.hidden)bfHide();} /* 20.10: the search lives with the open book only */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);

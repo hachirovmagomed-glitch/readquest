@@ -112,6 +112,9 @@ function daysInWeekAtGoal(minNeed,wk){
    so XP and coins are exactly the old ones. */
 const RQ_LVL_NS=['rqt'];
 function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
+/* 25.10 «Фокус» (помодоро, тихий режим, звуки, вызовы недели — js/focus.js): only on the test site for now, like the book level */
+const RQ_FOCUS_NS=['rqt'];
+function focusOn(){return isMvp()&&RQ_FOCUS_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
 const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
 function bookLvlAuto(b){
   if(!b||!window.__rqGame)return 0;
@@ -179,6 +182,9 @@ function awardPendingSessions(){
   /* level bonus: rows carry lvl only when lvlOn() was true at the session start, so no gate is needed here */
   const lv=G.applyLevelAwards?G.applyLevelAwards(S,SESS,fresh):{gold:0};
   res.lvlGold=lv.gold;res.gold+=lv.gold;
+  /* 25.10 «Фокус»: rows carry pomo only when focusOn() was true while reading */
+  const fc=G.applyFocusAwards?G.applyFocusAwards(S,SESS,fresh):{gold:0,pomoGold:0,chalGold:0,chal:[]};
+  res.pomoGold=fc.pomoGold;res.chalGold=fc.chalGold;res.chal=fc.chal;res.gold+=fc.gold;
   if(res.ids.length||res.gold)save();
   return res;
 }

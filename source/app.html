@@ -150,7 +150,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advown{display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--txt)}
 .advown .ic{color:var(--accent)}
 .advempty{color:var(--muted);text-align:center;padding:32px 8px 8px;font-size:0.875rem;line-height:1.45}
-.advhints{justify-content:center;flex-wrap:wrap}
+
 .advmore{display:block;width:100%;margin:14px 0 8px}
 .advsum{margin-top:14px;font-size:0.8125rem}
 .advsets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
@@ -179,6 +179,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advsnip em{font-style:normal;color:var(--txt);font-weight:600}
 .advalt{margin:8px 2px 0}
 .advauth-h{margin-top:18px}
+.advfaces{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.advfaces::-webkit-scrollbar{display:none}
+.advface{flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:6px;scroll-snap-align:start;color:var(--txt);background:none;padding:0}
+.advph{position:relative;display:block;width:66px;height:66px;border-radius:50%;overflow:hidden;background:var(--card2);box-shadow:0 0 0 2px var(--line)}
+.advph b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--muted)}
+.advph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.advface:active .advph{box-shadow:0 0 0 2px var(--accent)}
+.advfn{font-size:0.75rem;line-height:1.2;text-align:center;max-width:72px;overflow-wrap:anywhere}
 .advback{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 0;color:var(--muted);font-size:0.875rem}
 .advseth{font-size:1.125rem;margin:4px 0 2px}
 .advsug[hidden]{display:none}
@@ -437,6 +445,65 @@ body.rq-nolocks #rqNoXp{display:block}
 #reader.focus #pgNum{display:none}
 #reader.focus.rcnt #focusCount{display:flex}
 #reader.focus #dayBar,#reader.focus #timerHint,#reader.focus #rqNoXp,#reader.focus .navbtn{visibility:hidden}
+/* 25.10 «Фокус» (js/focus.js): round chip left in the page-number strip, thin round line at the top edge, quiet mode = text + line only */
+#fzChip{display:none;margin-right:auto;font:500 12px/1 system-ui,-apple-system,sans-serif;color:var(--r-txt-2);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#reader.fzrun #fzChip{display:block}
+#fzLine{position:fixed;left:0;top:env(safe-area-inset-top,0px);height:2px;width:0;background:var(--rq-accent);opacity:.7;z-index:41;pointer-events:none;display:none}
+#fzLine.rest{opacity:.35}
+#reader.fzrun.barsoff #fzLine{display:block}
+#reader.fzquiet #fzChip,#reader.fzquiet.focus #focusCount{display:none}
+@media (prefers-reduced-motion:no-preference){#fzLine{transition:width 1s linear}}
+.fzcard{position:fixed;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:160;max-width:420px;margin:0 auto;padding:16px;border-radius:var(--rq-radius-md,14px);background:var(--card);color:var(--txt);box-shadow:0 8px 30px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px}
+.fzcard.hidden{display:none}
+.fzcard p{margin:0;font-size:0.9375rem;line-height:1.35}
+.fzcard .fzsub{font-size:0.8125rem;color:var(--muted)}
+.fzcard b{font-size:1rem}
+.fzcard input{min-height:44px;padding:0 12px;border-radius:var(--rq-radius-sm,10px);border:1px solid var(--card2);background:var(--bg);color:var(--txt);font-size:1rem}
+.fzchips{display:flex;flex-wrap:wrap;gap:6px}
+.fzchips .fchip{padding:0 12px;border-radius:var(--rq-radius-pill);background:var(--card2);color:var(--txt);font-size:0.8125rem}
+.fzbtns{display:flex;gap:8px;flex-wrap:wrap}
+.fzbtns>button{flex:1 1 140px;min-height:44px;margin-top:0}
+#fzBox .fzhead{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0 6px}
+#fzBox .fzhead>div{background:var(--card2);border-radius:var(--rq-radius-md);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+#fzBox .fzhead b{font-size:1.25rem;color:var(--txt);font-variant-numeric:tabular-nums}
+#fzBox .fzhead span{font-size:0.75rem;color:var(--muted)}
+#fzBox .cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px}
+#fzBox .fzstat{display:flex;flex-direction:column;gap:2px}
+#fzBox .fzstat b{font-size:0.9375rem;color:var(--txt);font-variant-numeric:tabular-nums}
+#fzBox .fzstat span{font-size:0.75rem;color:var(--muted)}
+#fzBox input[type=range]{width:100%}
+#fzBox .fzchal{display:flex;flex-direction:column;gap:10px}
+#fzBox .fzchal>div{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center}
+#fzBox .fzchal span{display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--txt)}
+#fzBox .fzchal span .ic{flex:none;color:var(--muted)}
+#fzBox .fzchal .done span .ic{color:var(--rq-accent-text,var(--accent))}
+#fzBox .fzchal em{font-style:normal;font-size:0.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+#fzBox .fzchal .pbar{grid-column:1/-1}
+.fzmap{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;max-width:340px}
+.fzwk{display:grid;grid-template-rows:repeat(7,1fr) 14px;gap:3px}
+.fzwk i,.fzlegend i{display:block;aspect-ratio:1;border-radius:3px;background:var(--card2)}
+.fzwk b{display:flex;justify-content:center;color:var(--rq-accent-text,var(--accent))}
+.fzmap i.l-1{background:none;box-shadow:inset 0 0 0 1px var(--card2)}
+.fzmap i.l1,.fzlegend i.l1{background:var(--rq-accent);opacity:.3}
+.fzmap i.l2,.fzlegend i.l2{background:var(--rq-accent);opacity:.5}
+.fzmap i.l3,.fzlegend i.l3{background:var(--rq-accent);opacity:.75}
+.fzmap i.l4,.fzlegend i.l4{background:var(--rq-accent)}
+.fzlegend{display:flex;align-items:center;gap:3px;font-size:0.6875rem;color:var(--muted)}
+.fzlegend i{width:10px;height:10px}
+.fzlegend span:first-child{margin-right:3px}.fzlegend span:last-child{margin-left:3px}
+#fzStats[hidden]{display:none}
+#fzStats .kpis{margin:10px 0 0}
+#fzStats .kpi{background:var(--card2)}
+#fzStats .fzstl{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:0.8125rem;color:var(--txt)}
+#fzStats .fzstl .ic{flex:none;color:var(--muted)}
+#fzStats .chart{margin-top:10px}
+#fzStats .pempty{margin-top:8px}
+#sumFocus{margin:4px 0 8px;font-size:0.8125rem;line-height:1.45;color:var(--txt);display:flex;flex-direction:column;gap:3px;text-align:left}
+#sumFocus.hidden{display:none}
+#sumFocus .fzsum>div{display:flex;align-items:flex-start;gap:6px}
+#sumFocus .fzsum .ic{flex:none;margin-top:2px;color:var(--muted)}
+#sumFocus .fzfw{font-weight:600}
+#sumFocus .g{font-weight:700;color:#ffc107}
 /* 1б-fix #1: «< на стр. N» after a slider jump (reader-jump-*): above the page-number line, left; pill 32 px, hit area 44 px */
 #jumpBack{position:fixed;z-index:40;min-height:44px;padding:0;display:flex;align-items:center;background:none;border:0;color:var(--rq-accent-text)}
 #jumpBack .jb{display:flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 8px;border-radius:var(--rq-radius-pill);border:1px solid var(--rq-accent);background:var(--r-bg);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -2074,6 +2141,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard"><b style="font-size:13px">Страницы</b><div class="chart" id="chPages"></div></div>
     <div class="pcard"><b style="font-size:13px">XP</b><div class="chart" id="chXp"></div></div>
     <div class="pcard"><b style="font-size:13px" id="chGoldLbl">Монеты</b><div class="chart" id="chGold"></div></div>
+    <div class="pcard" id="fzStats" hidden></div><!-- 25.10 «Фокус и концентрация» (js/focus.js fzRenderStats) -->
     <div class="pcard"><b style="font-size:13px">Когда я читаю</b><div id="anaHours"></div></div>
     <div class="pcard"><b style="font-size:13px">По жанрам</b><div id="anaGenre"></div></div>
     <div class="pcard"><b style="font-size:13px">Книги по месяцам</b><div id="anaMonths"></div></div>
@@ -2255,7 +2323,10 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button id="navNext" class="navbtn hidden" aria-label="Следующая страница">›</button>
   <div id="warmer"></div>
   <div id="dimmer"></div>
-  <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
+  <div id="pgLine"><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
+  <i id="fzLine" aria-hidden="true"></i><!-- 25.10 «Фокус»: thin line of the round (js/focus.js) -->
+  <div id="fzHold" class="fzcard hidden" role="alertdialog" aria-labelledby="fzHoldT"><p id="fzHoldT"></p><p class="fzsub">Если это был звонок или что-то срочное, круг можно продолжить один раз. Минуты за время выхода не идут.</p><div class="fzbtns"><button type="button" class="cta" id="fzHoldGo">Продолжить круг</button><button type="button" class="ghostbtn" id="fzHoldNew">Начать заново</button></div></div>
+  <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
   <button id="rqPause" class="rq-pause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 25.10 пауза (js/reader-ui.js pauseApply) -->
@@ -2327,6 +2398,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rnote">Остаётся только текст. Выход — тап в центр.</div>
       <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>круг на странице: на паузе время, опыт и монеты не идут; передвинь пальцем</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
       <div class="rrow"><span class="rl" id="readCntTglL">Счётчик минут<small>«7 / 10 мин» в углу в режиме фокуса</small></span><button class="rsw" id="readCntTgl" role="switch" aria-checked="false" aria-labelledby="readCntTglL"></button></div>
+      <div id="fzBox" hidden></div><!-- 25.10 помодоро, тихий режим, звуки, фокус-слова, вызовы недели, карта (js/focus.js) -->
     </div>
   </div>
 </div>
@@ -2351,6 +2423,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="pc-week"><div style="font-size:12px;color:var(--muted);margin-top:6px" id="sumWeeklyInfo"></div><span id="sumWeekDots" class="pc-only" aria-hidden="true"></span></div>
       <div id="sumQuestGold" class="hidden"></div>
     </div>
+    <div id="sumFocus" class="hidden"></div><!-- 25.10 «Итог фокуса» (js/focus.js fzSummaryHtml) -->
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
     <div id="sumQuiz" class="pcard hidden" aria-live="polite"></div><!-- 25.10 мини-проверка (js/content.js quizRender) -->
     <div id="sumAch" class="hidden"></div>
@@ -2372,6 +2445,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/page-grid.js"></script>
 <script src="js/reader-ui.js"></script>
 <script src="js/book-find.js"></script>
+<script src="js/focus.js"></script>
 <script src="js/rpg.js"></script>
 <script src="js/content.js"></script>
 <script src="js/translate.js"></script>

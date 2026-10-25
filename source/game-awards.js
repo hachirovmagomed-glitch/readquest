@@ -59,7 +59,7 @@ export function xpForSession(rows, row) {
   });
   /* ×LEVELS[row.lvl].xp — only rows that carry a level (19.10); 10 × 1.5 and 10 × 2 stay whole numbers */
   /* ×row.hon (25.10, the quiet honesty index, 0.5…1) — only rows that carry it */
-  return Math.round((dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN * LEVELS[rowLevel(row)].xp * rowHon(row));
+  return Math.round((dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN * LEVELS[rowLevel(row)].xp * rowHon(row)) + pomoXp(row);
 }
 
 /** New-style row: string id that is not a legacy (already paid) id. */
@@ -554,4 +554,142 @@ export function parseQuizGrade(s) {
   const o = jsonIn(s);
   if (!o || typeof o.ok !== 'boolean') return null;
   return { ok: o.ok, why: typeof o.why === 'string' ? o.why.trim().slice(0, 200) : '' };
+}
+/* ===== Фокус: помодоро (Джессика 25.10: «Помодоро будет давать больше бонусов, больше XP, больше монет, если человек
+ * более сконцентрированный и более дисциплинированный») =====
+ * A round = POMO_LEN minutes of COUNTED reading (the tracker's minutes: pause, background, fast flipping add nothing)
+ * without leaving the app for longer than the grace time (js/focus.js). Completed rounds are frozen into the session row:
+ *   row.pomo    = [25, 25]  lengths of the completed rounds (only when non-empty);
+ *   row.pomoRun = 2         longest run of rounds in a row that never left the app (weekly challenge «подряд без выхода»).
+ * rowPomo() trusts a round only while Σ lengths ≤ the row's counted minutes — a round cannot outgrow honest reading.
+ *   XP    += 10 × Σ lengths × POMO_XP × honesty                                    (xpForSession, per row)
+ *   coins  = per local day: Σ POMO[len].coins × honesty, at most POMO_DAY_CAP; paid as the growth over game.pomoPaid[day].
+ * Weekly challenges (FOCUS_CHAL): three per week, each CHAL_COINS once (game.chalPaid[monday] = bitmask of paid ones).
+ * Daily +30 / weekly +120 and dayMinutes are not touched.
+ */
+export const POMO = { 15: { coins: 3 }, 25: { coins: 5 }, 45: { coins: 10 } };
+export const POMO_LENS = [15, 25, 45];
+export const POMO_XP = 0.2;
+export const POMO_DAY_CAP = 20;
+export const CHAL_COINS = 30;
+
+/** honesty multiplier of a row (thread «Защитить награды»: row.hon 0.5…1, only when < 1) */
+function pomoHon(r) { const h = r && r.hon; return typeof h === 'number' && isFinite(h) && h >= 0.5 && h < 1 ? h : 1; }
+/** completed rounds of a row, validated: known lengths, Σ ≤ counted minutes (+ float slack) */
+export function rowPomo(r) {
+  const a = r && Array.isArray(r.pomo) ? r.pomo : [];
+  const out = [];
+  let left = (Number(r && r.minutes) || 0) + DAY_MIN_EPS;
+  for (let i = 0; i < a.length && i < 50; i++) {
+    const v = a[i];
+    if (POMO_LENS.indexOf(v) < 0 || v > left) continue;
+    out.push(v); left -= v;
+  }
+  return out;
+}
+export function pomoMinutes(r) { return rowPomo(r).reduce(function (s, v) { return s + v; }, 0); }
+export function rowPomoRun(r) {
+  const n = rowPomo(r).length, v = r && r.pomoRun;
+  return Number.isInteger(v) && v > 0 ? Math.min(v, n) : 0;
+}
+/** XP bonus of one row for its rounds */
+export function pomoXp(r) { return Math.round(pomoMinutes(r) * XP_PER_MIN * POMO_XP * pomoHon(r)); }
+/** coins the round bonus is worth for local day `day` (the target; what is paid is game.pomoPaid[day]) */
+export function pomoCoinsForDay(rows, day) {
+  let c = 0;
+  (rows || []).forEach(function (r) {
+    if (rowDay(r) !== day) return;
+    const h = pomoHon(r);
+    rowPomo(r).forEach(function (v) { c += POMO[v].coins * h; });
+  });
+  return Math.min(POMO_DAY_CAP, Math.floor(c + 1e-9));
+}
+function intMapOf(game, k) { if (!game[k] || typeof game[k] !== 'object' || Array.isArray(game[k])) game[k] = {}; return game[k]; }
+function addGold(game, g) {
+  if (!g) return;
+  game.gold = (Number(game.gold) || 0) + g;
+  game.goldAllTime = (Number(game.goldAllTime) || 0) + g;
+}
+/**
+ * Pay the round bonus and the weekly challenges for the days of `newRows` (rows awarded right now, no retro pay for history).
+ * Idempotent: game.pomoPaid = { day: coins paid }, game.chalPaid = { monday: bitmask of paid challenges }.
+ * @returns {{ gold:number, pomoGold:number, chalGold:number, chal:string[] }}
+ */
+export function applyFocusAwards(game, rows, newRows) {
+  const paidD = intMapOf(game, 'pomoPaid'), paidW = intMapOf(game, 'chalPaid');
+  const out = { gold: 0, pomoGold: 0, chalGold: 0, chal: [] };
+  const days = [], weeks = [];
+  (newRows || []).forEach(function (r) {
+    const k = rowDay(r);
+    if (!k || !rowPomo(r).length) return;
+    if (days.indexOf(k) < 0) days.push(k);
+    const w = weekStartOf(k); if (weeks.indexOf(w) < 0) weeks.push(w);
+  });
+  days.sort().forEach(function (day) {
+    const paid = Number(paidD[day]) || 0, due = pomoCoinsForDay(rows, day) - paid;
+    if (due > 0) { paidD[day] = paid + due; out.pomoGold += due; }
+  });
+  weeks.sort().forEach(function (w) {
+    let mask = Number(paidW[w]) || 0;
+    focusChallenges(rows, w).forEach(function (c, i) {
+      if (!c.done || (mask & (1 << i))) return;
+      mask |= 1 << i; out.chalGold += CHAL_COINS; out.chal.push(c.id);
+    });
+    if (mask) paidW[w] = mask;
+  });
+  out.gold = out.pomoGold + out.chalGold;
+  addGold(game, out.gold);
+  return out;
+}
+
+/** focus minutes (completed rounds) per local day: { day: minutes } */
+export function focusDays(rows) {
+  const by = {};
+  (rows || []).forEach(function (r) { const k = rowDay(r), m = pomoMinutes(r); if (k && m) by[k] = (by[k] || 0) + m; });
+  return by;
+}
+/** «Серия фокуса»: days in a row with at least one completed round, ending today (or yesterday while today has none yet) */
+export function focusStreak(rows, today) {
+  const by = focusDays(rows);
+  let d = today || localDay();
+  if (!by[d]) d = addLocalDays(d, -1);
+  let n = 0;
+  while (by[d] && n < 3660) { n++; d = addLocalDays(d, -1); }
+  return n;
+}
+/* Weekly challenges (Джессика 25.10: «Вызов недели»). Three of the pool per week, rotating by the week number. */
+export const FOCUS_CHAL = [
+  { id: 'run3', t: '3 круга подряд без выхода', goal: 3, val: function (s) { return s.run; } },
+  { id: 'days5', t: 'Круг в 5 разных дней', goal: 5, val: function (s) { return s.days; } },
+  { id: 'min120', t: '2 часа фокуса за неделю', goal: 120, val: function (s) { return s.min; }, unit: 'мин' },
+  { id: 'r10', t: '10 кругов за неделю', goal: 10, val: function (s) { return s.rounds; } },
+  { id: 'long2', t: '2 длинных круга по 45 минут', goal: 2, val: function (s) { return s.long; } },
+  { id: 'row3', t: 'Три дня подряд с кругом', goal: 3, val: function (s) { return s.row; } },
+];
+function weekNo(monday) {
+  const p = String(monday).split('-').map(Number);
+  return Math.floor(Date.UTC(p[0], p[1] - 1, p[2]) / (7 * 864e5));
+}
+/** the three challenges of the week starting `monday`, with progress: [{id, t, goal, have, done}] */
+export function focusChallenges(rows, monday) {
+  const s = { run: 0, days: 0, min: 0, rounds: 0, long: 0, row: 0 };
+  let cur = 0;
+  for (let i = 0; i < 7; i++) {
+    const day = addLocalDays(monday, i);
+    const mine = (rows || []).filter(function (r) { return rowDay(r) === day; });
+    let any = false;
+    mine.forEach(function (r) {
+      const p = rowPomo(r);
+      if (!p.length) return;
+      any = true; s.rounds += p.length; s.min += p.reduce(function (a, v) { return a + v; }, 0);
+      s.long += p.filter(function (v) { return v === 45; }).length;
+      s.run = Math.max(s.run, rowPomoRun(r));
+    });
+    if (any) { s.days++; cur++; s.row = Math.max(s.row, cur); } else cur = 0;
+  }
+  const n = FOCUS_CHAL.length, k = ((weekNo(monday) % n) + n) % n;
+  return [0, 1, 3].map(function (o) {
+    const c = FOCUS_CHAL[(k + o) % n], have = c.val(s);
+    return { id: c.id, t: c.t, goal: c.goal, unit: c.unit || '', have: Math.min(have, c.goal), done: have >= c.goal };
+  });
 }

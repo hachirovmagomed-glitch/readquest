@@ -39,7 +39,16 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.dim==='number'&&isFinite(s.dim)&&s.dim>0)s.bright=st((1-Math.min(0.7,s.dim))*s.bright,0.3,1,1);
   delete s.dim;delete s.warmNight;
   if(typeof s.pdfFont!=='boolean')s.pdfFont=false;if(typeof s.pdfTheme!=='boolean')s.pdfTheme=false; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
+  s.fz=fzNorm(s.fz); /* 25.10 «Фокус» (arch.md SET.fz) */
   flipNorm(s);return s;}
+/** 25.10 SET.fz (arch.md) = storage/schema.js normFz: pomo on/off, round 15/25/45, rest 3/5/10, quiet, sound slot 0…3 (0 = off; the
+ *  slot is the skin's own sound №N), volume 0.05…1, focus words, warning on leaving. Junk → default, unknown keys dropped. */
+const FZ_DEF={pomo:false,len:25,rest:5,quiet:false,snd:0,vol:0.5,words:true,warn:true};
+function fzNorm(o){const d=FZ_DEF,f={};o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};
+  ['pomo','quiet','words','warn'].forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:d[k];});
+  f.len=[15,25,45].indexOf(o.len)>=0?o.len:d.len;f.rest=[3,5,10].indexOf(o.rest)>=0?o.rest:d.rest;
+  f.snd=[0,1,2,3].indexOf(o.snd)>=0?o.snd:d.snd;
+  f.vol=(typeof o.vol==='number'&&isFinite(o.vol))?Math.round(Math.max(0.05,Math.min(1,o.vol))*20)/20:d.vol;return f;}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
 function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
@@ -177,7 +186,8 @@ el('cReset').onclick=()=>{SET.cTxt=null;SET.cBg=null;saveSet();applySet();};
 /* 1в: «Настройки чтения» — Aa opens «Текст» (PDF: «Страница»), the gear opens the last tab; «Общие настройки» = the settings screen over the reader */
 let setTab='grpText';
 function openSetTab(g){setTab=g;Array.from(el('setCats').children).forEach(b=>{const on=b.dataset.g===g;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
-  ['grpText','grpPage','grpNav','grpFocus'].forEach(id=>el(id).classList.toggle('on',id===g));}
+  ['grpText','grpPage','grpNav','grpFocus'].forEach(id=>el(id).classList.toggle('on',id===g));
+  if(g==='grpFocus'&&typeof fzRenderTab==='function')fzRenderTab();}
 function openReaderSettings(g){
   const sh=el('sheet');
   if(!sh.classList.contains('hidden')&&(!g||g===setTab)){sh.classList.add('hidden');return;}
@@ -281,6 +291,7 @@ async function openBook(id){
   const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */
   if(__tracker)__tracker.begin(id,p,trackerOpts());
   pauseReset(); /* 25.10: a new book starts counting, the circle shows if it is on */
+  if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус»: new session = no rounds yet; the chosen sound */
   goPage(p,false);
   if(hy)hyphWaitRun(hy,p);
 }

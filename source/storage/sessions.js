@@ -139,6 +139,10 @@ export async function logSession(entry) {
   ['fl', 'ct', 'rr'].forEach(function (k) { if (Number.isInteger(entry[k]) && entry[k] > 0 && entry[k] <= 1e6) rec[k] = entry[k]; });
   const hon = Number(entry.hon);
   if (entry.hon != null && hon >= 0.5 && hon < 1) rec.hon = Math.round(hon * 100) / 100;
+  /* optional (25.10 «Фокус», additive): completed rounds (15/25/45), longest run without leaving, focus words */
+  if (Array.isArray(entry.pomo)) { const pm = entry.pomo.filter(function (v) { return v === 15 || v === 25 || v === 45; }).slice(0, 50); if (pm.length) rec.pomo = pm; }
+  if (rec.pomo && Number.isInteger(entry.pomoRun) && entry.pomoRun > 0) rec.pomoRun = Math.min(entry.pomoRun, rec.pomo.length);
+  if (typeof entry.fw === 'string' && entry.fw.trim()) rec.fw = entry.fw.trim().slice(0, 80);
 
   const db = await openDb();
   return new Promise(function (res, rej) {

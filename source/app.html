@@ -1119,6 +1119,11 @@ body.pixel .talnode{border-radius:0}
 #botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;background:var(--card);border-top:1px solid var(--card2);padding:6px 10px calc(6px + env(safe-area-inset-bottom));gap:6px;justify-content:space-around}
 body.mvp #botnav{display:flex}
 body.mvp .screen > .scroll{padding-bottom:108px} /* 20.10: + the «Читать» bump over the bar */
+/* 25.10 (Джессика: «квадратики налезают на щит»): cards fade out above the bar and around the raised «Читать», band measured by rqNavFade (core-a.js);
+   the end of a page still scrolls clear of it */
+body.mvp .screen > .scroll{padding-bottom:max(108px,calc(var(--rq-bnfade,0px) + var(--rq-bnsoft,0px) + 12px));
+  -webkit-mask-image:linear-gradient(to top,transparent var(--rq-bnfade,0px),#000 calc(var(--rq-bnfade,0px) + var(--rq-bnsoft,0px)));
+  mask-image:linear-gradient(to top,transparent var(--rq-bnfade,0px),#000 calc(var(--rq-bnfade,0px) + var(--rq-bnsoft,0px)))}
 /* 20.10 (Джессика, «как в Хабитике»): sections left and right, a big raised «Читать» in the exact middle, outlined in the bar colour
    (no bump over the page: «белая хрень выходит»). --bn-face: the bar's face for that outline; skins restyle .brd (the raised button). */
 #botnav{--bn-face:var(--card);align-items:stretch}

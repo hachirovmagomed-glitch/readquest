@@ -64,6 +64,24 @@ function applyMvpChrome(){
       }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
+  rqNavFade();
+}
+/* 25.10 (Джессика: «квадратики налезают на щит»): page content fades out just above the bottom bar, so no card runs into the raised «Читать»
+   (щит, звезда, бабочка). The band = bar top + bump + a soft edge, measured here: skins move the bar (Небесный floats) and size the bump. */
+let rqNavFadeOn=false;
+function rqNavFade(){
+  const bn=el('botnav'),root=document.documentElement;
+  if(!bn)return;
+  if(!rqNavFadeOn){rqNavFadeOn=true;
+    const again=function(){requestAnimationFrame(rqNavFade);};
+    try{new ResizeObserver(again).observe(bn);}catch(e){}
+    try{new MutationObserver(again).observe(root,{attributes:true,attributeFilter:['data-skin','data-theme']});}catch(e){}
+    window.addEventListener('resize',again);}
+  const d=bn.querySelector('.brd'),r=bn.getBoundingClientRect();
+  if(getComputedStyle(bn).display==='none'||!r.height){root.style.setProperty('--rq-bnfade','0px');root.style.setProperty('--rq-bnsoft','0px');return;}
+  const bump=d?Math.max(0,r.top-d.getBoundingClientRect().top):0;
+  root.style.setProperty('--rq-bnfade',Math.round(innerHeight-r.top+(bump?bump+6:0))+'px');
+  root.style.setProperty('--rq-bnsoft','22px');
 }
 function weekKey(d){
   if(window.__rqGame&&window.__rqGame.weekStartOf)return window.__rqGame.weekStartOf(d||today());

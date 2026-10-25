@@ -1538,7 +1538,7 @@ html[data-skin="pencil"][data-theme="night"] #sheet #warmRange{--sl-w-fill:repea
 /* 21.10 (Джессика, запись): over the reader the skins' transparent .screen let the book show through → always the page colour;
    the «Назад» row stays on top so the way out is never scrolled away */
 html[data-skin] #settings.screen.over{background:var(--rq-bg,var(--bg))}
-#settings#settings#settings.over .wrap > .row:first-child{position:sticky;top:-20px;z-index:3;background:var(--bg);margin:-20px -18px 6px;padding:20px 18px 6px} /* triple id: the skins' title-row rules carry two */
+#settings#settings#settings.over .wrap > .row:first-child{position:sticky;top:-20px!important;z-index:3;background:var(--bg);box-sizing:border-box;height:auto!important;margin:-20px -18px 8px!important;padding:10px 18px 10px!important} /* 25.10 (Джессика: «чтобы не плавали вниз»): a full-width bar pinned at the very top from the first pixel — the skins' 44px title-row rule (!important) made it a narrow card that slid 20px and let the page show at its sides */ /* triple id: the skins' title-row rules carry two */
 html[data-skin] #settings#settings#settings.over .wrap > .row:first-child{background:var(--rq-bg,var(--bg))}
 .gset .setrow>.ic{color:var(--muted)}
 .gset h2{font-size:0.8125rem;margin:18px 0 8px}
@@ -1730,7 +1730,6 @@ html.rq-test .screen:not(#reader),html.rq-test #drawer,html.rq-test #shopDetail,
 html.rq-test .navcfg{padding-top:16px}
 /* 25.10 (Джессика: «Объясни» → «Открыть настройки» глючит): over the reader the banner is a 3 px stripe, so «Общие настройки» start at the top edge too — no strip of book above them */
 html.rq-test #settings.screen.over{top:0!important}
-#settings.screen.over{padding-top:10px;box-sizing:border-box} /* 10 px of page colour above «Назад» at the top edge */
 body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!important;font-size:0!important;overflow:hidden;background:var(--rq-test-strip)!important}</style>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:32px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>

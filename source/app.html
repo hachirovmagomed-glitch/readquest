@@ -161,6 +161,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advbar{display:block;width:100%;height:4px;border-radius:var(--rq-radius-xs);background:var(--line);overflow:hidden}
 .advbar i{display:block;height:100%;background:var(--accent);border-radius:var(--rq-radius-xs)}
 .advsetprog + .advbar{margin:6px 0 4px}
+.advquests{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.advq{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border-radius:var(--rq-radius-md);color:var(--txt)}
+.advq .advmeta{gap:6px}
+.advq .advmeta b{font-size:0.875rem}
+.advq.done .advbar i{background:var(--muted)}
+.advq .chip{flex:none;font-size:0.75rem;white-space:nowrap}
+.advqok{display:inline-flex;align-items:center;gap:4px}
+.advqok .ic{color:var(--accent)}
+.advqget{flex:none;max-width:48%;font-size:0.8125rem;padding:8px 10px;white-space:normal;line-height:1.2}
+.advwhy{color:var(--accent)}
+.advoffl{display:flex;align-items:center;gap:4px}
+.advbinote{margin-top:6px}
 .advflt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .advfsep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 .advsnip{display:block;font-size:0.75rem;line-height:1.35;color:var(--muted);margin-top:2px}
@@ -496,6 +508,7 @@ body.rq-nolocks #rqNoXp{display:block}
 .rfoot span,.rfoot input[type=range]{transition:none!important}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
+#content p.rq-bitr,.rqCurlTxt p.rq-bitr{font-style:italic;opacity:.72;margin-bottom:.6em} /* 25.10: перевод под абзацем (книга «с переводом») */
 #content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em;break-inside:avoid} /* audit 19.10 RD-EPUB-01 */
 #content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em;white-space:normal;overflow-wrap:anywhere;break-inside:avoid} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
@@ -1715,6 +1728,9 @@ body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}
 /* audit 19.10 GL-08: outside the reader the 32 px banner is a strip of its own — screens, the drawer and full-screen pages start below it */
 html.rq-test .screen:not(#reader),html.rq-test #drawer,html.rq-test #shopDetail,html.rq-test #achPage,html.rq-test .navcfg{top:calc(32px + env(safe-area-inset-top,0px))!important}
 html.rq-test .navcfg{padding-top:16px}
+/* 25.10 (Джессика: «Объясни» → «Открыть настройки» глючит): over the reader the banner is a 3 px stripe, so «Общие настройки» start at the top edge too — no strip of book above them */
+html.rq-test #settings.screen.over{top:0!important}
+#settings.screen.over{padding-top:10px;box-sizing:border-box} /* 10 px of page colour above «Назад» at the top edge */
 body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!important;font-size:0!important;overflow:hidden;background:var(--rq-test-strip)!important}</style>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:32px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>

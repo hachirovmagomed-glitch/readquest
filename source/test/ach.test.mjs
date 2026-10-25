@@ -30,9 +30,9 @@ const days = (from, count, min, o) => { const out = []; const d0 = new Date(from
 /* ---- 1. catalog ---- */
 const CAT = A.CAT || [], SEC = A.SECTIONS || [];
 const regular = CAT.filter(a => !a.legacy);
-ok('1a catalog: 111 achievements (+5 «Приключения», 19.10) + 6 legacy ones (shown only when earned)', regular.length === 111 && CAT.filter(a => a.legacy).length === 6, { regular: regular.length, legacy: CAT.length - regular.length });
+ok('1a catalog: 114 achievements (+5 «Приключения», 19.10; +3 испытания, 25.10) + 6 legacy ones (shown only when earned)', regular.length === 114 && CAT.filter(a => a.legacy).length === 6, { regular: regular.length, legacy: CAT.length - regular.length });
 ok('1b ids unique', new Set(CAT.map(a => a.id)).size === CAT.length);
-const want = { hours: 9, habit: 22, books: 19, sessions: 10, daytime: 8, calendar: 10, returns: 5, formats: 7, quotes: 6, levels: 6, secret: 9 };
+const want = { hours: 9, habit: 22, books: 22, sessions: 10, daytime: 8, calendar: 10, returns: 5, formats: 7, quotes: 6, levels: 6, secret: 9 };
 const got = {}; regular.forEach(a => { got[a.sec] = (got[a.sec] || 0) + 1; });
 ok('1c 11 sections with the planned sizes', SEC.length === 11 && Object.keys(want).every(k => got[k] === want[k] && SEC.some(s => s.id === k)), got);
 ok('1d tiers: bronze/silver/gold/legend, secret section = secret tier with a hint', regular.every(a => (a.sec === 'secret') === (a.tier === 'secret')) && regular.every(a => ['bronze', 'silver', 'gold', 'legend', 'secret'].includes(a.tier)) && regular.filter(a => a.tier === 'secret').every(a => a.hint));

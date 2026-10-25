@@ -33,6 +33,7 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
+    if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус» */
     pdfLvlCheck(b,doc); /* 19.10: level by the PDF's own text, in the background (once per book) */
     pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
     if(psOn()){psOpen(p);return;} /* 18.10: «Прокрутка» — js/pdf-scroll.js */

@@ -123,6 +123,8 @@ export const GAME_DEF = {
   weeklyPaidWeeks: [],
   /** 19.10 (arch.md «Сложность книги»): local day YYYY-MM-DD → level-bonus coins already paid that day */
   lvlPaid: {},
+  pomoPaid: {},
+  chalPaid: {},
   /** true once old claim dates (dailyClaimed/weeklyClaimed) were folded into the *Paid lists */
   paidMigrated: false,
   /** Legacy v6 daily-bonus button (full UI) */
@@ -196,6 +198,7 @@ export const SET_DEF = {
   warm: 0,           // 18.10: warm tint 0..0.6
   pdfFont: false,    // 20.10: PDF text in the reader font (arch.md SET.pdfFont)
   pdfTheme: false,   // 20.10: PDF page in the page-theme colours (arch.md SET.pdfTheme)
+  fz: null,          // 25.10 «Фокус»: {pomo,len,rest,quiet,snd,vol,words,warn} (arch.md SET.fz), normFz
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -225,6 +228,18 @@ export function normStep(v, lo, hi, def) {
 }
 
 export const FOCUS_MODES = ['off', 'button', 'auto'];
+/** 25.10 SET.fz (arch.md «Фокус») — same rules as js/reader.js fzNorm */
+export const FZ_DEF = { pomo: false, len: 25, rest: 5, quiet: false, snd: 0, vol: 0.5, words: true, warn: true };
+export function normFz(o) {
+  const d = FZ_DEF, f = {};
+  o = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  ['pomo', 'quiet', 'words', 'warn'].forEach((k) => { f[k] = typeof o[k] === 'boolean' ? o[k] : d[k]; });
+  f.len = [15, 25, 45].includes(o.len) ? o.len : d.len;
+  f.rest = [3, 5, 10].includes(o.rest) ? o.rest : d.rest;
+  f.snd = [0, 1, 2, 3].includes(o.snd) ? o.snd : d.snd;
+  f.vol = typeof o.vol === 'number' && Number.isFinite(o.vol) ? Math.round(Math.max(0.05, Math.min(1, o.vol)) * 20) / 20 : d.vol;
+  return f;
+}
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
 export function normPdfDim(v) {
   if (typeof v !== 'number' || !Number.isFinite(v)) return 0.35;
@@ -355,6 +370,8 @@ export function hydrateGame(g) {
   out.dailyPaidDays = Array.isArray(out.dailyPaidDays) ? out.dailyPaidDays : [];
   out.weeklyPaidWeeks = Array.isArray(out.weeklyPaidWeeks) ? out.weeklyPaidWeeks : [];
   out.lvlPaid = intMap(out.lvlPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
+  out.pomoPaid = intMap(out.pomoPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» (arch.md) */
+  out.chalPaid = intMap(out.chalPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {
     out.rewardPurchases = out.rewardHist.map(function (h, i) {
@@ -479,6 +496,7 @@ export function hydrateSettings(s) {
   out.warm = normStep(out.warm, 0, 0.6, 0);
   if (typeof out.pdfFont !== 'boolean') out.pdfFont = false;
   if (typeof out.pdfTheme !== 'boolean') out.pdfTheme = false;
+  out.fz = normFz(out.fz);
   /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
   if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
   delete out.dim;

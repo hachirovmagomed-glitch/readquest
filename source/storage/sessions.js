@@ -135,6 +135,10 @@ export async function logSession(entry) {
   if (entry.xp != null && Number.isFinite(xp) && xp >= 0) rec.xp = xp;
   /* optional (19.10, additive): book level of the session, game-awards LEVELS; only 1…2 is kept (0 = no field) */
   if (Number.isInteger(entry.lvl) && entry.lvl >= 1 && entry.lvl <= 4) rec.lvl = entry.lvl; /* 1…LVL_MAX (game-awards.js) */
+  /* optional (25.10 «Фокус», additive): completed rounds (15/25/45), longest run without leaving, focus words */
+  if (Array.isArray(entry.pomo)) { const pm = entry.pomo.filter(function (v) { return v === 15 || v === 25 || v === 45; }).slice(0, 50); if (pm.length) rec.pomo = pm; }
+  if (rec.pomo && Number.isInteger(entry.pomoRun) && entry.pomoRun > 0) rec.pomoRun = Math.min(entry.pomoRun, rec.pomo.length);
+  if (typeof entry.fw === 'string' && entry.fw.trim()) rec.fw = entry.fw.trim().slice(0, 80);
 
   const db = await openDb();
   return new Promise(function (res, rej) {

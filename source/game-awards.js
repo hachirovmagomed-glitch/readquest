@@ -58,7 +58,8 @@ export function xpForSession(rows, row) {
     return r && r !== row && r.id !== row.id && rowDay(r) === day && startOrder(r, row, rows) < 0;
   });
   /* ×LEVELS[row.lvl].xp — only rows that carry a level (19.10); 10 × 1.5 and 10 × 2 stay whole numbers */
-  return Math.round((dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN * LEVELS[rowLevel(row)].xp);
+  /* ×row.hon (25.10, the quiet honesty index, 0.5…1) — only rows that carry it */
+  return Math.round((dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN * LEVELS[rowLevel(row)].xp * rowHon(row));
 }
 
 /** New-style row: string id that is not a legacy (already paid) id. */
@@ -474,4 +475,83 @@ export function applyLevelAwards(game, rows, newRows) {
     game.goldAllTime = (Number(game.goldAllTime) || 0) + out.gold;
   }
   return out;
+}
+
+/* ===== Честное чтение (25.10, Джессика «Давай все кроме 3 и 6»; arch.md) =====
+ * Own pace: the «too fast» floor follows the reader's average counted time per honest page (this book; else all books).
+ * Honesty index: over the last 14 local days, honest seconds vs signs of skimming (fast flips, minutes with no sign of life
+ * before «назад»); below 75 % the XP factor goes down smoothly, never under 0.5, and comes back by itself. No bans. */
+export const PACE_FLOOR = { k: 0.4, min: 8, max: 25, def: 12 };
+export const TAIL_SEC = { min: 20, max: 90, def: 30 };
+export const HON = { days: 14, minSec: 1200, ok: 0.75, low: 0.5, flipSec: 12, idleW: 0.5 };
+export const QUIZ_XP = 20;
+export const QUIZ_MIN = 15;
+export const QUIZ_PAGES = 5;
+
+export function rowHon(r) {
+  const h = Number(r && r.hon);
+  return h >= 0.5 && h < 1 ? h : 1;
+}
+/** average counted seconds per honest page: this book (≥ 10 pages), else every book (≥ 20 pages), else null */
+export function pageSecAvg(rows, bookId) {
+  const sum = function (rs) {
+    let m = 0, p = 0;
+    rs.forEach(function (r) { const t = Number(r.pageTurns) || 0; if (t > 0) { m += Number(r.minutes) || 0; p += t; } });
+    return { s: m * 60, p: p };
+  };
+  const all = (rows || []).filter(function (r) { return r && r.bookId != null; });
+  const own = sum(all.filter(function (r) { return String(r.bookId) === String(bookId); }));
+  if (own.p >= 10) return own.s / own.p;
+  const every = sum(all);
+  return every.p >= 20 ? every.s / every.p : null;
+}
+/** seconds a page must stay on screen to count (own pace; 12 s while there is no history) */
+export function paceFloorSec(rows, bookId) {
+  const a = pageSecAvg(rows, bookId);
+  if (a == null) return PACE_FLOOR.def;
+  return Math.max(PACE_FLOOR.min, Math.min(PACE_FLOOR.max, Math.round(a * PACE_FLOOR.k)));
+}
+/** how long the page the session ends on counts after its last sign of life: about one own page */
+export function tailSec(rows, bookId) {
+  const a = pageSecAvg(rows, bookId);
+  if (a == null) return TAIL_SEC.def;
+  return Math.max(TAIL_SEC.min, Math.min(TAIL_SEC.max, Math.round(a)));
+}
+/**
+ * The quiet honesty index on local day `day`: rows of the 14 days up to and including it (the open session is not a row yet).
+ * @returns {{h:number, f:number, why:''|'flip'|'idle'}} h = honest share, f = XP factor 0.5…1 (two places)
+ */
+export function honestyIndex(rows, day) {
+  const from = addLocalDays(String(day).slice(0, 10), -(HON.days - 1)), to = String(day).slice(0, 10);
+  let ok = 0, flip = 0, idle = 0;
+  (rows || []).forEach(function (r) {
+    const d = rowDay(r);
+    if (!d || d < from || d > to) return;
+    ok += (Number(r.minutes) || 0) * 60;
+    flip += (Number(r.fl) || 0) * HON.flipSec;
+    idle += (Number(r.ct) || 0) * HON.idleW;
+  });
+  const all = ok + flip + idle;
+  if (all < HON.minSec) return { h: 1, f: 1, why: '' };
+  const h = ok / all;
+  const f = h >= HON.ok ? 1 : Math.max(HON.low, Math.round((1 - (HON.ok - h)) * 100) / 100);
+  return { h: h, f: f, why: f < 1 ? (flip >= idle ? 'flip' : 'idle') : '' };
+}
+/** first {...} of a model answer as an object, else null */
+function jsonIn(s) {
+  const m = String(s || '').match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try { const o = JSON.parse(m[0]); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }
+}
+/** mini-check question: {"q","a"} → {q ≤ 300, a ≤ 300} | null */
+export function parseQuizQ(s) {
+  const o = jsonIn(s);
+  if (!o || typeof o.q !== 'string' || !o.q.trim()) return null;
+  return { q: o.q.trim().slice(0, 300), a: typeof o.a === 'string' ? o.a.trim().slice(0, 300) : '' };
+}
+/** mini-check verdict: {"ok","why"} → {ok: boolean, why ≤ 200} | null */
+export function parseQuizGrade(s) {
+  const o = jsonIn(s);
+  if (!o || typeof o.ok !== 'boolean') return null;
+  return { ok: o.ok, why: typeof o.why === 'string' ? o.why.trim().slice(0, 200) : '' };
 }

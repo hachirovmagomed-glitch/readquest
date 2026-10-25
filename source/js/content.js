@@ -1058,3 +1058,85 @@ async function parseFb2(f){
   return {title:title,author:author,text:text.trim(),toc:toc};
 }
 
+
+/* ===== Мини-проверка (25.10, Джессика «Давай все кроме 3 и 6», пункт 5; arch.md «Честное чтение») =====
+   After a long session (≥ QUIZ_MIN counted minutes and ≥ QUIZ_PAGES pages) the summary offers ONE optional question about what was
+   just read, made and checked by the reader's own AI key. Right → +QUIZ_XP XP once a local day (game.quizPaid); wrong or skipped →
+   nothing is taken away. The passage goes only to the reader's own AI service, nothing is stored but the paid day. */
+const QUIZ_SYS_Q='Ты помогаешь читателю проверить, понял ли он отрывок, который только что прочитал. Придумай ОДИН простой вопрос по содержанию отрывка (кто, что сделал, почему, чем закончилось), на который внимательный читатель ответит одной фразой. Не спрашивай про числа, даты, точные слова и мелкие детали. Вопрос на языке отрывка. Ответь только JSON: {"q":"вопрос","a":"короткий правильный ответ"}';
+const QUIZ_SYS_A='Проверь ответ читателя на вопрос по отрывку книги. Будь доброжелателен: засчитывай ответ, если смысл верный, даже если он неполный, своими словами или с опечатками. Ответь только JSON: {"ok":true или false,"why":"одно короткое предложение по-русски"}';
+let QZ=null; /* {src, st: offer|wait|ask|check|ok|no|err|nokey, q, a, why, err, txt} */
+async function quizPassage(src){
+  const b=src.book;
+  try{
+    if(b.text){const t=String(b.text),L=t.length,per=Math.ceil(L/Math.max(1,src.pages||1)),end=Math.min(L,Math.floor(L*Math.max(0,Math.min(1,src.pos)))+per);
+      return t.slice(Math.max(0,end-3000),end).replace(/\s+/g,' ').trim();}
+    if(b.type==='pdf'&&typeof loadPdfJs==='function'&&typeof idbGet==='function'){
+      const buf=await idbGet('pdf:'+b.id);if(!buf)return '';await loadPdfJs();
+      const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise,parts=[];
+      try{for(let n=Math.max(1,src.page-1);n<=Math.min(doc.numPages,src.page+1);n++){const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}}
+      finally{try{doc.destroy();}catch(_){}}
+      return parts.join('\n').replace(/\s+/g,' ').trim().slice(-3000);
+    }
+  }catch(e){console.warn('[rq] quiz passage',e);}
+  return '';
+}
+function quizRender(r){
+  const box=el('sumQuiz');if(!box)return;
+  if(r){QZ=r.quiz?{src:r.quiz,st:'offer'}:null;}
+  if(!QZ){box.classList.add('hidden');box.innerHTML='';return;}
+  const G=window.__rqGame,xp=G.QUIZ_XP,s=QZ.st,btn=function(id,ic,t){return '<button type="button" class="ghostbtn" id="'+id+'">'+rqIcon(ic,16)+' '+t+'</button>';};
+  let h='<div class="qz-h">'+rqIcon('message-circle',16)+'<b>Вопрос по прочитанному</b></div>';
+  if(s==='offer')h+='<div class="qz-t">Необязательно. Ответишь верно: +'+xp+' XP. Неверно: ничего не теряешь.</div><div class="qz-b">'+btn('qzGo','sparkles','Получить вопрос')+'</div>';
+  else if(s==='nokey')h+='<div class="qz-t">Вопрос задаёт нейросеть на твоём ключе. Вставь ключ в Настройках, раздел «ИИ-помощник».</div><div class="qz-b">'+btn('qzSet','settings','Открыть настройки')+'</div>';
+  else if(s==='wait'||s==='check')h+='<div class="qz-t" role="status">'+(s==='wait'?'Готовлю вопрос…':'Проверяю…')+'</div>';
+  else if(s==='ask')h+='<div class="qz-q">'+esc(QZ.q)+'</div><textarea id="qzA" rows="2" maxlength="400" aria-label="Твой ответ" placeholder="Твой ответ своими словами">'+esc(QZ.txt||'')+'</textarea>'+
+    '<div class="qz-b">'+btn('qzCheck','check','Проверить')+btn('qzSkip','x','Пропустить')+'</div>';
+  else if(s==='ok')h+='<div class="qz-q">'+esc(QZ.q)+'</div><div class="qz-t qz-ok">'+rqIcon('circle-check',16)+'<span>Верно'+(QZ.paid?', +'+QZ.paid+' XP':'')+'. '+esc(QZ.why||'')+'</span></div>';
+  else if(s==='no')h+='<div class="qz-q">'+esc(QZ.q)+'</div><div class="qz-t">Не совсем. '+esc(QZ.why||'')+(QZ.a?' Ответ: '+esc(QZ.a):'')+' Опыт за чтение остаётся.</div>';
+  else if(s==='err')h+='<div class="qz-t" role="alert">Не получилось: '+esc(QZ.err||'ошибка')+'</div><div class="qz-b">'+btn('qzGo','rotate-cw','Ещё раз')+btn('qzSkip','x','Пропустить')+'</div>';
+  box.innerHTML=h;box.classList.remove('hidden');
+  if(el('qzGo'))el('qzGo').onclick=quizAsk;
+  if(el('qzCheck'))el('qzCheck').onclick=quizCheck;
+  if(el('qzSkip'))el('qzSkip').onclick=function(){QZ=null;quizRender();};
+  if(el('qzSet'))el('qzSet').onclick=function(){NN_EXP.ai=true;openGeneralSettings(true);if(el('aiHow'))el('aiHow').open=true;settingsScrollTo('aiHead');};
+  if(el('qzA'))el('qzA').oninput=function(){QZ.txt=this.value;};
+}
+async function quizAsk(){
+  if(!QZ)return;
+  if(!aiOn()){QZ.st='nokey';quizRender();return;}
+  if(navigator.onLine===false){QZ.st='err';QZ.err='нужен интернет';quizRender();return;}
+  const me=QZ;me.st='wait';quizRender();
+  try{
+    me.passage=me.passage||await quizPassage(me.src);
+    if(me.passage.length<300)throw new Error('здесь слишком мало текста для вопроса');
+    const q=window.__rqGame.parseQuizQ(await aiViaKey({system:QUIZ_SYS_Q,user:'Книга: «'+(me.src.book.title||'')+'»\nОтрывок:\n'+me.passage},300));
+    if(!q)throw new Error('непонятный ответ нейросети');
+    me.q=q.q;me.a=q.a;me.st='ask';
+  }catch(e){me.st='err';me.err=e&&e.message||'ошибка';}
+  if(QZ===me)quizRender();
+}
+async function quizCheck(){
+  if(!QZ||QZ.st!=='ask')return;
+  const me=QZ,ans=String(me.txt||'').trim();if(!ans){const a=el('qzA');if(a)a.focus();return;}
+  me.st='check';quizRender();
+  let g=null;
+  try{g=window.__rqGame.parseQuizGrade(await aiViaKey({system:QUIZ_SYS_A,user:'Отрывок:\n'+me.passage+'\n\nВопрос: '+me.q+'\nОжидаемый ответ: '+me.a+'\nОтвет читателя: '+ans.slice(0,400)},200));
+    if(!g)throw new Error('непонятный ответ нейросети');}
+  catch(e){me.st='ask';if(QZ===me){quizRender();flashMsg('Не получилось проверить: '+(e&&e.message||'ошибка'),'info');}return;}
+  me.why=g.why;me.st=g.ok?'ok':'no';
+  if(g.ok)me.paid=quizPay(me.src.day);
+  if(QZ===me)quizRender();
+}
+/** +QUIZ_XP once per local day (game.quizPaid); returns the XP paid now (0 when the day is already paid or the window may not write) */
+function quizPay(day){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return 0;
+  S.quizPaid=S.quizPaid||{};if(S.quizPaid[day])return 0;
+  const xp=window.__rqGame.QUIZ_XP,before=S.xp||0,lv=level(before);
+  S.quizPaid[day]=xp;S.xp=before+xp;
+  const h=S.hist&&S.hist[day];if(h)h.xp=(h.xp||0)+xp;
+  save();
+  const sx=el('sumXp');if(sx){const to=(Number(sx.dataset.xp)||0)+xp;sx.dataset.xp=to;countUp(sx,to,n=>'+'+n+' XP');}
+  sumLevel(level(S.xp),lv,before);
+  return xp;
+}

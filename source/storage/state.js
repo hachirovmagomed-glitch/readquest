@@ -343,6 +343,10 @@ export async function importBackup(data) {
         startedAt: s.startedAt,
         xp: s.xp,
         lvl: s.lvl,
+        fl: s.fl,
+        ct: s.ct,
+        rr: s.rr,
+        hon: s.hon,
       });
     } catch (e) {
       /* skip bad rows */

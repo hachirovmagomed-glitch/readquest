@@ -1180,6 +1180,16 @@ body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 .achv-tile{display:flex;gap:12px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:8px}
 .achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
 .achv-tile .pbar{margin-top:6px}
+#rqPause{position:fixed;z-index:30;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
+  background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--txt);border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);opacity:.45;touch-action:none;transition:opacity .2s}
+#rqPause[hidden]{display:none}#rqPause.on{opacity:.95;color:var(--accent);border-color:var(--accent)}#rqPause.drag{opacity:.9;transition:none}
+@media (prefers-reduced-motion:reduce){#rqPause{transition:none}}
+#sumQuiz{text-align:left;font-size:0.875rem;line-height:1.45;margin:4px 0 10px}
+#sumQuiz .qz-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#sumQuiz .qz-h .ic{flex:none;color:var(--accent2)}
+#sumQuiz .qz-t{color:var(--muted)}#sumQuiz .qz-q{font-weight:600;margin-bottom:8px}
+#sumQuiz .qz-ok{display:flex;gap:6px;align-items:flex-start;color:var(--txt)}#sumQuiz .qz-ok .ic{flex:none;margin-top:2px;color:var(--accent2)}
+#sumQuiz .qz-b{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}#sumQuiz .ghostbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+#sumQuiz textarea{width:100%;box-sizing:border-box;font:inherit;color:var(--txt);background:var(--card2);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--rq-radius-md);padding:10px;resize:vertical}
 #sumAch{margin:8px 0;font-size:0.875rem;line-height:1.5}#sumAch div{display:flex;align-items:center;gap:6px}#sumAch .ic{flex:none;color:var(--accent2)}#sumAch .more{color:var(--muted);padding-left:20px}
 #avatarFrame.achf-frame250{outline:2px solid var(--muted);outline-offset:3px}
 #avatarFrame.achf-frame500{outline:4px double var(--accent);outline-offset:3px}
@@ -2230,6 +2240,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div id="pgLine"><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
+  <button id="rqPause" class="rq-pause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 25.10 пауза (js/reader-ui.js pauseApply) -->
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
@@ -2296,6 +2307,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="setgrp" id="grpFocus">
       <div class="rrow stack"><span class="rl" id="focusSegL">Режим фокуса</span><div class="rseg" id="focusSeg" role="group" aria-labelledby="focusSegL"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div></div>
       <div class="rnote">Остаётся только текст. Выход — тап в центр.</div>
+      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>круг на странице: на паузе время, опыт и монеты не идут; передвинь пальцем</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
       <div class="rrow"><span class="rl" id="readCntTglL">Счётчик минут<small>«7 / 10 мин» в углу в режиме фокуса</small></span><button class="rsw" id="readCntTgl" role="switch" aria-checked="false" aria-labelledby="readCntTglL"></button></div>
     </div>
   </div>
@@ -2322,6 +2334,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div id="sumQuestGold" class="hidden"></div>
     </div>
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
+    <div id="sumQuiz" class="pcard hidden" aria-live="polite"></div><!-- 25.10 мини-проверка (js/content.js quizRender) -->
     <div id="sumAch" class="hidden"></div>
     <div id="sumBadges"></div>
     <div class="sumfin hidden" id="sumFin"></div>

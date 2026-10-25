@@ -75,7 +75,7 @@ const s2 = await p.evaluate(async () => { const b = Array.from(document.querySel
 const q0 = hits.q[0] || { q: '' };
 ok('2a поиск по названию и автору, по-русски, только свободные: до 1930 года или общественное достояние без года, без библиотечной выдачи', /^\(title:\(\(Толстой\)\) OR creator:\(\(Толстой\)\)\)/.test(q0.q) && /language:\(rus OR Russian\)/.test(q0.q) && /format:DjVuTXT/.test(q0.q) &&
   /date:\[1000-01-01 TO 1929-12-31\]/.test(q0.q) && /licenseurl:\*publicdomain\* AND NOT date:\[1930-01-01 TO 2100-12-31\]/.test(q0.q) && /NOT collection:\(inlibrary OR printdisabled OR lendinglibrary OR internetarchivebooks\)/.test(q0.q) && /NOT access-restricted-item:true/.test(q0.q), q0);
-ok('2b список без строки автора Викитеки: название, год, автор «Имя Отчество Фамилия» (из «Leo Tolstoy (…); Толстой, Лев Николаевич (…)»), обложка архива, «Показать ещё»', JSON.stringify(s2.rows.slice(0, 1)) === '["Война и миръ. Томъ 1|Лев Николаевич Толстой · 1912"]' && s2.rows[3] === 'Альбом акварелей к роману «Война и мир»|1893' &&
+ok('2b список без строки автора Викитеки: название, год, автор «Имя Отчество Фамилия» (из «Leo Tolstoy (…); Толстой, Лев Николаевич (…)»), обложка архива, «Показать ещё»', JSON.stringify(s2.rows.slice(0, 1)) === '["Война и мир. Том 1|Лев Николаевич Толстой · 1912"]' && s2.rows[3] === 'Альбом акварелей к роману «Война и мир»|1893' &&
   s2.sid === 'ia:vojna_i_mir_1912_tom_1' && s2.cover === 'https://archive.org/services/img/vojna_i_mir_1912_tom_1' && s2.more, s2);
 
 // 3. card and download
@@ -89,7 +89,7 @@ const t3 = s3.text, p3 = t3.split('\n\n');
 ok('3a карточка: архив, автор, год издания, «общественное достояние», объём, предупреждение про опечатки распознанного текста, ссылка на Викитеку', /ИсточникInternet Archive/.test(s3.txt) && /АвторЛев Николаевич Толстой/.test(s3.txt) && /Языкрусский/.test(s3.txt) && /Издание1912 год/.test(s3.txt) &&
   /ПраваОбщественное достояние/.test(s3.txt) && /Объёмоколо 9 часов чтения/.test(s3.txt) && /Текст распознан со скана/.test(s3.txt) && /Издание 1912 года\./.test(s3.txt) && /Скачать на телефон и читать/.test(s3.cta) && s3.ru, s3.txt.slice(0, 500));
 ok('3b скачан текст скана (_djvu.txt, не EPUB): книга на полке, язык ru, открыта читалка', hits.dl.length === 1 && /^\/download\/vojna_i_mir_1912_tom_1\/vojna_i_mir_1912_tom_1_djvu\.txt$/.test(hits.dl[0]) && s3.added === 1 && s3.book &&
-  s3.book.t === 'Война и миръ. Томъ 1' && s3.book.a === 'Лев Николаевич Толстой' && s3.book.lang === 'ru' && s3.book.genre === 'Интернет-архив' && s3.reader, { book: s3.book, dl: hits.dl });
+  s3.book.t === 'Война и мир. Том 1' && s3.book.a === 'Лев Николаевич Толстой' && s3.book.lang === 'ru' && s3.book.genre === 'Интернет-архив' && s3.reader, { book: s3.book, dl: hits.dl });
 ok('3c текст очищен: строки скана собраны в абзац, перенос «собст¬венно» склеен, колонтитул с номером страницы и мусор с картинок убраны, стихи остались строками', p3[0].indexOf('\n') < 0 && p3[0].startsWith('Ну, князь. Генуа и Лукка') && /собственно/.test(p3[0]) &&
   !/ВОЙНА И МИРЪ\s+17/.test(t3) && !/тре|аи/.test(t3.replace(/[а-яё]+(тре|аи)|(тре|аи)[а-яё]+/gi, '')) && p3[1] === 'Вниманье башен неподвижных,\nСосредоточенность шеренг.' && !/  /.test(t3), p3.slice(0, 3));
 
@@ -123,7 +123,7 @@ const s6 = await p.evaluate(async () => { const r = {};
   r.all = Array.from(document.querySelectorAll('#advList > .advrow:not(.advauthrow)')).map(b => b.querySelector('b').textContent + '|' + (b.querySelector('.advtags .chip') || {}).textContent); return r; });
 const qa = hits.q[hits.q.length - 1] || { q: '' };
 ok('6a «Хочу прочитать»: том архива хранится одним sid и открывается из него (карточка тома, можно скачать), «Скачать все (1)»', s6.kept === 1 && s6.dl && /Скачать все \(1\)/.test(s6.dl) && /Томтом 1 \(Детство\)/.test(s6.txt) && s6.get, { ...s6, txt: s6.txt.slice(0, 200) });
-ok('6b «Везде»: книги архива в общем списке с пометкой «Интернет-архив», русский запрос ищется по-русски', s6.all.length === 4 && s6.all[0] === 'Война и миръ. Томъ 1|Интернет-архив' && /language:\(rus OR Russian\)/.test(qa.q), { all: s6.all, q: qa.q });
+ok('6b «Везде»: книги архива в общем списке с пометкой «Интернет-архив», русский запрос ищется по-русски', s6.all.length === 4 && s6.all[0] === 'Война и мир. Том 1|Интернет-архив' && /language:\(rus OR Russian\)/.test(qa.q), { all: s6.all, q: qa.q });
 
 ok('нет ошибок страницы и окон', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 const n = checks.filter(Boolean).length; console.log('SUMMARY adv4.test ' + n + '/' + checks.length);

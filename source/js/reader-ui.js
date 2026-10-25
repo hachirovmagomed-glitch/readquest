@@ -611,11 +611,14 @@ function tocRows(b,toc){
 }
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
-  if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
-  jumpRatio(b.text&&b.text.length?toc[i].off/b.text.length:0);
+  /* 25.10 (Джессика: «хочу выходить из "Глав" сама»): the book moves to the chapter behind the panel; the list stays open,
+     where it was, with the mark on the new chapter */
+  jumpTo(toc[i].page!=null?toc[i].page:Math.round((b.text&&b.text.length?toc[i].off/b.text.length:0)*(R.pageCount-1)));
+  const redo=function(){if(el('panel').classList.contains('hidden')||panelTab!=='toc')return;const bd=el('panelBody'),y=bd.scrollTop;tocCur._k=null;renderPanel('toc',{keep:true});bd.scrollTop=y;};
+  redo();setTimeout(redo,350); /* PDF: the page lands a moment later */
 }
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
-function renderPanel(tab){
+function renderPanel(tab,o){
   panelTab=tab;rqGridStop();
   [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
@@ -625,7 +628,7 @@ function renderPanel(tab){
   if(tab==='toc'){
     const toc=tocOf(b);
     body.innerHTML=toc.length?tocRows(b,toc):'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
-    const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
+    const on=!(o&&o.keep)&&body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+

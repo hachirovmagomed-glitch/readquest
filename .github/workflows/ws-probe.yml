@@ -1,4 +1,4 @@
-# Temporary probe for «Приключения» (thread up771x): Wikisource titles for new collections. Removed after.
+# Temporary probe for «Приключения» (thread up771x): exact Wikisource titles for new collections. Removed after.
 name: ws-probe
 on:
   push:
@@ -12,34 +12,14 @@ jobs:
           cat > p.py <<'PY'
           import json,urllib.request,urllib.parse,time
           UA={'User-Agent':'readquest-probe/1.0 (github actions)'}
-          def get(params):
-              u='https://ru.wikisource.org/w/api.php?'+urllib.parse.urlencode(dict(params,format='json',formatversion=2))
-              for i in range(4):
-                  try: return json.loads(urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60).read())
-                  except Exception as e: time.sleep(3)
-              return {}
-          Q='''Двенадцать Блок|Незнакомка Блок|Скифы Блок|Облако в штанах Маяковский|Флейта-позвоночник|Жираф Гумилёв|Капитаны Гумилёв|Заблудившийся трамвай|Silentium Мандельштам|Бессонница. Гомер. Тугие паруса|Мне нравится, что вы больны не мной|Я — вам слова Бальмонт|Хочу быть дерзким|Юному поэту Брюсов|Грядущие гунны|Письмо матери Есенин|Гой ты, Русь, моя родная|Не жалею, не зову, не плачу|Бобэоби|Петербург Белый|Мелкий бес Сологуб
-          Калевала|Старшая Эдда|Песнь о Нибелунгах|Песнь о Роланде|Беовульф|Гильгамеш|Слово о полку Игореве|Махабхарата|Рамаяна|Сказание о Тристане и Изольде|Илья Муромец и Соловей-разбойник|Садко былина|Легенды и мифы Древней Греции|Мифы Древней Греции Кун
-          Собака Баскервилей|Этюд в багровых тонах|Знак четырёх|Пёстрая лента|Союз рыжих|Скандал в Богемии|Убийство на улице Морг|Золотой жук|Похищенное письмо|Лунный камень|Женщина в белом|Тайна отца Брауна|Синий крест Честертон|Шведская спичка|Драма на охоте
-          Голова профессора Доуэля|Красная звезда Богданов|Республика Южного Креста|4338-й год|Жидкое солнце|Гиперболоид инженера Гарина|Остров погибших кораблей|Борьба в эфире|Властелин мира Беляев|Прыжок в ничто|На Луне Циолковский|Вне Земли|Плутония|Земля Санникова|Город в табакерке'''
-          for grp in Q.split('\n'):
-              print('\n######')
-              for q in grp.strip().split('|'):
-                  d=get({'action':'query','list':'search','srsearch':q,'srnamespace':0,'srlimit':5})
-                  hits=[h['title'] for h in (d.get('query') or {}).get('search',[])]
-                  roots=[]
-                  for t in hits:
-                      r=t.split('/')[0]
-                      if r not in roots and '(' in r: roots.append(r)
-                  info={}
-                  if roots:
-                      m=get({'action':'query','prop':'categories|info','cllimit':'max','titles':'|'.join(roots[:3])})
-                      for p in (m.get('query') or {}).get('pages',[]):
-                          cats=[c['title'].replace('Категория:','') for c in p.get('categories',[])]
-                          lic=[c for c in cats if c.startswith('PD') or 'достояние' in c]
-                          lst=[c for c in cats if c.startswith('Списки') or 'Неоднознач' in c]
-                          info[p['title']]=(p.get('length'),lic[:2],lst[:1])
-                  print(q,'=>',json.dumps(info,ensure_ascii=False))
-                  time.sleep(0.4)
+          T='''Калевала (Бельский)|Старшая Эдда|Песнь о Нибелунгах (Кудряшов)|Песнь о Роланде (Кузмин)|Песнь о Роланде|Слово о полку Игореве (Жуковский)|Гильгамеш (Гумилёв)|Тристан и Изольда (Бедье; Веселовский)|Наль и Дамаянти (Жуковский)|Рустем и Зораб (Жуковский)|Песнь о Гайавате (Лонгфелло; Бунин)|Садко (былина)|Вольга и Микула|Илья Муромец и Соловей-разбойник|Беовульф|Сид|Песнь о моём Сиде|Мифы Древней Греции|Собака Баскервилей (Дойль)|Собака Баскервилей|Убийство на улице Морг (По; Бальмонт)|Убийство в улице Морг (По)|Золотой жук (По)|Золотой жук (По; Бальмонт)|Похищенное письмо (По)|Лунный камень (Коллинз)|Пёстрая лента (Дойль; 1896)|Шведская спичка (Чехов)|Драма на охоте (Чехов)|Тайна отца Брауна (сборник — Честертон)|Этюд в багровых тонах (Дойль)|Знак четырёх (Дойль)|Голубой карбункул (Дойль)|Гиперболоид инженера Гарина (Толстой)|Аэлита (Толстой)|Борьба в эфире (Беляев)|Властелин мира (Беляев, 1963)|Остров погибших кораблей (Беляев)|Голова профессора Доуэля (Беляев)|Человек-амфибия (Беляев)|Жидкое солнце (Куприн)|Городок в табакерке (Одоевский)|4338-й год (Одоевский)|Красная звезда (Богданов)|Республика Южного Креста (Брюсов)|На Луне (Циолковский)|Вне Земли (Циолковский)|Грёзы о земле и небе (Циолковский)'''.split('|')
+          for k in range(0,len(T),45):
+              u='https://ru.wikisource.org/w/api.php?'+urllib.parse.urlencode({'action':'query','format':'json','formatversion':2,'redirects':1,'prop':'categories|info|pageprops','cllimit':'max','titles':'|'.join(T[k:k+45])})
+              d=json.loads(urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=90).read())
+              q=d.get('query',{})
+              for r in q.get('redirects',[]):print('REDIR',r['from'],'->',r['to'])
+              for p in q.get('pages',[]):
+                  cats=[c['title'].replace('Категория:','') for c in p.get('categories',[])]
+                  print('MISSING' if p.get('missing') else 'OK', p['title'], p.get('length'), [c for c in cats if c.startswith('PD') or 'Списки' in c or 'Неоднознач' in c or 'авторск' in c.lower() or 'Не PD' in c][:4], 'DISAMB' if 'disambiguation' in p.get('pageprops',{}) else '')
           PY
           python3 p.py

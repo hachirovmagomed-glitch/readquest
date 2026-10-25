@@ -376,6 +376,11 @@ if (want('over')) for (const sk of ['', 'ellada', 'babochkovyi', 'celestial', 'p
     return { top: Math.round(b.top), bottom: Math.round(b.bottom), vh: innerHeight, hits, test: document.documentElement.classList.contains('rq-test') }; });
   await shot(p, 'over-' + (sk || 'base'));
   ok('over ' + (sk || 'base') + ': настройки поверх книги от верхнего края, книга сверху не видна', r.top === 0 && r.bottom === r.vh && !r.hits.includes('READER'), r);
+  const pin = await p.evaluate(async () => { const sc = el('settings').querySelector('.scroll'), row = el('settings').querySelector('.wrap > .row:first-child'); const out = [];
+    for (const y of [0, 150, 600, 99999]) { sc.scrollTop = y; await new Promise(r => setTimeout(r, 80)); const b = row.getBoundingClientRect(); const side = [4, innerWidth - 4].map(x => { const e = document.elementFromPoint(x, b.top + 8); return !!(e && e.closest('.row') === row); }); out.push({ y: sc.scrollTop, top: Math.round(b.top), w: Math.round(b.width), side }); }
+    return out; });
+  ok('over ' + (sk || 'base') + ': шапка «Общие настройки» во всю ширину и стоит на месте при прокрутке', pin.every(x => x.top === 0 && Math.abs(x.w - pin[0].w) < 1 && x.side.every(Boolean)) && pin[0].w >= 389, pin);
+  await shot(p, 'over-scrolled-' + (sk || 'base'));
   await p.evaluate(() => history.back()); await sleep(600);
   const back = await p.evaluate(() => ({ set: el('settings').classList.contains('hidden'), rdr: !el('reader').classList.contains('hidden') }));
   ok('over ' + (sk || 'base') + ': «Назад» — снова книга', back.set && back.rdr, back);

@@ -701,20 +701,28 @@ if (!OLD) {
     await page.evaluate(() => { const s = document.getElementById('summary'); if (s) s.classList.add('hidden'); show('library'); });
     if (landscape) await page.setViewport({ width: 915, height: 412, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true });
     const before = (await rows()).map(r => r.id);
+    /* 25.10 честное чтение (only where honestOn(), the test site): every cap session starts on a page not read before (page 90 is reused) */
+    await page.evaluate(() => { if (typeof honestOn === 'function' && honestOn()) S.readSpans = {}; });
     await setup();
     const pre = (await st()).snap;
+    const tail = await page.evaluate(() => typeof honestOn === 'function' && honestOn() ? window.__rqGame.tailSec(SESS, R.book.id) : null); /* s after the last sign of life on the closing page */
     await body();
     const snap = (await st()).snap;
     await closeViaBack(); await sleep(600);
     const nr = (await rows()).filter(r => !before.includes(r.id));
     if (landscape) await page.setViewport(PHONE);
     const credPrev = (pre.countedMs - Math.min(pre.pageDwellMs, pre.pageCapMs)) / 60000; // closed pages only (the page opened before goTo)
-    return { minutes: nr.length === 1 ? +(nr[0].minutes - credPrev).toFixed(4) : null, rowMinutes: nr.length === 1 ? +nr[0].minutes.toFixed(4) : null, creditedBefore: +credPrev.toFixed(4), rows: nr.length, snap };
+    return { minutes: nr.length === 1 ? +(nr[0].minutes - credPrev).toFixed(4) : null, rowMinutes: nr.length === 1 ? +nr[0].minutes.toFixed(4) : null, creditedBefore: +credPrev.toFixed(4), rows: nr.length, snap, tail };
   }
+  /* 25.10: with the honest rules the page the session ends on counts only `tail` s after its last sign of life (pan / zoom / scroll / arrival) */
+  const tailMin = (r, lastSigMin, capMin) => r.tail == null ? capMin : +Math.min(capMin, lastSigMin + r.tail / 60).toFixed(4);
+  /* the drags / taps themselves take real seconds on top of adv(): ± 0.2 min with the tail, exact without it */
+  const near = (r, want) => r.minutes != null && (r.tail == null ? r.minutes === want : Math.abs(r.minutes - want) < 0.2);
   const pdfSetup = async () => { await openPdfBook(ids.a); await goTo(90); };
   // (ж) idle 10 min on one PDF page → 3 min
   const zh = await capSession('zh', pdfSetup, async () => { await adv(10 * 60000); });
-  ok('(ж) PDF, 10 min idle on one page → 3.00 min credited', zh.minutes === 3, zh);
+  if (zh.tail == null) ok('(ж) PDF, 10 min idle on one page → 3.00 min credited', zh.minutes === 3, zh);
+  else ok('(ж) честное чтение: 10 min idle on one page, no turn → only the tail (< 1 min) → no row at all (Джессика 25.10, скрин 0 стр. / 3 мин / +30 XP)', zh.rows === 0, zh);
   // (з) landscape (page taller than the screen): a vertical pan > 20 % once a minute → +1 min each, ceiling 8
   const pans = [];
   const zz = await capSession('z', pdfSetup, async () => {
@@ -739,7 +747,7 @@ if (!OLD) {
     for (let i = 1; i <= 18; i++) { await adv(10000); const up = i % 2 === 1; await drag(X(0.5), Y(up ? 0.8 : 0.2), X(0.5), Y(up ? 0.2 : 0.8), 8, 8); await sleep(50); const s = await st(); freq.push(s.snap.pageCapMs / 60000); }
     await adv(10 * 60000 - 180000);
   }, true);
-  ok('(к) 18 big pans every 10 s → only 3 extensions (once per 60 s) → cap 6 → 6.00 min credited over 10 min', zk.minutes === 6 && freq[freq.length - 1] === 6 && freq.filter((c, i) => i && c !== freq[i - 1]).length === 2, { minutes: zk.minutes, caps: freq });
+  ok('(к) 18 big pans every 10 s → only 3 extensions (once per 60 s) → cap 6 → 6.00 min credited over 10 min', near(zk, tailMin(zk, 3, 6)) && freq[freq.length - 1] === 6 && freq.filter((c, i) => i && c !== freq[i - 1]).length === 2, { minutes: zk.minutes, want: tailMin(zk, 3, 6), caps: freq });
   // zoom change also extends (once per 60 s)
   const zoomCaps = [];
   const zzoom = await capSession('zoom', pdfSetup, async () => {
@@ -748,7 +756,7 @@ if (!OLD) {
     await adv(45000); await pinch(X(0.5), Y(0.5), 120, 260); await sleep(500); zoomCaps.push((await st()).snap.pageCapMs / 60000);
     await adv(9 * 60000);
   });
-  ok('(з′) zoom change (double tap / pinch) extends +1 min, also at most once per 60 s', zoomCaps.join(',') === '4,4,5' && zzoom.minutes === 5, { caps: zoomCaps, minutes: zzoom.minutes });
+  ok('(з′) zoom change (double tap / pinch) extends +1 min, also at most once per 60 s', zoomCaps.join(',') === '4,4,5' && near(zzoom, tailMin(zzoom, 65 / 60, 5)), { caps: zoomCaps, minutes: zzoom.minutes, want: tailMin(zzoom, 65 / 60, 5) });
   // (л) text reader: still a flat 3 min per page (even if activity events arrive)
   const zl = await capSession('l', async () => {
     await page.evaluate((id) => openBook(id), ids.t); await page.waitForFunction(() => !document.getElementById('reader').classList.contains('hidden') && R.pageCount > 1); await sleep(3800); await viewerRect();

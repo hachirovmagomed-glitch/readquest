@@ -38,8 +38,10 @@ const st = (p) => p.evaluate(() => ({ ready: !!window.__rqReady, passive: !!__rq
 const lsv = (p) => p.evaluate(() => { const v = JSON.parse(localStorage.getItem('rqt_v1') || 'null'); return v ? { streak: v.progress.streak, lastDay: v.progress.lastDay, books: ((v.library || {}).userBooks || []).length } : null; });
 async function addBook(p) { const n = await p.evaluate(() => (S.userBooks || []).length); await (await p.$('#fileInp')).uploadFile(BOOK); await p.waitForFunction(k => (S.userBooks || []).length > k, { timeout: 10000 }, n); return p.evaluate(() => S.userBooks[S.userBooks.length - 1].id); }
 async function sess(p, id, ms) {
+  await p.evaluate(() => { S.readSpans = {}; }); /* 25.10: the same first pages again would be a re-read (no minutes) — this test is about the streak */
   await p.evaluate(i => openBook(i), id); await p.waitForFunction(() => R.pageCount > 1, { timeout: 10000 }); await sleep(400);
-  await p.evaluate(m => window.__rqAdv(m), ms);
+  /* 25.10 честное чтение (тестовый сайт): страница засчитывается, когда её перелистнули — сидеть ms и перелистнуть, потом закрыть */
+  await p.evaluate(m => { window.__rqAdv(m); goPage(R.page + 1, true); }, ms); await sleep(60);
   await p.evaluate(() => closeReader()); await sleep(1200);
 }
 

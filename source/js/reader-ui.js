@@ -118,7 +118,7 @@ function updFocusCount(day,live){
     :'<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.2"/><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-p)).toFixed(2)+'" transform="rotate(-90 8 8)"/></svg>';
   c.innerHTML=icon+'<span>'+mvpDailyInfo(day,live)+'</span>';
 }
-el('btnFocus').onclick=function(e){e.stopPropagation();setFocus(true);};
+el('btnFocus').onclick=function(e){e.stopPropagation();if(typeof fzFocusButton==='function'&&fzFocusButton())return;setFocus(true);}; /* 25.10: with «Помодоро» it starts a round (js/focus.js) */
 ['.rhead','.rfoot'].forEach(function(s){const n=document.querySelector('#reader '+s);if(n)n.addEventListener('pointerdown',function(){armFocusAuto();},{passive:true});});
 let IMM=false; /* legacy name kept for old callers: true ⇔ fullscreen wanted */
 function goFullscreen(){FSW=true;IMM=true;fsRequest('open');}
@@ -671,11 +671,14 @@ function tocRows(b,toc){
 }
 function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
-  if(toc[i].page!=null){jumpTo(toc[i].page);el('panel').classList.add('hidden');return;}
-  jumpRatio(b.text&&b.text.length?toc[i].off/b.text.length:0);
+  /* 25.10 (Джессика: «хочу выходить из "Глав" сама»): the book moves to the chapter behind the panel; the list stays open,
+     where it was, with the mark on the new chapter */
+  jumpTo(toc[i].page!=null?toc[i].page:Math.round((b.text&&b.text.length?toc[i].off/b.text.length:0)*(R.pageCount-1)));
+  const redo=function(){if(el('panel').classList.contains('hidden')||panelTab!=='toc')return;const bd=el('panelBody'),y=bd.scrollTop;tocCur._k=null;renderPanel('toc',{keep:true});bd.scrollTop=y;};
+  redo();setTimeout(redo,350); /* PDF: the page lands a moment later */
 }
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
-function renderPanel(tab){
+function renderPanel(tab,o){
   panelTab=tab;rqGridStop();
   [['tabToc','toc'],['tabMarks','marks'],['tabQts','qts'],['tabGrid','grid']]
     .forEach(([bid,t])=>el(bid).classList.toggle('on',t===tab));
@@ -685,7 +688,7 @@ function renderPanel(tab){
   if(tab==='toc'){
     const toc=tocOf(b);
     body.innerHTML=toc.length?tocRows(b,toc):'<div class="pempty">'+rqIcon('list',32)+'<div>У этой книги нет оглавления</div></div>';
-    const on=body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
+    const on=!(o&&o.keep)&&body.querySelector('.prow.on');if(on)requestAnimationFrame(function(){try{on.scrollIntoView({block:'center'});}catch(e){}}); /* 21.10: a long contents opens at the chapter being read */
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
@@ -861,6 +864,7 @@ async function closeReaderImpl(opts){
   if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo&&!fo.hidden)bfHide();} /* 20.10: the search lives with the open book only */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
+  if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
@@ -898,7 +902,7 @@ async function closeReaderImpl(opts){
     const res=awardPendingSessions();
     xp=Number(row.xp)||0; /* the paid value stored in the row (decision B) — the summary never recomputes it */
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
-    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
+    questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,pomoGold:res.pomoGold||0,chal:res.chal||[],lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
   }else{
     xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
     gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
@@ -946,7 +950,7 @@ async function closeReaderImpl(opts){
   const achNew=typeof achRun==='function'?achRun():[]; /* v2: recorded once, shown only on the summary (no toast in the reader) */
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
+  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||'',row:row};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);
     /* audit 19.10 SUM-03: a short session no longer closes silently (a blink-open, under 5 s, stays quiet) */
@@ -992,6 +996,7 @@ function renderSummary(r){
   if(r.flipped>r.pages)notes.push(''+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
   if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');
+  {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));
   if(r.mult>1)el('luckLbl').textContent='Удача! Все награды ×'+r.mult;

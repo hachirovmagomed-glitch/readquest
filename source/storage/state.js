@@ -343,6 +343,9 @@ export async function importBackup(data) {
         startedAt: s.startedAt,
         xp: s.xp,
         lvl: s.lvl,
+        pomo: s.pomo,
+        pomoRun: s.pomoRun,
+        fw: s.fw,
       });
     } catch (e) {
       /* skip bad rows */

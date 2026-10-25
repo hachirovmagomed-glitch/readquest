@@ -483,6 +483,13 @@ body.rq-nolocks #rqNoXp{display:block}
 .fzlegend{display:flex;align-items:center;gap:3px;font-size:0.6875rem;color:var(--muted)}
 .fzlegend i{width:10px;height:10px}
 .fzlegend span:first-child{margin-right:3px}.fzlegend span:last-child{margin-left:3px}
+#fzStats[hidden]{display:none}
+#fzStats .kpis{margin:10px 0 0}
+#fzStats .kpi{background:var(--card2)}
+#fzStats .fzstl{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:0.8125rem;color:var(--txt)}
+#fzStats .fzstl .ic{flex:none;color:var(--muted)}
+#fzStats .chart{margin-top:10px}
+#fzStats .pempty{margin-top:8px}
 #sumFocus{margin:4px 0 8px;font-size:0.8125rem;line-height:1.45;color:var(--txt);display:flex;flex-direction:column;gap:3px;text-align:left}
 #sumFocus.hidden{display:none}
 #sumFocus .fzsum>div{display:flex;align-items:flex-start;gap:6px}
@@ -2113,6 +2120,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard"><b style="font-size:13px">Страницы</b><div class="chart" id="chPages"></div></div>
     <div class="pcard"><b style="font-size:13px">XP</b><div class="chart" id="chXp"></div></div>
     <div class="pcard"><b style="font-size:13px" id="chGoldLbl">Монеты</b><div class="chart" id="chGold"></div></div>
+    <div class="pcard" id="fzStats" hidden></div><!-- 25.10 «Фокус и концентрация» (js/focus.js fzRenderStats) -->
     <div class="pcard"><b style="font-size:13px">Когда я читаю</b><div id="anaHours"></div></div>
     <div class="pcard"><b style="font-size:13px">По жанрам</b><div id="anaGenre"></div></div>
     <div class="pcard"><b style="font-size:13px">Книги по месяцам</b><div id="anaMonths"></div></div>

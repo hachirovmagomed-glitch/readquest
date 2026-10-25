@@ -330,3 +330,37 @@ el('fzHoldNew')&&(el('fzHoldNew').onclick=function(){fzRestartRound('');});
 /** reader opened / closed (reader.js openBook, reader-ui.js closeReaderImpl) */
 function fzOnOpen(){fzSync();fzPaint();if(fzOn())fzSound(true);}
 function fzOnClose(){fzStop();fzSound(false);FZ.sid=null;}
+
+/* ===== «Фокус и концентрация» in «Статистика» (Джессика 25.10: «результаты фокуса и концентрации можно добавить в статистику»).
+   Everything from sessions[] (nothing stored): rounds, focus minutes and their share of all reading, streak (now / best),
+   longest run without leaving, weekly challenges done, pace in focus vs without, focus minutes per day. ===== */
+function fzStatsData(n){
+  const G=window.__rqGame,rows=fzRows(),t=today(),from=addLocalDays(t,-(n-1));
+  const inP=rows.filter(function(r){const d=String(r.date||'').slice(0,10);return d>=from&&d<=t;});
+  let rounds=0,fmin=0,all=0,run=0,fp=[0,0],op=[0,0];
+  inP.forEach(function(r){const p=G.rowPomo(r),m=Number(r.minutes)||0,pg=Number(r.pageTurns)||0;
+    rounds+=p.length;fmin+=G.pomoMinutes(r);all+=m;run=Math.max(run,G.rowPomoRun(r));
+    const acc=p.length?fp:op;if(pg>0){acc[0]+=m;acc[1]+=pg;}});
+  const by=G.focusDays(rows),keys=Object.keys(by).sort();let best=0,cur=0,prev=null;
+  keys.forEach(function(k){cur=(prev&&addLocalDays(prev,1)===k)?cur+1:1;best=Math.max(best,cur);prev=k;});
+  let chal=0,wk=G.weekStartOf(from);
+  while(wk<=t){chal+=G.focusChallenges(rows,wk).filter(function(c){return c.done;}).length;wk=addLocalDays(wk,7);}
+  const days=[];for(let i=n-1;i>=0;i--){const d=addLocalDays(t,-i);days.push({d:d,v:{fz:by[d]||0}});}
+  return {rounds:rounds,fmin:fmin,share:all>0?Math.round(Math.min(1,fmin/all)*100):0,streak:G.focusStreak(rows,t),best:best,run:run,chal:chal,
+    paceF:fp[1]?fp[0]/fp[1]:0,paceO:op[1]?op[0]/op[1]:0,days:days};
+}
+function fzRenderStats(n){
+  const box=el('fzStats');if(!box)return;
+  if(!fzOn()){box.hidden=true;box.innerHTML='';return;}
+  const s=fzStatsData(n||7),f1=function(x){return x.toFixed(1).replace('.',',');};
+  box.hidden=false;
+  const kpi=function(v,l){return '<div class="kpi"><b>'+v+'</b><span>'+l+'</span></div>';};
+  box.innerHTML='<b style="font-size:13px">Фокус и концентрация</b>'+
+    '<div class="kpis">'+kpi(s.rounds,plural(s.rounds,'круг','круга','кругов'))+kpi(Math.floor(s.fmin),'мин фокуса')+kpi(s.share+' %','чтения в фокусе')+'</div>'+
+    '<div class="kpis">'+kpi(s.streak,plural(s.streak,'день серии','дня серии','дней серии'))+kpi(s.best,'лучшая серия')+kpi(s.run,'подряд без выхода')+'</div>'+
+    '<div class="fzstl">'+rqIcon('trophy',16)+'<span>Вызовов недели выполнено: '+s.chal+'</span></div>'+
+    (s.paceF&&s.paceO?'<div class="fzstl">'+rqIcon('timer',16)+'<span>В фокусе '+f1(s.paceF)+' мин на страницу, без фокуса '+f1(s.paceO)+'</span></div>':'')+
+    '<div class="chart" id="chFocus"></div>'+
+    (s.rounds?'':'<div class="pempty">Включи «Помодоро» во вкладке «Фокус» в читалке — здесь появятся круги</div>');
+  if(typeof renderChart==='function')renderChart('chFocus',s.days,'fz','var(--rq-accent,var(--accent))');
+}

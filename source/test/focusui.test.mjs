@@ -139,6 +139,11 @@ const m1 = await p.evaluate(() => ({ head: document.querySelector('#fzBox .fzhea
 ok('после круга: серия фокуса 1 день, 2 круга сегодня, день на карте закрашен', /1\s*день серии фокуса/.test(m1.head) && /2\s*круга сегодня/.test(m1.head) && m1.cell === 1, m1);
 await p.evaluate(() => { document.getElementById('sheet').scrollTop = 9999; }); await sleep(200);
 await shot('390-9-vyzovy-karta');
+/* 10b. «Статистика»: «Фокус и концентрация» (Джессика 25.10) */
+await p.evaluate(async () => { document.getElementById('sheet').classList.add('hidden'); __navAllow = true; await closeReader({ quiet: true }); openProgress('stats'); __navAllow = false; }); await sleep(800);
+const st = await p.evaluate(() => { const b = document.getElementById('fzStats'); b.scrollIntoView(); return { vis: !b.hidden && b.getBoundingClientRect().height > 0, t: b.innerText, bars: b.querySelectorAll('#chFocus .bar').length }; });
+ok('статистика: «Фокус и концентрация» — 2 круга, 30 мин фокуса, доля, серия, без выхода, вызовы, темп, график по дням', st.vis && /Фокус и концентрация/.test(st.t) && /\b2\s*круга/.test(st.t) && /30\s*мин фокуса/.test(st.t) && /чтения в фокусе/.test(st.t) && /лучшая серия/.test(st.t) && /Вызовов недели выполнено: \d/.test(st.t) && st.bars === 7, st);
+await sleep(200); await shot('390-10-statistika');
 await p.close();
 
 /* 11. 360 px: the tab fits */

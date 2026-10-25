@@ -695,6 +695,12 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #selpop button:active{background:var(--card2)}
 #selpop:not(.qmode) .spq,#selpop.qmode #spWord{display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
 #content mark.qon,.textLayer .pdfhls i.qon{outline:2px solid var(--hs);outline-offset:1px}
+/* 25.10 (Джессика, видео: «текст начинает безумствовать и становится похожим на сатанинский»): in a PDF the quote box hugs the letters,
+   so the butterfly pollen / the celestial star dust sat on them like accents, and a tapped quote ringed every line. In a PDF: the skin's two-colour
+   wash only, and a tapped quote gets a line under each row instead of a ring */
+html[data-skin="babochkovyi"] #reader .pdfhls i{background:linear-gradient(90deg,transparent,var(--hc) .45em,var(--hc2) 50%,var(--hc) calc(100% - .45em),transparent)}
+html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,var(--hc),var(--hc2))}
+#reader .textLayer .pdfhls i.qon{outline:0;box-shadow:0 2px 0 var(--hs)}
 @media (max-width:380px){#selpop{padding:6px 4px;gap:0}#selpop>button{padding:8px 10px}} /* 360: the actions stay one row under the colours, also with «Объясни» */
 .qcard{background:var(--card);border-radius:var(--rq-radius-md);padding:12px;margin-bottom:10px}
 .qtext{font-size:0.875rem;line-height:1.5}

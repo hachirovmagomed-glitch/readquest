@@ -136,8 +136,8 @@ const cs = await p.evaluate(async () => { document.querySelector('#advSrc .fchip
   el('advBack').click(); await new Promise(r => setTimeout(r, 100)); const back = document.querySelectorAll('#advList .advset').length;
   document.querySelector('#advList .advset[data-set="gut"]').click(); await new Promise(r => setTimeout(r, 400));
   const gut = document.querySelector('#advSrc .fchip.on').dataset.src; return { sets, rows: rows.slice(0, 2), n: rows.length, h, back, gut }; });
-ok('5a первый экран: 8 подборок; «Античность» открывается сразу списком книг, «Все подборки» возвращают; «Популярное на Гутенберге» открывает Гутенберг', cs.sets.length === 8 && cs.sets[0] === 'Школьная программа' && cs.h === 'Античность' && cs.n === 10 &&
-  cs.rows[0] === 'Илиада|Гомер' && cs.rows[1] === 'Одиссея|Гомер' && cs.back === 8 && cs.gut === 'gutenberg', cs);
+ok('5a первый экран: 12 подборок; «Античность» открывается сразу списком книг, «Все подборки» возвращают; «Популярное на Гутенберге» открывает Гутенберг', cs.sets.length === 12 && cs.sets[0] === 'Школьная программа' && cs.h === 'Античность' && cs.n === 10 &&
+  cs.rows[0] === 'Илиада|Гомер' && cs.rows[1] === 'Одиссея|Гомер' && cs.back === 12 && cs.gut === 'gutenberg', cs);
 const ws0 = hits.ws.length;
 const sg = await p.evaluate(async () => { document.querySelector('#advSrc .fchip[data-src="wikisource"]').click(); await new Promise(r => setTimeout(r, 100));
   const i = el('advQ'); i.value = 'Одис'; advInput(); await new Promise(r => setTimeout(r, 500));

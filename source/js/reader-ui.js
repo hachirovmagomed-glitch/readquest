@@ -145,6 +145,7 @@ function addBookmark(){
   const arr=(S.marks[R.book.id]=S.marks[R.book.id]||[]);
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   arr.push({ratio:ratio,page:R.page+1,date:today()});
+  if(typeof diaryAuto==='function')diaryAuto(R.book.id); /* 25.10 «Дневники» */
   save();
   flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
@@ -409,6 +410,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
     (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(t);
+    if(typeof diaryAuto==='function')diaryAuto(bid); /* 25.10 «Дневники»: the book's diary on its first quote (S.diaryAuto) */
     if(!(window.__rqWriter&&__rqWriter.noLocks)){
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
       addSkillXp('Аналитика',1);checkAchievements();
@@ -634,13 +636,15 @@ function renderPanel(tab){
     const qs=S.quotes[b.id]||[];if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
        a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there */
-    body.innerHTML=qs.length
+    /* 25.10 «Дневники»: a quick entry for this chapter and page, and the way to the book's diary */
+    const dy='<button class="prow add" onclick="diaryQuickNote()">'+rqIcon('notebook-pen',16)+'Запись в дневник на этой странице</button>';
+    body.innerHTML=dy+(qs.length
       ?qs.map((q,i)=>{const on=i===qOpen.i,t=String(q.text).replace(/\s*\n\s*/g,on?'\n':' ');
         return '<div class="prow pq'+(on?' on':'')+'"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+';--d2:'+hlDot2(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
           (on&&q.note?'<span class="pqn">'+esc(q.note)+'</span>':'')+'</span></button>'+
           (on?'<button class="pqgo" onclick="quoteGo('+i+')">'+rqIcon('book-open',16)+' Открыть в книге</button>':'')+'</div>';
       }).join('')
-      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
+      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>');
   }
 }
 

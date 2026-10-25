@@ -89,8 +89,9 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
        Читалка (18.10, arch.md SET.flip): pdf-scroll.js (PDF «Прокрутка»), page-curl.js («Загиб»), page-grid.js («Обзор»
        with thumbnails), in that order after pdf.js and before reader-ui.js.
        Поиск по книге (20.10): book-find.js (the magnifier search screen + chapter ticks on the slider), right after reader-ui.js.
-       Перевод (21.10): translate.js (the «Перевод» sheet + language packs), right after content.js. */
-    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero-pencil.js', 'js/hero-celestial.js', 'js/hero.js', 'js/pdf-scroll.js', 'js/page-curl.js', 'js/page-grid.js', 'js/book-find.js', 'js/translate.js'];
+       Перевод (21.10): translate.js (the «Перевод» sheet + language packs), right after content.js.
+       Дневники (25.10, arch.md): diary.js (diaries and notebooks), right after adv.js. */
+    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero-pencil.js', 'js/hero-celestial.js', 'js/hero.js', 'js/pdf-scroll.js', 'js/page-curl.js', 'js/page-grid.js', 'js/book-find.js', 'js/translate.js', 'js/diary.js'];
     const hOld = ht.filter(f => NEW_JS.indexOf(f) < 0);
     ok(`(split HEAD) <script src="js/…"> order in app.html = the 1a order of ${SPLIT_TREE} (${tt.length} tags; new since then: ${NEW_JS.join(', ')}), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(hOld) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
     const STR = "'use strict';\n", strictBad = [];

@@ -367,6 +367,21 @@ if (want('keyhow')) {
   await ctx.close();
 }
 
+/* over (Джессика 25.10): «Объясни» без ключа → «Открыть настройки» — настройки закрывают книгу целиком, от верхнего края; «Назад» — снова книга */
+if (want('over')) for (const sk of ['', 'ellada', 'babochkovyi', 'celestial', 'pencil']) {
+  const { ctx, p } = await fresh(390);
+  if (sk) await p.evaluate((sk) => { S.gold = 2000; save(); buy('skin-' + sk); wear('skin-' + sk); }, sk);
+  await openAndSelect(p); await p.tap('#spAI'); await sleep(400); await p.tap('#aiOpenSet'); await sleep(800);
+  const r = await p.evaluate(() => { const g = el('settings'), b = g.getBoundingClientRect(); const hits = [8, 20, 40, 60].map(y => { const e = document.elementFromPoint(195, y); return e && (e.closest('#settings') ? 's' : e.closest('#reader') ? 'READER' : e.id || e.tagName); });
+    return { top: Math.round(b.top), bottom: Math.round(b.bottom), vh: innerHeight, hits, test: document.documentElement.classList.contains('rq-test') }; });
+  await shot(p, 'over-' + (sk || 'base'));
+  ok('over ' + (sk || 'base') + ': настройки поверх книги от верхнего края, книга сверху не видна', r.top === 0 && r.bottom === r.vh && !r.hits.includes('READER'), r);
+  await p.evaluate(() => history.back()); await sleep(600);
+  const back = await p.evaluate(() => ({ set: el('settings').classList.contains('hidden'), rdr: !el('reader').classList.contains('hidden') }));
+  ok('over ' + (sk || 'base') + ': «Назад» — снова книга', back.set && back.rdr, back);
+  await ctx.close();
+}
+
 /* rows (Джессика 21.10 «плашки сходят с ума»): при любом сервисе и крупном шрифте название строки («ИИ-помощник», «Озвучка») не сжимается */
 if (want('rows')) for (const sk of ['', 'ellada', 'babochkovyi', 'celestial', 'pencil']) for (const fs of [16, 19]) {
   const { ctx, p } = await fresh(360);

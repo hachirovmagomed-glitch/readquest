@@ -1712,6 +1712,9 @@ body:has(#reader:not(.hidden)) #rqTestReset{visibility:hidden}
 /* audit 19.10 GL-08: outside the reader the 32 px banner is a strip of its own — screens, the drawer and full-screen pages start below it */
 html.rq-test .screen:not(#reader),html.rq-test #drawer,html.rq-test #shopDetail,html.rq-test #achPage,html.rq-test .navcfg{top:calc(32px + env(safe-area-inset-top,0px))!important}
 html.rq-test .navcfg{padding-top:16px}
+/* 25.10 (Джессика: «Объясни» → «Открыть настройки» глючит): over the reader the banner is a 3 px stripe, so «Общие настройки» start at the top edge too — no strip of book above them */
+html.rq-test #settings.screen.over{top:0!important}
+#settings.screen.over{padding-top:10px;box-sizing:border-box} /* 10 px of page colour above «Назад» at the top edge */
 body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!important;font-size:0!important;overflow:hidden;background:var(--rq-test-strip)!important}</style>
 <div id="rqTestBanner" class="hidden" style="position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;gap:10px;height:32px;background:#e6503c;color:#fff;font:600 12px system-ui,sans-serif;pointer-events:none">ТЕСТ<button id="rqTestReset" type="button" style="pointer-events:auto;border:1px solid #fff;background:transparent;color:#fff;border-radius:6px;font:600 11px system-ui,sans-serif;padding:1px 8px">Сбросить тест</button></div>
 <script>

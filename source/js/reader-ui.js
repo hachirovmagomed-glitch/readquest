@@ -209,7 +209,67 @@ function updSelPop(){
   el('selpop').classList.toggle('hidden',off);
 }
 let selT=null;
-document.addEventListener('selectionchange',()=>{const g=window.getSelection();if(SQ&&g&&!g.isCollapsed)quoteClose();if(selT)clearTimeout(selT);selT=setTimeout(updSelPop,200);});
+document.addEventListener('selectionchange',()=>{const g=window.getSelection();if(SQ&&g&&!g.isCollapsed)quoteClose();if(selT)clearTimeout(selT);selT=setTimeout(updSelPop,200);selEdge();});
+/* 25.10 (Джессика, видео: «когда я хочу выделить текст следующей страницы, у меня начинаются казусы»): in the page modes the selection goes on
+   to the next page and keeps what is already selected. The moving end (focus) entering the next page shows that page; the end held at the very
+   end of the page (a handle dragged under the last line) turns after a pause; backwards the same at the start of the page. Only a drag turns:
+   a fresh selection (a long press on the last word) never does, and after a turn the end must leave the page edge before the next one.
+   The strip is one DOM, so the selection itself is never touched — only the page under it moves. */
+const SX={t:0,at:0,armed:true,key:null,moved:false,prev:null};
+/** non-space characters of #content from a point on, forwards (dir 1) or backwards (dir -1): cb(node, index, rect) → true stops */
+function selWalk(n,o,dir,cb){
+  const c=el('content'),w=document.createTreeWalker(c,NodeFilter.SHOW_TEXT),rg=document.createRange();
+  if(n.nodeType!==3){ /* a point between elements → the text node next to it */
+    const p=document.createRange();p.setStart(n,o);let x,t=null;w.currentNode=c;
+    while((x=w.nextNode())){if(p.comparePoint(x,0)>=0){if(dir>0)t=x;break;}if(dir<0)t=x;}
+    if(!t)return;n=t;o=dir>0?0:t.nodeValue.length;
+  }
+  w.currentNode=n;
+  for(let i=0;n&&i<3000;i++){const v=n.nodeValue;
+    for(let k=dir>0?o:o-1;dir>0?k<v.length:k>=0;k+=dir){if(/\s/.test(v[k]))continue;rg.setStart(n,k);rg.setEnd(n,k+1);const r=rg.getClientRects()[0];if(r&&cb(n,k,r))return;}
+    n=dir>0?w.nextNode():w.previousNode();if(n)o=dir>0?0:n.nodeValue.length;}
+}
+function selEdge(){
+  clearTimeout(SX.t);SX.t=0;
+  if(typeof R==='undefined'||!R||R.mode!=='text'||!R.book||rqScrollMode()||el('reader').classList.contains('hidden'))return;
+  const s=window.getSelection(),c=el('content');
+  if(!s||s.isCollapsed||!s.rangeCount||!c.contains(s.anchorNode)||!c.contains(s.focusNode)){SX.key=null;SX.prev=null;return;}
+  let fwd=true;try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);fwd=a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){}
+  const d=fwd?1:-1,v=el('viewer').getBoundingClientRect(),gap=R.step-v.width;
+  const pageOf=function(r){return Math.floor((r.left+r.width/2-v.left+gap/2)/R.step);};
+  const near=function(n,o,dir){let q=null;selWalk(n,o,dir,function(x,k,r){q=pageOf(r);return true;});return q;};
+  const inS=near(s.focusNode,s.focusOffset,-d); /* the page of the selected character at the moving end */
+  if(inS==null)return;
+  const key=s.anchorNode,ko=s.anchorOffset,fk=s.focusNode.nodeValue+'@'+s.focusOffset;
+  if(!SX.key||SX.key[0]!==key||SX.key[1]!==ko){SX.key=[key,ko,fk];SX.moved=false;SX.armed=true;SX.prev=inS===0?{n:s.focusNode,o:s.focusOffset,d:d}:null;return;} /* a new selection: not a drag */
+  if(SX.key[2]!==fk){SX.key[2]=fk;SX.moved=true;}
+  if(!SX.moved)return;
+  const turn=function(){const np=R.page+d;if(np<0||np>=R.pageCount)return;SX.at=Date.now();SX.armed=false;SX.prev=null;goPage(np,true);};
+  if(inS!==0){
+    if(inS===d&&SX.armed&&(!SX.prev||SX.prev.d===d)){if(Date.now()-SX.at>500)turn();else SX.t=setTimeout(selEdge,520);return;} /* dragged on into the next page */
+    /* anything else is Chrome's hit test under the last line of a column (it lands on another page's text, the selection jumped): the finger
+       is under the text, so the end goes to the edge of THIS page, on the side it was dragged towards */
+    const pd=SX.prev?SX.prev.d:d,from=SX.prev||{n:s.anchorNode,o:s.anchorOffset};let e=null;
+    selWalk(from.n,from.o,pd,function(x,k,r){if(pageOf(r)!==0)return true;e={n:x,o:pd>0?k+1:k};return false;});
+    e=e||from;try{s.extend(e.n,e.o);}catch(er){}
+    return;
+  }
+  SX.prev={n:s.focusNode,o:s.focusOffset,d:d};
+  const outS=near(s.focusNode,s.focusOffset,d);
+  if(!(outS==null||outS*d>=1)){SX.armed=true;return;} /* not at the very end (start) of the page */
+  if(SX.armed)SX.t=setTimeout(function(){SX.t=0;const g=window.getSelection();if(g&&!g.isCollapsed&&SX.armed)turn();},800);
+}
+/* Chrome reveals a selection end by scrolling even overflow:hidden boxes — the whole reader slid up and the page shifted (video 25.10).
+   In the reader nothing of ours scrolls but the scroll mode's #viewer and the panels, so these boxes go straight back. */
+document.addEventListener('scroll',function(e){
+  const t=e.target,rd=el('reader');if(!rd||rd.classList.contains('hidden'))return;
+  const a=document.activeElement;if(a&&a.matches&&a.matches('input,textarea,[contenteditable]'))return; /* the keyboard may lift a field into view */
+  const fix=function(x){if(x.scrollTop)x.scrollTop=0;if(x.scrollLeft)x.scrollLeft=0;};
+  if(t===document||t===document.documentElement||t===document.body)fix(document.scrollingElement||document.documentElement);
+  else if(t===rd)fix(rd);
+  else if(t===el('viewer')&&R.mode==='text'&&!rqScrollMode())fix(t);
+  else if(t===el('viewer')&&t.scrollLeft)t.scrollLeft=0;
+},true);
 /* 22.10 (Джессика, как в ReadEra: «можно нажимать на текст, который ты выделил, и с ним взаимодействовать»):
    a tap on a saved highlight opens the bar for that quote — colour recolours it, «Заметка» edits its note, copy / dictionary / «Объясни» take its text,
    «Удалить» removes it, «Все цитаты» opens the list. The quote is outlined while the bar is open; the next tap elsewhere only closes the bar. */

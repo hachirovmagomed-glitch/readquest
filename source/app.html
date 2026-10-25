@@ -655,6 +655,8 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #pgSlider::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:var(--rq-slider-track)}
 #pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
 #reader .rfoot{touch-action:none}
+/* 25.10 (Джессика, видео «выделение»): a selection dragged past the text never runs into the bars, the page number or the selection bar — only the book is selectable */
+#reader{-webkit-user-select:none;user-select:none}#reader :is(#content,.textLayer,input,textarea,[contenteditable]){-webkit-user-select:text;user-select:text}
 #pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #pgTip.hidden{display:none}
 #pgSafe{position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none}

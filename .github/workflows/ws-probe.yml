@@ -15,13 +15,13 @@ jobs:
       - run: pip install -q pillow
       - run: |
           cat > /tmp/p.py <<'PY'
-          import json,urllib.request,urllib.parse,time,io,os,sys
+          import json,urllib.request,urllib.parse,time,io,os,sys,re
           from PIL import Image
           UA={'User-Agent':'readquest-portraits/1.0 (github actions; public domain portraits)'}
           def get(u):
               for i in range(4):
                   try: return urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60).read()
-                  except Exception as e: print('retry',u[:90],e); time.sleep(4)
+                  except Exception as e: print('retry',u[:90],e); time.sleep(20*(i+1))
               raise SystemExit('failed '+u)
           def api(host,params):
               return json.loads(get('https://'+host+'/w/api.php?'+urllib.parse.urlencode(dict(params,format='json',formatversion=2))))
@@ -39,14 +39,15 @@ jobs:
               if 'imageinfo' not in p: print('NOFILE',k,f); continue
               ii=p['imageinfo'][0];em=ii.get('extmetadata',{})
               lic=em.get('LicenseShortName',{}).get('value','');art=em.get('Artist',{}).get('value','')
-              import re;art=re.sub('<[^>]+>','',art).strip()[:120]
+              art=re.sub('<[^>]+>','',art).strip()[:120]
               print('IMG',k,f,ii['width'],ii['height'],'|',lic,'|',art)
+              if not re.match(r'(?i)(public domain|pd|cc0)',lic): print('SKIP not PD',k); continue
               im=Image.open(io.BytesIO(get(ii['thumburl']))).convert('RGB')
               w,h=im.size;s=min(w,h);top=0 if h>w else 0;left=(w-s)//2
               im=im.crop((left,int((h-s)*0.12) if h>w else 0,left+s,(int((h-s)*0.12) if h>w else 0)+s)).resize((192,192),Image.LANCZOS)
               im.save(out+'/'+k+'.webp','WEBP',quality=78)
               cred[k]={'file':f,'license':lic,'artist':art,'url':'https://commons.wikimedia.org/wiki/'+urllib.parse.quote(f.replace(' ','_'))}
-              time.sleep(1)
+              time.sleep(6)
           json.dump(cred,open(out+'/credits.json','w'),ensure_ascii=False,indent=1)
           PY
           python3 /tmp/p.py
@@ -54,4 +55,4 @@ jobs:
           git config user.name "github-actions[bot]"; git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
           git add source/hero/authors && git commit -qm "Портреты авторов для «Приключений» (Wikimedia Commons, временный workflow)" && git push origin HEAD:claude/project-thread-up771x
         env:
-          OVR: '{}'
+          OVR: '{"homer":"File:Homer British Museum.jpg"}'

@@ -264,7 +264,7 @@ async function openBook(id){
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('Полный экран · тап по центру — показать панель');}
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
-  let body=b.text.split(/\n\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
+  let body=b.text.split(/\n\n+/).map(p=>p.charCodeAt(0)===0x2063?'<p class="rq-bitr" lang="ru">'+esc(p)+'</p>':'<p>'+esc(p)+'</p>').join(''); /* 25.10: translation under each paragraph (adv.js, «с переводом») */
   {const seen={};(S.hl[b.id]||[]).forEach(t=>{const k=esc(t),j=seen[t]=(seen[t]||0)+1,q=hlSame(b.id,t)[j-1];
     if(body.includes(hlPieces(t)[0]||'\u0000'))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;

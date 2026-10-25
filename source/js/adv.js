@@ -25,6 +25,11 @@ const ADV_SETS=[
   {id:'quest',t:'Приключения и фантастика',ic:'compass',pages:['Робинзон Крузо (Дефо; Шишмарёва)','Путешествия Гулливера (Свифт)','Айвенго (Скотт)','Последний из могикан (Купер)','Три мушкетёра (Дюма)','Граф Монте-Кристо (Дюма)','Дети капитана Гранта (Верн; Бекетова)','Двадцать тысяч лье под водой (Верн)','Остров сокровищ (Стивенсон)','Машина времени (Уэллс)','Война миров (Уэллс)','Затерянный мир (Дойль; 1912)','Аэлита (Толстой)','Человек-амфибия (Беляев)']},
   {id:'tales',t:'Сказки',ic:'castle',pages:['Сказка о царе Салтане (Пушкин)','Сказка о рыбаке и рыбке (Пушкин)','Сказка о мёртвой царевне и о семи богатырях (Пушкин)','Конёк-горбунок (Ершов)','Стрекоза и Муравей (Крылов)','Чёрная курица, или Подземные жители (Погорельский)','Городок в табакерке (Одоевский)','Аленький цветочек (Аксаков)','Огниво (Андерсен; Ганзен)','Русалочка (Андерсен; Ганзен)','Гадкий утёнок (Андерсен; Ганзен)','Снежная королева (Андерсен; Ганзен)']},
   {id:'short',t:'Короткое на вечер',ic:'clock',pages:['Станционный смотритель (Пушкин)','Пиковая дама (Пушкин)','Шинель (Гоголь)','Нос (Гоголь)','Муму (Тургенев)','Бежин луг (Тургенев)','Ася (Тургенев)','Белые ночи (Достоевский)','После бала (Толстой)','Кавказский пленник (Толстой)','Каштанка (Чехов)','Хамелеон (Чехов)','Толстый и тонкий (Чехов)','Человек в футляре (Чехов)','Дама с собачкой (Чехов)']},
+  /* 25.10 (Джессика, пункт 3): titles checked live on ru.wikisource 25.10, PD or free; a page of editions opens as a list */
+  {id:'silver',t:'Серебряный век',ic:'moon',pages:['Двенадцать (Блок)','Скифы (Блок)','Облако в штанах (Маяковский)','Флейта-позвоночник (Маяковский)','Silentium (Мандельштам)','Бессонница. Гомер. Тугие паруса (Мандельштам)','Мне нравится, что Вы больны не мной (Цветаева)','Не жалею, не зову, не плачу (Есенин)','Бобэоби пелись губы (Хлебников)','Хочу (Бальмонт)']},
+  {id:'myths',t:'Мифы и легенды',ic:'scroll-text',pages:['Гильгамеш (Гумилёв)','Слово о полку Игореве (Жуковский)','Илья Муромец и Соловей-разбойник','Тристан и Изольда (Бедье; Веселовский)','Песнь о Гайавате (Лонгфелло; Бунин)','Рустем и Зораб (Жуковский)','Наль и Дамаянти (Жуковский)','Старшая Эдда','Песнь о Роланде']},
+  {id:'detect',t:'Детективы',ic:'footprints',pages:['Пёстрая лента (Дойль; 1896)','Этюд в багровых тонах (Дойль)','Убийство на улице Морг (По; Бальмонт)','Золотой жук (По; Бальмонт)','Похищенное письмо (По)','Шведская спичка (Чехов)','Драма на охоте (Чехов)']},
+  {id:'scifi',t:'Русская фантастика',ic:'sparkles',pages:['Гиперболоид инженера Гарина (Толстой)','Властелин мира (Беляев)','Борьба в эфире (Беляев)','Остров погибших кораблей (Беляев)','Голова профессора Доуэля (Беляев)','Красная звезда (Богданов)','4338-й год (Одоевский)','Республика Южного Креста (Брюсов)','Жидкое солнце (Куприн)','На Луне (Циолковский)','Вне Земли (Циолковский)']},
   {id:'gut',t:'Популярное на Гутенберге',ic:'flame',src:'gutenberg'},
   {id:'se',t:'Standard Ebooks: по-английски',ic:'languages',src:'se'},
   {id:'ia',t:'Старые издания из Интернет-архива',ic:'archive',src:'ia',sub:'сканы книг до 1930 года'}];
@@ -81,7 +86,7 @@ function advPreview(t){t=String(t).replace(/\s+/g,' ').trim();if(t.length<=420)r
 /* ---------- Викитека ---------- */
 /* «Гамлет (Шекспир; Кронеберг)» → title «Гамлет», author «Шекспир», translator «Кронеберг» */
 function advWsName(page){const root=String(page).split('/')[0],m=root.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
-  if(!m)return {t:root,a:'',tr:''};const p=m[2].split(';').map(function(s){return s.trim();});return {t:m[1],a:p[0]||'',tr:p[1]||''};}
+  if(!m)return {t:root,a:'',tr:''};const p=m[2].split(';').map(function(s){return s.trim();});return {t:m[1],a:p[0]||'',tr:p[1]&&!/^\d{4}$/.test(p[1])?p[1]:''};} /* «Пёстрая лента (Дойль; 1896)»: a year of the edition, not a translator */
 /* categories come as {title:'Категория:PD-old-70'} from action=query and as {category:'PD-old-70'} from action=parse */
 function advWords(q){return String(q||'').trim().split(/\s+/).filter(Boolean).length;}
 /* kind and size for the filters: one batch request for the found pages (and the chapter the search hit), arch.md 19.10 — nothing stored */
@@ -221,7 +226,7 @@ const ADV_SRC={
       const r=d.response||{},out=[];
       (r.docs||[]).forEach(function(x){if(!x.identifier||!x.title)return;
         const y=advIaYear(x);
-        out.push({sid:'ia:'+x.identifier,ia:x.identifier,t:String(x.title).trim(),a:advIaAuthor(x.creator),lang:advIaLang(x.language),y:y||undefined,cover:ADV_IA+'/services/img/'+encodeURIComponent(x.identifier)});});
+        out.push({sid:'ia:'+x.identifier,ia:x.identifier,t:advModernIf(String(x.title).trim()),old:advHasOld(x.title)||undefined,a:advIaAuthor(x.creator),lang:advIaLang(x.language),y:y||undefined,cover:ADV_IA+'/services/img/'+encodeURIComponent(x.identifier)});});
       return {items:out,more:page*30<(r.numFound||0)?page+1:null};},
     async info(it){
       const ref=advIaRef(it);it.ia=ref.id;if(ref.f)it.f=ref.f; /* a card from «Хочу прочитать» keeps only the sid */
@@ -257,6 +262,38 @@ function advSrcOf(it){return ADV_SRC[String(it&&it.sid||'').split(':')[0]];}
 function advLangName(c){const m={ru:'русский',en:'английский',de:'немецкий',fr:'французский',es:'испанский',it:'итальянский',fi:'финский',nl:'нидерландский',pt:'португальский',la:'латынь',el:'греческий',zh:'китайский'};return m[c]||c||'не указан';}
 function advGutAuthor(s){s=String(s||'').replace(/,?\s*\d{3,4}\??-\d{0,4}\??$/,'').trim();const p=s.split(/,\s*/).filter(function(x){return !/^(graf|count|sir|baron)$/i.test(x);});return p.length>=2?(p[1]+' '+p[0]):s;} /* «Austen, Jane» → «Jane Austen» */
 
+/* ---------- старая орфография (Джессика 25.10, пункт 2) ----------
+   Scans of the archive and some Wikisource texts are in the pre-1918 spelling («Война и миръ»). On download the text is brought to the modern one:
+   ѣ і ѳ ѵ, the hard sign at the end of a word, «-аго/-яго», «-ыя», «ея/онѣ/однѣ», «без-/из-/раз-…» before a voiceless consonant. A rule set, not a
+   dictionary: rare words can stay old (the reader sees an old form, never a broken one) */
+const ADV_OLD_RE=/[ѣѢіІѳѲѵѴ]|[бвгджзклмнпрстфхцчшщБВГДЖЗКЛМНПРСТФХЦЧШЩ][ъЪ](?![а-яёА-ЯЁ])/g;
+function advOldSpell(t){const s=String(t||'').slice(0,200000),n=(s.match(ADV_OLD_RE)||[]).length,w=(s.match(/[а-яёѣі]+/gi)||[]).length;return n>=3&&n>=w*0.02;}
+function advHasOld(s){return new RegExp(ADV_OLD_RE.source).test(String(s||''));}
+function advModernIf(s){return advHasOld(s)?advModern(s):s;}
+/* the text and its table of contents together: chapter offsets move with the shorter words, so each chapter is converted on its own */
+function advModernBook(r){
+  const toc=(r.toc||[]).filter(function(x){return typeof x.off==='number';}).sort(function(a,b){return a.off-b.off;}),cuts=[0].concat(toc.map(function(x){return x.off;}),[r.text.length]);
+  let out='';const at=[];
+  for(let i=0;i+1<cuts.length;i++){at.push(out.length);out+=advModern(r.text.slice(cuts[i],cuts[i+1]));}
+  toc.forEach(function(x,i){x.off=at[i+1];x.t=advModern(x.t||'');});
+  r.text=out;r.title=advModernIf(r.title||'');r.author=advModernIf(r.author||'');r.modern=true;
+}
+const ADV_OLD_KEEP={благо:1,наго:1,драго:1,мого:1};
+function advModern(t){
+  const C='бвгджзклмнпрстфхцчшщ',up=function(src,dst){return src===src.toUpperCase()&&src!==src.toLowerCase()?dst.toUpperCase():src[0]===src[0].toUpperCase()?dst[0].toUpperCase()+dst.slice(1):dst;};
+  t=String(t).replace(/ѣ/g,'е').replace(/Ѣ/g,'Е').replace(/і/g,'и').replace(/І/g,'И').replace(/ѳ/g,'ф').replace(/Ѳ/g,'Ф').replace(/ѵ/g,'и').replace(/Ѵ/g,'И');
+  t=t.replace(new RegExp('(['+C+C.toUpperCase()+'])[ъЪ](?![а-яёА-ЯЁ])','g'),'$1');
+  return t.replace(/[а-яёА-ЯЁ]+/g,function(w){
+    const l=w.toLowerCase();let r=l;
+    if(l==='ея')r='её';else if(l==='нея')r='неё';else if(l==='оне')r='они';
+    else if(/^одне(х|м|ми)?$/.test(l))r=l.replace(/^одне/,'одни');
+    else{
+      if(l.length>=5&&!ADV_OLD_KEEP[l]){r=r.replace(/аго$/,'ого').replace(/([бвгджзклмнпрстфхцчшщ])яго$/,'$1его');}
+      if(l.length>=5)r=r.replace(/([^и])ыя$/,'$1ые');
+      r=r.replace(/^(без|из|раз|роз|воз|чрез|через)(?=[кпстфхцчшщ])/,function(p){return p.slice(0,-1)+'с';});
+    }
+    return r===l?w:up(w,r);});
+}
 /* ---------- Internet Archive ---------- */
 const ADV_IA='https://archive.org';
 const ADV_IA_LANG={ru:'rus OR Russian',en:'eng OR English',de:'ger OR German',fr:'fre OR French'};
@@ -350,6 +387,25 @@ async function advWsLinks(page){
     seen[t]=1;out.push(Object.assign(advWsItem(t),{ed:t.indexOf('/')>0?t.slice(t.indexOf('/')+1):''}));});
   return out;
 }
+/* ---------- каталог без интернета (Джессика 25.10, пункт 7) ----------
+   The last found lists, author pages and opened cards stay in IDB (advcat, arch.md 25.10): without the network they are shown with
+   «Нет сети: показано сохранённое». Only the first page of a list; downloads still need the network */
+const ADV_CAT_KEY='advcat',ADV_CAT_CAP={lists:30,cards:60};
+let advCat=null;
+async function advCatLoad(){
+  if(advCat)return advCat;
+  try{const v=await __rq.idb.get(ADV_CAT_KEY);if(v&&v.v===1&&Array.isArray(v.lists)&&Array.isArray(v.cards))advCat=v;}catch(e){}
+  return advCat||(advCat={v:1,lists:[],cards:[]});}
+async function advCatPut(kind,k,val){
+  const c=await advCatLoad(),a=c[kind],i=a.findIndex(function(x){return x.k===k;});
+  if(i>=0)a.splice(i,1);
+  a.unshift(Object.assign({k:k,ts:Date.now()},val));if(a.length>ADV_CAT_CAP[kind])a.length=ADV_CAT_CAP[kind];
+  try{await __rq.idb.put(ADV_CAT_KEY,c);}catch(e){}}
+async function advCatGet(kind,k){const c=await advCatLoad();return c[kind].find(function(x){return x.k===k;})||null;}
+function advCatKey(q){return ADV.src+'|'+(ADV.lang||'')+'|'+q;}
+function advCatDate(ts){try{return new Date(ts).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});}catch(e){return '';}}
+function advOfflNote(ts){return 'Нет сети: показано сохранённое '+advCatDate(ts);}
+
 /* a long book is hundreds of pages: what is fetched is kept in IDB (advdl:<srcId>, arch.md 19.10), a broken download goes on from there */
 function advDlKey(sid){return 'advdl:'+sid;}
 async function advDlLoad(sid){try{const v=await __rq.idb.get(advDlKey(sid));return v&&v.v===1&&v.done&&typeof v.done==='object'?v:null;}catch(e){return null;}}
@@ -421,13 +477,17 @@ async function advAuthor(name){
   try{
     const kn=ADV_AUTHORS.find(function(x){return x[0]===name&&x[2];});
     let found=null;
-    if(kn){try{const a0=await advAuthorLoad('Автор:'+kn[2]);if(seq!==ADV.seq)return;ADV.author={name:a0.name,years:a0.years,pick:null};ADV.items=a0.items;ADV.busy=false;advRenderList();return;}catch(e){if(seq!==ADV.seq)return;}}
+    if(kn){try{const a0=await advAuthorLoad('Автор:'+kn[2]);if(seq!==ADV.seq)return;ADV.author={name:a0.name,years:a0.years,pick:null};ADV.items=a0.items;ADV.busy=false;
+      if(a0.items.length)advCatPut('lists','author|'+name,{author:ADV.author,items:a0.items});advRenderList();return;}catch(e){if(seq!==ADV.seq)return;}}
     found=await advAuthorFind(name);if(seq!==ADV.seq)return;
     if(found.length>1){ADV.author.pick=found.slice(0,8);ADV.busy=false;advRenderList();return;}
     if(!found.length){ADV.busy=false;ADV.err='На Викитеке нет страницы автора «'+name+'». Попробуйте поиск';advRenderList();return;}
     const a=await advAuthorLoad(found[0]);if(seq!==ADV.seq)return;
     ADV.author={name:a.name,years:a.years,pick:null};ADV.items=a.items;
-  }catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv author',e);ADV.err=advNetErr(e);}
+    if(a.items.length)advCatPut('lists','author|'+name,{author:ADV.author,items:a.items});
+  }catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv author',e);
+    const c=await advCatGet('lists','author|'+name);if(seq!==ADV.seq)return;
+    if(c){ADV.author=c.author;ADV.items=c.items;ADV.offl={seq:seq,ts:c.ts};}else ADV.err=advNetErr(e);}
   ADV.busy=false;advRenderList();
 }
 
@@ -474,6 +534,7 @@ function advRenderList(){
   else{if(ADV.alt&&ADV.items.length)h+='<div class="advalt">Показано по запросу «'+esc(ADV.alt)+'»</div>';
     const aq=(ADV.alt||ADV.q).trim().toLowerCase(),k=aq&&!advByName()&&!ADV.busy&&ADV_AUTHORS.find(function(x){return x[0].toLowerCase()===aq||x[0].split(' ').pop().toLowerCase()===aq;});
     if(k)h+='<button type="button" class="advrow advauthrow" data-author="'+esc(k[0])+'">'+rqIcon('user-round',22)+'<span class="advmeta"><b>'+esc(k[0])+'</b><span class="advauth">Все книги автора на Викитеке</span></span>'+rqIcon('chevron-right',18)+'</button>';}
+  if(ADV.offl&&ADV.offl.seq===ADV.seq&&ADV.items.length)h+='<div class="advalt advoffl">'+rqIcon('info',14)+' '+esc(advOfflNote(ADV.offl.ts))+'</div>';
   if(!ADV.items.length){
     if(ADV.busy)h+='<div class="advempty">Ищу в библиотеке…</div>';
     else if(au&&au.pick)h+='<div class="advalt">На Викитеке несколько авторов с таким именем:</div>'+au.pick.map(function(t){return '<button type="button" class="advrow advauthrow" data-author="'+esc(t)+'">'+rqIcon('user-round',22)+'<span class="advmeta"><b>'+esc(t.replace(/^Автор:/,''))+'</b></span>'+rqIcon('chevron-right',18)+'</button>';}).join('');
@@ -503,6 +564,8 @@ function advRenderList(){
   box.querySelectorAll('#advList > .advrow').forEach(function(b){b.onclick=function(){if(ADV.q.trim()&&!ADV.set)advRecentAdd(ADV.alt||ADV.q);advOpen(ADV.items[+b.dataset.i]);};});
   box.querySelectorAll('.advhome [data-w]').forEach(function(b){b.onclick=function(){advOpen(advWantGet()[+b.dataset.w]);};});
   const dy=el('advDay');if(dy)dy.onclick=function(){advOpen(advDayItem());};
+  box.querySelectorAll('.advrec').forEach(function(b){b.onclick=function(){const r=advRecs()[+b.dataset.r];if(r)advOpen(r.it);};});
+  box.querySelectorAll('.advqget').forEach(function(b){b.onclick=function(){advQuestClaim(b.dataset.q);};});
   const wa=el('advWantAll');if(wa)wa.onclick=function(){advSet('want');};
   const rc=el('advRecentClear');if(rc)rc.onclick=advRecentClear;
   box.querySelectorAll('.advrecent .fchip').forEach(function(b){b.onclick=function(){ADV.q=b.dataset.q;el('advQ').value=ADV.q;advSugHide();advSearch();};});
@@ -521,11 +584,63 @@ function advSetLine(x){const n=advSetProg(x),m=x.pages.length;return n===m?'Пр
 function advWorks(n){const k=n%10,c=n%100;return k===1&&c!==11?'текст':k>=2&&k<=4&&(c<12||c>14)?'текста':'текстов';}
 function advBooks(n){const k=n%10,c=n%100;return k===1&&c!==11?'книга':k>=2&&k<=4&&(c<12||c>14)?'книги':'книг';}
 /* a collection is a fixed list: no search request, the cards ask the library when opened */
+/* ---------- испытания месяца (Джессика 25.10, пункт 5) ----------
+   Three challenges a month from a fixed pool, the same for everyone in that month. Progress is counted from books of «Приключений» finished this
+   month (S.finishDates, local days); the reward is taken by a button and remembered in the existing S.claimed as 'advq-<id>:<YYYY-MM>' (arch.md 25.10).
+   Coins are paid in MVP too: Джессика chose «с монетами и значком» */
+function advFinBooks(m){const fin=S.finished||[],fd=S.finishDates||{};
+  return (S.userBooks||[]).filter(function(b){return b&&b.srcId&&fin.indexOf(b.id)>=0&&(!m||String(fd[b.id]||'').slice(0,7)===m);});}
+function advSetOf(b){const sid=String(b&&b.srcId||'');if(sid.indexOf('wikisource:')!==0)return [];const pg=sid.slice(11);return ADV_SETS.filter(function(x){return x.pages&&x.pages.indexOf(pg)>=0;}).map(function(x){return x.id;});}
+function advSurname(a){return String(a||'').replace(/[(),;].*$/,'').trim().split(/\s+/).pop().toLowerCase();}
+const ADV_QUESTS=[
+  {id:'lib2',t:'Дочитать 2 книги из «Приключений»',n:2,gold:60,f:function(l){return l.length;}},
+  {id:'set1',t:'Дочитать книгу из любой подборки',n:1,gold:40,f:function(l){return l.filter(function(b){return advSetOf(b).length;}).length;}},
+  {id:'short3',t:'Дочитать 3 книги из «Короткого на вечер» или «Сказок»',n:3,gold:80,f:function(l){return l.filter(function(b){const s=advSetOf(b);return s.indexOf('short')>=0||s.indexOf('tales')>=0;}).length;}},
+  {id:'abroad',t:'Дочитать книгу не из Викитеки: Гутенберг, Standard Ebooks или Интернет-архив',n:1,gold:80,f:function(l){return l.filter(function(b){return b.srcId.indexOf('wikisource:')!==0;}).length;}},
+  {id:'antiq',t:'Дочитать книгу из «Античности»',n:1,gold:60,f:function(l){return l.filter(function(b){return advSetOf(b).indexOf('antiq')>=0;}).length;}},
+  {id:'newauth',t:'Дочитать книги двух новых для вас авторов',n:2,gold:80,f:function(l,m){
+    const fd=S.finishDates||{},old={};(S.userBooks||[]).forEach(function(b){const d=String(fd[b&&b.id]||'');if(d&&d.slice(0,7)<m&&(S.finished||[]).indexOf(b.id)>=0)old[advSurname(b.author)]=1;});
+    const nw={};l.forEach(function(b){const a=advSurname(b.author);if(a&&!old[a])nw[a]=1;});return Object.keys(nw).length;}}];
+function advMonth(){return today().slice(0,7);}
+function advQuestsNow(m){m=m||advMonth();const k=(+m.slice(0,4))*12+(+m.slice(5,7)),P=ADV_QUESTS.length;return [0,2,4].map(function(i){return ADV_QUESTS[(k+i)%P];});}
+function advQuestKey(q,m){return 'advq-'+q.id+':'+(m||advMonth());}
+function advQuestProg(q,m){m=m||advMonth();return Math.min(q.n,q.f(advFinBooks(m),m));}
+function advQuestsClaimed(){const c=S.claimed||{};return Object.keys(c).filter(function(k){return c[k]&&/^advq-[a-z0-9]+:\d{4}-\d{2}$/.test(k);}).length;}
+function advQuestClaim(id){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне','info');return;}
+  const q=advQuestsNow().find(function(x){return x.id===id;});if(!q)return;const key=advQuestKey(q);
+  S.claimed=S.claimed||{};if(S.claimed[key]||advQuestProg(q)<q.n)return;
+  S.claimed[key]=true;S.gold=(S.gold||0)+q.gold;S.goldAllTime=(S.goldAllTime||0)+q.gold;save();
+  try{confetti();}catch(e){}flashMsg('Испытание выполнено: +'+q.gold+' монет','info');
+  try{if(typeof renderLibrary==='function')renderLibrary();}catch(e){}advRenderList();}
+function advQuestsHtml(){const m=advMonth(),c=S.claimed||{};
+  return '<div class="bk-h">Испытания месяца</div><div class="advquests">'+advQuestsNow(m).map(function(q){const n=advQuestProg(q,m),got=!!c[advQuestKey(q,m)];
+    return '<div class="advq'+(got?' done':'')+'"><span class="advmeta"><b>'+esc(q.t)+'</b>'+advBar(got?q.n:n,q.n)+'</span>'+
+      (got?'<span class="chip advqok">'+rqIcon('check',14)+' Получено</span>':n>=q.n?'<button type="button" class="buy advqget" data-q="'+q.id+'">Забрать +'+q.gold+' монет</button>':'<span class="chip">'+n+' из '+q.n+'</span>')+'</div>';}).join('')+'</div>';}
+
+/* ---------- «Вам может понравиться» (Джессика 25.10, пункт 4) ----------
+   From the reader's own shelf, without the network: books of the collections by authors they read (any book on the shelf, imported ones too),
+   then the rest of a collection they started. Nothing stored */
+function advRecs(){
+  const shelf=S.userBooks||[],auth={},sets={};
+  shelf.forEach(function(b){if(!b)return;const a=advSurname(bookAuthor?bookAuthor(b):b.author);if(a&&a.length>2)auth[a]=b.author;advSetOf(b).forEach(function(id){sets[id]=1;});});
+  const out=[],seen={};
+  ADV_SETS.forEach(function(x){(x.pages||[]).forEach(function(pg){const it=advWsItem(pg);if(seen[it.sid]||advOnShelf(it.sid))return;seen[it.sid]=1;
+    const a=advSurname(it.a);let sc=0,why='';
+    if(a&&auth[a]){sc=2;why='Вы читали: '+it.a;}else if(sets[x.id]){sc=1;why='Из подборки «'+x.t+'»';}
+    if(sc)out.push({it:it,sc:sc,why:why});});});
+  const d=+today().replace(/-/g,'');
+  out.sort(function(p,q){return q.sc-p.sc||((p.it.sid.length*31+d)%97)-((q.it.sid.length*31+d)%97);});
+  return out.slice(0,3);}
+function advRecsHtml(){const r=advRecs();if(!r.length)return '';
+  return '<div class="bk-h">Вам может понравиться</div>'+r.map(function(x,i){
+    return '<button type="button" class="advrow advrec" data-r="'+i+'"><span class="cover">'+advCover(x.it)+'</span><span class="advmeta"><b>'+esc(x.it.t)+'</b><span class="advauth">'+esc(x.it.a||'')+(x.it.tr?' · пер. '+esc(x.it.tr):'')+'</span><span class="advauth advwhy">'+esc(x.why)+'</span></span>'+rqIcon('chevron-right',18)+'</button>';}).join('');}
+
 /* first screen above the collections: book of the day, «Хочу прочитать» (three, then «all»), recent searches */
 function advHome(){
   const d=advDayItem(),own=advOnShelf(d.sid),w=advWantGet(),rc=advRecentGet();
   let h='<div class="advhome"><div class="bk-h">Книга дня</div><button type="button" class="advrow advday" id="advDay"><span class="cover">'+advCover(d)+'</span><span class="advmeta"><b>'+esc(d.t)+'</b><span class="advauth">'+esc(d.a)+(d.tr?' · пер. '+esc(d.tr):'')+'</span>'+
-    (own?'<span class="advown">'+rqIcon('check',14)+' На полке</span>':'<span class="advauth">Короткая классика на сегодня</span>')+'</span>'+rqIcon('chevron-right',18)+'</button>';
+    (own?'<span class="advown">'+rqIcon('check',14)+' На полке</span>':'<span class="advauth">Короткая классика на сегодня</span>')+'</span>'+rqIcon('chevron-right',18)+'</button>'+advRecsHtml()+advQuestsHtml();
   if(w.length){h+='<div class="bk-h">Хочу прочитать</div>'+w.slice(0,3).map(function(it,i){
       return '<button type="button" class="advrow" data-w="'+i+'"><span class="cover">'+advCover(it)+'</span><span class="advmeta"><b>'+esc(it.t+(it.ed?' · '+it.ed:''))+'</b><span class="advauth">'+esc(it.a||'')+'</span></span>'+rqIcon('chevron-right',18)+'</button>';}).join('');
     if(w.length>3)h+='<button type="button" class="advback" id="advWantAll">Все '+w.length+' '+advBooks(w.length)+' '+rqIcon('chevron-right',16)+'</button>';}
@@ -551,8 +666,11 @@ async function advSearch(more){
     /* nothing found: the query was typed with the other layout, or in Cyrillic for an English catalogue */
     const alt=more?'':!advLat()?(advIsLayout(q)?advLayout(q):''):(/[а-яё]/i.test(q)?advLatin(q):'');
     if(!r.items.length&&alt&&alt!==q){r=await src.search(alt,null);if(seq!==ADV.seq)return;ADV.alt=alt;}
-    ADV.items=more?ADV.items.concat(r.items.filter(function(x){return !ADV.items.some(function(y){return y.sid===x.sid;});})):r.items;ADV.more=r.more;}
-  catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv search',e);ADV.err=advNetErr(e);}
+    ADV.items=more?ADV.items.concat(r.items.filter(function(x){return !ADV.items.some(function(y){return y.sid===x.sid;});})):r.items;ADV.more=r.more;
+    if(!more&&r.items.length)advCatPut('lists',advCatKey(q),{items:r.items,alt:ADV.alt||''});}
+  catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv search',e);
+    const c=more?null:await advCatGet('lists',advCatKey(q));if(seq!==ADV.seq)return;
+    if(c){ADV.items=c.items;ADV.alt=c.alt||'';ADV.more=null;ADV.offl={seq:seq,ts:c.ts};}else ADV.err=advNetErr(e);}
   ADV.busy=false;advRenderList();
 }
 let advT=0;
@@ -587,11 +705,12 @@ async function advOpen(it){
   if(!it)return;advCur={it:it,inf:null};
   const src=ADV_SRC[it.sid.split(':')[0]];
   advSheet(it,src,null);el('bookSheet').classList.remove('hidden');
-  let inf;try{inf=await src.info(it);}catch(e){console.warn('[rq] adv info',e);inf={err:advNetErr(e)};}
+  let inf;try{inf=await src.info(it);if(inf&&!inf.err&&!inf.missing)advCatPut('cards',it.sid,{inf:inf});}
+  catch(e){console.warn('[rq] adv info',e);const c=await advCatGet('cards',it.sid);inf=c?Object.assign({},c.inf,{offl:c.ts}):{err:advNetErr(e)};}
   if(!inf.err&&!inf.list&&it.sid.indexOf('wikisource:')===0){const st=await advDlLoad(it.sid);if(st)inf.partial=advDlPct(st,it.page);}
   if(!advCur||advCur.it!==it)return;advCur.inf=inf;
   if(!el('bookSheet').classList.contains('hidden'))advSheet(it,src,inf);
-  if(inf.err||inf.missing||inf.list)return;
+  if(inf.err||inf.missing||inf.list||inf.offl)return;
   const sim=await advSimilar(it);
   if(advCur&&advCur.it===it&&sim.length){advCur.sim=sim;if(!el('bookSheet').classList.contains('hidden'))advSheet(it,src,advCur.inf);}
 }
@@ -606,6 +725,11 @@ function advSheet(it,src,inf){
     '<a class="cta" href="'+esc(inf.epub)+'" target="_blank" rel="noopener">'+rqIcon('download',18)+' Скачать файл'+(inf.size?' · '+advSize(inf.size):'')+'</a>';
   else if(src.canGet(inf)&&navigator.onLine===false)act='<button type="button" class="cta" id="advGet" disabled>'+rqIcon('download',18)+' Нет сети — скачать можно позже</button>'; /* audit 19.10 ADV-02 */
   else if(src.canGet(inf))act='<button type="button" class="cta" id="advGet" onclick="advGet()">'+rqIcon('download',18)+(inf.partial!==undefined?' Продолжить скачивание · '+inf.partial+' %':' Скачать на телефон и читать')+'</button>';
+  if(inf&&inf.offl)act='<div class="bk-note advoffl">'+rqIcon('info',14)+' '+esc(advOfflNote(inf.offl))+'</div>'+act;
+  if(inf&&!inf.err&&!inf.missing&&!inf.nocors&&src.canGet(inf)&&advBiLang(it,inf)){const bo=advOnShelf(advBiSid(it.sid));
+    if(bo)act+='<button type="button" class="buy advwant" onclick="openBook(advOnShelf(advBiSid(advCur.it.sid)).id)">'+rqIcon('languages',18)+' Читать с переводом</button>';
+    else if(navigator.onLine!==false)act+='<button type="button" class="buy advwant" id="advGetBi" onclick="advGetBi()">'+rqIcon('languages',18)+' Скачать с переводом по абзацам</button>'+
+      '<div class="bk-note advbinote">Под каждым абзацем будет перевод на русский. Переводит сам телефон, без интернета, после скачивания пакета языка. В длинной книге переводятся первые '+(ADV_BI_MAX/1000)+' тысяч слов, дальше остаётся оригинал.</div>';}
   if(inf&&!inf.err&&!inf.missing){const ws=it.sid.indexOf('wikisource:')===0,ra=!ws?advRuAuthor(inf.author||it.a):(it.a||'');
     if(ra)act+='<button type="button" class="buy advwant" data-author="'+esc(ra)+'" onclick="advAuthor(this.dataset.author)">'+rqIcon('user-round',18)+(!ws?' Этот автор по-русски на Викитеке':' Все книги автора')+'</button>';}
   if(!own&&inf&&!inf.err&&!inf.missing)act+='<button type="button" class="buy advwant'+(advWantHas(it.sid)?' on':'')+'" id="advWant" onclick="advWantToggle()">'+rqIcon(advWantHas(it.sid)?'check':'bookmark',18)+(advWantHas(it.sid)?' В списке «Хочу прочитать»':' Хочу прочитать')+'</button>';
@@ -614,7 +738,7 @@ function advSheet(it,src,inf){
     (inf&&inf.summary?'<div class="bk-note advsum" lang="en">'+esc(inf.summary)+'</div>':'')+
     (rows.length?'<div class="bk-h">О книге</div><div class="bk-list">'+rows.map(function(r){return '<div class="bk-row"><span class="bk-k">'+esc(r[0])+'</span><span class="bk-v">'+esc(r[1])+'</span></div>';}).join('')+'</div>':'')+
     (inf&&inf.preview?'<div class="bk-h">Начало</div><div class="bk-note advpre">'+esc(inf.preview)+'</div>':'')+
-    (inf&&!inf.err&&!inf.missing&&!own&&!inf.nocors?'<div class="bk-note">'+esc(src.note(inf))+'</div>':'')+act+advSimHtml(it);
+    (inf&&!inf.err&&!inf.missing&&!own&&!inf.nocors?'<div class="bk-note">'+esc(src.note(inf))+(it.old?' Книга в старой орфографии: при скачивании «ѣ», «і» и «ъ» на конце слов заменятся на современное письмо.':'')+'</div>':'')+act+advSimHtml(it);
   el('bookSheetBody').querySelectorAll('.advsim .advrow').forEach(function(b){b.onclick=function(){advOpen(advCur.sim[+b.dataset.s]);};});
 }
 function advSimHtml(it){const l=advCur&&advCur.it===it&&advCur.sim||[];if(!l.length)return '';
@@ -633,6 +757,7 @@ function advSize(b){return b<1048576?Math.max(1,Math.round(b/1024))+' КБ':(b/1
 function advRead(){const own=advCur&&advOnShelf(advCur.it.sid);if(!own)return;el('bookSheet').classList.add('hidden');openBook(own.id);}
 /* a fetched book onto the shelf: one rqAddBook (text to IDB, card, save()); off the «Хочу прочитать» list in the same save() */
 async function advAddBook(it,src,r){
+  if(advOldSpell(r.text))advModernBook(r);
   const b={id:newBookId(),title:r.title,author:r.author,genre:src.t,stat:'Воображение',cover:'',text:r.text,toc:r.toc,lang:r.lang||undefined,srcId:it.sid,
     fname:it.sid.replace(/[^\p{L}\p{N}]+/gu,'-').slice(0,80)+'.txt',size:r.text.length};
   const want=advWantGet(),wi=want.findIndex(function(x){return x.sid===it.sid;});if(wi>=0){want.splice(wi,1);S.advWant=want;}
@@ -687,5 +812,56 @@ async function advGet(){
     try{advRenderList();}catch(e){}
     openBook(b.id);
   }finally{ADV.dl=false;}
+}
+/* ---------- оригинал и перевод по абзацам (Джессика 25.10, пункт 6) ----------
+   A separate book «<title> · с переводом» (srcId '<sid>#bi', arch.md 25.10): each paragraph, then its Russian translation by the
+   phone's own engine (js/translate.js). A translated paragraph starts with U+2063, the reader paints it muted. Up to ADV_BI_MAX words */
+const ADV_BI_MAX=25000,ADV_BI_MARK='\u2063';
+function advBiLang(it,inf){const l=String(inf&&inf.lang||it.lang||'').slice(0,2).toLowerCase();
+  return typeof TR_LANGS==='object'&&typeof trState==='function'&&TR_LANGS[l]&&l!=='ru'?l:'';}
+function advBiSid(sid){return sid+'#bi';}
+async function advBiPara(t,from,p){
+  return String((await Promise.race([t.translate({from:from,to:'ru',text:p,html:false}),
+    new Promise(function(a,b){setTimeout(function(){b(new Error('движок перевода не ответил за минуту'));},60000);})])).target.text||'').trim();}
+async function advBilingual(r,from,onp){
+  const t=await trEngine();
+  const toc=(r.toc||[]).filter(function(x){return typeof x.off==='number';}).sort(function(a,b){return a.off-b.off;}),cuts=[0].concat(toc.map(function(x){return x.off;}),[r.text.length]);
+  const total=Math.min(ADV_BI_MAX,(r.text.match(/\S+/g)||[]).length)||1;
+  let out='',words=0,last=-1;const at=[];
+  for(let i=0;i+1<cuts.length;i++){at.push(out.length);
+    const ps=r.text.slice(cuts[i],cuts[i+1]).split(/(\n\n+)/);
+    for(let j=0;j<ps.length;j++){const p=ps[j];out+=p;
+      if(j%2||words>=ADV_BI_MAX||!/\p{L}{2}/u.test(p))continue;
+      words+=(p.match(/\S+/g)||[]).length;
+      const tr=await advBiPara(t,from,p.trim());
+      if(tr)out+='\n\n'+ADV_BI_MARK+tr;
+      const pc=Math.min(100,Math.round(words/total*100));if(pc!==last){last=pc;onp(pc);}}}
+  toc.forEach(function(x,i){x.off=at[i+1];});
+  r.text=out;r.lang=from;r.bi=words>=ADV_BI_MAX?'part':'all';
+}
+async function advGetBi(){
+  if(!advCur||!advCur.inf||ADV.dl)return;
+  const it=advCur.it,inf=advCur.inf,src=ADV_SRC[it.sid.split(':')[0]],from=advBiLang(it,inf);if(!from)return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Книга открыта в другом окне','info');return;}
+  ADV.dl=true;
+  const prog=function(t){const btn=el('advGetBi');if(btn){btn.disabled=true;btn.textContent=t;}};
+  try{
+    prog('Проверяю пакет языка…');
+    const st=await trState(from,'ru');
+    if(!st.path){flashMsg('Для этого языка пока нет пакета перевода','info');return;}
+    if(!st.have)await trDownload(st.path,function(x){prog('Пакет языка · '+Math.round(x*100)+' %');});
+    const r=await src.get(it,prog,inf);
+    prog('Перевожу…');
+    await advBilingual(r,from,function(pc){prog('Перевожу · '+pc+' %');});
+    r.title=(r.title||it.t)+' · с переводом';r.done=null;
+    const b=await advAddBook(Object.assign({},it,{sid:advBiSid(it.sid)}),src,r);
+    el('bookSheet').classList.add('hidden');
+    try{advRenderList();}catch(e){}
+    openBook(b.id);
+    if(r.bi==='part')flashMsg('Переведены первые '+(ADV_BI_MAX/1000)+' тысяч слов, дальше книга в оригинале','info');
+  }catch(e){console.warn('[rq] adv bilingual',e);
+    flashMsg(navigator.onLine===false?'Нет сети. Книга и пакет языка скачиваются один раз, дальше всё работает без интернета':'Не получилось сделать книгу с переводом: '+(e&&e.message||e),'info');
+    if(advCur&&advCur.it===it)advSheet(it,src,inf);}
+  finally{ADV.dl=false;}
 }
 if(el('advQ')){el('advQ').addEventListener('input',advInput);el('advQ').addEventListener('keydown',function(e){if(e.key==='Enter'){clearTimeout(advT);ADV.q=el('advQ').value;advSugHide();advSearch();el('advQ').blur();}else if(e.key==='Escape')advSugHide();});}

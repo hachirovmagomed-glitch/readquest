@@ -463,8 +463,11 @@ body.rq-nolocks #rqNoXp{display:block}
 /* 20.10 chapter ticks on the page slider (как в ReadEra): under the input (its thumb covers them), each skin draws its own mark */
 #reader .rfoot{position:relative}
 #pgSlider{position:relative;z-index:1}
-#pgTicks{position:absolute;height:0;min-width:0;opacity:1;pointer-events:none}
-#pgTicks i{position:absolute;top:-6px;width:1.5px;height:12px;margin-left:-.75px;border-radius:1px;background:currentColor;opacity:.55}
+/* 25.10 (Джессика: «поменьше и полупрозрачнее, как в ReadEra, но уникальные в каждом скине»): the marks sit ON the track,
+   thin and see-through, no room taken above it; the one under the thumb steps aside (.u, bfTicksThumb) */
+#pgTicks{position:absolute;height:0;min-width:0;opacity:1;pointer-events:none;z-index:2}
+#pgTicks i{position:absolute;top:-4px;width:1px;height:8px;margin-left:-.5px;border-radius:1px;background:currentColor;opacity:.4;transition:opacity .15s}
+#pgTicks i.u{opacity:0!important}
 #pgTip{opacity:1} /* a span in .rfoot (opacity .85): the page text showed through the tip */
 #pgTip.withch{display:flex;flex-direction:column;align-items:center;gap:5px;max-width:min(80vw,320px);line-height:1.15}
 #pgTip .pgch{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:var(--r-txt,inherit)}
@@ -1575,8 +1578,8 @@ html[data-skin="pencil"] #reader .rfoot{position:relative}
 html[data-skin="pencil"] #pgArt{display:block}
 html[data-skin="pencil"] #panelBody .prow.on{background:var(--rq-surface);color:var(--rq-text);border:2px solid var(--rq-text);border-radius:14px 7px 12px 8px/8px 13px 7px 12px;box-shadow:3px 3px 0 var(--rq-accent)} /* 21.10: current chapter = a pencil-drawn frame with a coloured shadow */
 html[data-skin="pencil"] #panelBody .prow.on .pnow{background:none;border:1.5px solid var(--rq-accent);border-radius:52% 46% 55% 44%/48% 55% 45% 52%;color:var(--rq-accent-text);transform:rotate(-6deg)}
-html[data-skin="pencil"] #pgTicks i{top:-7px;width:2px;height:12px;margin-left:-1px;background:var(--rq-text-2);opacity:.8;border-radius:1px 2px 1px 2px;transform:rotate(-7deg)} /* 20.10: chapter ticks = pencil strokes */
-html[data-skin="pencil"] #pgTicks i:nth-child(even){height:10px;top:-6px;transform:rotate(6deg)}
+html[data-skin="pencil"] #pgTicks i{top:-4px;width:1.5px;height:8px;margin-left:-.75px;background:var(--rq-text-2);opacity:.45;border-radius:1px 2px 1px 2px;transform:rotate(-8deg)} /* chapter marks = light pencil strokes across the line */
+html[data-skin="pencil"] #pgTicks i:nth-child(even){height:7px;top:-3.5px;transform:rotate(7deg)}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-runnable-track{background:transparent}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-thumb{background:transparent;border-color:transparent}
 html[data-skin="pencil"] #pgSlider::-moz-range-track{background:transparent}

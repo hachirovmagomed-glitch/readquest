@@ -744,9 +744,9 @@ html[data-skin="babochkovyi"] .botnav-read .brd .ic{display:none} /* 20.10 (Дж
    The search header is .rhead (rule 1 above gives it the skin bar); Небесный also gets its starry reader top.
    Chapter marks sit ABOVE the track (the input's track covers the middle 4 px): Эллада — a small blue lozenge,
    Бабочковый — a dot, Небесный — a golden four-point star UNDER the track (its page number sits above the slider). Decorative, outside the book page. */
-html[data-skin="ellada"] #pgTicks i{top:-11px;width:6px;height:6px;margin-left:-3px;border-radius:0;background:var(--rq-accent);opacity:.8;transform:rotate(45deg)}
-html[data-skin="babochkovyi"] #pgTicks i{top:-11px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--rq-accent);opacity:.75}
-html[data-skin="celestial"] #pgTicks i{top:6px;width:9px;height:9px;margin-left:-4.5px;border-radius:0;background:var(--cl-gold);opacity:1;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+html[data-skin="ellada"] #pgTicks i{top:-2px;width:4px;height:4px;margin-left:-2px;border-radius:0;background:var(--rq-accent);opacity:.5;transform:rotate(45deg)} /* 25.10: small see-through lozenges on the track */
+html[data-skin="babochkovyi"] #pgTicks i{top:-2px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--rq-accent);opacity:.5}
+html[data-skin="celestial"] #pgTicks i{top:-3.5px;width:7px;height:7px;margin-left:-3.5px;border-radius:0;background:var(--cl-gold);opacity:.6;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
 html[data-skin="celestial"] .bfind .rhead{background:var(--cl-rtop);box-shadow:0 1px 0 var(--cl-gold),0 2px 0 var(--rq-surface),0 3px 0 var(--cl-gold-l)}
 html[data-skin="celestial"][data-theme="night"] .bfind .rhead{background:var(--cl-dust-n) 0 0/200px 200px repeat,var(--cl-rtop)}
 html[data-skin="celestial"] .bfrow{border:1px solid var(--cl-gold-l)}

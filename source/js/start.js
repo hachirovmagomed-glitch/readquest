@@ -9,8 +9,6 @@
   if(el('bnProf'))el('bnProf').onclick=goProf;
   if(el('bnRew'))el('bnRew').onclick=function(){openRewardsSheet();};
   if(el('btnOpenRewards'))el('btnOpenRewards').onclick=function(){openRewardsSheet();};
-  if(el('rewardsClose'))el('rewardsClose').onclick=closeRewardsSheet;
-  if(el('rewardsScrim'))el('rewardsScrim').onclick=closeRewardsSheet;
   if(el('btnAddRewardSlot'))el('btnAddRewardSlot').onclick=addRewardSlot;
   if(el('btnMvpSettings'))el('btnMvpSettings').onclick=function(){closeRewardsSheet();openGeneralSettings(false);};
   if(el('mvpTgl'))el('mvpTgl').onclick=function(){

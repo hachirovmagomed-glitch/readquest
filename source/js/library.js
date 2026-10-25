@@ -135,7 +135,7 @@ function syncNightSwitch(){const b=el('dNight');if(!b)return;const nt=appIsNight
 if(el('dNight'))el('dNight').onclick=()=>{toggleAppNight();syncNightSwitch();};
 function closeDrawer(){el('drawer').classList.remove('open');el('scrim').classList.add('hidden');}
 el('scrim').onclick=closeDrawer;
-['menuLib','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath','menuLook','menuAdv'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
+['menuLib','menuRew','menuQuotes','menuVocab','menuShop','menuProf','menuQst','menuStats','menuCal','menuShelf','menuSet','menuPath','menuLook','menuAdv'].forEach(m=>{if(el(m))el(m).onclick=openDrawer;});
 
 let jrnLast='quests';
 /* tabs inside a drawer section: same MVP pass as the drawer item itself (the tabs used to bounce to the library in MVP) */
@@ -498,12 +498,12 @@ async function importBookFile(f,setBusy){
     const buf=await f.arrayBuffer();
     const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
     const nPages=doc.numPages;
-    let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText */
+    let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText; 23.10 {l, w} */
     try{doc.destroy();}catch(_){}
     const id=newBookId();
     await idbPut('pdf:'+id,buf);
     b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
-    if(Number.isInteger(lt)){b.lvlText=lt;b.lvlV=window.__rqGame.LVL_ALGO;}
+    if(lt&&Number.isInteger(lt.l)){b.lvlText=lt.l;b.lvlWords=lt.w;b.lvlV=window.__rqGame.LVL_ALGO;}
   }else if(/\.fb2$/i.test(f.name)){
     setBusy('Разбираю FB2...');
     const r=await parseFb2(f);
@@ -601,6 +601,6 @@ async function importSharedBooks(){
 (function(){let sx=null,sy=0,mode='';
   document.addEventListener('touchstart',function(e){const t=e.touches[0];if(!t)return;const open=el('drawer').classList.contains('open');
     const inReader=!el('reader').classList.contains('hidden')||!el('summary').classList.contains('hidden');
-    if(open){sx=t.clientX;sy=t.clientY;mode='close';}else if(t.clientX<=20&&!inReader&&!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'))&&(!el('navCfg')||el('navCfg').hidden)){sx=t.clientX;sy=t.clientY;mode='open';}else sx=null;},{passive:true});
+    if(open){sx=t.clientX;sy=t.clientY;mode='close';}else if(t.clientX<=20&&!inReader&&(!el('navCfg')||el('navCfg').hidden)){sx=t.clientX;sy=t.clientY;mode='open';}else sx=null;},{passive:true});
   document.addEventListener('touchend',function(e){if(sx===null)return;const t=e.changedTouches[0];const dx=t.clientX-sx,dy=Math.abs(t.clientY-sy);sx=null;
     if(dy>60)return;if(mode==='open'&&dx>50)openDrawer();else if(mode==='close'&&dx<-50)closeDrawer();},{passive:true});})();

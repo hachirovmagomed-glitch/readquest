@@ -120,7 +120,7 @@ for (const k of themes) {
     const cr = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
     const page = rgb(getComputedStyle(document.getElementById('reader')).backgroundColor);
     const m = document.createElement('mark'); m.textContent = 'x'; document.querySelector('#content p:not(.meta)').appendChild(m); const txt = rgb(getComputedStyle(m).color);
-    const out = ['y', 'g', 'b', 'p', 'o'].map(c => { m.className = c === 'y' ? '' : 'hl-' + c; const [r, g, b, a] = rgb(getComputedStyle(m).getPropertyValue('--hc').trim()); /* 21.10: the wash colour (skins draw it in their own shape) */ const bl = [r, g, b].map((v, i) => v * a + page[i] * (1 - a)); return +cr(txt, bl).toFixed(2); });
+    const out = ['y', 'g', 'b', 'p', 'o'].flatMap(c => { m.className = c === 'y' ? '' : 'hl-' + c; return ['--hc', '--hc2'].map(v => { const [r, g, b, a] = rgb(getComputedStyle(m).getPropertyValue(v).trim()); /* 21.10: the wash colour (skins draw it in their own shape); 22.10: both colours of the combo */ const bl = [r, g, b].map((v, i) => v * a + page[i] * (1 - a)); return +cr(txt, bl).toFixed(2); }); });
     m.className = ''; const own = ['#000000', '#ffffff', '#d0306a', '#00ffcc', '#3355ff'].map(h => { m.dataset.hc = h; hlPaintCustom(); const [r, g, b, a] = rgb(m.style.getPropertyValue('--hc')); const bl = [r, g, b].map((v, i) => v * a + page[i] * (1 - a)); return +cr(txt, bl).toFixed(2); }); out.push(...own); delete m.dataset.hc;
     m.remove(); return { night: document.getElementById('reader').dataset.page, min: Math.min(...out), out };
   });
@@ -182,6 +182,18 @@ for (const k of ['sepia', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {
 }
 const uniq = (f) => new Set(Object.values(sk).map(f)).size;
 ok('11 every skin: own dot colours, own names, own highlight colours, own dot shape', uniq(x => x.dots) === 5 && uniq(x => x.names) === 5 && uniq(x => x.hl) === 5 && uniq(x => x.shape) === 5, sk);
+// 12. Джессика 22.10 «одно выделение совмещает несколько цветов … и спецэффекты под скин»: in every skin each of the five is a combo of two colours
+//     (dot and wash), a new quote gets the skin's one-time effect, and the quote's class stays its colour
+const combo = {};
+for (const k of ['pencil', 'ellada', 'babochkovyi', 'celestial']) {
+  combo[k] = await p.evaluate(async (k) => { SET.theme = k; saveSet(); applySet(); await new Promise(r => setTimeout(r, 120)); renderSpColors();
+    const m = document.createElement('mark'); document.getElementById('content').appendChild(m);
+    const two = ['y', 'g', 'b', 'p', 'o'].map(c => { m.className = c === 'y' ? '' : 'hl-' + c; const cs = getComputedStyle(m); return cs.getPropertyValue('--hc').trim() !== cs.getPropertyValue('--hc2').trim(); });
+    m.dataset.hlnew = ''; const anim = getComputedStyle(m).animationName; m.remove();
+    const dots = [...document.querySelectorAll('#spColors button[data-c] i')].map(i => getComputedStyle(i).backgroundImage).every(b => (b.match(/rgb\(/g) || []).length >= 2);
+    return { two: two.every(Boolean), anim, dots }; }, k);
+}
+ok('12 every skin: five two-colour combos (dots + wash) and its own effect on a new quote', Object.values(combo).every(x => x.two && x.dots && x.anim && x.anim !== 'none') && new Set(Object.values(combo).map(x => x.anim)).size === 4, combo);
 await p.evaluate(() => { SET.theme = 'sepia'; saveSet(); applySet(); });
 ok('no page errors, no system dialogs', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 await browser.close();

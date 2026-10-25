@@ -232,7 +232,7 @@ export function applyQuestAwards(game, rows, newRows, opts) {
 }
 
 /* ===== Сложность книги (Джессика 19.10: «за страницу стишков и страницу философии одинаково — несправедливо») =====
- * Three levels; the level of a book is automatic (text + author + genre), the reader may only LOWER it (S.bookLvl).
+ * Five levels (three on 19.10; 21.10 Джессика: «более вариативное ранжирование», + «Экспертная», «Запредельная»); the level of a book is automatic (text + author + genre), the reader may only LOWER it (S.bookLvl).
  * The level is frozen into the session row (row.lvl, only when > 0) when the session closes; a too fast pace drops it
  * (reader-session.js), so a skimmed «очень сложная» book earns like an ordinary one. Paid history is never recomputed.
  *   XP     = 10 × whole-minute step × LEVELS[row.lvl].xp            (xpForSession)
@@ -245,9 +245,11 @@ export const LEVELS = [
   { n: 'Обычная', xp: 1, coins: 0, capMin: 3, paceSec: 0 },
   { n: 'Сложная', xp: 1.5, coins: 5, capMin: 5, paceSec: 20 },
   { n: 'Очень сложная', xp: 2, coins: 10, capMin: 7, paceSec: 30 },
+  { n: 'Экспертная', xp: 2.5, coins: 15, capMin: 8, paceSec: 35 },
+  { n: 'Запредельная', xp: 3, coins: 20, capMin: 10, paceSec: 40 },
 ];
 export const LVL_MAX = LEVELS.length - 1;
-export const LVL_DAY_CAP = 20;
+export const LVL_DAY_CAP = 30;
 /** pace check needs this many forward turns in a session (a few slow pages tell nothing) */
 export const LVL_PACE_TURNS = 5;
 
@@ -260,14 +262,19 @@ export function rowLevel(r) {
 /* Authors whose books are hard whatever the text statistics say (dialogues of Plato read «easy» by numbers).
    Match: any word of the card's author equals one of these (Russian or the Latin spelling Gutenberg uses). */
 const AUTHOR_LVL = [
-  [2, ['кант', 'kant', 'гегель', 'hegel', 'витгенштейн', 'wittgenstein', 'хайдеггер', 'heidegger', 'гуссерль', 'husserl', 'фихте', 'fichte', 'спиноза', 'spinoza']],
+  /* 21.10 (Джессика: «книгу Жака Дерриды назвал обычной»): XX век и самые тёмные тексты — на ступень выше Канта */
+  [4, ['гегель', 'hegel', 'деррида', 'derrida', 'хайдеггер', 'heidegger', 'гуссерль', 'husserl', 'лакан', 'lacan', 'делёз', 'делез', 'deleuze', 'гваттари', 'guattari']],
+  [3, ['кант', 'kant', 'витгенштейн', 'wittgenstein', 'фихте', 'fichte', 'шеллинг', 'schelling', 'фуко', 'foucault', 'адорно', 'adorno',
+    'хабермас', 'habermas', 'бодрийяр', 'baudrillard', 'левинас', 'levinas', 'мерло-понти', 'merleau-ponty', 'бадью', 'badiou', 'жижек', 'žižek', 'zizek',
+    'агамбен', 'agamben', 'гадамер', 'gadamer', 'рикёр', 'рикер', 'ricoeur', 'лиотар', 'lyotard', 'бланшо', 'blanchot', 'кристева', 'kristeva']],
+  [2, ['спиноза', 'spinoza', 'сартр', 'sartre', 'батай', 'bataille', 'маркс', 'marx', 'кейнс', 'keynes', 'фрейд', 'freud', 'соссюр', 'saussure', 'лосев', 'бахтин', 'лотман']],
   [1, ['платон', 'plato', 'аристотель', 'aristotle', 'юм', 'hume', 'локк', 'locke', 'декарт', 'descartes', 'лейбниц', 'leibniz',
     'ницше', 'nietzsche', 'шопенгауэр', 'schopenhauer', 'кьеркегор', 'kierkegaard', 'гоббс', 'hobbes', 'беркли', 'berkeley',
     'паскаль', 'pascal', 'монтень', 'montaigne', 'сенека', 'seneca', 'лукреций', 'lucretius', 'аврелий', 'aurelius',
     'плотин', 'plotinus', 'цицерон', 'cicero', 'макиавелли', 'machiavelli', 'милль', 'mill', 'руссо', 'rousseau', 'соловьёв', 'соловьев']],
 ];
 export function authorLevel(author) {
-  const w = String(author || '').toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
+  const w = String(author || '').toLowerCase().split(/[^\p{L}-]+/u).flatMap(function (x) { return x.indexOf('-') > 0 ? [x].concat(x.split('-')) : [x]; }).filter(Boolean);
   for (const [lvl, names] of AUTHOR_LVL) if (names.some(function (x) { return w.indexOf(x) >= 0; })) return lvl;
   return 0;
 }
@@ -277,6 +284,16 @@ export function genreLevel(genre) {
 }
 
 /**
+ * 21.10: title of the card. A PDF card has author «PDF» and the file name as its title («Деррида Ж. – О грамматологии»), so the author
+ * is looked for in the title too; a term root in the title («грамматологии», «Макроэкономика») or a genre word → at least 1.
+ */
+export function titleLevel(title) {
+  const t = String(title || '');
+  let l = Math.max(authorLevel(t), genreLevel(t));
+  if (!l && (t.match(/\p{L}+/gu) || []).some(function (w) { return w.length > 5 && (TERM_RU.test(w) || TERM_EN.test(w)); })) l = 1;
+  return l;
+}
+/**
  * Text statistics on three 20 000-character samples (15 %, 45 %, 75 % of the text — away from title pages and notes):
  *   abs  = % of «abstract» words (-ость/-ние/-ство/-ция/-изм…, -tion/-ity/-ness/-ism/-ence…),
  *   long = % of long words (≥ 5 syllables Russian, ≥ 4 English), asl = words per sentence.
@@ -284,6 +301,9 @@ export function genreLevel(genre) {
  * (Эзоп 0.6, Каренина 8.6), Alice 1.9, Austen 7.1, Hume 12.8, Nietzsche 13.9, Kant 21.4.
  * Fewer than 1500 words → no verdict (0).
  */
+const TERM_RU = /(логи[чяиюе]|метри[чя]|теор[еи]|метод|систем|структур|функци|концеп|категор|диалект|трансцендент|феномен|онтолог|эпистем|гносеолог|эмпири|рацион|абстракт|имманент|априор|детермин|парадигм|инфляц|дефляц|эластичн|мультипликат|коэффициент|параметр|интеграл|дифференц|вектор|матриц|алгоритм|молекул|потенциал|квант|инвестиц|капитал|монетарн|фискальн|эквивалент|тождеств|субъект|объект|субстанц|аксиом|теорем|постулат|корреляц|регресс|дисперс|статистик|экспонент|логарифм|производн|спекуляц|синтез|анализ|гипотез|принцип|индивид|универсал|трансформ|интерпрет|макро|микро|агрегат|равновеси|предельн|сбережени|потреблени|номинальн|эффективн|конкретн|содержани|определени|понят[ия]|познани|сознани|суждени)/iu;
+const TERM_EN = /(ology|ologic|ometr|theor|method|system|structur|function|concept|categor|dialect|transcend|phenomen|ontolog|epistem|empiric|rational|abstract|immanent|priori|determin|paradigm|inflation|deflation|elastic|multiplier|coefficient|parameter|integral|differenti|vector|matri[cx]|algorithm|molecul|potential|quantum|invest|capital|monetar|fiscal|equivalen|identity|subject|object|substan|axiom|theorem|postulat|correlat|regress|varianc|statistic|exponent|logarithm|derivativ|speculat|synthe|analy[st]|hypothe|principle|individual|universal|transform|interpret|macro|micro|aggregat|equilibri|marginal|consumption|nominal|cognition|perception|judgment|judgement|predicat|proposition|premise|inference)/i;
+const SCI_RE = /§|\bibid\b|\bop\.\s?cit\b|\bcf\.|(?<![\p{L}])см\.|(?<![\p{L}])там же(?![\p{L}])|\[\d{1,3}\]|(?<![\p{L}])(?:с|стр|p|pp)\.\s?\d{1,4}\b|\b\d{1,2}\.\d{1,2}(?:\.\d{1,2})?\.?[ \t]+[A-ZА-ЯЁ]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+/giu;
 export function textStats(text) {
   let t = String(text || '');
   /* a Project Gutenberg .txt carries its licence (legal prose, scores «hard») before and after the book */
@@ -315,29 +335,84 @@ export function textStats(text) {
   const ops = (s.match(/[=<>≤≥≈≠±×÷∑∏∫√∂∆Δ∞^]|[α-ωΑ-Ω]/g) || []).length;
   const vars = cyr ? (s.match(/(?<![\p{L}\d])[A-Za-z](?![\p{L}])/gu) || []).length : 0;
   const math = 100 * (ops + vars) / n;
-  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math);
-  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, score: score };
+  /* 21.10 (Джессика: «на сложность может повлиять сложность терминологии»): % of words with a term root of philosophy, science,
+     economics (TERM_RU / TERM_EN). Checked 21.10: fiction of the built-in shelf and Gutenberg novels 0–0.6, Hume 1.7–1.9, Kant 7. */
+  let term = 0;
+  const TR = cyr ? TERM_RU : TERM_EN;
+  words.forEach(function (w) { if (w.length > 5 && TR.test(w)) term++; });
+  const terms = 100 * term / n;
+  /* 23.10 (Джессика: научная разметка): references and notes per 1000 words — §, ibid, op. cit., cf., см., там же, [12], с. 12 / p. 12,
+     numbered sections «1.2 Title», superscript note marks. Checked on the golden shelf: fiction 0, Hume 0.4, Bergson 1.4, Keynes 2.9, Darwin 4.8. */
+  const sci = 1000 * (s.match(SCI_RE) || []).length / n;
+  const score = 100 * abs / n + 100 * long / n + Math.max(0, asl - 20) / 4 + Math.min(12, 1.5 * math) + Math.min(15, 1.5 * terms) + Math.min(6, 2 * sci);
+  return { words: words.length, cyr: cyr, asl: asl, abs: 100 * abs / n, long: 100 * long / n, math: math, terms: terms, sci: sci, score: score };
 }
 /** version of the text rule; a PDF card whose lvlText was computed by an older rule (lvlV ≠ this) is re-checked once on open.
- *  1 = 19.10, 2 = 21.10 (formulas). */
-export const LVL_ALGO = 2;
-/** score thresholds per language: [Сложная, Очень сложная] */
-export const LVL_SCORE = { ru: [14, 22], en: [10, 16] };
-export function textLevel(text) {
+ *  1 = 19.10, 2 = 21.10 (formulas), 3 = 21.10 (terms, five levels), 4 = 22.10 (PDF metadata: author, title, subject),
+ *  5 = 23.10 (notes and references; PDF page density). */
+export const LVL_ALGO = 5;
+/** score thresholds per language: [Сложная, Очень сложная, Экспертная, Запредельная]. With terms (21.10): Kant (en) 31.8,
+ *  Hume 14.5–15.7, Nietzsche 14.8, Gutenberg novels ≤ 7.4, Russian fiction of the shelf ≤ 9.6. */
+export const LVL_SCORE = { ru: [14, 22, 32, 44], en: [10, 16, 24, 32] };
+/** 23.10: a PDF page this dense (characters of text per page, sampled pages) is a textbook/monograph layout — but an A4 novel is
+ *  dense too, so it counts only together with terms or references: +PDF_DENSE_BONUS to the score. */
+export const PDF_DENSE_CPP = 3200;
+export const PDF_DENSE_BONUS = 3;
+export function textLevel(text, opt) {
   const st = textStats(text);
   if (st.words < 1500) return 0;
   const th = st.cyr ? LVL_SCORE.ru : LVL_SCORE.en;
-  return st.score >= th[1] ? 2 : st.score >= th[0] ? 1 : 0;
+  const cpp = opt && opt.cpp;
+  const score = st.score + (cpp >= PDF_DENSE_CPP && (st.sci >= 0.3 || st.terms >= 1) ? PDF_DENSE_BONUS : 0);
+  let l = 0;
+  while (l < th.length && score >= th[l]) l++;
+  return l;
 }
 /**
  * Automatic level of a book card {author, genre, text?, lvlText?}: the highest of text, author and genre.
- * PDF: no text in the card — `lvlText` (0…2) is textLevel() of a sample of its pages (pdfSample, computed once, arch.md);
+ * PDF: no text in the card — `lvlText` (0…LVL_MAX) is textLevel() of a sample of its pages (pdfSample, computed once, arch.md);
  * a scan without a text layer gives 0 there, so only author and genre count.
  */
 export function autoLevel(book) {
   const b = book || {};
   const lt = Number.isInteger(b.lvlText) && b.lvlText >= 0 && b.lvlText <= LVL_MAX ? b.lvlText : 0;
-  return Math.max(b.text ? textLevel(b.text) : lt, authorLevel(b.author), genreLevel(b.genre));
+  return Math.max(b.text ? textLevel(b.text) : lt, authorLevel(b.author), genreLevel(b.genre), titleLevel(b.title));
+}
+/*
+ * 22.10 (Джессика: «Давай первое» — the reader's own pace on this book). Minutes per page turn on this book against the same reader's
+ * other books of the same kind (PDF with PDF, text with text): a book read much slower than usual is harder than its text shows
+ * (a scan has no text at all). Only sessions with ≥ 3 turns; the book needs ≥ PACE_MIN.sessions sessions and ≥ PACE_MIN.turns turns,
+ * the baseline ≥ PACE_MIN.baseTurns turns from ≥ PACE_MIN.baseBooks other books. Minutes are the counted ones (page cap, idle cut),
+ * so a book left open does not slow the pace much. Not enough data → 0 (no verdict).
+ */
+export const PACE_MIN = { sessions: 3, turns: 30, baseTurns: 60, baseBooks: 2 };
+/** ratio → level: ≥ 1.6 «Сложная», ≥ 2.4 «Очень сложная», ≥ 3.2 «Экспертная»; pace alone never gives more */
+export const PACE_LVL = [1.6, 2.4, 3.2];
+export function paceRatio(bookRows, baseRows) {
+  const use = function (rs) { return (rs || []).filter(function (r) { return r && (Number(r.pageTurns) || 0) >= 3 && (Number(r.minutes) || 0) > 0; }); };
+  const sum = function (rs, k) { return rs.reduce(function (s, r) { return s + (Number(r[k]) || 0); }, 0); };
+  const b = use(bookRows), a = use(baseRows), bt = sum(b, 'pageTurns'), at = sum(a, 'pageTurns');
+  const books = {}; a.forEach(function (r) { books[r.bookId] = 1; });
+  if (b.length < PACE_MIN.sessions || bt < PACE_MIN.turns || at < PACE_MIN.baseTurns || Object.keys(books).length < PACE_MIN.baseBooks) return 0;
+  const base = sum(a, 'minutes') / at;
+  return base > 0 ? (sum(b, 'minutes') / bt) / base : 0;
+}
+export function paceAutoLevel(ratio) {
+  let l = 0;
+  while (l < PACE_LVL.length && ratio >= PACE_LVL[l]) l++;
+  return l;
+}
+/*
+ * 22.10 (Джессика: «И четвертое» — a neural network on the reader's own key). The answer is asked as JSON {"level": 0…4, "why": "…"};
+ * anything else → null (nothing is stored).
+ */
+export function parseAiLevel(s) {
+  const t = String(s || ''), m = t.match(/\{[\s\S]*?\}/);
+  let o = null;
+  if (m) { try { o = JSON.parse(m[0]); } catch (e) { o = null; } }
+  const l = o && typeof o.level === 'string' && /^\d$/.test(o.level) ? Number(o.level) : o && o.level;
+  if (!Number.isInteger(l) || l < 0 || l > LVL_MAX) return null;
+  return { l: l, w: String((o && o.why) || '').replace(/\s+/g, ' ').trim().slice(0, 160) };
 }
 /** pages of a PDF to sample for textLevel: up to `n`, spread over 10…90 % of the book (title pages and index left out) */
 export function pdfSamplePages(numPages, n) {

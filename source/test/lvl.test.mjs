@@ -12,8 +12,8 @@ const RU_KIDS = 'Жил-был кот. Кот был рыжий. Он любил
 const RU_PHIL = 'Всякое познание начинается с опыта, однако отсюда ещё не следует, что оно целиком проистекает из опыта. Необходимость и строгая всеобщность являются достоверными признаками априорного знания и неразрывно связаны друг с другом. Понятие причинности содержит в себе понятие необходимости связи с действием и строгой всеобщности правила. Трансцендентальное единство апперцепции есть то единство, благодаря которому всё данное в созерцании многообразное объединяется в понятие об объекте. Содержание, значение и применимость категорий определяются исключительно их отношением к возможному опыту.';
 const EN_PHIL = 'The transcendental unity of apperception is that unity through which all the manifold given in an intuition is united in a conception of the object. Consequently the possibility of experience is the condition of the objective validity of all our cognitions a priori, and the necessity of this connection is the foundation of the understanding as a faculty of judgement and representation.';
 ok('детские стишки (ru) → 0', G.textLevel(rep(RU_KIDS, 40)) === 0, G.textStats(rep(RU_KIDS, 40)).score);
-ok('плотная философия (ru) → 2', G.textLevel(rep(RU_PHIL, 30)) === 2, G.textStats(rep(RU_PHIL, 30)).score);
-ok('dense philosophy (en) → 2', G.textLevel(rep(EN_PHIL, 40)) === 2, G.textStats(EN_PHIL).score);
+ok('плотная философия (ru) → 3 и выше', G.textLevel(rep(RU_PHIL, 30)) >= 3, G.textStats(rep(RU_PHIL, 30)).score);
+ok('dense philosophy (en) → 3 и выше', G.textLevel(rep(EN_PHIL, 40)) >= 3, G.textStats(EN_PHIL).score);
 ok('меньше 1500 слов → без вердикта (0)', G.textLevel(rep(RU_PHIL, 3)) === 0);
 const books = new URL('../books/', import.meta.url);
 const shelf = fs.readdirSync(books).filter(f => f.endsWith('.txt'));
@@ -28,23 +28,73 @@ ok('лицензия Гутенберга не делает детскую кн�
   const P = 'Всякое познание начинается с опыта, однако отсюда ещё не следует, что оно целиком проистекает из опыта. Необходимость и строгая всеобщность являются достоверными признаками априорного знания. ';
   const F = 'Выпуск равен Y = C + I + G + NX, а функция потребления C = a + b(Y − T), где 0 < b < 1. ';
   const plain = Array.from({ length: 40 }, () => K + P).join('\n'), withF = Array.from({ length: 40 }, () => K + P + F).join('\n');
-  ok('тот же текст: без формул «Сложная», с формулами и переменными «Очень сложная»', G.textLevel(plain) === 1 && G.textLevel(withF) === 2, [G.textStats(plain).score, G.textStats(withF).score]);
+  ok('тот же текст: с формулами и переменными на ступень выше', G.textLevel(plain) >= 1 && G.textLevel(withF) === G.textLevel(plain) + 1, [G.textStats(plain).score, G.textStats(withF).score]);
   const sm = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).math.toFixed(2)]));
   ok('художественная полка: формул почти нет (меньше 0,1 на 100 слов)', Object.values(sm).every(x => x < 0.1), sm);
   ok('жанр «Экономика», «Учебник математики» → 1', G.genreLevel('Экономика') === 1 && G.genreLevel('Учебник математики') === 1);
-  ok('версия правила LVL_ALGO = 2 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 2);
+  ok('версия правила LVL_ALGO = 5 (старые lvlText у PDF пересчитываются)', G.LVL_ALGO === 5);
+}
+
+/* --- 21.10: five levels and terms (Джессика: «более вариативное ранжирование», «сложность терминологии») --- */
+{ ok('пять ступеней: опыт ×1 / 1,5 / 2 / 2,5 / 3, монеты 0 / 5 / 10 / 15 / 20, лимит страницы 3 / 5 / 7 / 8 / 10 мин', G.LEVELS.length === 5 && G.LVL_MAX === 4 &&
+    G.LEVELS.map(x => x.xp).join() === '1,1.5,2,2.5,3' && G.LEVELS.map(x => x.coins).join() === '0,5,10,15,20' && G.LEVELS.map(x => x.capMin).join() === '3,5,7,8,10');
+  const st = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).terms.toFixed(2)]));
+  ok('художественная полка: терминов меньше 0,5 на 100 слов', Object.values(st).every(x => x < 0.5), st);
+  ok('философский текст: терминов больше 3 на 100 слов (ru и en)', G.textStats(rep(RU_PHIL, 30)).terms > 3 && G.textStats(rep(EN_PHIL, 40)).terms > 3,
+    [G.textStats(rep(RU_PHIL, 30)).terms, G.textStats(rep(EN_PHIL, 40)).terms]);
+  const lv = Object.fromEntries(shelf.map(f => [f, G.textLevel(fs.readFileSync(new URL(f, books), 'utf8'))]));
+  ok('художественная полка с терминами по-прежнему «Обычная»', Object.values(lv).every(x => x === 0), lv);
+  const ECON = 'Инфляция и дефляция определяют реальную процентную ставку, а мультипликатор инвестиций зависит от предельной склонности к потреблению. Равновесие совокупного спроса и предложения описывает модель, в которой номинальный и реальный выпуск различаются на индекс цен. ';
+  const PLAIN = 'Когда цены растут, деньги дешевеют, а когда падают, дорожают. Люди тратят часть заработка и откладывают остальное на потом. Если все покупают больше, заводы работают быстрее и нанимают новых рабочих. ';
+  ok('тот же объём: текст с экономическими терминами сложнее пересказа простыми словами', G.textStats(rep(ECON, 60)).score > G.textStats(rep(PLAIN, 60)).score + 10 && G.textLevel(rep(ECON, 60)) > G.textLevel(rep(PLAIN, 60)),
+    [G.textStats(rep(ECON, 60)).score, G.textStats(rep(PLAIN, 60)).score]);
+  ok('пороги идут по возрастанию, ступени 0…4 достижимы', ['ru', 'en'].every(k => G.LVL_SCORE[k].length === 4 && G.LVL_SCORE[k].every((x, i, a) => !i || x > a[i - 1])));
+  ok('сессия «Запредельной» (4) хранится, 5 и «2» нет', G.rowLevel({ lvl: 4 }) === 4 && G.rowLevel({ lvl: 5 }) === 0 && G.rowLevel({ lvl: '2' }) === 0);
+}
+
+/* --- 22.10: Деррида-скан вышел «Обычной» (Джессика): автор и термины в названии --- */
+ok('название: «Деррида Ж. – О грамматологии» → 4, «Мерло-Понти. Феноменология восприятия» → 3, «Макроэкономика. Учебник» → 1',
+  G.titleLevel('Деррида Ж. – О грамматологии') === 4 && G.titleLevel('Морис Мерло-Понти. Феноменология восприятия') === 3 && G.titleLevel('Макроэкономика. Учебник') === 1);
+ok('название: «Война и мир», «Benjamin Franklin Autobiography», «Стишки» → 0', G.titleLevel('Война и мир') === 0 && G.titleLevel('Benjamin Franklin Autobiography') === 0 && G.titleLevel('Стишки') === 0);
+ok('карточка PDF-скана: автор «PDF», текста нет, но в названии Деррида → 4', G.autoLevel({ type: 'pdf', author: 'PDF', genre: 'PDF', title: 'Деррида Ж. – О грамматологии', lvlText: 0 }) === 4);
+ok('встроенная полка: названия ничего не поднимают', shelf.every(f => G.titleLevel(f.replace(/\.txt$/, '')) === 0));
+
+/* --- 22.10: own pace on the book; neural network level (Джессика: «Давай первое. И четвертое») --- */
+{ const R = (book, n, min, turns) => Array.from({ length: n }, () => ({ bookId: book, minutes: min, pageTurns: turns }));
+  const base = R('a', 3, 10, 20).concat(R('b', 2, 10, 20)); /* 0.5 min per turn, 100 turns, two books */
+  ok('темп: книга вдвое медленнее обычного → ratio 2, «Сложная»', Math.abs(G.paceRatio(R('x', 3, 10, 10), base) - 2) < 1e-9 && G.paceAutoLevel(2) === 1);
+  ok('темп: 2,5 → «Очень сложная», 3,5 → «Экспертная», больше темп не даёт', G.paceAutoLevel(2.5) === 2 && G.paceAutoLevel(3.5) === 3 && G.paceAutoLevel(10) === 3 && G.paceAutoLevel(1.5) === 0);
+  ok('темп: мало данных — нет вердикта (2 сессии; 29 перелистываний; база из одной книги; база < 60)',
+    G.paceRatio(R('x', 2, 30, 20), base) === 0 && G.paceRatio(R('x', 3, 30, 9).concat(R('x', 1, 0, 2)), base) === 0 &&
+    G.paceRatio(R('x', 3, 30, 20), R('a', 5, 10, 20)) === 0 && G.paceRatio(R('x', 3, 30, 20), R('a', 1, 10, 20).concat(R('b', 1, 10, 20))) === 0);
+  ok('темп: сессии меньше 3 перелистываний не считаются', G.paceRatio(R('x', 3, 10, 10).concat(R('x', 5, 60, 2)), base) === G.paceRatio(R('x', 3, 10, 10), base));
+  ok('нейросеть: JSON с уровнем → {l, w}', JSON.stringify(G.parseAiLevel('Вот: {"level": 4, "why": "Деконструкция, плотные термины"}')) === '{"l":4,"w":"Деконструкция, плотные термины"}');
+  ok('нейросеть: «3» строкой годится; 5, -1, 2.5, текст без JSON → null', G.parseAiLevel('{"level":"3","why":"x"}').l === 3 && G.parseAiLevel('{"level":5}') === null &&
+    G.parseAiLevel('{"level":-1}') === null && G.parseAiLevel('{"level":2.5}') === null && G.parseAiLevel('уровень 3') === null);
+}
+
+/* --- 23.10: references/notes, PDF density --- */
+{ const st = Object.fromEntries(shelf.map(f => [f, +G.textStats(fs.readFileSync(new URL(f, books), 'utf8')).sci.toFixed(2)]));
+  ok('встроенная полка: сносок и ссылок нет (0 на 1000 слов)', Object.values(st).every(x => x === 0), st);
+  const REF = 'Как показал Смит (см. с. 112), рост зависит от разделения труда [12]. Там же он пишет о рынке; ср. § 3 и op. cit., p. 45. ';
+  const PL = 'Утром мы пошли на речку, взяли удочки и хлеб, а вечером вернулись домой усталые и довольные, и мама напекла блинов. ';
+  ok('ссылки и сноски считаются (см., с. 112, [12], там же, ср., §, op. cit., p. 45)', G.textStats(rep(REF + PL, 80)).sci > 20 && G.textStats(rep(PL, 80)).sci === 0, G.textStats(rep(REF + PL, 80)).sci);
+  const plain = rep(PL, 100), near = rep(PL + REF + 'Инфляция снижает реальную ставку. ', 40);
+  ok('плотная страница PDF без терминов и ссылок (роман на А4) не поднимает уровень', G.textLevel(plain, { cpp: 4000 }) === G.textLevel(plain));
+  ok('плотная страница PDF со ссылками и терминами: +3 к баллу, но только от 3200 знаков на страницу', G.PDF_DENSE_CPP === 3200 && G.PDF_DENSE_BONUS === 3 &&
+    G.textLevel(near) === 1 && G.textLevel(near, { cpp: 3100 }) === 1 && G.textLevel(near, { cpp: 3500 }) === 2, G.textStats(near).score);
 }
 
 /* --- author, genre, auto, manual --- */
-ok('автор: Кант → 2, Платон → 1, Plato → 1, Эзоп → 0, «Канторович» не Кант', G.authorLevel('Иммануил Кант') === 2 && G.authorLevel('Платон') === 1 && G.authorLevel('Plato') === 1 && G.authorLevel('Эзоп') === 0 && G.authorLevel('Канторович') === 0);
+ok('автор: Кант → 3, Спиноза → 2, Платон → 1, Plato → 1, Эзоп → 0, «Канторович» не Кант', G.authorLevel('Иммануил Кант') === 3 && G.authorLevel('Бенедикт Спиноза') === 2 && G.authorLevel('Платон') === 1 && G.authorLevel('Plato') === 1 && G.authorLevel('Эзоп') === 0 && G.authorLevel('Канторович') === 0);
 ok('жанр FB2 sci_philosophy → 1, «Сказки» → 0', G.genreLevel('sci_philosophy') === 1 && G.genreLevel('Сказки') === 0);
-ok('авто = максимум (текст детский, автор Аристотель → 1); PDF без текста — по автору', G.autoLevel({ author: 'Аристотель', text: rep(RU_KIDS, 40) }) === 1 && G.autoLevel({ author: 'Гегель', type: 'pdf' }) === 2);
+ok('авто = максимум (текст детский, автор Аристотель → 1); PDF без текста — по автору', G.autoLevel({ author: 'Аристотель', text: rep(RU_KIDS, 40) }) === 1 && G.autoLevel({ author: 'Гегель', type: 'pdf' }) === 4);
 ok('выбор читателя только понижает: авто 1, выбрал 2 → 1; выбрал 0 → 0; без выбора → 1', G.effLevel(1, 2) === 1 && G.effLevel(1, 0) === 0 && G.effLevel(1, undefined) === 1);
 
 /* --- PDF: lvlText from sampled pages --- */
 ok('PDF: страницы для пробы — до 12, в пределах 10–90 % книги; короткий PDF — все страницы', JSON.stringify(G.pdfSamplePages(300, 12)) === JSON.stringify([30, 52, 74, 95, 117, 139, 161, 183, 205, 226, 248, 270]) && JSON.stringify(G.pdfSamplePages(5, 12)) === '[1,2,3,4,5]' && JSON.stringify(G.pdfSamplePages(1, 12)) === '[1]', [G.pdfSamplePages(300, 12), G.pdfSamplePages(5, 12)]);
 ok('PDF: уровень из lvlText (2), автор не нужен; кривой lvlText (5, «2») не считается', G.autoLevel({ type: 'pdf', author: 'PDF', lvlText: 2 }) === 2 && G.autoLevel({ type: 'pdf', author: 'PDF', lvlText: 5 }) === 0 && G.autoLevel({ type: 'pdf', author: 'PDF', lvlText: '2' }) === 0);
-ok('PDF: lvlText 0 (скан), но автор Кант → 2', G.autoLevel({ type: 'pdf', author: 'Кант', lvlText: 0 }) === 2);
+ok('PDF: lvlText 0 (скан), но автор Кант → 3', G.autoLevel({ type: 'pdf', author: 'Кант', lvlText: 0 }) === 3);
 
 /* --- XP --- */
 const D = '2026-10-19', T0 = Date.parse('2026-10-19T09:00:00+03:00');
@@ -65,9 +115,9 @@ const row = (min, lvl, at, day) => Object.assign({ id: 'r' + (++n), date: day ||
   rs.push(row(9, 1, 30)); a = G.applyLevelAwards(g, rs, [rs[1]]);
   ok('ещё 9 мин той же книгой (21 за день) → ещё +5', a.gold === 5 && g.gold === 10, a);
   rs.push(row(60, 2, 60)); a = G.applyLevelAwards(g, rs, [rs[2]]);
-  ok('потолок дня 20: очень сложная час сверху → только +10 до 20', a.gold === 10 && g.gold === 20 && g.lvlPaid[D] === 20, a);
+  ok('потолок дня 30: очень сложная час сверху → только +20 до 30', a.gold === 20 && g.gold === 30 && g.lvlPaid[D] === 30, a);
   rs.push(row(30, 0, 120)); a = G.applyLevelAwards(g, rs, [rs[3]]);
-  ok('обычная книга бонуса не даёт и ничего не платит', a.gold === 0 && g.gold === 20, a); }
+  ok('обычная книга бонуса не даёт и ничего не платит', a.gold === 0 && g.gold === 30, a); }
 { const g = { gold: 0 }, rs = [row(6, 1, 1), row(5, 2, 10)];
   const a = G.applyLevelAwards(g, rs, rs);
   ok('уровни считаются отдельно: 6 мин сложной + 5 мин очень сложной → 0 (ни одной десятки)', a.gold === 0, a); }

@@ -100,11 +100,18 @@ const tgPass = await p.evaluate(() => { const g = window.__rqWriter, m = g.mayWr
 ok('+1000 in a passive window: no change (write gate)', tgPass.after === tgPass.before, tgPass);
 
 // 5c. reopen rewards at the top; rewards sheet doesn't cover the bottom nav
-await p.evaluate(() => { const s = document.getElementById('rewardsSheet'); s.scrollTop = 400; closeRewardsSheet(); }); await sleep(300);
+await p.evaluate(() => { const s = document.querySelector('#rewardsSheet .rewscroll'); s.scrollTop = 400; closeRewardsSheet(); }); await sleep(300);
 await p.evaluate(() => openRewardsSheet()); await sleep(400);
-const rs = await p.evaluate(() => { const s = document.getElementById('rewardsSheet'), r = s.getBoundingClientRect(), n = document.getElementById('botnav').getBoundingClientRect(); return { top: s.scrollTop, bottom: Math.round(r.bottom), navTop: Math.round(n.top), nav: getComputedStyle(document.getElementById('botnav')).display }; });
+/* 22.10 (Джессика: «плашка с наградами вылезает очень криво»): «Награды» is a page like the other tabs — under the TEST banner, no dimmed screen behind it,
+   the header stays with the page; the nav stays on top and tappable, and the last line scrolls clear of it */
+const rs = await p.evaluate(async () => { const s = document.getElementById('rewardsSheet'), sc = s.querySelector('.rewscroll'), top = sc.scrollTop, n = document.getElementById('botnav'), nr = n.getBoundingClientRect();
+  const hit = document.elementFromPoint(nr.left + nr.width / 2 + 60, nr.top + nr.height / 2), banner = document.getElementById('rqTestBanner').getBoundingClientRect();
+  const under = [...document.querySelectorAll('.screen')].filter(x => x !== s && !x.classList.contains('hidden')).map(x => getComputedStyle(x).visibility);
+  sc.scrollTop = 99999; await new Promise(r => setTimeout(r, 50)); const last = document.getElementById('rewHist').getBoundingClientRect();
+  return { top, sheetTop: Math.round(s.getBoundingClientRect().top), banner: Math.round(banner.bottom), navOnTop: !!hit && n.contains(hit), under, lastBottom: Math.round(last.bottom), navTop: Math.round(nr.top), radius: getComputedStyle(s).borderTopLeftRadius, scrim: !!document.getElementById('rewardsScrim'), nav: getComputedStyle(n).display }; });
 ok('rewards reopen scrolled to the top', rs.top === 0, rs);
-ok('rewards sheet ends above the bottom nav', rs.nav !== 'none' && rs.bottom <= rs.navTop + 1, rs);
+ok('rewards = a page: starts under the TEST banner, square corners, no scrim, the screen under it not painted', rs.sheetTop === rs.banner && rs.radius === '0px' && !rs.scrim && rs.under.every(v => v === 'hidden'), rs);
+ok('rewards page: bottom nav on top and tappable, the last line scrolls clear of it', rs.nav !== 'none' && rs.navOnTop && rs.lastBottom <= rs.navTop, rs);
 
 // 2. «Из жизни» tap targets ≥ 44
 const tt = await p.evaluate(() => [...document.querySelectorAll('#rewardsSheet [role=tab], #rewSlots button, #btnAddRewardSlot, #rewSlots input')].filter(e => e.offsetParent).map(e => { const r = e.getBoundingClientRect(); return { e: e.id || e.className || e.tagName, t: (e.textContent || e.value || '').trim().slice(0, 14), w: Math.round(r.width), h: Math.round(r.height) }; }));

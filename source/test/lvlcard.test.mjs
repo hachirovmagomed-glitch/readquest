@@ -29,33 +29,109 @@ const card = (p, id) => p.evaluate((id) => {
   const R = sheet.getBoundingClientRect();
   const over = [...body.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > R.right + 0.5 || b.left < R.left - 0.5); }).map(e => e.className || e.tagName);
   return { has: i >= 0, chips: chips.map(b => ({ t: b.textContent, on: b.getAttribute('aria-checked') === 'true', off: b.disabled, h: Math.round(b.getBoundingClientRect().height) })),
-    note: i < 0 ? '' : (body.querySelectorAll('.bk-h')[i].nextElementSibling.nextElementSibling || {}).textContent, over, emoji: body.textContent.match(/\p{Extended_Pictographic}/gu) || [] };
+    note: i < 0 ? '' : (() => { let t = '', e = body.querySelectorAll('.bk-h')[i].nextElementSibling.nextElementSibling; while (e && !e.classList.contains('bk-h')) { t += e.textContent + ' '; e = e.nextElementSibling; } return t; })(), over, emoji: body.textContent.match(/\p{Extended_Pictographic}/gu) || [] };
 }, id);
 
 for (const w of [360, 390]) {
   const { p, c } = await page(BASE, w); await addBooks(p, PHIL, KIDS);
   let a = await card(p, 'u_phil');
-  ok(w + ' тест: у сложной по тексту книги раздел «Сложность», 3 кнопки, выбрана «Очень сложная», все доступны', a.has && a.chips.length === 3 && a.chips[2].on && a.chips.every(x => !x.off), a.chips);
+  ok(w + ' тест: у плотной философии раздел «Сложность», 5 кнопок, выбрана «Запредельная», все доступны', a.has && a.chips.length === 5 && a.chips[4].on && a.chips.every(x => !x.off) && a.chips[4].t === 'Запредельная ×3', a.chips);
+  /* 21.10: names per skin (Джессика: «название которых в каждом скине разное») */
+  const sk = await p.evaluate(() => { const h = document.documentElement, was = h.dataset.skin; const out = {};
+    for (const k of ['ellada', 'babochkovyi', 'celestial', 'pencil']) { h.dataset.skin = k; bookInfo('u_phil'); out[k] = [...el('bookSheetBody').querySelectorAll('.chips[aria-label="Сложность книги"] button')].map(b => b.textContent); }
+    h.dataset.skin = 'ellada'; out.sum = summaryLevelLine({ lvl: 3, rowLvl: 3 }).t;
+    if (was) h.dataset.skin = was; else delete h.dataset.skin; return out; });
+  ok(w + ' скины: свои названия ступеней (Эллада «Смертный…Олимп», Бабочковый «Гусеница…Монарх», Небесный «Звезда…Вселенная», Карандашный «Набросок…Шедевр»), итог «Сложность «Титан»»',
+    sk.ellada.join('|') === 'Смертный|Герой ×1,5|Полубог ×2|Титан ×2,5|Олимп ×3' && sk.babochkovyi[0] === 'Гусеница' && sk.babochkovyi[4] === 'Монарх ×3' &&
+    sk.celestial[0] === 'Звезда' && sk.celestial[4] === 'Вселенная ×3' && sk.pencil[0] === 'Набросок' && sk.pencil[4] === 'Шедевр ×3' && sk.sum === 'Сложность «Титан»: опыт ×2,5', sk);
   ok(w + ' ничего не вылезает за карточку, без эмодзи', a.over.length === 0 && a.emoji.length === 0, { over: a.over.slice(0, 4), emoji: a.emoji });
   if (SHOTS) { await p.evaluate(() => { const b = el('bookSheetBody'); const h = [...b.querySelectorAll('.bk-h')].find(x => x.textContent === 'Сложность'); h.scrollIntoView({ block: 'center' }); }); await sleep(200); await p.screenshot({ path: SHOTS + '/card-' + w + '.png' }); }
   const k = await card(p, 'u_kids');
-  ok(w + ' детская книга: «Обычная» выбрана, «Сложная» и «Очень сложная» неактивны', k.has && k.chips[0].on && k.chips[1].off && k.chips[2].off, k.chips);
+  ok(w + ' детская книга: «Обычная» выбрана, остальные неактивны', k.has && k.chips[0].on && k.chips.slice(1).every(x => x.off), k.chips);
   const hg = await card(p, 'u_hegel');
-  ok(w + ' PDF без текста: уровень по автору (Гегель → «Очень сложная»)', hg.has && hg.chips[2].on, hg.chips);
+  ok(w + ' PDF без текста: уровень по автору (Гегель → «Запредельная»)', hg.has && hg.chips[4].on, hg.chips);
   const s1 = await p.evaluate(() => { setBookLvl('u_phil', 1); const a = S.bookLvl.u_phil; setBookLvl('u_kids', 2); const b = 'u_kids' in S.bookLvl;
     const o = trackerOpts.call(null); return { a, b, lvl: bookLvlOf(allBooks().find(x => x.id === 'u_phil')) }; });
   ok(w + ' понизить: «Сложная» сохраняется (bookLvl 1); повысить детскую нельзя (ничего не пишется)', s1.a === 1 && !s1.b && s1.lvl === 1, s1);
   a = await card(p, 'u_phil');
-  ok(w + ' после понижения выбрана «Сложная», «Очень сложная» всё ещё доступна (можно вернуть)', a.chips[1].on && !a.chips[2].off, a.chips);
-  const s2 = await p.evaluate(() => { setBookLvl('u_phil', 2); return 'u_phil' in S.bookLvl; });
+  ok(w + ' после понижения выбрана «Сложная», «Запредельная» всё ещё доступна (можно вернуть)', a.chips[1].on && !a.chips[4].off, a.chips);
+  const s2 = await p.evaluate(() => { setBookLvl('u_phil', 4); return 'u_phil' in S.bookLvl; });
   ok(w + ' вернуть авто: ключ удаляется', !s2);
+  await c.close();
+}
+
+/* 22.10: own pace and the neural network (Джессика: «Давай первое. И четвертое») */
+{ const { p, c } = await page(BASE, 390); await addBooks(p, PHIL, KIDS);
+  const r = await p.evaluate(async () => {
+    const out = {}; const b0 = BOOKS[0].id, b1 = BOOKS[1].id;
+    const row = (id, min, turns) => ({ id: 's' + Math.random(), date: today(), bookId: id, minutes: min, pageTurns: turns });
+    SESS.push(row(b0, 10, 20), row(b0, 10, 20), row(b1, 10, 20), row(b1, 10, 20), row(b1, 10, 20));
+    SESS.push(row('u_kids', 15, 10), row('u_kids', 15, 10), row('u_kids', 15, 10)); /* 1.5 min/turn vs 0.5 → ratio 3 */
+    show('library'); bookInfo('u_kids');
+    const chips = () => [...el('bookSheetBody').querySelectorAll('.chips[aria-label="Сложность книги"] button')].map(b => b.getAttribute('aria-checked') === 'true');
+    out.pace = chips(); out.paceNote = (el('bkLvlPace') || {}).textContent || ''; out.hint = !!el('bkLvlAiHint') && !el('bkLvlAiBtn');
+    S.ai = Object.assign({}, S.ai || {}, { prov: 'openai', key: 'test-key' });
+    let asked = null; window.aiViaKey = async (m) => { asked = m; return 'Ответ: {"level": 3, "why": "Плотные философские термины"}'; };
+    bookInfo('u_kids'); el('bkLvlAiBtn').click();
+    for (let i = 0; i < 50 && !(S.bookLvlAi && S.bookLvlAi.u_kids); i++) await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, 200));
+    out.ai = S.bookLvlAi && S.bookLvlAi.u_kids; out.aiChips = chips(); out.aiNote = (el('bkLvlAiRes') || {}).textContent || '';
+    out.askedText = !!(asked && /Отрывки из книги/.test(asked.user) && /Жил-был кот/.test(asked.user)); out.btnAgain = (el('bkLvlAiBtn') || {}).textContent || '';
+    window.aiViaKey = async () => 'не знаю'; el('bkLvlAiBtn').click(); await new Promise(r => setTimeout(r, 400));
+    out.keptAfterBad = S.bookLvlAi.u_kids.l;
+    out.lvlOf = bookLvlOf(allBooks().find(x => x.id === 'u_kids'));
+    save(); const ex = await __rq.exportBackup(); out.ex = ex.progress && ex.progress.bookLvlAi;
+    return out;
+  });
+  ok('темп: детская книга, которую читаешь втрое медленнее обычного → «Очень сложная», пояснение в карточке', r.pace[2] && /в 3 раза дольше/.test(r.paceNote), r);
+  ok('без ключа: вместо кнопки подсказка про «Нейросети»', r.hint);
+  ok('нейросеть: кнопка отправляет отрывки, ответ 3 → «Экспертная» выбрана, пояснение и «ещё раз»', r.ai && r.ai.l === 3 && r.aiChips[3] && r.askedText && /Экспертная/.test(r.aiNote) && /Плотные философские/.test(r.aiNote) && /ещё раз/.test(r.btnAgain), r);
+  ok('нейросеть: непонятный ответ ничего не портит; уровень книги 3; экспорт несёт bookLvlAi', r.keptAfterBad === 3 && r.lvlOf === 3 && r.ex && r.ex.u_kids && r.ex.u_kids.l === 3, r);
+  await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+  const kept = await p.evaluate(() => S.bookLvlAi && S.bookLvlAi.u_kids);
+  ok('после перезагрузки оценка нейросети на месте', kept && kept.l === 3 && kept.w === 'Плотные философские термины', kept);
+  if (SHOTS) { await p.evaluate(() => { show('library'); bookInfo('u_kids'); const h = [...el('bookSheetBody').querySelectorAll('.bk-h')].find(x => x.textContent === 'Сложность'); h.scrollIntoView({ block: 'start' }); }); await sleep(300); await p.screenshot({ path: SHOTS + '/card-ai-390.png' }); }
+  await c.close();
+}
+
+/* 23.10: «Оценка неверная», «признаки спорят», скан без текста (Джессика: «чтобы не облажаться») */
+{ const { p, c } = await page(BASE, 360); await addBooks(p, PHIL, KIDS);
+  const r = await p.evaluate(async () => {
+    const out = {};
+    S.userBooks.push({ id: 'u_kh', title: 'Стишки', author: 'Георг Гегель', genre: 'Текст', cover: '', text: allBooks().find(x => x.id === 'u_kids').text, size: 1, fname: 'kh.txt' },
+      { id: 'u_scan', title: 'Деррида Ж. – О грамматологии', author: 'PDF', genre: 'PDF', type: 'pdf', pages: 256, cover: '', lvlText: 0, lvlWords: 0, lvlV: 5 });
+    show('library'); bookInfo('u_kh');
+    out.spor = (el('bkLvlSpor') || {}).textContent || ''; out.sporKids = (bookInfo('u_kids'), !!el('bkLvlSpor'));
+    bookInfo('u_scan'); out.scan = (el('bkLvlScan') || {}).textContent || ''; out.scanSpor = !!el('bkLvlSpor');
+    bookInfo('u_phil'); out.btn = (el('bkLvlRepBtn') || {}).textContent || '';
+    el('bkLvlRepBtn').click(); out.open = !el('bkLvlRep').classList.contains('hidden'); out.opts = [...el('bkLvlRep').querySelectorAll('button[role=radio]')].map(b => b.textContent);
+    [...el('bkLvlRep').querySelectorAll('button[role=radio]')][2].click();
+    out.rep = JSON.parse(JSON.stringify(S.bookLvlRep.u_phil)); out.btn2 = (el('bkLvlRepBtn') || {}).textContent || ''; out.panelAfter = !el('bkLvlRep').classList.contains('hidden');
+    out.lvlAfter = bookLvlOf(allBooks().find(x => x.id === 'u_phil'));
+    let copied = ''; window.copyText = (t) => { copied = t; }; el('bkLvlRepCopy').click(); out.copied = copied;
+    el('bkLvlRepDel').click(); out.deleted = !('u_phil' in S.bookLvlRep);
+    [...el('bkLvlRep').querySelectorAll('button[role=radio]')][0].click(); save();
+    const ex = await __rq.exportBackup(); out.ex = ex.progress.bookLvlRep;
+    ex.progress.bookLvlRep = { a: { w: 9, d: '2026-10-23' }, b: { w: 1, d: 'вчера' }, c: { w: 2, d: '2026-10-23', t: 5, s: 'x', k: 'pdf' } };
+    await __rq.importBackup(ex); out.imp = __rq.loadEnvelope().progress.bookLvlRep;
+    return out;
+  });
+  ok('признаки спорят: детский текст у Гегеля → «текст говорит «Обычная», автор «Запредельная»»', /Признаки спорят: текст говорит «Обычная», автор «Запредельная»/.test(r.spor) && !r.sporKids, r.spor);
+  ok('скан без текста: «В PDF нет текста (скан): сложность только по автору, названию», без «спорят»', /В PDF нет текста \(скан\): сложность только по автору, названию/.test(r.scan) && !r.scanSpor, r.scan);
+  ok('«Оценка неверная?»: открывается выбор из 5 ступеней', /Оценка неверная/.test(r.btn) && r.open && r.opts.length === 5, r.opts);
+  ok('отметка «Очень сложная» сохраняется с цифрами подсчёта, награда не меняется', r.rep.w === 2 && r.rep.a === 4 && r.rep.tx === 4 && typeof r.rep.s === 'number' && r.rep.t === 'Критика' && /^\d{4}-\d{2}-\d{2}$/.test(r.rep.d) &&
+    r.lvlAfter === 4 && /Отмечено: «Очень сложная»/.test(r.btn2) && r.panelAfter, r.rep);
+  ok('«Скопировать отметки»: текст для чата с названием и цифрами, без текста книги', /^Отметки сложности ReadQuest \(1\)/.test(r.copied) && /"t":"Критика"/.test(r.copied) && !/Всякое познание/.test(r.copied) && r.copied.length < 600, r.copied);
+  ok('«Убрать отметку» удаляет; экспорт несёт bookLvlRep', r.deleted && r.ex && r.ex.u_phil && r.ex.u_phil.w === 0, r.ex);
+  ok('импорт: кривые отметки отбрасываются (w 9, плохая дата), годная чистится (t, s)', JSON.stringify(Object.keys(r.imp)) === '["c"]' && r.imp.c.t === '' && r.imp.c.s === null && r.imp.c.k === 'pdf', r.imp);
+  if (SHOTS) { await p.evaluate(() => { show('library'); bookInfo('u_kh'); el('bkLvlRepBtn').click(); const h = [...el('bookSheetBody').querySelectorAll('.bk-h')].find(x => x.textContent === 'Сложность'); h.scrollIntoView({ block: 'start' }); }); await sleep(300); await p.screenshot({ path: SHOTS + '/card-spor-360.png' }); }
   await c.close();
 }
 
 /* tracker options, summary lines, persistence */
 { const { p, c } = await page(BASE, 390); await addBooks(p, PHIL, KIDS);
   const t = await p.evaluate(async () => { await openBook('u_phil'); await new Promise(r => setTimeout(r, 300)); const o = trackerOpts(); const k = (await (async () => { await closeReader({ quiet: true }); await openBook('u_kids'); await new Promise(r => setTimeout(r, 300)); return trackerOpts(); })()); await closeReader({ quiet: true }); return { o, k }; });
-  ok('открыта очень сложная: трекер получает level 2 и лимит 7 мин', t.o.level === 2 && t.o.capMs === 7 * 60000, t.o);
+  ok('открыта «Запредельная»: трекер получает level 4 и лимит 10 мин', t.o.level === 4 && t.o.capMs === 10 * 60000, t.o);
   ok('открыта детская: level 0 и прежний лимит 3 мин', t.k.level === 0 && t.k.capMs === 3 * 60000, t.k);
   const sm = await p.evaluate(() => {
     const base = { xp: 150, gold: 0, pages: 6, min: 10, stat: 'Воля', statGain: 1, newB: [], lvBefore: 1, justFinished: false, mult: 1, flipped: 6, cheatFinish: false, dName: '', dmul: 1, newAch: [], achNew: [], day: today(), title: 'Критика' };
@@ -65,7 +141,7 @@ for (const w of [360, 390]) {
     renderSummary(Object.assign({}, base, { quest: { daily: [], weekly: [], lvlGold: 10, lvl: 2, rowLvl: 2 } }));
     return { a, b, d };
   });
-  ok('итог: «+10 монет — бонус за сложность книги» и «Очень сложная книга: опыт ×2»', /\+10 монет — бонус за сложность книги/.test(sm.a) && /Очень сложная книга: опыт ×2/.test(sm.a), sm.a);
+  ok('итог: «+10 монет — бонус за сложность книги» и «Сложность «Очень сложная»: опыт ×2»', /\+10 монет — бонус за сложность книги/.test(sm.a) && /Сложность «Очень сложная»: опыт ×2/.test(sm.a), sm.a);
   ok('итог: быстрое листание — «бонус за сложность не начислен»', /Листали быстрее.*бонус за сложность не начислен/.test(sm.b), sm.b);
   ok('итог обычной книги без строк уровня', sm.d);
   if (SHOTS) { await sleep(300); await p.screenshot({ path: SHOTS + '/summary-390.png' }); }
@@ -112,9 +188,12 @@ def mk(fn,txt,pages):
 mk(sys.argv[1],sys.argv[3],30); mk(sys.argv[2],sys.argv[4],30)
 c=canvas.Canvas(sys.argv[5])
 for i in range(10): c.rect(40,40,500,700,fill=1); c.showPage()
+c.save()
+c=canvas.Canvas(sys.argv[6]); c.setAuthor('Jacques Derrida'); c.setTitle('scan_0001')
+for i in range(10): c.rect(40,40,500,700,fill=1); c.showPage()
 c.save()`;
   const f = n => path.join(dir, n);
-  execFileSync('python3', ['-c', py, f('phil.pdf'), f('kids.pdf'), EN_PHIL, EN_KIDS, f('scan.pdf')]);
+  execFileSync('python3', ['-c', py, f('phil.pdf'), f('kids.pdf'), EN_PHIL, EN_KIDS, f('scan.pdf'), f('derrida.pdf')]);
   const b64 = n => fs.readFileSync(f(n)).toString('base64');
   const { p, c } = await page(BASE, 390);
   const imp = await p.evaluate(async (files) => {
@@ -122,13 +201,13 @@ c.save()`;
     for (const [name, b] of Object.entries(files)) {
       const bin = Uint8Array.from(atob(b), ch => ch.charCodeAt(0));
       const bk = await importBookFile(new File([bin], name, { type: 'application/pdf' }), () => {});
-      out[name] = { id: bk.id, lvlText: bk.lvlText, lvlV: bk.lvlV, auto: bookLvlAuto(bk) };
+      out[name] = { id: bk.id, lvlText: bk.lvlText, lvlV: bk.lvlV, lvlWords: bk.lvlWords, auto: bookLvlAuto(bk) };
     }
     return out;
-  }, { 'phil.pdf': b64('phil.pdf'), 'kids.pdf': b64('kids.pdf'), 'scan.pdf': b64('scan.pdf') });
-  ok('импорт PDF: философия → lvlText 2, детский → 0, скан без текста → 0; версия правила записана', imp['phil.pdf'].lvlText === 2 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0 && imp['phil.pdf'].lvlV === 2, imp);
+  }, { 'phil.pdf': b64('phil.pdf'), 'kids.pdf': b64('kids.pdf'), 'scan.pdf': b64('scan.pdf'), 'derrida.pdf': b64('derrida.pdf') });
+  ok('импорт PDF: философия → lvlText 4, детский → 0, скан без текста → 0, скан с автором Деррида в свойствах PDF → 4; версия правила записана', imp['phil.pdf'].lvlText === 4 && imp['kids.pdf'].lvlText === 0 && imp['scan.pdf'].lvlText === 0 && imp['phil.pdf'].lvlV === 5 && imp['derrida.pdf'].lvlText === 4 && imp['derrida.pdf'].auto === 4 && imp['phil.pdf'].lvlWords > 1500 && imp['scan.pdf'].lvlWords === 0, imp);
   const pc = await card(p, imp['phil.pdf'].id);
-  ok('карточка PDF-философии: выбрана «Очень сложная», «Определена по тексту»', pc.chips[2] && pc.chips[2].on && /Определена по тексту/.test(pc.note), pc);
+  ok('карточка PDF-философии: выбрана «Запредельная», «Определена по тексту»', pc.chips[4] && pc.chips[4].on && /Определена по тексту/.test(pc.note), pc);
   /* an older card (imported before this build) has no lvlText: checked once when the book is opened */
   const op = await p.evaluate(async (id) => {
     const b = allBooks().find(x => x.id === id); delete b.lvlText; delete __lvlAuto[id]; save();
@@ -138,7 +217,7 @@ c.save()`;
     await closeReader({ quiet: true });
     return { before, after, lvlText: b.lvlText, cap: snap.pageCapMs, row: SESS.slice(-1)[0] };
   }, imp['phil.pdf'].id);
-  ok('старая карточка PDF: при открытии уровень 0, через пару секунд текст проверен (lvlText 2), лимит страницы 7 мин', op.before === 0 && op.after === 2 && op.lvlText === 2 && op.cap === 7 * 60000, op);
+  ok('старая карточка PDF: при открытии уровень 0, через пару секунд текст проверен (lvlText 4), лимит страницы 10 мин', op.before === 0 && op.after === 4 && op.lvlText === 4 && op.cap === 10 * 60000, op);
   /* 21.10: a card checked by the older rule (lvlText 1, no lvlV) is re-checked once on open */
   const rv = await p.evaluate(async (id) => {
     const b = allBooks().find(x => x.id === id); b.lvlText = 1; delete b.lvlV; delete __lvlAuto[id]; save();
@@ -148,10 +227,10 @@ c.save()`;
     await openBook(id); await new Promise(r => setTimeout(r, 2500)); const again = b.lvlV; await closeReader({ quiet: true });
     return { before, after, lvlText: b.lvlText, lvlV: b.lvlV, again };
   }, imp['phil.pdf'].id);
-  ok('карточка PDF со старым правилом: сначала старый уровень 1, потом пересчёт до 2 (lvlV 2), второй раз не считается', rv.before === 1 && rv.after === 2 && rv.lvlText === 2 && rv.lvlV === 2 && rv.again === 2, rv);
+  ok('карточка PDF со старым правилом: сначала старый уровень 1, потом пересчёт до 4 (lvlV 5), второй раз не считается', rv.before === 1 && rv.after === 4 && rv.lvlText === 4 && rv.lvlV === 5 && rv.again === 5, rv);
   await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
   const kept = await p.evaluate((ids) => ids.map(id => (allBooks().find(x => x.id === id) || {}).lvlText), [imp['phil.pdf'].id, imp['scan.pdf'].id]);
-  ok('после перезагрузки lvlText в карточках на месте (2 и 0), повторно не считается', kept[0] === 2 && kept[1] === 0, kept);
+  ok('после перезагрузки lvlText в карточках на месте (4 и 0), повторно не считается', kept[0] === 4 && kept[1] === 0, kept);
   await c.close(); fs.rmSync(dir, { recursive: true, force: true });
 }
 

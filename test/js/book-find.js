@@ -272,9 +272,16 @@ function bfTicksSync(force){
   t.style.left=(sl.offsetLeft+PG_TH/2)+'px';t.style.width=Math.max(0,W-PG_TH)+'px';t.style.top=(sl.offsetTop+sl.offsetHeight/2)+'px';
   const w=Math.max(1,W-PG_TH);let h='',lastX=-9;
   ch.forEach(function(c){if(c.page<=0)return;const x=c.page/mx*w;if(x-lastX<3)return;lastX=x;h+='<i style="left:'+(c.page/mx*100).toFixed(3)+'%"></i>';});
-  t.innerHTML=h;
+  t.innerHTML=h;bfTicksThumb();
 }
 if(window.ResizeObserver)new ResizeObserver(function(){bfTicksSync();}).observe(el('pgSlider'));
 /* a new book / new layout sets sl.max (reflected to the attribute) → ticks again; the layout key covers a font change */
 if(window.MutationObserver)new MutationObserver(function(){bfTicksSync();}).observe(el('pgSlider'),{attributes:true,attributeFilter:['max']});
 addEventListener('resize',function(){bfTicksSync();});
+/** 25.10: the chapter mark under the thumb is hidden (marks are drawn over the track, the thumb must stay clean) */
+function bfTicksThumb(){const t=el('pgTicks'),sl=el('pgSlider');if(!t||!sl||!t.firstChild)return;const mx=+sl.max||0,w=Math.max(1,sl.offsetWidth-PG_TH);if(!mx)return;
+  const x=(+sl.value)/mx*w;t.querySelectorAll('i').forEach(function(i){i.classList.toggle('u',Math.abs(parseFloat(i.style.left)/100*w-x)<PG_TH/2+2);});}
+el('pgSlider').addEventListener('input',bfTicksThumb);
+(function(){ /* page turns set slider.value from code (no event): follow them too */
+  const sl=el('pgSlider'),d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');if(!sl||!d||!d.set)return;
+  Object.defineProperty(sl,'value',{configurable:true,get:function(){return d.get.call(this);},set:function(v){d.set.call(this,v);bfTicksThumb();}});})();

@@ -36,8 +36,8 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261025-2317';
-import { paceLevel } from './game-awards.js?v=20261025-2317';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261025-2318';
+import { paceLevel } from './game-awards.js?v=20261025-2318';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -45,6 +45,15 @@ export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* quota */ } }
 function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+
+/** 25.10: focus fields → row (only the non-empty ones; game-awards rowPomo validates them against the minutes) */
+function focusInto(row, f) {
+  if (!f) return row;
+  if (Array.isArray(f.pomo) && f.pomo.length) row.pomo = f.pomo.slice(0, 50);
+  if (f.pomoRun > 0 && row.pomo) row.pomoRun = f.pomoRun;
+  if (f.fw) row.fw = String(f.fw).slice(0, 80);
+  return row;
+}
 
 /** Skip empty sessions: < ~9 s counted and no counted page. */
 /* Empty = no row, no XP: under one counted minute without a single honest page turn (Джессика 17.10: «дают опыт за то, что я просто вошёл в книжку»). */
@@ -73,6 +82,7 @@ export function createSessionTracker(api) {
   let minSecMs = 12000;
   let level = 0;          // book level for this session (0 = ordinary); the row stores paceLevel(level, …)
   let pageMs = [];        // counted ms of every closed page (only while level > 0) — the pace check
+  let focus = null;       // 25.10 «Фокус» (js/focus.js): {pomo:[25,…], pomoRun, fw} — copied into the row; the game validates it
   let counting = true;
   let running = false;
   let startedAt = 0;
@@ -128,6 +138,7 @@ export function createSessionTracker(api) {
       pageTurns: pagesRead,
       startedAt: startedAt,
       lvl: rowLvl() || undefined,
+      pomo: focus && focus.pomo, pomoRun: focus && focus.pomoRun, fw: focus && focus.fw,
       updatedAt: Date.now(),
     }));
   }
@@ -195,6 +206,7 @@ export function createSessionTracker(api) {
     };
     const lv = level > 0 ? paceLevel(level, pageMs, turns) : 0; /* creditPage() above already closed the last page */
     if (lv > 0) row.lvl = lv;
+    focusInto(row, focus);
     if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return { row: null, ev: ev }; }
     /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
     reset(true);
@@ -210,7 +222,8 @@ export function createSessionTracker(api) {
     } catch (e) {
       console.warn('[rq] logSession failed — draft kept for recovery', e);
       const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
-        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, lvl: row.lvl, updatedAt: Date.now() });
+        countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, lvl: row.lvl,
+        pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, updatedAt: Date.now() });
       /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
       if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
       return null;
@@ -223,7 +236,7 @@ export function createSessionTracker(api) {
     clearInterval(flushTimer); flushTimer = null;
     running = false; held = false; bookId = null; sessionId = null; startDay = null;
     pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
-    creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; level = 0; pageMs = []; newPageCap();
+    creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; level = 0; pageMs = []; focus = null; newPageCap();
     if (!keepDraft) lsDel(DRAFT_KEY);
   }
 
@@ -280,6 +293,15 @@ export function createSessionTracker(api) {
       if (newCapMs > capMs) { capMs = newCapMs; if (pageCapMs < capMs) pageCapMs = capMs; }
       persistDraft();
     },
+
+    /** 25.10 «Фокус»: completed rounds / run / focus words of THIS session (js/focus.js); replaces the previous value */
+    setFocus(info) {
+      if (!running) return;
+      focus = info && typeof info === 'object' ? { pomo: Array.isArray(info.pomo) ? info.pomo.slice(0, 50) : [], pomoRun: info.pomoRun | 0, fw: info.fw ? String(info.fw).slice(0, 80) : '' } : null;
+      persistDraft();
+    },
+    /** id of the running session (focus.js keeps its round state per session) */
+    sessionId() { return running ? sessionId : null; },
 
     /** 1в-black: hold the counted clock until the page is back on screen (pdf resume re-render). */
     holdResume() { held = true; dwellPause(); },
@@ -383,7 +405,9 @@ export function createSessionTracker(api) {
     /** Live counted state (for the day-progress bar). */
     snapshot() {
       return { countedMs: countedMsLive(), minutes: countedMsLive() / 60000, pageTurns: pagesRead, turns: turns,
-        page: page, pageCapMs: pageCapMs, pageDwellMs: dwellLive(), extensions: extCount };
+        page: page, pageCapMs: pageCapMs, pageDwellMs: dwellLive(), extensions: extCount,
+        /* 25.10 «Фокус»: counted ms that can no longer be taken back (the open page only once it passed minSec) — never decreases */
+        sureMs: creditedMs + (dwellLive() >= minSecMs ? Math.min(dwellLive(), pageCapMs) : 0) };
     },
     getPageTurns() { return pagesRead; },
     getBookId() { return bookId; },
@@ -447,6 +471,7 @@ async function recoverRaw(api, raw) {
     }
     return await api.logSession({
       id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt, lvl: d.lvl,
+      pomo: d.pomo, pomoRun: d.pomoRun, fw: d.fw,
     });
   } catch (e) {
     console.warn('[rq] recoverDraft failed', e);

@@ -1013,6 +1013,7 @@ function renderStats(){
   renderChart('chPages',days,'pages','var(--accent2)');
   renderChart('chXp',days,'xp','#7fd8e0');
   renderChart('chGold',days,'gold','#ffd54f');
+  if(typeof fzRenderStats==='function')fzRenderStats(statPeriod); /* 25.10 «Фокус и концентрация» */
   renderAnaHours();renderAnaGenre();renderAnaMonths();
   const rows=allBooks().map(b=>({b:b,s:S.bookStats[b.id]})).filter(x=>x.s&&(x.s.min>0.2||x.s.pages>0));
   el('bookStatBox').innerHTML=rows.length

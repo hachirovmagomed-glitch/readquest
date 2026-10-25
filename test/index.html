@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261025-1736',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261025-1910',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261025-1736"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261025-1910"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -161,6 +161,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advbar{display:block;width:100%;height:4px;border-radius:var(--rq-radius-xs);background:var(--line);overflow:hidden}
 .advbar i{display:block;height:100%;background:var(--accent);border-radius:var(--rq-radius-xs)}
 .advsetprog + .advbar{margin:6px 0 4px}
+.advquests{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.advq{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border-radius:var(--rq-radius-md);color:var(--txt)}
+.advq .advmeta{gap:6px}
+.advq .advmeta b{font-size:0.875rem}
+.advq.done .advbar i{background:var(--muted)}
+.advq .chip{flex:none;font-size:0.75rem;white-space:nowrap}
+.advqok{display:inline-flex;align-items:center;gap:4px}
+.advqok .ic{color:var(--accent)}
+.advqget{flex:none;max-width:48%;font-size:0.8125rem;padding:8px 10px;white-space:normal;line-height:1.2}
+.advwhy{color:var(--accent)}
+.advoffl{display:flex;align-items:center;gap:4px}
+.advbinote{margin-top:6px}
 .advflt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .advfsep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
 .advsnip{display:block;font-size:0.75rem;line-height:1.35;color:var(--muted);margin-top:2px}
@@ -493,6 +505,7 @@ body.rq-nolocks #rqNoXp{display:block}
 .rfoot span,.rfoot input[type=range]{transition:none!important}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
+#content p.rq-bitr,.rqCurlTxt p.rq-bitr{font-style:italic;opacity:.72;margin-bottom:.6em} /* 25.10: перевод под абзацем (книга «с переводом») */
 #content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em;break-inside:avoid} /* audit 19.10 RD-EPUB-01 */
 #content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em;white-space:normal;overflow-wrap:anywhere;break-inside:avoid} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
@@ -1685,7 +1698,7 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261025-1736"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261025-1910"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2333,37 +2346,37 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261025-1736"></script>
-<script src="js/books-builtin.js?v=20261025-1736"></script>
-<script src="js/core-b.js?v=20261025-1736"></script>
-<script src="js/library.js?v=20261025-1736"></script>
-<script src="js/reader.js?v=20261025-1736"></script>
-<script src="js/pdf.js?v=20261025-1736"></script>
-<script src="js/pdf-scroll.js?v=20261025-1736"></script>
-<script src="js/page-curl.js?v=20261025-1736"></script>
-<script src="js/page-grid.js?v=20261025-1736"></script>
-<script src="js/reader-ui.js?v=20261025-1736"></script>
-<script src="js/book-find.js?v=20261025-1736"></script>
-<script src="js/rpg.js?v=20261025-1736"></script>
-<script src="js/content.js?v=20261025-1736"></script>
-<script src="js/translate.js?v=20261025-1736"></script>
-<script src="js/hero-pencil.js?v=20261025-1736"></script>
-<script src="js/hero-celestial.js?v=20261025-1736"></script>
-<script src="js/hero.js?v=20261025-1736"></script>
-<script src="js/settings.js?v=20261025-1736"></script>
-<script src="js/v6-extras.js?v=20261025-1736"></script>
-<script src="js/ach-core.js?v=20261025-1736"></script>
-<script src="js/achievements.js?v=20261025-1736"></script>
-<script src="js/path.js?v=20261025-1736"></script>
-<script src="js/adv.js?v=20261025-1736"></script>
-<script src="js/start.js?v=20261025-1736"></script>
+<script src="js/core-a.js?v=20261025-1910"></script>
+<script src="js/books-builtin.js?v=20261025-1910"></script>
+<script src="js/core-b.js?v=20261025-1910"></script>
+<script src="js/library.js?v=20261025-1910"></script>
+<script src="js/reader.js?v=20261025-1910"></script>
+<script src="js/pdf.js?v=20261025-1910"></script>
+<script src="js/pdf-scroll.js?v=20261025-1910"></script>
+<script src="js/page-curl.js?v=20261025-1910"></script>
+<script src="js/page-grid.js?v=20261025-1910"></script>
+<script src="js/reader-ui.js?v=20261025-1910"></script>
+<script src="js/book-find.js?v=20261025-1910"></script>
+<script src="js/rpg.js?v=20261025-1910"></script>
+<script src="js/content.js?v=20261025-1910"></script>
+<script src="js/translate.js?v=20261025-1910"></script>
+<script src="js/hero-pencil.js?v=20261025-1910"></script>
+<script src="js/hero-celestial.js?v=20261025-1910"></script>
+<script src="js/hero.js?v=20261025-1910"></script>
+<script src="js/settings.js?v=20261025-1910"></script>
+<script src="js/v6-extras.js?v=20261025-1910"></script>
+<script src="js/ach-core.js?v=20261025-1910"></script>
+<script src="js/achievements.js?v=20261025-1910"></script>
+<script src="js/path.js?v=20261025-1910"></script>
+<script src="js/adv.js?v=20261025-1910"></script>
+<script src="js/start.js?v=20261025-1910"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261025-1736"></script>
+<script src="js/pwa-lock.js?v=20261025-1910"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2371,9 +2384,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261025-1736';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261025-1736';
-import * as game from './game-awards.js?v=20261025-1736';
+} from './storage/index.js?v=20261025-1910';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261025-1910';
+import * as game from './game-awards.js?v=20261025-1910';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

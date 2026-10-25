@@ -1,0 +1,45 @@
+# Temporary probe for «Приключения» (thread up771x): Wikisource titles for new collections. Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          cat > p.py <<'PY'
+          import json,urllib.request,urllib.parse,time
+          UA={'User-Agent':'readquest-probe/1.0 (github actions)'}
+          def get(params):
+              u='https://ru.wikisource.org/w/api.php?'+urllib.parse.urlencode(dict(params,format='json',formatversion=2))
+              for i in range(4):
+                  try: return json.loads(urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60).read())
+                  except Exception as e: time.sleep(3)
+              return {}
+          Q='''Двенадцать Блок|Незнакомка Блок|Скифы Блок|Облако в штанах Маяковский|Флейта-позвоночник|Жираф Гумилёв|Капитаны Гумилёв|Заблудившийся трамвай|Silentium Мандельштам|Бессонница. Гомер. Тугие паруса|Мне нравится, что вы больны не мной|Я — вам слова Бальмонт|Хочу быть дерзким|Юному поэту Брюсов|Грядущие гунны|Письмо матери Есенин|Гой ты, Русь, моя родная|Не жалею, не зову, не плачу|Бобэоби|Петербург Белый|Мелкий бес Сологуб
+          Калевала|Старшая Эдда|Песнь о Нибелунгах|Песнь о Роланде|Беовульф|Гильгамеш|Слово о полку Игореве|Махабхарата|Рамаяна|Сказание о Тристане и Изольде|Илья Муромец и Соловей-разбойник|Садко былина|Легенды и мифы Древней Греции|Мифы Древней Греции Кун
+          Собака Баскервилей|Этюд в багровых тонах|Знак четырёх|Пёстрая лента|Союз рыжих|Скандал в Богемии|Убийство на улице Морг|Золотой жук|Похищенное письмо|Лунный камень|Женщина в белом|Тайна отца Брауна|Синий крест Честертон|Шведская спичка|Драма на охоте
+          Голова профессора Доуэля|Красная звезда Богданов|Республика Южного Креста|4338-й год|Жидкое солнце|Гиперболоид инженера Гарина|Остров погибших кораблей|Борьба в эфире|Властелин мира Беляев|Прыжок в ничто|На Луне Циолковский|Вне Земли|Плутония|Земля Санникова|Город в табакерке'''
+          for grp in Q.split('\n'):
+              print('\n######')
+              for q in grp.strip().split('|'):
+                  d=get({'action':'query','list':'search','srsearch':q,'srnamespace':0,'srlimit':5})
+                  hits=[h['title'] for h in (d.get('query') or {}).get('search',[])]
+                  roots=[]
+                  for t in hits:
+                      r=t.split('/')[0]
+                      if r not in roots and '(' in r: roots.append(r)
+                  info={}
+                  if roots:
+                      m=get({'action':'query','prop':'categories|info','cllimit':'max','titles':'|'.join(roots[:3])})
+                      for p in (m.get('query') or {}).get('pages',[]):
+                          cats=[c['title'].replace('Категория:','') for c in p.get('categories',[])]
+                          lic=[c for c in cats if c.startswith('PD') or 'достояние' in c]
+                          lst=[c for c in cats if c.startswith('Списки') or 'Неоднознач' in c]
+                          info[p['title']]=(p.get('length'),lic[:2],lst[:1])
+                  print(q,'=>',json.dumps(info,ensure_ascii=False))
+                  time.sleep(0.4)
+          PY
+          python3 p.py

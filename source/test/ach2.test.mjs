@@ -49,7 +49,7 @@ const view = await p.evaluate(async () => { renderProfile(); show('profile'); co
   const secs = [...document.querySelectorAll('#achPage [data-sec]')]; for (const b of secs) { b.click(); await new Promise(r => setTimeout(r, 30)); }
   return { vis, open, secs: secs.length, text: pg ? pg.innerText : '' }; });
 ok('2a profile shows the achievements card; the page opens with 11 section tabs', view.vis && view.open && view.secs >= 11, { vis: view.vis, open: view.open, secs: view.secs });
-ok('2b page shows points and «из 111»', /из 111/.test(view.text) && /очк/.test(view.text), view.text.slice(0, 300));
+ok('2b page shows points and «из 114»', /из 114/.test(view.text) && /очк/.test(view.text), view.text.slice(0, 300));
 ok('2c open page, switch every section → 0 writes', (await V1(p)) === before);
 ok('2d secret ones show «???» and a hint, not the name and not the progress', await p.evaluate(() => { const t = el('achPage').innerText; return /\?\?\?/.test(t) && !/Ровно сто/.test(t) && !/\/ 1001/.test(t); }));
 ok('2e no emoji in the page', await p.evaluate(() => !/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u.test(el('achPage').innerText + el('achCard').innerText)));

@@ -152,6 +152,11 @@ await p.evaluate(() => { const j = el('jumpBack'); if (j && !j.classList.contain
       done: rows.map(r => r.classList.contains('pdone')), onIdx: rows.indexOf(on), sub: on && on.querySelector('.psub').textContent }; });
   ok('«Главы»: «Глава 5 из 8 · книга прочитана на N%», every chapter shows its page, chapters 1-4 checked, the current one says how far into it', /^Глава 5 из 8 · книга прочитана на \d+%$/.test(t.sum) && JSON.stringify(t.pages) === JSON.stringify(t.want) && t.onIdx === 4 && t.done.join() === 'true,true,true,true,false,false,false,false' && /^\d+% главы · (ещё \d+ стр\.|последняя страница)$/.test(t.sub), t);
   if (SHOTS) await shot('360-9-glavy');
+  /* 25.10 (Джессика: «нажимаю на главу — сразу бросает в чтение; хочу выходить из "Глав" сама») */
+  const y0 = await p.evaluate(() => { const b = el('panelBody'); b.scrollTop = 40; return b.scrollTop; });
+  await p.evaluate(() => document.querySelectorAll('#panelBody .prow')[2].click()); await sleep(600);
+  const j = await p.evaluate(() => { const rows = [...document.querySelectorAll('#panelBody .prow')]; return { open: !el('panel').classList.contains('hidden'), page: R.page, want: bfChapters()[2].page, on: rows.findIndex(r => r.classList.contains('on')), y: el('panelBody').scrollTop }; });
+  ok('tap on a chapter: the book goes there, «Главы» stay open (the list where it was), the mark moves to that chapter', j.open && Math.abs(j.page - j.want) <= 1 && j.on === 2 && j.y === y0, { j, y0 });
   await p.evaluate(() => el('panelClose').click()); await sleep(300); }
 /* 4. PDF: bookmarks → «Главы» + ticks; search by the text layer; highlight on the page */
 await p.evaluate(() => closeReader({ quiet: true })); await sleep(800);
@@ -191,8 +196,10 @@ for (const W of [360, 390]) {
     await open(0);
     const L = await p.evaluate(() => { const hd = document.querySelector('#reader .rhead'), bs = [...hd.querySelectorAll('button')].filter(b => b.offsetWidth), t = document.getElementById('rTitle').getBoundingClientRect();
       return { fit: bs.every(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + .5; }), titleW: Math.round(t.width), ticks: document.querySelectorAll('#pgTicks i').length,
-        tickVis: (() => { const i = document.querySelector('#pgTicks i'); if (!i) return false; const cs = getComputedStyle(i), r = i.getBoundingClientRect(); return cs.display !== 'none' && r.width > 0 && r.height > 0 && +cs.opacity > 0; })(), skin: document.documentElement.dataset.skin || '' }; });
-    ok(`${sk || 'default'} ${W}: header buttons inside the screen, the title keeps room, chapter ticks drawn`, L.fit && L.titleW >= 80 && L.ticks === 7 && L.tickVis, L);
+        tickVis: (() => { const i = [...document.querySelectorAll('#pgTicks i')].find(x => !x.classList.contains('u')); if (!i) return false; const cs = getComputedStyle(i), r = i.getBoundingClientRect(); return cs.display !== 'none' && r.width > 0 && r.height > 0 && +cs.opacity > 0; })(),
+        thin: (() => { const s = el('pgSlider').getBoundingClientRect(), cy = s.top + s.height / 2; return [...document.querySelectorAll('#pgTicks i')].every(i => { const r = i.getBoundingClientRect(), o = +getComputedStyle(i).opacity; return r.height <= 9 && Math.abs((r.top + r.bottom) / 2 - cy) <= 1.5 && o <= .6; }); })(),
+        underThumb: (() => { const sl = el('pgSlider'), c = bfChapters()[3]; sl.value = c.page; const i = document.querySelectorAll('#pgTicks i')[2], hid = i.classList.contains('u'), others = document.querySelectorAll('#pgTicks i.u').length; sl.value = R.page; return hid && others === 1; })(), skin: document.documentElement.dataset.skin || '' }; });
+    ok(`${sk || 'default'} ${W}: header buttons inside the screen, the title keeps room, chapter marks drawn thin and see-through ON the track (≤9 px, opacity ≤.6), the one under the thumb hidden`, L.fit && L.titleW >= 80 && L.ticks === 7 && L.tickVis && L.thin && L.underThumb, L);
     await p.evaluate(() => { const sl = el('pgSlider'); sl.value = bfChapters()[3].page + 2; pgArtSync(); pgTipShow(); }); await sleep(100);
     await shot(`${W}-${sk || 'default'}-a-polzunok`);
     await p.evaluate(() => { el('pgTip').classList.add('hidden'); el('pgSlider').value = R.page; pgArtSync(); });

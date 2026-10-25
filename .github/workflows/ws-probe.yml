@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { ref: claude/project-thread-up771x }
-      - run: pip install -q pillow opencv-python-headless
+      - run: pip install -q pillow "opencv-python-headless==4.10.0.84" "numpy<2.3" && python3 -c "import cv2;print(cv2.__version__,cv2.__file__,hasattr(cv2,'CascadeClassifier'))"
       - run: |
           cat > /tmp/p.py <<'PY'
           import json,urllib.request,urllib.parse,time,io,os,sys,re

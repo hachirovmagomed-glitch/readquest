@@ -124,10 +124,68 @@ await p.evaluate(() => { __ext(__pc(0, 0)); }); await settle(1500);
 const b6 = await p.evaluate(() => __st());
 ok('start handle at the start of the page → page 2, anchor kept', b6.page === 2 && b6.an === a6.an, { a6, b6 });
 
+// 8. 26.10 (Джессика: «плашка с настройками мешает выделять текст»): the reader's bars hide as soon as text is selected
+await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(3, true); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 300)); });
+const b8 = await p.evaluate(async () => { const on = !el('reader').classList.contains('barsoff'); __sel(__pc(0, 40), __pc(0, 60)); await new Promise(r => setTimeout(r, 400)); return { before: on, after: el('reader').classList.contains('barsoff') }; });
+ok('bars shown → a selection hides them', b8.before && b8.after, b8);
+
+// 9. the selection bar never covers the end being dragged: hidden while the end moves, back after it stops; at the top when the end is under it
+const b9 = await p.evaluate(async () => { const sp = el('selpop'); const w = (ms) => new Promise(r => setTimeout(r, ms));
+  __sel(__pc(0, 40), __pc(0, 60)); await w(400); const shown0 = !sp.classList.contains('hidden');
+  __ext(__pc(0, 120)); await w(300); const mid = sp.classList.contains('hidden'); await w(700); const back = !sp.classList.contains('hidden');
+  __ext(__pc(0, -30)); await w(1000); const end = (() => { const rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width); return rs[rs.length - 1]; })(), b = sp.getBoundingClientRect();
+  return { shown0, mid, back, top: sp.classList.contains('top'), covers: end.bottom > b.top && end.top < b.bottom }; });
+ok('bar hides while the end is dragged and comes back after it stops', b9.shown0 && b9.mid && b9.back, b9);
+ok('end of the selection near the bottom → the bar goes to the top and does not cover it', b9.top && !b9.covers, b9);
+
+// 10. the hint at the edge: shown while the end is held at the end of the page, gone after the turn
+await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(3, true); await new Promise(r => setTimeout(r, 200)); __sel(__pc(0, 40), __pc(0, 60)); await new Promise(r => setTimeout(r, 300)); __ext(__pc(0, -20)); await new Promise(r => setTimeout(r, 150)); const c = __pc(0, -1); __ext([c[0], c[1] + 1]); });
+await sleep(300);
+const h10 = await p.evaluate(() => { const h = el('selEdge'), r = h && h.getBoundingClientRect(), v = el('viewer').getBoundingClientRect(); return { cls: h && h.className, in: !!r && r.right <= v.right + 1 && r.bottom <= v.bottom + 1 && r.width > 20, page: R.page }; });
+await sleep(1000);
+const h10b = await p.evaluate(() => ({ cls: el('selEdge').className, page: R.page }));
+ok('edge hint: shown at the bottom right while the end is held there, gone after the turn', h10.cls === 'next' && h10.in && h10.page === 3 && h10b.cls === '' && h10b.page === 4, { h10, h10b });
+
+// 11. «Расширить»: a word → its sentence → its paragraph
+const g11 = await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(2, true); await new Promise(r => setTimeout(r, 200));
+  const ps = [...document.querySelectorAll('#content p:not(.meta)')].filter(x => { const r = x.getBoundingClientRect(), v = el('viewer').getBoundingClientRect(); return r.left >= v.left - 1 && r.right <= v.right + 1 && !x.querySelector('mark') && /[.!?]\s+\S.*[.!?]/.test(x.textContent); });
+  const pg = ps[0], t = pg.firstChild, m = /[.!?]\s+([А-ЯЁA-Z][^\s.!?]{3,})/.exec(t.nodeValue); if (!m) return null; const i = m.index + m[0].indexOf(m[1]);
+  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(t, i, t, i + m[1].length); const w0 = String(g);
+  el('spGrow').click(); const s1 = String(g); el('spGrow').click(); const s2 = String(g);
+  return { w0, s1, s2, para: pg.textContent.trim(), grew: s1.length > w0.length && s1.includes(w0) && /[.!?…»"]$/.test(s1.trim()) && s1.trim()[0] === w0[0] }; });
+ok('«Расширить»: word → whole sentence → whole paragraph', g11 && g11.grew && g11.s2.trim() === g11.para, g11);
+
+// 12. «Изменить границы» of a saved quote: its words become a selection, a longer selection saved in its place (note and date kept, one quote)
+const e12 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const bid = R.book.id;
+  getSelection().removeAllRanges(); goPage(2, true); await w(200);
+  __sel(__pc(0, 60), __pc(0, 75)); await w(250); document.querySelector('#spColors button[data-c="b"]').click(); await w(400);
+  const qs = S.quotes[bid], q0 = qs.at(-1); q0.note = 'моя заметка'; q0.date = '2026-10-01'; save(); const n0 = qs.length;
+  const m = quoteMarks(q0)[0], r = m.getClientRects()[0]; quoteTapAt(r.left + 2, r.top + r.height / 2); await w(250);
+  const qmode = el('selpop').classList.contains('qmode') && getComputedStyle(el('spEdit')).display !== 'none';
+  el('spEdit').click(); await w(300); const sel = String(getSelection()); const unmarked = !quoteMarks(q0).length;
+  __ext(__pc(0, 110)); await w(800); const longer = String(getSelection());
+  document.querySelector('#spColors button[data-c="g"]').click(); await w(400);
+  const q1 = S.quotes[bid].at(-1);
+  return { qmode, sel: sel === q0.text, unmarked, n: S.quotes[bid].length === n0, gone: !S.quotes[bid].includes(q0), t: q1.text.length === longer.trim().length || q1.text === longer, note: q1.note, date: q1.date, c: q1.c, marks: quoteMarks(q1).length > 0 }; });
+ok('«Изменить границы»: the quote becomes a selection, the new borders replace it (one quote, note and date kept)', e12 && e12.qmode && e12.sel && e12.unmarked && e12.n && e12.gone && e12.note === 'моя заметка' && e12.date === '2026-10-01' && e12.c === 'g' && e12.marks, e12);
+// …and leaving the selection without saving puts the old quote back
+const e12b = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const bid = R.book.id, q = S.quotes[bid].at(-1), n0 = S.quotes[bid].length;
+  const m = quoteMarks(q)[0], r = m.getClientRects()[0]; quoteTapAt(r.left + 2, r.top + r.height / 2); await w(250); el('spEdit').click(); await w(300);
+  const un = !quoteMarks(q).length; getSelection().removeAllRanges(); await w(400);
+  return { un, back: quoteMarks(q).length > 0, n: S.quotes[bid].length === n0 }; });
+ok('«Изменить границы» then tap away: the quote is back unchanged', e12b.un && e12b.back && e12b.n, e12b);
+
 // 7. scroll mode: nothing turns by itself, the viewer still scrolls
 await p.evaluate(async () => { getSelection().removeAllRanges(); SET.flip = Object.assign({}, SET.flip, { mode: 'scroll' }); saveSet(); applySet && applySet(); if (typeof relayout === 'function') relayout(true); await new Promise(r => setTimeout(r, 600)); el('viewer').scrollTop = 600; await new Promise(r => setTimeout(r, 200)); });
 const s7 = await p.evaluate(() => ({ st: el('viewer').scrollTop, scroll: rqScrollMode() }));
 ok('scroll mode: the viewer keeps its own scroll', s7.scroll && s7.st > 500, s7);
+// 13. scroll mode: the end held at the bottom edge → the text scrolls on by half a screen and the selection follows
+const s13 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const v = el('viewer'), vr = v.getBoundingClientRect(); v.scrollTop = 300; await w(300);
+  const at = (y) => { const r = document.caretRangeFromPoint(vr.left + 120, y); return [r.startContainer, r.startOffset]; };
+  const a = at(vr.top + 120); __sel(a, at(vr.top + 300)); await w(300); __ext(at(vr.top + 500)); await w(150);
+  const z = at(vr.bottom - 12); __ext(z); await w(300); const st0 = v.scrollTop, len0 = String(getSelection()).length, hint = el('selEdge') && el('selEdge').className;
+  await w(1100); return { st0, st1: v.scrollTop, len0, len1: String(getSelection()).length, hint }; });
+ok('scroll mode: end held at the bottom → hint, then half a screen down, the selection grows', s13.hint === 'next' && s13.st1 > s13.st0 + 200 && s13.len1 > s13.len0, s13);
 
 ok('no page errors', errs.length === 0, errs);
 await browser.close();

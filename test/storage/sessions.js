@@ -11,8 +11,8 @@
  *
  * North-star: days/week with ≥10 minutes → daysMeetingThreshold({ minMinutes: 10 }).
  */
-import { IDB_STORE_SESSIONS } from './schema.js?v=20261025-2339';
-import { openDb } from './idb.js?v=20261025-2339';
+import { IDB_STORE_SESSIONS } from './schema.js?v=20261026-0325';
+import { openDb } from './idb.js?v=20261026-0325';
 
 /** Session UUID (reader-generated). crypto.randomUUID with a random v4 fallback. */
 export function newSessionId() {
@@ -135,6 +135,10 @@ export async function logSession(entry) {
   if (entry.xp != null && Number.isFinite(xp) && xp >= 0) rec.xp = xp;
   /* optional (19.10, additive): book level of the session, game-awards LEVELS; only 1…2 is kept (0 = no field) */
   if (Number.isInteger(entry.lvl) && entry.lvl >= 1 && entry.lvl <= 4) rec.lvl = entry.lvl; /* 1…LVL_MAX (game-awards.js) */
+  /* optional (25.10, additive, arch.md «Честное чтение»): fast flips, seconds cut with no sign of life, re-read pages, XP factor */
+  ['fl', 'ct', 'rr'].forEach(function (k) { if (Number.isInteger(entry[k]) && entry[k] > 0 && entry[k] <= 1e6) rec[k] = entry[k]; });
+  const hon = Number(entry.hon);
+  if (entry.hon != null && hon >= 0.5 && hon < 1) rec.hon = Math.round(hon * 100) / 100;
   /* optional (25.10 «Фокус», additive): completed rounds (15/25/45), longest run without leaving, focus words */
   if (Array.isArray(entry.pomo)) { const pm = entry.pomo.filter(function (v) { return v === 15 || v === 25 || v === 45; }).slice(0, 50); if (pm.length) rec.pomo = pm; }
   if (rec.pomo && Number.isInteger(entry.pomoRun) && entry.pomoRun > 0) rec.pomoRun = Math.min(entry.pomoRun, rec.pomo.length);

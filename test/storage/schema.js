@@ -63,6 +63,8 @@ export const PROGRESS_DEF = {
   bookLvlAi: {},
   /** 23.10 (arch.md): id → reader's mark «Оценка неверная» {w: 0…4 wanted, d, title/author, the numbers behind the level}, ≤ 200 */
   bookLvlRep: {},
+  /** 25.10 (arch.md «Честное чтение»): id → merged [from, to] spans (0…1) of the book already credited; ≤ 300 per book, ≤ 500 books */
+  readSpans: {},
   /** arch.md 20.10: «Обсудить книгу» — {bookId: [{r:'u'|'a', t, d}]}, ≤ 20 сообщений на книгу, t ≤ 1500 */
   aiChat: {},
   bookStat: {},
@@ -123,6 +125,8 @@ export const GAME_DEF = {
   weeklyPaidWeeks: [],
   /** 19.10 (arch.md «Сложность книги»): local day YYYY-MM-DD → level-bonus coins already paid that day */
   lvlPaid: {},
+  /** 25.10 (arch.md «Честное чтение»): local day YYYY-MM-DD → XP paid for the mini-check that day (once a day) */
+  quizPaid: {},
   pomoPaid: {},
   chalPaid: {},
   /** true once old claim dates (dailyClaimed/weeklyClaimed) were folded into the *Paid lists */
@@ -194,6 +198,8 @@ export const SET_DEF = {
   focus: 'button',   // 1б: 'off' | 'button' | 'auto'
   pdfDim: 0.35,      // 1б: 0..0.5, step 0.05
   readCounter: true, // 1б: «7 / 10 мин» in focus
+  pauseBtn: true, // 25.10 (arch.md): the floating pause circle in the reader
+  pauseXY: null, // 25.10: its centre {x, y} as a share of the screen 0…1; null = default place
   bright: 1,         // 18.10: own brightness 0.3..1 (arch.md SET.bright)
   warm: 0,           // 18.10: warm tint 0..0.6
   pdfFont: false,    // 20.10: PDF text in the reader font (arch.md SET.pdfFont)
@@ -286,6 +292,24 @@ function lvlRepMap(o) { /* 23.10 «Оценка неверная» (arch.md): id
       a:lv(v.a),tx:lv(v.tx),s:num(v.s),tm:num(v.tm),m:num(v.m),au2:lv(v.au2),ti:lv(v.ti),p:num(v.p),ai:lv(v.ai)};});
   return out;
 }
+/** 25.10: {bookId: [[from, to], …]} — 0 ≤ from < to ≤ 1, sorted, non-overlapping, ≤ 300 per book, last 500 books; anything else dropped */
+function spansMap(o) {
+  const out = {};
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    Object.keys(o).slice(-500).forEach(function (k) {
+      if (!Array.isArray(o[k])) return;
+      let end = -1;
+      const l = o[k].filter(function (x) {
+        if (!Array.isArray(x) || x.length !== 2 || typeof x[0] !== 'number' || typeof x[1] !== 'number') return false;
+        if (!(x[0] >= 0 && x[1] <= 1 && x[0] < x[1] && x[0] > end)) return false;
+        end = x[1];
+        return true;
+      }).slice(0, 300).map(function (x) { return [x[0], x[1]]; });
+      if (l.length) out[k] = l;
+    });
+  }
+  return out;
+}
 function lvlAiMap(o) {
   const out = {};
   if (o && typeof o === 'object' && !Array.isArray(o)) {
@@ -323,6 +347,7 @@ export function hydrateProgress(p) {
   out.bookLvl = intMap(out.bookLvl, 4); // 0…LVL_MAX (game-awards.js; 5 levels since 21.10)
   out.bookLvlAi = lvlAiMap(out.bookLvlAi);
   out.bookLvlRep = lvlRepMap(out.bookLvlRep);
+  out.readSpans = spansMap(out.readSpans);
   out.aiChat = aiChatMap(out.aiChat);
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};
@@ -370,6 +395,7 @@ export function hydrateGame(g) {
   out.dailyPaidDays = Array.isArray(out.dailyPaidDays) ? out.dailyPaidDays : [];
   out.weeklyPaidWeeks = Array.isArray(out.weeklyPaidWeeks) ? out.weeklyPaidWeeks : [];
   out.lvlPaid = intMap(out.lvlPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
+  out.quizPaid = intMap(out.quizPaid, 1000, /^\d{4}-\d{2}-\d{2}$/);
   out.pomoPaid = intMap(out.pomoPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» (arch.md) */
   out.chalPaid = intMap(out.chalPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
@@ -492,6 +518,11 @@ export function hydrateSettings(s) {
   if (FOCUS_MODES.indexOf(out.focus) < 0) out.focus = 'button';
   out.pdfDim = normPdfDim(out.pdfDim);
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
+  if (typeof out.pauseBtn !== 'boolean') out.pauseBtn = true;
+  {
+    const v = out.pauseXY, c = function (n) { return Math.round(Math.max(0, Math.min(1, n)) * 1000) / 1000; };
+    out.pauseXY = v && typeof v === 'object' && typeof v.x === 'number' && typeof v.y === 'number' && isFinite(v.x) && isFinite(v.y) ? { x: c(v.x), y: c(v.y) } : null;
+  }
   out.bright = normStep(out.bright, 0.3, 1, 1);
   out.warm = normStep(out.warm, 0, 0.6, 0);
   if (typeof out.pdfFont !== 'boolean') out.pdfFont = false;

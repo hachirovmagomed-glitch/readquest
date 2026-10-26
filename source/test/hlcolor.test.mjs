@@ -162,14 +162,14 @@ const s10 = await p.evaluate(() => { const ps = [...document.querySelectorAll('#
   for (let i = 0; i + 1 < ps.length; i++) { const a = ps[i].lastChild, z = ps[i + 1].firstChild; if (!a || !z || a.nodeType !== 3 || z.nodeType !== 3 || a.length < 25 || z.length < 25) continue;
     const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(a, a.length - 20); rg.setEnd(z, 18); g.addRange(rg); updSelPop(); return { t: String(g) }; } return null; });
 await sleep(300); await tap('#spColors button[data-c="p"]');
-const m10 = () => p.evaluate(() => { const q = S.quotes[R.book.id].at(-1); const ms = quoteMarks(q); return { two: /\n/.test(q.text), c: q.c, n: ms.length, cls: ms.map(x => x.className) }; });
+const m10 = () => p.evaluate(() => { const q = S.quotes[R.book.id].at(-1); const ms = quoteMarks(q); return { two: /\n/.test(q.text), c: q.c, n: new Set(ms.map(x => x.closest('p'))).size, k: q.text.split(/\s*\n\s*/).filter(Boolean).length, cls: ms.map(x => x.className) }; }); /* 26.10: n = paragraphs with a mark (a paragraph through an older quote has several pieces), k = paragraphs in the quote */
 let r10 = await m10();
-ok('10 two paragraphs: one quote, a mark in each paragraph in its colour', s10 && r10.two && r10.n === 2 && r10.cls.every(c => c === 'hl-p'), { s10, r10 });
+ok('10 two paragraphs: one quote, a mark in each paragraph in its colour', s10 && r10.two && r10.n === r10.k && r10.cls.every(c => c === 'hl-p'), { s10, r10 });
 await p.evaluate(async (id) => { await closeReader({ quiet: true }); __navAllow = true; openBook(id); __navAllow = false; await new Promise(r => setTimeout(r, 2500)); }, bid);
-r10 = await m10(); ok('10b after reopening: both marks are back', r10.n === 2 && r10.cls.every(c => c === 'hl-p'), r10);
+r10 = await m10(); ok('10b after reopening: both marks are back', r10.n === r10.k && r10.cls.every(c => c === 'hl-p'), r10);
 await p.evaluate(() => { const q = S.quotes[R.book.id].at(-1), m = quoteMarks(q)[1]; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); g.addRange(rg); updSelPop(); });
 await sleep(300); const n10 = await p.evaluate(() => S.quotes[R.book.id].length); await tap('#spColors button[data-c="g"]');
-r10 = await m10(); ok('10c green inside the second paragraph recolours the whole quote, no copy', r10.c === 'g' && r10.n === 2 && r10.cls.every(c => c === 'hl-g') && (await p.evaluate(() => S.quotes[R.book.id].length)) === n10, r10);
+r10 = await m10(); ok('10c green inside the second paragraph recolours the whole quote, no copy', r10.c === 'g' && r10.n === r10.k && r10.cls.every(c => c === 'hl-g') && (await p.evaluate(() => S.quotes[R.book.id].length)) === n10, r10);
 // 11. Джессика 22.10 «уникализировать кружочки … под каждый скин»: each skin has its own five colours (dots and highlight), its own names and its own dot shape
 const sk = {};
 for (const k of ['sepia', 'pencil', 'ellada', 'babochkovyi', 'celestial']) {

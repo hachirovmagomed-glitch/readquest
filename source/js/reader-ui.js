@@ -336,12 +336,24 @@ function hlPut(h,k,n,rep){const i=hlNth(h,k,n);return i<0?h:h.slice(0,i)+rep+h.s
    it is marked paragraph by paragraph: the first piece at its occurrence n, each next piece right after the previous one (only tags between) */
 function hlPieces(t){return String(t||'').split(/\s*\n\s*/).filter(Boolean).map(esc);}
 function hlPutQ(h,t,n,c){
-  const ps=hlPieces(t);if(!ps.length)return h;const i=hlNth(h,ps[0],n);if(i<0)return h;
+  const ps=hlPieces(t);if(!ps.length)return h;let i=hlNth(h,ps[0],n),len=ps[0].length;
+  if(i<0){const m=hlReNth(h,ps[0],n);if(!m)return h;i=m.index;len=m[0].length;}
   let out=h.slice(0,i),pos=i;
-  for(let k=0;k<ps.length;k++){const at=k?h.indexOf(ps[k],pos):i;if(at<0||(k&&!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at))))break;
-    out+=h.slice(pos,at)+markHtml(ps[k],c);pos=at+ps[k].length;}
+  for(let k=0;k<ps.length;k++){let at=k?h.indexOf(ps[k],pos):i,l=k?ps[k].length:len;
+    if(k&&(at<0||!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at)))){const re=hlRe(ps[k]);re.lastIndex=pos;const m=re.exec(h);if(!m)break;at=m.index;l=m[0].length;} /* the piece runs through another quote's mark */
+    if(k&&!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at)))break;
+    const seg=h.slice(at,at+l);out+=h.slice(pos,at)+(seg.indexOf('<')<0?markHtml(seg,c):hlMarkAround(seg,c,hlDepth(h,at)));pos=at+l;}
   return out+h.slice(pos);
 }
+/* 26.10 (Джессика: цитата на три абзаца подсвечивалась в одном): a new quote over an older one — its words in the HTML have the older mark's tags
+   between them, so a plain search missed them. The words are found with any tags between the characters, and only the text that is not
+   inside an older mark gets a mark of its own (data-qf: a piece of a paragraph); the older quote keeps its colour */
+function hlRe(k){return new RegExp((k.match(/&[#\w]+;|[\s\S]/g)||[]).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('(?:<[^>]*>)*'),'g');}
+function hlReNth(h,k,n){const re=hlRe(k);let m=null,x;for(let j=0;j<=(n||0);j++){x=re.exec(h);if(!x)break;m=x;}return m;}
+function hlDepth(h,at){const a=h.slice(0,at);return (a.match(/<mark[\s>]/g)||[]).length-(a.match(/<\/mark>/g)||[]).length;}
+function hlMarkAround(seg,c,d){let out='';seg.split(/(<[^>]*>)/).forEach(x=>{if(!x)return;if(x[0]==='<'){if(/^<mark[\s>]/.test(x))d++;else if(x==='</mark>')d--;out+=x;}
+  else out+=d>0?x:markHtml(x,c).replace('<mark','<mark data-qf="1"');});return out;}
+function hlHas(h,k,from){return !!k&&(h.indexOf(k,from||0)>=0||(()=>{const re=hlRe(k);re.lastIndex=from||0;return !!re.exec(h);})());}
 /** text book: the book body's HTML in #content (after the title and the meta line) — marks are counted only there */
 function hlBodyStart(c0,h){const m=c0.querySelector(':scope > p.meta');if(!m)return 0;const o=m.outerHTML,i=h.indexOf(o);return i<0?0:i+o.length;}
 /** occurrence number of the selection's words: how many times esc(t) stands in the body's HTML before the selection starts */
@@ -353,13 +365,13 @@ function hlSelN(t){
 }
 /** the quote behind a mark: its rank among the marks with the same words = rank among those quotes by q.n */
 function quoteOfMark(bid,m){const t=m.textContent,ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===t);
-  return hlSame(bid,t)[Math.max(0,ms.indexOf(m))]||(S.quotes[bid]||[]).find(q=>q&&/\n/.test(q.text)&&String(q.text).split(/\s*\n\s*/).includes(t))||null;}
+  return hlSame(bid,t)[Math.max(0,ms.indexOf(m))]||(S.quotes[bid]||[]).find(q=>q&&/\n/.test(q.text)&&String(q.text).split(/\s*\n\s*/).includes(t))||(m.dataset.qf&&(S.quotes[bid]||[]).find(q=>q&&String(q.text).includes(t)))||null;}
 /** all marks of a quote (a quote over several paragraphs has one per paragraph) */
 /** 22.10: the skin's one-time effect on a just-made / recoloured quote (CSS [data-hlnew]), in the book and on PDF pages */
 function hlFlash(bid,q){if(!R.book||R.book.id!==bid)return;const qi=(S.quotes[bid]||[]).indexOf(q);
   const ms=quoteMarks(q).concat([...document.querySelectorAll('.textLayer .pdfhls i[data-q="'+qi+'"]')]);
   ms.forEach(m=>{delete m.dataset.hlnew;void m.offsetWidth;m.dataset.hlnew='';setTimeout(()=>{delete m.dataset.hlnew;},1400);});} /* an attribute, not a class: className stays the colour */
-function quoteMarks(q){const ps=String(q.text).split(/\s*\n\s*/).filter(Boolean);return [...el('content').querySelectorAll('mark')].filter(x=>ps.includes(x.textContent));}
+function quoteMarks(q){const ps=String(q.text).split(/\s*\n\s*/).filter(Boolean);return [...el('content').querySelectorAll('mark')].filter(x=>ps.includes(x.textContent)||(x.dataset.qf&&ps.some(p=>p.includes(x.textContent))));}
 function markHtml(k,c){return c&&c[0]==='#'?'<mark data-hc="'+c+'">'+k+'</mark>':'<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
 function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;['--hc','--hc2','--hs','--hs2'].forEach(v=>m.style.removeProperty(v));hlPaintCustom();}
 /** own colours: the strongest alpha (day ≤ .45, night ≤ .30) at which the book text over it stays ≥ 7:1 on this page */
@@ -419,7 +431,7 @@ function pdfHlRefresh(){
 }
 function markInContent(t,c,n){
   const c0=el('content'),k=hlPieces(t)[0],h=c0.innerHTML,b=hlBodyStart(c0,h);
-  if(k&&h.indexOf(k,b)>=0){c0.innerHTML=h.slice(0,b)+hlPutQ(h.slice(b),t,n,hlKey(c));hlPaintCustom();}
+  if(hlHas(h,k,b)){c0.innerHTML=h.slice(0,b)+hlPutQ(h.slice(b),t,n,hlKey(c));hlPaintCustom();}
 }
 function renderSpColors(on){
   const box=el('spColors');if(!box)return;const cur=on||hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';

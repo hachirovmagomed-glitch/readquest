@@ -73,7 +73,7 @@ const ns0 = await p.evaluate(() => localStorage.getItem(RQ_K.v1));
 const m = await p.evaluate(async () => { openDrawer(); const di = !!el('dAdv'); const lab = di ? el('dAdv').textContent.trim() : ''; navGo('adv'); await new Promise(r => setTimeout(r, 300));
   const vis = !el('adv').classList.contains('hidden'), h1 = document.querySelector('#adv h1').textContent;
   const src = Array.from(document.querySelectorAll('#advSrc .fchip')).map(b => b.textContent + (b.classList.contains('on') ? '*' : ''));
-  const hints = document.querySelectorAll('#advList .advhints .fchip').length;
+  const hints = document.querySelectorAll('#advList .advhints .advface').length;
   return { di, lab, vis, h1, src, hints, on: el('dAdv') && el('dAdv').classList.contains('on') }; });
 ok('1a «Приключения» в боковом меню, экран открывается; источники Везде (выбрано), Викитека, Гутенберг, Standard Ebooks и Интернет-архив; без запроса подсказки авторов', m.di && m.lab === 'Приключения' && m.vis && m.h1 === 'Приключения' && m.src.join() === 'Везде*,Викитека,Гутенберг,Standard Ebooks,Интернет-архив' && m.hints >= 4 && hits.ws.length === 0, m);
 

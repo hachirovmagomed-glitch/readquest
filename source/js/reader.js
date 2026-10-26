@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -17,6 +17,9 @@ function flipNorm(s){
   else if(s.nav&&typeof s.nav==='object'&&!Array.isArray(s.nav)&&FLIP_KEYS.some(function(k){return k in s.nav;})){s.flip=flipFrom(s.nav);return true;}
   return false;}
 function flipGet(){return SET&&SET.flip?SET.flip:FLIP_DEF;}
+/** 25.10: {x, y} = centre of the pause circle as a share of the screen (0…1, 3 places), else null (default corner) */
+function pauseXYNorm(v){if(!v||typeof v!=='object'||typeof v.x!=='number'||typeof v.y!=='number'||!isFinite(v.x)||!isFinite(v.y))return null;
+  const c=function(n){return Math.round(Math.max(0,Math.min(1,n))*1000)/1000;};return {x:c(v.x),y:c(v.y)};}
 /** Vertical scroll is for text only; PDF stays paged (arch.md). */
 function rqScrollMode(){return typeof R!=='undefined'&&R&&R.mode==='text'&&flipGet().mode==='scroll';}
 /** The page-turn animation that may run now: null when «Нет», when «Анимации» are off in general settings, or with prefers-reduced-motion. */
@@ -27,6 +30,8 @@ function rqAnimKind(){const a=flipGet().anim;if(!a||a==='none')return null;
 function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
   if(typeof s.readCounter!=='boolean')s.readCounter=true;
+  if(typeof s.pauseBtn!=='boolean')s.pauseBtn=true; /* 25.10 arch.md SET.pauseBtn / SET.pauseXY: the floating pause circle */
+  s.pauseXY=pauseXYNorm(s.pauseXY);
   const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
   s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);
   /* 20.10 (Джессика): «Затемнение» and «Тёплый только ночью» removed. An old SET.dim is folded into «Яркость» once (same screen:
@@ -34,7 +39,16 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.dim==='number'&&isFinite(s.dim)&&s.dim>0)s.bright=st((1-Math.min(0.7,s.dim))*s.bright,0.3,1,1);
   delete s.dim;delete s.warmNight;
   if(typeof s.pdfFont!=='boolean')s.pdfFont=false;if(typeof s.pdfTheme!=='boolean')s.pdfTheme=false; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
+  s.fz=fzNorm(s.fz); /* 25.10 «Фокус» (arch.md SET.fz) */
   flipNorm(s);return s;}
+/** 25.10 SET.fz (arch.md) = storage/schema.js normFz: pomo on/off, round 15/25/45, rest 3/5/10, quiet, sound slot 0…3 (0 = off; the
+ *  slot is the skin's own sound №N), volume 0.05…1, focus words, warning on leaving. Junk → default, unknown keys dropped. */
+const FZ_DEF={pomo:false,len:25,rest:5,quiet:false,snd:0,vol:0.5,words:true,warn:true};
+function fzNorm(o){const d=FZ_DEF,f={};o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};
+  ['pomo','quiet','words','warn'].forEach(function(k){f[k]=typeof o[k]==='boolean'?o[k]:d[k];});
+  f.len=[15,25,45].indexOf(o.len)>=0?o.len:d.len;f.rest=[3,5,10].indexOf(o.rest)>=0?o.rest:d.rest;
+  f.snd=[0,1,2,3].indexOf(o.snd)>=0?o.snd:d.snd;
+  f.vol=(typeof o.vol==='number'&&isFinite(o.vol))?Math.round(Math.max(0.05,Math.min(1,o.vol))*20)/20:d.vol;return f;}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
 function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
@@ -172,7 +186,8 @@ el('cReset').onclick=()=>{SET.cTxt=null;SET.cBg=null;saveSet();applySet();};
 /* 1в: «Настройки чтения» — Aa opens «Текст» (PDF: «Страница»), the gear opens the last tab; «Общие настройки» = the settings screen over the reader */
 let setTab='grpText';
 function openSetTab(g){setTab=g;Array.from(el('setCats').children).forEach(b=>{const on=b.dataset.g===g;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');});
-  ['grpText','grpPage','grpNav','grpFocus'].forEach(id=>el(id).classList.toggle('on',id===g));}
+  ['grpText','grpPage','grpNav','grpFocus'].forEach(id=>el(id).classList.toggle('on',id===g));
+  if(g==='grpFocus'&&typeof fzRenderTab==='function')fzRenderTab();}
 function openReaderSettings(g){
   const sh=el('sheet');
   if(!sh.classList.contains('hidden')&&(!g||g===setTab)){sh.classList.add('hidden');return;}
@@ -275,6 +290,8 @@ async function openBook(id){
   layout();
   const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */
   if(__tracker)__tracker.begin(id,p,trackerOpts());
+  pauseReset(); /* 25.10: a new book starts counting, the circle shows if it is on */
+  if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус»: new session = no rounds yet; the chosen sound */
   goPage(p,false);
   if(hy)hyphWaitRun(hy,p);
 }
@@ -352,7 +369,10 @@ function trackerOpts(){
   /* 19.10: a hard book gets a longer page cap (LEVELS capMin: 3 / 5 / 7 min) and its level goes into the session row */
   const lvl=bookLvlOf(R.book),cap=Math.max(capMin,lvl?window.__rqGame.LEVELS[lvl].capMin:0);
   const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:Math.max(8,cap)*60000,minFraction:0.2}:null;
-  return {capMs:cap*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend,level:lvl};
+  const o={capMs:cap*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend,level:lvl};
+  /* 25.10 честное чтение: own pace floor instead of a flat 12 s, live-screen tail, re-read pages, honesty factor */
+  if(honestOn()&&R.book){const h=honestOpts(R.book);o.minSecMs=h.floorSec*1000;o.honest=h.honest;R.floorSec=h.floorSec;}else R.floorSec=0;
+  return o;
 }
 /* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
 let dayBarIv=null;

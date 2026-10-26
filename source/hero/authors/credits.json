@@ -1,0 +1,74 @@
+{
+ "pushkin": {
+  "file": "File:Orest_Kiprensky_-_Портрет_поэта_А.С.Пушкина_-_Google_Art_Project.jpg",
+  "license": "Public domain",
+  "artist": "Orest Kiprensky",
+  "url": "https://commons.wikimedia.org/wiki/File%3AOrest_Kiprensky_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%BF%D0%BE%D1%8D%D1%82%D0%B0_%D0%90.%D0%A1.%D0%9F%D1%83%D1%88%D0%BA%D0%B8%D0%BD%D0%B0_-_Google_Art_Project.jpg"
+ },
+ "gogol": {
+  "file": "File:NV_Gogol.png",
+  "license": "Public domain",
+  "artist": "Sergey Lvovich Levitsky",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANV_Gogol.png"
+ },
+ "tolstoy": {
+  "file": "File:Leo_Tolstoy_1908_Portrait_(3x4_cropped).jpg",
+  "license": "Public domain",
+  "artist": "Sergei Prokudin-Gorskii",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALeo_Tolstoy_1908_Portrait_%283x4_cropped%29.jpg"
+ },
+ "chekhov": {
+  "file": "File:Anton_Chekhov_1889.jpg",
+  "license": "Public domain",
+  "artist": "V. Chekhovskii, Moscow",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAnton_Chekhov_1889.jpg"
+ },
+ "homer": {
+  "file": "File:Homer British Museum.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHomer_British_Museum.jpg"
+ },
+ "shakespeare": {
+  "file": "File:William_Shakespeare_by_John_Taylor,_edited.jpg",
+  "license": "Public domain",
+  "artist": "Attributed to John Taylor",
+  "url": "https://commons.wikimedia.org/wiki/File%3AWilliam_Shakespeare_by_John_Taylor%2C_edited.jpg"
+ },
+ "dante": {
+  "file": "File:Portrait de Dante.jpg",
+  "license": "Public domain",
+  "artist": "Sandro Botticelli",
+  "url": "https://commons.wikimedia.org/wiki/File%3APortrait_de_Dante.jpg"
+ },
+ "cervantes": {
+  "file": "File:Cervantes_Jáuregui.jpg",
+  "license": "Public domain",
+  "artist": "Attributed to Juan de Jáuregui",
+  "url": "https://commons.wikimedia.org/wiki/File%3ACervantes_J%C3%A1uregui.jpg"
+ },
+ "dickens": {
+  "file": "File:Dickens_Gurney_head.jpg",
+  "license": "Public domain",
+  "artist": "Jeremiah Gurney",
+  "url": "https://commons.wikimedia.org/wiki/File%3ADickens_Gurney_head.jpg"
+ },
+ "goethe": {
+  "file": "File:Goethe_(Stieler_1828).jpg",
+  "license": "Public domain",
+  "artist": "Joseph Karl Stieler",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGoethe_%28Stieler_1828%29.jpg"
+ },
+ "verne": {
+  "file": "File:Jules_Verne_by_Étienne_Carjat.jpg",
+  "license": "Public domain",
+  "artist": "Étienne Carjat / Adam Cuerden",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJules_Verne_by_%C3%89tienne_Carjat.jpg"
+ },
+ "andersen": {
+  "file": "File:HCA_by_Thora_Hallager_1869_crop.jpg",
+  "license": "Public domain",
+  "artist": "Thora Hallager",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHCA_by_Thora_Hallager_1869_crop.jpg"
+ }
+}

@@ -33,6 +33,8 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
+    pauseReset();
+    if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус» */
     pdfLvlCheck(b,doc); /* 19.10: level by the PDF's own text, in the background (once per book) */
     pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
     if(psOn()){psOpen(p);return;} /* 18.10: «Прокрутка» — js/pdf-scroll.js */
@@ -711,7 +713,7 @@ function rqScrollSettle(){
   try{if(Math.abs(d)===1)goPage(np,true);else{R.jumping=true;try{goPage(np,false);}finally{R.jumping=false;}}}
   finally{R.fromScroll=false;}
 }
-el('viewer').addEventListener('scroll',function(){if(rqScrollMode())rqScrollSoon();},{passive:true});
+el('viewer').addEventListener('scroll',function(){if(rqScrollMode()){rqScrollSoon();if(__tracker&&__tracker.userActive)__tracker.userActive('scroll');}},{passive:true}); /* 25.10: scrolling = a sign of life */
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */

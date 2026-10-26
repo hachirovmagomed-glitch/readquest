@@ -102,6 +102,8 @@ mkdir -p "$DIST/fonts"
 cp "$ROOT/fonts/"*.woff2 "$ROOT/fonts/OFL.txt" "$DIST/fonts/"
 
 # Герои скина «Небесный» (webp, режет tools/gen-celestial-heroes.py) — precached
+# 25.10 портреты авторов в «Приключениях» (Wikimedia Commons, общественное достояние; hero/authors/credits.json) — precached
+mkdir -p "$DIST/hero/authors"; cp "$ROOT/hero/authors/"*.webp "$ROOT/hero/authors/credits.json" "$DIST/hero/authors/"
 mkdir -p "$DIST/hero/celestial/dress"; cp "$ROOT/hero/celestial/"*.webp "$DIST/hero/celestial/"; cp "$ROOT/hero/celestial/dress/"*.webp "$DIST/hero/celestial/dress/"  # + одежда на манекенах (tools/gen-celestial-dress.py)
 
 # «Путь читателя»: texts of the map books (public domain) — NOT precached, fetched once on «Взять в библиотеку», then IDB

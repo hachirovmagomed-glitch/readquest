@@ -56,6 +56,7 @@ function renderSettings(){
   if(el('navCfgSub')&&typeof navGet==='function'){const k=navShown().length;el('navCfgSub').textContent=k+' '+plural(k,'вкладка','вкладки','вкладок');}
   if(el('mvpTgl'))el('mvpTgl').textContent=isMvp()?'Вкл':'Выкл';
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.f===SET.focus);});
+  if(el('pauseTgl')){const b=el('pauseTgl');b.classList.toggle('on',SET.pauseBtn!==false);b.setAttribute('aria-checked',SET.pauseBtn!==false?'true':'false');}
   if(el('readCntTgl')){const b=el('readCntTgl');b.classList.toggle('on',!!SET.readCounter);b.setAttribute('aria-checked',SET.readCounter?'true':'false');}
   el('pixelTgl').textContent=S.pixelOwned?(S.pixelOn?'Вкл':'Выкл'):'Купить';
   el('pixelTgl').classList.toggle('mvp-hide', isMvp()&&!S.pixelOwned); /* MVP: hide «Купить»; owned → on/off stays */

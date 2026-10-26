@@ -17,6 +17,7 @@
     flashMsg(isMvp()?'MVP включён (4 экрана)':'Полный UI v6');
   };
   document.querySelectorAll('#focusSeg button').forEach(function(b){b.onclick=function(){SET.focus=b.dataset.f;saveSet();renderSettings();applyFocusSet();};});
+  if(el('pauseTgl'))el('pauseTgl').onclick=function(){SET.pauseBtn=SET.pauseBtn===false;saveSet();renderSettings();pauseShow();};
   if(el('readCntTgl'))el('readCntTgl').onclick=function(){SET.readCounter=!SET.readCounter;saveSet();renderSettings();updFocusCount();};
 })();
 
@@ -30,6 +31,8 @@ window.__rqStart=async function(api, tracker){
     var f=tracker[m]; if(typeof f!=='function')return;
     tracker[m]=function(){ if(window.__rqWriter&&!__rqWriter.mayWrite())return m==='end'?Promise.resolve(null):undefined; return f.apply(tracker,arguments); };
   });
+  /* 25.10: a page on screen → the auto-pause looks at the run of fast turns */
+  if(typeof tracker.pageShown==='function'){const ps=tracker.pageShown;tracker.pageShown=function(){const r=ps.apply(tracker,arguments);try{pauseCheck();}catch(e){}return r;};}
   const flat=api.loadFlat?api.loadFlat():{};
   hydrateS(flat);
   if(api.loadSettings){try{SET=Object.assign({},SETDEF,api.loadSettings());}catch(e){}}

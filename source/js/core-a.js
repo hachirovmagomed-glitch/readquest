@@ -93,7 +93,21 @@ function daysInWeekAtGoal(minNeed,wk){
    Only on the test site for now (like achievements v2): RQ_LVL_NS. Off → no level is passed to the tracker, rows carry no lvl,
    so XP and coins are exactly the old ones. */
 const RQ_LVL_NS=['rqt'];
+/* ===== Честное чтение (Джессика 25.10 «Давай все кроме 3 и 6»; game-awards.js, reader-session.js honest, arch.md) =====
+   Test site only for now (RQ_HONEST_NS). Off → the tracker gets no `honest`, the 12 s floor stays, rows carry no fl/ct/rr/hon. */
+const RQ_HONEST_NS=['rqt'];
+function honestOn(){return isMvp()&&RQ_HONEST_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
+/** span [from, to] of page p of the open book (0…1); null while the page count is unknown */
+function honestSpan(p){const n=R&&R.pageCount;if(!(n>1)||!(p>=0)||p>=n)return null;return [p/n,(p+1)/n];}
+/** tracker options of the honest rules for book b: own floor (s), tail (s), spans read before, honesty factor */
+function honestOpts(b){
+  const G=window.__rqGame,rows=SESS||[],id=b&&b.id,hi=G.honestyIndex(rows,today());
+  return {floorSec:G.paceFloorSec(rows,id),honest:{tailMs:G.tailSec(rows,id)*1000,span:honestSpan,seen:(S.readSpans||{})[id]||[],hon:hi.f}};
+}
 function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
+/* 25.10 «Фокус» (помодоро, тихий режим, звуки, вызовы недели — js/focus.js): only on the test site for now, like the book level */
+const RQ_FOCUS_NS=['rqt'];
+function focusOn(){return isMvp()&&RQ_FOCUS_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
 const __lvlAuto={}; /* id → {k, l}: automatic level, recomputed only when the text changes (length as the key) */
 function bookLvlAuto(b){
   if(!b||!window.__rqGame)return 0;
@@ -161,6 +175,9 @@ function awardPendingSessions(){
   /* level bonus: rows carry lvl only when lvlOn() was true at the session start, so no gate is needed here */
   const lv=G.applyLevelAwards?G.applyLevelAwards(S,SESS,fresh):{gold:0};
   res.lvlGold=lv.gold;res.gold+=lv.gold;
+  /* 25.10 «Фокус»: rows carry pomo only when focusOn() was true while reading */
+  const fc=G.applyFocusAwards?G.applyFocusAwards(S,SESS,fresh):{gold:0,pomoGold:0,chalGold:0,chal:[]};
+  res.pomoGold=fc.pomoGold;res.chalGold=fc.chalGold;res.chal=fc.chal;res.gold+=fc.gold;
   if(res.ids.length||res.gold)save();
   return res;
 }

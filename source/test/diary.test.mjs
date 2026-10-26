@@ -104,8 +104,9 @@ const s5 = await p.evaluate(async () => {
   const w = (ms) => new Promise(r => setTimeout(r, ms)), y = diaryOf(BOOKS[0].id), r = {};
   dySheet('cfg'); await w(100);
   const click = (s) => { el('dySheet').querySelector(s).click(); };
-  click('[data-act="cv"][data-v="pencil"][data-c="black"]'); await w(30); click('[data-act="pp"][data-v="dots"]'); await w(30); click('[data-act="fn"][data-v="book"]'); await w(30);
-  click('[data-act="ink"][data-v="violet"]'); await w(30); click('[data-act="rb"][data-v="gold"]'); await w(30);
+  click('[data-act="cv"][data-v="pencil"][data-c="black"]'); await w(30); click('[data-act="rb"][data-v="gold"]'); await w(30);
+  click('[data-act="stab"][data-v="page"]'); await w(30); click('[data-act="pp"][data-v="dots"]'); await w(30); click('[data-act="ink"][data-v="violet"]'); await w(30);
+  click('[data-act="stab"][data-v="text"]'); await w(30); click('[data-act="fn"][data-v="book"]'); await w(30);
   const fs = el('dyFs'); fs.value = 21; fs.dispatchEvent(new Event('input')); await w(400);
   r.y = { cv: y.cv, cc: y.cc, pp: y.pp, fn: y.fn, ink: y.ink, rb: y.rb, fs: y.fs };
   const pap = document.querySelector('#dyBox .dypaper'), cov = document.querySelector('#dyBox .dycov');
@@ -175,6 +176,71 @@ ok('7b импорт отбрасывает битые дневники и зап
   s7.after.length === 2 && JSON.stringify(s7.after[1]) === JSON.stringify({ id: 'dyok1', t: '', b: '', cv: 'school', pp: 'lines', fn: 'hand', fs: 17, ink: 'ink', rb: 'red', so: 'book', e: [{ id: 'e2', x: 'текст', pg: 0, r: null, pin: false }] }) && s7.autoAfter === true && s7.norm === 120, s7);
 const money1 = await p.evaluate(() => ({ g: S.gold, xp: S.xp }));
 ok('7c монеты не меняются от дневников (XP — только минуты чтения)', money1.g === money0.g, { money0, money1 });
+
+// 8. этап 1б (Джессика 26.10): свои дневники у скинов, «Аа» в записи, новая разметка, «Инвентарь» во вкладках
+const s8 = await p.evaluate(async () => {
+  const w = (ms) => new Promise(r => setTimeout(r, ms)), r = {};
+  navGo('diary'); await w(100);
+  r.tabs = [...document.querySelectorAll('#diary .dyinv .progtab')].map(b => b.dataset.sub + (b.classList.contains('on') ? '*' : ''));
+  document.querySelector('#diary .dyinv [data-sub="quotes"]').click(); await w(150);
+  r.quotes = !el('quotes').classList.contains('hidden') && el('quotes').querySelector('h1').textContent;
+  el('quotes').querySelector('.progtab[data-sub="diary"]').click(); await w(150); r.backToDiary = !el('diary').classList.contains('hidden');
+  openDrawer(); r.drawer = [...el('dList').querySelectorAll('.ditem')].map(b => b.dataset.nav); closeDrawer();
+  r.alias = navRead(['library', 'stats', 'path']);
+  // locked skin look: visible with a lock, tap → shop offer; nothing is chosen
+  const y = diaryNew({ t: 'Скины' }); dyOpen(y.id); await w(100); DY.stab = 'cover'; dySheet('cfg'); await w(100);
+  const lk = el('dySheet').querySelector('.dycvb.lk[data-sk="ellada"]'); r.lockShown = !!lk && /Со скином «Эллада»/.test(el('dySheet').textContent);
+  lk.click(); await w(100); r.ask = !el('rqAsk').hidden && /Эллада/.test(el('rqAsk').textContent); el('rqAskNo').click(); await w(50); r.notSet = y.cv !== 'amphora';
+  dyBack(); await w(200);
+  // buy and wear «Эллада» → the cover opens; a new diary takes the skin's cover, papyrus, terracotta ink
+  S.gold = 5000; buy('skin-ellada'); wear('skin-ellada'); await w(300);
+  const y2 = diaryNew({ t: 'Эллада' }); r.ellada = { cv: y2.cv, pp: y2.pp, ink: y2.ink };
+  dyOpen(y2.id); await w(100); dySheet('cfg'); await w(100); r.unlocked = !el('dySheet').querySelector('.dycvb.lk[data-sk="ellada"]') && !!el('dySheet').querySelector('.dycvb[data-v="amphora"]:not(.lk)');
+  r.othersLocked = !!el('dySheet').querySelector('.dycvb.lk[data-sk="celestial"]');
+  el('dySheet').querySelector('[data-act="cv"][data-v="amphora"][data-c="black"]').click(); await w(50); r.cv = y2.cv + '/' + y2.cc;
+  r.prev = !!el('dySheet').querySelector('.dyprev .dycov[data-cv="amphora"]');
+  dyBack(); await w(200);
+  // editor: «Аа» changes look in place (text and focus stay), colour tag, line tools, undo
+  const n = dyNewEntry(y2, ''); dyOpenEntry(y2.id, n.id); await w(100);
+  const x = el('dyEX'); x.value = 'строка'; x.dispatchEvent(new Event('input'));
+  document.querySelector('#dyBox [data-act="aa"]').click(); await w(50); r.aaOpen = !el('dyAa').hidden;
+  const ta = el('dyEX'); el('dyAa').querySelector('[data-act="lh"][data-v="wide"]').click(); await w(50);
+  el('dyAa').querySelector('[data-act="fs"][data-v="1"]').click(); await w(50);
+  el('dyAa').querySelector('[data-act="al"][data-v="justify"]').click(); await w(50);
+  el('dyAa').querySelector('[data-act="cl"][data-v="green"]').click(); await w(50);
+  const pap = document.querySelector('#dyBox .dyed');
+  r.aa = { same: el('dyEX') === ta && ta.value === 'строка', lh: y2.lh, fs: y2.fs, al: y2.al, cl: n.cl, dom: pap.dataset.lh + '/' + pap.dataset.al + '/' + pap.dataset.cl, still: !el('dyAa').hidden };
+  x.focus(); x.setSelectionRange(0, 6); document.querySelector('#dyBox [data-v="ck"]').click(); await w(30); r.ck = x.value;
+  document.querySelector('#dyBox [data-v="ck"]').click(); await w(30); r.ckOff = x.value;
+  document.querySelector('#dyBox [data-v="undo"]').click(); await w(30); r.undo = x.value;
+  document.querySelector('#dyBox [data-v="redo"]').click(); await w(30); r.redo = x.value;
+  document.querySelector('#dyBox [data-v="h"]').click(); await w(30); r.h1 = x.value; document.querySelector('#dyBox [data-v="h"]').click(); await w(30); r.h2 = x.value;
+  x.value = 'выделить'; x.setSelectionRange(0, 8); document.querySelector('#dyBox [data-v="mk"]').click(); await w(30); r.mk = x.value;
+  x.setSelectionRange(2, 10); document.querySelector('#dyBox [data-v="mk"]').click(); await w(30); r.mkOff = x.value;
+  x.value = 'а\nб'; x.setSelectionRange(0, 3); document.querySelector('#dyBox [data-v="ol"]').click(); await w(30); r.ol = x.value;
+  return r; });
+ok('8a «Инвентарь» во вкладках «Дневников»: Дневники · Цитаты и заметки · Словарь; в меню пункта «Инвентарь» больше нет, старая панель со «stats» читается как «Дневники»',
+  JSON.stringify(s8.tabs) === '["diary*","quotes","vocab"]' && s8.quotes === 'Дневники' && s8.backToDiary && s8.drawer.indexOf('stats') < 0 && s8.drawer.indexOf('diary') >= 0 && JSON.stringify(s8.alias.slice(0, 3)) === '["library","diary","path"]', s8);
+ok('8b обложка скина без скина видна с замком и ведёт в магазин; со скином «Эллада» открыта, новый дневник берёт её обложку, папирус и терракоту',
+  s8.lockShown && s8.ask && s8.notSet && JSON.stringify(s8.ellada) === '{"cv":"amphora","pp":"papyrus","ink":"terracotta"}' && s8.unlocked && s8.othersLocked && s8.cv === 'amphora/black' && s8.prev, s8);
+ok('8c «Аа» в записи: интервал, размер, края и метка меняются сразу, текст и поле остаются',
+  s8.aaOpen && s8.aa.same && s8.aa.lh === 'wide' && s8.aa.fs === 18 && s8.aa.al === 'justify' && s8.aa.cl === 'green' && s8.aa.dom === 'wide/justify/green' && s8.aa.still, s8.aa);
+ok('8d чек-лист, заголовок # → ##, маркер, нумерованный список; повторное нажатие снимает; «Отменить» и «Вернуть»',
+  s8.ck === '- [ ] строка' && s8.ckOff === 'строка' && s8.undo === '- [ ] строка' && s8.redo === 'строка' && s8.h1 === '# строка' && s8.h2 === '## строка' && s8.mk === '==выделить==' && s8.mkOff === 'выделить' && s8.ol === '1. а\n2. б', s8);
+// Enter continues the list; an empty item ends it; tapping a checkbox in the diary ticks it in the text
+await p.evaluate(() => { const x = el('dyEX'); x.value = '- [ ] молоко'; x.focus(); x.setSelectionRange(x.value.length, x.value.length); });
+await p.keyboard.press('Enter'); await p.keyboard.type('хлеб'); await p.keyboard.press('Enter'); await p.keyboard.press('Enter'); await p.keyboard.type('конец');
+const s8e = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)), r = { x: el('dyEX').value };
+  dyBack(); await w(200); const y = S.diaries.find(d => d.t === 'Эллада');
+  r.boxes = document.querySelectorAll('#dyBox .dyent .dyckb').length; document.querySelector('#dyBox .dyent .dyckb').click(); await w(100);
+  r.after = y.e[0].x; r.on = !!document.querySelector('#dyBox .dyent .dyck.on'); r.view = DY.view; r.stripe = document.querySelector('#dyBox .dyent').dataset.cl;
+  r.md = dyMd('__п__ ~~з~~ ==м== **ж** *к*'); return r; });
+ok('8e Enter продолжает список, пустой пункт его заканчивает; галочка в дневнике отмечает пункт в тексте; метка видна полоской',
+  s8e.x === '- [ ] молоко\n- [ ] хлеб\nконец' && s8e.boxes === 2 && s8e.after === '- [x] молоко\n- [ ] хлеб\nконец' && s8e.on && s8e.view === 'book' && s8e.stripe === 'green' &&
+  /<u>п<\/u>/.test(s8e.md) && /<s>з<\/s>/.test(s8e.md) && /<mark>м<\/mark>/.test(s8e.md) && /<b>ж<\/b>/.test(s8e.md) && /<i>к<\/i>/.test(s8e.md), s8e);
+const s8f = await p.evaluate(() => { const o = diaryNorm([{ id: 'dyz', lh: 'x', al: 1, pp: 'stars', ink: 'gold', e: [{ id: 'e1', x: 'т', cl: 'pink' }, { id: 'e2', x: 'т', cl: 'blue' }] }])[0];
+  return { lh: o.lh, al: o.al, pp: o.pp, ink: o.ink, cl: o.e.map(n => n.cl) }; });
+ok('8f новые поля (интервал, края, метка, бумага и чернила скинов) проверяются при чтении', JSON.stringify(s8f) === '{"lh":"normal","al":"left","pp":"stars","ink":"gold","cl":["","blue"]}', s8f);
 const em = await p.evaluate(() => { navGo('diary'); return /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(el('diary').textContent + DIARY_TPL.map(t => t.n + t.x).join('')); });
 ok('нет эмодзи в разделе', !em);
 ok('нет ошибок страницы', errs.length === 0, errs);

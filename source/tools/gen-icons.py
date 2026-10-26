@@ -14,7 +14,7 @@ align-justify book-marked circle circle-check
 pin circle-minus circle-plus chevron-up share-2 trash-2 image folder
 amphora notebook quote layers chevron-down flower flower-2 map castle scroll-text
 footprints sunrise zap flag package ellipsis-vertical message-circle send
-maximize minimize'''.split()
+maximize minimize undo-2 redo-2 underline strikethrough list-ordered list-checks heading align-left'''.split()
 out = []
 for n in NAMES:
     p = os.path.join(HAND, n + '.svg')

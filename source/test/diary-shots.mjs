@@ -22,7 +22,7 @@ for (const sk of SKINS) for (const night of [false, true]) {
     S.marks[b.id] = [{ ratio: 0.12, page: 14, date: '2026-10-22' }];
     const y = diaryNew({ b: b.id }); y.cc = 'blue'; y.rb = 'gold';
     dyNewEntry(y, 'chars'); const n = dyNewEntry(y, '', { ch: 'Глава 3', pg: 27, r: 0.2 }); n.t = 'Первые впечатления'; n.x = 'Начало **очень** сильное. Мне нравится, как автор *сразу* бросает в конфликт.\n\n- Стива — обаятельный и безответственный\n- Долли — устала\n\n> Всё смешалось в доме Облонских';
-    n.pin = true;
+    n.pin = true; n.cl = 'green'; n.x += '\n\n# План\n- [x] Дочитать первую часть\n- [ ] Выписать ==главных героев==\n1. Анна\n2. Вронский';
     const y2 = diaryNew({ b: b2.id }); y2.cv = 'pencil'; y2.cc = 'kraft'; y2.pp = 'grid';
     const y3 = diaryNew({ t: 'Что прочитать' }); y3.cc = 'black'; y3.rb = 'red';
     const n3 = dyNewEntry(y3, ''); n3.t = 'Список'; n3.x = '- Мастер и Маргарита\n- Сто лет одиночества';
@@ -41,6 +41,9 @@ for (const sk of SKINS) for (const night of [false, true]) {
   await p.screenshot({ path: `${OUT}/${tag}-3diary-low.png` });
   await p.evaluate(() => { const y = S.diaries.find(x => x.b && x.cc === 'blue'); const n = y.e.find(e => e.pin); dyOpenEntry(y.id, n.id); }); await sleep(400);
   await p.screenshot({ path: `${OUT}/${tag}-4edit.png` });
+  await p.evaluate(() => { document.querySelector('#dyBox [data-act="aa"]').click(); }); await sleep(250);
+  await p.screenshot({ path: `${OUT}/${tag}-4b-aa.png` });
+  await p.evaluate(() => { document.querySelector('#dyBox [data-act="aa"]').click(); }); await sleep(100);
   await p.evaluate(() => { dyFull(true); }); await sleep(300);
   await p.screenshot({ path: `${OUT}/${tag}-7edit-full.png` });
   await p.evaluate(() => { dyBack(); }); await sleep(400);
@@ -50,6 +53,8 @@ for (const sk of SKINS) for (const night of [false, true]) {
   await p.screenshot({ path: `${OUT}/${tag}-5cfg.png` });
   await p.evaluate(() => { el('dySheet').scrollTop = 600; }); await sleep(200);
   await p.screenshot({ path: `${OUT}/${tag}-6cfg-low.png` });
+  await p.evaluate(() => { el('dySheet').querySelector('[data-act="stab"][data-v="page"]').click(); }); await sleep(250);
+  await p.screenshot({ path: `${OUT}/${tag}-6b-cfg-page.png` });
   await ctx.close();
 }
 console.log('errors', JSON.stringify(errs));

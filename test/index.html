@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261026-1808',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261027-0122',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261026-1808"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261027-0122"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -693,7 +693,7 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
-#selpop:not(.qmode) .spq,#selpop.qmode #spWord{display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
+#selpop:not(.qmode) .spq,#selpop.qmode #spWord,#selpop.qmode #spGrow,#selpop.pdf :is(#spGrow,#spEdit){display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
 #content mark.qon,.textLayer .pdfhls i.qon{outline:2px solid var(--hs);outline-offset:1px}
 /* 25.10 (Джессика, видео: «текст начинает безумствовать и становится похожим на сатанинский»): in a PDF the quote box hugs the letters,
    so the butterfly pollen / the celestial star dust sat on them like accents, and a tapped quote ringed every line. In a PDF: the skin's two-colour
@@ -731,6 +731,14 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #pgSlider::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:var(--rq-slider-track)}
 #pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
 #reader .rfoot{touch-action:none}
+/* 26.10: the selection bar at the top when the end of the selection is under it; the edge hint while a selection end is held at the page edge */
+@media (max-width:440px){#selpop.qmode .spl2{display:none}} /* a tapped quote has two more buttons (Удалить, Изменить границы): «Объясни» as an icon there on a phone */
+#selpop.top{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
+#selEdge{position:fixed;z-index:59;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
+#selEdge.next,#selEdge.prev{display:flex}#selEdge.prev .ic{transform:rotate(180deg)}
+#selEdge::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--accent);animation:selEdgeFill .8s linear forwards}
+@keyframes selEdgeFill{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media (prefers-reduced-motion:reduce){#selEdge::after{animation:none}}
 /* 25.10 (Джессика, видео «выделение»): a selection dragged past the text never runs into the bars, the page number or the selection bar — only the book is selectable */
 #reader{-webkit-user-select:none;user-select:none}#reader :is(#content,.textLayer,input,textarea,[contenteditable]){-webkit-user-select:text;user-select:text}
 #pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
@@ -1791,7 +1799,7 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261026-1808"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261027-0122"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2326,9 +2334,11 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <button id="spNote" aria-label="Заметка"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span class="splab"> Заметка</span></button>
       <button id="spWord" title="В словарь" aria-label="В словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></button>
       <button id="spDict" aria-label="Перевести" title="Перевести"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
-      <button id="spAI" aria-label="Объясни"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Объясни</button>
+      <button id="spAI" aria-label="Объясни"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><span class="spl2"> Объясни</span></button>
+      <button id="spGrow" aria-label="Выделить всё предложение, ещё раз — весь абзац" title="Предложение, потом абзац"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-align-justify"/></svg></button><!-- 26.10 -->
       <button id="spCopy" aria-label="Копировать" title="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
       <button id="spDel" class="spq" aria-label="Удалить цитату" title="Удалить"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-trash-2"/></svg></button>
+      <button id="spEdit" class="spq" aria-label="Изменить начало и конец цитаты" title="Изменить границы"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg></button><!-- 26.10 -->
       <button id="spAll" class="spq" aria-label="Все цитаты" title="Все цитаты"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg></button>
     </div>
   </div>
@@ -2447,38 +2457,38 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261026-1808"></script>
-<script src="js/books-builtin.js?v=20261026-1808"></script>
-<script src="js/core-b.js?v=20261026-1808"></script>
-<script src="js/library.js?v=20261026-1808"></script>
-<script src="js/reader.js?v=20261026-1808"></script>
-<script src="js/pdf.js?v=20261026-1808"></script>
-<script src="js/pdf-scroll.js?v=20261026-1808"></script>
-<script src="js/page-curl.js?v=20261026-1808"></script>
-<script src="js/page-grid.js?v=20261026-1808"></script>
-<script src="js/reader-ui.js?v=20261026-1808"></script>
-<script src="js/book-find.js?v=20261026-1808"></script>
-<script src="js/focus.js?v=20261026-1808"></script>
-<script src="js/rpg.js?v=20261026-1808"></script>
-<script src="js/content.js?v=20261026-1808"></script>
-<script src="js/translate.js?v=20261026-1808"></script>
-<script src="js/hero-pencil.js?v=20261026-1808"></script>
-<script src="js/hero-celestial.js?v=20261026-1808"></script>
-<script src="js/hero.js?v=20261026-1808"></script>
-<script src="js/settings.js?v=20261026-1808"></script>
-<script src="js/v6-extras.js?v=20261026-1808"></script>
-<script src="js/ach-core.js?v=20261026-1808"></script>
-<script src="js/achievements.js?v=20261026-1808"></script>
-<script src="js/path.js?v=20261026-1808"></script>
-<script src="js/adv.js?v=20261026-1808"></script>
-<script src="js/start.js?v=20261026-1808"></script>
+<script src="js/core-a.js?v=20261027-0122"></script>
+<script src="js/books-builtin.js?v=20261027-0122"></script>
+<script src="js/core-b.js?v=20261027-0122"></script>
+<script src="js/library.js?v=20261027-0122"></script>
+<script src="js/reader.js?v=20261027-0122"></script>
+<script src="js/pdf.js?v=20261027-0122"></script>
+<script src="js/pdf-scroll.js?v=20261027-0122"></script>
+<script src="js/page-curl.js?v=20261027-0122"></script>
+<script src="js/page-grid.js?v=20261027-0122"></script>
+<script src="js/reader-ui.js?v=20261027-0122"></script>
+<script src="js/book-find.js?v=20261027-0122"></script>
+<script src="js/focus.js?v=20261027-0122"></script>
+<script src="js/rpg.js?v=20261027-0122"></script>
+<script src="js/content.js?v=20261027-0122"></script>
+<script src="js/translate.js?v=20261027-0122"></script>
+<script src="js/hero-pencil.js?v=20261027-0122"></script>
+<script src="js/hero-celestial.js?v=20261027-0122"></script>
+<script src="js/hero.js?v=20261027-0122"></script>
+<script src="js/settings.js?v=20261027-0122"></script>
+<script src="js/v6-extras.js?v=20261027-0122"></script>
+<script src="js/ach-core.js?v=20261027-0122"></script>
+<script src="js/achievements.js?v=20261027-0122"></script>
+<script src="js/path.js?v=20261027-0122"></script>
+<script src="js/adv.js?v=20261027-0122"></script>
+<script src="js/start.js?v=20261027-0122"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261026-1808"></script>
+<script src="js/pwa-lock.js?v=20261027-0122"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2486,9 +2496,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261026-1808';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261026-1808';
-import * as game from './game-awards.js?v=20261026-1808';
+} from './storage/index.js?v=20261027-0122';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261027-0122';
+import * as game from './game-awards.js?v=20261027-0122';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

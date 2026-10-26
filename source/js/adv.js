@@ -17,6 +17,10 @@ const ADV_WS='https://ru.wikisource.org/w/api.php';
 const ADV_WS_MAX=800; /* pages per book: «Война и мир» is ~370 chapter pages */
 const ADV={src:'all',q:'',lang:'ru',items:[],more:null,busy:false,err:'',seq:0,dl:false,set:null,alt:'',sseq:0,fk:'',fl:''};
 const ADV_LANGS=[['ru','Русские'],['en','English'],['de','Deutsch'],['fr','Français'],['','Все языки']];
+/* 25.10 (Джессика): portraits instead of name chips; public domain, Wikimedia Commons (hero/authors/credits.json); a missing file leaves the initial */
+const ADV_FACES={'Пушкин':'pushkin','Гоголь':'gogol','Толстой':'tolstoy','Чехов':'chekhov','Гомер':'homer','Шекспир':'shakespeare','Данте':'dante','Сервантес':'cervantes','Диккенс':'dickens','Гёте':'goethe','Жюль Верн':'verne','Андерсен':'andersen'};
+function advFace(s){const f=ADV_FACES[s];
+  return '<button type="button" class="advface" data-q="'+esc(s)+'"><span class="advph"><b>'+esc(s.charAt(0))+'</b>'+(f?'<img src="hero/authors/'+f+'.webp" alt="" loading="lazy" onerror="this.remove()">':'')+'</span><span class="advfn">'+esc(s)+'</span></button>';}
 const ADV_WS_HINTS=['Пушкин','Гоголь','Толстой','Чехов','Гомер','Шекспир','Данте','Сервантес','Диккенс','Гёте','Жюль Верн','Андерсен'];
 /* Джессика 18.10: ready collections on the first screen, one tap to a book. Wikisource titles checked live (GitHub Actions, 18.10) */
 const ADV_SETS=[
@@ -544,8 +548,7 @@ function advRenderList(){
       ADV_WS_HINTS.slice(0,8).map(function(s){return '<button type="button" class="fchip" data-q="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>';
     else if(!advLat()&&!ADV.q)h+=advHome()+'<div class="bk-h">Подборки</div><div class="advsets">'+ADV_SETS.map(function(x){ /* audit 19.10 ADV-01: English collections off for the RU people test */
         return '<button type="button" class="advset" data-set="'+x.id+'">'+rqIcon(x.ic,22)+'<b>'+esc(x.t)+'</b><span>'+(x.pages?advSetLine(x):x.sub||'мировая классика')+'</span>'+(x.pages&&advSetProg(x)?advBar(advSetProg(x),x.pages.length):'')+'</button>';}).join('')+'</div>'+
-      '<div class="bk-h advauth-h">Авторы</div><div class="chips advhints">'+
-      ADV_WS_HINTS.map(function(s){return '<button type="button" class="fchip" data-q="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>';
+      '<div class="bk-h advauth-h">Авторы</div><div class="advfaces advhints">'+ADV_WS_HINTS.map(advFace).join('')+'</div>';
     else h+='<div class="advempty">Ничего не нашлось. Попробуйте другое название или автора</div>';
   }else{
     const flt=!ADV.set&&!advLat()&&ADV.items.some(function(x){return x.kind||x.size;});
@@ -569,7 +572,7 @@ function advRenderList(){
   const wa=el('advWantAll');if(wa)wa.onclick=function(){advSet('want');};
   const rc=el('advRecentClear');if(rc)rc.onclick=advRecentClear;
   box.querySelectorAll('.advrecent .fchip').forEach(function(b){b.onclick=function(){ADV.q=b.dataset.q;el('advQ').value=ADV.q;advSugHide();advSearch();};});
-  box.querySelectorAll('.advhints .fchip').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.q);};});
+  box.querySelectorAll('.advhints .advface').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.q);};});
   box.querySelectorAll('.advset').forEach(function(b){b.onclick=function(){advSet(b.dataset.set);};});
   const bb=el('advBack');if(bb)bb.onclick=function(){const wasAu=ADV.set==='author';ADV.seq++;ADV.busy=false;ADV.err='';ADV.set=null;ADV.author=null;ADV.items=[];if(wasAu&&ADV.q.trim())advSearch();else advRenderList();};
   box.querySelectorAll('[data-author]').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.author);};});

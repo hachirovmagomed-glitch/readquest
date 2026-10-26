@@ -110,6 +110,15 @@ ok('7 panel «Цитаты» → the quote\'s page (not page 1), «вернут�
 const n7 = await p.evaluate(async (i) => { const q = S.quotes[R.book.id][i], c = { text: q.text, note: '', date: today(), c: 'g' }; S.quotes[R.book.id].push(c); save(); jumpTo(Math.min(R.pageCount - 1, q.pdf.p + 4)); await new Promise(r => setTimeout(r, 1500)); await quoteGo(S.quotes[R.book.id].length - 1); await new Promise(r => setTimeout(r, 1500));
   const z = S.quotes[R.book.id].pop(); save(); return { pg: R.page, want: q.pdf.p, saved: z.pdf && z.pdf.p }; }, m5.n0);
 ok('7b old PDF quote without q.pdf: found by its words on its page, place remembered', n7.pg === n7.want && n7.saved === n7.want, n7);
+// 8. Джессика 25.10 (видео «сатанинский» текст): on a PDF page the skin's dots (butterfly pollen, celestial star dust) never sit on the letters,
+// and a tapped quote is underlined, not ringed line by line
+const s8 = await p.evaluate(async () => {
+  S.gold = 5000; save(); for (const k of ['skin-babochkovyi', 'skin-celestial']) { try { buy(k); } catch (e) {} }
+  const i = document.querySelector('.pdfhls i'); if (!i) return null; const out = {};
+  for (const k of ['babochkovyi', 'celestial']) { SET.theme = k; saveSet(); applySet(); await new Promise(r => setTimeout(r, 200)); out[k] = getComputedStyle(i).backgroundImage.includes('radial-gradient'); }
+  i.classList.add('qon'); const cs = getComputedStyle(i); out.ring = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0; out.under = cs.boxShadow; i.classList.remove('qon');
+  return out; });
+ok('8 PDF quote in Бабочковый / Небесный: no dots over the letters; tapped quote underlined, not ringed', s8 && !s8.babochkovyi && !s8.celestial && !s8.ring && /2px/.test(s8.under), s8);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

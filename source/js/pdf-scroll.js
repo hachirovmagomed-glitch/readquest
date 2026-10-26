@@ -255,7 +255,7 @@ function psSwitch(){
     P.shown=-1;P.target=p;P.z=1;pdfRender('mode');pdfWatch();
   }
 }
-psBox().addEventListener('scroll',function(){if(!PS.on)return;psSoon();if(!PS.raf)PS.raf=requestAnimationFrame(function(){PS.raf=0;psUpdate();if(!P.sliding)pdfNumbers(psPageAt());});},{passive:true});
+psBox().addEventListener('scroll',function(){if(!PS.on)return;psSoon();if(__tracker&&__tracker.userActive&&!P.sliding)__tracker.userActive('scroll'); /* 25.10: a sign of life */if(!PS.raf)PS.raf=requestAnimationFrame(function(){PS.raf=0;psUpdate();if(!P.sliding)pdfNumbers(psPageAt());});},{passive:true});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState!=='hidden')setTimeout(psCheck,60);});
 window.addEventListener('pageshow',function(){setTimeout(psCheck,60);});
 window.addEventListener('focus',function(){setTimeout(psCheck,60);});

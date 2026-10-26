@@ -273,7 +273,7 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},bookLvlRep:{},lvlPaid:{},pomoPaid:{},chalPaid:{}};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},bookLvlRep:{},lvlPaid:{},readSpans:{},quizPaid:{},pomoPaid:{},chalPaid:{}};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
@@ -289,6 +289,9 @@ function lvlRepMap(o){ /* 23.10 «Оценка неверная» (arch.md): id 
       a:lv(v.a),tx:lv(v.tx),s:num(v.s),tm:num(v.tm),m:num(v.m),au2:lv(v.au2),ti:lv(v.ti),p:num(v.p),ai:lv(v.ai)};});
   return out;
 }
+function spansMap(o){const out={};if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).slice(-500).forEach(function(k){if(!Array.isArray(o[k]))return;let end=-1;
+  const l=o[k].filter(function(x){if(!Array.isArray(x)||x.length!==2||typeof x[0]!=='number'||typeof x[1]!=='number')return false;if(!(x[0]>=0&&x[1]<=1&&x[0]<x[1]&&x[0]>end))return false;end=x[1];return true;}).slice(0,300).map(function(x){return [x[0],x[1]];});
+  if(l.length)out[k]=l;});return out;}
 function lvlAiMap(o){const out={};if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){const v=o[k];if(v&&Number.isInteger(v.l)&&v.l>=0&&v.l<=4)out[k]={l:v.l,w:typeof v.w==='string'?v.w.slice(0,160):''};});return out;}
 function lvlMap(o,max,keyRe){const out={};if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(function(k){const v=o[k];if(Number.isInteger(v)&&v>=0&&v<=max&&(!keyRe||keyRe.test(k)))out[k]=v;});return out;}
 function hydrateS(raw){
@@ -300,6 +303,7 @@ function hydrateS(raw){
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
   S.awardedSessionIds=Array.isArray(S.awardedSessionIds)?S.awardedSessionIds:[];
   S.dailyPaidDays=Array.isArray(S.dailyPaidDays)?S.dailyPaidDays:[];S.weeklyPaidWeeks=Array.isArray(S.weeklyPaidWeeks)?S.weeklyPaidWeeks:[];
+  S.readSpans=spansMap(S.readSpans);S.quizPaid=lvlMap(S.quizPaid,1000,/^\d{4}-\d{2}-\d{2}$/); /* 25.10 честное чтение (arch.md) = storage/schema.js spansMap */
   S.bookLvl=lvlMap(S.bookLvl,4);S.bookLvlAi=lvlAiMap(S.bookLvlAi);S.bookLvlRep=lvlRepMap(S.bookLvlRep); /* 22.10 = storage/schema.js lvlAiMap */S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/);S.pomoPaid=lvlMap(S.pomoPaid,1e6,/^\d{4}-\d{2}-\d{2}$/);S.chalPaid=lvlMap(S.chalPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» */ /* 19.10 book level (arch.md) */
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};

@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261026-1709'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261026-1808'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
@@ -64,6 +64,24 @@ function applyMvpChrome(){
       }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
+  rqNavFade();
+}
+/* 25.10 (Джессика: «квадратики налезают на щит»): page content fades out just above the bottom bar, so no card runs into the raised «Читать»
+   (щит, звезда, бабочка). The band = bar top + bump + a soft edge, measured here: skins move the bar (Небесный floats) and size the bump. */
+let rqNavFadeOn=false;
+function rqNavFade(){
+  const bn=el('botnav'),root=document.documentElement;
+  if(!bn)return;
+  if(!rqNavFadeOn){rqNavFadeOn=true;
+    const again=function(){requestAnimationFrame(rqNavFade);};
+    try{new ResizeObserver(again).observe(bn);}catch(e){}
+    try{new MutationObserver(again).observe(root,{attributes:true,attributeFilter:['data-skin','data-theme']});}catch(e){}
+    window.addEventListener('resize',again);}
+  const d=bn.querySelector('.brd'),r=bn.getBoundingClientRect();
+  if(getComputedStyle(bn).display==='none'||!r.height){root.style.setProperty('--rq-bnfade','0px');root.style.setProperty('--rq-bnsoft','0px');return;}
+  const bump=d?Math.max(0,r.top-d.getBoundingClientRect().top):0;
+  root.style.setProperty('--rq-bnfade',Math.round(innerHeight-r.top+(bump?bump+6:0))+'px');
+  root.style.setProperty('--rq-bnsoft','22px');
 }
 function weekKey(d){
   if(window.__rqGame&&window.__rqGame.weekStartOf)return window.__rqGame.weekStartOf(d||today());

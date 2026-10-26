@@ -711,7 +711,55 @@ function renderPanel(tab,o){
 let speaking=false,ttsOn=false;
 /* audit 15.10 (Маня): listening is not reading — while read-aloud is on, the tracker counts no minutes (no ring, XP, coins, streak).
    Stop → counting back to the normal rule (MVP always; full UI only with the timer on). */
-function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(on?(isMvp()||!!R.timerOn):false);}
+function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(on&&!R.paused?(isMvp()||!!R.timerOn):false);} /* 25.10: the pause holds after read-aloud stops */
+
+/* ===== Пауза (Джессика 25.10: «маленькую полупрозрачную кнопочку в виде круга, которую можно перемещать по всему экрану… в настройках её
+   можно спрятать… на паузе опыт и монеты и статистика никак не меняются… если человек очень быстро листает книгу, то пауза сама включается»)
+   R.paused: false | 'me' (tapped) | 'auto' (PAUSE_FAST fast turns in a row; ends by itself once a page stays on screen past the own-pace floor).
+   Paused = the tracker does not count: no minutes, pages, XP, coins, streak or read spans. Test site only (honestOn). */
+const PAUSE_FAST=5;let pauseIv=null;
+function pauseOn(){return honestOn()&&!!R.book;}
+function pauseApply(){
+  if(__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(!R.paused&&!ttsOn&&(isMvp()||!!R.timerOn));
+  const b=el('rqPause');if(b){b.classList.toggle('on',!!R.paused);b.setAttribute('aria-pressed',R.paused?'true':'false');
+    b.setAttribute('aria-label',R.paused?'Продолжить счёт':'Пауза');b.innerHTML=rqIcon(R.paused?'play':'pause',20);}
+  clearInterval(pauseIv);pauseIv=R.paused==='auto'?setInterval(pauseCheck,1000):null;
+  try{document.dispatchEvent(new CustomEvent('rq-pause',{detail:{paused:R.paused||false}}));}catch(e){} /* «Фокус»: the pomodoro circle shows «на паузе» */
+}
+/** 25.10: false | 'me' | 'auto' — for other features (the pomodoro circle) */
+function rqPaused(){return (typeof R!=='undefined'&&R&&R.paused)||false;}
+function pauseSet(mode,quiet){R.paused=mode||false;pauseApply();
+  if(quiet)return;
+  flashMsg(mode==='auto'?'Пауза: листаешь быстро. Задержишься на странице, и счёт пойдёт сам':mode?'Пауза: время, опыт и монеты не идут':'Счёт продолжается','info');}
+function pauseReset(){R.paused=false;clearInterval(pauseIv);pauseIv=null;pauseShow();const b=el('rqPause');if(b)pauseApply();}
+/** after every page shown and every second of an auto-pause */
+function pauseCheck(){
+  if(!pauseOn()||!__tracker||!__tracker.isRunning||!__tracker.isRunning())return;
+  const s=__tracker.snapshot();
+  if(!R.paused&&s.fastRun>=PAUSE_FAST)pauseSet('auto');
+  else if(R.paused==='auto'&&s.pageAgeMs>=s.minSecMs)pauseSet(false);
+}
+function pauseShow(){
+  const b=el('rqPause');if(!b)return;
+  const on=pauseOn()&&SET.pauseBtn!==false;b.hidden=!on;if(!on)return;
+  const xy=SET.pauseXY||{x:0.88,y:0.7};pausePlace(xy.x*innerWidth,xy.y*innerHeight);
+}
+function pausePlace(cx,cy){const b=el('rqPause'),r=26,m=6;
+  cx=Math.max(r+m,Math.min(innerWidth-r-m,cx));cy=Math.max(r+m,Math.min(innerHeight-r-m,cy));
+  b.style.left=(cx-r)+'px';b.style.top=(cy-r)+'px';return {x:cx,y:cy};}
+(function wirePause(){
+  const b=el('rqPause');if(!b)return;let d=null;
+  b.addEventListener('pointerdown',function(e){e.stopPropagation();d={x:e.clientX,y:e.clientY,moved:false};try{b.setPointerCapture(e.pointerId);}catch(_){}});
+  b.addEventListener('pointermove',function(e){if(!d)return;
+    if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.moved=true;b.classList.add('drag');pausePlace(e.clientX,e.clientY);});
+  b.addEventListener('pointerup',function(e){e.stopPropagation();if(!d)return;const was=d;d=null;b.classList.remove('drag');
+    if(was.moved){const p=pausePlace(e.clientX,e.clientY);SET.pauseXY={x:Math.round(p.x/innerWidth*1000)/1000,y:Math.round(p.y/innerHeight*1000)/1000};saveSet();}
+    else pauseSet(R.paused?false:'me');});
+  b.addEventListener('pointercancel',function(){d=null;b.classList.remove('drag');});
+  b.addEventListener('click',function(e){e.stopPropagation();});
+  b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pauseSet(R.paused?false:'me');}});
+  addEventListener('resize',function(){if(!b.hidden)pauseShow();});
+})();
 /* Джессика 16.10: the bare «stop» square read as a glitch. Listening = a pause icon on a highlighted button (aria-pressed), stop = the speaker again. */
 function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
   const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
@@ -866,6 +914,7 @@ async function closeReaderImpl(opts){
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
+  if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true; /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
   R.book=null;
@@ -876,11 +925,20 @@ async function closeReaderImpl(opts){
   /* Single source of truth: the reader-session tracker computes counted minutes (per-page cap,
      visible time only, last page capped too) and writes ONE sessions[] row with a reader-generated UUID id. */
   const lvBefore=level(S.xp);
-  let row=null;
+  let row=null,liveMs=0;
   if(__tracker){
+    try{liveMs=__tracker.isRunning()?__tracker.snapshot().countedMs:0;}catch(e){}
     try{row=await __tracker.end();}catch(e){console.warn('[rq] session end',e);} /* row.date = LOCAL day the session started */
+    /* 25.10 честное чтение: pages credited in this session join the book's read spans (a re-read page credits nothing) */
+    const cov=__tracker.coverage&&__tracker.coverage();
+    if(cov&&cov.length){S.readSpans=S.readSpans||{};delete S.readSpans[b.id];S.readSpans[b.id]=cov;const ks=Object.keys(S.readSpans);if(ks.length>500)delete S.readSpans[ks[0]];}
   }
-  if(!row){save();if(!o.quiet){renderLibrary();show('library');navAfterClose(false);}return;} /* empty session (or write failed → draft recovered on next boot) */
+  if(!row){save();if(!o.quiet){renderLibrary();show('library');navAfterClose(false);
+    /* 25.10 (Джессика, скрин: 0 страниц, 3 минуты, +30 XP): the book stood open without a single turn or touch */
+    const ls=__tracker&&__tracker.lastStats&&__tracker.lastStats();
+    if(honestOn()&&ls&&ls.rr>0)flashMsg('Эти страницы ты уже читал: за повтор опыт не начисляется','info');
+    else if(honestOn()&&liveMs>=60000)flashMsg('Не засчитано: без перелистывания и касаний страница считается не дольше минуты','info');}
+    return;} /* empty session (or write failed → draft recovered on next boot) */
   SESS.push(row);
   const sd=String(row.date||today()).slice(0,10); /* session day: 23:50–00:15 belongs entirely to the first day */
   const min=row.minutes;        // время сверх лимита на странице не идёт в опыт
@@ -950,7 +1008,10 @@ async function closeReaderImpl(opts){
   const achNew=typeof achRun==='function'?achRun():[]; /* v2: recorded once, shown only on the summary (no toast in the reader) */
   save();
   /* sessions[] row already written above by __tracker.end (one row, UUID id) */
-  const _sumArgs={xp,gold,pages,min,stat:stN,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||'',row:row};
+  /* 25.10: what the mini-check may ask about (text: the book text before the current place; PDF: the last pages read) */
+  const quiz=honestOn()&&isMvp()&&min>=window.__rqGame.QUIZ_MIN&&pages>=window.__rqGame.QUIZ_PAGES&&!(S.quizPaid||{})[sd]?
+    {book:b,pos:typeof R.pos==='number'?R.pos:R.maxRatio,page:R.page|0,pages:R.pageCount|0,day:sd}:null;
+  const _sumArgs={xp,gold,pages,min,stat:stN,row:row,floorSec:R.floorSec||0,quiz:quiz,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);
     /* audit 19.10 SUM-03: a short session no longer closes silently (a blink-open, under 5 s, stays quiet) */
@@ -961,8 +1022,8 @@ async function closeReaderImpl(opts){
   else if(_sumArgs.newB.length||(_sumArgs.newAch&&_sumArgs.newAch.length)||level(S.xp)>_sumArgs.lvBefore||_sumArgs.justFinished||_sumArgs.mult>1)confetti();
 }
 function countUp(elm,to,fmt){
-  const t0=performance.now(),dur=900;
-  function f(t){const k=Math.min(1,(t-t0)/dur);elm.textContent=fmt(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(f);}
+  const t0=performance.now(),dur=900,tok=elm.__cu={}; /* 25.10: a newer countUp on the same element (mini-check bonus) stops this one */
+  function f(t){if(elm.__cu!==tok)return;const k=Math.min(1,(t-t0)/dur);elm.textContent=fmt(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(f);}
   requestAnimationFrame(f);
 }
 /* audit 19.10 SUM-01 (R3, решение 09.10): the level is in every summary — «Уровень N · ещё K XP до N+1-го» and a 6 px bar from before to now;
@@ -978,8 +1039,12 @@ function sumLevel(lvNow,lvBefore,xpBefore){
   void bar.offsetWidth;bar.style.transition='';
   requestAnimationFrame(function(){bar.style.width=Math.round((up?1:fr(xp,lvNow))*100)+'%';});
 }
+/** 25.10: «2 мин 10 с» / «40 с» */
+function fmtSecs(s){s=Math.round(Number(s)||0);const m=Math.floor(s/60),r=s%60;return m?(m+' мин'+(r?' '+r+' с':'')):(r+' с');}
+/** 25.10: main reason of the current honesty factor ('flip' | 'idle' | '') */
+function honWhy(){try{return window.__rqGame.honestyIndex(SESS,today()).why;}catch(e){return '';}}
 function renderSummary(r){
-  countUp(el('sumXp'),r.xp,n=>'+'+n+' XP');
+  el('sumXp').dataset.xp=r.xp;countUp(el('sumXp'),r.xp,n=>'+'+n+' XP');
   countUp(el('sumPages'),r.pages,n=>n);
   if(el('sumPagesLbl'))el('sumPagesLbl').textContent=plural(r.pages,'страница','страницы','страниц'); /* audit 19.10 SUM-02 */
   /* whole minutes (floor, the dayMinutes rule); under one minute → «меньше минуты» (decision D) */
@@ -993,9 +1058,16 @@ function renderSummary(r){
   el('sumStat').textContent='+'+r.statGain;
   el('sumStatName').textContent=r.stat;
   const notes=[];
-  if(r.flipped>r.pages)notes.push(''+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
+  const rw=r.row||{};
+  if(rw.fl>0&&r.floorSec)notes.push(rw.fl+' стр. пролистаны быстрее твоего темпа (меньше '+r.floorSec+' с на страницу) и не засчитаны');
+  else if(!r.floorSec&&r.flipped>r.pages)notes.push(''+(r.flipped-r.pages)+' стр. пролистаны быстрее лимита и не засчитаны');
+  /* 25.10 честное чтение: say why less was counted */
+  if(rw.ct>=30)notes.push('Последняя страница: '+fmtSecs(rw.ct)+' без перелистывания и касаний не засчитаны');
+  if(rw.rr>0)notes.push(rw.rr+' стр. ты уже читал раньше, за повтор опыт не начисляется');
+  if(rw.hon>0&&rw.hon<1)notes.push('Опыт ×'+String(rw.hon).replace('.',',')+': за две недели '+(honWhy()==='idle'?'много времени книга была открыта без чтения':'много страниц пролистано слишком быстро')+'. Читай как обычно, множитель вернётся сам');
   if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');
+  quizRender(r);
   {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));

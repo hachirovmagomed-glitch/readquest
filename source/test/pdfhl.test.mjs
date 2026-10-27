@@ -119,6 +119,19 @@ const s8 = await p.evaluate(async () => {
   i.classList.add('qon'); const cs = getComputedStyle(i); out.ring = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0; out.under = cs.boxShadow; i.classList.remove('qon');
   return out; });
 ok('8 PDF quote in Бабочковый / Небесный: no dots over the letters; tapped quote underlined, not ringed', s8 && !s8.babochkovyi && !s8.celestial && !s8.ring && /2px/.test(s8.under), s8);
+// 9. 26.10: «Прокрутка» in a PDF — a selection end held at the bottom edge scrolls on by half a screen and the selection follows onto the next page
+const s9 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => setTimeout(r, ms));
+  await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await w(3500);
+  const box = psBox(), br = box.getBoundingClientRect();
+  const sp = [...box.querySelectorAll('.textLayer span')].filter(x => x.textContent.trim().length > 5);
+  const top = sp.find(x => { const r = x.getBoundingClientRect(); return r.top > br.top + 100 && r.bottom < br.top + 300; });
+  const low = sp.filter(x => { const r = x.getBoundingClientRect(); return r.bottom < br.bottom && r.bottom > br.bottom - 60; }).pop();
+  if (!top || !low) return { none: true, top: !!top, low: !!low };
+  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(top.firstChild, 0, top.firstChild, 3); await w(300);
+  const mid = sp.find(x => { const r = x.getBoundingClientRect(); return r.top > br.top + 350 && r.bottom < br.bottom - 120; }); if (mid) g.extend(mid.firstChild, 2); await w(150);
+  g.extend(low.firstChild, low.firstChild.length); await w(300); const st0 = box.scrollTop, len0 = String(g).length, hint = el('selEdge') && el('selEdge').className;
+  await w(1100); return { st0, st1: box.scrollTop, len0, len1: String(g).length, hint }; }, bid);
+ok('9 PDF «Прокрутка»: end held at the bottom → hint, half a screen down, the selection grows', s9.hint === 'next' && s9.st1 > s9.st0 + 150 && s9.len1 > s9.len0, s9);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

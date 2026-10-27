@@ -208,9 +208,31 @@ function updSelPop(){
   const off=!selText()||el('reader').classList.contains('hidden');
   if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
   el('selpop').classList.toggle('hidden',off);
+  el('selpop').classList.toggle('pdf',R&&R.mode==='pdf');
+  if(!off)selPlace();
+}
+/* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
+   is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
+function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
+function selPlace(){
+  const sp=el('selpop');sp.classList.remove('top');
+  const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return;
+  const W=innerWidth,H=innerHeight,rs=[...s.getRangeAt(0).getClientRects()].filter(r=>r.width&&r.right>0&&r.left<W&&r.bottom>0&&r.top<H);if(!rs.length)return;
+  const end=selFwd(s)?rs[rs.length-1]:rs[0],b=sp.getBoundingClientRect();
+  if(end.bottom>b.top-8&&end.top>b.height+40)sp.classList.add('top');
+}
+/* 26.10 (Джессика: «плашка с настройками мешает выделять текст»): the reader's bars go away as soon as text is selected in the book */
+const SU={a:null,o:0};
+function selUx(){
+  const s=window.getSelection(),rd=el('reader');if(!rd||rd.classList.contains('hidden')){SU.a=null;return false;}
+  if(!s||s.isCollapsed||!s.rangeCount){SU.a=null;if(QED&&!QED.wait)quoteReselectUndo();return false;}
+  const n=s.anchorNode,e=n&&(n.nodeType===3?n.parentElement:n);if(!e||!(el('content').contains(e)||e.closest('.textLayer')))return false;
+  if(!rd.classList.contains('barsoff')){clearTimeout(chromeTimer);rd.classList.toggle('nobaranim',rqBarsStill());rd.classList.add('barsoff');}
+  const f=(s.focusNode.nodeValue||'')+'@'+s.focusOffset,drag=SU.a===n&&SU.o===s.anchorOffset&&SU.f!==f;SU.a=n;SU.o=s.anchorOffset;SU.f=f;return drag; /* the same start, a new end = a handle is being dragged */
 }
 let selT=null;
-document.addEventListener('selectionchange',()=>{const g=window.getSelection();if(SQ&&g&&!g.isCollapsed)quoteClose();if(selT)clearTimeout(selT);selT=setTimeout(updSelPop,200);selEdge();});
+document.addEventListener('selectionchange',()=>{const g=window.getSelection();if(SQ&&g&&!g.isCollapsed)quoteClose();if(selT)clearTimeout(selT);
+  const drag=selUx();if(drag)el('selpop').classList.add('hidden');selT=setTimeout(updSelPop,drag?650:200);selEdge();});
 /* 25.10 (Джессика, видео: «когда я хочу выделить текст следующей страницы, у меня начинаются казусы»): in the page modes the selection goes on
    to the next page and keeps what is already selected. The moving end (focus) entering the next page shows that page; the end held at the very
    end of the page (a handle dragged under the last line) turns after a pause; backwards the same at the start of the page. Only a drag turns:
@@ -230,22 +252,43 @@ function selWalk(n,o,dir,cb){
     for(let k=dir>0?o:o-1;dir>0?k<v.length:k>=0;k+=dir){if(/\s/.test(v[k]))continue;rg.setStart(n,k);rg.setEnd(n,k+1);const r=rg.getClientRects()[0];if(r&&cb(n,k,r))return;}
     n=dir>0?w.nextNode():w.previousNode();if(n)o=dir>0?0:n.nodeValue.length;}
 }
+/** the hint at the page edge while the end is held there: it turns (scrolls) when the ring is full */
+function selHint(d){let h=el('selEdge');if(!h){if(!d)return;h=document.createElement('div');h.id='selEdge';h.setAttribute('aria-hidden','true');h.innerHTML=rqIcon('chevron-right',18);el('reader').appendChild(h);}
+  if(d){const v=(typeof PS!=='undefined'&&PS.on?psBox():el('viewer')).getBoundingClientRect();h.style.left=(d>0?v.right-38:v.left+4)+'px';h.style.top=(d>0?v.bottom-40:v.top+6)+'px';}
+  h.className=d?(d>0?'next':'prev'):'';}
 function selEdge(){
-  clearTimeout(SX.t);SX.t=0;
-  if(typeof R==='undefined'||!R||R.mode!=='text'||!R.book||rqScrollMode()||el('reader').classList.contains('hidden'))return;
-  const s=window.getSelection(),c=el('content');
+  clearTimeout(SX.t);SX.t=0;selHint(0);
+  if(typeof R==='undefined'||!R||!R.book||el('reader').classList.contains('hidden'))return;
+  const scroll=R.mode==='text'?rqScrollMode():!!(typeof PS!=='undefined'&&PS.on);
+  if(R.mode!=='text'&&!scroll)return; /* a PDF page by page: one page's text at a time, nothing to go on to */
+  const s=window.getSelection(),c=scroll?(R.mode==='text'?el('viewer'):psBox()):el('content');
   if(!s||s.isCollapsed||!s.rangeCount||!c.contains(s.anchorNode)||!c.contains(s.focusNode)){SX.key=null;SX.prev=null;return;}
-  let fwd=true;try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);fwd=a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){}
-  const d=fwd?1:-1,v=el('viewer').getBoundingClientRect(),gap=R.step-v.width;
+  const fwd=selFwd(s),d=fwd?1:-1;
+  const key=s.anchorNode,ko=s.anchorOffset,fk=(s.focusNode.nodeValue||'')+'@'+s.focusOffset;
+  if(scroll){ /* 26.10: the end held at the bottom (top) edge of the scrolled text → it scrolls on by half a screen and the end follows */
+    if(!SX.key||SX.key[0]!==key||SX.key[1]!==ko){SX.key=[key,ko,fk];SX.moved=false;SX.armed=true;return;}
+    if(SX.key[2]!==fk){SX.key[2]=fk;SX.moved=true;}if(!SX.moved)return;
+    const W=innerWidth,rs=[...s.getRangeAt(0).getClientRects()].filter(r=>r.width&&r.right>0&&r.left<W);if(!rs.length)return;
+    const f=fwd?rs[rs.length-1]:rs[0],b=c.getBoundingClientRect(),lh=Math.max(14,f.height);
+    const edge=fwd?f.bottom>b.bottom-lh*1.6:f.top<b.top+lh*1.6;
+    if(!edge){SX.armed=true;return;}
+    if(!SX.armed)return;
+    selHint(d);
+    SX.t=setTimeout(function(){SX.t=0;const g=window.getSelection();if(!g||g.isCollapsed||!SX.armed)return;selHint(0);SX.armed=false;
+      const x=fwd?Math.max(b.left+4,f.right-2):Math.min(b.right-4,f.left+2),y=fwd?f.bottom-lh/2:f.top+lh/2,top0=c.scrollTop;
+      c.scrollTop=top0+d*Math.round(c.clientHeight*0.5);if(c.scrollTop===top0)return;
+      const r=document.caretRangeFromPoint&&document.caretRangeFromPoint(x,y);if(r&&c.contains(r.startContainer)){try{g.extend(r.startContainer,r.startOffset);}catch(e){}}},800);
+    return;
+  }
+  const v=el('viewer').getBoundingClientRect(),gap=R.step-v.width;
   const pageOf=function(r){return Math.floor((r.left+r.width/2-v.left+gap/2)/R.step);};
   const near=function(n,o,dir){let q=null;selWalk(n,o,dir,function(x,k,r){q=pageOf(r);return true;});return q;};
   const inS=near(s.focusNode,s.focusOffset,-d); /* the page of the selected character at the moving end */
   if(inS==null)return;
-  const key=s.anchorNode,ko=s.anchorOffset,fk=s.focusNode.nodeValue+'@'+s.focusOffset;
   if(!SX.key||SX.key[0]!==key||SX.key[1]!==ko){SX.key=[key,ko,fk];SX.moved=false;SX.armed=true;SX.prev=inS===0?{n:s.focusNode,o:s.focusOffset,d:d}:null;return;} /* a new selection: not a drag */
   if(SX.key[2]!==fk){SX.key[2]=fk;SX.moved=true;}
   if(!SX.moved)return;
-  const turn=function(){const np=R.page+d;if(np<0||np>=R.pageCount)return;SX.at=Date.now();SX.armed=false;SX.prev=null;goPage(np,true);};
+  const turn=function(){const np=R.page+d;if(np<0||np>=R.pageCount)return;SX.at=Date.now();SX.armed=false;SX.prev=null;selHint(0);goPage(np,true);};
   if(inS!==0){
     if(inS===d&&SX.armed&&(!SX.prev||SX.prev.d===d)){if(Date.now()-SX.at>500)turn();else SX.t=setTimeout(selEdge,520);return;} /* dragged on into the next page */
     /* anything else is Chrome's hit test under the last line of a column (it lands on another page's text, the selection jumped): the finger
@@ -258,7 +301,7 @@ function selEdge(){
   SX.prev={n:s.focusNode,o:s.focusOffset,d:d};
   const outS=near(s.focusNode,s.focusOffset,d);
   if(!(outS==null||outS*d>=1)){SX.armed=true;return;} /* not at the very end (start) of the page */
-  if(SX.armed)SX.t=setTimeout(function(){SX.t=0;const g=window.getSelection();if(g&&!g.isCollapsed&&SX.armed)turn();},800);
+  if(SX.armed&&R.page+d>=0&&R.page+d<R.pageCount){selHint(d);SX.t=setTimeout(function(){SX.t=0;const g=window.getSelection();if(g&&!g.isCollapsed&&SX.armed)turn();else selHint(0);},800);}
 }
 /* Chrome reveals a selection end by scrolling even overflow:hidden boxes — the whole reader slid up and the page shifted (video 25.10).
    In the reader nothing of ours scrolls but the scroll mode's #viewer and the panels, so these boxes go straight back. */
@@ -337,12 +380,24 @@ function hlPut(h,k,n,rep){const i=hlNth(h,k,n);return i<0?h:h.slice(0,i)+rep+h.s
    it is marked paragraph by paragraph: the first piece at its occurrence n, each next piece right after the previous one (only tags between) */
 function hlPieces(t){return String(t||'').split(/\s*\n\s*/).filter(Boolean).map(esc);}
 function hlPutQ(h,t,n,c){
-  const ps=hlPieces(t);if(!ps.length)return h;const i=hlNth(h,ps[0],n);if(i<0)return h;
+  const ps=hlPieces(t);if(!ps.length)return h;let i=hlNth(h,ps[0],n),len=ps[0].length;
+  if(i<0){const m=hlReNth(h,ps[0],n);if(!m)return h;i=m.index;len=m[0].length;}
   let out=h.slice(0,i),pos=i;
-  for(let k=0;k<ps.length;k++){const at=k?h.indexOf(ps[k],pos):i;if(at<0||(k&&!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at))))break;
-    out+=h.slice(pos,at)+markHtml(ps[k],c);pos=at+ps[k].length;}
+  for(let k=0;k<ps.length;k++){let at=k?h.indexOf(ps[k],pos):i,l=k?ps[k].length:len;
+    if(k&&(at<0||!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at)))){const re=hlRe(ps[k]);re.lastIndex=pos;const m=re.exec(h);if(!m)break;at=m.index;l=m[0].length;} /* the piece runs through another quote's mark */
+    if(k&&!/^(\s|<[^>]*>)*$/.test(h.slice(pos,at)))break;
+    const seg=h.slice(at,at+l);out+=h.slice(pos,at)+(seg.indexOf('<')<0?markHtml(seg,c):hlMarkAround(seg,c,hlDepth(h,at)));pos=at+l;}
   return out+h.slice(pos);
 }
+/* 26.10 (Джессика: цитата на три абзаца подсвечивалась в одном): a new quote over an older one — its words in the HTML have the older mark's tags
+   between them, so a plain search missed them. The words are found with any tags between the characters, and only the text that is not
+   inside an older mark gets a mark of its own (data-qf: a piece of a paragraph); the older quote keeps its colour */
+function hlRe(k){return new RegExp((k.match(/&[#\w]+;|[\s\S]/g)||[]).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('(?:<[^>]*>)*'),'g');}
+function hlReNth(h,k,n){const re=hlRe(k);let m=null,x;for(let j=0;j<=(n||0);j++){x=re.exec(h);if(!x)break;m=x;}return m;}
+function hlDepth(h,at){const a=h.slice(0,at);return (a.match(/<mark[\s>]/g)||[]).length-(a.match(/<\/mark>/g)||[]).length;}
+function hlMarkAround(seg,c,d){let out='';seg.split(/(<[^>]*>)/).forEach(x=>{if(!x)return;if(x[0]==='<'){if(/^<mark[\s>]/.test(x))d++;else if(x==='</mark>')d--;out+=x;}
+  else out+=d>0?x:markHtml(x,c).replace('<mark','<mark data-qf="1"');});return out;}
+function hlHas(h,k,from){return !!k&&(h.indexOf(k,from||0)>=0||(()=>{const re=hlRe(k);re.lastIndex=from||0;return !!re.exec(h);})());}
 /** text book: the book body's HTML in #content (after the title and the meta line) — marks are counted only there */
 function hlBodyStart(c0,h){const m=c0.querySelector(':scope > p.meta');if(!m)return 0;const o=m.outerHTML,i=h.indexOf(o);return i<0?0:i+o.length;}
 /** occurrence number of the selection's words: how many times esc(t) stands in the body's HTML before the selection starts */
@@ -354,13 +409,13 @@ function hlSelN(t){
 }
 /** the quote behind a mark: its rank among the marks with the same words = rank among those quotes by q.n */
 function quoteOfMark(bid,m){const t=m.textContent,ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===t);
-  return hlSame(bid,t)[Math.max(0,ms.indexOf(m))]||(S.quotes[bid]||[]).find(q=>q&&/\n/.test(q.text)&&String(q.text).split(/\s*\n\s*/).includes(t))||null;}
+  return hlSame(bid,t)[Math.max(0,ms.indexOf(m))]||(S.quotes[bid]||[]).find(q=>q&&/\n/.test(q.text)&&String(q.text).split(/\s*\n\s*/).includes(t))||(m.dataset.qf&&(S.quotes[bid]||[]).find(q=>q&&String(q.text).includes(t)))||null;}
 /** all marks of a quote (a quote over several paragraphs has one per paragraph) */
 /** 22.10: the skin's one-time effect on a just-made / recoloured quote (CSS [data-hlnew]), in the book and on PDF pages */
 function hlFlash(bid,q){if(!R.book||R.book.id!==bid)return;const qi=(S.quotes[bid]||[]).indexOf(q);
   const ms=quoteMarks(q).concat([...document.querySelectorAll('.textLayer .pdfhls i[data-q="'+qi+'"]')]);
   ms.forEach(m=>{delete m.dataset.hlnew;void m.offsetWidth;m.dataset.hlnew='';setTimeout(()=>{delete m.dataset.hlnew;},1400);});} /* an attribute, not a class: className stays the colour */
-function quoteMarks(q){const ps=String(q.text).split(/\s*\n\s*/).filter(Boolean);return [...el('content').querySelectorAll('mark')].filter(x=>ps.includes(x.textContent));}
+function quoteMarks(q){const ps=String(q.text).split(/\s*\n\s*/).filter(Boolean);return [...el('content').querySelectorAll('mark')].filter(x=>ps.includes(x.textContent)||(x.dataset.qf&&ps.some(p=>p.includes(x.textContent))));}
 function markHtml(k,c){return c&&c[0]==='#'?'<mark data-hc="'+c+'">'+k+'</mark>':'<mark'+(c&&c!=='y'?' class="hl-'+c+'"':'')+'>'+k+'</mark>';}
 function hlSetMark(m,c){m.className=c[0]==='#'||c==='y'?'':'hl-'+c;if(c[0]==='#')m.dataset.hc=c;else delete m.dataset.hc;['--hc','--hc2','--hs','--hs2'].forEach(v=>m.style.removeProperty(v));hlPaintCustom();}
 /** own colours: the strongest alpha (day ≤ .45, night ≤ .30) at which the book text over it stays ≥ 7:1 on this page */
@@ -420,7 +475,7 @@ function pdfHlRefresh(){
 }
 function markInContent(t,c,n){
   const c0=el('content'),k=hlPieces(t)[0],h=c0.innerHTML,b=hlBodyStart(c0,h);
-  if(k&&h.indexOf(k,b)>=0){c0.innerHTML=h.slice(0,b)+hlPutQ(h.slice(b),t,n,hlKey(c));hlPaintCustom();}
+  if(hlHas(h,k,b)){c0.innerHTML=h.slice(0,b)+hlPutQ(h.slice(b),t,n,hlKey(c));hlPaintCustom();}
 }
 function renderSpColors(on){
   const box=el('spColors');if(!box)return;const cur=on||hlKey(SET.hlc),own=hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'';
@@ -466,12 +521,15 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     if(withNote){selDone();return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:old.note||''}).then(v=>{if(v!==null)put(v);});}
     put(null);selDone();return;
   }
+  const ed=QED&&QED.bid===bid?QED:null;
+  if(ed){ed.wait=true;const qs=S.quotes[bid]||[],i=qs.indexOf(ed.q);if(i>-1)qs.splice(i,1);const h=S.hl[bid]||[],j=h.indexOf(ed.q.text);if(j>-1)h.splice(j,1);}
   const commit=(note)=>{
-    const q={text:t,note,date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
+    if(ed&&QED===ed)QED=null;
+    const q={text:t,note:ed&&!note?ed.q.note||'':note,date:ed?ed.q.date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
     (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(t);
     if(typeof diaryAuto==='function')diaryAuto(bid); /* 25.10 «Дневники»: the book's diary on its first quote (S.diaryAuto) */
-    if(!(window.__rqWriter&&__rqWriter.noLocks)){
+    if(!ed&&!(window.__rqWriter&&__rqWriter.noLocks)){ /* 26.10: a re-bordered quote is not a new one: no coins / XP again */
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
       addSkillXp('Аналитика',1);checkAchievements();
     } /* no locks → no coins */
@@ -481,7 +539,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
   };
   if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
     selDone();
-    return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:''}).then(v=>{if(v!==null)commit(v);});
+    return rqAsk({t:'Заметка к цитате',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»',ok:'Сохранить',input:ed?ed.q.note||'':''}).then(v=>{if(v!==null)commit(v);else if(ed){(S.quotes[bid]=S.quotes[bid]||[]).push(ed.q);(S.hl[bid]=S.hl[bid]||[]).push(ed.q.text);save();quoteReselectUndo();}});
   }
   commit('');selDone();
 }
@@ -497,6 +555,35 @@ function copyText(t){
 el('spColors').onclick=(e)=>{const b=e.target.closest&&e.target.closest('button');if(!b)return;if(b.id==='spOwn')hlOwnOpen();else if(b.dataset.c)addQuote(false,b.dataset.c);};
 el('spNote').onclick=()=>addQuote(true);
 el('spDel').onclick=quoteDel;
+/* 26.10 (Джессика): «Расширить» — the whole sentence around the selection, pressed again — the whole paragraph(s) */
+function selGrow(){
+  const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return;const rg=s.getRangeAt(0),c=el('content');
+  const par=function(n){const e=n.nodeType===3?n.parentElement:n;return e&&e.closest&&e.closest('#content p');};
+  const p0=par(rg.startContainer),p1=par(rg.endContainer);if(!p0||!p1||!c.contains(p0))return;
+  const off=function(p,n,o){const r=document.createRange();r.setStart(p,0);r.setEnd(n,o);return r.toString().length;};
+  const at=function(p,k){const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);let n,last=null;while((n=w.nextNode())){if(k<=n.nodeValue.length)return [n,k];k-=n.nodeValue.length;last=n;}return last?[last,last.nodeValue.length]:[p,0];};
+  const t0=p0.textContent,t1=p1.textContent,a=off(p0,rg.startContainer,rg.startOffset),b=off(p1,rg.endContainer,rg.endOffset);
+  const re=/[.!?…]+[»"”)\]]*(?=\s|$)/g;let sa=0,sb=t1.length,m;
+  while((m=re.exec(t0))&&m.index+m[0].length<=a)sa=m.index+m[0].length;
+  re.lastIndex=0;while((m=re.exec(t1))){if(m.index+m[0].length>=b){sb=m.index+m[0].length;break;}}
+  while(sa<t0.length&&/\s/.test(t0[sa]))sa++;
+  const pa=t0.length-t0.replace(/^\s+/,'').length,pb=t1.replace(/\s+$/,'').length;
+  if(a<=sa&&b>=sb){sa=pa;sb=pb;} /* already the sentence → the paragraph */
+  const A=at(p0,sa),B=at(p1,sb);try{s.setBaseAndExtent(A[0],A[1],B[0],B[1]);}catch(e){}
+}
+el('spGrow').onclick=selGrow;
+/* 26.10 (Джессика): «Изменить границы» of a saved quote (text books) — its marks become a selection with handles; a colour or «Заметка» saves it
+   in place of the old one (note, date and place kept), leaving the selection puts the old quote back as it was */
+let QED=null;
+function quoteReselect(){
+  const sq=SQ;if(!sq||R.mode==='pdf')return;const ms=sq.ms.filter(m=>m.isConnected);if(!ms.length)return;
+  quoteClose();let a=null,z=null;
+  ms.forEach(m=>{const t=document.createTextNode(m.textContent);m.replaceWith(t);if(!a)a=t;z=t;});
+  QED={bid:sq.bid,q:sq.q,wait:false};SU.a=null;
+  const s=window.getSelection();s.removeAllRanges();s.setBaseAndExtent(a,0,z,z.nodeValue.length);
+}
+function quoteReselectUndo(){const e=QED;QED=null;if(!e||!R.book||R.book.id!==e.bid||(S.quotes[e.bid]||[]).indexOf(e.q)<0)return;markInContent(e.q.text,hlKey(e.q.c),e.q.n||0);}
+el('spEdit').onclick=quoteReselect;
 el('spAll').onclick=()=>{selDone();renderPanel('qts');el('panel').classList.remove('hidden');el('sheet').classList.add('hidden');};
 
 /* --- перевод по выделению: js/translate.js (21.10) --- */

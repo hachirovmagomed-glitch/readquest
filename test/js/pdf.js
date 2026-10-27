@@ -143,6 +143,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
   el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
   if(typeof pdfHlPaint==='function')pdfHlPaint(el('pdfText'),n); /* 21.10: quote colours on the PDF page */
+  if(typeof selPdfShown==='function')selPdfShown(n); /* 27.10: a selection carried onto this page */
   if(isNew){P.z=1;P.tx=0;P.ty=0;}
   P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
   pdfApply();

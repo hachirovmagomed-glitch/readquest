@@ -208,8 +208,15 @@ function updSelPop(){
   if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
   el('selpop').classList.toggle('hidden',off);
   el('selpop').classList.toggle('pdf',R&&R.mode==='pdf');
+  /* 27.10 (Джессика: «плашку с выбором цветов … сделать в виде маленького кружочка, чтобы она не мешала … при нажатии разворачивается и
+     сворачивается»): a new selection shows the bar folded into a circle; the circle opens it, the chevron on it folds it back */
+  const g=window.getSelection(),k=g&&!g.isCollapsed?g.anchorNode:null;
+  if(k!==SA.key){SA.key=k;if(k)SA.mini=true;}
+  selMiniApply();
   if(!off)selPlace();
 }
+const SA={key:null,mini:true};
+function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');}
 /* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
    is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
 function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
@@ -231,7 +238,7 @@ function selUx(){
 }
 let selT=null;
 document.addEventListener('selectionchange',()=>{const g=window.getSelection();if(SQ&&g&&!g.isCollapsed)quoteClose();if(selT)clearTimeout(selT);
-  const drag=selUx();if(drag)el('selpop').classList.add('hidden');selT=setTimeout(updSelPop,drag?650:200);selEdge();});
+  const drag=selUx();if(drag&&!el('selpop').classList.contains('mini'))el('selpop').classList.add('hidden');selT=setTimeout(updSelPop,drag?650:200);selEdge();selUi();});
 /* 25.10 (Джессика, видео: «когда я хочу выделить текст следующей страницы, у меня начинаются казусы»): in the page modes the selection goes on
    to the next page and keeps what is already selected. The moving end (focus) entering the next page shows that page; the end held at the very
    end of the page (a handle dragged under the last line) turns after a pause; backwards the same at the start of the page. Only a drag turns:
@@ -287,20 +294,78 @@ function selEdge(){
   if(!SX.key||SX.key[0]!==key||SX.key[1]!==ko){SX.key=[key,ko,fk];SX.moved=false;SX.armed=true;SX.prev=inS===0?{n:s.focusNode,o:s.focusOffset,d:d}:null;return;} /* a new selection: not a drag */
   if(SX.key[2]!==fk){SX.key[2]=fk;SX.moved=true;}
   if(!SX.moved)return;
-  const turn=function(){const np=R.page+d;if(np<0||np>=R.pageCount)return;SX.at=Date.now();SX.armed=false;SX.prev=null;selHint(0);goPage(np,true);};
   if(inS!==0){
-    if(inS===d&&SX.armed&&(!SX.prev||SX.prev.d===d)){if(Date.now()-SX.at>500)turn();else SX.t=setTimeout(selEdge,520);return;} /* dragged on into the next page */
-    /* anything else is Chrome's hit test under the last line of a column (it lands on another page's text, the selection jumped): the finger
-       is under the text, so the end goes to the edge of THIS page, on the side it was dragged towards */
+    /* 27.10 (Джессика: «перенос выделения всё ещё максимально неудобный»): the page never turns by itself while selecting — only the arrows ‹ ›
+       (selNav below). An end that left this page is Chrome's hit test under the last line of a column (it lands on another page's text,
+       the selection jumped) or a drag past the edge: the end goes to the edge of THIS page, on the side it was dragged towards */
     const pd=SX.prev?SX.prev.d:d,from=SX.prev||{n:s.anchorNode,o:s.anchorOffset};let e=null;
     selWalk(from.n,from.o,pd,function(x,k,r){if(pageOf(r)!==0)return true;e={n:x,o:pd>0?k+1:k};return false;});
     e=e||from;try{s.extend(e.n,e.o);}catch(er){}
     return;
   }
   SX.prev={n:s.focusNode,o:s.focusOffset,d:d};
-  const outS=near(s.focusNode,s.focusOffset,d);
-  if(!(outS==null||outS*d>=1)){SX.armed=true;return;} /* not at the very end (start) of the page */
-  if(SX.armed&&R.page+d>=0&&R.page+d<R.pageCount){selHint(d);SX.t=setTimeout(function(){SX.t=0;const g=window.getSelection();if(g&&!g.isCollapsed&&SX.armed)turn();else selHint(0);},800);}
+}
+/* 27.10 (Джессика, видео): «можно добавить стрелочку … ты перемещался на следующую страницу, но при этом выделение на предыдущих страницах никуда
+   не исчезало … нужен какой-нибудь индикатор». While text is selected in the page modes: ‹ › at the bottom corners turn the page and the moving
+   end of the selection goes on onto the new page (its first word), so its handle is right there to drag; the chip at the top says where the
+   selection began («Выделено со стр. N — всё на месте»), a tap on it shows that page. In a PDF page by page the page's text is replaced on a
+   turn, so the part already selected is kept aside (PQ, painted on its page) and saved together with the rest as one quote. */
+let PQ=null; /* PDF «Страницы»: {bid, parts:[{p,r,v}], text, want} — the part of a selection on the pages before this one */
+function selBook(){const s=window.getSelection(),rd=el('reader');if(!rd||rd.classList.contains('hidden')||!s||s.isCollapsed||!s.rangeCount)return null;
+  const n=s.anchorNode,e=n&&(n.nodeType===3?n.parentElement:n);return e&&(el('content').contains(e)||e.closest('.textLayer'))?s:null;}
+function selPagesOn(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'?!rqScrollMode():!(typeof PS!=='undefined'&&PS.on));}
+function selNavEl(){let n=el('selNav');if(n)return n;n=document.createElement('div');n.id='selNav';n.hidden=true;
+  n.innerHTML='<button type="button" id="selPrev" aria-label="Предыдущая страница, выделение сохранится">'+rqIcon('chevron-left',22)+'</button>'+
+    '<button type="button" id="selNext" aria-label="Следующая страница, выделение продолжится">'+rqIcon('chevron-right',22)+'</button>'+
+    '<div id="selFrom" role="status" aria-live="polite"><button type="button" id="selFromGo"></button><button type="button" id="selFromX" aria-label="Отменить выделение на прошлых страницах">'+rqIcon('x',16)+'</button></div>';
+  el('reader').appendChild(n);
+  el('selPrev').onclick=function(){selTurn(-1);};el('selNext').onclick=function(){selTurn(1);};
+  el('selFromGo').onclick=function(){const g=+this.dataset.p;if(g>=0&&g!==R.page)goPage(g,true);setTimeout(selUi,60);};
+  el('selFromX').onclick=function(){PQ=null;pdfHlRefresh();selUi();};
+  return n;}
+/** page of a client rect in a text book (the strip's columns) */
+function selPageAt(r){const v=el('viewer').getBoundingClientRect(),gap=R.step-v.width;return R.page+Math.floor((r.left+r.width/2-v.left+gap/2)/R.step);}
+function selUi(){
+  const s=selBook(),pq=PQ&&R&&R.book&&PQ.bid===R.book.id?PQ:null;
+  const on=selPagesOn()&&(s||(pq&&R.mode==='pdf'));
+  const n=el('selNav');if(!on){if(n)n.hidden=true;return;}
+  selNavEl().hidden=false;
+  el('selPrev').disabled=R.page<=0;el('selNext').disabled=R.page>=R.pageCount-1;
+  let from=-1;
+  if(R.mode==='pdf'){if(pq)from=pq.parts[0].p;}
+  else if(s){let r=null;selWalk(s.anchorNode,s.anchorOffset,selFwd(s)?1:-1,function(x,k,q){r=q;return true;});if(r)from=selPageAt(r);} /* the fixed end: where the selection began */
+  const f=el('selFrom'),show=from>=0&&from!==R.page;f.hidden=!show;
+  if(show){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
+    el('selFromGo').dataset.p=from;el('selFromGo').innerHTML=rqIcon('layers',16)+'<span>Выделено со стр. '+esc(lab)+' — всё на месте</span>';
+    el('selFromX').hidden=!(R.mode==='pdf'&&pq);}
+}
+function selTurn(d){
+  const np=R.page+d;if(np<0||np>=R.pageCount)return;
+  if(R.mode==='pdf'){
+    const s=selBook();
+    if(d>0&&s){const g=pdfSelGeo(),t=selText();
+      if(g&&t){if(!PQ||PQ.bid!==R.book.id)PQ={bid:R.book.id,parts:[],text:''};
+        [g].concat(g.more||[]).forEach(function(x){PQ.parts.push({p:x.p,r:x.r,v:2});});PQ.text=(PQ.text?PQ.text+' ':'')+t;PQ.want=np;}
+      s.removeAllRanges();}
+    goPage(np,true);setTimeout(selUi,60);return;
+  }
+  const s=selBook();if(!s){goPage(np,true);return;}
+  const fwd=selFwd(s);goPage(np,true);
+  if((d>0)!==fwd){setTimeout(selUi,60);return;} /* towards the fixed end: only a look at that page */
+  /* the moving end goes onto the new page: to the end of its first word (forward) / the start of its last word (backward) */
+  const v=el('viewer').getBoundingClientRect(),gap=R.step-v.width,rel=function(r){return Math.floor((r.left+r.width/2-v.left+gap/2)/R.step);};
+  let hit=null;selWalk(s.focusNode,s.focusOffset,d,function(x,k,r){const q=rel(r);if(q===0){hit=[x,k];return true;}return q*d>0;});
+  if(hit){const t=hit[0].nodeValue;let k=hit[1];if(d>0){while(k<t.length&&!/\s/.test(t[k]))k++;}else{while(k>0&&!/\s/.test(t[k-1]))k--;}
+    SX.prev={n:hit[0],o:k,d:d};try{s.extend(hit[0],k);}catch(e){}}
+  setTimeout(selUi,60);
+}
+/** PDF «Страницы»: the new page is on screen — after a turn with a selection, its first word is selected (the handles are here to drag on) */
+function selPdfShown(n){
+  if(!PQ||R.mode!=='pdf')return;
+  if(PQ.want===n){PQ.want=null;const sp=[...el('pdfText').querySelectorAll('span')].find(x=>x.firstChild&&x.firstChild.nodeType===3&&/\S/.test(x.textContent));
+    if(sp){const t=sp.firstChild,v=t.nodeValue;let a=0;while(a<v.length&&/\s/.test(v[a]))a++;let z=a;while(z<v.length&&!/\s/.test(v[z]))z++;
+      try{window.getSelection().setBaseAndExtent(t,a,t,z);}catch(e){}}}
+  setTimeout(selUi,60);
 }
 /* Chrome reveals a selection end by scrolling even overflow:hidden boxes — the whole reader slid up and the page shifted (video 25.10).
    In the reader nothing of ours scrolls but the scroll mode's #viewer and the panels, so these boxes go straight back. */
@@ -339,7 +404,7 @@ function quoteMark(on){
 }
 function quoteOpen(h){
   quoteMark(false);SQ=h;quoteMark(true);
-  renderSpColors(hlKey(h.q.c));el('selpop').classList.add('qmode');el('selpop').classList.remove('hidden');
+  renderSpColors(hlKey(h.q.c));el('selpop').classList.add('qmode');el('selpop').classList.remove('hidden','mini');
 }
 function quoteClose(){quoteMark(false);SQ=null;el('selpop').classList.remove('qmode');}
 /** colour / note on a tapped quote */
@@ -444,8 +509,15 @@ function hlLines(rs){
 }
 function pdfSelGeo(){
   try{if(R.mode!=='pdf')return null;const s=window.getSelection();if(!s||!s.rangeCount)return null;const rg=s.getRangeAt(0);
-    let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl=n0&&n0.closest&&n0.closest('.textLayer');if(!tl)return null;
-    const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page;const b=tl.getBoundingClientRect();if(!b.width||!b.height)return null;
+    let n0=rg.startContainer;if(n0&&n0.nodeType===3)n0=n0.parentNode;const tl0=n0&&n0.closest&&n0.closest('.textLayer');if(!tl0)return null;
+    /* 27.10: a selection over several pages («Прокрутка») — every page's text layer it crosses; the first is the quote's place, the rest q.pdf.more */
+    const tls=[...document.querySelectorAll('.textLayer')].filter(tl=>tl===tl0||rg.intersectsNode(tl));let out=null;
+    tls.forEach(tl=>{const sl=tl.closest('.psl'),p=sl?+sl.dataset.n:R.page,ls=pdfGeoLines(tl,rg);if(!ls.length)return;
+      if(!out)out={p:p,r:ls,v:2};else if(p!==out.p)(out.more=out.more||[]).push({p:p,r:ls,v:2});});
+    return out;}catch(e){return null;}
+}
+function pdfGeoLines(tl,rg){
+    const b=tl.getBoundingClientRect();if(!b.width||!b.height)return [];
     const r=[],w=document.createTreeWalker(tl,NodeFilter.SHOW_TEXT),sub=document.createRange(),ky=b.height/(tl.offsetHeight||b.height);let t;
     while((t=w.nextNode())){if(!rg.intersectsNode(t)||(t.parentNode&&t.parentNode.closest('.pdfhls')))continue;
       sub.setStart(t,t===rg.startContainer?rg.startOffset:0);sub.setEnd(t,t===rg.endContainer?rg.endOffset:t.length);
@@ -454,17 +526,20 @@ function pdfSelGeo(){
       Array.prototype.forEach.call(sub.getClientRects(),q=>{const x0=Math.max(q.left,b.left),x1=Math.min(q.right,b.right);
         const y0=Math.max(own?b.top+(top+fh*0.15)*ky:q.top,b.top),y1=Math.min(own?b.top+(top+fh*1.25)*ky:q.bottom,b.bottom);
         if(x1-x0<1||y1-y0<1)return;r.push([(x0-b.left)/b.width,(y0-b.top)/b.height,(x1-x0)/b.width,(y1-y0)/b.height]);});}
-    const ls=hlLines(r);return ls.length?{p:p,r:ls.slice(0,200),v:2}:null;}catch(e){return null;}
+    return hlLines(r).slice(0,200);
 }
+/** a PDF quote's places: q.pdf (its first page) + q.pdf.more (27.10: the next pages of a quote over a page break) */
+function pdfParts(q){return q&&q.pdf?[q.pdf].concat(Array.isArray(q.pdf.more)?q.pdf.more.filter(x=>x&&Array.isArray(x.r)):[]):[];}
 function hlRgba(c,a){return 'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+','+a+')';}
 function pdfHlPaint(tl,p){
   if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
-  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&q.pdf.p===p&&Array.isArray(q.pdf.r));if(!qs.length)return;
+  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&Array.isArray(q.pdf.r)&&pdfParts(q).some(x=>x.p===p)),pend=PQ&&PQ.bid===R.book.id?PQ.parts.filter(x=>x.p===p):[];if(!qs.length&&!pend.length)return;
   const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
   const all=S.quotes[R.book.id];
   qs.forEach(q=>{const c=hlKey(q.c),qi=all.indexOf(q);
-    hlLines(q.pdf.r).forEach(k=>{const d=document.createElement('i');d.dataset.q=qi;if(SQ&&SQ.q===q)d.classList.add('qon');if(c[0]==='#'){d.style.setProperty('--hc',hlRgba(c,.35));d.style.setProperty('--hc2',hlRgba(c,.35));d.style.setProperty('--hs',hlRgba(c,.85));d.style.setProperty('--hs2',hlRgba(c,.85));}else if(c!=='y')d.classList.add('hl-'+c);
-      d.style.left=k[0]*100+'%';d.style.top=(k[1]+(q.pdf.v===2?0:k[3]*0.23))*100+'%'; /* boxes saved before 21.10 evening: down to the page's line */d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);});});
+    pdfParts(q).filter(x=>x.p===p).forEach(x=>hlLines(x.r).forEach(k=>{const d=document.createElement('i');d.dataset.q=qi;if(SQ&&SQ.q===q)d.classList.add('qon');if(c[0]==='#'){d.style.setProperty('--hc',hlRgba(c,.35));d.style.setProperty('--hc2',hlRgba(c,.35));d.style.setProperty('--hs',hlRgba(c,.85));d.style.setProperty('--hs2',hlRgba(c,.85));}else if(c!=='y')d.classList.add('hl-'+c);
+      d.style.left=k[0]*100+'%';d.style.top=(k[1]+(x.v===2?0:k[3]*0.23))*100+'%'; /* boxes saved before 21.10 evening: down to the page's line */d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);}));});
+  pend.forEach(x=>hlLines(x.r).forEach(k=>{const d=document.createElement('i');d.className='pend';d.style.left=k[0]*100+'%';d.style.top=k[1]*100+'%';d.style.width=k[2]*100+'%';d.style.height=k[3]*100+'%';box.appendChild(d);}));
   tl.insertBefore(box,tl.firstChild);
 }
 function pdfHlRefresh(){
@@ -498,7 +573,7 @@ function hlPickInit(c){
   set(HL_HEX.test(c)?c:HL_PICK[4]);
 }
 function hlOwnOpen(){
-  const m=selMark(),t=m?m.textContent:selText();if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo(),n:m?0:hlSelN(t),sq:SQ};
+  const m=selMark(),t=m?m.textContent:selText()||(PQ&&R.book&&PQ.bid===R.book.id?String(window.getSelection()).trim():'');if(!t||!R.book)return;hlPick={m,t,bid:R.book.id,geo:pdfSelGeo(),n:m?0:hlSelN(t),sq:SQ};
   const pk=hlPick;rqAsk({t:'Свой цвет',color:hlKey(SET.hlx)[0]==='#'?hlKey(SET.hlx):'#e86fb0',ok:'Готово'}).then(v=>{if(hlPick!==pk)return;hlPick=null;v=v&&hlKey(v);if(!v||v[0]!=='#')return;SET.hlx=v;addQuote(false,v,pk);});
 }
 /** an already highlighted quote the selection sits in (then a colour recolours it instead of adding a copy) */
@@ -509,9 +584,12 @@ function selMark(){
 function selDone(){quoteClose();if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
 function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the colour picker opened */
   const sq=pick?pick.sq:SQ;if(sq)return quoteEdit(sq,withNote,color); /* 22.10: a tapped saved quote */
-  const m=pick?pick.m:selMark(),t=pick?pick.t:(m?m.textContent:selText());if(!t||!R.book||(pick&&pick.bid!==R.book.id))return;
-  const geo=pick?pick.geo:pdfSelGeo();
+  const pq=PQ&&R.book&&PQ.bid===R.book.id&&PQ.parts.length?PQ:null;
+  const m=pick?pick.m:selMark(),t=pick?pick.t:(m?m.textContent:selText()||(pq?String(window.getSelection()).trim():''));if(!t||!R.book||(pick&&pick.bid!==R.book.id))return;
+  let geo=pick?pick.geo:pdfSelGeo(),tt=t;
   if(m&&!m.isConnected)return;
+  if(geo&&!m&&pq){ /* 27.10: a PDF selection carried over pages → one quote */
+    const ps=PQ.parts.concat([{p:geo.p,r:geo.r,v:2}],(geo.more||[]));geo=Object.assign({},ps[0],{more:ps.slice(1)});tt=PQ.text+' '+t;PQ=null;selUi();}
   const bid=R.book.id,c=hlKey(color||SET.hlc);
   if(color&&SET.hlc!==c){SET.hlc=c;saveSet();}
   const old=m?quoteOfMark(bid,m):null,n=m?0:pick?pick.n||0:hlSelN(t);
@@ -524,16 +602,16 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
   if(ed){ed.wait=true;const qs=S.quotes[bid]||[],i=qs.indexOf(ed.q);if(i>-1)qs.splice(i,1);const h=S.hl[bid]||[],j=h.indexOf(ed.q.text);if(j>-1)h.splice(j,1);}
   const commit=(note)=>{
     if(ed&&QED===ed)QED=null;
-    const q={text:t,note:ed&&!note?ed.q.note||'':note,date:ed?ed.q.date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
+    const q={text:tt,note:ed&&!note?ed.q.note||'':note,date:ed?ed.q.date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
     (S.quotes[bid]=S.quotes[bid]||[]).push(q);
-    (S.hl[bid]=S.hl[bid]||[]).push(t);
+    (S.hl[bid]=S.hl[bid]||[]).push(tt);
     if(!ed&&!(window.__rqWriter&&__rqWriter.noLocks)){ /* 26.10: a re-bordered quote is not a new one: no coins / XP again */
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
       addSkillXp('Аналитика',1);checkAchievements();
     } /* no locks → no coins */
     save();
     if(!R.book||R.book.id!==bid)return;
-    markInContent(t,c,n);if(geo)pdfHlRefresh();hlFlash(bid,q);
+    if(!geo)markInContent(t,c,n);else pdfHlRefresh();hlFlash(bid,q);
   };
   if(withNote){ /* 20.10: our sheet instead of the system prompt; «Отмена» saves nothing */
     selDone();
@@ -570,6 +648,8 @@ function selGrow(){
   const A=at(p0,sa),B=at(p1,sb);try{s.setBaseAndExtent(A[0],A[1],B[0],B[1]);}catch(e){}
 }
 el('spGrow').onclick=selGrow;
+el('spMini').onclick=function(){SA.mini=false;selMiniApply();selPlace();};
+el('spFold').onclick=function(){SA.mini=true;selMiniApply();selPlace();};
 /* 26.10 (Джессика): «Изменить границы» of a saved quote (text books) — its marks become a selection with handles; a colour or «Заметка» saves it
    in place of the old one (note, date and place kept), leaving the selection puts the old quote back as it was */
 let QED=null;
@@ -1004,7 +1084,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true; /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;
+  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();

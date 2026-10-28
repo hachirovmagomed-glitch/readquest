@@ -114,7 +114,7 @@ function ocrCurPage(){return PS&&PS.on?R.page:(P&&P.shown>=0?P.shown:R.page);}
 /* ---------- окно «Текст страницы» ---------- */
 function ocrRender(q,state,x){
   if(ocrCur!==q)return;
-  el('ocrHT').textContent='Текст страницы '+(typeof pdfLabel==='function'?pdfLabel(q.n):q.n+1);
+  el('ocrHT').textContent=state==='all'?'Распознавание книги':'Текст страницы '+(typeof pdfLabel==='function'?pdfLabel(q.n):q.n+1);
   const aiB=typeof aiOn==='function'&&aiOn()?'<button type="button" class="ghostbtn" id="ocrAi">'+rqIcon('sparkles',16)+' Через ИИ</button>':'';
   const big=state==='file'&&x&&!x.t,lab=x&&x.ocr?'Распознать заново':state==='file'&&!big?'Распознать по картинке':'Распознать на телефоне';
   const allB=OA&&OA.bid===q.bid?'':R&&R.pdf&&R.pdf.numPages>1&&!(x&&x.ai)?'<button type="button" class="ghostbtn" id="ocrAll">'+rqIcon('book-open',16)+' Распознать всю книгу</button>':'';

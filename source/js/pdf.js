@@ -854,6 +854,7 @@ el('viewer').addEventListener('click',e=>{
 /* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
    click right after a swipe), mouse/keyboard clicks via 'click'. */
 function viewerTap(cx,cy){
+  if(typeof SM!=='undefined'&&SM.on&&R.mode==='text'){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-SM.lpXY[0])<16&&Math.abs(cy-SM.lpXY[1])<16))smTap(cx,cy);return;} /* not the click Chrome may send after the long press itself */ /* 28.10: selecting — the tap moves the end of the selection, pages turn by swipe */
   if(quoteTapAt(cx,cy))return; /* 22.10: a tap on a saved highlight opens its bar; with the bar open the tap only closes it */
   if(selText())return; // идёт выделение текста — не листаем
   const r=el('viewer').getBoundingClientRect();

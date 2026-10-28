@@ -697,7 +697,7 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
-#selpop:not(.qmode) .spq,#selpop.qmode #spWord,#selpop.qmode #spGrow,#selpop.pdf :is(#spGrow,#spEdit){display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
+#selpop:not(.qmode) .spq,#selpop.qmode #spWord,#selpop.pdf #spEdit{display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
 #content mark.qon,.textLayer .pdfhls i.qon{outline:2px solid var(--hs);outline-offset:1px}
 /* 25.10 (Джессика, видео: «текст начинает безумствовать и становится похожим на сатанинский»): in a PDF the quote box hugs the letters,
    so the butterfly pollen / the celestial star dust sat on them like accents, and a tapped quote ringed every line. In a PDF: the skin's two-colour
@@ -741,9 +741,36 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selpop.top #spFold{top:auto;bottom:-18px} /* 28.10 (ревизия, баг 9): плашка у верхнего края — значок «Свернуть» снизу, иначе его срезает экран */
 /* 27.10 (Джессика): while selecting the bar is a small circle (#spMini) — a tap opens it, «Свернуть» folds it back */
 #spMini{display:none!important}
-#selpop.mini{padding:0;border-radius:50%;gap:0}
+#selpop.mini{padding:0 4px 0 0;border-radius:999px;gap:0;align-items:center;flex-wrap:nowrap}
 #selpop.mini>*{display:none!important}
 #selpop.mini>#spMini{display:inline-flex!important;width:48px;height:48px;border-radius:50%;padding:0;color:var(--txt);box-shadow:inset 0 0 0 2px var(--accent)}
+/* 28.10: what is selected — in the folded bar one line next to the circle (+ «Отменить»), in the open bar a row on top; a tap shows the text */
+#selpop.mini>#spInfo,#selpop.mini>#spX{display:inline-flex!important}
+#spInfo{order:-1;flex:1 0 100%;flex-direction:column;align-items:flex-start!important;justify-content:center!important;gap:0!important;text-align:left;min-height:40px!important;padding:4px 10px!important;max-width:100%}
+#spInfo .sp-i1{font-weight:600;font-size:0.8125rem}
+#spInfo .sp-i2{font-size:0.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#selpop.mini>#spInfo{order:0;flex:0 1 auto;max-width:calc(100vw - 130px);padding:4px 6px!important}
+#selpop.mini #spInfo .sp-i2{display:none}
+#selpop.mini #spInfo .sp-i1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#selpop:not(.mini) #spX,#selpop.qmode #spInfo{display:none}
+#spQuick{flex:1 0 100%;display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}
+#spQuick button{flex:none;white-space:nowrap;border:1px solid var(--line,rgba(127,127,127,.35));border-radius:999px!important;padding:6px 12px!important;font-size:0.8125rem}
+#selpop.qmode #spQuick,#selpop.pdf #spQuick{display:none}
+/* our own selection's handles (28.10): a stem from the line's bottom and a round knob; 44 px to grab */
+.smh{position:fixed;z-index:62;width:44px;height:46px;margin-left:-22px;touch-action:none;cursor:grab}
+.smh[hidden]{display:none}
+.smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.smh i::before{content:'';position:absolute;left:9px;top:-6px;width:2px;height:8px;background:var(--accent)}
+.smh.on i{transform:scale(1.15)}
+#selView{position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+#selView[hidden]{display:none}
+#selView .sv-card{background:var(--sheet);color:var(--txt);width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-radius:var(--rq-radius-md) var(--rq-radius-md) 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
+#selView .sv-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#selView .sv-h button{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+#selView .sv-t{overflow:auto;font-size:0.9375rem;line-height:1.5;white-space:pre-wrap}
+#selView .sv-b{display:flex;gap:8px}
+#selView .sv-b button{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt)}
+#selView .sv-b button.pri{background:var(--accent);color:var(--on-accent)}
 #selpop #spFold{position:absolute;top:-18px;right:-4px;min-width:36px;min-height:36px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--sheet);box-shadow:0 2px 8px rgba(0,0,0,.35)} /* a corner badge: the actions keep one row */
 #selpop.qmode #spFold{display:none}
 /* 27.10: ‹ › turn the page with the selection kept; the chip between them says the earlier pages' part is still there (at the bottom: the new page's first word, where the selection goes on, is at the top) */
@@ -2359,12 +2386,14 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="timerHint" class="hidden"></div>
     <div id="selpop" class="hidden">
       <button id="spMini" aria-label="Цвета и действия" aria-expanded="false" title="Цвета и действия"><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg></button><!-- 27.10: while selecting the bar is a small circle, a tap opens it -->
-      <div id="spColors" role="group" aria-label="Цвет цитаты"></div><!-- 20.10: цвета цитат, кнопки рисует reader-ui.js (HL_COLORS) -->
+      <button id="spInfo" type="button" aria-label="Что выделено — показать весь текст"></button><!-- 28.10: «2 стр. · 1 240 знаков», a tap shows the text -->
+      <button id="spX" type="button" aria-label="Отменить выделение" title="Отменить"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
+      <div id="spColors" role="group" aria-label="Цвет цитаты"></div>
+      <div id="spQuick" role="group" aria-label="Быстрое выделение"><button type="button" data-k="s">Предложение</button><button type="button" data-k="p">Абзац</button><button type="button" data-k="pe">До конца стр.</button><button type="button" data-k="s+">+ предложение</button><button type="button" data-k="p+">+ абзац</button></div><!-- 28.10 --><!-- 20.10: цвета цитат, кнопки рисует reader-ui.js (HL_COLORS) -->
       <button id="spNote" aria-label="Заметка"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span class="splab"> Заметка</span></button>
       <button id="spWord" title="В словарь" aria-label="В словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></button>
       <button id="spDict" aria-label="Перевести" title="Перевести"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
       <button id="spAI" aria-label="Объясни"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><span class="spl2"> Объясни</span></button>
-      <button id="spGrow" aria-label="Выделить всё предложение, ещё раз — весь абзац" title="Предложение, потом абзац"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-align-justify"/></svg></button><!-- 26.10 -->
       <button id="spCopy" aria-label="Копировать" title="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
       <button id="spDel" class="spq" aria-label="Удалить цитату" title="Удалить"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-trash-2"/></svg></button>
       <button id="spEdit" class="spq" aria-label="Изменить начало и конец цитаты" title="Изменить границы"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg></button><!-- 26.10 -->

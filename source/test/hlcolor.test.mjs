@@ -42,7 +42,7 @@ const qs = () => p.evaluate((id) => (S.quotes[id] || []).map(q => ({ t: q.text, 
 let t1 = await select(0); await sleep(300);
 const bar = await p.evaluate(() => { const b = document.getElementById('selpop'), r = b.getBoundingClientRect(), d = [...document.querySelectorAll('#spColors button')];
   const top = d.map(x => Math.round(x.getBoundingClientRect().top)), act = document.getElementById('spCopy').getBoundingClientRect();
-  const acts = [...b.querySelectorAll(':scope > button:not(#spFold)')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top));
+  const acts = [...b.querySelectorAll(':scope > button:not(#spFold):not(#spInfo)')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top));
   return { n: d.length, own: d[5].id === 'spOwn', keys: d.map(x => x.dataset.c || '').join(''), cols: d.map(x => getComputedStyle(x.querySelector('i')).backgroundColor), on: d.filter(x => x.classList.contains('on')).map(x => x.dataset.c),
     row: new Set(top).size === 1, actRow: new Set(acts).size === 1, above: top[0] < act.top, l: Math.round(r.left), r: Math.round(r.right), tap: d.every(x => x.getBoundingClientRect().width >= 44 && x.getBoundingClientRect().height >= 44), labels: d.every(x => /^Цитата, /.test(x.getAttribute('aria-label'))) }; });
 const red = bar.cols.slice(0, 5).some(c => { const [r, g, b] = c.match(/\d+/g).map(Number); return r > 180 && g < 90 && b < 90; });

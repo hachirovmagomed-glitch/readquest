@@ -1,6 +1,6 @@
 // Выделение через границу страницы (Джессика 25.10, видео: «когда я хочу выделить текст следующей страницы, у меня начинаются казусы»).
-// In the page modes the selection goes on to the next page without losing what is already selected (27.10: by the ‹ › arrows, nothing turns
-// by itself; a chip says where the selection began). The selection bar is a small circle while selecting. The reader screen never scrolls itself (Chrome reveals a selection end even in overflow:hidden),
+// 28.10: our own selection — a long press starts it, a tap (on this or any page after a swipe) ends it, our handles move its borders,
+// quick buttons select a sentence / paragraph / to the end of the page; the bar says how much is selected. The selection bar is folded while selecting. The reader screen never scrolls itself (Chrome reveals a selection end even in overflow:hidden),
 // and the selection never runs out of the text into the bars or the selection bar.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node selpage.test.mjs
 import puppeteer from 'puppeteer-core';
@@ -55,29 +55,38 @@ const s2 = await p.evaluate(() => { const us = (q) => { const e = document.query
   return { content: us('#content'), selpop: us('#selpop'), rfoot: us('#reader .rfoot'), rhead: us('#reader .rhead') }; });
 ok('only the book text is selectable in the reader', s2.content !== 'none' && s2.selpop === 'none' && s2.rfoot === 'none' && s2.rhead === 'none', s2);
 
-// 3. 27.10: nothing turns by itself — the focus that Chrome put on the next page goes back to the end of this page; ‹ › are shown
+// 3. 27.10: nothing turns by itself — the focus that Chrome (a mouse drag) put on the next page goes back to the end of this page;
+// 28.10: no arrows in text books any more
 await p.evaluate(() => goPage(3, true)); await settle();
 const a3 = await p.evaluate(() => { __sel(__pc(0, 40), __pc(0, 60)); return __st(); }); await settle(300);
 await p.evaluate(() => { __ext(__pc(0, 120)); }); await settle(150);
 await p.evaluate(() => { __ext(__pc(1, 30)); }); await settle(1500);
 const b3 = await p.evaluate(() => { const st = __st(), rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width), v = el('viewer').getBoundingClientRect();
-  return Object.assign(st, { inPage: rs.every(r => r.left >= v.left - 2 && r.right <= v.right + 2), nav: !el('selNav').hidden && getComputedStyle(el('selNext')).display !== 'none', chip: el('selFrom').hidden }); });
-ok('focus put on the next page: no turn, the end stays on page 3, anchor kept, ‹ › shown, no chip yet', b3.page === 3 && b3.an === a3.an && b3.inPage && b3.nav && b3.chip, { a3, b3 });
+  return Object.assign(st, { inPage: rs.every(r => r.left >= v.left - 2 && r.right <= v.right + 2), nav: !!el('selNav') && !el('selNav').hidden }); });
+ok('focus put on the next page: no turn, the end stays on page 3, anchor kept, no arrows', b3.page === 3 && b3.an === a3.an && b3.inPage && !b3.nav, { a3, b3 });
 
-// 4. › turns the page, the selection goes on onto the new page (its first word), the chip says where it began; dragging further on page 4 keeps it
-const m4 = await p.evaluate(() => __st());
-await p.evaluate(() => el('selNext').click()); await settle(500);
-const a4 = await p.evaluate(() => { const st = __st(), rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width), v = el('viewer').getBoundingClientRect(), last = rs[rs.length - 1];
-  return Object.assign(st, { endHere: !!last && last.left >= v.left - 2 && last.right <= v.right + 2, chip: !el('selFrom').hidden && el('selFromGo').textContent, x: el('selFromX').hidden }); });
-ok('› : page 4, anchor kept, the end is on page 4, chip «Выделено со стр. 4»', a4.page === 4 && a4.an === a3.an && a4.len > m4.len && a4.endHere && /Выделено со стр\. 4/.test(a4.chip || '') && a4.x, { m4, a4 });
-await p.evaluate(() => { __ext(__pc(0, 200)); }); await settle(600);
-const d4 = await p.evaluate(() => __st());
-ok('dragged on in page 4: selection spans page 3 → page 4', d4.page === 4 && d4.an === a3.an && d4.len > a4.len + 100, { a4, d4 });
-// the chip shows the start page and the selection is still there; › again comes back
-await p.evaluate(() => el('selFromGo').click()); await settle(400);
-const c4 = await p.evaluate(() => Object.assign(__st(), { chip: el('selFrom').hidden }));
-ok('tap on the chip: page 3 shown, the selection untouched', c4.page === 3 && c4.len === d4.len && c4.an === a3.an, c4);
-await p.evaluate(() => goPage(4, true)); await settle(400);
+// 4. 28.10 (Джессика: «со стрелочками … сбивается … непонятно, что я скопировал»): our own selection — a long press starts it on a word,
+// a tap ends it, a swipe turns the page with it, a tap on the next page carries it on; Chrome's own selection never starts
+await p.evaluate(() => { getSelection().removeAllRanges(); goPage(3, true); }); await settle();
+const xy = (d, k) => p.evaluate((d, k) => { const c = __pc(d, k), r = document.createRange(); r.setStart(c[0], c[1]); r.setEnd(c[0], c[1] + 1); const q = r.getClientRects()[0]; return [q.left + q.width / 2, q.top + q.height / 2]; }, d, k);
+const ss0 = await p.evaluate(() => { window.__ss = 0; document.addEventListener('selectstart', e => { if (e.defaultPrevented) window.__ss++; }); return true; });
+let [lx, ly] = await xy(0, 40);
+await p.touchscreen.touchStart(lx, ly); await sleep(700); await p.touchscreen.touchEnd(); await settle(300);
+const a4 = await p.evaluate(() => Object.assign(__st(), { on: SM.on, info: el('spInfo').textContent, mini: el('selpop').classList.contains('mini'), lo: !el('smLo').hidden, hi: !el('smHi').hidden }));
+ok('long press on a word: that word selected, our handles at both ends, the folded bar says «Нажми на слово, где закончить»', a4.on && a4.len >= 2 && a4.len < 25 && a4.page === 3 && a4.mini && /Нажми на слово, где закончить/.test(a4.info) && a4.lo && a4.hi, a4);
+[lx, ly] = await xy(0, 200); await p.touchscreen.tap(lx, ly); await settle(400);
+const b4 = await p.evaluate(() => Object.assign(__st(), { info: el('spInfo').textContent }));
+ok('tap on a later word: the selection ends there (the start kept), the bar shows how many characters', b4.page === 3 && b4.an === a4.an && b4.len > 150 && /\d+ знак/.test(b4.info), { a4, b4 });
+await p.touchscreen.touchStart(320, 500); await p.touchscreen.touchMove(220, 500); await p.touchscreen.touchMove(80, 500); await p.touchscreen.touchEnd(); await settle(500);
+const c4 = await p.evaluate(() => Object.assign(__st(), { lo: el('smLo').hidden }));
+ok('swipe: page 4, the selection untouched (its start handle is on page 3, hidden here)', c4.page === 4 && c4.len === b4.len && c4.an === a4.an && c4.lo, c4);
+[lx, ly] = await xy(0, 150); await p.touchscreen.tap(lx, ly); await settle(400);
+const d4 = await p.evaluate(() => Object.assign(__st(), { info: el('spInfo').textContent, hi: !el('smHi').hidden }));
+ok('tap on page 4: the selection goes on from page 3 to there, «2 стр.» in the bar, end handle shown', d4.page === 4 && d4.an === a4.an && d4.len > b4.len + 100 && /^2 стр\. · /.test(d4.info) && d4.hi, d4);
+const e4 = await p.evaluate(async () => { const n = String(getSelection()).replace(/\s+/g, ' ').trim().length; el('spInfo').click(); await new Promise(r => setTimeout(r, 150)); el('spInfo').click(); await new Promise(r => setTimeout(r, 150));
+  const v = el('selView'), o = { open: !!v && !v.hidden, t: el('selViewT').textContent, n, txt: el('selViewTxt').textContent.replace(/\s+/g, ' ').trim().length }; el('selViewX').click(); return Object.assign(o, { closed: v.hidden, still: String(getSelection()).length > 0 }); });
+ok('the bar\'s line opens the whole selected text («Выделено: 2 стр. · N знаков»), closing keeps the selection', e4.open && /Выделено: 2 стр\./.test(e4.t) && e4.txt === e4.n && e4.closed && e4.still, e4);
+ok('Chrome\'s own selection never started from the long press / taps', await p.evaluate(() => SM.on), await p.evaluate(() => window.__ss));
 
 // the two-page selection saves as ONE quote, marked on both pages
 const q4 = await p.evaluate(async () => { const bid = R.book.id, n0 = (S.quotes[bid] || []).length, txt = String(getSelection());
@@ -113,17 +122,22 @@ await p.evaluate(() => { const c = __pc(0, -1); __sel(__pc(0, -5), [c[0], c[1] +
 const s5 = await p.evaluate(() => __st());
 ok('long press on the last word of the page: no turn', s5.page === 3 && s5.len > 0, s5);
 
-// 6. backwards: ‹ with the start being moved (a backward selection) → page 2, the start goes onto it, the anchor stays
-await p.evaluate(() => goPage(3, true)); await settle();
-const a6 = await p.evaluate(() => { __sel(__pc(0, 200), __pc(0, 180)); return __st(); }); await settle(300);
-await p.evaluate(() => { __ext(__pc(0, 30)); }); await settle(400);
-await p.evaluate(() => el('selPrev').click()); await settle(500);
-const b6 = await p.evaluate(() => Object.assign(__st(), { chip: !el('selFrom').hidden && el('selFromGo').textContent }));
-ok('‹ : page 2, anchor kept, more selected, chip names page 4', b6.page === 2 && b6.an === a6.an && b6.len > a6.len && /стр\. 4/.test(b6.chip || ''), { a6, b6 });
-
-// 6b. a selection gone → ‹ › and the chip go
-const n6 = await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 300)); return el('selNav').hidden; });
-ok('no selection: the arrows are gone', n6, n6);
+// 6. a tap before the start: the selection now begins there (the end kept); a handle dragged moves its border
+const f6 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); getSelection().removeAllRanges(); await w(100); goPage(3, true); await w(300); return true; });
+[lx, ly] = await xy(0, 200); await p.touchscreen.touchStart(lx, ly); await sleep(700); await p.touchscreen.touchEnd(); await settle(300);
+[lx, ly] = await xy(0, 260); await p.touchscreen.tap(lx, ly); await settle(300);
+const a6 = await p.evaluate(() => ({ len: String(getSelection()).length, end: getSelection().focusNode.nodeValue.slice(0, 10) + '@' + getSelection().focusOffset }));
+[lx, ly] = await xy(0, 60); await p.touchscreen.tap(lx, ly); await settle(300);
+const b6 = await p.evaluate(() => ({ len: String(getSelection()).length, end: getSelection().focusNode.nodeValue.slice(0, 10) + '@' + getSelection().focusOffset, page: R.page }));
+ok('tap before the start: the selection begins there, the end stays', b6.page === 3 && b6.len > a6.len + 80 && b6.end === a6.end, { a6, b6 });
+const h6 = await p.evaluate(() => { const r = el('smHi').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 20]; });
+const [tx, ty] = await xy(0, 320);
+await p.touchscreen.touchStart(h6[0], h6[1]); await p.touchscreen.touchMove((h6[0] + tx) / 2, (h6[1] + ty + 22) / 2); await p.touchscreen.touchMove(tx, ty + 22); await p.touchscreen.touchEnd(); await settle(300);
+const c6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page }));
+ok('the end handle dragged down: the selection grows to there', c6.page === 3 && c6.len > b6.len + 30, { b6, c6 });
+// 6b. «Отменить» in the folded bar ends it all
+const n6 = await p.evaluate(async () => { SA.mini = true; selMiniApply(); el('spX').click(); await new Promise(r => setTimeout(r, 300)); return { on: SM.on, sel: String(getSelection()).length, h: el('smLo').hidden && el('smHi').hidden, bar: el('selpop').classList.contains('hidden') }; });
+ok('«Отменить»: no selection, no handles, no bar', !n6.on && !n6.sel && n6.h && n6.bar, n6);
 
 // 10. 27.10 (Джессика): while selecting the colour bar is a small circle; a tap opens it, «Свернуть» folds it
 const m10 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const sp = el('selpop');
@@ -133,7 +147,7 @@ const m10 = await p.evaluate(async () => { const w = (ms) => new Promise(r => se
   __ext(__pc(0, 90)); await w(1000); const stays = !sp.classList.contains('mini');
   el('spFold').click(); await w(150); const folded = sp.classList.contains('mini');
   return { mini, colsHidden, w0: Math.round(r0.width), h0: Math.round(r0.height), open, w1: Math.round(r1.width), stays, folded }; });
-ok('selection → the bar is a circle (≤ 56 px), a tap opens it, it stays open while dragging, «Свернуть» folds it', m10.mini && m10.colsHidden && m10.w0 <= 56 && m10.h0 <= 56 && m10.open && m10.w1 > 150 && m10.stays && m10.folded, m10);
+ok('selection → the bar is folded (circle + one line, ≤ 56 px high), a tap opens it, it stays open while dragging, «Свернуть» folds it', m10.mini && m10.colsHidden && m10.w0 <= 330 && m10.h0 <= 56 && m10.open && m10.w1 > 150 && m10.stays && m10.folded, m10);
 
 // 8. 26.10 (Джессика: «плашка с настройками мешает выделять текст»): the reader's bars hide as soon as text is selected
 await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(3, true); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 300)); });
@@ -149,14 +163,26 @@ const b9 = await p.evaluate(async () => { const sp = el('selpop'); const w = (ms
 ok('bar hides while the end is dragged and comes back after it stops', b9.shown0 && b9.mid && b9.back, b9);
 ok('end of the selection near the bottom → the bar goes to the top and does not cover it', b9.top && !b9.covers, b9);
 
-// 11. «Расширить»: a word → its sentence → its paragraph
-const g11 = await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(2, true); await new Promise(r => setTimeout(r, 200));
+// 11. 28.10 quick selection: «Предложение» → the sentence, «Абзац» → the paragraph, «+ предложение» / «+ абзац» add the next ones (also onto the next page),
+// «До конца стр.» → to the last word of the page
+const g11 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const q = (k) => document.querySelector('#spQuick [data-k="' + k + '"]').click();
+  getSelection().removeAllRanges(); await w(100); goPage(2, true); await w(200);
   const ps = [...document.querySelectorAll('#content p:not(.meta)')].filter(x => { const r = x.getBoundingClientRect(), v = el('viewer').getBoundingClientRect(); return r.left >= v.left - 1 && r.right <= v.right + 1 && !x.querySelector('mark') && /[.!?]\s+\S.*[.!?]/.test(x.textContent); });
   const pg = ps[0], t = pg.firstChild, m = /[.!?]\s+([А-ЯЁA-Z][^\s.!?]{3,})/.exec(t.nodeValue); if (!m) return null; const i = m.index + m[0].indexOf(m[1]);
-  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(t, i, t, i + m[1].length); const w0 = String(g);
-  el('spGrow').click(); const s1 = String(g); el('spGrow').click(); const s2 = String(g);
-  return { w0, s1, s2, para: pg.textContent.trim(), grew: s1.length > w0.length && s1.includes(w0) && /[.!?…»"]$/.test(s1.trim()) && s1.trim()[0] === w0[0] }; });
-ok('«Расширить»: word → whole sentence → whole paragraph', g11 && g11.grew && g11.s2.trim() === g11.para, g11);
+  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(t, i, t, i + m[1].length); const w0 = String(g); await w(300);
+  q('s'); await w(100); const s1 = String(g); q('p'); await w(100); const s2 = String(g);
+  q('s+'); await w(100); const s3 = String(g); q('p+'); await w(100); const s4 = String(g), nx = pg.nextElementSibling;
+  q('pe'); await w(400); const s5 = String(g), pageNow = R.page;
+  return { w0, s1, s2, para: pg.textContent.trim(), s3l: s3.length, s4l: s4.length, s2l: s2.length, nextIn: !!nx && s4.replace(/\s+/g, ' ').includes(nx.textContent.replace(/\s+/g, ' ').trim()), s5l: s5.length, pageNow, on: SM.on,
+    grew: s1.length > w0.length && s1.includes(w0) && /[.!?…»"]$/.test(s1.trim()) && s1.trim()[0] === w0[0] }; });
+ok('«Предложение»: word → whole sentence; «Абзац» → whole paragraph', g11 && g11.grew && g11.s2.trim() === g11.para && g11.on, g11);
+ok('«+ предложение» adds one sentence, «+ абзац» adds the whole next paragraph, «До конца стр.» goes on to the end of the page', g11 && g11.s3l > g11.s2l && g11.s4l > g11.s3l && g11.nextIn && g11.s5l >= g11.s4l, g11);
+// «+ абзац» from the last paragraph of a page goes on onto the next page and shows it
+const g11b = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); getSelection().removeAllRanges(); await w(100); goPage(3, true); await w(200);
+  const c = __pc(0, -3); getSelection().setBaseAndExtent(c[0], c[1], c[0], c[1] + 1); await w(200);
+  for (let i = 0; i < 2; i++) { document.querySelector('#spQuick [data-k="p+"]').click(); await w(300); } return { page: R.page, len: String(getSelection()).length }; });
+ok('«+ абзац» at the end of a page: the selection goes on onto page 4 and page 4 is shown', g11b.page === 4 && g11b.len > 20, g11b);
+await p.evaluate(() => { getSelection().removeAllRanges(); });
 
 // 12. «Изменить границы» of a saved quote: its words become a selection, a longer selection saved in its place (note and date kept, one quote)
 const e12 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const bid = R.book.id;

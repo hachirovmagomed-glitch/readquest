@@ -48,11 +48,13 @@
             ".epub",
             ".fb2",
             ".txt",
+            ".zip",
             "application/pdf",
             "application/epub+zip",
             "application/x-fictionbook+xml",
             "application/x-fictionbook",
-            "text/plain"
+            "text/plain",
+            "application/zip"
           ]
         }
       ]

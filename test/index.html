@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261027-0937',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261028-1727',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261027-0937"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261028-1727"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -576,6 +576,10 @@ body.rq-nolocks #rqNoXp{display:block}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content p.rq-bitr,.rqCurlTxt p.rq-bitr{font-style:italic;opacity:.72;margin-bottom:.6em} /* 25.10: перевод под абзацем (книга «с переводом») */
+#content p.rq-h,.rqCurlTxt p.rq-h,#content.noind p.rq-h{text-indent:0;font-weight:700;font-size:1.12em;line-height:1.35;margin:1.1em 0 .7em;break-after:avoid;hyphens:none;-webkit-hyphens:none;text-align:left} /* 28.10: chapter title (FB2 / EPUB / «Глава N» in TXT), plain bold, no decor */
+#content p.rq-img,.rqCurlTxt p.rq-img{text-indent:0;text-align:center;margin:.6em 0;break-inside:avoid;line-height:0}
+#content p.rq-img img,.rqCurlTxt p.rq-img img{max-width:100%;max-height:78vh;height:auto;display:inline-block}
+#content p.rq-img.gone,.rqCurlTxt p.rq-img.gone{display:none}
 #content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em;break-inside:avoid} /* audit 19.10 RD-EPUB-01 */
 #content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em;white-space:normal;overflow-wrap:anywhere;break-inside:avoid} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
@@ -734,6 +738,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 26.10: the selection bar at the top when the end of the selection is under it; the edge hint while a selection end is held at the page edge */
 @media (max-width:440px){#selpop.qmode .spl2{display:none}} /* a tapped quote has two more buttons (Удалить, Изменить границы): «Объясни» as an icon there on a phone */
 #selpop.top{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
+#selpop.top #spFold{top:auto;bottom:-18px} /* 28.10 (ревизия, баг 9): плашка у верхнего края — значок «Свернуть» снизу, иначе его срезает экран */
 /* 27.10 (Джессика): while selecting the bar is a small circle (#spMini) — a tap opens it, «Свернуть» folds it back */
 #spMini{display:none!important}
 #selpop.mini{padding:0;border-radius:50%;gap:0}
@@ -743,7 +748,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selpop.qmode #spFold{display:none}
 /* 27.10: ‹ › turn the page with the selection kept; the chip between them says the earlier pages' part is still there (at the bottom: the new page's first word, where the selection goes on, is at the top) */
 #selNav[hidden],#selFrom[hidden],#selFromX[hidden]{display:none!important}
-#selPrev,#selNext{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);z-index:61;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#selPrev,#selNext{position:fixed;bottom:var(--sel-up,calc(env(safe-area-inset-bottom,0px) + 24px));z-index:61;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35)}
 #selPrev{left:12px}#selNext{right:12px}
 #selPrev:disabled,#selNext:disabled{opacity:.35}
 #selFrom{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translateX(-50%);z-index:61;display:flex;align-items:center;max-width:calc(100vw - 144px);min-height:48px;background:var(--sheet);color:var(--txt);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.35);border:2px solid var(--accent)}
@@ -991,6 +996,10 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #reader.pdftone .textLayer span.v{color:var(--r-txt);color:color-mix(in srgb,var(--r-bg) calc(var(--l) * 100%),var(--r-txt))}
 #reader.pdftone #pdfSheet,#reader.pdftone #pdfScroll .psl{background:var(--r-bg)}
 #reader.pdftone #pdfSheet canvas,#reader.pdftone #pdfScroll .psl canvas,#reader.pdftone .rqCurlCv,#reader.pdftone .pgth canvas{filter:url(#rqPdfTone)}
+/* 28.10 (ревизия чтения, баг 7): ночью страница PDF приглушается слоем поверх холста. Правило tokens.css пишет его для .rq-pdf-page из макета;
+   в приложении страница — #pdfSheet / .psl. Сила — SET.pdfDim (--rq-pdf-dim), по умолчанию --rq-pdf-night-dim. С «Цветами темы» (pdftone) слой не нужен. */
+#reader[data-page="night"]:not(.pdftone) :is(#pdfSheet,#pdfScroll .psl)::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim,.35)));pointer-events:none;z-index:1}
+#reader[data-page="night"]:not(.pdftone) .rqCurlCv{filter:brightness(calc(1 - var(--rq-pdf-dim,var(--rq-pdf-night-dim,.35))))}
 
 /* ===== Компактная панель оформления: категории ===== */
 .setcats{display:flex;gap:6px;overflow-x:auto;margin:2px 0 12px;scrollbar-width:none}
@@ -1715,6 +1724,8 @@ html[data-skin="pencil"] #pgSlider::-moz-range-thumb{background:transparent;bord
 /* ===== «Карандашный» fixes (Интерфейс list): Caveat ≥26px titles, Lucide instead of emoji, baked wobbly outlines (no runtime filters) ===== */
 @font-face{font-family:"Caveat";src:url(fonts/caveat.woff2) format("woff2");font-weight:400 700;font-display:swap}
 @font-face{font-family:"Nunito";src:url(fonts/nunito.woff2) format("woff2");font-weight:200 1000;font-display:swap} /* pencil UI text (--rq-font-ui); the book page keeps the reader font */
+@font-face{font-family:"RQ Liberation Serif";src:url(fonts/reader-liberationserif-regular.woff2) format("woff2");font-weight:300 500;font-display:swap} /* 28.10 reading font «Times» on phones without Times New Roman */
+@font-face{font-family:"RQ Liberation Serif";src:url(fonts/reader-liberationserif-bold.woff2) format("woff2");font-weight:600 800;font-display:swap}
 .pc-only{display:none!important}
 html[data-skin="pencil"] .pc-hide{display:none!important}
 html[data-skin="pencil"] svg.pc-only,html[data-skin="pencil"] span.pc-only{display:inline-block!important}
@@ -1816,7 +1827,7 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 /* audit 19.10 A11Y-04: return-to-place button clears the notch */#jumpBack{margin-top:env(safe-area-inset-top,0px)}
 /* audit 19.10 SET-02: danger zone set apart */.setdanger{margin-top:32px}.setdanger .ghostbtn{border:1px solid var(--danger);color:var(--danger);background:transparent}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261027-0937"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261028-1727"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -1922,7 +1933,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf" aria-haspopup="menu" aria-controls="addMenu" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button><div class="lsortmenu addmenu" id="addMenu" role="menu" hidden></div></div></div>
     <div class="row libshelfbar" id="libShelfBar" hidden></div>
     <div class="grid" id="shelf"></div>
-    <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" multiple style="display:none">
+    <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf,.zip" multiple style="display:none">
     <input type="file" id="dirInp" webkitdirectory multiple style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
   </div></div>
@@ -2476,38 +2487,38 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261027-0937"></script>
-<script src="js/books-builtin.js?v=20261027-0937"></script>
-<script src="js/core-b.js?v=20261027-0937"></script>
-<script src="js/library.js?v=20261027-0937"></script>
-<script src="js/reader.js?v=20261027-0937"></script>
-<script src="js/pdf.js?v=20261027-0937"></script>
-<script src="js/pdf-scroll.js?v=20261027-0937"></script>
-<script src="js/page-curl.js?v=20261027-0937"></script>
-<script src="js/page-grid.js?v=20261027-0937"></script>
-<script src="js/reader-ui.js?v=20261027-0937"></script>
-<script src="js/book-find.js?v=20261027-0937"></script>
-<script src="js/focus.js?v=20261027-0937"></script>
-<script src="js/rpg.js?v=20261027-0937"></script>
-<script src="js/content.js?v=20261027-0937"></script>
-<script src="js/translate.js?v=20261027-0937"></script>
-<script src="js/hero-pencil.js?v=20261027-0937"></script>
-<script src="js/hero-celestial.js?v=20261027-0937"></script>
-<script src="js/hero.js?v=20261027-0937"></script>
-<script src="js/settings.js?v=20261027-0937"></script>
-<script src="js/v6-extras.js?v=20261027-0937"></script>
-<script src="js/ach-core.js?v=20261027-0937"></script>
-<script src="js/achievements.js?v=20261027-0937"></script>
-<script src="js/path.js?v=20261027-0937"></script>
-<script src="js/adv.js?v=20261027-0937"></script>
-<script src="js/start.js?v=20261027-0937"></script>
+<script src="js/core-a.js?v=20261028-1727"></script>
+<script src="js/books-builtin.js?v=20261028-1727"></script>
+<script src="js/core-b.js?v=20261028-1727"></script>
+<script src="js/library.js?v=20261028-1727"></script>
+<script src="js/reader.js?v=20261028-1727"></script>
+<script src="js/pdf.js?v=20261028-1727"></script>
+<script src="js/pdf-scroll.js?v=20261028-1727"></script>
+<script src="js/page-curl.js?v=20261028-1727"></script>
+<script src="js/page-grid.js?v=20261028-1727"></script>
+<script src="js/reader-ui.js?v=20261028-1727"></script>
+<script src="js/book-find.js?v=20261028-1727"></script>
+<script src="js/focus.js?v=20261028-1727"></script>
+<script src="js/rpg.js?v=20261028-1727"></script>
+<script src="js/content.js?v=20261028-1727"></script>
+<script src="js/translate.js?v=20261028-1727"></script>
+<script src="js/hero-pencil.js?v=20261028-1727"></script>
+<script src="js/hero-celestial.js?v=20261028-1727"></script>
+<script src="js/hero.js?v=20261028-1727"></script>
+<script src="js/settings.js?v=20261028-1727"></script>
+<script src="js/v6-extras.js?v=20261028-1727"></script>
+<script src="js/ach-core.js?v=20261028-1727"></script>
+<script src="js/achievements.js?v=20261028-1727"></script>
+<script src="js/path.js?v=20261028-1727"></script>
+<script src="js/adv.js?v=20261028-1727"></script>
+<script src="js/start.js?v=20261028-1727"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261027-0937"></script>
+<script src="js/pwa-lock.js?v=20261028-1727"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2515,9 +2526,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261027-0937';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261027-0937';
-import * as game from './game-awards.js?v=20261027-0937';
+} from './storage/index.js?v=20261028-1727';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261028-1727';
+import * as game from './game-awards.js?v=20261028-1727';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

@@ -232,7 +232,7 @@ function psTouchEnd(e){
   PS.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0,moved=Math.abs(psBox().scrollTop-g.top0);
   if(pdfSelecting())return; /* 22.10: the end of a selection drag is not a swipe / tap */
-  if(flipGet().swipe!==false&&Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.5&&moved<8){fsResume();pdfFlip((dx<0?1:-1)*(flipGet().invert?-1:1));return;}
+  if(flipGet().swipe!==false&&Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.5&&moved<8){fsResume();pdfFlip(dx<0?1:-1);return;}
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&moved<4&&performance.now()-g.t0<450&&!(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
   }

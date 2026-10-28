@@ -800,6 +800,11 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #panelBody .prow .pck{flex:none;display:inline-flex;color:var(--accent)}
 #panelBody .ptocsum{font-size:0.75rem;color:var(--muted);padding:0 4px 8px}
 #panelBody .prow.pq{flex-direction:column;align-items:stretch;gap:0;padding:0}
+#panelBody .pq .pqh{display:flex;align-items:flex-start;min-width:0} /* 28.10: the quote + its bin */
+#panelBody .pq .pqh .pqt{flex:1;min-width:0}
+#panelBody .pq .pqp{display:block;margin-top:4px;font-size:0.75rem;font-weight:500;opacity:.72;font-variant-numeric:tabular-nums}
+#panelBody .pq .pqdel{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:2px 2px 0 0;border-radius:var(--rq-radius-sm);color:inherit;opacity:.6}
+#panelBody .pq .pqdel:hover,#panelBody .pq .pqdel:focus-visible{opacity:1}
 #panelBody .pq .pqt{display:flex;align-items:flex-start;gap:10px;width:100%;padding:10px 12px;text-align:left;font:inherit;white-space:pre-line}
 #panelBody .pq.on .pqt{padding-top:13px}
 #panelBody .pq .pqd{flex:none;width:10px;height:10px;margin-top:5px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%);box-shadow:0 0 0 2px color-mix(in srgb,currentColor 25%,transparent)}

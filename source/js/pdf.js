@@ -593,7 +593,7 @@ function pageOfAnchor(a){
     const rg=document.createRange();
     const o=Math.min(a.offset,Math.max(0,len-1));
     rg.setStart(a.node,o);rg.setEnd(a.node,Math.min(len,o+1));
-    const rects=rg.getClientRects();const r=rects.length?rects[0]:rg.getBoundingClientRect();
+    const rects=rg.getClientRects();const r=rects.length?rects[rects.length-1]:rg.getBoundingClientRect(); /* 28.10: a word hyphenated over a page break gives the line-end «-» first — the letter itself is the last rect */
     if(rqScrollMode()){const y=r.top-c.getBoundingClientRect().top;return Math.max(0,Math.min(R.pageCount-1,Math.floor((y+2)/R.step)));}
     const x=r.left-c.getBoundingClientRect().left;
     return Math.max(0,Math.floor((x+2)/R.step));

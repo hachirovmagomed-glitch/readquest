@@ -257,16 +257,16 @@ function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||skin
 const FONTS=[ /* 28.10 (ревизия чтения): only Georgia / system sans / mono come from the phone; Android has no Palatino, Garamond, Verdana,
    Trebuchet, Tahoma or Comic Sans, so those all fell back to one face. The rest are bundled (fonts/, OFL), same look on every phone.
    SET.font is an index: the order stays, old choices land on the font that replaced them. */
- {label:'Georgia',v:'Georgia,"Noto Serif","Droid Serif",serif'},
- {label:'Times',v:'"Times New Roman","RQ Liberation Serif",Times,serif'},
- {label:'Lora',v:'"Lora",Georgia,serif'},
- {label:'Plex Serif',v:'"IBM Plex Serif",Georgia,serif'},
- {label:'Sans',v:'system-ui,"Segoe UI",Roboto,sans-serif'},
- {label:'Nunito',v:'"Nunito",system-ui,sans-serif'},
- {label:'Manrope',v:'"Manrope",system-ui,sans-serif'},
- {label:'Alegreya Sans',v:'"Alegreya Sans",system-ui,sans-serif'},
- {label:'Caveat',v:'"Caveat","Segoe UI",system-ui,sans-serif'}, /* was «Comic»: no Comic Sans on Android; a bundled hand-written face instead */
- {label:'Mono',v:'"Courier New","Droid Sans Mono","Liberation Mono",monospace'}
+ {label:'Georgia',v:'Georgia, "Noto Serif", "Droid Serif", serif'},
+ {label:'Times',v:'"Times New Roman", "RQ Liberation Serif", Times, serif'},
+ {label:'Lora',v:'"Lora", Georgia, serif'},
+ {label:'Plex Serif',v:'"IBM Plex Serif", Georgia, serif'},
+ {label:'Sans',v:'system-ui, "Segoe UI", Roboto, sans-serif'},
+ {label:'Nunito',v:'"Nunito", system-ui, sans-serif'},
+ {label:'Manrope',v:'"Manrope", system-ui, sans-serif'},
+ {label:'Alegreya Sans',v:'"Alegreya Sans", system-ui, sans-serif'},
+ {label:'Caveat',v:'"Caveat", "Segoe UI", system-ui, sans-serif'}, /* was «Comic»: no Comic Sans on Android; a bundled hand-written face instead */
+ {label:'Mono',v:'"Courier New", "Droid Sans Mono", "Liberation Mono", monospace'}
 ];
 
 /* ================= СОСТОЯНИЕ ================= */

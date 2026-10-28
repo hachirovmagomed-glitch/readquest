@@ -1,6 +1,7 @@
 # 28.10 «Корректное копирование»: a scan-like PDF (page picture + an invisible OCR text layer, as ABBYY makes it) for copy.test.mjs.
 # Page 1: two columns of verse with small line numbers (as in Джессика's «Старшая Эдда»); the OCR text goes across BOTH columns line
 #   by line (the worst file order), some Russian words carry Latin look-alike letters (OCR noise), a page number at the bottom.
+# Both pages carry a running header «Старшая Эдда» on top (not copied).
 # Page 2: one column of justified prose: a word hyphenated over a line break, paragraphs by indent, a page number.
 # copy-scan.pdf (28.10, ocr.test.mjs): the same verse page as a bare picture — no text layer at all, as a scan without OCR.
 # Run: python3 gen-copy.py [out dir]   (default /workspace/rqtest/pdf/)
@@ -39,6 +40,7 @@ def verse_items():
                 y -= 13.5
             y -= 11
     out.append((W / 2 - 8, 40, 9, '203', '203'))
+    out.append((W / 2 - 34, H - 35, 8, 'СТАРШАЯ ЭДДА', 'СТАРШАЯ ЭДДА'))  # running header: small capitals
     return out
 
 PROSE = [('  Первый абзац текста идёт по всей ширине до самого края', True, 'пере-'),
@@ -54,6 +56,7 @@ def prose_items():
         out.append((40 + (14 if s.startswith('  ') else 0), y, 9.5, t, t, full))
         y -= 13
     out.append((W / 2 - 6, 40, 9, '204', '204', False))
+    out.append((W / 2 - 30, H - 35, 9.5, 'Старшая Эдда', 'Старшая Эдда', False))  # the same header in body type: known from page 1
     return out
 
 def picture(items):

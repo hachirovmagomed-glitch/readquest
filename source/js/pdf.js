@@ -225,6 +225,9 @@ function pdfRsTick(){
    apart from the text or smaller) are nc: shown and selectable as before, but never copied.
    g: [{str, x, base, fh, w, rot}] in page px (y down) → {seq: [{i, j (w = a word gap on the line), nc, first, last}], cells: the block's box
    [x0,y0,x1,y1] per piece (taps in its margins and gaps land on it, never on the other column), nb: top of the next line of the block per piece} */
+/* running-header texts seen in the open file (pdfReadOrder) */
+let pdfHdrDoc=null,pdfHdrSet=new Set();
+function pdfHdrSeen(){const d=typeof R!=='undefined'&&R.pdf||null;if(d!==pdfHdrDoc){pdfHdrDoc=d;pdfHdrSet=new Set();}return pdfHdrSet;}
 function pdfReadOrder(g,W,H){
   const med=function(a){a=a.slice().sort(function(x,y){return x-y;});return a.length?a[a.length>>1]:12;};
   const its=g.map(function(q,i){return {i:i,str:q.str,l:q.x,r:q.x+Math.max(0,q.w),b:q.base,fh:q.fh,t:q.base-q.fh*0.8,u:q.base+q.fh*0.2,rot:!!q.rot,blank:!q.str.trim()};});
@@ -237,6 +240,31 @@ function pdfReadOrder(g,W,H){
     const edge=q.t<H*0.1||q.u>H*0.9;
     if(q.fh<fm*0.85||(same.length&&!near)||(!same.length&&edge))q.nc=true;
   });
+  /* 28.10 running headers / footers («Старшая Эдда» on top of every page): a short line at the top or bottom edge, away from the
+     text, is not copied or searched (.nc, hdr) when it is small, upper-case, has a page number beside it, or stood there on another
+     page of this file (a chapter title on top of its first page is bigger and stays) */
+  (function(){
+    const ls=[];flat.filter(function(q){return !q.nc;}).forEach(function(q){
+      const L=ls.find(function(L){return Math.abs(L.b-q.b)<Math.max(L.fh,q.fh)*0.5;});if(L){L.a.push(q);L.fh=Math.max(L.fh,q.fh);}else ls.push({a:[q],b:q.b,fh:q.fh});});
+    if(ls.length<5)return;
+    const bl=Math.min.apply(null,flat.map(function(q){return q.l;})),br=Math.max.apply(null,flat.map(function(q){return q.r;}));
+    ls.forEach(function(L){
+      L.t=Math.min.apply(null,L.a.map(function(q){return q.t;}));L.u=Math.max.apply(null,L.a.map(function(q){return q.u;}));
+      L.l=Math.min.apply(null,L.a.map(function(q){return q.l;}));L.r=Math.max.apply(null,L.a.map(function(q){return q.r;}));});
+    ls.forEach(function(L){
+      const top=L.u<H*0.1,bot=L.t>H*0.9;if(!top&&!bot)return;
+      if(L.fh>fm*1.1||L.r-L.l>(br-bl)*0.75)return;
+      const others=ls.filter(function(o){return o!==L;});
+      const d=Math.min.apply(null,others.map(function(o){return top?o.t-L.u:L.t-o.u;}));
+      if(d<fm*1.1)return;
+      const s=L.a.map(function(q){return q.str;}).join(' ').trim(),key=s.toLowerCase().replace(/[\d\s.,·—–-]+/g,' ').trim();
+      if(!key)return;
+      const num=flat.some(function(q){return q.nc&&Math.abs(q.b-L.b)<L.fh*0.6;});
+      const hs=pdfHdrSeen();
+      if(L.fh<fm*0.95||num||(s===s.toUpperCase()&&/[A-ZА-ЯЁ]{3}/.test(s))||hs.has(key))L.a.forEach(function(q){q.nc=q.hdr=true;});
+      hs.add(key);
+    });
+  })();
   const body=flat.filter(function(q){return !q.nc;});
   const leaves=[];
   const gap=function(a,lo,hi){const s=a.map(function(q){return [lo(q),hi(q)];}).sort(function(x,y){return x[0]-y[0];});let best=null,e=s[0][1];
@@ -285,7 +313,8 @@ function pdfReadOrder(g,W,H){
   /* nc pieces go in front of the line they stand on (nearest baseline, then nearest x) */
   flat.filter(function(q){return q.nc;}).forEach(function(q){
     let best=-1,bd=Infinity;seq.forEach(function(e,k){if(!e.first)return;const o=its[e.i];const d=Math.abs(o.b-q.b)*4+Math.abs(o.l-q.r);if(d<bd){bd=d;best=k;}});
-    const e={i:q.i,j:'',nc:true};
+    const e={i:q.i,j:'',nc:true,hdr:!!q.hdr};
+    if(q.hdr&&q.t<H/2){if(seq.length&&!seq[0].j)seq[0].j='h';seq.unshift(e);return;} /* a header on top goes first */
     if(best<0||Math.abs(its[seq[best].i].b-q.b)>q.fh*1.5){seq.push(Object.assign(e,{j:seq.length?'h':''}));return;}
     e.j=seq[best].j;seq[best].j='';seq.splice(best,0,e);});
   its.forEach(function(q){if(q.rot&&!q.blank)seq.push({i:q.i,j:seq.length?'h':''});});

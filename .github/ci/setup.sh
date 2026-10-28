@@ -28,6 +28,7 @@ $SUDO mkdir -p /workspace && $SUDO chown "$(id -u):$(id -g)" /workspace
 mkdir -p /workspace/rqtest/pdf /workspace/rqtest/exports
 python3 -c "import reportlab, pikepdf, PIL" 2>/dev/null || python3 -m pip install --quiet reportlab pikepdf pillow
 python3 "$T/fixtures/gen.py"
+python3 "$T/fixtures/gen-copy.py"   # 28.10 copy.test: a scan-like page in two columns + prose
 cp "$T/fixtures/e-blank-dark.pdf" /workspace/rqtest/pdf/
 cp "$T/fixtures/Длинная книга.txt" "/workspace/rqtest/Длинная книга.txt"
 cp "$T/fixtures/Длинная книга.txt" "/workspace/rqtest/Книга для позднего запуска.txt"

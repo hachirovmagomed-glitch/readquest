@@ -216,6 +216,81 @@ function pdfRsTick(){
   }
   P.rsRaf=requestAnimationFrame(pdfRsTick);
 }
+/* 28.10 (Джессика: «чтобы можно было корректно копировать даже вот такие вещи» — скан «Старшей Эдды» в две колонки со стихами и номерами строк).
+   pdf.js gives the page's text pieces in the FILE's order: an OCR layer of a scan often goes across both columns line by line, so the
+   selection and the copy jumped between columns. The pieces are put in READING order (recursive XY-cut on their boxes: a wide empty
+   gap from top to bottom = columns, left first; an empty band across = blocks, top first), each block into lines; the joins between lines
+   are marked for the copy: s = the same paragraph goes on (a space), y = a word split by a hyphen (glued), h = a new line (verse, a new
+   paragraph), p = an empty line (a new stanza / block). Line numbers in the margin, page numbers and superscript note marks (digits
+   apart from the text or smaller) are nc: shown and selectable as before, but never copied.
+   g: [{str, x, base, fh, w, rot}] in page px (y down) → {seq: [{i, j (w = a word gap on the line), nc, first, last}], cells: the block's box
+   [x0,y0,x1,y1] per piece (taps in its margins and gaps land on it, never on the other column), nb: top of the next line of the block per piece} */
+function pdfReadOrder(g,W,H){
+  const med=function(a){a=a.slice().sort(function(x,y){return x-y;});return a.length?a[a.length>>1]:12;};
+  const its=g.map(function(q,i){return {i:i,str:q.str,l:q.x,r:q.x+Math.max(0,q.w),b:q.base,fh:q.fh,t:q.base-q.fh*0.8,u:q.base+q.fh*0.2,rot:!!q.rot,blank:!q.str.trim()};});
+  const flat=its.filter(function(q){return !q.rot&&!q.blank;});
+  const fm=med(flat.map(function(q){return q.fh;}));
+  flat.forEach(function(q){
+    if(!/^\s*[\[(]?\d{1,4}[\])]?[.*]?\s*$/.test(q.str))return;
+    const same=flat.filter(function(o){return o!==q&&!/^\s*\d+\s*$/.test(o.str)&&Math.abs(o.b-q.b)<Math.max(o.fh,q.fh)*0.6;});
+    const near=same.some(function(o){return Math.max(o.l-q.r,q.l-o.r)<q.fh*0.6;});
+    const edge=q.t<H*0.1||q.u>H*0.9;
+    if(q.fh<fm*0.85||(same.length&&!near)||(!same.length&&edge))q.nc=true;
+  });
+  const body=flat.filter(function(q){return !q.nc;});
+  const leaves=[];
+  const gap=function(a,lo,hi){const s=a.map(function(q){return [lo(q),hi(q)];}).sort(function(x,y){return x[0]-y[0];});let best=null,e=s[0][1];
+    for(let k=1;k<s.length;k++){const d=s[k][0]-e;if(d>0&&(!best||d>best.d))best={d:d,at:(e+s[k][0])/2};e=Math.max(e,s[k][1]);}return best;};
+  (function cut(a,cell,depth){
+    if(a.length<2||depth>60){if(a.length)leaves.push({a:a,cell:cell});return;}
+    const f=med(a.map(function(q){return q.fh;})),top=Math.min.apply(null,a.map(function(q){return q.t;})),bot=Math.max.apply(null,a.map(function(q){return q.u;}));
+    const v=bot-top>f*1.8?gap(a,function(q){return q.l;},function(q){return q.r;}):null,h=gap(a,function(q){return q.t;},function(q){return q.u;});
+    const vOk=v&&v.d>=f*1.5,hOk=h&&h.d>=f*0.6;
+    if(vOk&&(!hOk||v.d>=h.d)){cut(a.filter(function(q){return q.r<=v.at;}),[cell[0],cell[1],v.at,cell[3]],depth+1);cut(a.filter(function(q){return q.r>v.at;}),[v.at,cell[1],cell[2],cell[3]],depth+1);return;}
+    if(hOk){cut(a.filter(function(q){return q.u<=h.at;}),[cell[0],cell[1],cell[2],h.at],depth+1);cut(a.filter(function(q){return q.u>h.at;}),[cell[0],h.at,cell[2],cell[3]],depth+1);return;}
+    leaves.push({a:a,cell:cell});
+  })(body,[0,0,W,H],0);
+  /* lines of a block: by baseline (a piece joins the line it overlaps most), left to right */
+  leaves.forEach(function(B){
+    const ls=[];B.a.slice().sort(function(x,y){return x.b-y.b;}).forEach(function(q){
+      const ln=ls.find(function(L){return Math.abs(L.b-q.b)<Math.max(L.fh,q.fh)*0.5;});
+      if(ln){ln.a.push(q);ln.fh=Math.max(ln.fh,q.fh);}else ls.push({a:[q],b:q.b,fh:q.fh});});
+    ls.forEach(function(L){L.a.sort(function(x,y){return x.l-y.l;});L.l=L.a[0].l;L.r=Math.max.apply(null,L.a.map(function(q){return q.r;}));
+      L.t=Math.min.apply(null,L.a.map(function(q){return q.t;}));L.u=Math.max.apply(null,L.a.map(function(q){return q.u;}));
+      L.s=L.a.map(function(q){return q.str;}).join(' ').trim();});
+    ls.sort(function(x,y){return x.b-y.b;});
+    B.ls=ls;B.l=Math.min.apply(null,ls.map(function(L){return L.l;}));B.r=Math.max.apply(null,ls.map(function(L){return L.r;}));
+    B.f=med(B.a.map(function(q){return q.fh;}));
+    const full=ls.slice(0,-1).filter(function(L){return L.r>=B.r-B.f*0.3;}).length;
+    B.just=ls.length>=3&&B.r-B.l>=B.f*14&&full>=(ls.length-1)*0.8; /* justified prose: wide enough, nearly every line reaches the right edge (verse lines rarely do) */
+    B.wide=B.r-B.l>=B.f*28;
+  });
+  /* the join between line P (of block A) and line N (of block C) */
+  const lower=/^[«"„(]?[a-zа-яё]/;
+  const join=function(P,A,N,C){
+    const ind=N.l-C.l>C.f*0.8,ends=/[.!?…:;»"”)]$/.test(P.s);
+    const full=A.just?P.r>=A.r-A.f*0.3:(A.wide&&P.r>=A.l+(A.r-A.l)*0.75&&!ends&&lower.test(N.s));
+    if(full&&!ind)return /[a-zа-яё][-‐­]$/i.test(P.s)&&lower.test(N.s)?'y':'s';
+    return 'h';
+  };
+  const seq=[],cells=new Array(its.length).fill(null),nb=new Array(its.length).fill(null);
+  let pL=null,pB=null;
+  leaves.forEach(function(B){B.ls.forEach(function(L,k){
+    let j='';
+    if(pL)j=pB!==B&&pB.cell[2]>B.cell[0]+1?'p':join(pL,pB,L,B); /* a block below → an empty line; the next column → as within a block */
+    L.a.forEach(function(q,n){const pv=n?L.a[n-1]:null;
+      seq.push({i:q.i,j:n?(q.l-pv.r>q.fh*0.15&&!/\s$/.test(pv.str)&&!/^\s/.test(q.str)?'w':''):j,first:!n,last:n===L.a.length-1});
+      cells[q.i]=B.cell;nb[q.i]=k+1<B.ls.length?B.ls[k+1].b-B.ls[k+1].fh:B.cell[3];});
+    pL=L;pB=B;});});
+  /* nc pieces go in front of the line they stand on (nearest baseline, then nearest x) */
+  flat.filter(function(q){return q.nc;}).forEach(function(q){
+    let best=-1,bd=Infinity;seq.forEach(function(e,k){if(!e.first)return;const o=its[e.i];const d=Math.abs(o.b-q.b)*4+Math.abs(o.l-q.r);if(d<bd){bd=d;best=k;}});
+    const e={i:q.i,j:'',nc:true};
+    if(best<0||Math.abs(its[seq[best].i].b-q.b)>q.fh*1.5){seq.push(Object.assign(e,{j:seq.length?'h':''}));return;}
+    e.j=seq[best].j;seq[best].j='';seq.splice(best,0,e);});
+  its.forEach(function(q){if(q.rot&&!q.blank)seq.push({i:q.i,j:seq.length?'h':''});});
+  return {seq:seq,cells:cells,nb:nb};
+}
 /** Text layer in BASE (fit-width) coordinates; widths fitted with canvas measureText (no layout). */
 let pdfMeasure=null;
 async function pdfTextLayer(page,s0,look){
@@ -226,7 +301,7 @@ async function pdfTextLayer(page,s0,look){
     const U=window.pdfjsLib.Util;
     if(!pdfMeasure)pdfMeasure=document.createElement('canvas').getContext('2d');
     const lf=look?await pdfLookFont():null; /* 20.10 SET.pdfFont: the reader font, loaded before measuring */
-    let prev=null,line=null;const lines=[];
+    const its=[];
     tc.items.forEach(function(it){
       if(!it.str)return;
       const tx=U.transform(vp.transform,it.transform);
@@ -252,29 +327,27 @@ async function pdfTextLayer(page,s0,look){
       if(it.str.trim()&&it.width>0){pdfMeasure.font=fnt;const mw=pdfMeasure.measureText(it.str).width;if(mw>0)tr+='scaleX('+(it.width*s0/mw).toFixed(4)+')';}
       if(tr)sp.style.transform=tr;
       const sx=/scaleX\(([\d.]+)\)/.exec(tr);
-      /* 19.10 (Джессика: «не работает нормальное выделение»): the copied / quoted text keeps its words and lines apart —
-         a new line of the page → a line break, a gap on the same line → a space (spans are absolute, the DOM has neither) */
-      if(prev){
-        if(Math.abs(base-prev.base)>Math.max(fh,prev.fh)*0.5){frag.appendChild(document.createElement('br'));line=null;}
-        else if(tx[4]-prev.right>fh*0.15&&!/\s$/.test(prev.str)&&!/^\s/.test(it.str)){
-          const g=document.createElement('span');g.textContent=' ';g.style.left=prev.right.toFixed(2)+'px';g.style.top=(base-fh).toFixed(2)+'px';g.style.fontSize=fh.toFixed(2)+'px';frag.appendChild(g);}
-      }
-      prev={base:base,fh:fh,right:tx[4]+wd,str:it.str};
-      if(!line){line=[];lines.push(line);}
-      line.push({sp:sp,left:tx[4],top:top,bot:top+fh,right:tx[4]+wd,sx:sx?+sx[1]:1,rot:Math.abs(ang)>0.01});
-      frag.appendChild(sp);
+      its.push({sp:sp,str:it.str,x:tx[4],base:base,fh:fh,w:wd,rot:Math.abs(ang)>0.01,top:top,sx:sx?+sx[1]:1});
     });
-    /* no dead gaps between and around the lines: each span reaches down to the next line, the first one of a line out to
-       the left edge, the last one out to the right edge (padding, so the glyphs stay put). A finger or a selection handle
-       in a gap, in the margin or under the text then lands on the nearest line of text, not on the page header. */
-    lines.forEach(function(ln){
-      if(ln.some(function(q){return q.rot;}))return;
-      const bot=Math.max.apply(null,ln.map(function(q){return q.bot;}));let nt=vp.height; /* the nearest line BELOW (item order is not page order) */
-      lines.forEach(function(o){if(o===ln)return;const t=Math.min.apply(null,o.map(function(q){return q.top;}));if(t>=bot-1&&t<nt)nt=t;});
-      ln.forEach(function(q){const pb=Math.max(0,nt-q.bot);if(pb>0)q.sp.style.paddingBottom=pb.toFixed(2)+'px';});
-      const f=ln.reduce(function(a,q){return q.left<a.left?q:a;}),l=ln.reduce(function(a,q){return q.right>a.right?q:a;});
-      if(f.left>0){f.sp.style.left='0px';f.sp.style.paddingLeft=(f.left/f.sx).toFixed(2)+'px';}
-      if(l.right<vp.width)l.sp.style.paddingRight=((vp.width-l.right)/l.sx).toFixed(2)+'px';
+    /* 19.10 (Джессика: «не работает нормальное выделение»): the copied / quoted text keeps its words and lines apart — a gap on the
+       same line → a space span, a new line → <br> (spans are absolute, the DOM has neither). 28.10: in reading order (pdfReadOrder),
+       the <br> says how the lines join for the copy (data-j, rqSelPlain), line / page numbers are .nc (not copied). */
+    const O=pdfReadOrder(its,vp.width,vp.height);
+    O.seq.forEach(function(e,k){
+      const q=its[e.i];
+      if(e.j==='w'){const pv=its[O.seq[k-1].i],g=document.createElement('span');g.textContent=' ';g.style.left=(pv.x+pv.w).toFixed(2)+'px';g.style.top=(q.base-q.fh).toFixed(2)+'px';g.style.fontSize=q.fh.toFixed(2)+'px';frag.appendChild(g);}
+      else if(e.j){const br=document.createElement('br');br.dataset.j=e.j;frag.appendChild(br);}
+      if(e.nc)q.sp.classList.add('nc');
+      /* no dead gaps between and around the lines: each span reaches down to the next line of its block, the first one of a line out to
+         the block's left edge, the last one out to its right edge (padding, so the glyphs stay put). A finger or a selection handle in
+         a gap, in the margin or under the text lands on the nearest line of the SAME column, not on the page header or the other column. */
+      const c=O.cells[e.i];
+      if(c&&!e.nc){
+        const pb=O.nb[e.i]-(q.top+q.fh);if(pb>0)q.sp.style.paddingBottom=pb.toFixed(2)+'px';
+        if(e.first&&q.x>c[0]){q.sp.style.left=c[0].toFixed(2)+'px';q.sp.style.paddingLeft=((q.x-c[0])/q.sx).toFixed(2)+'px';}
+        if(e.last&&q.x+q.w<c[2])q.sp.style.paddingRight=((c[2]-q.x-q.w)/q.sx).toFixed(2)+'px';
+      }
+      frag.appendChild(q.sp);
     });
   }catch(e){/* scans have no text layer */}
   const end=document.createElement('div');end.className='endOfContent';frag.appendChild(end); /* keeps a drag in a gap near the finger (selectionchange below) */

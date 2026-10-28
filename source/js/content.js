@@ -808,7 +808,7 @@ function selCtx(word){ /* предложение вокруг выделения
     return full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,400);}catch(e){return '';}
 }
 el('spAI').onclick=()=>{
-  const t=selText();if(!t)return;
+  const t=rqSelPlain()||selText();if(!t)return;
   if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
   selDone();

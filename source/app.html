@@ -985,6 +985,8 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 .textLayer span,.textLayer br{position:absolute;white-space:pre;cursor:text;transform-origin:0 0;color:transparent;z-index:1}
 /* 19.10 selection in gaps (selectionchange in js/pdf.js, as pdf.js does): under the text, covers the layer only while selecting */
 .textLayer br::selection{background:transparent}
+.textLayer span.nc::selection{background:transparent} /* 28.10: line / page numbers are not copied (js/pdf.js pdfReadOrder) */
+#content p.rq-vs{white-space:pre-line;text-align:left} /* 28.10: a TXT stanza keeps its lines (js/reader.js rqVerse) */
 .textLayer br::-moz-selection{background:transparent}
 .textLayer .endOfContent{display:block;position:absolute;left:0;right:0;top:100%;bottom:0;z-index:0;cursor:default;user-select:none;-webkit-user-select:none}
 .textLayer.selecting .endOfContent{top:0}

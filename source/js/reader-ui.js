@@ -200,9 +200,53 @@ function rqAsk(o){return new Promise(function(res){
 function selText(){
   const s=window.getSelection&&window.getSelection();
   if(!s||s.isCollapsed)return SQ?SQ.q.text:''; /* 22.10: a tapped saved quote acts as the selection (copy, dictionary, «Объясни») */
-  const t=String(s).trim();
+  const t=(rqSelWhere(s)==='pdf'?rqSelPlain(s):String(s)).trim(); /* 28.10: a PDF quote is the clean text (its place is q.pdf, not the words) */
   return t.length>2?t:'';
 }
+/* 28.10 (Джессика: «чтобы система более умно сканировала текст… чтобы можно было корректно копировать»; «там все форматы»).
+   The text that leaves the reader (copy, «Копировать», «Объясни», «Перевод») is built from the selection, not from the browser's own
+   serialisation: PDF lines joined as the text layer marks them (js/pdf.js pdfReadOrder: a paragraph goes on with a space, a hyphenated
+   word is glued, verse lines stay lines, a new stanza = an empty line), line / page numbers left out; a book: one line per paragraph
+   and per verse line, an empty line around headings, without the title's «автор · формат» line, soft hyphens, note marks glued to
+   words («слово[1]», «слово1»), pictures. A scan's OCR layer: Latin look-alike letters inside Russian words → Cyrillic. */
+function rqSelWhere(s){
+  if(!s||!s.rangeCount)return '';let n=s.getRangeAt(0).commonAncestorContainer;if(n&&n.nodeType===3)n=n.parentNode;if(!n||!n.closest)return '';
+  if(n.closest('.textLayer')||(n.querySelector&&n.querySelector('.textLayer')&&n.closest('#pdfWrap,#pdfScroll')))return 'pdf';
+  const c=el('content');return c&&c.contains(n)?'book':'';
+}
+const RQ_LOOK={a:'а',e:'е',o:'о',p:'р',c:'с',x:'х',y:'у',A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',X:'Х'};
+function rqPlainFix(t,ocr){
+  t=String(t||'').replace(/\u00AD/g,'').replace(/[\u00A0\u2007\u202F]/g,' ').replace(/[\uFB00-\uFB06]/g,function(c){return c.normalize('NFKC');});
+  t=t.replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
+  if(ocr)t=t.replace(/[A-Za-zА-Яа-яЁё]+/g,function(w){return /[А-Яа-яЁё]/.test(w)&&/[A-Za-z]/.test(w)&&[...w].every(function(c){return /[А-Яа-яЁё]/.test(c)||RQ_LOOK[c];})?[...w].map(function(c){return RQ_LOOK[c]||c;}).join(''):w;});
+  return t.replace(/[ \t]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function rqSelPlain(s){
+  s=s||window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return '';
+  const where=rqSelWhere(s);if(!where)return String(s).trim();
+  const rg=s.getRangeAt(0);let out='';
+  const brk=function(n){if(!out)return;out=out.replace(/[ \t]+$/,'');const have=(/\n*$/.exec(out)[0]||'').length;if(have<n)out+='\n'.repeat(n-have);};
+  let an=rg.commonAncestorContainer;if(an.nodeType===3)an=an.parentNode;
+  const vs0=!!(an&&an.closest&&an.closest('p.rq-vs')),tl0=!!(an&&an.closest&&an.closest('.textLayer'));
+  const walk=function(nd,vs,tl){nd.childNodes.forEach(function(c){
+    if(c.nodeType===3){if(where==='pdf'&&!tl)return; /* «Прокрутка»: page labels between the pages */
+      out+=where==='book'&&!vs?c.nodeValue.replace(/\s*\n\s*/g,' '):c.nodeValue;return;}
+    if(c.nodeType!==1)return;const k=c.classList,tg=c.tagName;
+    if(k.contains('nc')||k.contains('pdfhls')||k.contains('endOfContent')||k.contains('meta')||k.contains('rq-img')||tg==='STYLE'||tg==='SCRIPT'||tg==='IMG')return;
+    if(tg==='BR'){const j=c.dataset.j;if(j==='s')out+=' ';else if(j==='y')out=out.replace(/[-\u2010\u00AD]\s*$/,'');else brk(j==='p'?2:1);return;}
+    if(k.contains('textLayer')){brk(1);walk(c,false,true);brk(1);return;}
+    if(/^(P|H[1-6]|DIV|LI|BLOCKQUOTE|TR|PRE)$/.test(tg)){const big=/^H/.test(tg)||k.contains('rq-h');brk(big?2:1);walk(c,vs||k.contains('rq-vs'),tl);brk(big?2:1);return;}
+    if(tg==='TD'||tg==='TH'){if(out&&!/[\n\t]$/.test(out))out+='\t';walk(c,vs,tl);return;}
+    walk(c,vs,tl);});};
+  walk(rg.cloneContents(),vs0,tl0);
+  return rqPlainFix(out,where==='pdf');
+}
+/* the system «Копировать» (long press menu, Ctrl+C) gets the same clean text */
+document.addEventListener('copy',function(e){
+  const s=window.getSelection();if(!s||s.isCollapsed||!rqSelWhere(s)||!e.clipboardData)return;
+  const t=rqSelPlain(s);if(!t)return;
+  e.clipboardData.setData('text/plain',t);e.preventDefault();
+});
 function updSelPop(){
   const off=!selText()||el('reader').classList.contains('hidden');
   if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
@@ -690,7 +734,7 @@ function addWord(){
 }
 if(el('spWord'))el('spWord').onclick=addWord;
 el('spCopy').onclick=()=>{
-  const t=selText();
+  const t=rqSelPlain()||selText();
   if(t&&R.book)copyText('«'+t+'» — '+R.book.title+', '+R.book.author);
   selDone();
 };

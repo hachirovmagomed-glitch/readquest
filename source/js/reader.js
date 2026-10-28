@@ -330,8 +330,11 @@ function rqBodyHtml(b){
     const im=/^￼img:(\d+)$/.exec(p.s);if(im)return '<p class="rq-img"><img data-img="'+im[1]+'" alt=""></p>';
     const end=n+1<ps.length?ps[n+1].off:Infinity;let h=-1;
     while(k<hs.length&&hs[k]<end){if(hs[k]>=p.off-2&&h<0)h=heads[hs[k]];k++;}
-    return h>=0?'<p class="rq-h" data-toc="'+h+'">'+esc(p.s)+'</p>':'<p>'+esc(p.s)+'</p>';}).join('');
+    return h>=0?'<p class="rq-h" data-toc="'+h+'">'+esc(p.s)+'</p>':'<p'+(rqVerse(p.s)?' class="rq-vs"':'')+'>'+esc(p.s)+'</p>';}).join('');
 }
+/* 28.10 (Джессика: копирование «во всех форматах»): a TXT stanza — short lines of a paragraph (≤ 55 letters, ~40 on average) — keeps its
+   lines on the page and in the copy (white-space:pre-line); longer lines are a hard-wrapped paragraph and flow as before */
+function rqVerse(s){const ls=String(s).split('\n');if(ls.length<2)return false;let mx=0,sum=0;ls.forEach(function(x){mx=Math.max(mx,x.length);sum+=x.length;});return mx<=55&&sum/ls.length<=40;}
 /* pictures of this book: blobs in IDB «img:<book>:<n>» (written once on import); a missing one hides its paragraph.
    Their size is known only once loaded → ONE re-layout that keeps the reading position. */
 function rqBookImgs(b){

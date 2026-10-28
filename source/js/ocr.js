@@ -117,6 +117,7 @@ function ocrRender(q,state,x){
   el('ocrHT').textContent='Текст страницы '+(typeof pdfLabel==='function'?pdfLabel(q.n):q.n+1);
   const aiB=typeof aiOn==='function'&&aiOn()?'<button type="button" class="ghostbtn" id="ocrAi">'+rqIcon('sparkles',16)+' Через ИИ</button>':'';
   const big=state==='file'&&x&&!x.t,lab=x&&x.ocr?'Распознать заново':state==='file'&&!big?'Распознать по картинке':'Распознать на телефоне';
+  const allB=OA&&OA.bid===q.bid?'':R&&R.pdf&&R.pdf.numPages>1&&!(x&&x.ai)?'<button type="button" class="ghostbtn" id="ocrAll">'+rqIcon('book-open',16)+' Распознать всю книгу</button>':'';
   const reB='<button type="button" class="'+(big?'btn tr-dl':'ghostbtn')+'" id="ocrGo">'+rqIcon('scan-text',big?18:16)+' '+lab+'</button>';
   let h='';
   if(state==='need')h='<div class="tr-need">'+rqIcon('download',22)+'<div><b>Пакет распознавания</b><span>'+x.mb+' МБ, скачивается один раз. Дальше страницы распознаются прямо на телефоне, без интернета.</span></div></div>'+
@@ -124,19 +125,25 @@ function ocrRender(q,state,x){
   else if(state==='dl')h='<div class="tr-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(x*100)+'"><i style="width:'+Math.round(x*100)+'%"></i></div>'+
     '<div class="ai-a ai-wait" role="status">Скачиваю пакет… '+Math.round(x*100)+'%</div><button type="button" class="ghostbtn" id="ocrDlStop">Отменить</button>';
   else if(state==='wait')h='<div class="tr-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round((x||0)*100)+'"><i style="width:'+Math.round((x||0)*100)+'%"></i></div><div class="ai-a ai-wait" role="status">Распознаю страницу…'+(x?' '+Math.round(x*100)+'%':'')+'</div>';
+  else if(state==='all')h='<div class="tr-prog" role="progressbar" aria-valuemin="0" aria-valuemax="'+x.total+'" aria-valuenow="'+x.done+'"><i style="width:'+Math.round(x.done/Math.max(1,x.total)*100)+'%"></i></div>'+
+    '<div class="ai-a ai-wait" role="status">Распознаю книгу: страница '+Math.min(x.total,x.done+1)+' из '+x.total+(x.left?', осталось около '+x.left:'')+'</div>'+
+    '<div class="ai-note">Можно закрыть окно и читать дальше: распознавание идёт само. Готовые страницы сразу выделяются, копируются и ищутся. Если закрыть книгу, распознавание остановится, а при следующем запуске продолжится с того же места.</div>'+
+    '<div class="tr-alt"><button type="button" class="ghostbtn" id="ocrAllStop">'+rqIcon('x',16)+' Остановить</button></div>';
   else if(state==='aiwait')h='<div class="ai-a ai-wait" role="status">ИИ читает страницу…</div>';
-  else if(state==='err')h='<div class="ai-a" role="alert">'+esc(x)+'</div><div class="tr-alt">'+reB+aiB+'</div>';
+  else if(state==='err')h='<div class="ai-a" role="alert">'+esc(x)+'</div><div class="tr-alt">'+reB+allB+aiB+'</div>';
   else{
     const empty=!x.t;
     h=(empty?'<div class="ai-a">'+(x.ai?'ИИ не нашёл текста на странице.':x.ocr?'На странице не нашлось текста.':'В файле у этой страницы нет текста, только картинка. Распознайте её — текст станет выделяться и копироваться.')+'</div>':
       '<div class="ocr-out" id="ocrOut" lang="ru">'+esc(x.t)+'</div><div class="tr-acts"><button type="button" class="ghostbtn" id="ocrCopy">'+rqIcon('copy',16)+' Копировать всё</button></div>')+
       '<div class="ai-note">'+(x.ai?'Распознано ИИ, может ошибаться. На странице текст не выделяется: скопируйте его отсюда.':x.ocr?'Распознано на телефоне, без интернета. Текст на странице теперь выделяется и копируется.':empty?'':'Текст из файла.')+'</div>'+
-      '<div class="tr-alt">'+(x.ai?'':reB)+aiB+'</div>';
+      '<div class="tr-alt">'+(x.ai?'':reB)+allB+aiB+'</div>';
   }
   el('ocrBody').innerHTML=h;
   if(el('ocrDlB'))el('ocrDlB').onclick=function(){ocrGet(q);};
   if(el('ocrDlStop'))el('ocrDlStop').onclick=function(){if(ocrDl)ocrDl.abort();};
   if(el('ocrGo'))el('ocrGo').onclick=function(){ocrStart(q);};
+  if(el('ocrAll'))el('ocrAll').onclick=function(){q.all=true;ocrStart(q);};
+  if(el('ocrAllStop'))el('ocrAllStop').onclick=function(){if(OA)OA.stop=true;};
   if(el('ocrAi'))el('ocrAi').onclick=function(){ocrViaAi(q);};
   if(el('ocrCopy'))el('ocrCopy').onclick=function(){copyText(x.t);flashMsg('Текст страницы скопирован');};
 }
@@ -144,6 +151,7 @@ async function ocrOpen(n,run){
   if(!R||!R.pdf)return;
   const q={n:n,bid:R.book.id};ocrCur=q;const my=++ocrSeq;
   el('ocrSheet').classList.remove('hidden');ocrChipUpd();
+  if(OA&&OA.bid===q.bid){ocrRender(q,'all',OA);return;}
   ocrRender(q,'wait',0);
   let f={t:'',ocr:false};try{f=await ocrFileText(n);}catch(e){}
   if(my!==ocrSeq)return;
@@ -156,7 +164,7 @@ async function ocrStart(q){
   try{st=await ocrState();}catch(e){if(my===ocrSeq)ocrRender(q,'err',navigator.onLine===false?'Пакет распознавания ещё не скачан, а интернета нет. Подключитесь к сети, чтобы скачать его один раз.':'Не получилось узнать о пакете: '+(e&&e.message||'ошибка')+'.');return;}
   if(my!==ocrSeq)return;
   if(!st.have){ocrRender(q,'need',st);return;}
-  ocrRun(q,my);
+  if(q.all)ocrAll(q);else ocrRun(q,my);
 }
 async function ocrRun(q,my){
   ocrRender(q,'wait',0);
@@ -183,7 +191,46 @@ async function ocrGet(q){
   try{await ocrDownload(function(p){if(my===ocrSeq&&(p-last>=0.01||p===1)){last=p;ocrRender(q,'dl',p);}},ocrDl&&ocrDl.signal);}
   catch(e){ocrDl=null;if(my===ocrSeq)ocrRender(q,'err',e&&e.name==='AbortError'?'Скачивание отменено.':'Пакет не скачался: '+(e&&e.message||'ошибка')+'.');return;}
   ocrDl=null;
-  if(my===ocrSeq)ocrRun(q,my);
+  if(my===ocrSeq){if(q.all)ocrAll(q);else ocrRun(q,my);}
+}
+/* 28.10 «Распознать всю книгу»: страницы без текста по очереди, в фоне (окно можно закрыть и читать); готовые сохраняются сразу,
+   так что остановка или закрытие книги ничего не теряют, а следующий запуск пропускает уже распознанное */
+let OA=null;
+async function ocrPageNeeds(n){
+  if(await ocrPage(n))return false;
+  const tc=await (await R.pdf.getPage(n+1)).getTextContent();
+  return !tc.items.some(function(it){return /\S/.test(it.str||'');});
+}
+async function ocrAll(q){
+  if(OA)return;
+  const bid=q.bid,N=R.pdf.numPages,a=OA={bid:bid,done:0,total:N,left:'',stop:false};
+  const same=function(){return R&&R.book&&R.book.id===bid&&R.pdf;};
+  const show=function(){if(ocrCur&&ocrCur.bid===bid&&!el('ocrSheet').classList.contains('hidden'))ocrRender(ocrCur,'all',a);ocrChipUpd();};
+  show();
+  let made=0,err=null;const t0=Date.now();
+  try{
+    const w=await ocrWorker();
+    for(let n=0;n<N;n++){
+      if(a.stop||!same())break;
+      a.done=n;show();
+      if(!(await ocrPageNeeds(n)))continue;
+      const pc=await ocrPageCanvas(n);
+      const r=await w.recognize(pc.cv,{},{blocks:true,text:true});
+      if(!same())break;
+      await ocrSave(bid,n,{w:pc.w,items:ocrItems(r.data||{},pc.sc)});made++;
+      try{if(typeof BF!=='undefined'&&BF.pdfTxt)BF.pdfTxt[n]=null;}catch(e){}
+      const m=Math.round((Date.now()-t0)/made*(N-n-1)/60000);a.left=m<1?'минуты':m+' мин';
+      if(typeof pdfRestyle==='function'&&(PS&&PS.on?Math.abs(n-ocrCurPage())<=2:n===ocrCurPage()))pdfRestyle(); /* the page on screen gets its text now */
+    }
+  }catch(e){err=e;}
+  if(!err&&!a.stop&&same())a.done=N;
+  OA=null;ocrChipUpd();
+  const done=!a.stop&&!err&&same();
+  if(ocrCur&&ocrCur.bid===bid&&!el('ocrSheet').classList.contains('hidden')){
+    if(err)ocrRender(ocrCur,'err','Не получилось распознать'+(err.message?': '+err.message:'')+'. Готовые страницы сохранены.');else{ocrCur.all=false;ocrOpen(ocrCur.n);}
+  }
+  if(done)flashMsg(made?'Книга распознана: '+made+' стр.':Object.keys((await ocrBook(bid)).p).length?'Книга уже распознана':'В книге нет страниц без текста');
+  else if(a.stop)flashMsg('Распознавание остановлено. Готовые страницы сохранены.');
 }
 const OCR_AI_SYS='Ты переписываешь текст со скана страницы книги. Перепиши весь текст страницы точно, как напечатано, ничего не добавляя от себя и не исправляя. Если колонок несколько, сначала вся левая колонка, потом правая. Строки стихов — каждая с новой строки, между строфами пустая строка; абзацы прозы — одной строкой каждый. Не пиши номера строк на полях, номер страницы и колонтитулы. Ответь только текстом страницы.';
 async function ocrViaAi(q){
@@ -210,7 +257,12 @@ let ocrChipT=null;
 function ocrChipUpd(){
   clearTimeout(ocrChipT);ocrChipT=setTimeout(function(){
     const c=el('ocrChip');if(!c)return;
-    let show=false;
+    let show=false;const ct=el('ocrChipT');
+    if(OA&&R&&R.book&&R.book.id===OA.bid&&R.mode==='pdf'&&!el('reader').classList.contains('hidden')&&el('ocrSheet').classList.contains('hidden')){
+      if(ct)ct.textContent='Распознаю книгу · '+Math.min(OA.total,OA.done+1)+' из '+OA.total;
+      c.classList.remove('hidden');const bot=document.querySelector('#reader .rbot');c.style.bottom=((bot?bot.offsetHeight:0)+12)+'px';return;
+    }
+    if(ct)ct.textContent='На странице нет текста · Распознать';
     if(R&&R.mode==='pdf'&&R.pdf&&!el('reader').classList.contains('hidden')&&el('ocrSheet').classList.contains('hidden')){
       const n=ocrCurPage(),tl=PS&&PS.on?document.querySelector('#pdfScroll .psl[data-n="'+n+'"] .textLayer'):el('pdfText');
       if(tl&&tl.querySelector('.endOfContent'))show=![...tl.querySelectorAll('span')].some(function(s){return /\S/.test(s.textContent);});
@@ -219,7 +271,7 @@ function ocrChipUpd(){
     if(show){const rd=el('reader'),bot=document.querySelector('#reader .rbot');c.style.bottom=((bot?bot.offsetHeight:0)+12)+'px';}
   },120);
 }
-el('ocrChip').onclick=function(){ocrOpen(ocrCurPage(),true);};
+el('ocrChip').onclick=function(){ocrOpen(ocrCurPage(),!OA);};
 if(window.MutationObserver){
   const mo=new MutationObserver(ocrChipUpd);
   ['pdfText','pdfScroll'].forEach(function(id){const x=el(id);if(x)mo.observe(x,{childList:true,subtree:id==='pdfScroll'});});

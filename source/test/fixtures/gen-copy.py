@@ -4,6 +4,7 @@
 # Both pages carry a running header «Старшая Эдда» on top (not copied).
 # Page 2: one column of justified prose: a word hyphenated over a line break, paragraphs by indent, a page number.
 # copy-scan.pdf (28.10, ocr.test.mjs): the same verse page as a bare picture — no text layer at all, as a scan without OCR.
+# copy-scan3.pdf: three pages for «Распознать всю книгу» (picture, own text, picture).
 # Run: python3 gen-copy.py [out dir]   (default /workspace/rqtest/pdf/)
 import sys, io, os
 from reportlab.pdfgen import canvas
@@ -91,4 +92,10 @@ c.save()
 c = canvas.Canvas(OUT + 'copy-scan.pdf', pagesize=(W, H))
 c.drawImage(picture(verse_items()), 0, 0, W, H); c.showPage()
 c.save()
-print(OUT + 'copy-edda.pdf', OUT + 'copy-scan.pdf')
+# copy-scan3.pdf (28.10, «Распознать всю книгу»): a picture of prose, a page with its own text, a picture of verse
+c = canvas.Canvas(OUT + 'copy-scan3.pdf', pagesize=(W, H))
+c.drawImage(picture(prose_items()), 0, 0, W, H); c.showPage()
+c.setFont('DJS', 11); c.drawString(40, H - 80, 'Страница с текстом файла.'); c.showPage()
+c.drawImage(picture(verse_items()), 0, 0, W, H); c.showPage()
+c.save()
+print(OUT + 'copy-edda.pdf', OUT + 'copy-scan.pdf', OUT + 'copy-scan3.pdf')

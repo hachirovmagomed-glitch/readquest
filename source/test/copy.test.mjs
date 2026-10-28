@@ -29,7 +29,7 @@ const grab = (sel) => p.evaluate(async (sel) => {
   const g = getSelection(); g.removeAllRanges(); const rg = document.createRange();
   const tl = sel.root ? document.querySelector(sel.root) : document.getElementById(sel.pdf ? 'pdfText' : 'content');
   const find = (re, nth) => { const w = document.createTreeWalker(tl, NodeFilter.SHOW_TEXT); let t, k = 0; while ((t = w.nextNode())) { const m = re.exec(t.nodeValue); if (m && k++ === (nth || 0)) return [t, m.index]; } return null; };
-  const a = find(new RegExp(sel.from)), b = find(new RegExp(sel.to)); if (!a || !b) return { err: 'not found ' + !!a + !!b };
+  const a = find(new RegExp(sel.from)), b = find(new RegExp(sel.to), sel.toN); if (!a || !b) return { err: 'not found ' + !!a + !!b };
   rg.setStart(a[0], a[1]); rg.setEnd(b[0], b[1] + (sel.toLen != null ? sel.toLen : new RegExp(sel.to).exec(b[0].nodeValue.slice(b[1]))[0].length)); g.addRange(rg);
   const mine = rqSelPlain(), st = selText(); document.execCommand('copy'); await new Promise(r => setTimeout(r, 150));
   let clip = ''; try { clip = await navigator.clipboard.readText(); } catch (e) { clip = 'ERR ' + e.message; }
@@ -69,6 +69,17 @@ await p.evaluate(async () => { pdfGo(1, 'nav'); await new Promise(r => setTimeou
 r = await grab({ pdf: 1, from: 'Старшая', to: 'страницы\\.' });
 ok('6 prose: a hyphenated word glued, a paragraph flows, a new paragraph on a new line, no page number',
   r.mine === 'Первый абзац текста идёт по всей ширине до самого края переносится на новую строку и спокойно идёт до самого конца и кончается здесь.\nВторой абзац начинается с отступа и тоже идёт до самого конца страницы.', r.mine);
+// a table: row by row, cells apart with a tab (page 3)
+await p.evaluate(async () => { pdfGo(2, 'nav'); await new Promise(r => setTimeout(r, 2500)); });
+r = await grab({ pdf: 1, from: 'Песнь', to: '1963', toN: 2 });
+const TB = 'Песнь\tСтрофы\tПеревод\tГод\nПрорицание вёльвы\t66\tКорсун\t1963\nРечи Высокого\t164\tКорсун\t1963\nПеснь о Трюме\t32\tСвириденко\t1917\nПеребранка Локи\t65\tКорсун\t1963';
+ok('6b a table: row by row, the cells of a row apart with a tab', r.mine === TB, r.mine);
+ok('6c the system copy is the same', r.clip === TB, r.clip);
+// three columns of prose on one page are read column by column (not taken for a table)
+const np = await p.evaluate(() => { const g = [], words = 'раз два три четыре пять шесть семь восемь'.split(' ');
+  for (let c = 0; c < 3; c++) for (let k = 0; k < 8; k++) { const s = 'колонка' + c + ' строка' + k + ' ' + words.join(' ').slice(0, 30); g.push({ str: s, x: 30 + c * 130, base: 100 + k * 14, fh: 10, w: 115 }); }
+  const O = pdfReadOrder(g, 420, 595); return O.seq.slice(0, 9).map(e => g[e.i].str.split(' ')[0]).join(',') + '|' + O.seq.some(e => e.j === 't'); });
+ok('6d three columns of prose stay columns (not a table)', np === 'колонка0,колонка0,колонка0,колонка0,колонка0,колонка0,колонка0,колонка0,колонка1|false', np);
 // «Прокрутка»: a selection over the page break
 await p.evaluate(async (id) => { await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await new Promise(r => setTimeout(r, 3500)); }, bid);
 await p.evaluate(async () => { const s = document.querySelector('#pdfScroll .psl[data-n="1"]'); if (s) s.scrollIntoView({ block: 'start' }); el('pdfScroll').scrollTop -= 150; await new Promise(r => setTimeout(r, 1500)); });

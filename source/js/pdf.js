@@ -238,7 +238,10 @@ function pdfReadOrder(g,W,H){
     const same=flat.filter(function(o){return o!==q&&!/^\s*\d+\s*$/.test(o.str)&&Math.abs(o.b-q.b)<Math.max(o.fh,q.fh)*0.6;});
     const near=same.some(function(o){return Math.max(o.l-q.r,q.l-o.r)<q.fh*0.6;});
     const edge=q.t<H*0.1||q.u>H*0.9;
-    if(q.fh<fm*0.85||(same.length&&!near)||(!same.length&&edge))q.nc=true;
+    /* a number with numbers right above or below it in the same column is a table's cell, not a line number (those stand apart) */
+    const isN=function(o){return /^\s*[\[(]?\d{1,4}[\])]?[.*]?\s*$/.test(o.str);};
+    const colN=flat.some(function(o){return o!==q&&isN(o)&&(Math.abs(o.l-q.l)<fm*1.5||Math.abs(o.r-q.r)<fm*1.5)&&Math.abs(o.b-q.b)>q.fh*0.5&&Math.abs(o.b-q.b)<fm*2.2;});
+    if(q.fh<fm*0.85||(!colN&&((same.length&&!near)||(!same.length&&edge))))q.nc=true;
   });
   /* 28.10 running headers / footers («Старшая Эдда» on top of every page): a short line at the top or bottom edge, away from the
      text, is not copied or searched (.nc, hdr) when it is small, upper-case, has a page number beside it, or stood there on another
@@ -269,9 +272,27 @@ function pdfReadOrder(g,W,H){
   const leaves=[];
   const gap=function(a,lo,hi){const s=a.map(function(q){return [lo(q),hi(q)];}).sort(function(x,y){return x[0]-y[0];});let best=null,e=s[0][1];
     for(let k=1;k<s.length;k++){const d=s[k][0]-e;if(d>0&&(!best||d>best.d))best={d:d,at:(e+s[k][0])/2};e=Math.max(e,s[k][1]);}return best;};
+  /* 28.10 a table: 3+ columns whose rows share baselines and whose cells are short (not columns of prose, not verse in two columns)
+     → read row by row, the cells of a row apart with a tab (Excel / Word take it as columns). Returns the column edges or null. */
+  const table=function(a,f){
+    const s=a.map(function(q){return [q.l,q.r];}).sort(function(x,y){return x[0]-y[0];}),cuts=[];let e=s[0][1];
+    for(let k=1;k<s.length;k++){if(s[k][0]-e>=f*0.8)cuts.push((e+s[k][0])/2);e=Math.max(e,s[k][1]);}
+    if(cuts.length<2)return null;
+    const col=function(q){let c=0;while(c<cuts.length&&q.l>cuts[c])c++;return c;};
+    const rows=[];a.slice().sort(function(x,y){return x.b-y.b;}).forEach(function(q){
+      const r=rows.find(function(R){return Math.abs(R.b-q.b)<Math.max(R.fh,q.fh)*0.5;});if(r){r.c.add(col(q));r.fh=Math.max(r.fh,q.fh);}else rows.push({b:q.b,fh:q.fh,c:new Set([col(q)])});});
+    if(rows.length<2||rows.filter(function(r){return r.c.size>=2;}).length<rows.length*0.6)return null;
+    for(let c=0;c<=cuts.length;c++){ /* a column of prose: long lines that nearly all reach its right edge */
+      const ps=a.filter(function(q){return col(q)===c;});if(ps.length<4)continue;
+      const L=Math.min.apply(null,ps.map(function(q){return q.l;})),Rr=Math.max.apply(null,ps.map(function(q){return q.r;}));
+      if(Rr-L>=f*10&&ps.filter(function(q){return q.r>=Rr-f*0.3;}).length>=ps.length*0.7)return null;
+    }
+    return {cuts:cuts,col:col};
+  };
   (function cut(a,cell,depth){
     if(a.length<2||depth>60){if(a.length)leaves.push({a:a,cell:cell});return;}
     const f=med(a.map(function(q){return q.fh;})),top=Math.min.apply(null,a.map(function(q){return q.t;})),bot=Math.max.apply(null,a.map(function(q){return q.u;}));
+    const tb=a.length>=6?table(a,f):null;if(tb){leaves.push({a:a,cell:cell,tb:tb});return;}
     const v=bot-top>f*1.8?gap(a,function(q){return q.l;},function(q){return q.r;}):null,h=gap(a,function(q){return q.t;},function(q){return q.u;});
     const vOk=v&&v.d>=f*1.5,hOk=h&&h.d>=f*0.6;
     if(vOk&&(!hOk||v.d>=h.d)){cut(a.filter(function(q){return q.r<=v.at;}),[cell[0],cell[1],v.at,cell[3]],depth+1);cut(a.filter(function(q){return q.r>v.at;}),[v.at,cell[1],cell[2],cell[3]],depth+1);return;}
@@ -296,6 +317,7 @@ function pdfReadOrder(g,W,H){
   /* the join between line P (of block A) and line N (of block C) */
   const lower=/^[«"„(]?[a-zа-яё]/;
   const join=function(P,A,N,C){
+    if(A.tb||C.tb)return 'h'; /* a table row is a line */
     const ind=N.l-C.l>C.f*0.8,ends=/[.!?…:;»"”)]$/.test(P.s);
     const full=A.just?P.r>=A.r-A.f*0.3:(A.wide&&P.r>=A.l+(A.r-A.l)*0.75&&!ends&&lower.test(N.s));
     if(full&&!ind)return /[a-zа-яё][-‐­]$/i.test(P.s)&&lower.test(N.s)?'y':'s';
@@ -307,7 +329,7 @@ function pdfReadOrder(g,W,H){
     let j='';
     if(pL)j=pB!==B&&pB.cell[2]>B.cell[0]+1?'p':join(pL,pB,L,B); /* a block below → an empty line; the next column → as within a block */
     L.a.forEach(function(q,n){const pv=n?L.a[n-1]:null;
-      seq.push({i:q.i,j:n?(q.l-pv.r>q.fh*0.15&&!/\s$/.test(pv.str)&&!/^\s/.test(q.str)?'w':''):j,first:!n,last:n===L.a.length-1});
+      seq.push({i:q.i,j:n?(B.tb&&B.tb.col(q)!==B.tb.col(pv)?'t':q.l-pv.r>q.fh*0.15&&!/\s$/.test(pv.str)&&!/^\s/.test(q.str)?'w':''):j,first:!n,last:n===L.a.length-1});
       cells[q.i]=B.cell;nb[q.i]=k+1<B.ls.length?B.ls[k+1].b-B.ls[k+1].fh:B.cell[3];});
     pL=L;pB=B;});});
   /* nc pieces go in front of the line they stand on (nearest baseline, then nearest x) */
@@ -367,7 +389,7 @@ async function pdfTextLayer(page,s0,look){
     const O=pdfReadOrder(its,vp.width,vp.height);
     O.seq.forEach(function(e,k){
       const q=its[e.i];
-      if(e.j==='w'){const pv=its[O.seq[k-1].i],g=document.createElement('span');g.textContent=' ';g.style.left=(pv.x+pv.w).toFixed(2)+'px';g.style.top=(q.base-q.fh).toFixed(2)+'px';g.style.fontSize=q.fh.toFixed(2)+'px';frag.appendChild(g);}
+      if(e.j==='w'||e.j==='t'){const pv=its[O.seq[k-1].i],g=document.createElement('span');g.textContent=e.j==='t'?'\t':' ';g.style.left=(pv.x+pv.w).toFixed(2)+'px';g.style.top=(q.base-q.fh).toFixed(2)+'px';g.style.fontSize=q.fh.toFixed(2)+'px';frag.appendChild(g);}
       else if(e.j){const br=document.createElement('br');br.dataset.j=e.j;frag.appendChild(br);}
       if(e.nc)q.sp.classList.add('nc');
       /* no dead gaps between and around the lines: each span reaches down to the next line of its block, the first one of a line out to

@@ -99,7 +99,7 @@ async function ocrSave(id,n,rec){const b=await ocrBook(id);b.p[n]=rec;try{await 
 /* весь текст страницы по словам (файла или распознанным) в порядке чтения, как копия выделения */
 function ocrPlain(g,W,H){
   const O=pdfReadOrder(g,W,H);let s='';
-  O.seq.forEach(function(e){const j=e.j;if(j==='w'||j==='s')s+=' ';else if(j==='y')s=s.replace(/[-\u2010\u00AD]\s*$/,'');else if(j==='h')s+='\n';else if(j==='p')s+='\n\n';if(!e.nc)s+=g[e.i].str;}); /* a line number carries its line's break */
+  O.seq.forEach(function(e){const j=e.j;if(j==='w'||j==='s')s+=' ';else if(j==='t')s+='\t';else if(j==='y')s=s.replace(/[-\u2010\u00AD]\s*$/,'');else if(j==='h')s+='\n';else if(j==='p')s+='\n\n';if(!e.nc)s+=g[e.i].str;}); /* a line number carries its line's break */
   return rqPlainFix(s,true);
 }
 async function ocrFileText(n){

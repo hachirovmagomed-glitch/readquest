@@ -219,13 +219,13 @@ function rqPlainFix(t,ocr){
   t=String(t||'').replace(/\u00AD/g,'').replace(/[\u00A0\u2007\u202F]/g,' ').replace(/[\uFB00-\uFB06]/g,function(c){return c.normalize('NFKC');});
   t=t.replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
   if(ocr)t=t.replace(/[A-Za-zА-Яа-яЁё]+/g,function(w){return /[А-Яа-яЁё]/.test(w)&&/[A-Za-z]/.test(w)&&[...w].every(function(c){return /[А-Яа-яЁё]/.test(c)||RQ_LOOK[c];})?[...w].map(function(c){return RQ_LOOK[c]||c;}).join(''):w;});
-  return t.replace(/[ \t]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  return t.replace(/ *\t */g,'\t').replace(/ +/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
 }
 function rqSelPlain(s){
   s=s||window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return '';
   const where=rqSelWhere(s);if(!where)return String(s).trim();
   const rg=s.getRangeAt(0);let out='';
-  const brk=function(n){if(!out)return;out=out.replace(/[ \t]+$/,'');const have=(/\n*$/.exec(out)[0]||'').length;if(have<n)out+='\n'.repeat(n-have);};
+  const brk=function(n){if(!out)return;out=out.replace(/ +$/,'');const have=(/\n*$/.exec(out)[0]||'').length;if(have<n)out+='\n'.repeat(n-have);};
   let an=rg.commonAncestorContainer;if(an.nodeType===3)an=an.parentNode;
   const vs0=!!(an&&an.closest&&an.closest('p.rq-vs')),tl0=!!(an&&an.closest&&an.closest('.textLayer'));
   const walk=function(nd,vs,tl){nd.childNodes.forEach(function(c){

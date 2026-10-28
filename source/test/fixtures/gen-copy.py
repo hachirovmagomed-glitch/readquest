@@ -2,6 +2,7 @@
 # Page 1: two columns of verse with small line numbers (as in Джессика's «Старшая Эдда»); the OCR text goes across BOTH columns line
 #   by line (the worst file order), some Russian words carry Latin look-alike letters (OCR noise), a page number at the bottom.
 # Both pages carry a running header «Старшая Эдда» on top (not copied).
+# Page 3: a table of 4 columns, its text in the file column by column.
 # Page 2: one column of justified prose: a word hyphenated over a line break, paragraphs by indent, a page number.
 # copy-scan.pdf (28.10, ocr.test.mjs): the same verse page as a bare picture — no text layer at all, as a scan without OCR.
 # copy-scan3.pdf: three pages for «Распознать всю книгу» (picture, own text, picture).
@@ -88,6 +89,16 @@ for items in (verse_items(), prose_items()):
         else:
             t.setTextOrigin(x, y); t.textOut(ocr)
     c.drawText(t); c.showPage()
+# Page 3 (28.10): a table, 4 columns; its text goes column by column in the file (the order that used to come out)
+TABLE = [['Песнь', 'Строфы', 'Перевод', 'Год'], ['Прорицание вёльвы', '66', 'Корсун', '1963'], ['Речи Высокого', '164', 'Корсун', '1963'],
+         ['Песнь о Трюме', '32', 'Свириденко', '1917'], ['Перебранка Локи', '65', 'Корсун', '1963']]
+TX = [40, 150, 240, 330]
+items = [(TX[k], H - 80 - r * 16, 9.5, cell, cell) for r, row in enumerate(TABLE) for k, cell in enumerate(row)]
+c.drawImage(picture(items), 0, 0, W, H)
+t = c.beginText(); t.setTextRenderMode(3); t.setFont('DJS', 9.5)
+for it in sorted(items, key=lambda q: (q[0], -q[1])):
+    t.setTextOrigin(it[0], it[1]); t.textOut(it[4])
+c.drawText(t); c.showPage()
 c.save()
 c = canvas.Canvas(OUT + 'copy-scan.pdf', pagesize=(W, H))
 c.drawImage(picture(verse_items()), 0, 0, W, H); c.showPage()

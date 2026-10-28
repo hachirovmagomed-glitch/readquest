@@ -127,7 +127,8 @@ function bfPdfPageText(items,vp){
 async function bfPdfText(n){
   if(BF.pdfDoc!==R.pdf){BF.pdfDoc=R.pdf;BF.pdfTxt=[];}
   if(BF.pdfTxt[n]!=null)return BF.pdfTxt[n];
-  let s='';try{const pg=await R.pdf.getPage(n+1);const tc=await pg.getTextContent();s=bfPdfPageText(tc.items,pg.getViewport({scale:1}));}catch(e){s='';}
+  let s='';try{const pg=await R.pdf.getPage(n+1);const vp=pg.getViewport({scale:1}),oc=typeof ocrPage==='function'?await ocrPage(n):null; /* 28.10: a recognised page is searched by its recognised words */
+    const items=oc?oc.items.map(function(q){const a=vp.convertToPdfPoint(q.x,q.b);return {str:q.s,transform:[q.h,0,0,q.h,a[0],a[1]],width:q.w};}):(await pg.getTextContent()).items;s=bfPdfPageText(items,vp);}catch(e){s='';}
   if(BF.pdfDoc===R.pdf)BF.pdfTxt[n]=s;return s;
 }
 async function bfPdfRun(q){

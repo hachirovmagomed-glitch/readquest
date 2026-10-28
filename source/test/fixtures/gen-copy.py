@@ -2,6 +2,7 @@
 # Page 1: two columns of verse with small line numbers (as in Джессика's «Старшая Эдда»); the OCR text goes across BOTH columns line
 #   by line (the worst file order), some Russian words carry Latin look-alike letters (OCR noise), a page number at the bottom.
 # Page 2: one column of justified prose: a word hyphenated over a line break, paragraphs by indent, a page number.
+# copy-scan.pdf (28.10, ocr.test.mjs): the same verse page as a bare picture — no text layer at all, as a scan without OCR.
 # Run: python3 gen-copy.py [out dir]   (default /workspace/rqtest/pdf/)
 import sys, io, os
 from reportlab.pdfgen import canvas
@@ -84,4 +85,7 @@ for items in (verse_items(), prose_items()):
             t.setTextOrigin(x, y); t.textOut(ocr)
     c.drawText(t); c.showPage()
 c.save()
-print(OUT + 'copy-edda.pdf')
+c = canvas.Canvas(OUT + 'copy-scan.pdf', pagesize=(W, H))
+c.drawImage(picture(verse_items()), 0, 0, W, H); c.showPage()
+c.save()
+print(OUT + 'copy-edda.pdf', OUT + 'copy-scan.pdf')

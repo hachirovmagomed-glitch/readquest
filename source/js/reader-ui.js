@@ -1155,7 +1155,7 @@ async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo&&!fo.hidden)bfHide();} /* 20.10: the search lives with the open book only */
-  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');relWake();
+  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');el('ocrSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
@@ -1450,8 +1450,8 @@ window.addEventListener('popstate',function(e){
   if(readerIsOpen()){
     if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
-    const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ и (22.10) «Перевод» */
-    if(!ac.classList.contains('hidden')||!as.classList.contains('hidden')||!ts.classList.contains('hidden')){ac.classList.add('hidden');as.classList.add('hidden');ts.classList.add('hidden');navPush('reader');return;}
+    const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'),os=el('ocrSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ, (22.10) «Перевод» и (28.10) «Текст страницы» */
+    if(![ac,as,ts,os].every(x=>x.classList.contains('hidden'))){[ac,as,ts,os].forEach(x=>x.classList.add('hidden'));navPush('reader');return;}
     const sh=el('sheet'),pn=el('panel');
     if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}
     if(!el('reader').classList.contains('barsoff')){concealChrome('back');navPush('reader');return;}

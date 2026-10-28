@@ -296,7 +296,10 @@ let pdfMeasure=null;
 async function pdfTextLayer(page,s0,look){
   const frag=document.createDocumentFragment();
   try{
-    const tc=await page.getTextContent();
+    /* 28.10 «Текст страницы» (js/ocr.js): a page recognised on the phone gets its text layer from the recognised words (PDF points, y down
+       at scale 1 → back to PDF space, so they go through the same code as the file's own text) */
+    const oc=typeof ocrPage==='function'?await ocrPage(page.pageNumber-1):null,v1=oc?page.getViewport({scale:1}):null;
+    const tc=oc?{styles:{},items:oc.items.map(function(q){const a=v1.convertToPdfPoint(q.x,q.b);return {str:q.s,transform:[q.h,0,0,q.h,a[0],a[1]],width:q.w};})}:await page.getTextContent();
     const vp=page.getViewport({scale:s0});
     const U=window.pdfjsLib.Util;
     if(!pdfMeasure)pdfMeasure=document.createElement('canvas').getContext('2d');

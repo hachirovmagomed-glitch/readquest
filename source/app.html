@@ -1615,7 +1615,10 @@ html[data-skin="pencil"] #sheet .rsw[aria-checked="true"]::after{background:var(
    left-edge drag). Filled part up to --v (set by applySet). Each skin draws its own track and thumb (pencil here, the rest in skins.css) */
 #reader .rhead{flex-wrap:wrap}
 .rbright{flex:1 1 100%;display:flex;align-items:center;gap:12px;padding:0 22px;color:rgba(255,255,255,.86)} /* 21.10 (Джессика, ReadEra): smaller, the thumb unlike the page slider's */
-.rbright .ic{flex:none;width:14px;height:14px}.rbright .ic:last-child{width:18px;height:18px}.rbright .ic.lo{opacity:.7}
+.rbright .ic{flex:none;width:14px;height:14px}.rbright .hi .ic{width:18px;height:18px}.rbright .lo .ic{opacity:.7}
+/* 28.10 (Джессика: «одно из солнышек нерабочее»): the end suns are buttons — a tap steps «Яркость» 10 % down / up; the hit area is 40 px, the icon stays small */
+.rbright{gap:2px;padding:0 8px}.rbright .rbb{flex:none;width:40px;height:40px;margin:0;padding:0;border:0;background:none;color:inherit;display:grid;place-items:center;border-radius:50%;-webkit-tap-highlight-color:transparent;cursor:pointer}
+.rbright .rbb:active .ic,.rbright .rbb.bump .ic{transform:scale(1.25)}.rbright .rbb .ic{transition:transform .15s}
 #barBright{flex:1;min-width:0;height:30px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;--v:100%;touch-action:pan-x}
 #barBright::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.9) var(--v),rgba(255,255,255,.25) var(--v))}
 #barBright::-moz-range-track{height:2px;border-radius:1px;background:linear-gradient(90deg,rgba(255,255,255,.9) var(--v),rgba(255,255,255,.25) var(--v))}
@@ -2349,7 +2352,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <button id="btnAiChat" title="Обсудить книгу" aria-label="Обсудить книгу"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg></button><!-- 20.10 ИИ-чат по книге (content.js) -->
     <button id="btnTts" title="Озвучка" aria-label="Озвучка" aria-pressed="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
     <button id="btnFind" type="button" title="Поиск по книге" aria-label="Поиск по книге" aria-haspopup="dialog"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><!-- 20.10 лупа: поиск по книге (js/book-find.js) -->
-    <div class="rbright" id="rBright"><svg class="ic lo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></div>
+    <div class="rbright" id="rBright"><button type="button" class="rbb lo" id="barBrightLo" aria-label="Темнее"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><button type="button" class="rbb hi" id="barBrightHi" aria-label="Ярче"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button></div>
   </header>
   <div id="viewer">
     <div id="content"></div>

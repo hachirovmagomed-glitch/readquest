@@ -1313,7 +1313,10 @@ body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 #rqPause{position:fixed;z-index:30;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
   background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--txt);border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);opacity:.45;touch-action:none;transition:opacity .2s}
 #rqPause[hidden]{display:none}#rqPause.on{opacity:.95;color:var(--accent);border-color:var(--accent)}#rqPause.drag{opacity:.9;transition:none}
-@media (prefers-reduced-motion:reduce){#rqPause{transition:none}}
+/* 28.10 (Джессика: «значок старта и паузы исчезал, когда я читаю, и появлялся, когда тапаю на экран вместе с плашками»): hidden with the
+   bars (.barsoff, focus mode too); stays while the count is ON PAUSE (.on) so a stopped count is never invisible */
+#reader.barsoff #rqPause:not(.on):not(.drag){opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s .2s}
+@media (prefers-reduced-motion:reduce){#rqPause,#reader.barsoff #rqPause:not(.on):not(.drag){transition:none}}
 #sumQuiz{text-align:left;font-size:0.875rem;line-height:1.45;margin:4px 0 10px}
 #sumQuiz .qz-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#sumQuiz .qz-h .ic{flex:none;color:var(--accent2)}
 #sumQuiz .qz-t{color:var(--muted)}#sumQuiz .qz-q{font-weight:600;margin-bottom:8px}

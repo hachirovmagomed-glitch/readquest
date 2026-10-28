@@ -54,7 +54,7 @@ ok('pencil icons load: no runtime SVG filter on the Lucide strokes (it blanked i
   ok('pencil: bundled Nunito (UI text) + Caveat loaded from fonts/*.woff2, both in the SW precache, OFL.txt shipped', F.ff.includes('Nunito:loaded') && F.ff.some(x => /^Caveat:/.test(x)) && /^"?Nunito/.test(F.ui) && F.pre && F.lic, F); }
 ok('reader page stays clean (no background image / filter on the page)', !/url|gradient/.test(s.bgImg) && (s.filter === 'none' || !s.filter), { bgImg: s.bgImg, filter: s.filter });
 ok('skin tokens active on #reader (--rq-accent = pencil blue #2e48a0)', s.acc === '#2e48a0', s.acc);
-ok('app-wide skin day: html[data-skin=pencil]; settings sheet #fbfaf5, header + bottom bar #f3f0e7, body #f3f0e7, wobbly header line', s.hskin === 'pencil' && !s.htheme && s.sheetBg === 'rgb(251, 250, 245)' && s.headBg === 'rgb(243, 240, 231)' && s.barBg === 'rgb(243, 240, 231)' && s.bodyBg === 'rgb(243, 240, 231)' && /svg/.test(s.headLine), { hskin: s.hskin, sheet: s.sheetBg, head: s.headBg, bar: s.barBg, body: s.bodyBg, line: !!s.headLine });
+ok('app-wide skin day: html[data-skin=pencil]; settings sheet #fbfaf5, header + bottom bar #f3f0e7, body #f3f0e7, reader header melts into the page (28.10 Джессика: soft fade, no wobbly line)', s.hskin === 'pencil' && !s.htheme && s.sheetBg === 'rgb(251, 250, 245)' && s.headBg === 'rgb(243, 240, 231)' && s.barBg === 'rgb(243, 240, 231)' && s.bodyBg === 'rgb(243, 240, 231)' && !/svg/.test(s.headLine), { hskin: s.hskin, sheet: s.sheetBg, head: s.headBg, bar: s.barBg, body: s.bodyBg, line: !!s.headLine });
 await p.screenshot({ path: SHOTS + 'theme-pencil-day-sheet.png' });
 await sheet(false); await p.screenshot({ path: SHOTS + 'theme-pencil-day.png' });
 // 3. day/night inside the skin

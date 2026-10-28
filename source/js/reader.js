@@ -218,6 +218,11 @@ el('brightRange').onchange=()=>saveSet();
 /* 20.10: the same «Яркость» under the top bar (ReadEra-like); the bars stay up while it is dragged */
 el('barBright').oninput=e=>{SET.bright=Math.max(0.3,Math.min(1,(parseInt(e.target.value,10)||100)/100));applySet();if(typeof armChromeHide==='function')armChromeHide();};
 el('barBright').onchange=()=>saveSet();
+/* 28.10 (Джессика): the suns at the ends of the bar slider step «Яркость» by 10 % (left darker, right brighter), with the same «Яркость N %» note as the edge drag */
+['barBrightLo','barBrightHi'].forEach(function(id,i){const b=el(id);if(!b)return;b.onclick=function(){const v=SET.bright==null?1:SET.bright;
+  SET.bright=Math.round(Math.max(0.3,Math.min(1,v+(i?0.1:-0.1)))*20)/20;saveSet();applySet();if(typeof armChromeHide==='function')armChromeHide();
+  const p=Math.round(SET.bright*100);flashMsg('Яркость '+p+'%'+(p>=100&&i?' — максимум':p<=30&&!i?' — минимум':''),{kind:'info',icon:'sun'});
+  b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');setTimeout(function(){b.classList.remove('bump');},160);};});
 el('warmRange').oninput=e=>{SET.warm=Math.max(0,Math.min(0.6,(parseInt(e.target.value,10)||0)/100));applySet();};
 el('warmRange').onchange=()=>saveSet();
 el('pdfFontTgl').onclick=()=>{SET.pdfFont=!SET.pdfFont;saveSet();applySet();}; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */

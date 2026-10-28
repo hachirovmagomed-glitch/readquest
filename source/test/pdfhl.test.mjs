@@ -92,7 +92,7 @@ await p.screenshot({ path: SHOTS + 'pdfhl-lines.png' });
 await p.evaluate(async () => { jumpTo(2); await new Promise(r => setTimeout(r, 1500)); });
 for (const how of ['touch', 'mouse']) {
   const s6 = await select(3); await sleep(300);
-  const pt = await p.evaluate(() => { const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
+  const pt = await p.evaluate(() => { if (el('selpop').classList.contains('mini')) el('spMini').click(); /* 27.10: the bar is a circle while selecting */ const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
   if (how === 'touch') await p.touchscreen.tap(pt.x, pt.y); else await p.mouse.click(pt.x, pt.y);
   await sleep(700);
   const a6 = await p.evaluate(() => ({ pg: R.page, n: S.quotes[R.book.id].length }));
@@ -110,6 +110,43 @@ ok('7 panel «Цитаты» → the quote\'s page (not page 1), «вернут�
 const n7 = await p.evaluate(async (i) => { const q = S.quotes[R.book.id][i], c = { text: q.text, note: '', date: today(), c: 'g' }; S.quotes[R.book.id].push(c); save(); jumpTo(Math.min(R.pageCount - 1, q.pdf.p + 4)); await new Promise(r => setTimeout(r, 1500)); await quoteGo(S.quotes[R.book.id].length - 1); await new Promise(r => setTimeout(r, 1500));
   const z = S.quotes[R.book.id].pop(); save(); return { pg: R.page, want: q.pdf.p, saved: z.pdf && z.pdf.p }; }, m5.n0);
 ok('7b old PDF quote without q.pdf: found by its words on its page, place remembered', n7.pg === n7.want && n7.saved === n7.want, n7);
+// 8. Джессика 25.10 (видео «сатанинский» текст): on a PDF page the skin's dots (butterfly pollen, celestial star dust) never sit on the letters,
+// and a tapped quote is underlined, not ringed line by line
+const s8 = await p.evaluate(async () => {
+  S.gold = 5000; save(); for (const k of ['skin-babochkovyi', 'skin-celestial']) { try { buy(k); } catch (e) {} }
+  const i = document.querySelector('.pdfhls i'); if (!i) return null; const out = {};
+  for (const k of ['babochkovyi', 'celestial']) { SET.theme = k; saveSet(); applySet(); await new Promise(r => setTimeout(r, 200)); out[k] = getComputedStyle(i).backgroundImage.includes('radial-gradient'); }
+  i.classList.add('qon'); const cs = getComputedStyle(i); out.ring = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0; out.under = cs.boxShadow; i.classList.remove('qon');
+  return out; });
+ok('8 PDF quote in Бабочковый / Небесный: no dots over the letters; tapped quote underlined, not ringed', s8 && !s8.babochkovyi && !s8.celestial && !s8.ring && /2px/.test(s8.under), s8);
+// 9. 26.10: «Прокрутка» in a PDF — a selection end held at the bottom edge scrolls on by half a screen and the selection follows onto the next page
+const s9 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => setTimeout(r, ms));
+  await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await w(3500);
+  const box = psBox(), br = box.getBoundingClientRect();
+  const sp = [...box.querySelectorAll('.textLayer span')].filter(x => x.textContent.trim().length > 5);
+  const top = sp.find(x => { const r = x.getBoundingClientRect(); return r.top > br.top + 100 && r.bottom < br.top + 300; });
+  const low = sp.filter(x => { const r = x.getBoundingClientRect(); return r.bottom < br.bottom && r.bottom > br.bottom - 60; }).pop();
+  if (!top || !low) return { none: true, top: !!top, low: !!low };
+  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(top.firstChild, 0, top.firstChild, 3); await w(300);
+  const mid = sp.find(x => { const r = x.getBoundingClientRect(); return r.top > br.top + 350 && r.bottom < br.bottom - 120; }); if (mid) g.extend(mid.firstChild, 2); await w(150);
+  g.extend(low.firstChild, low.firstChild.length); await w(300); const st0 = box.scrollTop, len0 = String(g).length, hint = el('selEdge') && el('selEdge').className;
+  await w(1100); return { st0, st1: box.scrollTop, len0, len1: String(g).length, hint }; }, bid);
+ok('9 PDF «Прокрутка»: end held at the bottom → hint, half a screen down, the selection grows', s9.hint === 'next' && s9.st1 > s9.st0 + 150 && s9.len1 > s9.len0, s9);
+// 10. 27.10 (Джессика: «стрелочку … выделение на предыдущих страницах никуда не исчезало … индикатор»): PDF «Страницы» — › with a selection
+// turns the page, the part already selected is kept (chip «Выделено со стр. N»), the first word of the new page is selected; a colour saves ONE quote on both pages
+const s10 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => setTimeout(r, ms));
+  await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); rqSaveSetGated(); S.quotes[id] = []; S.hl[id] = []; S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await w(3500);
+  goPage(2, true); await w(1500);
+  const sp = [...el('pdfText').querySelectorAll('span')].filter(x => x.textContent.trim().length > 12); const t = sp[sp.length - 1].firstChild;
+  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(t, 0, t, Math.min(10, t.length)); const t0 = String(g); await w(400);
+  const nav = !el('selNav').hidden; el('selNext').click(); await w(2000);
+  const out = { nav, page: R.page, sel: String(getSelection()), chip: !el('selFrom').hidden && el('selFromGo').textContent, x: !el('selFromX').hidden };
+  updSelPop(); await w(250); document.querySelector('#spColors button[data-c="g"]').click(); await w(500);
+  const qs = S.quotes[id]; out.n = qs.length; const q = qs[0]; out.p = q && q.pdf.p; out.more = q && (q.pdf.more || []).map(x => x.p); out.text = q && q.text; out.t0 = t0;
+  out.here = el('pdfText').querySelectorAll('.pdfhls i[data-q]').length; out.nav2 = el('selNav').hidden;
+  goPage(2, true); await w(1500); out.there = el('pdfText').querySelectorAll('.pdfhls i[data-q]').length; out.pend = el('pdfText').querySelectorAll('.pdfhls i.pend').length;
+  return out; }, bid);
+ok('10 PDF «Страницы»: › keeps the selection (chip), next page selected, one quote on pages 3 and 4', s10.nav && s10.page === 3 && s10.sel.length > 0 && /Выделено со стр/.test(s10.chip || '') && s10.x && s10.n === 1 && s10.p === 2 && JSON.stringify(s10.more) === '[3]' && s10.text.startsWith(s10.t0.trim()) && s10.text.endsWith(s10.sel.trim()) && s10.here > 0 && s10.there > 0 && !s10.pend && s10.nav2, s10);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

@@ -232,7 +232,7 @@ function psTouchEnd(e){
   PS.g=null;
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0,moved=Math.abs(psBox().scrollTop-g.top0);
   if(pdfSelecting())return; /* 22.10: the end of a selection drag is not a swipe / tap */
-  if(flipGet().swipe!==false&&Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.5&&moved<8){fsResume();pdfFlip((dx<0?1:-1)*(flipGet().invert?-1:1));return;}
+  if(flipGet().swipe!==false&&Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.5&&moved<8){fsResume();pdfFlip(dx<0?1:-1);return;}
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&moved<4&&performance.now()-g.t0<450&&!(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
   }
@@ -255,7 +255,7 @@ function psSwitch(){
     P.shown=-1;P.target=p;P.z=1;pdfRender('mode');pdfWatch();
   }
 }
-psBox().addEventListener('scroll',function(){if(!PS.on)return;psSoon();if(!PS.raf)PS.raf=requestAnimationFrame(function(){PS.raf=0;psUpdate();if(!P.sliding)pdfNumbers(psPageAt());});},{passive:true});
+psBox().addEventListener('scroll',function(){if(!PS.on)return;psSoon();if(__tracker&&__tracker.userActive&&!P.sliding)__tracker.userActive('scroll'); /* 25.10: a sign of life */if(!PS.raf)PS.raf=requestAnimationFrame(function(){PS.raf=0;psUpdate();if(!P.sliding)pdfNumbers(psPageAt());});},{passive:true});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState!=='hidden')setTimeout(psCheck,60);});
 window.addEventListener('pageshow',function(){setTimeout(psCheck,60);});
 window.addEventListener('focus',function(){setTimeout(psCheck,60);});

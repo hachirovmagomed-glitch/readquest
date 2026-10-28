@@ -96,6 +96,13 @@ cp "$ROOT/vendor/bergamot/worker/"* "$DIST/vendor/bergamot/worker/"
 # Vendored pdf.js (3.11.174, Apache-2.0) + its worker — copied AFTER the ?v= rewrite so the library is byte-identical.
 mkdir -p "$DIST/vendor/pdfjs"
 cp "$ROOT/vendor/pdfjs/pdf.min.js" "$ROOT/vendor/pdfjs/pdf.worker.min.js" "$ROOT/vendor/pdfjs/LICENSE" "$DIST/vendor/pdfjs/"
+# 28.10 vendored JSZip (3.10.2, MIT) for EPUB / .fb2.zip — was loaded from cdnjs, so EPUB could not be added offline
+mkdir -p "$DIST/vendor/jszip"
+cp "$ROOT/vendor/jszip/jszip.min.js" "$ROOT/vendor/jszip/LICENSE" "$DIST/vendor/jszip/"
+# 28.10 распознавание сканов: tesseract.js 7.0.0 (Apache-2.0) API + worker, precached (175 КБ); движок wasm и языки — main /ocr/
+# (tools/gen-ocr-pack.py), в кэш NS_ocr по кнопке «Скачать» (js/ocr.js)
+mkdir -p "$DIST/vendor/tesseract"
+cp "$ROOT/vendor/tesseract/tesseract.min.js" "$ROOT/vendor/tesseract/worker.min.js" "$ROOT/vendor/tesseract/LICENSE" "$DIST/vendor/tesseract/"
 
 # «Карандашный» fonts: Caveat (headings) + Nunito (UI text), SIL OFL 1.1, subset Latin+Cyrillic woff2 — precached like every other file in dist
 mkdir -p "$DIST/fonts"

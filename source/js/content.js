@@ -419,14 +419,14 @@ function loadJSZip(){
   return new Promise(function(res,rej){
     if(window.JSZip)return res();
     const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.src='vendor/jszip/jszip.min.js'; /* 28.10: vendored with the build (precached) — EPUB opens offline, no CDN */
     s.onload=function(){res();};
-    s.onerror=function(){rej(new Error('нет сети для загрузки EPUB-модуля'));};
+    s.onerror=function(){rej(new Error('не загрузился модуль EPUB (vendor/jszip)'));};
     document.head.appendChild(s);
   });
 }
 function decodeEntities(s){
-  return s.replace(/&#(\d+);/g,(m,n)=>String.fromCharCode(+n))
+  return s.replace(/&#(\d+);/g,(m,n)=>String.fromCodePoint(+n||32)).replace(/&#x([0-9a-f]+);/gi,(m,n)=>String.fromCodePoint(parseInt(n,16)||32)) /* 28.10: hex too (&#x2014;) */
     .replace(/&nbsp;/g,' ').replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'")
     .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
 }
@@ -438,7 +438,35 @@ function htmlToText(s){
   s=decodeEntities(s);
   return s.split(/\n+/).map(x=>x.trim()).filter(Boolean).join('\n\n');
 }
-async function parseEpub(file){
+/* 28.10 (ревизия чтения): FB2 / EPUB markup → paragraphs separated by a blank line.
+   Every block-level tag ends a paragraph: also FB2 verse lines <v>, <text-author>, <subtitle>, <title>, <empty-line/> (they were glued
+   to the next paragraph). Line breaks of the source file inside a paragraph are spaces. o.heads: <h1-3> start a chapter → heads [{off,t,lvl}].
+   o.img(src) → a marker «￼img:N» (its own paragraph) or ''. */
+function bookHtmlText(s,o){
+  o=o||{};
+  s=String(s||'').replace(/<head[\s\S]*?<\/head>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<!--[\s\S]*?-->/g,'');
+  s=s.replace(/\s*[\r\n]+\s*/g,' ');
+  if(o.heads)s=s.replace(/<h([1-3])\b[^>]*>/gi,function(m,l){return '\n\n\u0001'+l;});
+  if(o.img)s=s.replace(/<(?:img|image)\b[^>]*>/gi,function(tag){const m=/\s(?:src|(?:xlink|l):href|href)\s*=\s*["']([^"']+)["']/i.exec(tag);const mk=m?o.img(decodeEntities(m[1])):'';return mk?'\n\n'+mk+'\n\n':'';});
+  s=s.replace(/<\/(p|div|h[1-6]|li|blockquote|tr|dt|dd|figcaption|pre|table|section|v|text-author|subtitle|title|stanza|poem|epigraph|cite|annotation)\s*>/gi,'\n\n')
+     .replace(/<(empty-line|hr)\b[^>]*\/?>/gi,'\n\n').replace(/<br\b[^>]*\/?>/gi,'\n');
+  s=s.replace(/<[^>]+>/g,'');
+  s=decodeEntities(s).replace(/ /g,' ');
+  const ps=s.split(/\n+/).map(function(x){return x.replace(/[ \t]+/g,' ').trim();}).filter(Boolean);
+  const heads=[];let text='';
+  ps.forEach(function(x){
+    const h=/^\u0001([1-3])\s*/.exec(x);if(h){x=x.slice(h[0].length);if(!x)return;heads.push({off:text.length+(text?2:0),t:x.slice(0,80),lvl:+h[1]-1});}
+    x=x.replace(/\u0001[1-3]/g,'');if(!x)return;text+=(text?'\n\n':'')+x;});
+  return {text:text,heads:heads};
+}
+/* 28.10: pictures of an imported book are kept apart from the text: parse → r.imgs [{data: Uint8Array, type}], the text holds
+   «￼img:N» as a paragraph; importBookFile writes them to IDB «img:<book id>:<N>» (js/reader.js rqBookImgs shows them). */
+const BOOK_IMG_MAX=3*1024*1024,BOOK_IMG_N=300;
+function bookImgType(n,t){t=String(t||'').toLowerCase();if(/^image\//.test(t))return t;const e=(/\.(\w+)$/.exec(String(n||''))||[])[1]||'';
+  return {jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml'}[e.toLowerCase()]||'image/jpeg';}
+function zipPath(dir,href){const out=[];(dir+href.split('#')[0]).split('/').forEach(function(x){if(x==='..')out.pop();else if(x&&x!=='.')out.push(x);});return out.join('/');}
+async function parseEpub(file,opts){
+  const withImg=!(opts&&opts.images===false);
   await loadJSZip();
   const zip=await window.JSZip.loadAsync(file);
   const contFile=zip.file('META-INF/container.xml');
@@ -460,23 +488,31 @@ async function parseEpub(file){
   (opf.match(/<itemref\b[^>]*idref="([^"]+)"/g)||[]).forEach(s=>{
     spine.push(s.match(/idref="([^"]+)"/)[1]);
   });
-  let text='';const toc=[];
+  let text='';const toc=[],files=[],imgs=[],seen={};
   for(const id of spine){
     const href=man[id];if(!href)continue;
-    const f=zip.file(dir+decodeURIComponent(href))||zip.file(dir+href);
+    const fp=dir+decodeURIComponent(href);
+    const f=zip.file(fp)||zip.file(dir+href);
     if(!f)continue;
-    const xhtml=await f.async('string');
-    const t=htmlToText(xhtml);
-    if(t){
-      const hm=xhtml.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/i);
-      const chTitle=(hm?htmlToText(hm[1]):t.slice(0,60)).slice(0,80);
-      toc.push({t:chTitle||('Раздел '+(toc.length+1)),off:text.length});
-      text+=t+'\n\n';
-    }
+    const xhtml=await f.async('string'),fdir=fp.replace(/[^\/]*$/,''),want=[];
+    const r=bookHtmlText(xhtml,{heads:true,img:withImg?function(src){
+      if(/^(data|https?):/i.test(src)||imgs.length+want.length>=BOOK_IMG_N)return '';
+      const pth=zipPath(fdir,decodeURIComponent(src));if(!zip.file(pth))return '';
+      if(!(pth in seen)){seen[pth]=imgs.length+want.length;want.push(pth);}return '￼img:'+seen[pth];}:null});
+    for(const pth of want){const data=await zip.file(pth).async('uint8array');imgs.push(data.length<=BOOK_IMG_MAX?{data:data,type:bookImgType(pth)}:null);}
+    if(!r.text)continue;
+    const base=text.length;
+    r.heads.forEach(function(h){toc.push({t:h.t,off:base+h.off,lvl:h.lvl});});
+    files.push({off:base,t:r.text});
+    text+=r.text+'\n\n';
   }
   if(!text.trim())throw new Error('не удалось извлечь текст');
+  /* a book without any <h1-3>: one chapter per file of the spine, named by its first words (the old way) */
+  if(!toc.length)files.forEach(function(x,i){const t=x.t.replace(/^￼img:\d+\s*/,'');if(t)toc.push({t:t.slice(0,60),off:x.off});});
+  /* the outermost heading level present is level 0 */
+  const top=toc.reduce(function(m,x){return Math.min(m,x.lvl||0);},9);toc.forEach(function(x){if(x.lvl!=null)x.lvl=Math.max(0,x.lvl-top);});
   const lang=((opf.match(/<dc:language[^>]*>\s*([A-Za-z]{2,3})/)||[])[1]||'').toLowerCase(); /* 19.10: was the FB2 line (xml is not defined here), so every EPUB import threw */
-  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang};
+  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang,imgs:imgs};
 }
 
 async function idbDel(k){
@@ -572,7 +608,7 @@ const LVL_AI_SYS='Ты оцениваешь, насколько трудно ч�
   'Учитывай язык, термины, абстрактность, формулы. Ответь только JSON без пояснений вокруг: {"level": число 0–4, "why": "почему, по-русски, до 120 знаков"}.';
 async function bookLvlAiSample(b){
   try{
-    if(b.text){const t=String(b.text),L=t.length;return [0.15,0.45,0.75].map(function(p){const a=Math.floor(L*p);return t.slice(a,a+1200);}).join('\n…\n');}
+    if(b.text){const t=String(b.text),L=t.length;return [0.15,0.45,0.75].map(function(p){const a=Math.floor(L*p);return t.slice(a,a+1200);}).join('\n…\n').replace(/\uFFFCimg:\d+/g,' ');}
     if(b.type==='pdf'&&typeof loadPdfJs==='function'&&typeof idbGet==='function'){
       const buf=await idbGet('pdf:'+b.id);if(!buf)return '';await loadPdfJs();
       const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise,parts=[];
@@ -772,7 +808,7 @@ function selCtx(word){ /* предложение вокруг выделения
     return full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,400);}catch(e){return '';}
 }
 el('spAI').onclick=()=>{
-  const t=selText();if(!t)return;
+  const t=rqSelPlain()||selText();if(!t)return;
   if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
   selDone();
@@ -841,7 +877,7 @@ async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо
   if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
   const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
     ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
-  return String(t).trim().slice(0,2000);
+  return String(t).trim().slice(0,m.cap||2000); /* 28.10: «Текст страницы» через ИИ — вся страница (m.cap) */
 }
 function aiToVocab(q,ex){
   const word=q.text.trim().slice(0,60);if(!word)return;
@@ -937,6 +973,8 @@ async function removeBook(id,wipeFile){
   delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
+  if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */
+  if(wipeFile){try{await idbDel('ocr:'+id);if(typeof OCR_MEM!=='undefined')delete OCR_MEM[id];}catch(e){}} /* 28.10: pages recognised on the phone (js/ocr.js) */
   save();el('bookSheet').classList.add('hidden');renderLibrary();
   flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');
 }
@@ -1030,32 +1068,133 @@ el('stP7').onclick=()=>{statPeriod=7;renderStats();};
 el('stP30').onclick=()=>{statPeriod=30;renderStats();};
 
 /* ================= FB2 ================= */
+/* 28.10 (ревизия чтения): the encoding is read from the XML header in either quotes (encoding='windows-1251' gave «������»), a UTF-16 BOM is
+   honoured; verse lines, epigraph authors, subtitles and empty lines are paragraphs of their own (bookHtmlText); the text before the first
+   <section> (an epigraph) is kept, the book title is not repeated; pictures (<image l:href="#id"> → <binary>) are kept; the notes body
+   comes last as «Примечания». */
 async function parseFb2(f){
-  const buf=await f.arrayBuffer();
-  let xml=new TextDecoder('utf-8').decode(buf);
-  const encM=xml.slice(0,200).match(/encoding="([^"]+)"/i);
-  if(encM&&!/utf-?8/i.test(encM[1])){
-    try{xml=new TextDecoder(encM[1].toLowerCase()).decode(buf);}catch(e){}
-  }
-  const title=decodeEntities((xml.match(/<book-title>([^<]+)/)||[])[1]||f.name.replace(/\.fb2$/i,''));
-  const fn=(xml.match(/<first-name>([^<]+)/)||[])[1]||'';
-  const ln=(xml.match(/<last-name>([^<]+)/)||[])[1]||'';
-  const author=decodeEntities((fn+' '+ln).trim())||'FB2';
-  const bodyM=xml.match(/<body[^>]*>([\s\S]*?)<\/body>/);
-  if(!bodyM)throw new Error('не найден текст FB2');
+  const buf=await f.arrayBuffer(),u8=new Uint8Array(buf);
+  let enc='utf-8';
+  if(u8[0]===0xFF&&u8[1]===0xFE)enc='utf-16le';else if(u8[0]===0xFE&&u8[1]===0xFF)enc='utf-16be';
+  else{const head=new TextDecoder('latin1').decode(u8.subarray(0,300)),m=/encoding\s*=\s*["']\s*([\w.:-]+)\s*["']/i.exec(head);if(m)enc=m[1].toLowerCase();}
+  let xml;try{xml=new TextDecoder(enc).decode(buf);}catch(e){xml=new TextDecoder('utf-8').decode(buf);}
+  if(enc==='utf-8'&&!looksLikeText(xml)){try{const x2=new TextDecoder('windows-1251').decode(buf);if(looksLikeText(x2))xml=x2;}catch(e){}} /* no header, old Russian file */
+  const first=function(re){const m=re.exec(xml);return m?decodeEntities(m[1].trim()):'';};
+  const ti=(/<title-info>([\s\S]*?)<\/title-info>/.exec(xml)||[])[1]||xml;
+  const title=first(/<book-title>([^<]+)/)||f.name.replace(/\.fb2(\.zip)?$/i,'');
+  const am=/<author>([\s\S]*?)<\/author>/.exec(ti),ap=am?am[1]:'';
+  const pick=function(tag){const m=new RegExp('<'+tag+'>([^<]*)</'+tag+'>').exec(ap);return m?decodeEntities(m[1].trim()):'';};
+  const author=[pick('first-name'),pick('last-name')].filter(Boolean).join(' ')||pick('nickname')||'FB2';
+  const bins={};let bm;const bre=/<binary\b([^>]*)>([\s\S]*?)<\/binary>/g;
+  while((bm=bre.exec(xml))){const id=(/\bid\s*=\s*["']([^"']+)["']/.exec(bm[1])||[])[1],ct=(/content-type\s*=\s*["']([^"']+)["']/.exec(bm[1])||[])[1];if(id)bins[id]={b64:bm[2],type:ct};}
+  const bodies=[];let m;const re=/<body\b([^>]*)>([\s\S]*?)<\/body>/g;while((m=re.exec(xml)))bodies.push({name:(/name\s*=\s*["']([^"']+)["']/.exec(m[1])||[])[1]||'',x:m[2]});
+  const main=bodies.find(function(b){return !b.name;})||bodies[0];
+  if(!main)throw new Error('не найден текст FB2');
+  const imgs=[],seen={};
+  const img=function(src){const id=String(src).replace(/^#/,'');const bn=bins[id];if(!bn||imgs.length>=BOOK_IMG_N)return '';
+    if(!(id in seen)){let data=null;try{const raw=atob(bn.b64.replace(/\s+/g,''));if(raw.length<=BOOK_IMG_MAX){data=new Uint8Array(raw.length);for(let k=0;k<raw.length;k++)data[k]=raw.charCodeAt(k);}}catch(e){}
+      seen[id]=imgs.length;imgs.push(data?{data:data,type:bookImgType(id,bn.type)}:null);}
+    return '￼img:'+seen[id];};
   const toc=[];let text='';
-  const parts=bodyM[1].split(/<section[^>]*>/);
-  const src=parts.length>1?parts.slice(1):[bodyM[1]];
-  src.forEach((sec,i)=>{
-    const tm=sec.match(/<title>([\s\S]*?)<\/title>/);
-    const t=htmlToText(sec);
-    if(t){
-      const chT=(tm?htmlToText(tm[1]).replace(/\n+/g,'. '):t.slice(0,60)).slice(0,80);
-      toc.push({t:chT||('Глава '+(i+1)),off:text.length});
-      text+=t+'\n\n';
-    }
+  const add=function(piece,chT,lvl){const r=bookHtmlText(piece,{img:img});if(!r.text)return;
+    if(chT!=null)toc.push({t:chT||('Глава '+(toc.length+1)),off:text.length+(text?2:0),lvl:lvl||0});
+    text+=(text?'\n\n':'')+r.text;};
+  const parts=main.x.split(/<section\b[^>]*>/);
+  add(parts[0].replace(/<title>[\s\S]*?<\/title>/,''),null); /* epigraph / annotation before the first section; the book title is on the title page */
+  let depth=0;
+  parts.slice(1).forEach(function(sec){
+    const tm=sec.match(/^\s*(?:<[^>]+>\s*)*?<title>([\s\S]*?)<\/title>/)||sec.match(/<title>([\s\S]*?)<\/title>/);
+    const chT=tm?bookHtmlText(tm[1]).text.replace(/\n+/g,'. ').slice(0,80):'';
+    const r0=bookHtmlText(sec).text;
+    if(r0)add(sec,chT||r0.replace(/^￼img:\d+\s*/,'').slice(0,60),Math.min(3,depth));
+    depth+=1-((sec.match(/<\/section>/g)||[]).length);if(depth<0)depth=0;
   });
+  const notes=bodies.find(function(b){return /^notes$/i.test(b.name);});
+  if(notes){const r=bookHtmlText(notes.x.replace(/<title>([\s\S]*?)<\/title>/g,'<p>$1</p>'));if(r.text){toc.push({t:'Примечания',off:text.length+(text?2:0),lvl:0});text+=(text?'\n\n':'')+r.text;}}
   if(!text.trim())throw new Error('пустой FB2');
-  return {title:title,author:author,text:text.trim(),toc:toc};
+  const lang=((/<lang>\s*([A-Za-z]{2,3})/.exec(ti)||[])[1]||'').toLowerCase();
+  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang||undefined,imgs:imgs};
 }
 
+
+/* ===== Мини-проверка (25.10, Джессика «Давай все кроме 3 и 6», пункт 5; arch.md «Честное чтение») =====
+   After a long session (≥ QUIZ_MIN counted minutes and ≥ QUIZ_PAGES pages) the summary offers ONE optional question about what was
+   just read, made and checked by the reader's own AI key. Right → +QUIZ_XP XP once a local day (game.quizPaid); wrong or skipped →
+   nothing is taken away. The passage goes only to the reader's own AI service, nothing is stored but the paid day. */
+const QUIZ_SYS_Q='Ты помогаешь читателю проверить, понял ли он отрывок, который только что прочитал. Придумай ОДИН простой вопрос по содержанию отрывка (кто, что сделал, почему, чем закончилось), на который внимательный читатель ответит одной фразой. Не спрашивай про числа, даты, точные слова и мелкие детали. Вопрос на языке отрывка. Ответь только JSON: {"q":"вопрос","a":"короткий правильный ответ"}';
+const QUIZ_SYS_A='Проверь ответ читателя на вопрос по отрывку книги. Будь доброжелателен: засчитывай ответ, если смысл верный, даже если он неполный, своими словами или с опечатками. Ответь только JSON: {"ok":true или false,"why":"одно короткое предложение по-русски"}';
+let QZ=null; /* {src, st: offer|wait|ask|check|ok|no|err|nokey, q, a, why, err, txt} */
+async function quizPassage(src){
+  const b=src.book;
+  try{
+    if(b.text){const t=String(b.text),L=t.length,per=Math.ceil(L/Math.max(1,src.pages||1)),end=Math.min(L,Math.floor(L*Math.max(0,Math.min(1,src.pos)))+per);
+      return t.slice(Math.max(0,end-3000),end).replace(/\uFFFCimg:\d+/g,' ').replace(/\s+/g,' ').trim();}
+    if(b.type==='pdf'&&typeof loadPdfJs==='function'&&typeof idbGet==='function'){
+      const buf=await idbGet('pdf:'+b.id);if(!buf)return '';await loadPdfJs();
+      const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise,parts=[];
+      try{for(let n=Math.max(1,src.page-1);n<=Math.min(doc.numPages,src.page+1);n++){const pg=await doc.getPage(n);const tc=await pg.getTextContent();parts.push(tc.items.map(function(x){return x.str||'';}).join(' '));}}
+      finally{try{doc.destroy();}catch(_){}}
+      return parts.join('\n').replace(/\s+/g,' ').trim().slice(-3000);
+    }
+  }catch(e){console.warn('[rq] quiz passage',e);}
+  return '';
+}
+function quizRender(r){
+  const box=el('sumQuiz');if(!box)return;
+  if(r){QZ=r.quiz?{src:r.quiz,st:'offer'}:null;}
+  if(!QZ){box.classList.add('hidden');box.innerHTML='';return;}
+  const G=window.__rqGame,xp=G.QUIZ_XP,s=QZ.st,btn=function(id,ic,t){return '<button type="button" class="ghostbtn" id="'+id+'">'+rqIcon(ic,16)+' '+t+'</button>';};
+  let h='<div class="qz-h">'+rqIcon('message-circle',16)+'<b>Вопрос по прочитанному</b></div>';
+  if(s==='offer')h+='<div class="qz-t">Необязательно. Ответишь верно: +'+xp+' XP. Неверно: ничего не теряешь.</div><div class="qz-b">'+btn('qzGo','sparkles','Получить вопрос')+'</div>';
+  else if(s==='nokey')h+='<div class="qz-t">Вопрос задаёт нейросеть на твоём ключе. Вставь ключ в Настройках, раздел «ИИ-помощник».</div><div class="qz-b">'+btn('qzSet','settings','Открыть настройки')+'</div>';
+  else if(s==='wait'||s==='check')h+='<div class="qz-t" role="status">'+(s==='wait'?'Готовлю вопрос…':'Проверяю…')+'</div>';
+  else if(s==='ask')h+='<div class="qz-q">'+esc(QZ.q)+'</div><textarea id="qzA" rows="2" maxlength="400" aria-label="Твой ответ" placeholder="Твой ответ своими словами">'+esc(QZ.txt||'')+'</textarea>'+
+    '<div class="qz-b">'+btn('qzCheck','check','Проверить')+btn('qzSkip','x','Пропустить')+'</div>';
+  else if(s==='ok')h+='<div class="qz-q">'+esc(QZ.q)+'</div><div class="qz-t qz-ok">'+rqIcon('circle-check',16)+'<span>Верно'+(QZ.paid?', +'+QZ.paid+' XP':'')+'. '+esc(QZ.why||'')+'</span></div>';
+  else if(s==='no')h+='<div class="qz-q">'+esc(QZ.q)+'</div><div class="qz-t">Не совсем. '+esc(QZ.why||'')+(QZ.a?' Ответ: '+esc(QZ.a):'')+' Опыт за чтение остаётся.</div>';
+  else if(s==='err')h+='<div class="qz-t" role="alert">Не получилось: '+esc(QZ.err||'ошибка')+'</div><div class="qz-b">'+btn('qzGo','rotate-cw','Ещё раз')+btn('qzSkip','x','Пропустить')+'</div>';
+  box.innerHTML=h;box.classList.remove('hidden');
+  if(el('qzGo'))el('qzGo').onclick=quizAsk;
+  if(el('qzCheck'))el('qzCheck').onclick=quizCheck;
+  if(el('qzSkip'))el('qzSkip').onclick=function(){QZ=null;quizRender();};
+  if(el('qzSet'))el('qzSet').onclick=function(){NN_EXP.ai=true;openGeneralSettings(true);if(el('aiHow'))el('aiHow').open=true;settingsScrollTo('aiHead');};
+  if(el('qzA'))el('qzA').oninput=function(){QZ.txt=this.value;};
+}
+async function quizAsk(){
+  if(!QZ)return;
+  if(!aiOn()){QZ.st='nokey';quizRender();return;}
+  if(navigator.onLine===false){QZ.st='err';QZ.err='нужен интернет';quizRender();return;}
+  const me=QZ;me.st='wait';quizRender();
+  try{
+    me.passage=me.passage||await quizPassage(me.src);
+    if(me.passage.length<300)throw new Error('здесь слишком мало текста для вопроса');
+    const q=window.__rqGame.parseQuizQ(await aiViaKey({system:QUIZ_SYS_Q,user:'Книга: «'+(me.src.book.title||'')+'»\nОтрывок:\n'+me.passage},300));
+    if(!q)throw new Error('непонятный ответ нейросети');
+    me.q=q.q;me.a=q.a;me.st='ask';
+  }catch(e){me.st='err';me.err=e&&e.message||'ошибка';}
+  if(QZ===me)quizRender();
+}
+async function quizCheck(){
+  if(!QZ||QZ.st!=='ask')return;
+  const me=QZ,ans=String(me.txt||'').trim();if(!ans){const a=el('qzA');if(a)a.focus();return;}
+  me.st='check';quizRender();
+  let g=null;
+  try{g=window.__rqGame.parseQuizGrade(await aiViaKey({system:QUIZ_SYS_A,user:'Отрывок:\n'+me.passage+'\n\nВопрос: '+me.q+'\nОжидаемый ответ: '+me.a+'\nОтвет читателя: '+ans.slice(0,400)},200));
+    if(!g)throw new Error('непонятный ответ нейросети');}
+  catch(e){me.st='ask';if(QZ===me){quizRender();flashMsg('Не получилось проверить: '+(e&&e.message||'ошибка'),'info');}return;}
+  me.why=g.why;me.st=g.ok?'ok':'no';
+  if(g.ok)me.paid=quizPay(me.src.day);
+  if(QZ===me)quizRender();
+}
+/** +QUIZ_XP once per local day (game.quizPaid); returns the XP paid now (0 when the day is already paid or the window may not write) */
+function quizPay(day){
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite())return 0;
+  S.quizPaid=S.quizPaid||{};if(S.quizPaid[day])return 0;
+  const xp=window.__rqGame.QUIZ_XP,before=S.xp||0,lv=level(before);
+  S.quizPaid[day]=xp;S.xp=before+xp;
+  const h=S.hist&&S.hist[day];if(h)h.xp=(h.xp||0)+xp;
+  save();
+  const sx=el('sumXp');if(sx){const to=(Number(sx.dataset.xp)||0)+xp;sx.dataset.xp=to;countUp(sx,to,n=>'+'+n+' XP');}
+  sumLevel(level(S.xp),lv,before);
+  return xp;
+}

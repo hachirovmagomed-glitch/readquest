@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -17,6 +17,9 @@ function flipNorm(s){
   else if(s.nav&&typeof s.nav==='object'&&!Array.isArray(s.nav)&&FLIP_KEYS.some(function(k){return k in s.nav;})){s.flip=flipFrom(s.nav);return true;}
   return false;}
 function flipGet(){return SET&&SET.flip?SET.flip:FLIP_DEF;}
+/** 25.10: {x, y} = centre of the pause circle as a share of the screen (0…1, 3 places), else null (default corner) */
+function pauseXYNorm(v){if(!v||typeof v!=='object'||typeof v.x!=='number'||typeof v.y!=='number'||!isFinite(v.x)||!isFinite(v.y))return null;
+  const c=function(n){return Math.round(Math.max(0,Math.min(1,n))*1000)/1000;};return {x:c(v.x),y:c(v.y)};}
 /** Vertical scroll is for text only; PDF stays paged (arch.md). */
 function rqScrollMode(){return typeof R!=='undefined'&&R&&R.mode==='text'&&flipGet().mode==='scroll';}
 /** The page-turn animation that may run now: null when «Нет», when «Анимации» are off in general settings, or with prefers-reduced-motion. */
@@ -27,6 +30,8 @@ function rqAnimKind(){const a=flipGet().anim;if(!a||a==='none')return null;
 function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focus)<0)s.focus='button';
   s.pdfDim=(typeof s.pdfDim==='number'&&isFinite(s.pdfDim))?Math.round(Math.max(0,Math.min(0.5,s.pdfDim))*20)/20:0.35;
   if(typeof s.readCounter!=='boolean')s.readCounter=true;
+  if(typeof s.pauseBtn!=='boolean')s.pauseBtn=true; /* 25.10 arch.md SET.pauseBtn / SET.pauseXY: the floating pause circle */
+  s.pauseXY=pauseXYNorm(s.pauseXY);
   const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
   s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);
   /* 20.10 (Джессика): «Затемнение» and «Тёплый только ночью» removed. An old SET.dim is folded into «Яркость» once (same screen:
@@ -63,6 +68,8 @@ function applySet(){
   applySkin(); /* app-wide skin on :root */
   r.style.setProperty('--r-bg',bg);r.style.setProperty('--r-txt',tx);
   r.style.background=bg;r.style.color=tx;
+  {const hx=function(v){return /^#[0-9a-f]{6}$/i.test(v||'')?v.toLowerCase():null;},ct=el('cTxt'),cb=el('cBg'); /* 28.10: «Свои цвета» show the colours on the page (day/night drops own colours) */
+   if(ct&&hx(tx)&&ct.value!==hx(tx))ct.value=hx(tx);if(cb&&hx(bg)&&cb.value!==hx(bg))cb.value=hx(bg);}
   r.style.setProperty('--r-margin',SET.margin+'px');r.classList.toggle('narrowm',SET.margin<44||R.mode==='pdf');
   if(R.mode==='pdf')el('viewer').style.margin='0';else{el('viewer')._mw=null;rqTextMargin();} /* PDF: full width, no side fields; text: SET.margin, wider on a portrait tablet (audit 19.10 RD-TAB-01) */
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
@@ -80,6 +87,7 @@ function applySet(){
    el('btnAaL').textContent=R.mode==='pdf'?'Вид':'Шрифт';rqSyncSwitches();}
   const c=el('content');
   c.style.fontFamily=(FONTS[SET.font]||FONTS[0]).v; /* audit 19.10 SK-01: the book face never comes from the skin (skins dress the chrome only) */
+  rqFontWait();
   c.style.fontSize=SET.size+'px';
   c.style.lineHeight=SET.lh;
   rqTextAlign();
@@ -118,6 +126,13 @@ function applySet(){
   el('navPrev').classList.toggle('hidden',!nv.btns);
   el('navNext').classList.toggle('hidden',!nv.btns);
   if(typeof hlPaintCustom==='function')hlPaintCustom(); /* 20.10: own quote colours follow the page theme */
+}
+/* 28.10: a bundled reading font (fonts/, Lora, Nunito…) loads lazily — the first layout would use the fallback face and the pages
+   would not match the text drawn a moment later. Once it is loaded: ONE re-layout that keeps the reading position (anchor). */
+function rqFontWait(){
+  const f=(FONTS[SET.font]||FONTS[0]).v,sp=(SET.weight||400)+' 20px '+f;if(rqFontWait.k===sp)return;rqFontWait.k=sp;
+  if(!document.fonts||!document.fonts.load)return;let ok=true;try{ok=document.fonts.check(sp,'Аб');}catch(e){}if(ok)return;
+  document.fonts.load(sp,'Аб').then(function(){if(rqFontWait.k!==sp||!R||R.mode==='pdf'||el('reader').classList.contains('hidden'))return;relayout({force:true});}).catch(function(){});
 }
 /* switch rows in «Настройки чтения» (16.10): state = aria-checked (+ class on for older code) */
 function rqSw(id,on){const b=el(id);if(!b)return;b.classList.toggle('on',!!on);b.setAttribute('aria-checked',on?'true':'false');}
@@ -203,6 +218,11 @@ el('brightRange').onchange=()=>saveSet();
 /* 20.10: the same «Яркость» under the top bar (ReadEra-like); the bars stay up while it is dragged */
 el('barBright').oninput=e=>{SET.bright=Math.max(0.3,Math.min(1,(parseInt(e.target.value,10)||100)/100));applySet();if(typeof armChromeHide==='function')armChromeHide();};
 el('barBright').onchange=()=>saveSet();
+/* 28.10 (Джессика): the suns at the ends of the bar slider step «Яркость» by 10 % (left darker, right brighter), with the same «Яркость N %» note as the edge drag */
+['barBrightLo','barBrightHi'].forEach(function(id,i){const b=el(id);if(!b)return;b.onclick=function(){const v=SET.bright==null?1:SET.bright;
+  SET.bright=Math.round(Math.max(0.3,Math.min(1,v+(i?0.1:-0.1)))*20)/20;saveSet();applySet();if(typeof armChromeHide==='function')armChromeHide();
+  const p=Math.round(SET.bright*100);flashMsg('Яркость '+p+'%'+(p>=100&&i?' — максимум':p<=30&&!i?' — минимум':''),{kind:'info',icon:'sun'});
+  b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');setTimeout(function(){b.classList.remove('bump');},160);};});
 el('warmRange').oninput=e=>{SET.warm=Math.max(0,Math.min(0.6,(parseInt(e.target.value,10)||0)/100));applySet();};
 el('warmRange').onchange=()=>saveSet();
 el('pdfFontTgl').onclick=()=>{SET.pdfFont=!SET.pdfFont;saveSet();applySet();}; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
@@ -226,7 +246,7 @@ el('sheetClose').onclick=()=>el('sheet').classList.add('hidden');
 /* категории панели оформления — открываем по одной группе */
 Array.from(el('setCats').children).forEach(btn=>{btn.onclick=()=>openSetTab(btn.dataset.g);});
 /* навигация при чтении */
-function navTurn(d){const inv=flipGet().invert?-1:1;goPage(R.page+d*inv,true);}
+function navTurn(d){goPage(R.page+d,true);} /* 28.10: ‹ › всегда назад/вперёд; «Поменять стороны» — только тапы */
 el('navPrev').onclick=()=>navTurn(-1);
 el('navNext').onclick=()=>navTurn(1);
 /* page-turn switches → SET.flip, written only through the gate (Архитектор 15.10) */
@@ -274,20 +294,61 @@ async function openBook(id){
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('Полный экран · тап по центру — показать панель');}
   startDayBar();
   if(R.mode==='pdf'){openPdf(b);return;}
-  let body=b.text.split(/\n\n+/).map(p=>p.charCodeAt(0)===0x2063?'<p class="rq-bitr" lang="ru">'+esc(p)+'</p>':'<p>'+esc(p)+'</p>').join(''); /* 25.10: translation under each paragraph (adv.js, «с переводом») */
+  let body=rqBodyHtml(b); /* 28.10: paragraphs of any TXT (Windows line breaks, a paragraph per line), chapter titles, pictures */
   {const seen={};(S.hl[b.id]||[]).forEach(t=>{const k=esc(t),j=seen[t]=(seen[t]||0)+1,q=hlSame(b.id,t)[j-1];
-    if(body.includes(hlPieces(t)[0]||'\u0000'))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
+    if(hlHas(body,hlPieces(t)[0]))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
   c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   hlPaintCustom(); /* own quote colours on this page */
+  rqBookImgs(b);
   /* measure + position synchronously in the same task: the first painted frame is already the right page */
   const hy=hyphWaitStart(c,b);
   layout();
   const p=Math.round(rqPos(id)*(R.pageCount-1)); /* reopen at the current position, not the farthest page */
   if(__tracker)__tracker.begin(id,p,trackerOpts());
+  pauseReset(); /* 25.10: a new book starts counting, the circle shows if it is on */
   if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус»: new session = no rounds yet; the chosen sound */
   goPage(p,false);
   if(hy)hyphWaitRun(hy,p);
+}
+/* 28.10 (ревизия чтения): text → paragraphs with their offsets in b.text.
+   A blank line splits paragraphs (also «\r\n\r\n» from Windows and lines of spaces). A text with (almost) no blank lines is either
+   «one paragraph per line» or hard-wrapped lines whose paragraphs start with an indent (lib.ru): then an indented line starts one. */
+function rqParas(t){
+  t=String(t||'');const L=[];let i=0;
+  while(i<=t.length){let j=t.indexOf('\n',i);if(j<0)j=t.length;let e=j;if(e>i&&t.charCodeAt(e-1)===13)e--;L.push({off:i,s:t.slice(i,e)});i=j+1;}
+  let blank=0,full=0,ind=0;L.forEach(function(l){if(!l.s.trim())blank++;else{full++;if(/^[ \t 　]/.test(l.s))ind++;}});
+  const mode=full<3||blank>=full*0.2?'blank':(ind>=full*0.1&&ind<=full*0.85?'indent':'line');
+  const out=[];let cur=null;
+  L.forEach(function(l){const s=l.s.trim();if(!s){cur=null;return;}
+    if(!cur||mode==='line'||(mode==='indent'&&/^[ \t 　]/.test(l.s))){cur={off:l.off+l.s.indexOf(s.charAt(0)),s:s};out.push(cur);}
+    else cur.s+='\n'+s;});
+  return out;
+}
+/** the book body as HTML: <p> per paragraph; a paragraph where a chapter of tocOf starts is its title (.rq-h, data-toc);
+    «￼img:N» (FB2 / EPUB picture, js/content.js) → an <img> filled from IDB after the layout */
+function rqBodyHtml(b){
+  const toc=(typeof tocOf==='function'?tocOf(b):[])||[],heads={};toc.forEach(function(x,i){if(typeof x.off==='number'&&!(x.off in heads))heads[x.off]=i;});
+  const ps=rqParas(b.text),hs=Object.keys(heads).map(Number).sort(function(a,z){return a-z;});let k=0;
+  return ps.map(function(p,n){
+    if(p.s.charCodeAt(0)===0x2063)return '<p class="rq-bitr" lang="ru">'+esc(p.s)+'</p>'; /* 25.10: translation under each paragraph (adv.js, «с переводом») */
+    const im=/^￼img:(\d+)$/.exec(p.s);if(im)return '<p class="rq-img"><img data-img="'+im[1]+'" alt=""></p>';
+    const end=n+1<ps.length?ps[n+1].off:Infinity;let h=-1;
+    while(k<hs.length&&hs[k]<end){if(hs[k]>=p.off-2&&h<0)h=heads[hs[k]];k++;}
+    return h>=0?'<p class="rq-h" data-toc="'+h+'">'+esc(p.s)+'</p>':'<p'+(rqVerse(p.s)?' class="rq-vs"':'')+'>'+esc(p.s)+'</p>';}).join('');
+}
+/* 28.10 (Джессика: копирование «во всех форматах»): a TXT stanza — short lines of a paragraph (≤ 55 letters, ~40 on average) — keeps its
+   lines on the page and in the copy (white-space:pre-line); longer lines are a hard-wrapped paragraph and flow as before */
+function rqVerse(s){const ls=String(s).split('\n');if(ls.length<2)return false;let mx=0,sum=0;ls.forEach(function(x){mx=Math.max(mx,x.length);sum+=x.length;});return mx<=55&&sum/ls.length<=40;}
+/* pictures of this book: blobs in IDB «img:<book>:<n>» (written once on import); a missing one hides its paragraph.
+   Their size is known only once loaded → ONE re-layout that keeps the reading position. */
+function rqBookImgs(b){
+  const c=el('content'),ims=[...c.querySelectorAll('img[data-img]')];if(!ims.length||typeof idbGet!=='function')return;
+  Promise.all(ims.map(function(im){return idbGet('img:'+b.id+':'+im.dataset.img).then(function(v){
+      if(!v||!R.book||R.book.id!==b.id){im.parentNode.classList.add('gone');return;}
+      return new Promise(function(res){im.onload=im.onerror=function(){if(!im.naturalWidth)im.parentNode.classList.add('gone');res();};im.src=URL.createObjectURL(v instanceof Blob?v:new Blob([v]));});
+    }).catch(function(){im.parentNode.classList.add('gone');});}))
+  .then(function(){if(R.book&&R.book.id===b.id&&!el('reader').classList.contains('hidden'))relayout({force:true});});
 }
 /* 1в: hyphenation dictionaries load lazily — the first layout of a cold start is unhyphenated.
    A hidden probe (same lang, hyphens:auto, narrow) tells when the dictionary is applied; then ONE silent
@@ -363,7 +424,10 @@ function trackerOpts(){
   /* 19.10: a hard book gets a longer page cap (LEVELS capMin: 3 / 5 / 7 min) and its level goes into the session row */
   const lvl=bookLvlOf(R.book),cap=Math.max(capMin,lvl?window.__rqGame.LEVELS[lvl].capMin:0);
   const extend=R.mode==='pdf'?{stepMs:60000,everyMs:60000,maxMs:Math.max(8,cap)*60000,minFraction:0.2}:null;
-  return {capMs:cap*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend,level:lvl};
+  const o={capMs:cap*60000,minSecMs:(a.minSec||12)*1000,counting:isMvp()||!!R.timerOn,extend:extend,level:lvl};
+  /* 25.10 честное чтение: own pace floor instead of a flat 12 s, live-screen tail, re-read pages, honesty factor */
+  if(honestOn()&&R.book){const h=honestOpts(R.book);o.minSecMs=h.floorSec*1000;o.honest=h.honest;R.floorSec=h.floorSec;}else R.floorSec=0;
+  return o;
 }
 /* thin day-progress bar (MVP): today's sessions[] minutes + live counted minutes of this session */
 let dayBarIv=null;

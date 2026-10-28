@@ -235,7 +235,7 @@ const ADV_SRC={
     async get(it,prog,inf){
       prog('Скачиваю…');const r=await fetch(inf.epub,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
       const blob=await r.blob();prog('Распаковываю…');
-      const p=await parseEpub(new File([blob],it.sid.slice(3).replace(/\//g,'_')+'.epub',{type:'application/epub+zip'}));
+      const p=await parseEpub(new File([blob],it.sid.slice(3).replace(/\//g,'_')+'.epub',{type:'application/epub+zip'}),{images:false}); /* 28.10: Standard Ebooks pictures are not kept */
       return {title:p.title||it.t,author:inf.author||p.author||it.a,text:p.text,toc:p.toc,lang:inf.lang||'en'};}},
   /* Internet Archive (Джессика 21.10, «Только свободные»): advancedsearch and /metadata send Access-Control-Allow-Origin: *, and so does the recognised
      text of a scan (_djvu.txt); its EPUB files do not (checked 21.10 from GitHub Actions). Only items marked public domain or published before 1930,

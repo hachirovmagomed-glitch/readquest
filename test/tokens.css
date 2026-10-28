@@ -490,6 +490,7 @@
   --cl-star:#fff6d6; --cl-lilac:#c39bff;
   --cl-rtop:linear-gradient(180deg,#e3ecf8,#fbf6ea);   /* шапка читалки: утреннее небо → бумага */
   --cl-rbot:linear-gradient(0deg,#f4e3d2,#fbf6ea);     /* низ читалки: закатный персик → бумага */
+  --cl-redge:#fbf6ea;                                  /* цвет шапки и низа читалки у края страницы (плавный переход в бумагу) */
   --cl-pill:linear-gradient(180deg,#fff4d6,#f6e1ad);   /* активная вкладка нижней панели — сусальное золото */
   --cl-xp:#6a45b5;                                     /* опыт — фиолетовый, как в прототипе */
   --cl-gold-card:linear-gradient(90deg,#fff3d1,#fde6b8);
@@ -519,7 +520,7 @@
   --cl-frame:0 0 0 3px rgba(32,37,74,.9),0 0 0 4px rgba(176,138,62,.5);
   --cl-ink:linear-gradient(180deg,#f6dea6,#efcf86);
   --cl-star:#fff3c4; --cl-lilac:#b9a3f0;
-  --cl-rtop:linear-gradient(180deg,#0b1030,#161a33); --cl-rbot:linear-gradient(0deg,#0b1030,#161a33);
+  --cl-rtop:linear-gradient(180deg,#0b1030,#161a33); --cl-rbot:linear-gradient(0deg,#0b1030,#161a33); --cl-redge:#161a33;
   --cl-pill:linear-gradient(180deg,#3a3352,#2a2640); --cl-xp:#c9b2ff;
   --cl-gold-card:linear-gradient(90deg,#2e2a1c,#3a321c);
 }

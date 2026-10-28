@@ -115,19 +115,20 @@ function bfTextPage(h){
   if(h.lk===R.layoutKey&&h.page>=0)return h.page;
   const T=bfTextIndex(),a=bfNodeAt(T,h.o,false);h.page=a?Math.max(0,pageOfAnchor(a)):0;h.lk=R.layoutKey;return h.page;
 }
-/* PDF page text built like the text layer (js/pdf.js pdfTextLayer): a new line → a space, a gap on the same line → a space */
-function bfPdfPageText(items){
-  let s='',prev=null;
-  items.forEach(function(it){if(!it.str)return;const t=it.transform||[1,0,0,1,0,0],fh=Math.hypot(t[2],t[3])||12,base=t[5],x=t[4];
-    if(prev){if(Math.abs(base-prev.base)>Math.max(fh,prev.fh)*0.5){if(!/\s$/.test(s))s+=' ';}
-      else if(x-prev.right>fh*0.15&&!/\s$/.test(prev.str)&&!/^\s/.test(it.str))s+=' ';}
-    prev={base:base,fh:fh,right:x+(it.width||0),str:it.str};s+=it.str;});
+/* PDF page text built like the text layer (js/pdf.js pdfTextLayer): pieces in reading order (pdfReadOrder), a new line → a space,
+   a gap on the same line → a space; so the k-th match here is the k-th one on the page */
+function bfPdfPageText(items,vp){
+  const U=window.pdfjsLib&&pdfjsLib.Util,g=[];
+  items.forEach(function(it){if(!it.str)return;const t=U&&vp?U.transform(vp.transform,it.transform||[1,0,0,1,0,0]):(it.transform||[1,0,0,1,0,0]),fh=Math.hypot(t[2],t[3])||12;
+    g.push({str:it.str,x:t[4],base:t[5],fh:fh,w:(it.width||0)*(vp?vp.scale:1),rot:Math.abs(Math.atan2(t[1],t[0]))>0.01});});
+  let s='';pdfReadOrder(g,vp?vp.width:1000,vp?vp.height:1000).seq.forEach(function(e){if(e.j&&!/\s$/.test(s))s+=' ';s+=g[e.i].str;});
   return s;
 }
 async function bfPdfText(n){
   if(BF.pdfDoc!==R.pdf){BF.pdfDoc=R.pdf;BF.pdfTxt=[];}
   if(BF.pdfTxt[n]!=null)return BF.pdfTxt[n];
-  let s='';try{const pg=await R.pdf.getPage(n+1);const tc=await pg.getTextContent();s=bfPdfPageText(tc.items);}catch(e){s='';}
+  let s='';try{const pg=await R.pdf.getPage(n+1);const vp=pg.getViewport({scale:1}),oc=typeof ocrPage==='function'?await ocrPage(n):null; /* 28.10: a recognised page is searched by its recognised words */
+    const items=oc?oc.items.map(function(q){const a=vp.convertToPdfPoint(q.x,q.b);return {str:q.s,transform:[q.h,0,0,q.h,a[0],a[1]],width:q.w};}):(await pg.getTextContent()).items;s=bfPdfPageText(items,vp);}catch(e){s='';}
   if(BF.pdfDoc===R.pdf)BF.pdfTxt[n]=s;return s;
 }
 async function bfPdfRun(q){

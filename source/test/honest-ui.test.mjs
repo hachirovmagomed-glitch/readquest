@@ -67,26 +67,26 @@ ok('флаг включён на тестовом сайте', await (await fres
   if (SHOTS) await p.screenshot({ path: SHOTS + '/1b-itog-povtor-390.png' });
   await done(p); await p.__ctx.close(); }
 
-// 4. Пауза: круг виден, тап = пауза, время на паузе не идёт; перетаскивание запоминается; в настройках прячется
-{ const p = await fresh(); await open(p);
-  const vis = await p.evaluate(() => { const b = document.getElementById('rqPause'); const r = b.getBoundingClientRect(); return { hidden: b.hidden, w: r.width, op: getComputedStyle(b).opacity, x: r.left, y: r.top }; });
-  ok('круг паузы виден, 52 px, полупрозрачный', !vis.hidden && vis.w === 52 && +vis.op < 0.6, vis);
+// 4. Пауза: кнопка в верхней панели (28.10, Джессика: «неудобно, когда она плавает»), тап = пауза, время на паузе не идёт; в настройках прячется
+{ const p = await fresh(); await open(p); await p.evaluate(() => showChrome()); await sleep(400);
+  const vis = await p.evaluate(() => { const b = document.getElementById('rqPause'); const r = b.getBoundingClientRect(); return { hidden: b.hidden, w: r.width, inHead: !!b.closest('.rhead'), pos: getComputedStyle(b).position, floating: !!document.querySelector('#reader > #rqPause') }; });
+  ok('кнопка паузы в верхней панели, не плавает, 44 px', !vis.hidden && vis.inHead && vis.pos !== 'fixed' && !vis.floating && vis.w >= 44, vis);
   if (SHOTS) await p.screenshot({ path: SHOTS + '/2-krug-pauzy-390.png' });
   await p.tap('#rqPause'); await sleep(100);
   const pz = await p.evaluate(() => ({ paused: R.paused, counting: __tracker.snapshot().counting, cls: document.getElementById('rqPause').className }));
   ok('тап: пауза, трекер не считает', pz.paused === 'me' && pz.counting === false && /on/.test(pz.cls), pz);
+  await p.evaluate(() => concealChrome('tap')); await sleep(400);
+  const tag = await p.evaluate(() => ({ head: getComputedStyle(document.querySelector('#reader .rhead')).visibility, tag: getComputedStyle(document.getElementById('rqPausedTag')).display }));
+  ok('панели скрыты, а счёт на паузе: внизу тихая надпись «Пауза»', tag.tag === 'block', tag);
+  await p.evaluate(() => showChrome()); await sleep(400);
   if (SHOTS) await p.screenshot({ path: SHOTS + '/3-pauza-vklyuchena-390.png' });
   for (let i = 0; i < 3; i++) { await adv(p, 60000); await turn(p); await sleep(40); }
   const m0 = await p.evaluate(() => __tracker.snapshot().countedMs);
+  await p.evaluate(() => showChrome()); await sleep(400);
   await p.tap('#rqPause'); await sleep(100);
   for (let i = 0; i < 2; i++) { await adv(p, 60000); await turn(p); await sleep(40); }
   const m1 = await p.evaluate(() => __tracker.snapshot().countedMs);
   ok('на паузе 3 минуты = 0, после снятия 2 минуты идут', m0 === 0 && Math.round(m1 / 1000) === 120, { m0, m1 });
-  // перетаскивание
-  const b = await p.$('#rqPause'); const bb = await b.boundingBox();
-  await p.touchscreen.touchStart(bb.x + 26, bb.y + 26); await p.touchscreen.touchMove(120, 200); await p.touchscreen.touchMove(100, 160); await p.touchscreen.touchEnd(); await sleep(150);
-  const dr = await p.evaluate(() => ({ xy: SET.pauseXY, paused: R.paused, left: document.getElementById('rqPause').style.left }));
-  ok('перетаскивание: место сохранено, пауза не переключилась', dr.xy && Math.abs(dr.xy.x * 390 - 100) < 2 && Math.abs(dr.xy.y * 844 - 160) < 2 && dr.paused === false, dr);
   // автопауза
   for (let i = 0; i < 5; i++) { await adv(p, 2000); await turn(p); await sleep(40); }
   const ap = await p.evaluate(() => R.paused);
@@ -96,7 +96,7 @@ ok('флаг включён на тестовом сайте', await (await fres
   ok('задержался на странице дольше порога → счёт пошёл сам', ap2.paused === false && ap2.counting === true, ap2);
   await close(p); await done(p);
   await p.evaluate(() => { SET.pauseBtn = false; saveSet(); }); await open(p);
-  ok('«Кнопка паузы» выключена → круга нет', await p.evaluate(() => document.getElementById('rqPause').hidden));
+  ok('«Кнопка паузы» выключена → кнопки нет', await p.evaluate(() => document.getElementById('rqPause').hidden));
   await close(p); await p.__ctx.close(); }
 
 // 5. Мини-проверка: 16 мин и 8 страниц → карточка; вопрос и проверка через свой ключ (fetch подменён) → +20 XP раз в день

@@ -156,20 +156,21 @@ ok('360: ничего не вылезает за экран', n3.sw <= n3.cw + 1
 if (SHOTS) await p3.screenshot({ path: `${SHOTS}/360-1-vkladka-fokus.png` });
 await p3.close();
 
-/* 11b. 28.10: the pause button hides with the bars while reading, shows with them on a tap, stays while paused */
+/* 11b. 28.10: the pause is a header button — hidden while reading (bars off), shown with the bars on a tap; on pause a quiet «Пауза» stays */
 { const pp = await page(BASE, 390);
   await (await pp.$('#fileInp')).uploadFile(TXT); await pp.waitForFunction(() => (S.userBooks || []).length >= 1, { timeout: 30000 }); await sleep(300);
   await pp.evaluate(() => { __navAllow = true; openBook(S.userBooks[0].id); __navAllow = false; }); await sleep(2200);
-  const vis = () => pp.evaluate(() => { const b = document.getElementById('rqPause'); const cs = getComputedStyle(b); return { hidden: b.hidden, vis: cs.visibility, op: cs.opacity, pe: cs.pointerEvents }; });
-  await pp.evaluate(() => concealChrome('tap')); await sleep(500); const a = await vis();
-  await pp.evaluate(() => revealChrome()); await sleep(500); const b = await vis();
-  await pp.evaluate(() => { concealChrome('tap'); pauseSet('me', true); }); await sleep(500); const c = await vis();
-  await pp.evaluate(() => pauseSet(false, true)); await sleep(500); const d = await vis();
-  ok('кнопка паузы: при чтении (панели скрыты) не видна и не ловит тапы', !a.hidden && a.vis === 'hidden' && a.pe === 'none', a);
-  ok('кнопка паузы: тап по экрану — появляется вместе с панелями', b.vis === 'visible' && +b.op > 0.3, b);
-  ok('кнопка паузы: на паузе видна и без панелей (чтобы было видно, что счёт стоит)', c.vis === 'visible' && +c.op > 0.9, c);
-  ok('кнопка паузы: сняли паузу при скрытых панелях — снова спряталась', d.vis === 'hidden', d);
-  if (SHOTS) { await pp.evaluate(() => revealChrome()); await sleep(400); await pp.screenshot({ path: `${SHOTS}/pauza-s-panelyami.png` }); await pp.evaluate(() => concealChrome('tap')); await sleep(500); await pp.screenshot({ path: `${SHOTS}/pauza-chtenie.png` }); }
+  const vis = () => pp.evaluate(() => { const b = document.getElementById('rqPause'), r = b.getBoundingClientRect(), t = document.getElementById('rqPausedTag');
+    return { inHead: !!b.closest('.rhead'), shown: (() => { if (!(r.width > 0 && r.bottom > 0)) return false; const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && b.contains(e); })(), tag: getComputedStyle(t).display }; });
+  await pp.evaluate(() => concealChrome('tap')); await sleep(600); const a = await vis();
+  await pp.evaluate(() => revealChrome()); await sleep(600); const b = await vis();
+  await pp.evaluate(() => { pauseSet('me', true); concealChrome('tap'); }); await sleep(600); const c = await vis();
+  await pp.evaluate(() => pauseSet(false, true)); await sleep(300); const d = await vis();
+  ok('пауза в верхней панели: при чтении (панели скрыты) её не видно', a.inHead && !a.shown && a.tag === 'none', a);
+  ok('тап по экрану: появляется вместе с панелями', b.shown, b);
+  ok('на паузе без панелей: кнопки нет, внизу тихая надпись «Пауза»', !c.shown && c.tag === 'block', c);
+  ok('сняли паузу: надписи нет', d.tag === 'none', d);
+  if (SHOTS) { await pp.evaluate(() => revealChrome()); await sleep(500); await pp.screenshot({ path: `${SHOTS}/pauza-s-panelyami.png` }); await pp.evaluate(() => { pauseSet('me', true); concealChrome('tap'); }); await sleep(600); await pp.screenshot({ path: `${SHOTS}/pauza-chtenie.png` }); }
   await pp.close(); }
 
 /* 12. every skin: its own three sounds in the tab, the chip in the reader */

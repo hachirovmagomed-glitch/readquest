@@ -1310,13 +1310,12 @@ body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 .achv-tile{display:flex;gap:12px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:8px}
 .achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
 .achv-tile .pbar{margin-top:6px}
-#rqPause{position:fixed;z-index:30;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
-  background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--txt);border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);opacity:.45;touch-action:none;transition:opacity .2s}
-#rqPause[hidden]{display:none}#rqPause.on{opacity:.95;color:var(--accent);border-color:var(--accent)}#rqPause.drag{opacity:.9;transition:none}
-/* 28.10 (Джессика: «значок старта и паузы исчезал, когда я читаю, и появлялся, когда тапаю на экран вместе с плашками»): hidden with the
-   bars (.barsoff, focus mode too); stays while the count is ON PAUSE (.on) so a stopped count is never invisible */
-#reader.barsoff #rqPause:not(.on):not(.drag){opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s .2s}
-@media (prefers-reduced-motion:reduce){#rqPause,#reader.barsoff #rqPause:not(.on):not(.drag){transition:none}}
+/* 28.10 (Джессика: «неудобно, когда она плавает… пусть она будет во вкладках либо снизу, либо сверху»): the pause is a header button
+   (hides and shows with the bars); on pause it takes the accent and a quiet «Пауза» stays in the page-number strip */
+#rqPause[hidden]{display:none}#rqPause.on{color:var(--rq-accent-text,var(--accent))}
+#rqPausedTag{display:none;margin-right:auto;font:600 12px/1 system-ui,-apple-system,sans-serif;color:var(--rq-accent-text,var(--accent))}
+#reader.paused #rqPausedTag{display:block}
+#reader.paused.fzrun #rqPausedTag{display:none}
 #sumQuiz{text-align:left;font-size:0.875rem;line-height:1.45;margin:4px 0 10px}
 #sumQuiz .qz-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#sumQuiz .qz-h .ic{flex:none;color:var(--accent2)}
 #sumQuiz .qz-t{color:var(--muted)}#sumQuiz .qz-q{font-weight:600;margin-bottom:8px}
@@ -2351,6 +2350,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="rtitle" id="rTitle"></div>
     <button id="btnAiChat" title="Обсудить книгу" aria-label="Обсудить книгу"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg></button><!-- 20.10 ИИ-чат по книге (content.js) -->
     <button id="btnTts" title="Озвучка" aria-label="Озвучка" aria-pressed="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
+    <button id="rqPause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 28.10 пауза в верхней панели вместо плавающего круга (Джессика: «неудобно, когда она плавает»), js/reader-ui.js pauseApply -->
     <button id="btnFind" type="button" title="Поиск по книге" aria-label="Поиск по книге" aria-haspopup="dialog"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><!-- 20.10 лупа: поиск по книге (js/book-find.js) -->
     <div class="rbright" id="rBright"><svg class="ic lo" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></div>
   </header>
@@ -2379,13 +2379,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button id="navNext" class="navbtn hidden" aria-label="Следующая страница">›</button>
   <div id="warmer"></div>
   <div id="dimmer"></div>
-  <div id="pgLine"><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
+  <div id="pgLine"><span id="rqPausedTag">Пауза</span><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <i id="fzLine" aria-hidden="true"></i><!-- 25.10 «Фокус»: thin line of the round (js/focus.js) -->
   <div id="fzHold" class="fzcard hidden" role="alertdialog" aria-labelledby="fzHoldT"><p id="fzHoldT"></p><p class="fzsub">Если это был звонок или что-то срочное, круг можно продолжить один раз. Минуты за время выхода не идут.</p><div class="fzbtns"><button type="button" class="cta" id="fzHoldGo">Продолжить круг</button><button type="button" class="ghostbtn" id="fzHoldNew">Начать заново</button></div></div>
   <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
-  <button id="rqPause" class="rq-pause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 25.10 пауза (js/reader-ui.js pauseApply) -->
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
@@ -2452,7 +2451,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="setgrp" id="grpFocus">
       <div class="rrow stack"><span class="rl" id="focusSegL">Режим фокуса</span><div class="rseg" id="focusSeg" role="group" aria-labelledby="focusSegL"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div></div>
       <div class="rnote">Остаётся только текст. Выход — тап в центр.</div>
-      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>круг на странице: на паузе время, опыт и монеты не идут; передвинь пальцем</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
+      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>в верхней панели: на паузе время, опыт и монеты не идут</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
       <div class="rrow"><span class="rl" id="readCntTglL">Счётчик минут<small>«7 / 10 мин» в углу в режиме фокуса</small></span><button class="rsw" id="readCntTgl" role="switch" aria-checked="false" aria-labelledby="readCntTglL"></button></div>
       <div id="fzBox" hidden></div><!-- 25.10 помодоро, тихий режим, звуки, фокус-слова, вызовы недели, карта (js/focus.js) -->
     </div>

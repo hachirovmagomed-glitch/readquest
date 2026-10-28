@@ -14,6 +14,7 @@ html[data-skin]:not([data-skin="pencil"]) [data-page]{--rq-accent:inherit;--rq-a
 html[data-skin]:not([data-skin="pencil"]) :is(.rhead,.rfoot,.rbar){background:var(--rq-surface-2);color:var(--rq-text);box-shadow:none}
 html[data-skin]:not([data-skin="pencil"]) .rhead{box-shadow:0 1px 0 var(--rq-line)}
 html[data-skin]:not([data-skin="pencil"]) .rfoot{box-shadow:0 -1px 0 var(--rq-line)}
+:where(html[data-skin]:not([data-skin="pencil"])) #reader :is(.rhead,.rbot){--bar-edge:var(--rq-surface-2)} /* 28.10: reader panels fade into the page, no line (app.html RD-PANEL-02) */
 html[data-skin]:not([data-skin="pencil"]) :is(.rhead button,.rtitle){color:var(--rq-text)}
 html[data-skin]:not([data-skin="pencil"]) .rhead button .ic{color:var(--rq-accent-text)}
 html[data-skin]:not([data-skin="pencil"]) .rbar button{color:var(--rq-text)}
@@ -501,8 +502,8 @@ html[data-skin="celestial"][data-theme="night"] #botnav#botnav{background-image:
 html[data-skin="celestial"] #botnav .botnav-btn.on{background:var(--cl-pill);color:var(--rq-coin);box-shadow:inset 0 0 0 1px var(--cl-gold-l)}
 html[data-skin="celestial"] body.mvp .screen > .scroll{padding-bottom:104px}
 /* reader chrome: morning sky over the title, sunset under the slider, double gold hairlines; night = deep blue with a few stars (never on the page) */
-html[data-skin="celestial"] #reader .rhead{background:var(--cl-rtop);box-shadow:0 1px 0 var(--cl-gold),0 2px 0 var(--rq-surface),0 3px 0 var(--cl-gold-l)}
-html[data-skin="celestial"] #reader .rbot{background:var(--cl-rbot);box-shadow:0 -1px 0 var(--cl-gold),0 -2px 0 var(--rq-surface),0 -3px 0 var(--cl-gold-l)}
+html[data-skin="celestial"] #reader .rhead{background:var(--cl-rtop);box-shadow:none;--bar-edge:var(--cl-redge)} /* 28.10 (Джессика): no gold rules at the page edge — the sky melts into the paper */
+html[data-skin="celestial"] #reader .rbot{background:var(--cl-rbot);box-shadow:none;--bar-edge:var(--cl-redge)}
 html[data-skin="celestial"] #reader :is(.rfoot,.rbar){background:transparent;box-shadow:none}
 html[data-skin="celestial"][data-theme="night"] #reader .rhead{background:var(--cl-dust-n) 0 0/200px 200px repeat,var(--cl-rtop)}
 html[data-skin="celestial"][data-theme="night"] #reader .rbot{background:var(--cl-dust-n) 40px 0/200px 200px repeat,var(--cl-rbot)}

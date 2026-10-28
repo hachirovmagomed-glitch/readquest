@@ -915,18 +915,11 @@ function renderPanel(tab,o){
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
       ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
-    const qs=S.quotes[b.id]||[];if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
+    if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
-       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there */
-    body.innerHTML=qs.length
-      ?qs.map((q,i)=>{const on=i===qOpen.i,t=String(q.text).replace(/\s*\n\s*/g,on?'\n':' ');let p=-1;try{p=quotePage(b,q);}catch(e){}
-        /* 28.10: «стр. N» under the words, the bin on the right */
-        return '<div class="prow pq'+(on?' on':'')+'"><div class="pqh"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+';--d2:'+hlDot2(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
-          (on&&q.note?'<span class="pqn">'+esc(q.note)+'</span>':'')+(p>=0?'<span class="pqp">стр. '+esc(quotePageLabel(p))+'</span>':'')+'</span></button>'+
-          '<button class="pqdel" onclick="quoteDelAt('+i+')" aria-label="Удалить цитату" title="Удалить цитату">'+rqIcon('trash-2',18)+'</button></div>'+
-          (on?'<button class="pqgo" onclick="quoteGo('+i+')">'+rqIcon('book-open',16)+' Открыть в книге</button>':'')+'</div>';
-      }).join('')
-      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
+       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there.
+       28.10: search, colour filter, order, export, card, «Объясни» / «Обсудить» — js/quotes.js */
+    qlPanel(body,b);
   }
 }
 

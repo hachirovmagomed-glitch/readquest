@@ -1,27 +1,29 @@
 'use strict';
 /* ================= ЦИТАТЫ ================= */
-function renderQuotes(){
-  const parts=[];
-  allBooks().forEach(b=>{
-    const qs=S.quotes[b.id]||[];if(!qs.length)return;
+function renderQuotes(o){
+  /* 28.10: search, colour, order, export (js/quotes.js); a card, «Объясни», «В дневник» on every quote */
+  if(!(o&&o.list)&&el('qaTools'))el('qaTools').innerHTML=qaToolsHtml();
+  const parts=[],any=allBooks().some(b=>(S.quotes[b.id]||[]).length),dy=qDiaryOn();
+  qaRows().forEach(g=>{const b=g.b;
     parts.push('<h2>'+esc(b.title)+'</h2>');
-    qs.forEach((q,i)=>{
+    g.rows.forEach(x=>{const q=x.q,i=x.i,a=(k,ic,t)=>'<button type="button" data-qact="'+k+'" data-bid="'+esc(b.id)+'" data-i="'+i+'">'+rqIcon(ic,14)+' '+t+'</button>';
       parts.push('<div class="qcard" data-c="'+hlKey(q.c)+'" style="--d:'+hlDot(q.c)+'"><div class="qtext">«'+esc(q.text)+'»</div>'+
         (q.note?'<div class="qnote">'+rqIcon('notebook-pen',14)+' '+esc(q.note)+'</div>':'')+
-        '<div class="qmeta"><span>'+q.date+'</span><div class="spacer"></div>'+
-        '<button onclick="copyQuote(\''+b.id+'\','+i+')">копировать</button>'+
-        '<button onclick="delQuote(\''+b.id+'\','+i+')">удалить</button></div></div>');
+        '<div class="qmeta"><span>'+esc(rqDayRu(q.date))+'</span><div class="spacer"></div>'+
+        a('card','image','карточка')+a('ai','sparkles','объясни')+(dy?a('dy','notebook-pen','в дневник'):'')+a('copy','copy','копировать')+a('del','trash-2','удалить')+'</div></div>');
     });
   });
-  el('quoteBox').innerHTML=parts.length?parts.join(''):
+  el('quoteBox').innerHTML=parts.length?parts.join(''):any?'<div class="emptyhint" style="color:var(--muted);text-align:center;padding:40px 0">Ничего не нашлось</div>':
     '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге и нажмите цвет&nbsp;— '+rqIcon('highlighter',14)+'&nbsp;цитата появится здесь.'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;
   copyText('«'+q.text+'»'+(q.note?'\n'+q.note:'')+'\n— '+b.title+', '+b.author);
 }
-function delQuote(bid,i){
-  const qs=S.quotes[bid]||[];const rm=qs.splice(i,1)[0];
+async function delQuote(bid,i){
+  const q0=(S.quotes[bid]||[])[i];if(!q0)return;const t0=String(q0.text).replace(/\s+/g,' ');
+  if(!await rqAsk({t:'Удалить цитату?',p:'«'+t0.slice(0,140)+(t0.length>140?'…':'')+'»'+(q0.note?' — и заметку к ней':''),ok:'Удалить',danger:true}))return; /* 28.10: as in «Навигация» */
+  const qs=S.quotes[bid]||[];if(qs.indexOf(q0)<0)return;i=qs.indexOf(q0);const rm=qs.splice(i,1)[0];
   if(rm){const h=S.hl[bid]||[];const j=h.indexOf(rm.text);if(j>-1)h.splice(j,1);}
   save();renderQuotes();
 }

@@ -215,6 +215,7 @@ function renderLibrary(){
     if(lb&&!S.finished.includes(lid)){const pr=Math.round(rqPos(lid)*100);
       cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
     else cc.innerHTML='';}
+  if(typeof qDayRender==='function')qDayRender(); /* 28.10 «Цитата дня» (js/quotes.js) */
   const dc=el('dailyCard');
   if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">'+rqIcon('gift',18)+'<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
   const shelf=el('shelf');shelf.innerHTML='';shelf.className='grid v-'+libViewGet();

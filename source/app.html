@@ -150,7 +150,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advown{display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--txt)}
 .advown .ic{color:var(--accent)}
 .advempty{color:var(--muted);text-align:center;padding:32px 8px 8px;font-size:0.875rem;line-height:1.45}
-.advhints{justify-content:center;flex-wrap:wrap}
+
 .advmore{display:block;width:100%;margin:14px 0 8px}
 .advsum{margin-top:14px;font-size:0.8125rem}
 .advsets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
@@ -179,6 +179,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .advsnip em{font-style:normal;color:var(--txt);font-weight:600}
 .advalt{margin:8px 2px 0}
 .advauth-h{margin-top:18px}
+.advfaces{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.advfaces::-webkit-scrollbar{display:none}
+.advface{flex:none;width:72px;display:flex;flex-direction:column;align-items:center;gap:6px;scroll-snap-align:start;color:var(--txt);background:none;padding:0}
+.advph{position:relative;display:block;width:66px;height:66px;border-radius:50%;overflow:hidden;background:var(--card2);box-shadow:0 0 0 2px var(--line)}
+.advph b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--muted)}
+.advph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.advface:active .advph{box-shadow:0 0 0 2px var(--accent)}
+.advfn{font-size:0.75rem;line-height:1.2;text-align:center;max-width:72px;overflow-wrap:anywhere}
 .advback{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 0;color:var(--muted);font-size:0.875rem}
 .advseth{font-size:1.125rem;margin:4px 0 2px}
 .advsug[hidden]{display:none}
@@ -568,6 +576,10 @@ body.rq-nolocks #rqNoXp{display:block}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content p.rq-bitr,.rqCurlTxt p.rq-bitr{font-style:italic;opacity:.72;margin-bottom:.6em} /* 25.10: перевод под абзацем (книга «с переводом») */
+#content p.rq-h,.rqCurlTxt p.rq-h,#content.noind p.rq-h{text-indent:0;font-weight:700;font-size:1.12em;line-height:1.35;margin:1.1em 0 .7em;break-after:avoid;hyphens:none;-webkit-hyphens:none;text-align:left} /* 28.10: chapter title (FB2 / EPUB / «Глава N» in TXT), plain bold, no decor */
+#content p.rq-img,.rqCurlTxt p.rq-img{text-indent:0;text-align:center;margin:.6em 0;break-inside:avoid;line-height:0}
+#content p.rq-img img,.rqCurlTxt p.rq-img img{max-width:100%;max-height:78vh;height:auto;display:inline-block}
+#content p.rq-img.gone,.rqCurlTxt p.rq-img.gone{display:none}
 #content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em;break-inside:avoid} /* audit 19.10 RD-EPUB-01 */
 #content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em;white-space:normal;overflow-wrap:anywhere;break-inside:avoid} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
@@ -685,8 +697,14 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
-#selpop:not(.qmode) .spq,#selpop.qmode #spWord{display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
+#selpop:not(.qmode) .spq,#selpop.qmode #spWord,#selpop.qmode #spGrow,#selpop.pdf :is(#spGrow,#spEdit){display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
 #content mark.qon,.textLayer .pdfhls i.qon{outline:2px solid var(--hs);outline-offset:1px}
+/* 25.10 (Джессика, видео: «текст начинает безумствовать и становится похожим на сатанинский»): in a PDF the quote box hugs the letters,
+   so the butterfly pollen / the celestial star dust sat on them like accents, and a tapped quote ringed every line. In a PDF: the skin's two-colour
+   wash only, and a tapped quote gets a line under each row instead of a ring */
+html[data-skin="babochkovyi"] #reader .pdfhls i{background:linear-gradient(90deg,transparent,var(--hc) .45em,var(--hc2) 50%,var(--hc) calc(100% - .45em),transparent)}
+html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,var(--hc),var(--hc2))}
+#reader .textLayer .pdfhls i.qon{outline:0;box-shadow:0 2px 0 var(--hs)}
 @media (max-width:380px){#selpop{padding:6px 4px;gap:0}#selpop>button{padding:8px 10px}} /* 360: the actions stay one row under the colours, also with «Объясни» */
 .qcard{background:var(--card);border-radius:var(--rq-radius-md);padding:12px;margin-bottom:10px}
 .qtext{font-size:0.875rem;line-height:1.5}
@@ -717,6 +735,34 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #pgSlider::-moz-range-track{height:4px;border-radius:var(--rq-radius-xs);background:var(--rq-slider-track)}
 #pgSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--rq-thumb-ring);box-sizing:border-box}
 #reader .rfoot{touch-action:none}
+/* 26.10: the selection bar at the top when the end of the selection is under it; the edge hint while a selection end is held at the page edge */
+@media (max-width:440px){#selpop.qmode .spl2{display:none}} /* a tapped quote has two more buttons (Удалить, Изменить границы): «Объясни» as an icon there on a phone */
+#selpop.top{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
+#selpop.top #spFold{top:auto;bottom:-18px} /* 28.10 (ревизия, баг 9): плашка у верхнего края — значок «Свернуть» снизу, иначе его срезает экран */
+/* 27.10 (Джессика): while selecting the bar is a small circle (#spMini) — a tap opens it, «Свернуть» folds it back */
+#spMini{display:none!important}
+#selpop.mini{padding:0;border-radius:50%;gap:0}
+#selpop.mini>*{display:none!important}
+#selpop.mini>#spMini{display:inline-flex!important;width:48px;height:48px;border-radius:50%;padding:0;color:var(--txt);box-shadow:inset 0 0 0 2px var(--accent)}
+#selpop #spFold{position:absolute;top:-18px;right:-4px;min-width:36px;min-height:36px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--sheet);box-shadow:0 2px 8px rgba(0,0,0,.35)} /* a corner badge: the actions keep one row */
+#selpop.qmode #spFold{display:none}
+/* 27.10: ‹ › turn the page with the selection kept; the chip between them says the earlier pages' part is still there (at the bottom: the new page's first word, where the selection goes on, is at the top) */
+#selNav[hidden],#selFrom[hidden],#selFromX[hidden]{display:none!important}
+#selPrev,#selNext{position:fixed;bottom:var(--sel-up,calc(env(safe-area-inset-bottom,0px) + 24px));z-index:61;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#selPrev{left:12px}#selNext{right:12px}
+#selPrev:disabled,#selNext:disabled{opacity:.35}
+#selFrom{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translateX(-50%);z-index:61;display:flex;align-items:center;max-width:calc(100vw - 144px);min-height:48px;background:var(--sheet);color:var(--txt);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.35);border:2px solid var(--accent)}
+#selFromGo{display:flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;font-size:0.8125rem;text-align:left}
+#selFromGo .ic{color:var(--accent);flex:none}
+#selFromX{min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center}
+#reader .textLayer .pdfhls i.pend{background:rgba(70,130,240,.3)!important;box-shadow:none!important}
+#selEdge{position:fixed;z-index:59;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
+#selEdge.next,#selEdge.prev{display:flex}#selEdge.prev .ic{transform:rotate(180deg)}
+#selEdge::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--accent);animation:selEdgeFill .8s linear forwards}
+@keyframes selEdgeFill{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media (prefers-reduced-motion:reduce){#selEdge::after{animation:none}}
+/* 25.10 (Джессика, видео «выделение»): a selection dragged past the text never runs into the bars, the page number or the selection bar — only the book is selectable */
+#reader{-webkit-user-select:none;user-select:none}#reader :is(#content,.textLayer,input,textarea,[contenteditable]){-webkit-user-select:text;user-select:text}
 #pgTip{position:fixed;z-index:60;transform:translate(-50%,-100%);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--r-bg);color:var(--rq-accent-text);border:1px solid var(--rq-accent);font:600 14px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #pgTip.hidden{display:none}
 #pgSafe{position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none}
@@ -950,6 +996,10 @@ html[data-skin="celestial"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:h
 #reader.pdftone .textLayer span.v{color:var(--r-txt);color:color-mix(in srgb,var(--r-bg) calc(var(--l) * 100%),var(--r-txt))}
 #reader.pdftone #pdfSheet,#reader.pdftone #pdfScroll .psl{background:var(--r-bg)}
 #reader.pdftone #pdfSheet canvas,#reader.pdftone #pdfScroll .psl canvas,#reader.pdftone .rqCurlCv,#reader.pdftone .pgth canvas{filter:url(#rqPdfTone)}
+/* 28.10 (ревизия чтения, баг 7): ночью страница PDF приглушается слоем поверх холста. Правило tokens.css пишет его для .rq-pdf-page из макета;
+   в приложении страница — #pdfSheet / .psl. Сила — SET.pdfDim (--rq-pdf-dim), по умолчанию --rq-pdf-night-dim. С «Цветами темы» (pdftone) слой не нужен. */
+#reader[data-page="night"]:not(.pdftone) :is(#pdfSheet,#pdfScroll .psl)::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim,.35)));pointer-events:none;z-index:1}
+#reader[data-page="night"]:not(.pdftone) .rqCurlCv{filter:brightness(calc(1 - var(--rq-pdf-dim,var(--rq-pdf-night-dim,.35))))}
 
 /* ===== Компактная панель оформления: категории ===== */
 .setcats{display:flex;gap:6px;overflow-x:auto;margin:2px 0 12px;scrollbar-width:none}
@@ -1181,6 +1231,11 @@ body.pixel .talnode{border-radius:0}
 #botnav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;background:var(--card);border-top:1px solid var(--card2);padding:6px 10px calc(6px + env(safe-area-inset-bottom));gap:6px;justify-content:space-around}
 body.mvp #botnav{display:flex}
 body.mvp .screen > .scroll{padding-bottom:108px} /* 20.10: + the «Читать» bump over the bar */
+/* 25.10 (Джессика: «квадратики налезают на щит»): cards fade out above the bar and around the raised «Читать», band measured by rqNavFade (core-a.js);
+   the end of a page still scrolls clear of it */
+body.mvp .screen > .scroll{padding-bottom:max(108px,calc(var(--rq-bnfade,0px) + var(--rq-bnsoft,0px) + 12px));
+  -webkit-mask-image:linear-gradient(to top,transparent var(--rq-bnfade,0px),#000 calc(var(--rq-bnfade,0px) + var(--rq-bnsoft,0px)));
+  mask-image:linear-gradient(to top,transparent var(--rq-bnfade,0px),#000 calc(var(--rq-bnfade,0px) + var(--rq-bnsoft,0px)))}
 /* 20.10 (Джессика, «как в Хабитике»): sections left and right, a big raised «Читать» in the exact middle, outlined in the bar colour
    (no bump over the page: «белая хрень выходит»). --bn-face: the bar's face for that outline; skins restyle .brd (the raised button). */
 #botnav{--bn-face:var(--card);align-items:stretch}
@@ -1255,6 +1310,16 @@ body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 .achv-tile{display:flex;gap:12px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:8px}
 .achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
 .achv-tile .pbar{margin-top:6px}
+#rqPause{position:fixed;z-index:30;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
+  background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--txt);border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);opacity:.45;touch-action:none;transition:opacity .2s}
+#rqPause[hidden]{display:none}#rqPause.on{opacity:.95;color:var(--accent);border-color:var(--accent)}#rqPause.drag{opacity:.9;transition:none}
+@media (prefers-reduced-motion:reduce){#rqPause{transition:none}}
+#sumQuiz{text-align:left;font-size:0.875rem;line-height:1.45;margin:4px 0 10px}
+#sumQuiz .qz-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#sumQuiz .qz-h .ic{flex:none;color:var(--accent2)}
+#sumQuiz .qz-t{color:var(--muted)}#sumQuiz .qz-q{font-weight:600;margin-bottom:8px}
+#sumQuiz .qz-ok{display:flex;gap:6px;align-items:flex-start;color:var(--txt)}#sumQuiz .qz-ok .ic{flex:none;margin-top:2px;color:var(--accent2)}
+#sumQuiz .qz-b{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}#sumQuiz .ghostbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+#sumQuiz textarea{width:100%;box-sizing:border-box;font:inherit;color:var(--txt);background:var(--card2);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));border-radius:var(--rq-radius-md);padding:10px;resize:vertical}
 #sumAch{margin:8px 0;font-size:0.875rem;line-height:1.5}#sumAch div{display:flex;align-items:center;gap:6px}#sumAch .ic{flex:none;color:var(--accent2)}#sumAch .more{color:var(--muted);padding-left:20px}
 #avatarFrame.achf-frame250{outline:2px solid var(--muted);outline-offset:3px}
 #avatarFrame.achf-frame500{outline:4px double var(--accent);outline-offset:3px}
@@ -1659,6 +1724,8 @@ html[data-skin="pencil"] #pgSlider::-moz-range-thumb{background:transparent;bord
 /* ===== «Карандашный» fixes (Интерфейс list): Caveat ≥26px titles, Lucide instead of emoji, baked wobbly outlines (no runtime filters) ===== */
 @font-face{font-family:"Caveat";src:url(fonts/caveat.woff2) format("woff2");font-weight:400 700;font-display:swap}
 @font-face{font-family:"Nunito";src:url(fonts/nunito.woff2) format("woff2");font-weight:200 1000;font-display:swap} /* pencil UI text (--rq-font-ui); the book page keeps the reader font */
+@font-face{font-family:"RQ Liberation Serif";src:url(fonts/reader-liberationserif-regular.woff2) format("woff2");font-weight:300 500;font-display:swap} /* 28.10 reading font «Times» on phones without Times New Roman */
+@font-face{font-family:"RQ Liberation Serif";src:url(fonts/reader-liberationserif-bold.woff2) format("woff2");font-weight:600 800;font-display:swap}
 .pc-only{display:none!important}
 html[data-skin="pencil"] .pc-hide{display:none!important}
 html[data-skin="pencil"] svg.pc-only,html[data-skin="pencil"] span.pc-only{display:inline-block!important}
@@ -1866,7 +1933,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf" aria-haspopup="menu" aria-controls="addMenu" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button><div class="lsortmenu addmenu" id="addMenu" role="menu" hidden></div></div></div>
     <div class="row libshelfbar" id="libShelfBar" hidden></div>
     <div class="grid" id="shelf"></div>
-    <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" multiple style="display:none">
+    <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf,.zip" multiple style="display:none">
     <input type="file" id="dirInp" webkitdirectory multiple style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
   </div></div>
@@ -2291,14 +2358,18 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div id="pdfWrap" class="hidden"><div id="pdfBack" class="hidden" aria-live="polite"><span class="pdfSpin" aria-hidden="true"></span><span id="pdfBackN"></span></div><div id="pdfStage"><div id="pdfSheet"><div id="pdfText" class="textLayer"></div></div></div></div>
     <div id="timerHint" class="hidden"></div>
     <div id="selpop" class="hidden">
+      <button id="spMini" aria-label="Цвета и действия" aria-expanded="false" title="Цвета и действия"><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg></button><!-- 27.10: while selecting the bar is a small circle, a tap opens it -->
       <div id="spColors" role="group" aria-label="Цвет цитаты"></div><!-- 20.10: цвета цитат, кнопки рисует reader-ui.js (HL_COLORS) -->
       <button id="spNote" aria-label="Заметка"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-pencil"/></svg><span class="splab"> Заметка</span></button>
       <button id="spWord" title="В словарь" aria-label="В словарь"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg></button>
       <button id="spDict" aria-label="Перевести" title="Перевести"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg></button>
-      <button id="spAI" aria-label="Объясни"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg> Объясни</button>
+      <button id="spAI" aria-label="Объясни"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><span class="spl2"> Объясни</span></button>
+      <button id="spGrow" aria-label="Выделить всё предложение, ещё раз — весь абзац" title="Предложение, потом абзац"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-align-justify"/></svg></button><!-- 26.10 -->
       <button id="spCopy" aria-label="Копировать" title="Копировать"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg></button>
       <button id="spDel" class="spq" aria-label="Удалить цитату" title="Удалить"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-trash-2"/></svg></button>
+      <button id="spEdit" class="spq" aria-label="Изменить начало и конец цитаты" title="Изменить границы"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-highlighter"/></svg></button><!-- 26.10 -->
       <button id="spAll" class="spq" aria-label="Все цитаты" title="Все цитаты"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-quote"/></svg></button>
+      <button id="spFold" aria-label="Свернуть в кружок" title="Свернуть"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button>
     </div>
   </div>
   <button id="navPrev" class="navbtn hidden" aria-label="Предыдущая страница">‹</button><!-- audit 19.10 RD-NAV-01: in the side field, outside #viewer -->
@@ -2311,6 +2382,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
+  <button id="rqPause" class="rq-pause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 25.10 пауза (js/reader-ui.js pauseApply) -->
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
@@ -2377,6 +2449,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="setgrp" id="grpFocus">
       <div class="rrow stack"><span class="rl" id="focusSegL">Режим фокуса</span><div class="rseg" id="focusSeg" role="group" aria-labelledby="focusSegL"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div></div>
       <div class="rnote">Остаётся только текст. Выход — тап в центр.</div>
+      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>круг на странице: на паузе время, опыт и монеты не идут; передвинь пальцем</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
       <div class="rrow"><span class="rl" id="readCntTglL">Счётчик минут<small>«7 / 10 мин» в углу в режиме фокуса</small></span><button class="rsw" id="readCntTgl" role="switch" aria-checked="false" aria-labelledby="readCntTglL"></button></div>
       <div id="fzBox" hidden></div><!-- 25.10 помодоро, тихий режим, звуки, фокус-слова, вызовы недели, карта (js/focus.js) -->
     </div>
@@ -2405,6 +2478,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     </div>
     <div id="sumFocus" class="hidden"></div><!-- 25.10 «Итог фокуса» (js/focus.js fzSummaryHtml) -->
     <div id="sumNote" style="font-size:12px;color:var(--muted);margin-bottom:6px"></div>
+    <div id="sumQuiz" class="pcard hidden" aria-live="polite"></div><!-- 25.10 мини-проверка (js/content.js quizRender) -->
     <div id="sumAch" class="hidden"></div>
     <div id="sumBadges"></div>
     <div class="sumfin hidden" id="sumFin"></div>

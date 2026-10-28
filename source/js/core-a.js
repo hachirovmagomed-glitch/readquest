@@ -64,6 +64,24 @@ function applyMvpChrome(){
       }catch(e){ava.innerHTML=rqIcon('user-round',18);}
     }else ava.style.display='none';
   }
+  rqNavFade();
+}
+/* 25.10 (Джессика: «квадратики налезают на щит»): page content fades out just above the bottom bar, so no card runs into the raised «Читать»
+   (щит, звезда, бабочка). The band = bar top + bump + a soft edge, measured here: skins move the bar (Небесный floats) and size the bump. */
+let rqNavFadeOn=false;
+function rqNavFade(){
+  const bn=el('botnav'),root=document.documentElement;
+  if(!bn)return;
+  if(!rqNavFadeOn){rqNavFadeOn=true;
+    const again=function(){requestAnimationFrame(rqNavFade);};
+    try{new ResizeObserver(again).observe(bn);}catch(e){}
+    try{new MutationObserver(again).observe(root,{attributes:true,attributeFilter:['data-skin','data-theme']});}catch(e){}
+    window.addEventListener('resize',again);}
+  const d=bn.querySelector('.brd'),r=bn.getBoundingClientRect();
+  if(getComputedStyle(bn).display==='none'||!r.height){root.style.setProperty('--rq-bnfade','0px');root.style.setProperty('--rq-bnsoft','0px');return;}
+  const bump=d?Math.max(0,r.top-d.getBoundingClientRect().top):0;
+  root.style.setProperty('--rq-bnfade',Math.round(innerHeight-r.top+(bump?bump+6:0))+'px');
+  root.style.setProperty('--rq-bnsoft','22px');
 }
 function weekKey(d){
   if(window.__rqGame&&window.__rqGame.weekStartOf)return window.__rqGame.weekStartOf(d||today());
@@ -93,6 +111,17 @@ function daysInWeekAtGoal(minNeed,wk){
    Only on the test site for now (like achievements v2): RQ_LVL_NS. Off → no level is passed to the tracker, rows carry no lvl,
    so XP and coins are exactly the old ones. */
 const RQ_LVL_NS=['rqt'];
+/* ===== Честное чтение (Джессика 25.10 «Давай все кроме 3 и 6»; game-awards.js, reader-session.js honest, arch.md) =====
+   Test site only for now (RQ_HONEST_NS). Off → the tracker gets no `honest`, the 12 s floor stays, rows carry no fl/ct/rr/hon. */
+const RQ_HONEST_NS=['rqt'];
+function honestOn(){return isMvp()&&RQ_HONEST_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
+/** span [from, to] of page p of the open book (0…1); null while the page count is unknown */
+function honestSpan(p){const n=R&&R.pageCount;if(!(n>1)||!(p>=0)||p>=n)return null;return [p/n,(p+1)/n];}
+/** tracker options of the honest rules for book b: own floor (s), tail (s), spans read before, honesty factor */
+function honestOpts(b){
+  const G=window.__rqGame,rows=SESS||[],id=b&&b.id,hi=G.honestyIndex(rows,today());
+  return {floorSec:G.paceFloorSec(rows,id),honest:{tailMs:G.tailSec(rows,id)*1000,span:honestSpan,seen:(S.readSpans||{})[id]||[],hon:hi.f}};
+}
 function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
 /* 25.10 «Фокус» (помодоро, тихий режим, звуки, вызовы недели — js/focus.js): only on the test site for now, like the book level */
 const RQ_FOCUS_NS=['rqt'];

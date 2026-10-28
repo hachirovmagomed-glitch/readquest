@@ -33,6 +33,7 @@ async function openPdf(b){
     const p=Math.max(0,Math.min(R.pageCount-1,Math.round(rqPos(b.id)*(R.pageCount-1))));
     R.page=p;P.target=p;
     if(__tracker)__tracker.begin(b.id, p, trackerOpts());
+    pauseReset();
     if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус» */
     pdfLvlCheck(b,doc); /* 19.10: level by the PDF's own text, in the background (once per book) */
     pdfNumbers(p);pdfBackdrop('Открываем страницу '+pdfLabel(p)); /* EN via I18N_RE: «Opening page N» */
@@ -142,6 +143,7 @@ function pdfSwap(n,cv,sc,baseW,baseH,tl,sz){
   if(tl){const t=el('pdfText');t.textContent='';t.appendChild(tl);}
   el('pdfText').style.width=baseW+'px';el('pdfText').style.height=baseH+'px';
   if(typeof pdfHlPaint==='function')pdfHlPaint(el('pdfText'),n); /* 21.10: quote colours on the PDF page */
+  if(typeof selPdfShown==='function')selPdfShown(n); /* 27.10: a selection carried onto this page */
   if(isNew){P.z=1;P.tx=0;P.ty=0;}
   P.bw=baseW;P.baseW=baseW;P.baseH=baseH;P.k=1;
   pdfApply();
@@ -343,6 +345,7 @@ function rqRgb(v){
 function rqPdfLook(){
   const r=el('reader');if(!r)return;
   r.classList.toggle('pdffont',!!SET.pdfFont);r.classList.toggle('pdftone',!!SET.pdfTheme);
+  r.style.setProperty('--rq-pdf-dim',String(typeof SET.pdfDim==='number'?SET.pdfDim:0.35)); /* 28.10: ночной слой PDF */
   if(SET.pdfTheme){
     const cs=r.style,bg=rqRgb(cs.getPropertyValue('--r-bg')),tx=rqRgb(cs.getPropertyValue('--r-txt')),row=function(i){const d=(bg[i]-tx[i])/255;return [d*0.299,d*0.587,d*0.114,0,tx[i]/255].map(function(x){return +x.toFixed(4);}).join(' ');};
     const m=el('rqPdfToneM');if(m)m.setAttribute('values',row(0)+' '+row(1)+' '+row(2)+' 0 0 0 1 0');
@@ -487,7 +490,8 @@ function pdfTouchMove(e){
   if(g.type!=='one'||e.touches.length!==1)return;
   const t=e.touches[0],dx=t.clientX-g.x0,dy=t.clientY-g.y0;
   if(!g.moved&&Math.hypot(dx,dy)>10)g.moved=true;
-  if(g.bright){SET.bright=Math.round(Math.max(0.3,Math.min(1,g.bright.d0-dy/400))*100)/100;rqLightApply();return;}
+  if(g.bright){if(!g.bright.v){if(!g.moved)return;if(Math.abs(dy)>Math.abs(dx)*1.2)g.bright.v=true;else{g.bright=null;return;}} /* 28.10: у края вбок — свайп, не яркость */
+    SET.bright=Math.round(Math.max(0.3,Math.min(1,g.bright.d0-dy/400))*100)/100;rqLightApply();return;}
   if(g.pannable&&g.moved){P.tx=g.tx0+dx;P.ty=g.ty0+dy;pdfApplySoon();}
 }
 function pdfLog(o){P.log.push(o);if(P.log.length>40)P.log.shift();} /* gesture decisions (tests / diagnostics) */
@@ -510,8 +514,7 @@ function pdfTouchEnd(e){
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
   if(g.bright&&g.moved){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}
   if(g.sel||pdfSelecting()){if(g.pannable&&g.moved)pdfApply();return;} /* 22.10: the end of a selection drag is not a swipe / tap */
-  const swipeOn=flipGet().swipe!==false;
-  const inv=flipGet().invert?-1:1;
+  const swipeOn=flipGet().swipe!==false; /* 28.10: свайп не зависит от «Поменять стороны» */
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
   pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
   if(g.pannable&&g.moved){
@@ -519,11 +522,11 @@ function pdfTouchEnd(e){
     const s=pdfViewSize();
     const movedX=Math.abs(P.tx-g.tx0)/s.w,moved=Math.max(movedX,Math.abs(P.ty-g.ty0)/s.h);
     /* zoomed: a swipe flips only if the page edge on that side already touched the screen edge */
-    if(swipeOn&&horiz&&((dx<0&&g.atR)||(dx>0&&g.atL))&&movedX<0.02){fsResume();pdfFlip((dx<0?1:-1)*inv);return;}
+    if(swipeOn&&horiz&&((dx<0&&g.atR)||(dx>0&&g.atL))&&movedX<0.02){fsResume();pdfFlip(dx<0?1:-1);return;}
     if(moved>0)pdfAct('pan',{fraction:moved});
     return;
   }
-  if(swipeOn&&horiz){fsResume();pdfFlip((dx<0?1:-1)*inv);return;}
+  if(swipeOn&&horiz){fsResume();pdfFlip(dx<0?1:-1);return;}
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&performance.now()-g.t0<450&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
@@ -590,7 +593,7 @@ function pageOfAnchor(a){
     const rg=document.createRange();
     const o=Math.min(a.offset,Math.max(0,len-1));
     rg.setStart(a.node,o);rg.setEnd(a.node,Math.min(len,o+1));
-    const rects=rg.getClientRects();const r=rects.length?rects[0]:rg.getBoundingClientRect();
+    const rects=rg.getClientRects();const r=rects.length?rects[rects.length-1]:rg.getBoundingClientRect(); /* 28.10: a word hyphenated over a page break gives the line-end «-» first — the letter itself is the last rect */
     if(rqScrollMode()){const y=r.top-c.getBoundingClientRect().top;return Math.max(0,Math.min(R.pageCount-1,Math.floor((y+2)/R.step)));}
     const x=r.left-c.getBoundingClientRect().left;
     return Math.max(0,Math.floor((x+2)/R.step));
@@ -712,7 +715,7 @@ function rqScrollSettle(){
   try{if(Math.abs(d)===1)goPage(np,true);else{R.jumping=true;try{goPage(np,false);}finally{R.jumping=false;}}}
   finally{R.fromScroll=false;}
 }
-el('viewer').addEventListener('scroll',function(){if(rqScrollMode())rqScrollSoon();},{passive:true});
+el('viewer').addEventListener('scroll',function(){if(rqScrollMode()){rqScrollSoon();if(__tracker&&__tracker.userActive)__tracker.userActive('scroll');}},{passive:true}); /* 25.10: scrolling = a sign of life */
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */

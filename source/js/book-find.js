@@ -257,7 +257,7 @@ function bfChapters(){
   if(!R||!R.book||typeof tocOf!=='function')return [];
   const b=R.book,toc=tocOf(b),N=Math.max(1,R.pageCount);if(!toc||!toc.length)return [];
   const len=b.text&&b.text.length?b.text.length:0;
-  return toc.map(function(c){const pg=c.page!=null?c.page:(len?Math.round((c.off/len)*(N-1)):0);return {t:c.t,page:Math.max(0,Math.min(N-1,pg))};})
+  return toc.map(function(c){const pg=typeof tocPg==='function'?tocPg(b,c):c.page!=null?c.page:(len?Math.round((c.off/len)*(N-1)):0); /* 28.10: the same page as «Главы» (the heading's own page when it is in the text) */return {t:c.t,page:Math.max(0,Math.min(N-1,pg))};})
     .sort(function(x,y){return x.page-y.page;});
 }
 function bfChapterAt(v){const ch=bfChapters();let r=null;for(let i=0;i<ch.length;i++){if(ch[i].page<=v)r=ch[i];else break;}return r;}

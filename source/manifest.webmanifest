@@ -18,6 +18,6 @@
     "action": "./share-target",
     "method": "POST",
     "enctype": "multipart/form-data",
-    "params": { "files": [ { "name": "books", "accept": [".pdf", ".epub", ".fb2", ".txt", "application/pdf", "application/epub+zip", "application/x-fictionbook+xml", "application/x-fictionbook", "text/plain"] } ] }
+    "params": { "files": [ { "name": "books", "accept": [".pdf", ".epub", ".fb2", ".txt", ".zip", "application/pdf", "application/epub+zip", "application/x-fictionbook+xml", "application/x-fictionbook", "text/plain", "application/zip"] } ] }
   }
 }

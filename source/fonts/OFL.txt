@@ -18,3 +18,7 @@ skin pack (handoff/skins/babochkovyi/src/fonts); Mulish instanced at wght 500 an
 Poiret One — Copyright (c) 2011, Denis Masharov (denis.masharov@gmail.com)
 Mulish — Copyright 2016 The Mulish Project Authors (https://github.com/googlefonts/mulish)
 Bellota Text — Copyright 2019 The Bellota Project Authors (https://github.com/kemie/Bellota-Font)
+
+Liberation Serif 2.1.5 — Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine; Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name Liberation.
+Licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
+reader-liberationserif-regular.woff2 / -bold.woff2 are subsets (Latin, Latin Extended, Cyrillic, punctuation) made with fontTools pyftsubset (28.10, reading font «Times» on phones without Times New Roman).

@@ -338,6 +338,18 @@ function selUi(){
   if(show){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('selFromGo').dataset.p=from;el('selFromGo').innerHTML=rqIcon('layers',16)+'<span>Выделено со стр. '+esc(lab)+' — всё на месте</span>';
     el('selFromX').hidden=!(R.mode==='pdf'&&pq);}
+  selNavDodge(s);
+}
+/* 28.10 (ревизия чтения, баг 10): ‹ › в нижних углах закрывали конец выделения на последней строке. Если под кнопкой выделенный текст,
+   обе кнопки поднимаются выше него (ищем снизу вверх первое место, где в их колонках нет выделения). */
+function selNavDodge(s){
+  const n=el('selNav');if(!n)return;n.style.removeProperty('--sel-up');if(!s||!s.rangeCount)return;
+  const W=innerWidth,H=innerHeight,rs=[...s.getRangeAt(0).getClientRects()].filter(r=>r.width&&r.height&&r.bottom>0&&r.top<H&&r.right>0&&r.left<W);if(!rs.length)return;
+  const a=el('selPrev').getBoundingClientRect(),b=el('selNext').getBoundingClientRect(),sz=a.height||48,pad=6;
+  const hit=function(bot){const t=H-bot-sz-pad,u=H-bot+pad;return rs.some(r=>r.top<u&&r.bottom>t&&((r.left<a.right+pad&&r.right>a.left-pad)||(r.left<b.right+pad&&r.right>b.left-pad)));};
+  let bot=H-a.bottom;if(!hit(bot))return;
+  while(bot<H*0.7&&hit(bot))bot+=8;
+  if(!hit(bot))n.style.setProperty('--sel-up',Math.round(bot)+'px');
 }
 function selTurn(d){
   const np=R.page+d;if(np<0||np>=R.pageCount)return;
@@ -715,13 +727,14 @@ el('viewer').addEventListener('touchstart',e=>{
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
-  if(e.touches[0].clientX-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()){bright={y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright};tx0=null;return;} // жест яркости у левого края (в прокрутке палец у края прокручивает)
   tx0=e.touches[0].clientX;
+  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode())bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
   if(bright&&e.touches.length===1){
-    const dy=e.touches[0].clientY-bright.y0;if(Math.abs(dy)>6)bright.mv=true;
+    const dy=e.touches[0].clientY-bright.y0,dx=e.touches[0].clientX-bright.x0;
+    if(!bright.mv){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)*1.2){bright.mv=true;tx0=null;}else{if(Math.abs(dx)>12)bright=null;return;}} /* 28.10: яркость только вертикальным ведением */
     SET.bright=Math.round(Math.max(0.3,Math.min(1,bright.d0-dy/400))*100)/100; /* 18.10: own brightness (the edge is the text column's) */
     rqLightApply();
     return;
@@ -738,7 +751,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
-  if(bright){const mv=bright.mv;bright=null;if(mv){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
+  if(bright){const mv=bright.mv;bright=null;if(mv){tx0=null;SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
   if(pinch0){
     pinch0=null;tx0=null;
     endTextPinch(); // текст: щипок = размер шрифта, один рефлоу после жеста
@@ -748,13 +761,25 @@ el('viewer').addEventListener('touchend',e=>{
   if(tx0===null)return;
   const ct=e.changedTouches[0];
   const dx=ct.clientX-tx0,dy=ct.clientY-(ty0==null?ct.clientY:ty0);tx0=null;
-  if((flipGet().swipe!==false)&&Math.abs(dx)>50&&(!rqScrollMode()||Math.abs(dx)>Math.abs(dy)*1.5)){const inv=flipGet().invert?-1:1;fsResume();goPage(R.page+(dx<0?1:-1)*inv,true);return;}
+  if((flipGet().swipe!==false)&&Math.abs(dx)>50&&(!rqScrollMode()||Math.abs(dx)>Math.abs(dy)*1.5)){fsResume();goPage(R.page+(dx<0?1:-1),true);return;} /* 28.10: свайп не переворачивается «Поменять стороны» — палец сам показывает направление */
   /* short, still touch = tap (not on buttons / selection popup) */
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tt0<450&&e.touches.length===0&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();viewerTap(ct.clientX,ct.clientY);
   }
 },{passive:true});
+/* 28.10 (ревизия чтения, баг 5): поля слева и справа от колонки текста — тоже страница: тап листает, свайп листает */
+let mg0=null;
+function rqMarginHit(e,t){if(R.mode==='pdf'||e.target!==el('reader'))return false;const r=el('viewer').getBoundingClientRect();return t.clientY>=r.top&&t.clientY<=r.bottom&&(t.clientX<r.left||t.clientX>r.right);}
+function rqMarginTap(x,y){const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
+el('reader').addEventListener('touchstart',e=>{mg0=null;if(e.touches.length===1&&rqMarginHit(e,e.touches[0]))mg0={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
+el('reader').addEventListener('touchend',e=>{
+  const m=mg0;mg0=null;if(!m||e.touches.length)return;
+  const ct=e.changedTouches[0],dx=ct.clientX-m.x,dy=ct.clientY-m.y;
+  if(flipGet().swipe!==false&&!rqScrollMode()&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){touchTapAt=Date.now();fsResume();goPage(R.page+(dx<0?1:-1),true);return;}
+  if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-m.t<450){touchTapAt=Date.now();rqMarginTap(ct.clientX,ct.clientY);}
+},{passive:true});
+el('reader').addEventListener('click',e=>{if(Date.now()-touchTapAt<800||!rqMarginHit(e,e))return;rqMarginTap(e.clientX,e.clientY);});
 el('viewer').addEventListener('touchcancel',()=>{if(R.mode==='pdf'){P.g=null;hidePinchHint();pdfApply();return;}if(pinch0){pinch0=null;tx0=null;if(R.mode!=='pdf')endTextPinch();}},{passive:true});
 /* мышь: Ctrl+колесо — зум, колесо — листание, перетаскивание — панорама */
 el('viewer').addEventListener('wheel',e=>{
@@ -811,15 +836,19 @@ function tocOf(b){if(!b)return [];if(b.toc&&b.toc.length)return b.toc;
   while((m=re.exec(b.text))&&out.length<400)out.push({t:m[2].trim(),off:m.index+m[1].length});
   __txtToc={id:b.id,toc:out.length>=2?out:[]};return __txtToc.toc;}
 /* 21.10: the chapter being read is marked in «Главы» (the last one that starts on or before the current page) */
-function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1;
-  toc.forEach(function(x,i){const p=x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0);if(p<=pg&&(c<0||p>=(toc[c].page!=null?toc[c].page:Math.round(toc[c].off/len*(N-1)))))c=i;});
+function tocCur(b,toc){if(tocCur._k===b.id+'|'+R.page+'|'+R.pageCount)return tocCur._v;const pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let c=-1,cp=-1;
+  toc.forEach(function(x,i){const p=tocPg(b,x);if(p<=pg&&(c<0||p>=cp)){c=i;cp=p;}});
   tocCur._k=b.id+'|'+R.page+'|'+R.pageCount;tocCur._v=c;return c;}
 /* 21.10 (Джессика: «вместо слова "читаете" значок»): each skin its own mark (Бабочковый / Небесный draw theirs in skins.css) */
 function tocNowIcon(){const k=document.documentElement.dataset.skin||'';return k==='ellada'?'amphora':k==='pencil'?'pencil':'book-open';}
 /* 22.10 (Джессика: «накидай идей, как улучшить навигацию в "Главах"»): a line on top «Глава K из N · книга прочитана на P%»;
    every chapter shows its page; chapters already behind get a check; the chapter being read says how far into it you are
    and how many pages are left in it; PDF sub-bookmarks are indented. */
-function tocPg(b,x){const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0;return Math.max(0,Math.min(N-1,x.page!=null?x.page:(len?Math.round(x.off/len*(N-1)):0)));}
+/* 28.10: a chapter title drawn in the text (.rq-h, js/reader.js rqBodyHtml) gives its exact page; else the share of the text */
+function tocDomPage(b,x){if(R.mode!=='text'||!R.book||R.book!==b)return -1;const i=tocOf(b).indexOf(x);if(i<0)return -1;
+  const e=el('content').querySelector('p[data-toc="'+i+'"]');if(!e)return -1;const r=e.getClientRects()[0];if(!r)return -1;const c=el('content').getBoundingClientRect();
+  return rqScrollMode()?Math.floor((r.top-c.top+2)/R.step):Math.floor((r.left-c.left+2)/R.step);}
+function tocPg(b,x){const N=Math.max(1,R.pageCount),len=b.text&&b.text.length||0,d=x.page==null?tocDomPage(b,x):-1;return Math.max(0,Math.min(N-1,x.page!=null?x.page:d>=0?d:(len?Math.round(x.off/len*(N-1)):0)));}
 function tocPgLabel(p){return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(p):String(p+1);}
 function tocRows(b,toc){
   const cur=tocCur(b,toc),N=Math.max(1,R.pageCount),pg=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;
@@ -840,10 +869,14 @@ function jumpToc(i){
   const b=R.book,toc=tocOf(b);if(!toc[i])return;
   /* 25.10 (Джессика: «хочу выходить из "Глав" сама»): the book moves to the chapter behind the panel; the list stays open,
      where it was, with the mark on the new chapter */
-  jumpTo(toc[i].page!=null?toc[i].page:Math.round((b.text&&b.text.length?toc[i].off/b.text.length:0)*(R.pageCount-1)));
+  jumpTo(tocPg(b,toc[i]));
   const redo=function(){if(el('panel').classList.contains('hidden')||panelTab!=='toc')return;const bd=el('panelBody'),y=bd.scrollTop;tocCur._k=null;renderPanel('toc',{keep:true});bd.scrollTop=y;};
   redo();setTimeout(redo,350); /* PDF: the page lands a moment later */
 }
+/* 28.10 (ревизия чтения, баг 14): дата закладки по-русски — «28 октября», другой год — «28 октября 2025». Хранится как была (ГГГГ-ММ-ДД). */
+const RQ_MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function rqDayRu(d){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(d||''));if(!m||+m[2]<1||+m[2]>12)return String(d||'');
+  return (+m[3])+' '+RQ_MON[+m[2]-1]+(+m[1]!==new Date().getFullYear()?' '+m[1]:'');}
 function delMark(i){const ms=S.marks[(R.book||{}).id]||[];ms.splice(i,1);save();renderPanel('marks');}
 function renderPanel(tab,o){
   panelTab=tab;rqGridStop();
@@ -859,7 +892,7 @@ function renderPanel(tab,o){
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
-      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+m.date+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
+      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
     const qs=S.quotes[b.id]||[];if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
@@ -1027,8 +1060,9 @@ function ttsTextNext(){
   const b=R.book;
   if((R.ttsPos||0)>=b.text.length){ttsStop();flashMsg('Книга озвучена до конца');return;}
   const st=R.ttsPos||0;
-  const end=ttsChunkEnd(b.text,st),chunk=b.text.slice(st,end);
-  const nx=end<b.text.length?b.text.slice(end,ttsChunkEnd(b.text,end)):''; /* нейроголос: следующий кусок заказывается заранее */
+  const noImg=x=>x.replace(/\uFFFCimg:\d+/g,m=>' '.repeat(m.length)); /* 28.10 метки картинок не читаем вслух; длина та же, чтобы ci совпадал */
+  const end=ttsChunkEnd(b.text,st),chunk=noImg(b.text.slice(st,end));
+  const nx=end<b.text.length?noImg(b.text.slice(end,ttsChunkEnd(b.text,end))):''; /* нейроголос: следующий кусок заказывается заранее */
   ttsSay(chunk,function(){R.ttsPos=end;if(ttsOn)setTimeout(ttsTextNext,100);},function(){ttsPageAt(st);},function(ci){ttsPageAt(st+ci);},nx);
 }
 function ttsPdfNext(){

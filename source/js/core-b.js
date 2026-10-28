@@ -254,17 +254,19 @@ function skinOf(t){return (t&&t.skin)||'default';}
 /** theme_changed {from,to} — only when the SKIN changes (day/night inside a skin, or between plain page themes, does not emit) */
 function logSkinChange(from){const to=skinOf(activeTheme());if(from===to)return;try{if(__rq&&__rq.logAnalyticsEvent&&window.__rqWriter&&__rqWriter.mayWrite())__rq.logAnalyticsEvent({type:'theme_changed',from:from,to:to}).catch(function(){});}catch(e){}}
 function activeTheme(){return THEMES[SET.theme]||THEME_VARIANTS[SET.theme]||skinTheme(SET.theme)||ownedShopTheme(SET.theme)||THEMES.sepia;}
-const FONTS=[
- {label:'Georgia',v:'Georgia, serif'},
- {label:'Times',v:'"Times New Roman", Times, serif'},
- {label:'Palatino',v:'"Palatino Linotype","Book Antiqua",Palatino,serif'},
- {label:'Garamond',v:'Garamond,"Times New Roman",serif'},
+const FONTS=[ /* 28.10 (ревизия чтения): only Georgia / system sans / mono come from the phone; Android has no Palatino, Garamond, Verdana,
+   Trebuchet, Tahoma or Comic Sans, so those all fell back to one face. The rest are bundled (fonts/, OFL), same look on every phone.
+   SET.font is an index: the order stays, old choices land on the font that replaced them. */
+ {label:'Georgia',v:'Georgia,"Noto Serif","Droid Serif",serif'},
+ {label:'Times',v:'"Times New Roman","RQ Liberation Serif",Times,serif'},
+ {label:'Lora',v:'"Lora",Georgia,serif'},
+ {label:'Plex Serif',v:'"IBM Plex Serif",Georgia,serif'},
  {label:'Sans',v:'system-ui,"Segoe UI",Roboto,sans-serif'},
- {label:'Verdana',v:'Verdana,Geneva,sans-serif'},
- {label:'Trebuchet',v:'"Trebuchet MS",sans-serif'},
- {label:'Tahoma',v:'Tahoma,sans-serif'},
- {label:'Comic',v:'"Comic Sans MS","Comic Neue","Segoe UI",system-ui,sans-serif'}, /* 16.10: no «cursive» — on Android it is a Latin-only face: punctuation from it, Cyrillic from another font */
- {label:'Mono',v:'"Courier New",monospace'}
+ {label:'Nunito',v:'"Nunito",system-ui,sans-serif'},
+ {label:'Manrope',v:'"Manrope",system-ui,sans-serif'},
+ {label:'Alegreya Sans',v:'"Alegreya Sans",system-ui,sans-serif'},
+ {label:'Caveat',v:'"Caveat","Segoe UI",system-ui,sans-serif'}, /* was «Comic»: no Comic Sans on Android; a bundled hand-written face instead */
+ {label:'Mono',v:'"Courier New","Droid Sans Mono","Liberation Mono",monospace'}
 ];
 
 /* ================= СОСТОЯНИЕ ================= */

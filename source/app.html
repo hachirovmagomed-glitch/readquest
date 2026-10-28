@@ -576,6 +576,10 @@ body.rq-nolocks #rqNoXp{display:block}
 body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content p.rq-bitr,.rqCurlTxt p.rq-bitr{font-style:italic;opacity:.72;margin-bottom:.6em} /* 25.10: перевод под абзацем (книга «с переводом») */
+#content p.rq-h,.rqCurlTxt p.rq-h,#content.noind p.rq-h{text-indent:0;font-weight:700;font-size:1.12em;line-height:1.35;margin:1.1em 0 .7em;break-after:avoid;hyphens:none;-webkit-hyphens:none;text-align:left} /* 28.10: chapter title (FB2 / EPUB / «Глава N» in TXT), plain bold, no decor */
+#content p.rq-img,.rqCurlTxt p.rq-img{text-indent:0;text-align:center;margin:.6em 0;break-inside:avoid;line-height:0}
+#content p.rq-img img,.rqCurlTxt p.rq-img img{max-width:100%;max-height:78vh;height:auto;display:inline-block}
+#content p.rq-img.gone,.rqCurlTxt p.rq-img.gone{display:none}
 #content h3,.rqCurlTxt h3{text-indent:0;margin:0 0 .8em;font-size:1.25em;break-inside:avoid} /* audit 19.10 RD-EPUB-01 */
 #content .meta,.rqCurlTxt .meta{text-indent:0;color:var(--r-txt-2);font-style:italic;margin-bottom:1.6em;white-space:normal;overflow-wrap:anywhere;break-inside:avoid} /* audit 15.10: secondary page token instead of opacity .6 */
 .tap{position:absolute;top:0;bottom:0;width:30%;z-index:5}
@@ -734,6 +738,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 26.10: the selection bar at the top when the end of the selection is under it; the edge hint while a selection end is held at the page edge */
 @media (max-width:440px){#selpop.qmode .spl2{display:none}} /* a tapped quote has two more buttons (Удалить, Изменить границы): «Объясни» as an icon there on a phone */
 #selpop.top{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
+#selpop.top #spFold{top:auto;bottom:-18px} /* 28.10 (ревизия, баг 9): плашка у верхнего края — значок «Свернуть» снизу, иначе его срезает экран */
 /* 27.10 (Джессика): while selecting the bar is a small circle (#spMini) — a tap opens it, «Свернуть» folds it back */
 #spMini{display:none!important}
 #selpop.mini{padding:0;border-radius:50%;gap:0}
@@ -743,7 +748,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selpop.qmode #spFold{display:none}
 /* 27.10: ‹ › turn the page with the selection kept; the chip between them says the earlier pages' part is still there (at the bottom: the new page's first word, where the selection goes on, is at the top) */
 #selNav[hidden],#selFrom[hidden],#selFromX[hidden]{display:none!important}
-#selPrev,#selNext{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);z-index:61;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#selPrev,#selNext{position:fixed;bottom:var(--sel-up,calc(env(safe-area-inset-bottom,0px) + 24px));z-index:61;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35)}
 #selPrev{left:12px}#selNext{right:12px}
 #selPrev:disabled,#selNext:disabled{opacity:.35}
 #selFrom{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translateX(-50%);z-index:61;display:flex;align-items:center;max-width:calc(100vw - 144px);min-height:48px;background:var(--sheet);color:var(--txt);border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.35);border:2px solid var(--accent)}
@@ -991,6 +996,10 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #reader.pdftone .textLayer span.v{color:var(--r-txt);color:color-mix(in srgb,var(--r-bg) calc(var(--l) * 100%),var(--r-txt))}
 #reader.pdftone #pdfSheet,#reader.pdftone #pdfScroll .psl{background:var(--r-bg)}
 #reader.pdftone #pdfSheet canvas,#reader.pdftone #pdfScroll .psl canvas,#reader.pdftone .rqCurlCv,#reader.pdftone .pgth canvas{filter:url(#rqPdfTone)}
+/* 28.10 (ревизия чтения, баг 7): ночью страница PDF приглушается слоем поверх холста. Правило tokens.css пишет его для .rq-pdf-page из макета;
+   в приложении страница — #pdfSheet / .psl. Сила — SET.pdfDim (--rq-pdf-dim), по умолчанию --rq-pdf-night-dim. С «Цветами темы» (pdftone) слой не нужен. */
+#reader[data-page="night"]:not(.pdftone) :is(#pdfSheet,#pdfScroll .psl)::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--rq-pdf-dim,var(--rq-pdf-night-dim,.35)));pointer-events:none;z-index:1}
+#reader[data-page="night"]:not(.pdftone) .rqCurlCv{filter:brightness(calc(1 - var(--rq-pdf-dim,var(--rq-pdf-night-dim,.35))))}
 
 /* ===== Компактная панель оформления: категории ===== */
 .setcats{display:flex;gap:6px;overflow-x:auto;margin:2px 0 12px;scrollbar-width:none}
@@ -1715,6 +1724,8 @@ html[data-skin="pencil"] #pgSlider::-moz-range-thumb{background:transparent;bord
 /* ===== «Карандашный» fixes (Интерфейс list): Caveat ≥26px titles, Lucide instead of emoji, baked wobbly outlines (no runtime filters) ===== */
 @font-face{font-family:"Caveat";src:url(fonts/caveat.woff2) format("woff2");font-weight:400 700;font-display:swap}
 @font-face{font-family:"Nunito";src:url(fonts/nunito.woff2) format("woff2");font-weight:200 1000;font-display:swap} /* pencil UI text (--rq-font-ui); the book page keeps the reader font */
+@font-face{font-family:"RQ Liberation Serif";src:url(fonts/reader-liberationserif-regular.woff2) format("woff2");font-weight:300 500;font-display:swap} /* 28.10 reading font «Times» on phones without Times New Roman */
+@font-face{font-family:"RQ Liberation Serif";src:url(fonts/reader-liberationserif-bold.woff2) format("woff2");font-weight:600 800;font-display:swap}
 .pc-only{display:none!important}
 html[data-skin="pencil"] .pc-hide{display:none!important}
 html[data-skin="pencil"] svg.pc-only,html[data-skin="pencil"] span.pc-only{display:inline-block!important}
@@ -1922,7 +1933,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="row" style="margin-top:8px;margin-bottom:10px"><h2 id="shelfH" style="margin:0">Моя полка</h2><div class="spacer"></div><div class="lsortwrap"><button class="iconbtn44 addicon" id="btnAdd" type="button" aria-label="Добавить книгу" title=".txt / .epub / .fb2 / .pdf" aria-haspopup="menu" aria-controls="addMenu" aria-expanded="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button><div class="lsortmenu addmenu" id="addMenu" role="menu" hidden></div></div></div>
     <div class="row libshelfbar" id="libShelfBar" hidden></div>
     <div class="grid" id="shelf"></div>
-    <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf" multiple style="display:none">
+    <input type="file" id="fileInp" accept=".txt,.epub,.fb2,.pdf,.zip" multiple style="display:none">
     <input type="file" id="dirInp" webkitdirectory multiple style="display:none">
     <input type="file" id="covInp" accept="image/*" style="display:none">
   </div></div>

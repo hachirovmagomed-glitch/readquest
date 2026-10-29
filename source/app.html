@@ -778,6 +778,29 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #ssFrom{outline:1.5px dashed var(--accent);outline-offset:-3px}
 #ssFromN{position:absolute;right:0;bottom:1px;text-decoration:none;font-size:10px;font-weight:700;line-height:1;color:var(--accent);max-width:44px;overflow:hidden}
 #ssRail>hr{width:26px;margin:2px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
+/* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
+#ssQuick i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
+#ssSay[aria-pressed="true"]{background:var(--accent)!important}#ssSay[aria-pressed="true"] .ic{color:var(--sheet)}
+#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
+#ssCnt{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
+#ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
+#ssMenu[hidden],#stSheet[hidden]{display:none!important}
+#ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}
+#selSide[data-side="R"] #ssMenu{left:auto;right:calc(100% + 6px)}
+#ssMenu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border-radius:12px;text-align:left;font-size:0.9375rem;color:var(--txt);background:none}
+#ssMenu>button:active{background:var(--card2)}
+#ssMenu .ic{flex:none;color:var(--accent)}
+#stSheet{position:fixed;left:0;right:0;bottom:0;z-index:96;max-height:62vh;overflow:auto;background:var(--sheet);color:var(--txt);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4);padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);-webkit-user-select:none;user-select:none}
+#stSheet .sthead{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;min-height:52px;background:var(--sheet)}
+#stSheet .sthead b{flex:1;font-size:1.0625rem}
+#stSheet .stmuted{color:var(--muted);font-size:0.875rem;margin:2px 0 10px}
+#stSheet .stwiki{font-size:0.9375rem;line-height:1.5;margin:0 0 10px}
+#stSheet .stlink{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);font-weight:600}
+#stSheet .sthero{display:flex;align-items:center;gap:4px;border-top:1px solid color-mix(in srgb,var(--txt) 12%,transparent)}
+#stSheet .sthgo{flex:1;display:flex;align-items:center;gap:10px;min-height:48px;padding:0;text-align:left;color:var(--txt);background:none}
+#stSheet .sthgo .ic{color:var(--accent);flex:none}#stSheet .sthgo span{flex:1}#stSheet .sthgo small{color:var(--muted);font-size:0.8125rem}
+#stSheet .sthdel{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:none}
+.prow .mkt{color:var(--muted);font-size:0.8125rem}
 #reader .textLayer .pdfhls i.pend{background:rgba(70,130,240,.3)!important;box-shadow:none!important}
 #selEdge{position:fixed;z-index:59;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
 #selEdge.next,#selEdge.prev{display:flex}#selEdge.prev .ic{transform:rotate(180deg)}
@@ -2861,6 +2884,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/path.js"></script>
 <script src="js/adv.js"></script>
 <script src="js/diary.js"></script>
+<script src="js/sel-tools.js"></script>
 <script src="js/start.js"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>

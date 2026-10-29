@@ -949,6 +949,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 18.10 «Обзор» with real thumbnails (js/page-grid.js): a tile per page, a picture only near the screen */
 .pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px 10px}
 .pgt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;color:var(--muted);font-size:0.6875rem;font-variant-numeric:tabular-nums;cursor:pointer}
+.pgfr{display:block;position:relative} /* 29.10: the picture + its marks (the marks stay when the picture is dropped) */
 .pgth{display:block;position:relative;width:100%;aspect-ratio:var(--pg-asp,.66);background:var(--r-bg,#f4ecd8);border-radius:var(--rq-radius-xs);overflow:hidden;box-shadow:0 0 0 1px var(--card2)}
 .pgth canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 .pgsc{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
@@ -956,7 +957,35 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 .pgt.cur .pgth{box-shadow:0 0 0 2px var(--accent)}
 .pgt.cur .pgn{color:var(--txt);font-weight:700}
 .pgn{position:relative;text-align:center}
-.pgn .m{margin-left:3px;color:var(--accent)}
+/* 29.10 «Обзор» (Джессика, пункты 1, 2, 4, 7): bar «Стр. [__] Перейти · К текущей», chapter titles, marks on the pictures, the fast thumb */
+#panelBody .pgbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:6px;margin:0 -16px;padding:2px 16px 10px;background:var(--sheet)}
+.pgbar .pggo{display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--muted)}
+.pgbar input{width:5.2em;min-height:40px;padding:0 8px;border-radius:var(--rq-radius-sm);border:1px solid var(--card2);background:var(--card2);color:var(--txt);font:inherit;font-size:0.9375rem;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.pgbar input::-webkit-inner-spin-button,.pgbar input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pgbar input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pgbar .spacer{flex:1}
+.pgbar .pgbtn{display:inline-flex;align-items:center;gap:5px;min-height:40px;padding:0 10px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt);font-size:0.8125rem;font-weight:600;white-space:nowrap}
+.pgbar .pgbtn .ic{color:var(--accent)}
+.pgsec{position:relative}
+.pgsec+.pgsec{margin-top:14px}
+#panelBody .pgch{position:sticky;top:var(--pgbar-h,52px);z-index:3;display:flex;align-items:baseline;gap:8px;margin:0 -16px 8px;padding:6px 16px 7px;background:var(--sheet);font-size:0.8125rem;font-weight:700;color:var(--txt);border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.pgch .pgcht{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgch .pgchp{flex:none;font-size:0.6875rem;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.pgbm{position:absolute;top:-2px;right:6px;z-index:1;display:flex;color:var(--accent);filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.pgbm .ic{fill:currentColor}
+.pgqs{position:absolute;left:5px;bottom:5px;z-index:1;display:flex;align-items:center;gap:3px;padding:3px 4px;border-radius:999px;background:color-mix(in srgb,var(--sheet) 82%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--txt) 12%,transparent)}
+.pgqs i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%)}
+.pgqs .pgnote{display:flex;color:var(--txt)}
+.pgscr{position:absolute;right:2px;width:30px;z-index:6;pointer-events:none}
+.pgscr[hidden]{display:none}
+.pgscr-th{position:absolute;top:0;right:0;width:30px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;cursor:grab}
+.pgscr-th i{width:8px;height:40px;border-radius:999px;background:var(--accent);opacity:.55;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:width .15s,opacity .15s}
+.pgscr.on .pgscr-th i{width:12px;opacity:1}
+.pgscr-tip{position:absolute;top:0;right:36px;display:none;flex-direction:column;align-items:flex-end;gap:1px;max-width:min(240px,70vw);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--accent);color:var(--on-accent);font-size:0.75rem;line-height:1.25;box-shadow:var(--rq-shadow-2,0 4px 14px rgba(0,0,0,.3));white-space:nowrap}
+.pgscr-tip b{font-size:0.9375rem;font-variant-numeric:tabular-nums}
+.pgscr-tip span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pgscr.on .pgscr-tip{display:flex}
+@media (prefers-reduced-motion:reduce){.pgscr-th i{transition:none}}
 /* «Яркость» (#dimmer; was «Затемнение» until 20.10) = screen brightness (Джессика 17.10): the whole reader screen, bars included, evenly — a child of #reader, not of
    #viewer (that one is inset by the margins and scrolls in scroll mode). Above the bars (30), under the settings sheet (50). */
 #dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}

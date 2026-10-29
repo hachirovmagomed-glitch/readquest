@@ -261,7 +261,7 @@ function updSelPop(){
   if(!off)selPlace();
 }
 const SA={key:null,mini:true};
-function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
+function selMiniApply(){const sp=el('selpop'),m=!SQ&&!SA.bar; /* 29.10 (Джессика выбрала «Убрать, всё в меню»): while selecting, the bar is never shown, all is in #selSide (SA.bar: only the tests of the bar's own buttons) */sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
 /* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
    is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
 function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
@@ -408,20 +408,19 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   const b=function(id,ic,lab){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+'</button>';};
   n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
     '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Перетащить меню" title="Перетащить"><i aria-hidden="true"></i></button>'+
-    '<button type="button" id="ssQuick"><i aria-hidden="true"></i></button>'+b('ssPen','highlighter','Цвета и действия')+'<hr>'+
-    b('ssFind','search','Найти в книге')+b('ssSay','volume-2','Озвучить выделенное')+
-    '<button type="button" id="ssMore" aria-label="Ещё" title="Ещё" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+'</button><hr>'+
+    '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i></button>'+
+    b('ssDict','languages','Перевести')+b('ssAI','sparkles','Объясни')+
+    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+'</button><hr>'+
     '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
     '<div id="ssCnt" role="status"></div>'+
     '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>'+
-    '<div id="ssMenu" role="menu" aria-label="Ещё" hidden></div>';
+    '<div id="ssMenu" role="menu" aria-label="Действия" hidden></div><div id="ssColBox" role="group" aria-label="Цвет цитаты" hidden></div>';
   el('reader').appendChild(n);
   n.addEventListener('mousedown',function(e){e.preventDefault();}); /* a click here never takes the selection away */
   const tap=function(f){return function(){if(SS.moved){SS.moved=false;return;}f();};};
   el('ssTab').onclick=tap(function(){SS.open=true;ssUpd();});
   el('ssFold').onclick=function(){SS.open=false;ssUpd();};
   if(typeof stBind==='function')stBind(); /* 29.10 the tools: js/sel-tools.js */
-  el('ssPen').onclick=function(){SA.mini=!SA.mini;selMiniApply();selPlace();};
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
   el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
@@ -441,12 +440,11 @@ function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p
   const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
 function ssUpd(){
   const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&!window.__rqFindOpen&&(!!selBook()||pg);
-  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;return;}
+  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;if(typeof stCol==='function')stCol(false);return;}
   const n=ssEl();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
-  if(!SS.open&&typeof stMenu==='function')stMenu(false);
-  el('ssPen').setAttribute('aria-pressed',SA.mini?'false':'true');
+  if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
   const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);

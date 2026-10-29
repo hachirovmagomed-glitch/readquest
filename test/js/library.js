@@ -202,9 +202,10 @@ let __bootGold=0;
 function renderLibrary(){
   rollDay();
   if(!renderLibrary._bk){renderLibrary._bk=true;
-    const ub=(S.userBooks||[]).length;
-    const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
-    if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
+    /* 29.10 «Напоминать о копии» (arch.md backupNag / backupNagAt): at most once a week, only with own books or read minutes, copy older than 7 days */
+    const ub=(S.userBooks||[]).length,day=864e5,ago=function(d){return d?(Date.now()-new Date(d).getTime())/day:Infinity;};
+    const due=S.backupNag!==false&&(ub>0||(S.totalMin||0)>=1)&&ago(S.lastBackup)>=7&&ago(S.backupNagAt)>=7;
+    if(due)setTimeout(()=>{if(el('library').classList.contains('hidden'))return;S.backupNagAt=today();save();flashMsg(S.lastBackup?'Резервной копии уже '+Math.floor(ago(S.lastBackup))+' '+plural(Math.floor(ago(S.lastBackup)),'день','дня','дней')+'. Настройки → Данные':'Сделайте резервную копию книг и прогресса: Настройки → Данные',{kind:'info',icon:'info',ms:4000});},1400);
   }
   libSortSync();libGoldRender(); /* balance as text, floor(S.gold), same source as the drawer; no writes */
   const gl=el('libGoldLine');if(gl){gl.textContent='';if(__bootGold)gl.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}

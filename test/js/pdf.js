@@ -591,7 +591,7 @@ function pdfTouchStart(e){
   if(P.g&&(P.g.type==='pinch'||P.g.type==='quiet')){pdfLog({ev:'start-blocked',g:P.g.type,n:e.touches.length});return;}
   const t=e.touches[0],G=pdfGeom();
   P.g={type:'one',x0:t.clientX,y0:t.clientY,t0:performance.now(),tx0:P.tx,ty0:P.ty,atL:G.atL,atR:G.atR,pannable:G.pannable,moved:false,
-    bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.bright==null?1:SET.bright}:null};
+    bright:(t.clientX-r.left<28&&!G.pannable&&rqRx().gest.bright)?{y0:t.clientY,d0:SET.bright==null?1:SET.bright}:null};
 }
 /* 22.10 (Джессика: «PDF более отзывчивы к выделению текста»): while text is being selected (a long press made a selection, or the finger
    has rested on the page), one finger belongs to the selection — no pan, no swipe flip, no blocked move, so the selection follows the finger */
@@ -669,10 +669,12 @@ function pdfWheel(e){
   pdfFlip(e.deltaY>0?1:-1);
 }
 window.__rqLayoutCount=0; /* test hook: number of full column reflows */
-function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|')+(rqScrollMode()?'|s':'');}
+function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin,rqRx().screen.spread].join('|')+(rqScrollMode()?'|s':'');}
+/** 29.10 SET.rx.screen.spread: two text columns from 860 px (as before) / also in landscape from 520 px / always one */
+function rqCols(w){const sp=rqRx().screen.spread;if(sp==='off')return 1;if(w>=860)return 2;return sp==='land'&&window.innerWidth>window.innerHeight&&w>=520?2:1;}
 /* audit 19.10 RD-TAB-01: on a tablet in portrait (600–859 px) the line stays ≈ 36 em (60–75 characters): the side fields grow; 860+ is two columns */
 function rqTextMargin(){const v=el('viewer');if(!v||R.mode==='pdf')return;const W=window.innerWidth,m=SET.margin;
-  const mw=(W>=600&&W<860)?Math.max(m,Math.floor((W-SET.size*36)/2)):m;
+  const mw=(W>=600&&W<860&&!(rqRx().screen.spread==='land'&&W>window.innerHeight))?Math.max(m,Math.floor((W-SET.size*36)/2)):m; /* 29.10: two pages in landscape keep the plain margins */
   if(v._mw!==mw){v._mw=mw;v.style.margin='0 '+mw+'px';el('reader').style.setProperty('--r-margin',mw+'px');}}
 function layout(){
   if(R.mode==='pdf'){pdfOnResize();return;}
@@ -686,7 +688,7 @@ function layout(){
     R.layoutKey=layoutKey(w,h)+'|s';window.__rqLayoutCount++;return;
   }
   if(v.scrollTop)v.scrollTop=0; /* back from the scroll mode */
-  const cols=w>=860?2:1;
+  const cols=rqCols(w);
   const cw=(w-gap*(cols-1))/cols;
   c.style.columnWidth=cw+'px';c.style.columnGap=gap+'px';
   c.style.height=h+'px';c.style.width=w+'px';

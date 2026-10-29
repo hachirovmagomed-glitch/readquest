@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261029-1555',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261029-1636',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261029-1555"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261029-1636"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -778,6 +778,29 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #ssFrom{outline:1.5px dashed var(--accent);outline-offset:-3px}
 #ssFromN{position:absolute;right:0;bottom:1px;text-decoration:none;font-size:10px;font-weight:700;line-height:1;color:var(--accent);max-width:44px;overflow:hidden}
 #ssRail>hr{width:26px;margin:2px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
+/* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
+#ssQuick i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
+#ssSay[aria-pressed="true"]{background:var(--accent)!important}#ssSay[aria-pressed="true"] .ic{color:var(--sheet)}
+#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
+#ssCnt{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
+#ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
+#ssMenu[hidden],#stSheet[hidden]{display:none!important}
+#ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}
+#selSide[data-side="R"] #ssMenu{left:auto;right:calc(100% + 6px)}
+#ssMenu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border-radius:12px;text-align:left;font-size:0.9375rem;color:var(--txt);background:none}
+#ssMenu>button:active{background:var(--card2)}
+#ssMenu .ic{flex:none;color:var(--accent)}
+#stSheet{position:fixed;left:0;right:0;bottom:0;z-index:96;max-height:62vh;overflow:auto;background:var(--sheet);color:var(--txt);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4);padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);-webkit-user-select:none;user-select:none}
+#stSheet .sthead{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;min-height:52px;background:var(--sheet)}
+#stSheet .sthead b{flex:1;font-size:1.0625rem}
+#stSheet .stmuted{color:var(--muted);font-size:0.875rem;margin:2px 0 10px}
+#stSheet .stwiki{font-size:0.9375rem;line-height:1.5;margin:0 0 10px}
+#stSheet .stlink{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);font-weight:600}
+#stSheet .sthero{display:flex;align-items:center;gap:4px;border-top:1px solid color-mix(in srgb,var(--txt) 12%,transparent)}
+#stSheet .sthgo{flex:1;display:flex;align-items:center;gap:10px;min-height:48px;padding:0;text-align:left;color:var(--txt);background:none}
+#stSheet .sthgo .ic{color:var(--accent);flex:none}#stSheet .sthgo span{flex:1}#stSheet .sthgo small{color:var(--muted);font-size:0.8125rem}
+#stSheet .sthdel{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:none}
+.prow .mkt{color:var(--muted);font-size:0.8125rem}
 #reader .textLayer .pdfhls i.pend{background:rgba(70,130,240,.3)!important;box-shadow:none!important}
 #selEdge{position:fixed;z-index:59;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
 #selEdge.next,#selEdge.prev{display:flex}#selEdge.prev .ic{transform:rotate(180deg)}
@@ -2188,7 +2211,7 @@ body:has(#rqTestBanner) .dyfbar{top:calc(44px + env(safe-area-inset-top))}
 .bk-dy{margin-top:12px}
 @media (prefers-reduced-motion:no-preference){#diary .rsw::after{transition:transform var(--rq-dur-fast,150ms)}}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261029-1555"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261029-1636"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2865,41 +2888,42 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261029-1555"></script>
-<script src="js/books-builtin.js?v=20261029-1555"></script>
-<script src="js/core-b.js?v=20261029-1555"></script>
-<script src="js/library.js?v=20261029-1555"></script>
-<script src="js/reader.js?v=20261029-1555"></script>
-<script src="js/pdf.js?v=20261029-1555"></script>
-<script src="js/pdf-scroll.js?v=20261029-1555"></script>
-<script src="js/page-curl.js?v=20261029-1555"></script>
-<script src="js/page-grid.js?v=20261029-1555"></script>
-<script src="js/reader-ui.js?v=20261029-1555"></script>
-<script src="js/book-find.js?v=20261029-1555"></script>
-<script src="js/focus.js?v=20261029-1555"></script>
-<script src="js/rpg.js?v=20261029-1555"></script>
-<script src="js/content.js?v=20261029-1555"></script>
-<script src="js/quotes.js?v=20261029-1555"></script>
-<script src="js/translate.js?v=20261029-1555"></script>
-<script src="js/ocr.js?v=20261029-1555"></script>
-<script src="js/hero-pencil.js?v=20261029-1555"></script>
-<script src="js/hero-celestial.js?v=20261029-1555"></script>
-<script src="js/hero.js?v=20261029-1555"></script>
-<script src="js/settings.js?v=20261029-1555"></script>
-<script src="js/v6-extras.js?v=20261029-1555"></script>
-<script src="js/ach-core.js?v=20261029-1555"></script>
-<script src="js/achievements.js?v=20261029-1555"></script>
-<script src="js/path.js?v=20261029-1555"></script>
-<script src="js/adv.js?v=20261029-1555"></script>
-<script src="js/diary.js?v=20261029-1555"></script>
-<script src="js/start.js?v=20261029-1555"></script>
+<script src="js/core-a.js?v=20261029-1636"></script>
+<script src="js/books-builtin.js?v=20261029-1636"></script>
+<script src="js/core-b.js?v=20261029-1636"></script>
+<script src="js/library.js?v=20261029-1636"></script>
+<script src="js/reader.js?v=20261029-1636"></script>
+<script src="js/pdf.js?v=20261029-1636"></script>
+<script src="js/pdf-scroll.js?v=20261029-1636"></script>
+<script src="js/page-curl.js?v=20261029-1636"></script>
+<script src="js/page-grid.js?v=20261029-1636"></script>
+<script src="js/reader-ui.js?v=20261029-1636"></script>
+<script src="js/book-find.js?v=20261029-1636"></script>
+<script src="js/focus.js?v=20261029-1636"></script>
+<script src="js/rpg.js?v=20261029-1636"></script>
+<script src="js/content.js?v=20261029-1636"></script>
+<script src="js/quotes.js?v=20261029-1636"></script>
+<script src="js/translate.js?v=20261029-1636"></script>
+<script src="js/ocr.js?v=20261029-1636"></script>
+<script src="js/hero-pencil.js?v=20261029-1636"></script>
+<script src="js/hero-celestial.js?v=20261029-1636"></script>
+<script src="js/hero.js?v=20261029-1636"></script>
+<script src="js/settings.js?v=20261029-1636"></script>
+<script src="js/v6-extras.js?v=20261029-1636"></script>
+<script src="js/ach-core.js?v=20261029-1636"></script>
+<script src="js/achievements.js?v=20261029-1636"></script>
+<script src="js/path.js?v=20261029-1636"></script>
+<script src="js/adv.js?v=20261029-1636"></script>
+<script src="js/diary.js?v=20261029-1636"></script>
+<script src="js/sel-tools.js?v=20261029-1636"></script>
+<script src="js/start.js?v=20261029-1636"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261029-1555"></script>
+<script src="js/pwa-lock.js?v=20261029-1636"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2907,9 +2931,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261029-1555';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261029-1555';
-import * as game from './game-awards.js?v=20261029-1555';
+} from './storage/index.js?v=20261029-1636';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261029-1636';
+import * as game from './game-awards.js?v=20261029-1636';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

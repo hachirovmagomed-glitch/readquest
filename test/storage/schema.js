@@ -73,6 +73,8 @@ export const PROGRESS_DEF = {
   diaryAuto: true,
   /** 28.10 «Цитата дня» на главной: день (YYYY-MM-DD), до конца которого она скрыта (✕); null = показывается */
   qdayOff: null,
+  /** 29.10 «Герои книги» (боковое меню выделения, js/sel-tools.js): id → names the reader marked, ≤ 200 per book, a name ≤ 40 */
+  chars: {},
   bookStat: {},
   bookImp: {},
   status: {},
@@ -375,6 +377,7 @@ export function hydrateProgress(p) {
   out.readSpans = spansMap(out.readSpans);
   out.aiChat = aiChatMap(out.aiChat);
   out.diaries = diaryList(out.diaries);
+  out.chars = charsMap(out.chars);
   if (typeof out.diaryAuto !== 'boolean') out.diaryAuto = true;
   out.qdayOff = typeof out.qdayOff === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(out.qdayOff) ? out.qdayOff : null;
   out.bookStat = out.bookStat || {};
@@ -386,6 +389,17 @@ export function hydrateProgress(p) {
   out.stickers = out.stickers || {};
   out.favs = out.favs || [];
   if (out.goal == null || out.goal < 5) out.goal = PROGRESS_DEF.goal;
+  return out;
+}
+
+function charsMap(m) {
+  const out = {};
+  if (!m || typeof m !== 'object' || Array.isArray(m)) return out;
+  for (const k of Object.keys(m)) {
+    if (!Array.isArray(m[k])) continue;
+    const v = m[k].filter(x => typeof x === 'string' && x.trim()).map(x => x.trim().slice(0, 40)).slice(0, 200);
+    if (v.length) out[k] = v;
+  }
   return out;
 }
 

@@ -157,9 +157,12 @@ const s7 = await p.evaluate(async () => { el('bookSheet').classList.add('hidden'
   const faces = Array.from(document.querySelectorAll('#advList .advfaces .advface'));
   const srcs = faces.map(b => b.querySelector('img').getAttribute('src'));
   const ok = await Promise.all(srcs.map(u => fetch(u).then(r => r.ok && r.headers.get('content-type') !== 'text/html').catch(() => false)));
-  const t0 = window.today; const order = d => { window.today = () => d; const o = advFaces().map(x => x[1]).join(); window.today = t0; return o; };
-  return { n: faces.length, uniq: new Set(srcs).size, bad: srcs.filter((u, i) => !ok[i]), a: order('2026-10-28') === order('2026-10-28'), b: order('2026-10-28') !== order('2026-10-29') }; });
-ok('7 «Авторы»: больше 60 портретов, все файлы на месте, без повторов; порядок свой на каждый день и один и тот же в течение дня', s7.n >= 60 && s7.uniq === s7.n && !s7.bad.length && s7.a && s7.b, s7);
+  const o1 = advFaces().map(x => x[1]).join(); advRenderList(); const o1b = Array.from(document.querySelectorAll('#advList .advface img')).map(i => i.getAttribute('src').replace(/^.*\/|\.webp$/g, '')).join();
+  openAdv(); await new Promise(r => setTimeout(r, 100)); const o2 = advFaces().map(x => x[1]).join();
+  const women = ['ebronte', 'woolf', 'dickinson', 'teffi', 'gippius', 'sand', 'austen', 'tsvetaeva'].filter(k => srcs.some(u => u.indexOf('/' + k + '.webp') >= 0)).length;
+  await advAuthor('Тэффи'); for (let i = 0; i < 30 && ADV.busy; i++) await new Promise(r => setTimeout(r, 100));
+  return { n: faces.length, uniq: new Set(srcs).size, bad: srcs.filter((u, i) => !ok[i]), a: o1 === o1b, b: o1 !== o2, women, fallback: { q: ADV.q, set: ADV.set, err: ADV.err } }; });
+ok('7 «Авторы»: больше 80 портретов, есть писательницы, файлы на месте, без повторов; порядок новый при каждом открытии «Приключений» и не скачет при перерисовке; автор без страницы на Викитеке ищется по имени', s7.n >= 80 && s7.women >= 6 && s7.uniq === s7.n && !s7.bad.length && s7.a && s7.b && s7.fallback.q === 'Тэффи' && s7.fallback.set === null, s7);
 
 ok('нет ошибок страницы и окон', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 const n = checks.filter(Boolean).length; console.log('SUMMARY adv5.test ' + n + '/' + checks.length);

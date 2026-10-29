@@ -431,12 +431,6 @@
   "artist": "George Charles Beresford / Adam Cuerden",
   "url": "https://commons.wikimedia.org/wiki/File%3AGeorge_Charles_Beresford_-_Virginia_Woolf_in_1902_-_Restoration.jpg"
  },
- "sappho": {
-  "file": "File:Malarz_Safony_-_Kalpis_wykonana_techniką_Six.jpg",
-  "license": "Public domain",
-  "artist": "Sappho Painter",
-  "url": "https://commons.wikimedia.org/wiki/File%3AMalarz_Safony_-_Kalpis_wykonana_technik%C4%85_Six.jpg"
- },
  "gaskell": {
   "file": "File:Elizabeth_Gaskell_1832.jpg",
   "license": "Public domain",
@@ -490,12 +484,6 @@
   "license": "Public domain",
   "artist": "E. F. Cooper, Newport, Rhode Island",
   "url": "https://commons.wikimedia.org/wiki/File%3AEdith_Newbold_Jones_Wharton_%28cropped_02%29.jpg"
- },
- "murasaki": {
-  "file": "File:Murasaki-Shikibu-composing-Genji-Monogatari.png",
-  "license": "Public domain",
-  "artist": "Tosa Mitsuoki (1617 - 1691)",
-  "url": "https://commons.wikimedia.org/wiki/File%3AMurasaki-Shikibu-composing-Genji-Monogatari.png"
  },
  "stael": {
   "file": "File:Marie_Eléonore_Godefroid_-_Portrait_of_Mme_de_Staël.jpg",
@@ -574,11 +562,5 @@
   "license": "Public domain",
   "artist": "Unknown authorUnknown author",
   "url": "https://commons.wikimedia.org/wiki/File%3AMadame_de_Lafayette%2C_PA07840.jpg"
- },
- "christine": {
-  "file": "File:Christine_de_pisan.jpg",
-  "license": "Public domain",
-  "artist": "The original uploader was Kelson at French Wikipedia.",
-  "url": "https://commons.wikimedia.org/wiki/File%3AChristine_de_pisan.jpg"
  }
 }

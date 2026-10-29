@@ -18,6 +18,8 @@ const FZ_SOUNDS={
   babochkovyi:[['garden','Сад и птицы'],['brook','Ручей'],['meadow','Летний луг']],
   celestial:[['space','Космос'],['starwind','Звёздный ветер'],['chimes','Колокольчики']]
 };
+/* 25.10 вечером (Джессика: «Давай уберём эти вопросы в начале фокуса, они лишние»): the question is not asked any more */
+const FZ_ASK_WORDS=false;
 const FZ_WORDS=['Дочитать главу','Понять главную мысль','Отдохнуть с книгой','Найти цитаты'];
 /* round state of the running session (reset when the session changes) */
 const FZ={sid:null,phase:'idle',len:25,base:0,prog:0,done:[],run:0,best:0,clean:true,rescued:false,hiddenAt:0,restUntil:0,hold:false,fw:'',asked:false};
@@ -100,7 +102,7 @@ function fzHideHold(){const h=el('fzHold');if(h)h.classList.add('hidden');}
 /* --- focus words: «зачем читаю сейчас» before the first round / focus of a session --- */
 function fzAskWords(then){
   fzSync();
-  if(!fzSet().words||FZ.asked||!FZ.sid){then();return;}
+  if(!FZ_ASK_WORDS||!fzSet().words||FZ.asked||!FZ.sid){then();return;}
   const w=el('fzWords');if(!w){then();return;}
   FZ.asked=true;
   const inp=el('fzWordsIn');inp.value=FZ.fw||'';
@@ -284,7 +286,6 @@ function fzRenderTab(statusOnly){
     fzSw('fzQuiet',f.quiet,'Тихий режим','с началом круга остаются только текст и тонкая линия круга')+
     '<div class="rrow stack"><span class="rl">Фоновые звуки<small>свой набор у каждого скина</small></span>'+fzSeg('fzSnd',[0,1,2,3],f.snd,['Выкл'].concat(snd.map(function(x){return x[1];})))+
       '<span class="rl rlv"><label for="fzVol">Громкость</label><span class="rv">'+Math.round(f.vol*100)+' %</span></span><input type="range" id="fzVol" min="5" max="100" step="5" value="'+Math.round(f.vol*100)+'"></div>'+
-    fzSw('fzWordsT',f.words,'Фокус-слова','перед первым кругом: зачем читаешь сейчас; в итоге они рядом с результатом')+
     fzSw('fzWarn',f.warn,'Не отвлекаться','при выходе во время круга напомнить, что он прервётся через минуту; после звонка круг можно продолжить')+
     '<div class="rrow stack"><span class="rl">Вызовы недели<small>за каждый +'+G.CHAL_COINS+' монет и значок</small></span><div class="fzchal">'+
       ch.map(function(c){return '<div class="'+(c.done?'done':'')+'"><span>'+(c.done?rqIcon('trophy',16):rqIcon('target',16))+esc(c.t)+'</span><em>'+c.have+' / '+c.goal+(c.unit?' '+c.unit:'')+'</em><div class="pbar"><i style="width:'+Math.round(c.have/c.goal*100)+'%"></i></div></div>';}).join('')+'</div></div>'+

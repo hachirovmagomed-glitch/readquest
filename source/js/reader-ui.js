@@ -397,9 +397,10 @@ function selNavDodge(s){
 }
 /* 29.10 (Джессика, скрин ReadEra: «некоторые настройки … компактно умещались в боковое меню слева, когда я выделяю текст»; внизу карандаш
    налезал на плашку «Выделено со стр. N», рядом ‹ ›. Потом: «боковое меню закрывает сам текст … перемещать то влево, то вправо … более
-   прозрачным»): while text is selected the pencil, ‹ ›, the chip and «Снять» live in one narrow half-transparent menu at a screen edge.
+   прозрачным»): while text is selected the pencil, the chip and «Снять» live in one narrow half-transparent menu at a screen edge
+   (‹ › stay in the bottom corners: Джессика 29.10 «эти стрелки можно убрать из бокового меню, оставив там где они были раньше»).
    A new selection shows only its tab; the grip (or the tab itself) drags it along the edge and across to the other side, it sticks to the
-   nearer edge, the place is remembered (SET.selSide). #selNav and the circle #spMini stay the state behind it, out of sight. */
+   nearer edge, the place is remembered (SET.selSide). The chip #selFrom and the circle #spMini stay the state behind it, out of sight. */
 const SS={open:false,on:false,drag:null,moved:false};
 function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
 function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
@@ -407,7 +408,7 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
     '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Перетащить меню" title="Перетащить"><i aria-hidden="true"></i></button>'+
     b('ssPen','highlighter','Цвета и действия')+'<hr>'+
-    b('ssPrev','chevron-left','Страница назад, выделение сохранится')+b('ssNext','chevron-right','Страница вперёд, выделение продолжится')+'<hr class="ssPg">'+
+    '<hr class="ssPg">'+
     '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
     '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>';
   el('reader').appendChild(n);
@@ -416,7 +417,6 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   el('ssTab').onclick=tap(function(){SS.open=true;ssUpd();});
   el('ssFold').onclick=function(){SS.open=false;ssUpd();};
   el('ssPen').onclick=function(){SA.mini=!SA.mini;selMiniApply();selPlace();};
-  el('ssPrev').onclick=function(){selTurn(-1);};el('ssNext').onclick=function(){selTurn(1);};
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
   el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
@@ -433,7 +433,7 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
 function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p=ssPos();n.dataset.side=p.s;
   const ch=rqIcon(p.s==='L'?'chevron-right':'chevron-left',18),cf=rqIcon(p.s==='L'?'chevron-left':'chevron-right',21);
   n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;
-  const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-8,p.y*H-h/2));n.style.top=Math.round(top)+'px';}
+  const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
 function ssUpd(){
   const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&(!!selBook()||pg);
   if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;return;}
@@ -442,7 +442,6 @@ function ssUpd(){
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
   el('ssPen').setAttribute('aria-pressed',SA.mini?'false':'true');
   const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
-  el('ssPrev').disabled=!pg||el('selPrev').disabled;el('ssNext').disabled=!pg||el('selNext').disabled;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('ssFromN').textContent=lab;el('ssFrom').setAttribute('aria-label','Выделено со стр. '+lab+' — показать');el('ssFrom').title='Начало: стр. '+lab;

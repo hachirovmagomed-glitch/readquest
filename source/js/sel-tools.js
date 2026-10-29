@@ -1,10 +1,13 @@
-/* 29.10 (Джессика: «что мы можем добавить в боковое меню, чтобы оно было максимально крутым и полезным?» → «давай 1 2 3 5 7», «с 8-11 тоже»):
+/* 29.10 (Джессика: «что мы можем добавить в боковое меню, чтобы оно было максимально крутым и полезным?» → «давай 1 2 3 5 7», «с 8-11 тоже»;
+   потом «поиск, озвучку убираем из бокового меню. Вместо них … перевод, "объяснить" от нейронки», «в одном боковом меню на две разные кнопки
+   открывались разные ветки», нижняя плашка при выделении убрана — «Убрать, всё в меню»):
    the tools of the side menu of a selection (#selSide, js/reader-ui.js ssEl/ssUpd).
-   In the column: the last colour in one tap, «Найти в книге» (the magnifier with the selected words), «Озвучить выделенное», the count of words.
-   Under «⋯»: «В дневник», «Закладка здесь» (the page where the selection begins, its words in the list), «Википедия» (a short note, ru/en),
-   «До конца абзаца», «До конца страницы», «Отметить героя» and «Герои книги» (S.chars[bookId] = names; a name opens the magnifier
-   with all its places). */
-const ST={say:null};
+   In the column: «Цвета» (a branch with the skin's colours and «свой цвет»: the real #spColors moves in, so every skin draws its own drops),
+   «Перевести», «Объясни», «Действия» (a branch: «Заметка», «Копировать», «В словарь», «Предложение, потом абзац», «В дневник», «Закладка здесь»,
+   «Википедия», «До конца абзаца», «До конца страницы», «Отметить героя», «Герои книги»), the count of words.
+   «Перевести», «Объясни», «Заметка», «Копировать», «В словарь», «Предложение…» are the buttons of the bar (#selpop) — the same code.
+   S.chars[bookId] = names of heroes; a name opens the magnifier with all its places. */
+const ST={};
 function stText(){let t=(typeof selText==='function'&&selText())||'';
   if(typeof PQ!=='undefined'&&PQ&&R.book&&PQ.bid===R.book.id&&PQ.text)t=PQ.text+' '+t;
   return String(t).replace(/\s+/g,' ').trim();}
@@ -15,70 +18,56 @@ function stPage(){
   const s=window.getSelection();if(R.mode==='pdf'||!s||!s.rangeCount||!selPagesOn())return R.page;
   const r=[...s.getRangeAt(0).getClientRects()].find(x=>x.width);return r?Math.max(0,Math.min(R.pageCount-1,selPageAt(r))):R.page;}
 function stLab(p){return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(p):String(p+1);}
+function stBar(id){return function(){const b=el(id);if(b)b.click();};}
 
 function stBind(){
-  el('ssQuick').onclick=function(){if(stText())addQuote(false,hlKey(SET.hlc));};
-  el('ssFind').onclick=stFind;
-  el('ssSay').onclick=stSay;
-  el('ssMore').onclick=function(){stMenu(el('ssMenu').hidden);};
+  el('ssCol').onclick=function(){const on=el('ssColBox').hidden;stMenu(false);stCol(on);};
+  el('ssDict').onclick=stBar('spDict');
+  el('ssAI').onclick=stBar('spAI');
+  el('ssMore').onclick=function(){const on=el('ssMenu').hidden;stCol(false);stMenu(on);};
   el('ssMenu').onclick=function(e){const b=e.target.closest&&e.target.closest('button[data-a]');if(!b)return;const f=ST_ACT[b.dataset.a];stMenu(false);if(f)f();};
 }
 function stUpd(){
-  const q=el('ssQuick');if(!q)return;const k=hlKey(SET.hlc),nm=k[0]==='#'?'Свой цвет':hlName(k); /* a hex = the reader's own colour, hlName knows only the presets */
+  const q=el('ssCol');if(!q)return;const k=hlKey(SET.hlc);
   q.style.setProperty('--d',hlDot(k));q.style.setProperty('--d2',hlDot2(k));
-  q.setAttribute('aria-label','Цитата цветом «'+nm+'»');q.title='Цитата: '+nm;
   const n=stWords(stText()),c=el('ssCnt');
   c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>';c.setAttribute('aria-label','Выделено '+n+' '+plural(n,'слово','слова','слов'));
-  const sy=el('ssSay'),on=!!ST.say;sy.setAttribute('aria-pressed',on?'true':'false');
-  if(sy.dataset.on!==String(on)){sy.dataset.on=String(on);sy.innerHTML=rqIcon(on?'square':'volume-2',21);sy.setAttribute('aria-label',on?'Остановить озвучку':'Озвучить выделенное');sy.title=sy.getAttribute('aria-label');}
+}
+/** a branch next to the column, at the height of its button, whole on screen */
+function stBranch(m,b){
+  const sd=el('selSide').getBoundingClientRect(),br=b.getBoundingClientRect(),h=m.getBoundingClientRect().height;
+  const top=Math.max(8-sd.top,Math.min(innerHeight-8-h-sd.top,br.top-sd.top-h/2+br.height/2));m.style.top=Math.round(top)+'px';
+}
+/* «Цвета»: the bar's own colour buttons (#spColors, its click = a quote in that colour, «свой цвет» = the picker) move into the branch
+   and go back to the bar when the branch closes (a tapped saved quote still recolours in the bar) */
+function stCol(on){
+  const m=el('ssColBox'),b=el('ssCol'),c=el('spColors');if(!m||!c)return;
+  if(!on){if(c.parentNode!==el('selpop'))el('selpop').insertBefore(c,el('spNote'));m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
+  if(typeof renderSpColors==='function')renderSpColors();
+  m.appendChild(c);m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
 }
 
-/* «⋯»: a labelled list next to the column (on the side of the text) */
+/* «Действия»: a labelled list next to the column (on the side of the text) */
 function stMenu(on){
   const m=el('ssMenu'),b=el('ssMore');if(!m)return;
   if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
   const nh=((S.chars||{})[R.book&&R.book.id]||[]).length;
   const it=[
+    ['note','pencil','Заметка'],
+    ['copy','copy','Копировать'],
+    ['word','book-open','В словарь'],
+    R.mode!=='pdf'&&['grow','align-justify','Предложение, потом абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
     ['wiki','info','Википедия'],
-    R.mode!=='pdf'&&['para','align-justify','До конца абзаца'],
+    R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
     selPagesOn()&&['page','chevron-down','До конца страницы'],
     ['hero','user-round','Отметить героя'],
     ['heroes','list','Герои книги'+(nh?' · '+nh:'')]
   ].filter(Boolean);
   m.innerHTML=it.map(x=>'<button type="button" role="menuitem" data-a="'+x[0]+'">'+rqIcon(x[1],18)+'<span>'+esc(x[2])+'</span></button>').join('');
-  m.hidden=false;b.setAttribute('aria-expanded','true');
-  const sd=el('selSide').getBoundingClientRect(),br=b.getBoundingClientRect(),h=m.getBoundingClientRect().height;
-  const top=Math.max(8-sd.top,Math.min(innerHeight-8-h-sd.top,br.top-sd.top-h/2+br.height/2));m.style.top=Math.round(top)+'px';
+  m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
 }
-
-function stFind(){
-  const t=stText().slice(0,80);if(t.length<2||typeof bfOpen!=='function')return;
-  bfOpen();const i=el('bfQ');i.value=t;bfSet(t);bfClrSync();setTimeout(function(){try{i.blur();}catch(e){}},40);ssUpd();
-}
-/* «Озвучить выделенное»: only these words, by the reader's own voice settings (system voice, or the neural one on their key) */
-function stSay(){
-  if(ST.say){stSayStop();return;}
-  const t=stText().slice(0,3000);if(!t)return;
-  if(typeof ttsOn!=='undefined'&&ttsOn)ttsStop();
-  if(typeof nttsOn==='function'&&nttsOn()){
-    const me={a:null};ST.say=me;stUpd();
-    nttsFetch(t).then(function(blob){if(ST.say!==me)return;const a=new Audio(URL.createObjectURL(blob));me.a=a;
-      a.onended=a.onerror=function(){if(ST.say===me)stSayStop();};const pp=a.play();if(pp&&pp.catch)pp.catch(function(){if(ST.say===me)stSayStop();});},
-      function(e){if(ST.say!==me)return;stSayStop();flashMsg('Не получилось озвучить'+(e&&e.message?': '+e.message:''),{kind:'error'});});
-    return;
-  }
-  if(!window.speechSynthesis||typeof SpeechSynthesisUtterance==='undefined'){flashMsg('На этом устройстве нет озвучки',{kind:'error'});return;}
-  try{speechSynthesis.cancel();}catch(e){}
-  const u=new SpeechSynthesisUtterance(t),ru=/[а-яё]/i.test(t);u.lang=ru?'ru-RU':'en-US';
-  if(ru){const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}}
-  const me={u:u};ST.say=me;u.onend=u.onerror=function(){if(ST.say===me)stSayStop();};
-  speechSynthesis.speak(u);stUpd();
-}
-function stSayStop(){const x=ST.say;ST.say=null;
-  if(x){if(x.a){try{x.a.pause();URL.revokeObjectURL(x.a.src);}catch(e){}}if(x.u){try{speechSynthesis.cancel();}catch(e){}}}
-  if(el('ssSay'))stUpd();}
 
 function stDiary(){
   const t=stText(),bid=R.book&&R.book.id;if(!t||!bid||!qDiaryOn())return;const p=stPage();
@@ -169,4 +158,4 @@ function stHeroesOpen(){
     if(g){const n=hs[+g.dataset.i];if(!n)return;stSheetClose();window.getSelection().removeAllRanges();
       bfOpen();const q=stStem(n),i=el('bfQ');i.value=q;bfSet(q);bfClrSync();setTimeout(function(){try{i.blur();}catch(er){}},40);}};
 }
-const ST_ACT={diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,hero:stHero,heroes:stHeroesOpen};
+const ST_ACT={note:stBar('spNote'),copy:stBar('spCopy'),word:stBar('spWord'),grow:stBar('spGrow'),diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,hero:stHero,heroes:stHeroesOpen};

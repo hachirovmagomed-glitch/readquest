@@ -50,7 +50,7 @@ async function openAndSelect(p, word, stay) {
     if (!hit) return null;
     const s = getSelection(); s.removeAllRanges(); s.addRange(hit);
     await new Promise(r => setTimeout(r, 500));
-    if (el('selpop').classList.contains('mini')) { el('spMini').click(); await new Promise(r => setTimeout(r, 100)); } // 27.10: the bar is a circle while selecting, a tap opens it
+    SA.bar = true; selMiniApply(); selPlace(); await new Promise(r => setTimeout(r, 100)); // 27.10: the bar is a circle while selecting, a tap opens it
     return String(s);
   }, word || '', !!stay);
 }

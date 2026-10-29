@@ -773,19 +773,21 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #ssRail>button{position:relative;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--txt);background:none}
 #ssRail>button:disabled{opacity:.35}
 #ssRail>#ssGrip{height:24px;border-radius:12px;touch-action:none;cursor:grab}
-#ssPen{background:color-mix(in srgb,var(--accent) 22%,transparent)!important}#ssPen .ic{color:var(--accent)}
-#ssPen[aria-pressed="true"]{background:var(--accent)!important}#ssPen[aria-pressed="true"] .ic{color:var(--sheet)}
 #ssFrom{outline:1.5px dashed var(--accent);outline-offset:-3px}
 #ssFromN{position:absolute;right:0;bottom:1px;text-decoration:none;font-size:10px;font-weight:700;line-height:1;color:var(--accent);max-width:44px;overflow:hidden}
 #ssRail>hr{width:26px;margin:2px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
 /* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
-#ssQuick i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
-#ssSay[aria-pressed="true"]{background:var(--accent)!important}#ssSay[aria-pressed="true"] .ic{color:var(--sheet)}
-#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
+#ssCol i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
+#ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
 #ssCnt{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
 #ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
-#ssMenu[hidden],#stSheet[hidden]{display:none!important}
+#ssMenu[hidden],#ssColBox[hidden],#stSheet[hidden]{display:none!important}
 #ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}
+/* 29.10 «Цвета»: the bar's #spColors moved into a narrow column next to the menu (skin rules on #spColors keep their drops) */
+#ssColBox{position:absolute;left:calc(100% + 6px);top:0;padding:4px;border-radius:26px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+#selSide[data-side="R"] #ssColBox{left:auto;right:calc(100% + 6px)}
+#ssColBox #spColors{flex-direction:column;gap:2px;padding:0;margin:0;border:0}
+#ssColBox #spColors button{width:48px;height:48px;border-radius:50%;background:none}
 #selSide[data-side="R"] #ssMenu{left:auto;right:calc(100% + 6px)}
 #ssMenu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border-radius:12px;text-align:left;font-size:0.9375rem;color:var(--txt);background:none}
 #ssMenu>button:active{background:var(--card2)}

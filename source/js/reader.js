@@ -41,6 +41,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   if(typeof s.pdfFont!=='boolean')s.pdfFont=false;if(typeof s.pdfTheme!=='boolean')s.pdfTheme=false; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
   s.fz=fzNorm(s.fz); /* 25.10 «Фокус» (arch.md SET.fz) */
   s.presets=rqPresetsNorm(s.presets);s.bookSet=rqBookSetNorm(s.bookSet); /* 29.10 arch.md SET.presets / SET.bookSet */
+  s.rx=rqRxNorm(s.rx); /* 29.10 arch.md SET.rx (раздел «Чтение») */
   flipNorm(s);return s;}
 /** 25.10 SET.fz (arch.md) = storage/schema.js normFz: pomo on/off, round 15/25/45, rest 3/5/10, quiet, sound slot 0…3 (0 = off; the
  *  slot is the skin's own sound №N), volume 0.05…1, focus words, warning on leaving. Junk → default, unknown keys dropped. */
@@ -67,6 +68,28 @@ function rqBookSetNorm(o){const r={};if(!o||typeof o!=='object'||Array.isArray(o
   Object.keys(o).filter(function(k){return k&&k.length<=200;}).slice(-200).forEach(function(k){const v=rqTypoPick(o[k],RQ_BOOK_KEYS);if(Object.keys(v).length)r[k]=v;});return r;}
 /* While a book with its own look is open, SET holds that book's values in memory; rqSetForSave() gives the common values back to
    rq_set / export and puts the book's own into bookSet[id]. RQ_OWN = {id, glob} or null. */
+/** 29.10 SET.rx (arch.md «раздел Чтение»): строка внизу, чтение вслух, ночь по расписанию, жесты, меню выделения, экран, новые книги,
+ *  выученная скорость. Same rules as storage/schema.js normRx: junk → default, unknown keys dropped. */
+const RX_SEL=['colors','note','word','dict','ai','grow','copy'];
+function rqRxNorm(o){
+  const ob=function(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};},bo=function(v,d){return typeof v==='boolean'?v:d;},
+    en=function(v,a){return a.indexOf(v)>=0?v:a[0];},hm=function(v,d){return (typeof v==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v))?v:d;},
+    nm=function(v){return typeof v==='string'?v.trim().slice(0,24):'';},
+    num=function(v,lo,hi){return (typeof v==='number'&&isFinite(v)&&v>=lo&&v<=hi)?Math.round(v*10)/10:null;},
+    ids=function(a){return Array.isArray(a)?a.filter(function(x,i){return RX_SEL.indexOf(x)>=0&&a.indexOf(x)===i;}):[];};
+  o=ob(o);const f=ob(o.foot),t=ob(o.tts),n=ob(o.night),g=ob(o.gest),s=ob(o.sel),sc=ob(o.screen),fr=ob(o.fresh),sp=ob(o.spd);
+  return {
+    foot:{page:bo(f.page,true),pct:bo(f.pct,false),clock:bo(f.clock,false),chap:bo(f.chap,false)},
+    tts:{rate:(typeof t.rate==='number'&&isFinite(t.rate))?Math.round(Math.max(0.5,Math.min(2,t.rate))*20)/20:1,voice:typeof t.voice==='string'?t.voice.slice(0,200):'',follow:bo(t.follow,true)},
+    night:{on:bo(n.on,false),from:hm(n.from,'22:00'),to:hm(n.to,'07:00'),day:(typeof n.day==='string'&&n.day.length<=32)?n.day:''},
+    gest:{bright:bo(g.bright,true),pinch:bo(g.pinch,true),dbl:en(g.dbl,['off','night','mark','bars'])},
+    sel:{off:ids(s.off),order:ids(s.order),color:['y','g','b','p','o'].indexOf(s.color)>=0?s.color:''},
+    screen:{orient:en(sc.orient,['auto','portrait','landscape']),spread:en(sc.spread,['auto','land','off'])},
+    fresh:{set:nm(fr.set),pdf:nm(fr.pdf),toc:bo(fr.toc,false)},
+    spd:{cpm:num(sp.cpm,100,6000),spp:num(sp.spp,5,1200),n:(typeof sp.n==='number'&&isFinite(sp.n))?Math.max(0,Math.min(1e6,Math.floor(sp.n))):0}
+  };
+}
+function rqRx(){return (SET&&SET.rx)||rqRxNorm(null);}
 let RQ_OWN=null;
 function rqSetForSave(){if(!RQ_OWN)return SET;const o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);return o;}
 function rqOwnEnter(id){rqOwnLeave();const v=SET.bookSet&&SET.bookSet[id];if(!v||!Object.keys(v).length)return;RQ_OWN={id:id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};Object.assign(SET,v);}
@@ -307,6 +330,7 @@ async function openBook(id){
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
   if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
+  const fresh=!S.progress[id]&&!(S.lastOpen&&S.lastOpen[id]); /* 29.10 SET.rx.fresh: the first open of this book */
   S.lastRead=id;S.lastOpen=S.lastOpen||{};S.lastOpen[id]=Date.now();save();
   R={book:b,page:0,pageCount:1,step:0,start:Date.now(),turned:0,maxRatio:(S.progress[id]||{}).ratio||0,pos:rqPos(id),mode:b.type==='pdf'?'pdf':'text',pdf:null,zoom:1,rzoom:1,panX:0,panY:0,lastTurn:Date.now(),timerOn:false,timerAccum:0,timerOnAt:0};
   el('rTitle').textContent=bookAuthor(b)?b.title+' — '+bookAuthor(b):b.title;
@@ -317,6 +341,7 @@ async function openBook(id){
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
   el('viewer').scrollTop=0;el('reader').classList.toggle('scrollmode',rqScrollMode());
   hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
+  if(fresh&&typeof rxFresh==='function')rxFresh(b);
   rqOwnEnter(b.id); /* 29.10: the book's own look (SET.bookSet) */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('Полный экран · тап по центру — показать панель');}

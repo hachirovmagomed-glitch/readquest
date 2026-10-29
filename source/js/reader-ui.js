@@ -826,11 +826,12 @@ el('viewer').addEventListener('gesturestart',e=>{e.preventDefault();}); /* iOS S
 let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
   if(R.mode==='pdf'){pdfTouchStart(e);return;}
+  if(e.touches.length===2&&!rqRx().gest.pinch){tx0=null;bright=null;return;} /* 29.10 SET.rx.gest.pinch off: two fingers do nothing */
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   tx0=e.touches[0].clientX;
-  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode())bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
+  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
@@ -1138,13 +1139,14 @@ function nttsSay(t,onend,onstart,onpos,next){
     a.ontimeupdate=function(){if(gen!==nttsGen||!ttsOn||!onpos||!a.duration||!isFinite(a.duration))return;onpos(Math.floor(t.length*a.currentTime/a.duration));};
     a.onended=function(){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);if(onend)onend();};
     a.onerror=function(){if(gen!==nttsGen)return;ttsFail('телефон не смог проиграть звук');};
-    a.src=nttsUrl;const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
+    a.src=nttsUrl;try{a.playbackRate=rqRx().tts.rate;a.preservesPitch=true;}catch(e){}const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
   },function(e){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);ttsFail(e&&e.message);});
 }
 function ttsSay(t,onend,onstart,onpos,next){
   if(nttsOn()){nttsSay(t,onend,onstart,onpos,next);return;}
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
-  const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
+  const v=ttsVoices(),rx=rqRx().tts;if(v.length)try{u.voice=v.find(function(x){return x.voiceURI===rx.voice;})||v[0];}catch(e){} /* 29.10 SET.rx.tts: own voice and speed */
+  u.rate=rx.rate;
   let started=false;const t0=Date.now();
   u.onstart=function(){started=true;if(ttsOn&&onstart)onstart();};
   u.onboundary=function(e){if(!started){started=true;if(ttsOn&&onstart)onstart();}if(ttsOn&&onpos&&typeof e.charIndex==='number')onpos(e.charIndex);};
@@ -1152,7 +1154,7 @@ function ttsSay(t,onend,onstart,onpos,next){
   u.onerror=function(e){const k=e&&e.error;if(k==='interrupted'||k==='canceled')return;ttsFail();};
   speaking=true;speechSynthesis.speak(u);
 }
-function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
+function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1||!rqRx().tts.follow)return; /* 29.10 SET.rx.tts.follow off: the voice reads on, the page stays */const np=Math.round((pos/b.text.length)*(R.pageCount-1));
   if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
 function ttsChunkEnd(text,st){let end=Math.min(text.length,st+1500);const tail=text.slice(end,end+220).search(/[.!?…\n]/);if(tail>=0)end+=tail+1;return end;}
 function ttsTextNext(){

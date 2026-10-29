@@ -1826,6 +1826,33 @@ html[data-skin] #settings#settings#settings.over .wrap > .row:first-child{backgr
 .gsflash{animation:gsflash 1.6s ease-out 1}
 @keyframes gsflash{0%,35%{background:color-mix(in srgb,var(--accent) 22%,transparent)}100%{background:transparent}}
 html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-offset:-2px}
+/* 29.10 «Удобство чтения» (js/read-extras.js, SET.rx) */
+:is(#settings) .pcard .setrow.setstack>.rxfull{flex:1 1 100%;margin-left:0}
+.rxbox .setrow{padding-left:4px;padding-right:4px}
+.rxbox .stepgrp .rxv{min-width:3.6em;text-align:center;font-variant-numeric:tabular-nums}
+.rxbox .rxtest{margin:4px 0 4px;justify-content:flex-start}
+.rxbox .rxtest .ghostbtn{display:inline-flex;align-items:center;gap:6px}
+.rxsel .lab{flex:1 1 auto;min-width:0}
+.rxmv{display:inline-flex;gap:4px;margin-right:6px}
+.rxmv .stepbtn{min-width:40px;width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.rxmv .stepbtn:disabled{opacity:.3}
+.rxdot{display:block;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%)}
+#rxSelColor .fchip{min-width:40px;justify-content:center;padding:0 10px}
+#rxSelColor .fchip:has(.rxdot){width:40px;padding:0}
+#rxSelColor{gap:4px}
+.rxbox .aisub{font-size:0.8125rem;line-height:1.4;color:var(--muted);margin:8px 4px 4px}
+#settings .pcard .rxbox .setrow:not(.setstack){flex-wrap:nowrap}
+#settings .pcard .rxbox .setrow:not(.setstack)>.lab{flex:1 1 auto;min-width:0}
+#settings .pcard .rxbox .rxsel>.lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#settings .rxmv .stepbtn{width:40px;min-width:40px;height:40px;min-height:40px}
+#rxClock,#rxInfo{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--r-txt-2);letter-spacing:.2px;white-space:nowrap}
+#rxClock{margin-right:auto}
+#rxInfo{margin-right:10px;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#rxClock:empty,#rxInfo:empty{display:none}
+#reader:not(.barsoff):not(.imm) :is(#rxClock,#rxInfo){visibility:hidden}
+#reader.focus :is(#rxClock,#rxInfo),#reader.paused #rxClock,#reader.fzrun #rxClock,#reader.rxnopg #pgNum{display:none}
+#reader.rxnopg #rxInfo{margin-right:0}
+#selpop>.rxoff{display:none!important}
 #wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
 #wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
 html[data-uisize="sm"]{font-size:90%}
@@ -2538,6 +2565,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-smartphone"/></svg><div class="lab">Не гасить экран<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn sw" id="uxWake" role="switch">Выкл</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-vibrate"/></svg><div class="lab">Вибрация<div class="sub">При наградах и отметках</div></div><button class="ghostbtn sw" id="uxVibe" role="switch">Вкл</button></div>
     </div>
+    <h2>Удобство чтения</h2>
+    <div class="pcard nncard" id="rxCard"></div><!-- 29.10 js/read-extras.js (SET.rx): строка внизу, чтение вслух, ночь, жесты, меню выделения, экран, новые книги -->
     </section>
     <section class="gsec" data-sec="ai" data-t="Нейросети" hidden>
     <h2 id="aiHead">Нейросети</h2>
@@ -2881,7 +2910,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button id="navNext" class="navbtn hidden" aria-label="Следующая страница">›</button>
   <div id="warmer"></div>
   <div id="dimmer"></div>
-  <div id="pgLine"><span id="rqPausedTag">Пауза</span><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
+  <div id="pgLine"><span id="rqPausedTag">Пауза</span><span id="fzChip" role="status"></span><span id="rxClock" aria-hidden="true"></span><span id="rxInfo" aria-hidden="true"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <i id="fzLine" aria-hidden="true"></i><!-- 25.10 «Фокус»: thin line of the round (js/focus.js) -->
   <div id="fzHold" class="fzcard hidden" role="alertdialog" aria-labelledby="fzHoldT"><p id="fzHoldT"></p><p class="fzsub">Если это был звонок или что-то срочное, круг можно продолжить один раз. Минуты за время выхода не идут.</p><div class="fzbtns"><button type="button" class="cta" id="fzHoldGo">Продолжить круг</button><button type="button" class="ghostbtn" id="fzHoldNew">Начать заново</button></div></div>
   <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
@@ -3018,6 +3047,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>
 <script src="js/settings-hub.js"></script>
+<script src="js/read-extras.js"></script>
 <script src="js/ach-core.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/path.js"></script>

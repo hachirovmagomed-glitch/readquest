@@ -1876,6 +1876,27 @@ html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-of
 #reader.focus :is(#rxClock,#rxInfo),#reader.paused #rxClock,#reader.fzrun #rxClock,#reader.rxnopg #pgNum{display:none}
 #reader.rxnopg #rxInfo{margin-right:0}
 #selpop>.rxoff{display:none!important}
+/* 29.10 «Цель и напоминание» (js/goal-extras.js) */
+.gxweek{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:12px 0 6px}
+.gxday{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.75rem;color:var(--muted)}
+.gxday b{font-weight:600;color:var(--txt)}
+.gxday i{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px var(--card2);color:var(--on-accent)}
+.gxday.ok i{background:var(--accent);box-shadow:none}
+.gxday.part i{box-shadow:inset 0 0 0 2px var(--accent)}
+.gxday.today b{color:var(--accent-text,var(--accent))}
+.gxday.today i{outline:2px solid var(--accent);outline-offset:2px}
+.gxday small{min-height:1em;font-variant-numeric:tabular-nums}
+.gxwsub{font-size:0.8125rem;color:var(--muted);padding:4px 2px 12px;text-align:center}
+.gxbar{position:relative;height:8px;border-radius:999px;background:var(--card2);margin:4px 0 2px}
+.gxbar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent)}
+.gxbar u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--txt);opacity:.5;text-decoration:none}
+:is(#settings) .pcard .setrow.setstack>.gxbar{flex:1 1 100%;margin-left:0}
+:is(#settings) .pcard .setrow.setstack>.gxoff{margin-left:0}
+.gxv{min-width:2.4em;text-align:center;font-variant-numeric:tabular-nums}
+#settings .pcard .gxbk{flex-wrap:nowrap}
+#settings .pcard .gxbk>.lab{flex:1 1 auto;min-width:0}
+#settings .pcard .gxbk .ghostbtn{flex:none}
+.gxpick{position:fixed;left:50%;top:50%;width:1px;height:1px;opacity:0;pointer-events:none}
 #wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
 #wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
 html[data-uisize="sm"]{font-size:90%}
@@ -2636,7 +2657,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow setrow-time" id="calNotifTimeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время</div>
         <span class="stepgrp"><button class="stepbtn" id="calNotifMinus" aria-label="На 30 минут раньше">−</button><label class="gstime"><b id="calNotifTime">20:00</b><input type="time" id="calNotifTimeIn" aria-label="Время напоминания"></label><button class="stepbtn" id="calNotifPlus" aria-label="На 30 минут позже">+</button></span></div>
       <div class="setrow setstack" id="calNotifDaysRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Дни<div class="sub" id="calNotifDaysSub"></div></div><div class="gsdays" id="calNotifDays" role="group" aria-label="Дни напоминания"></div></div>
+      <div class="setrow" id="gxCalRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Календарь телефона<div class="sub">Будильник календаря придёт, даже когда приложение закрыто</div></div><button class="ghostbtn" id="gxCal">Добавить</button></div>
     </div>
+    <h2>Неделя</h2>
+    <div class="pcard" id="gxWeek"></div><!-- 29.10 js/goal-extras.js: 7 дней и «N из 4 дней» -->
+    <h2>Большие цели</h2>
+    <div class="pcard" id="gxBig"></div><!-- 29.10 js/goal-extras.js: S.yearGoal, S.bookGoals -->
     </section>
     <section class="gsec" data-sec="lang" data-t="Язык и удобство" hidden>
     <h2>Язык</h2>
@@ -3070,6 +3096,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/v6-extras.js"></script>
 <script src="js/settings-hub.js"></script>
 <script src="js/read-extras.js"></script>
+<script src="js/goal-extras.js"></script>
 <script src="js/ach-core.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/path.js"></script>

@@ -86,6 +86,8 @@ export const PROGRESS_DEF = {
   lastBackup: null,
   backupNag: true,     // 29.10 «Напоминать о копии» (arch.md backupNag)
   backupNagAt: null,   // 29.10: day of the last reminder 'YYYY-MM-DD'
+  yearGoal: null,      // 29.10 «Цель на год» {y, n} (arch.md yearGoal)
+  bookGoals: {},       // 29.10 «Дочитать к дате» {<book id>: 'YYYY-MM-DD'} ≤ 200 (arch.md bookGoals)
 };
 
 /**
@@ -294,6 +296,16 @@ export function normBookSet(o) {
   Object.keys(o).filter((k) => k && k.length <= 200).slice(-200).forEach((k) => { const v = typoPick(o[k], BOOK_KEYS); if (Object.keys(v).length) r[k] = v; });
   return r;
 }
+/** 29.10 S.yearGoal / S.bookGoals (arch.md) — same rules as js/core-b.js yearGoalNorm / bookGoalsNorm */
+export function normYearGoal(g) {
+  return g && typeof g === 'object' && Number.isInteger(g.y) && g.y >= 2000 && g.y <= 2100 && Number.isInteger(g.n) && g.n >= 1 && g.n <= 365 ? { y: g.y, n: g.n } : null;
+}
+export function normBookGoals(o) {
+  const r = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
+  Object.keys(o).filter((k) => k && k.length <= 200 && typeof o[k] === 'string' && /^\d{4}-\d\d-\d\d$/.test(o[k])).slice(-200).forEach((k) => { r[k] = o[k]; });
+  return r;
+}
 /** 29.10 SET.rx (arch.md «раздел Чтение») — same rules as js/reader.js rqRxNorm */
 export const RX_SEL = ['colors', 'note', 'word', 'dict', 'ai', 'grow', 'copy'];
 export function normRx(o) {
@@ -420,6 +432,11 @@ function intMap(o, max, keyRe) {
 
 export function hydrateProgress(p) {
   const out = Object.assign({}, PROGRESS_DEF, p || {});
+  /* 29.10 (arch.md backupNag / yearGoal / bookGoals; progress domain): same rules as js/core-b.js */
+  if (typeof out.backupNag !== 'boolean') out.backupNag = true;
+  if (out.backupNagAt != null && !/^\d{4}-\d\d-\d\d$/.test(String(out.backupNagAt))) out.backupNagAt = null;
+  out.yearGoal = normYearGoal(out.yearGoal);
+  out.bookGoals = normBookGoals(out.bookGoals);
   out.progress = out.progress || {};
   out.finished = out.finished || [];
   out.hist = out.hist || {};
@@ -569,8 +586,6 @@ export function hydrateGame(g) {
   /* 29.10 (arch.md notif.days / backupNag): same rules as js/core-b.js */
   if (!(Array.isArray(out.notif.days) && out.notif.days.length === 7 && out.notif.days.every((x) => typeof x === 'boolean'))) out.notif.days = [true, true, true, true, true, true, true];
   if (typeof out.notif.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(out.notif.time)) out.notif.time = '20:00';
-  if (typeof out.backupNag !== 'boolean') out.backupNag = true;
-  if (out.backupNagAt != null && !/^\d{4}-\d\d-\d\d$/.test(String(out.backupNagAt))) out.backupNagAt = null;
   if (!out.statuses)
     out.statuses = [
       [1, 'Новичок'],

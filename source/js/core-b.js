@@ -330,6 +330,7 @@ function hydrateS(raw){
   if(!(Array.isArray(S.notif.days)&&S.notif.days.length===7&&S.notif.days.every(function(x){return typeof x==='boolean';})))S.notif.days=[true,true,true,true,true,true,true]; /* 29.10 arch.md notif.days */
   if(typeof S.notif.time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(S.notif.time))S.notif.time='20:00';
   if(typeof S.backupNag!=='boolean')S.backupNag=true;if(S.backupNagAt!=null&&!/^\d{4}-\d\d-\d\d$/.test(String(S.backupNagAt)))S.backupNagAt=null; /* 29.10 arch.md backupNag / backupNagAt */
+  S.yearGoal=yearGoalNorm(S.yearGoal);S.bookGoals=bookGoalsNorm(S.bookGoals); /* 29.10 arch.md yearGoal / bookGoals */
   S.customStats.forEach(s=>{if(S.stats[s]===undefined)S.stats[s]=0;});
   S.skillMeta=S.skillMeta||{};
   DEFAULT_SKILLS.forEach(k=>{if(S.skills[k]===undefined)S.skills[k]=0;if(!S.skillMeta[k])S.skillMeta[k]={links:Object.assign({},DEFAULT_SKILL_LINKS[k]||{})};});
@@ -502,6 +503,10 @@ function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
   return out;
 }
 /* 20.10 нейросетевая озвучка (arch.md): prov system|openai|elevenlabs|google|custom, остальное строки */
+/** 29.10 S.yearGoal {y, n} (books a year) / S.bookGoals {<book id>: 'YYYY-MM-DD'} (arch.md) — same rules as storage/schema.js */
+function yearGoalNorm(g){return (g&&typeof g==='object'&&Number.isInteger(g.y)&&g.y>=2000&&g.y<=2100&&Number.isInteger(g.n)&&g.n>=1&&g.n<=365)?{y:g.y,n:g.n}:null;}
+function bookGoalsNorm(o){const r={};if(!o||typeof o!=='object'||Array.isArray(o))return r;
+  Object.keys(o).filter(function(k){return k&&k.length<=200&&typeof o[k]==='string'&&/^\d{4}-\d\d-\d\d$/.test(o[k]);}).slice(-200).forEach(function(k){r[k]=o[k];});return r;}
 function ttsNorm(t){
   if(!t||typeof t!=='object')t={};
   ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});

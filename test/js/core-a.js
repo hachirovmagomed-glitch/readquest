@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261029-1051'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261029-1142'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
@@ -46,8 +46,8 @@ function applyMvpChrome(){
     /* 20.10 (Джессика: «нажимаю на Путь, а внизу не меняется»): one tab lit = the tab that owns the visible screen.
        Was: «Библиотека» lit on every screen but «Профиль», and «Путь»/«Приключения» had no screens listed. */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
-    const OWN={library:'library',path:'path',adv:'adv',profile:'profile',stats:'profile',quests:'quests', /* 18.10: statistics belong to «Профиль» */
-      quotes:'stats',vocab:'stats',calendar:'stats',achievements:'stats',shelfScreen:'stats',look:'look'}; /* settings is not a tab → nothing lit (14.10) */
+    const OWN={library:'library',path:'path',adv:'adv',diary:'diary',profile:'profile',stats:'profile',quests:'quests', /* 18.10: statistics belong to «Профиль» */
+      quotes:'diary',vocab:'diary',calendar:'profile',achievements:'profile',shelfScreen:'profile',look:'look'}; /* 26.10: «Инвентарь» = вкладки «Дневников» */ /* settings is not a tab → nothing lit (14.10) */
     const cur=(typeof SCREENS!=='undefined'?SCREENS:[]).find(function(s){return el(s)&&!el(s).classList.contains('hidden');});
     const tab=onRew?'rewards':(OWN[cur]||'');
     bn.querySelectorAll('.botnav-btn').forEach(function(b){const id=b.dataset.nav||{bnLib:'library',bnRew:'rewards',bnProf:'profile'}[b.id];b.classList.toggle('on',!!id&&id===tab);});

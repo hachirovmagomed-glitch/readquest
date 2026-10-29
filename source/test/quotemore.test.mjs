@@ -73,7 +73,7 @@ await tap('#pqList .pq.on .pqa:nth-child(4)'); await sleep(300);
 const ch = await p.evaluate(() => ({ open: !el('aiChat').classList.contains('hidden'), v: el('aiChatIn').value }));
 await p.screenshot({ path: SHOTS + 'qmore-discuss.png' });
 await p.evaluate(() => el('aiChat').classList.add('hidden'));
-ok('6 opened quote: «Открыть в книге», «Карточка», «Объясни», «Обсудить» (no «В дневник» without diaries); «Объясни» explains the quote; «Обсудить» opens the chat with the quote typed', acts.join('|') === 'Открыть в книге|Карточка|Объясни|Обсудить' && ai.sheet && /Это объяснение/.test(ai.ans) && ai.user.includes(words[0]) && ch.open && ch.v.includes(words[1]), { acts, ai, ch });
+ok('6 opened quote: «Открыть в книге», «Карточка», «Объясни», «Обсудить», «В дневник» (29.10: «Дневники» есть в сборке); «Объясни» explains the quote; «Обсудить» opens the chat with the quote typed', acts.join('|') === 'Открыть в книге|Карточка|Объясни|Обсудить|В дневник' && ai.sheet && /Это объяснение/.test(ai.ans) && ai.user.includes(words[0]) && ch.open && ch.v.includes(words[1]), { acts, ai, ch });
 
 // 7. «В дневник» appears with diaries (stubbed js/diary.js API) and writes an entry with the quote
 const dy = await p.evaluate(async (id) => { const ys = []; window.diaryOf = (b) => ys.find(y => y.b === b) || null; window.diaryNew = (o) => { const y = { b: o.b, e: [] }; ys.push(y); return y; };
@@ -127,7 +127,7 @@ const inv2 = await p.evaluate(() => ({ n: document.querySelectorAll('#quoteBox .
 await p.screenshot({ path: SHOTS + 'qmore-inventory.png' });
 await p.evaluate(() => { const i = document.querySelector('[data-qa-find]'); i.value = ''; i.dispatchEvent(new Event('input', { bubbles: true })); }); await sleep(200);
 await tap('#quoteBox [data-qact="del"]'); const ask = await p.evaluate(() => !el('rqAsk').hidden && el('rqAskT').textContent); await tap('#rqAskNo');
-ok('10 «Цитаты и заметки»: search + colours + order + export, every quote has карточка / объясни / копировать / удалить; search keeps focus; «удалить» asks', inv.find && inv.chips === 3 && inv.cards === 3 && inv.acts.join('|') === 'карточка|объясни|копировать|удалить' && inv2.n === 1 && inv2.foc && ask === 'Удалить цитату?', { inv, inv2, ask });
+ok('10 «Цитаты и заметки»: search + colours + order + export, every quote has карточка / объясни / в дневник / копировать / удалить; search keeps focus; «удалить» asks', inv.find && inv.chips === 3 && inv.cards === 3 && inv.acts.join('|') === 'карточка|объясни|в дневник|копировать|удалить' && inv2.n === 1 && inv2.foc && ask === 'Удалить цитату?', { inv, inv2, ask });
 ok('no page errors, no system dialogs', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

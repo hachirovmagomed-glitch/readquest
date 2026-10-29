@@ -235,8 +235,6 @@ function gsIndex(){
     g.querySelectorAll('.rrow,.srow').forEach(function(r){if(r.classList.contains('pdfonly')||r.id==='rBookOnlyRow')return;
       const l=r.querySelector('.rl,label,.xl');const t=txt(l);if(!t)return;
       out.push({t:t,w:'Чтение → '+GS_TABS[g.id],k:(t+' '+(l.querySelector('small')?l.querySelector('small').textContent:'')).toLowerCase(),ic:'book-open',go:function(){gsGoSheet(g.id,r);}});});});
-  [['Тема приложения','тема цвет авто светлая тёмная'],['Скин','скин оформление небесный эллада'],['Анимации','анимация движение'],['Магазин скинов','магазин купить скин']].forEach(function(x){
-    out.push({t:x[0],w:'Внешний вид',k:(x[0]+' '+x[1]).toLowerCase(),ic:'palette',go:gsOpenLook});});
   return out;
 }
 function gsFlash(r){if(!r)return;r.classList.remove('gsflash');void r.offsetWidth;r.classList.add('gsflash');setTimeout(function(){r.classList.remove('gsflash');},1700);}

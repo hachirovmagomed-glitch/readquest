@@ -26,9 +26,9 @@ const g = await p.evaluate(() => {
   const secOf = (n) => { const h = t(n).closest('.pgsec').querySelector('.pgch'); return h ? h.querySelector('.pgcht').textContent : null; };
   return { tiles: B.querySelectorAll('.pgt').length, pc: R.pageCount, heads: hs.map(h => h.querySelector('.pgcht').textContent), pages: hs.map(h => h.querySelector('.pgchp').textContent),
     s0: secOf(0), s4: secOf(4), s5: secOf(5), s29: secOf(29), sticky: getComputedStyle(hs[0]).position, barSticky: getComputedStyle(B.querySelector('.pgbar')).position,
-    cur: B.querySelector('.pgt.cur').dataset.n, curAria: B.querySelector('.pgt.cur').getAttribute('aria-current'),
-    bm: [...B.querySelectorAll('.pgt .pgbm')].map(x => x.closest('.pgt').dataset.n), q12: t(12).querySelectorAll('.pgqs i').length, q13: t(13).querySelectorAll('.pgqs i').length,
-    n13: !!t(13).querySelector('.pgnote'), n12: !!t(12).querySelector('.pgnote'), plain: !t(3).querySelector('.pgqs,.pgbm'), lab13: t(13).getAttribute('aria-label'), lab14: t(14).getAttribute('aria-label') };
+    cur: B.querySelector('.pgt.cur').dataset.n, curAria: B.querySelector('.pgt.cur .pgopen').getAttribute('aria-current'),
+    bm: [...B.querySelectorAll('.pgt .pgbmb.on')].map(x => x.closest('.pgt').dataset.n), q12: t(12).querySelectorAll('.pgqs i').length, q13: t(13).querySelectorAll('.pgqs i').length,
+    n13: !!t(13).querySelector('.pgnote'), n12: !!t(12).querySelector('.pgnote'), plain: !t(3).querySelector('.pgqs,.pgbmb.on'), lab13: t(13).querySelector('.pgopen').getAttribute('aria-label'), lab14: t(14).querySelector('.pgopen').getAttribute('aria-label') };
 });
 ok('grid: one tile per page', g.tiles === g.pc && g.pc === 30, g);
 ok('1: six chapter titles in book order, each with its first page', g.heads.length === 6 && /^Глава 1\./.test(g.heads[0]) && /^Глава 6\./.test(g.heads[5]) && g.pages.join() === 'стр. 1,стр. 6,стр. 11,стр. 16,стр. 21,стр. 26', g);
@@ -85,9 +85,76 @@ ok('1: no contents → no titles, all pages in one grid', plain.heads === 0 && p
 
 /* 360 wide: the bar fits in one row, nothing sticks out */
 await openGrid();
-const fit = await p.evaluate(() => { const bar = el('panelBody').querySelector('.pgbar'), r = bar.getBoundingClientRect(), kids = [...bar.children].filter(x => x.offsetWidth);
+const fit = await p.evaluate(() => { const bar = el('panelBody').querySelector('.pgbar form'), r = bar.getBoundingClientRect(), kids = [...bar.children].filter(x => x.offsetWidth);
   return { h: Math.round(r.height), out: kids.filter(k => { const q = k.getBoundingClientRect(); return q.right > innerWidth - 8 || q.left < 8; }).length, rows: new Set(kids.map(k => { const q = k.getBoundingClientRect(); return Math.round((q.top + q.bottom) / 2 / 4); })).size }; });
 ok('360: «Стр. [__] Перейти · К текущей» in one row inside the screen', fit.rows === 1 && fit.out === 0, fit);
+
+/* ===== 29.10 вечер: the other eight («давай все») ===== */
+await p.evaluate(() => { jumpTo(12); }); await sleep(800);
+await p.evaluate(() => { __navAllow = true; const id = R.book.id; openBook(id); __navAllow = false; }); await sleep(2500); await p.evaluate(() => jumpTo(12)); await sleep(900);
+await p.evaluate(() => { const b = R.book; BF.q = 'маяк'; BF.book = b.id; BF.hits = [{ pg: 12 }, { pg: 15 }, { pg: 15 }]; R.maxRatio = 12 / 29; }); /* search hits as the magnifier leaves them */
+await openGrid();
+const e1 = await p.evaluate(() => { const B = el('panelBody'), t = (n) => B.querySelector('.pgt[data-n="' + n + '"]'), pr = B.querySelector('.pgprog');
+  return { rd: [...B.querySelectorAll('.pgt.rd')].map(x => +x.dataset.n), cur: t(12).classList.contains('rd'), now: pr && +pr.getAttribute('aria-valuenow'), w: pr && pr.querySelector('i').style.width,
+    hits: [...B.querySelectorAll('.pgt .pghit')].map(x => x.closest('.pgt').dataset.n + ':' + x.textContent), chips: [...B.querySelectorAll('[data-flt]')].map(x => x.dataset.flt).join() }; });
+ok('1: pages before the farthest read are dimmed (0…11), the current one is not; progress line 41%', e1.rd.length === 12 && e1.rd[0] === 0 && e1.rd[11] === 11 && !e1.cur && e1.now === 41 && e1.w === '41%', e1);
+ok('5: search hits marked with their count on p.13 and p.16; filter chip «Найдено» appears', e1.hits.join() === '12:1,15:2' && e1.chips === 'all,bm,q,ch,find', e1);
+const flt = await p.evaluate(async () => { const B = el('panelBody'), vis = () => [...B.querySelectorAll('.pgt')].filter(x => !x.hidden).map(x => +x.dataset.n), r = {};
+  for (const f of ['bm', 'q', 'ch', 'find', 'all']) { B.querySelector('[data-flt="' + f + '"]').click(); await new Promise(r => setTimeout(r, 80)); r[f] = vis(); r[f + 'Secs'] = [...B.querySelectorAll('.pgsec')].filter(s => !s.hidden).length; }
+  return r; });
+ok('3: «Закладки» → p.15 only, «Цитаты» → p.13, 14; «Главы» → 1, 6, 11 …; «Найдено» → 13, 16; «Все» → 30', flt.bm.join() === '14' && flt.bmSecs === 1 && flt.q.join() === '12,13' && flt.ch.join() === '0,5,10,15,20,25' && flt.find.join() === '12,15' && flt.all.length === 30, flt);
+/* 8: the corner ribbon */
+const bm = await p.evaluate(async () => { const B = el('panelBody'), b = R.book, n0 = (S.marks[b.id] || []).length;
+  B.querySelector('.pgt[data-n="3"] .pgbmb').click(); await new Promise(r => setTimeout(r, 200)); const a = (S.marks[b.id] || []).map(m => m.page), on = el('panelBody').querySelector('.pgt[data-n="3"] .pgbmb').classList.contains('on');
+  el('panelBody').querySelector('.pgt[data-n="3"] .pgbmb').click(); await new Promise(r => setTimeout(r, 200)); const z = (S.marks[b.id] || []).map(m => m.page);
+  return { n0, a, on, z, page: R.page, open: !el('panel').classList.contains('hidden'), m: (S.marks[b.id] || [])[0] }; });
+ok('8: the ribbon adds a bookmark on p.4 (stored like the others) and takes it off again; the book stays, the panel stays', bm.a.indexOf(4) >= 0 && bm.on && bm.z.indexOf(4) < 0 && bm.z.indexOf(15) >= 0 && bm.page === 12 && bm.open, bm);
+/* 7: fold a chapter */
+const fd = await p.evaluate(async () => { const B = el('panelBody'); B.querySelector('.pgch[data-p="5"] .pgchb').click(); await new Promise(r => setTimeout(r, 200));
+  const s = el('panelBody').querySelector('.pgch[data-p="5"]').closest('.pgsec'), g = s.querySelector('.pgrid2'), h = s.querySelector('.pgchb');
+  const a = { fold: s.classList.contains('fold'), gone: getComputedStyle(g).display === 'none', exp: h.getAttribute('aria-expanded'), lab: h.textContent };
+  h.click(); await new Promise(r => setTimeout(r, 200)); const s2 = el('panelBody').querySelector('.pgch[data-p="5"]').closest('.pgsec'); a.back = !s2.classList.contains('fold'); a.page = R.page; return a; });
+ok('7: a tap on «Глава 2» folds its pages (aria-expanded=false, «5 стр.»), a second tap opens them; the book does not move', fd.fold && fd.gone && fd.exp === 'false' && /5 стр\./.test(fd.lab) && fd.back && fd.page === 12, fd);
+const fc = await p.evaluate(async () => { const B = el('panelBody'); B.querySelector('.pgch[data-p="10"] .pgchb').click(); await new Promise(r => setTimeout(r, 200));
+  el('panelBody').querySelector('[data-cur]').click(); await new Promise(r => setTimeout(r, 900)); const c = el('panelBody').querySelector('.pgt.cur'), br = el('panelBody').getBoundingClientRect(), r = c.getBoundingClientRect();
+  return { open: !c.closest('.pgsec').classList.contains('fold'), inView: r.top >= br.top && r.bottom <= br.bottom + 2 }; });
+ok('7: «К текущей» opens a folded chapter with the current page', fc.open && fc.inView, fc);
+/* 2: size */
+const sz = await p.evaluate(async () => { const B = el('panelBody'), cols = () => getComputedStyle(B.querySelector('.pgrid2')).gridTemplateColumns.split(' ').length, r = [cols()];
+  for (let k = 0; k < 3; k++) { el('panelBody').querySelector('[data-cols]').click(); await new Promise(r => setTimeout(r, 150)); r.push(cols(), SET.gridCols); } return r; });
+ok('2: the size button goes 3 → 5 → 2 → 3 in a row, kept in SET.gridCols', sz.join() === '3,5,5,2,2,3,3', sz);
+await p.evaluate(() => { SET.gridCols = 2; saveSet(); }); await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+const sz2 = await p.evaluate(() => ({ c: SET.gridCols, junk: (SET.gridCols = 4, rqGridCols()), back: (SET.gridCols = 2, rqGridCols()) }));
+ok('2: size survives a reload; a value other than 2/3/5 reads as 3', sz2.c === 2 && sz2.junk === 3 && sz2.back === 2, sz2);
+await p.evaluate(() => { __navAllow = true; openBook(S.userBooks[0].id); __navAllow = false; }); await sleep(2500); await p.evaluate(() => jumpTo(12)); await sleep(800);
+await openGrid();
+/* 2: pinch */
+const pt = await p.evaluate(() => { const t = el('panelBody').querySelector('.pgt[data-n="13"]').getBoundingClientRect(); return { x: t.left + t.width / 2, y: t.top + 20 }; });
+const cdp = await p.createCDPSession();
+const pinch = async (d0, d1) => { const pts = (d) => [{ x: pt.x - d / 2, y: pt.y, id: 1 }, { x: pt.x + d / 2, y: pt.y, id: 2 }];
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pts(d0) }); for (let k = 1; k <= 5; k++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pts(d0 + (d1 - d0) * k / 5) });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await sleep(300); return p.evaluate(() => SET.gridCols); };
+const pc1 = await pinch(60, 20), pc2 = await pinch(40, 120);
+ok('2: pinch together → smaller (2 → 3), apart → bigger (3 → 2)', pc1 === 3 && pc2 === 2, { pc1, pc2 });
+await p.evaluate(() => { SET.gridCols = 3; saveSet(); renderPanel('grid'); }); await sleep(600);
+/* 4: long press */
+const lt = await p.evaluate(() => { const t = el('panelBody').querySelector('.pgt[data-n="14"]'); t.scrollIntoView({ block: 'center' }); const r = t.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+await sleep(300);
+await p.touchscreen.touchStart(lt.x, lt.y); await sleep(700); await p.touchscreen.touchEnd(); await sleep(1500);
+const pv = await p.evaluate(() => { const v = document.querySelector('#panel .pgpv'); return v ? { n: v.querySelector('.pgt').dataset.n, pic: !!v.querySelector('.pgth canvas'), w: v.querySelector('.pgth').clientWidth, head: v.querySelector('.pgpvh').textContent, bm: v.querySelector('[data-bm]').getAttribute('aria-pressed'), page: R.page, panel: !el('panel').classList.contains('hidden') } : null; });
+ok('4: a long press opens p.15 large (picture, chapter, «Снять закладку» pressed); the book does not move', pv && pv.n === '14' && pv.pic && pv.w > 150 && /Стр\. 15/.test(pv.head) && /Глава 3/.test(pv.head) && pv.bm === 'true' && pv.page === 12 && pv.panel, pv);
+const pv2 = await p.evaluate(async () => { const v = document.querySelector('#panel .pgpv'); v.querySelector('[data-bm]').click(); await new Promise(r => setTimeout(r, 300)); const v2 = document.querySelector('#panel .pgpv');
+  const a = { still: !!v2, bm: v2 && v2.querySelector('[data-bm]').getAttribute('aria-pressed'), marks: (S.marks[R.book.id] || []).map(m => m.page) };
+  v2.querySelector('[data-bm]').click(); await new Promise(r => setTimeout(r, 300)); document.querySelector('#panel .pgpv [data-x]').click(); a.closed = !document.querySelector('#panel .pgpv'); a.page = R.page; return a; });
+ok('4: «Снять закладку» in the large view works and it stays open; ✕ closes it, the book stays', pv2.still && pv2.bm === 'false' && pv2.marks.indexOf(15) < 0 && pv2.closed && pv2.page === 12, pv2);
+await p.touchscreen.touchStart(lt.x, lt.y); await sleep(700); await p.touchscreen.touchEnd(); await sleep(800);
+await p.evaluate(() => document.querySelector('#panel .pgpv [data-open]').click()); await sleep(1200);
+const pv3 = await p.evaluate(() => ({ page: R.page, hidden: el('panel').classList.contains('hidden'), pv: !!document.querySelector('#panel .pgpv') }));
+ok('4: «Открыть» goes to that page and closes the panel', pv3.page === 14 && pv3.hidden && !pv3.pv, pv3);
+/* 6: the current page in the skin's frame */
+const fr = await p.evaluate(async () => { S.gold = (S.gold || 0) + 5000; buy('skin-celestial'); wear('skin-celestial'); await new Promise(r => setTimeout(r, 300)); showChrome(); el('btnPanel').click(); el('tabGrid').click(); await new Promise(r => setTimeout(r, 600));
+  const c = el('panelBody').querySelector('.pgt.cur'), st = getComputedStyle(c.querySelector('.pgfr'), '::after'); return { star: st.content !== 'none' && /polygon/.test(st.clipPath), skin: document.documentElement.dataset.skin }; });
+ok('6: in «Небесный» the current page has the gold star', fr.star && fr.skin === 'celestial', fr);
 
 ok('no page errors', errs.length === 0, errs);
 await browser.close();

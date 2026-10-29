@@ -996,17 +996,19 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 .trophy div{font-size:0.6875rem;color:var(--accent2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 18.10 «Обзор» with real thumbnails (js/page-grid.js): a tile per page, a picture only near the screen */
 .pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px 10px}
-.pgt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;color:var(--muted);font-size:0.6875rem;font-variant-numeric:tabular-nums;cursor:pointer}
+.pgt{position:relative;min-width:0}
+.pgt[hidden],.pgsec[hidden]{display:none}
+.pgopen{display:flex;flex-direction:column;align-items:stretch;gap:5px;width:100%;padding:0;background:none;border:0;color:var(--muted);font-size:0.625rem;font-variant-numeric:tabular-nums;cursor:pointer;-webkit-touch-callout:none;user-select:none}
 .pgfr{display:block;position:relative} /* 29.10: the picture + its marks (the marks stay when the picture is dropped) */
 .pgth{display:block;position:relative;width:100%;aspect-ratio:var(--pg-asp,.66);background:var(--r-bg,#f4ecd8);border-radius:var(--rq-radius-xs);overflow:hidden;box-shadow:0 0 0 1px var(--card2)}
 .pgth canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 .pgsc{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
 .pgtx{position:absolute;top:0}
 .pgt.cur .pgth{box-shadow:0 0 0 2px var(--accent)}
-.pgt.cur .pgn{color:var(--txt);font-weight:700}
+.pgt.cur .pgn{color:var(--accent);font-weight:700}
 .pgn{position:relative;text-align:center}
 /* 29.10 «Обзор» (Джессика, пункты 1, 2, 4, 7): bar «Стр. [__] Перейти · К текущей», chapter titles, marks on the pictures, the fast thumb */
-#panelBody .pgbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:6px;margin:0 -16px;padding:2px 16px 10px;background:var(--sheet)}
+#panelBody .pgbar{position:sticky;top:0;z-index:4;display:block;margin:0 -16px;padding:2px 16px 10px;background:var(--sheet)}
 .pgbar .pggo{display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--muted)}
 .pgbar input{width:5.2em;min-height:40px;padding:0 8px;border-radius:var(--rq-radius-sm);border:1px solid var(--card2);background:var(--card2);color:var(--txt);font:inherit;font-size:0.9375rem;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
 .pgbar input::-webkit-inner-spin-button,.pgbar input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
@@ -1019,8 +1021,48 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #panelBody .pgch{position:sticky;top:var(--pgbar-h,52px);z-index:3;display:flex;align-items:baseline;gap:8px;margin:0 -16px 8px;padding:6px 16px 7px;background:var(--sheet);font-size:0.8125rem;font-weight:700;color:var(--txt);border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
 .pgch .pgcht{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pgch .pgchp{flex:none;font-size:0.6875rem;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
-.pgbm{position:absolute;top:-2px;right:6px;z-index:1;display:flex;color:var(--accent);filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
-.pgbm .ic{fill:currentColor}
+.pgbmb{position:absolute;top:-6px;right:-4px;z-index:2;display:flex;align-items:flex-start;justify-content:center;width:36px;height:36px;padding:4px 0 0;background:none;border:0;color:var(--muted);opacity:.45}
+.pgbmb .ic{filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.pgbmb.on{color:var(--accent);opacity:1}
+.pgbmb.on .ic{fill:currentColor}
+.pgbmb:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;opacity:1}
+.pgt.rd .pgth{opacity:.62;filter:saturate(.6)} /* 29.10: already read */
+.pgt.rd .pgn::after{content:" ✓";color:var(--accent)}
+.pghit{position:absolute;top:5px;left:5px;z-index:1;display:flex;align-items:center;gap:2px;padding:2px 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:0.625rem;font-weight:700;font-variant-numeric:tabular-nums}
+.pgt.hfind .pgth{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
+.pgsecs.pgc2 .pgrid2{grid-template-columns:repeat(2,1fr);gap:14px 12px}
+.pgsecs.pgc5 .pgrid2{grid-template-columns:repeat(5,1fr);gap:8px 6px}
+.pgsecs.pgc5 .pgqs{left:2px;bottom:2px;padding:2px;gap:2px}.pgsecs.pgc5 .pgqs i{width:6px;height:6px}.pgsecs.pgc5 .pgnote{display:none}
+.pgsecs.pgc5 .pgbmb{width:28px;height:28px;right:-6px}.pgsecs.pgc5 .pgbmb .ic{width:11px;height:11px}.pgsecs.pgc5 .pghit .ic{display:none}
+.pgbar .pgrow{display:flex;align-items:center;gap:6px}
+.pgbar .pgrow+.pgrow{margin-top:8px}
+.pgbar .pgflt{flex:1;min-width:0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.pgbar .pgflt::-webkit-scrollbar{display:none}
+.pgbar .pgflt .fchip{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 11px;border-radius:999px;background:var(--card2);color:var(--txt);font-size:0.8125rem;white-space:nowrap}
+.pgbar .pgflt .fchip.on{background:var(--accent);color:var(--on-accent)}
+.pgbar .pgsz{flex:none;min-width:44px;justify-content:center}
+.pgbar .pgsz b{font-variant-numeric:tabular-nums}
+.pgprog{height:3px;margin:10px 0 0;border-radius:999px;background:color-mix(in srgb,var(--txt) 14%,transparent);overflow:hidden}
+.pgprog i{display:block;height:100%;border-radius:inherit;background:var(--accent)}
+#panelBody .pgch{padding:0 16px}
+.pgch .pgchb{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:0;background:none;border:0;color:inherit;font:inherit;text-align:left}
+.pgch .pgchb .ic{flex:none;color:var(--muted);transition:transform .15s}
+.pgsec.fold .pgch .pgchb .ic{transform:rotate(-90deg)}
+.pgsec.fold .pgrid2{display:none}
+.pgsec.fold+.pgsec{margin-top:4px}
+#panelBody .pgnone{padding-top:40px}
+.pgpv{position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:16px;background:color-mix(in srgb,var(--sheet) 70%,rgba(0,0,0,.55));border-radius:inherit}
+.pgpvc{display:flex;flex-direction:column;gap:10px;width:min(100%,420px);max-height:100%;padding:12px;border-radius:var(--rq-radius-md,16px);background:var(--sheet);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.pgpvh{display:flex;align-items:center;gap:8px;min-width:0}
+.pgpvh b{flex:none;font-variant-numeric:tabular-nums}
+.pgpvh span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:0.8125rem}
+.pgpvh .closes{position:static;margin-left:auto;flex:none}
+.pgpvt{flex:1 1 auto;min-height:0;display:flex;justify-content:center}
+.pgpvt .pgfr{flex:none}
+.pgpva{display:flex;gap:8px}
+.pgpva .pgbtn{flex:1;white-space:nowrap;font-size:0.875rem;justify-content:center;display:inline-flex;align-items:center;gap:6px;min-height:44px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt);font-weight:600}
+.pgpva .pgpvgo{background:var(--accent);color:var(--on-accent)}
+.pgpva [data-bm][aria-pressed="true"] .ic{fill:currentColor}
+@media (prefers-reduced-motion:reduce){.pgch .pgchb .ic{transition:none}}
 .pgqs{position:absolute;left:5px;bottom:5px;z-index:1;display:flex;align-items:center;gap:3px;padding:3px 4px;border-radius:999px;background:color-mix(in srgb,var(--sheet) 82%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--txt) 12%,transparent)}
 .pgqs i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%)}
 .pgqs .pgnote{display:flex;color:var(--txt)}
@@ -1946,6 +1988,7 @@ html[data-skin="pencil"] #reader .rfoot{position:relative}
 html[data-skin="pencil"] #pgArt{display:block}
 html[data-skin="pencil"] #panelBody .prow.on{background:var(--rq-surface);color:var(--rq-text);border:2px solid var(--rq-text);border-radius:14px 7px 12px 8px/8px 13px 7px 12px;box-shadow:3px 3px 0 var(--rq-accent)} /* 21.10: current chapter = a pencil-drawn frame with a coloured shadow */
 html[data-skin="pencil"] #panelBody .prow.on .pnow{background:none;border:1.5px solid var(--rq-accent);border-radius:52% 46% 55% 44%/48% 55% 45% 52%;color:var(--rq-accent-text);transform:rotate(-6deg)}
+html[data-skin="pencil"] .pgt.cur .pgth{border:2px solid var(--rq-text);border-radius:14px 7px 12px 8px/8px 13px 7px 12px;box-shadow:3px 3px 0 var(--rq-accent)} /* 29.10 «Обзор»: the page being read, pencil-drawn */
 html[data-skin="pencil"] #pgTicks i{top:-4px;width:5px;height:8px;margin-left:-2.5px;border-radius:0;background:var(--rq-text-2);opacity:.5;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 9'%3E%3Cpath d='M1.6 7.6 3.2 1.2M3.9 8 5.2 2.4' stroke='%23000' stroke-width='1.1' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 9'%3E%3Cpath d='M1.6 7.6 3.2 1.2M3.9 8 5.2 2.4' stroke='%23000' stroke-width='1.1' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") center/contain no-repeat} /* 25.10: chapter mark = a little double pencil hatch «//» across the line */
 html[data-skin="pencil"] #pgTicks i:nth-child(even){transform:scaleX(-1)}
 html[data-skin="pencil"] #pgSlider::-webkit-slider-runnable-track{background:transparent}

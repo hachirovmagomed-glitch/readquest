@@ -806,6 +806,13 @@ html[data-skin="celestial"] #panelBody .prow.on{background:var(--cl-ink);color:v
 html[data-skin="celestial"] #panelBody .prow.on .pnow{background:none;box-shadow:inset 0 0 0 1px var(--cl-gold-l)}
 html[data-skin="celestial"] #panelBody .prow.on .pnow .ic{display:none}
 html[data-skin="celestial"] #panelBody .prow.on .pnow::before{content:"";width:18px;height:18px;background:var(--cl-gold-l);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+/* 29.10 «Обзор» (Джессика, пункт 6): the page being read in the skin's own frame */
+html[data-skin="celestial"] .pgt.cur .pgth{box-shadow:0 0 0 1.5px var(--cl-gold-l),0 0 12px color-mix(in srgb,var(--cl-gold-l) 45%,transparent)}
+html[data-skin="celestial"] .pgt.cur .pgfr::after{content:"";position:absolute;left:50%;top:-9px;z-index:2;width:18px;height:18px;margin-left:-9px;background:var(--cl-gold-l);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+html[data-skin="celestial"] .pgt.cur .pgn{color:var(--cl-gold-l)}
+html[data-skin="ellada"] .pgt.cur .pgth{border-radius:var(--rq-radius-xs);box-shadow:0 0 0 2px var(--rq-accent),0 0 0 4px var(--rq-surface,transparent),0 0 0 5px var(--rq-border-strong)}
+html[data-skin="babochkovyi"] .pgt.cur .pgth{box-shadow:0 0 0 2px var(--rq-accent),0 4px 14px color-mix(in srgb,var(--rq-accent) 40%,transparent)}
+html[data-skin="babochkovyi"] .pgt.cur .pgfr{transform:translateY(-2px)}
 html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow{box-shadow:inset 0 0 0 1px var(--cl-gold-d)}
 html[data-skin="celestial"][data-theme="night"] #panelBody .prow.on .pnow::before{background:var(--cl-gold-d)}
 /* 21.10 иконки v2 (Джессика: «сильнее отличались, но с духом скина»): у каждого скина своя линия; «Aa» на кнопке шрифта — шрифтом скина */

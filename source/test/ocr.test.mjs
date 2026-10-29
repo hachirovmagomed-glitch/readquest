@@ -7,6 +7,8 @@
 //     после повторного открытия книги слой на месте (IDB ocr:<книга>);
 // off: без сети новое распознавание работает (движок и языки из кэша); file: на странице с текстом окно показывает текст файла;
 // ai: «Через ИИ» шлёт картинку страницы своему сервису (OpenAI-формат image_url, Claude — image base64), ответ в окне; DeepSeek — объяснение;
+// all: «Распознать всю книгу» — в фоне по страницам без текста (страница с текстом файла пропускается), окно можно закрыть, плашка
+//     показывает ход, готовые страницы сразу с текстовым слоем; повторный запуск ничего не распознаёт заново;
 // del: удаление книги с файлом стирает распознанное; опыт и монеты не меняются.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node ocr.test.mjs   [RQ_SHOTS=/dir]
 import puppeteer from 'puppeteer-core';
@@ -16,8 +18,8 @@ import { execFileSync } from 'child_process';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
 const SHOTS = process.env.RQ_SHOTS || '';
 const here = path.dirname(new URL(import.meta.url).pathname);
-const SCAN = '/workspace/rqtest/pdf/copy-scan.pdf', TEXT = '/workspace/rqtest/pdf/copy-edda.pdf';
-if (!fs.existsSync(SCAN) || !fs.existsSync(TEXT)) execFileSync('python3', [path.join(here, 'fixtures/gen-copy.py'), '/workspace/rqtest/pdf/']);
+const SCAN = '/workspace/rqtest/pdf/copy-scan.pdf', TEXT = '/workspace/rqtest/pdf/copy-edda.pdf', SCAN3 = '/workspace/rqtest/pdf/copy-scan3.pdf';
+if (!fs.existsSync(SCAN) || !fs.existsSync(TEXT) || !fs.existsSync(SCAN3)) execFileSync('python3', [path.join(here, 'fixtures/gen-copy.py'), '/workspace/rqtest/pdf/']);
 { const u = new URL('../ocr/index.json', BASE).href; let has = false; try { has = (await fetch(u)).ok; } catch (e) {}
   if (!has) { console.log('no ' + u + ' → tools/gen-ocr-pack.py dist/ocr'); execFileSync('python3', [path.join(here, '../tools/gen-ocr-pack.py'), path.join(here, '../dist/ocr')], { stdio: 'inherit' }); } }
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
@@ -132,6 +134,29 @@ b = await body();
 ok('ai: DeepSeek → it does not read pictures, nothing is sent', /DeepSeek не читает картинки/.test(b) && aiReq.length === nA, b.slice(0, 80));
 if (SHOTS) { await p.evaluate(() => { S.ai.prov = 'openai'; save(); }); }
 await p.evaluate(() => el('ocrSheetClose').click());
+await p.evaluate(async () => { await closeReader({ quiet: true }); }); await sleep(600); await p.evaluate(() => { if (!el('summary').classList.contains('hidden')) show('library'); });
+
+// all: the whole book in the background
+const s3 = await addPdf(SCAN3); await open(s3); await bars();
+await p.evaluate(() => { S.ai = Object.assign({}, S.ai || {}, { key: '' }); save(); el('ocrChip').click(); }); await sleep(800);
+await p.waitForFunction(() => el('ocrOut') || /Не получилось/.test(el('ocrBody').innerText), { timeout: 120000 });
+b = await body();
+ok('all: after one page «Распознать всю книгу» is offered', /Распознать всю книгу/.test(b), b.slice(0, 120));
+await p.evaluate(() => el('ocrAll').click()); await sleep(400);
+b = await body();
+ok('all: the window shows the book\'s progress and «Остановить»', /Распознаю книгу: страница \d из 3/.test(b) && /Остановить/.test(b), b.slice(0, 160));
+if (SHOTS) await p.screenshot({ path: SHOTS + '/ocr-all.png' });
+await p.evaluate(() => el('ocrSheetClose').click()); await sleep(400);
+c = await chip();
+ok('all: with the window closed the chip shows the progress', c.on && /Распознаю книгу · \d из 3/.test(c.t), c);
+await p.waitForFunction(() => !OA, { timeout: 240000 });
+const st3 = await p.evaluate(async () => { const b = await ocrBook(R.book.id); return Object.keys(b.p).sort().join(','); });
+ok('all: the picture pages are recognised, the page with its own text is left as it is', st3 === '0,2', st3);
+const bf3 = await p.evaluate(async () => { BF.pdfTxt = []; BF.pdfDoc = null; return (await bfPdfText(2)).indexOf('ведьмы'); });
+ok('all: book search finds a word on the last page without opening it', bf3 >= 0, bf3);
+const again = await p.evaluate(async () => { const n = Object.keys((await ocrBook(R.book.id)).p).length; let calls = 0; const w = await ocrWorker(), r0 = w.recognize; w.recognize = function () { calls++; return r0.apply(this, arguments); };
+  await ocrAll({ n: 0, bid: R.book.id }); w.recognize = r0; return { calls, n }; });
+ok('all: running it again recognises nothing anew', again.calls === 0 && again.n === 2, again);
 await p.evaluate(async () => { await closeReader({ quiet: true }); }); await sleep(600); await p.evaluate(() => { if (!el('summary').classList.contains('hidden')) show('library'); });
 
 // del

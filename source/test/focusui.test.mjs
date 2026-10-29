@@ -52,11 +52,10 @@ await shot('390-2-pomodoro-vkl');
 await p.evaluate(() => { document.getElementById('sheet').classList.add('hidden'); showChrome(); }); await sleep(300);
 await p.click('#btnFocus'); await sleep(300);
 const w1 = await p.evaluate(() => ({ shown: !document.getElementById('fzWords').classList.contains('hidden'), chips: document.querySelectorAll('#fzWordsChips button').length }));
-ok('«Фокус» с помодоро: сначала «Зачем читаешь сейчас?» с подсказками', w1.shown && w1.chips === 4, w1);
-await shot('390-3-fokus-slova');
-await p.evaluate(() => document.querySelector('#fzWordsChips button').click()); await p.click('#fzWordsGo'); await sleep(1300);
+ok('«Фокус» с помодоро: вопроса «Зачем читаешь сейчас?» нет (Джессика 25.10: «они лишние»), круг сразу', !w1.shown, w1);
+await sleep(1300);
 const r1 = await p.evaluate(() => ({ run: document.getElementById('reader').classList.contains('fzrun'), focus: isFocusOn(), chip: document.getElementById('fzChip').textContent, fw: FZ.fw, phase: FZ.phase }));
-ok('круг начался: режим фокуса, фишка «Круг 1 · 0 / 15 мин», фокус-слова запомнены', r1.run && r1.focus && /^Круг 1 · 0 \/ 15 мин/.test(r1.chip) && r1.fw === 'Дочитать главу' && r1.phase === 'run', r1);
+ok('круг начался: режим фокуса, фишка «Круг 1 · 0 / 15 мин», без фокус-слов', r1.run && r1.focus && /^Круг 1 · 0 \/ 15 мин/.test(r1.chip) && r1.fw === '' && r1.phase === 'run', r1);
 await shot('390-4-krug-idet');
 
 /* 3. an open book without turning pages does not fill the round (page cap) */
@@ -120,8 +119,8 @@ const c0 = await p.evaluate(() => FZ.done.slice());
 await p.evaluate(async () => { __navAllow = true; await closeReader(); __navAllow = false; }); await sleep(1500);
 const c1 = await p.evaluate(() => { const r = SESS[SESS.length - 1];
   return { pomo: r.pomo, fw: r.fw, xp: r.xp, min: r.minutes, sum: document.getElementById('sumFocus').innerText, hidden: document.getElementById('sumFocus').classList.contains('hidden'), gold: S.gold, paid: S.pomoPaid }; });
-ok('строка сессии: два круга по 15 и фокус-слова', c0.join() === '15,15' && (c1.pomo || []).join() === '15,15' && c1.fw === 'Дочитать главу', [c0, c1]);
-ok('итог: цель сессии, 2 круга, 30 мин чистого чтения, темп, +6 монет за круги', !c1.hidden && /Цель сессии: «Дочитать главу»/.test(c1.sum) && /2 круга · 30 мин чистого чтения/.test(c1.sum) && /мин на страницу/.test(c1.sum) && /\+6 монет — круги фокуса/.test(c1.sum), c1.sum);
+ok('строка сессии: два круга по 15, без фокус-слов', c0.join() === '15,15' && (c1.pomo || []).join() === '15,15' && !c1.fw, [c0, c1]);
+ok('итог: без «Цели сессии», 2 круга, 30 мин чистого чтения, темп, +6 монет за круги', !c1.hidden && !/Цель сессии/.test(c1.sum) && /2 круга · 30 мин чистого чтения/.test(c1.sum) && /мин на страницу/.test(c1.sum) && /\+6 монет — круги фокуса/.test(c1.sum), c1.sum);
 const xpBase = Math.floor(c1.min) * 10;
 ok('опыт: 10 за минуту + 20 % от 30 мин кругов (+60)', c1.xp === xpBase + 60, { xp: c1.xp, base: xpBase });
 ok('монеты: +6 за круги (кроме ежедневки и недели)', Object.values(c1.paid).reduce((a, b) => a + b, 0) === 6, c1.paid);
@@ -130,7 +129,7 @@ await shot('390-8-itog');
 /* 9. export → import keeps the rounds and the paid map */
 const ex = await p.evaluate(async () => { const e = await __rq.exportBackup(); const j = typeof e === 'string' ? JSON.parse(e) : e; const s = (j.sessions || []).find(r => r.pomo);
   return { row: s ? { pomo: s.pomo, fw: s.fw } : null, set: j.settings && j.settings.fz ? j.settings.fz.len : (j.set && j.set.fz && j.set.fz.len), str: JSON.stringify(j).includes('pomoPaid') }; });
-ok('экспорт: круги и фокус-слова в строке, pomoPaid в состоянии', ex.row && ex.row.pomo.join() === '15,15' && ex.row.fw === 'Дочитать главу' && ex.str, ex);
+ok('экспорт: круги в строке, pomoPaid в состоянии', ex.row && ex.row.pomo.join() === '15,15' && ex.str, ex);
 
 /* 10. the tab after the session: streak, today, map cell */
 await p.evaluate(() => { __navAllow = true; openBook(S.userBooks[0].id); __navAllow = false; }); await sleep(2000);
@@ -156,6 +155,23 @@ const n3 = await p3.evaluate(() => { const s = document.getElementById('sheet');
 ok('360: ничего не вылезает за экран', n3.sw <= n3.cw + 1 && !n3.bad.length, n3);
 if (SHOTS) await p3.screenshot({ path: `${SHOTS}/360-1-vkladka-fokus.png` });
 await p3.close();
+
+/* 11b. 28.10: the pause is a header button — hidden while reading (bars off), shown with the bars on a tap; on pause a quiet «Пауза» stays */
+{ const pp = await page(BASE, 390);
+  await (await pp.$('#fileInp')).uploadFile(TXT); await pp.waitForFunction(() => (S.userBooks || []).length >= 1, { timeout: 30000 }); await sleep(300);
+  await pp.evaluate(() => { __navAllow = true; openBook(S.userBooks[0].id); __navAllow = false; }); await sleep(2200);
+  const vis = () => pp.evaluate(() => { const b = document.getElementById('rqPause'), r = b.getBoundingClientRect(), t = document.getElementById('rqPausedTag');
+    return { inHead: !!b.closest('.rhead'), shown: (() => { if (!(r.width > 0 && r.bottom > 0)) return false; const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && b.contains(e); })(), tag: getComputedStyle(t).display }; });
+  await pp.evaluate(() => concealChrome('tap')); await sleep(600); const a = await vis();
+  await pp.evaluate(() => revealChrome()); await sleep(600); const b = await vis();
+  await pp.evaluate(() => { pauseSet('me', true); concealChrome('tap'); }); await sleep(600); const c = await vis();
+  await pp.evaluate(() => pauseSet(false, true)); await sleep(300); const d = await vis();
+  ok('пауза в верхней панели: при чтении (панели скрыты) её не видно', a.inHead && !a.shown && a.tag === 'none', a);
+  ok('тап по экрану: появляется вместе с панелями', b.shown, b);
+  ok('на паузе без панелей: кнопки нет, внизу тихая надпись «Пауза»', !c.shown && c.tag === 'block', c);
+  ok('сняли паузу: надписи нет', d.tag === 'none', d);
+  if (SHOTS) { await pp.evaluate(() => revealChrome()); await sleep(500); await pp.screenshot({ path: `${SHOTS}/pauza-s-panelyami.png` }); await pp.evaluate(() => { pauseSet('me', true); concealChrome('tap'); }); await sleep(600); await pp.screenshot({ path: `${SHOTS}/pauza-chtenie.png` }); }
+  await pp.close(); }
 
 /* 12. every skin: its own three sounds in the tab, the chip in the reader */
 const p4 = await page(BASE, 390);

@@ -1,8 +1,11 @@
 # 28.10 «Корректное копирование»: a scan-like PDF (page picture + an invisible OCR text layer, as ABBYY makes it) for copy.test.mjs.
 # Page 1: two columns of verse with small line numbers (as in Джессика's «Старшая Эдда»); the OCR text goes across BOTH columns line
 #   by line (the worst file order), some Russian words carry Latin look-alike letters (OCR noise), a page number at the bottom.
+# Both pages carry a running header «Старшая Эдда» on top (not copied).
+# Page 3: a table of 4 columns, its text in the file column by column.
 # Page 2: one column of justified prose: a word hyphenated over a line break, paragraphs by indent, a page number.
 # copy-scan.pdf (28.10, ocr.test.mjs): the same verse page as a bare picture — no text layer at all, as a scan without OCR.
+# copy-scan3.pdf: three pages for «Распознать всю книгу» (picture, own text, picture).
 # Run: python3 gen-copy.py [out dir]   (default /workspace/rqtest/pdf/)
 import sys, io, os
 from reportlab.pdfgen import canvas
@@ -39,6 +42,7 @@ def verse_items():
                 y -= 13.5
             y -= 11
     out.append((W / 2 - 8, 40, 9, '203', '203'))
+    out.append((W / 2 - 34, H - 35, 8, 'СТАРШАЯ ЭДДА', 'СТАРШАЯ ЭДДА'))  # running header: small capitals
     return out
 
 PROSE = [('  Первый абзац текста идёт по всей ширине до самого края', True, 'пере-'),
@@ -54,6 +58,7 @@ def prose_items():
         out.append((40 + (14 if s.startswith('  ') else 0), y, 9.5, t, t, full))
         y -= 13
     out.append((W / 2 - 6, 40, 9, '204', '204', False))
+    out.append((W / 2 - 30, H - 35, 9.5, 'Старшая Эдда', 'Старшая Эдда', False))  # the same header in body type: known from page 1
     return out
 
 def picture(items):
@@ -84,8 +89,24 @@ for items in (verse_items(), prose_items()):
         else:
             t.setTextOrigin(x, y); t.textOut(ocr)
     c.drawText(t); c.showPage()
+# Page 3 (28.10): a table, 4 columns; its text goes column by column in the file (the order that used to come out)
+TABLE = [['Песнь', 'Строфы', 'Перевод', 'Год'], ['Прорицание вёльвы', '66', 'Корсун', '1963'], ['Речи Высокого', '164', 'Корсун', '1963'],
+         ['Песнь о Трюме', '32', 'Свириденко', '1917'], ['Перебранка Локи', '65', 'Корсун', '1963']]
+TX = [40, 150, 240, 330]
+items = [(TX[k], H - 80 - r * 16, 9.5, cell, cell) for r, row in enumerate(TABLE) for k, cell in enumerate(row)]
+c.drawImage(picture(items), 0, 0, W, H)
+t = c.beginText(); t.setTextRenderMode(3); t.setFont('DJS', 9.5)
+for it in sorted(items, key=lambda q: (q[0], -q[1])):
+    t.setTextOrigin(it[0], it[1]); t.textOut(it[4])
+c.drawText(t); c.showPage()
 c.save()
 c = canvas.Canvas(OUT + 'copy-scan.pdf', pagesize=(W, H))
 c.drawImage(picture(verse_items()), 0, 0, W, H); c.showPage()
 c.save()
-print(OUT + 'copy-edda.pdf', OUT + 'copy-scan.pdf')
+# copy-scan3.pdf (28.10, «Распознать всю книгу»): a picture of prose, a page with its own text, a picture of verse
+c = canvas.Canvas(OUT + 'copy-scan3.pdf', pagesize=(W, H))
+c.drawImage(picture(prose_items()), 0, 0, W, H); c.showPage()
+c.setFont('DJS', 11); c.drawString(40, H - 80, 'Страница с текстом файла.'); c.showPage()
+c.drawImage(picture(verse_items()), 0, 0, W, H); c.showPage()
+c.save()
+print(OUT + 'copy-edda.pdf', OUT + 'copy-scan.pdf', OUT + 'copy-scan3.pdf')

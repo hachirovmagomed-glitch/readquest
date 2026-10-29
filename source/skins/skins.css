@@ -843,3 +843,10 @@ html[data-skin="celestial"] #diary .dypl{height:10px;background:var(--cl-div) ce
 html[data-skin="celestial"][data-theme="night"] #diary .dypl{background-image:var(--cl-div-n),linear-gradient(var(--cl-gold),var(--cl-gold))}
 html[data-skin="celestial"] #diary .dypaper{border:1px solid var(--cl-gold-l);box-shadow:var(--cl-frame),var(--rq-shadow-1)}
 html[data-skin="celestial"] #diary .dycov{box-shadow:inset 9px 0 0 var(--cvd),inset 10px 0 0 var(--cl-gold-l),0 0 0 1px var(--cl-gold-l),0 6px 12px rgba(0,0,0,.22)}
+/* 29.10 (Джессика: «Настройки чтения» тоже в стиле скина): the sheet title gets the skin's display face and the same line as the screen headers */
+html[data-skin]:not([data-skin="pencil"]) #sheet #sheetH{position:relative;font-family:var(--rq-font-display);font-weight:700;font-size:1.5rem;letter-spacing:.01em;padding-bottom:12px;margin-right:48px}
+html[data-skin="babochkovyi"] #sheet #sheetH{font-weight:400}
+html[data-skin="ellada"] #sheet #sheetH::after{content:"";position:absolute;left:0;right:-48px;bottom:0;height:8px;background:var(--el-meander-line) 0 0/8px 8px repeat-x;opacity:.4;pointer-events:none}
+html[data-skin="babochkovyi"] #sheet #sheetH::after{content:"";position:absolute;left:0;right:-26px;bottom:2px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--bb-iri-1),var(--bb-iri-2),var(--bb-iri-3),transparent);pointer-events:none}
+html[data-skin="celestial"] #sheet #sheetH::after{content:"";position:absolute;left:0;right:-48px;bottom:0;height:10px;background:var(--cl-div) center/160px 10px no-repeat,linear-gradient(90deg,transparent,var(--cl-gold-l) 20%,var(--cl-gold-l) 80%,transparent) center/100% 1px no-repeat;pointer-events:none}
+html[data-skin="celestial"][data-theme="night"] #sheet #sheetH::after{background-image:var(--cl-div-n),linear-gradient(90deg,transparent,var(--cl-gold) 20%,var(--cl-gold) 80%,transparent)}

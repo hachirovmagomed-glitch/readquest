@@ -830,11 +830,12 @@ el('viewer').addEventListener('gesturestart',e=>{e.preventDefault();}); /* iOS S
 let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
   if(R.mode==='pdf'){pdfTouchStart(e);return;}
+  if(e.touches.length===2&&!rqRx().gest.pinch){tx0=null;bright=null;return;} /* 29.10 SET.rx.gest.pinch off: two fingers do nothing */
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   tx0=e.touches[0].clientX;
-  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode())bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
+  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
@@ -1142,13 +1143,14 @@ function nttsSay(t,onend,onstart,onpos,next){
     a.ontimeupdate=function(){if(gen!==nttsGen||!ttsOn||!onpos||!a.duration||!isFinite(a.duration))return;onpos(Math.floor(t.length*a.currentTime/a.duration));};
     a.onended=function(){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);if(onend)onend();};
     a.onerror=function(){if(gen!==nttsGen)return;ttsFail('телефон не смог проиграть звук');};
-    a.src=nttsUrl;const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
+    a.src=nttsUrl;try{a.playbackRate=rqRx().tts.rate;a.preservesPitch=true;}catch(e){}const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
   },function(e){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);ttsFail(e&&e.message);});
 }
 function ttsSay(t,onend,onstart,onpos,next){
   if(nttsOn()){nttsSay(t,onend,onstart,onpos,next);return;}
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
-  const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
+  const v=ttsVoices(),rx=rqRx().tts;if(v.length)try{u.voice=v.find(function(x){return x.voiceURI===rx.voice;})||v[0];}catch(e){} /* 29.10 SET.rx.tts: own voice and speed */
+  u.rate=rx.rate;
   let started=false;const t0=Date.now();
   u.onstart=function(){started=true;if(ttsOn&&onstart)onstart();};
   u.onboundary=function(e){if(!started){started=true;if(ttsOn&&onstart)onstart();}if(ttsOn&&onpos&&typeof e.charIndex==='number')onpos(e.charIndex);};
@@ -1156,7 +1158,7 @@ function ttsSay(t,onend,onstart,onpos,next){
   u.onerror=function(e){const k=e&&e.error;if(k==='interrupted'||k==='canceled')return;ttsFail();};
   speaking=true;speechSynthesis.speak(u);
 }
-function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
+function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1||!rqRx().tts.follow)return; /* 29.10 SET.rx.tts.follow off: the voice reads on, the page stays */const np=Math.round((pos/b.text.length)*(R.pageCount-1));
   if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
 function ttsChunkEnd(text,st){let end=Math.min(text.length,st+1500);const tail=text.slice(end,end+220).search(/[.!?…\n]/);if(tail>=0)end+=tail+1;return end;}
 function ttsTextNext(){
@@ -1222,7 +1224,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();
+  R.book=null;PQ=null;rqOwnLeave(); /* 29.10: the common look back in SET (SET.bookSet) */if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();
@@ -1508,7 +1510,8 @@ window.addEventListener('popstate',function(e){
   const st=(e.state&&e.state.rq)||null;
   if(window.__rqWriter&&__rqWriter.passive)return;
   if(readerIsOpen()){
-    if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
+    if(generalOverReader()){if(gsCur()&&gsPushed()&&st!=='gsec'){gsClose();if(st!=='settings')navPush('settings');return;} /* 29.10: a section → back to the list of sections */
+      closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
     const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'),os=el('ocrSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ, (22.10) «Перевод» и (28.10) «Текст страницы» */
     if(![ac,as,ts,os].every(x=>x.classList.contains('hidden'))){[ac,as,ts,os].forEach(x=>x.classList.add('hidden'));navPush('reader');return;}

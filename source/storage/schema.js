@@ -84,6 +84,8 @@ export const PROGRESS_DEF = {
   stickers: {},
   favs: [],
   lastBackup: null,
+  backupNag: true,     // 29.10 «Напоминать о копии» (arch.md backupNag)
+  backupNagAt: null,   // 29.10: day of the last reminder 'YYYY-MM-DD'
 };
 
 /**
@@ -214,6 +216,9 @@ export const SET_DEF = {
   pdfTheme: false,   // 20.10: PDF page in the page-theme colours (arch.md SET.pdfTheme)
   fz: null,          // 25.10 «Фокус»: {pomo,len,rest,quiet,snd,vol,words,warn} (arch.md SET.fz), normFz
   qSort: 'book',     // 28.10: order of quotes in «Навигация → Цитаты» and «Цитаты и заметки»: 'book' | 'new' | 'old'
+  presets: [],       // 29.10 «Мои наборы» (arch.md SET.presets): ≤ 8 {n, v}, normPresets
+  bookSet: {},       // 29.10 «Только к этой книге» (arch.md SET.bookSet): {<book id>: {...}} ≤ 200, normBookSet
+  rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,spd}, normRx
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -254,6 +259,61 @@ export function normFz(o) {
   f.snd = [0, 1, 2, 3].includes(o.snd) ? o.snd : d.snd;
   f.vol = typeof o.vol === 'number' && Number.isFinite(o.vol) ? Math.round(Math.max(0.05, Math.min(1, o.vol)) * 20) / 20 : d.vol;
   return f;
+}
+/** 29.10 SET.presets / SET.bookSet (arch.md) — same rules as js/reader.js rqTypoPick / rqPresetsNorm / rqBookSetNorm */
+export const BOOK_KEYS = ['font', 'size', 'lh', 'ls', 'weight', 'align', 'hyph', 'indent', 'margin'];
+export const PRESET_KEYS = BOOK_KEYS.concat(['bright', 'warm']);
+export function typoPick(o, keys) {
+  const n = (v, lo, hi, st) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v)) / st) * st : undefined), r = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
+  keys.forEach((k) => {
+    const v = o[k];
+    let x;
+    if (k === 'font') x = typeof v === 'number' && v >= 0 && v < 64 && Math.floor(v) === v ? v : undefined;
+    else if (k === 'size') x = n(v, 14, 30, 1);
+    else if (k === 'lh') x = n(v, 1.2, 2.4, 0.05);
+    else if (k === 'ls') x = n(v, -1, 3, 0.5);
+    else if (k === 'margin') x = n(v, 10, 80, 1);
+    else if (k === 'weight') x = [300, 400, 600].includes(v) ? v : undefined;
+    else if (k === 'align') x = v === 'j' || v === 'l' ? v : undefined;
+    else if (k === 'hyph' || k === 'indent') x = typeof v === 'boolean' ? v : undefined;
+    else if (k === 'bright') x = n(v, 0.3, 1, 0.05);
+    else if (k === 'warm') x = n(v, 0, 0.6, 0.05);
+    if (x !== undefined) r[k] = k === 'lh' || k === 'bright' || k === 'warm' ? +x.toFixed(2) : x;
+  });
+  return r;
+}
+export function normPresets(a) {
+  return Array.isArray(a)
+    ? a.filter((p) => p && typeof p === 'object' && typeof p.n === 'string' && p.n.trim()).slice(0, 8).map((p) => ({ n: p.n.trim().slice(0, 24), v: typoPick(p.v, PRESET_KEYS) }))
+    : [];
+}
+export function normBookSet(o) {
+  const r = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
+  Object.keys(o).filter((k) => k && k.length <= 200).slice(-200).forEach((k) => { const v = typoPick(o[k], BOOK_KEYS); if (Object.keys(v).length) r[k] = v; });
+  return r;
+}
+/** 29.10 SET.rx (arch.md «раздел Чтение») — same rules as js/reader.js rqRxNorm */
+export const RX_SEL = ['colors', 'note', 'word', 'dict', 'ai', 'grow', 'copy'];
+export function normRx(o) {
+  const ob = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), bo = (v, d) => (typeof v === 'boolean' ? v : d),
+    en = (v, a) => (a.includes(v) ? v : a[0]), hm = (v, d) => (typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : d),
+    nm = (v) => (typeof v === 'string' ? v.trim().slice(0, 24) : ''),
+    num = (v, lo, hi) => (typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi ? Math.round(v * 10) / 10 : null),
+    ids = (a) => (Array.isArray(a) ? a.filter((x, i) => RX_SEL.includes(x) && a.indexOf(x) === i) : []);
+  o = ob(o);
+  const f = ob(o.foot), t = ob(o.tts), n = ob(o.night), g = ob(o.gest), s = ob(o.sel), sc = ob(o.screen), fr = ob(o.fresh), sp = ob(o.spd);
+  return {
+    foot: { page: bo(f.page, true), pct: bo(f.pct, false), clock: bo(f.clock, false), chap: bo(f.chap, false) },
+    tts: { rate: typeof t.rate === 'number' && Number.isFinite(t.rate) ? Math.round(Math.max(0.5, Math.min(2, t.rate)) * 20) / 20 : 1, voice: typeof t.voice === 'string' ? t.voice.slice(0, 200) : '', follow: bo(t.follow, true) },
+    night: { on: bo(n.on, false), from: hm(n.from, '22:00'), to: hm(n.to, '07:00'), day: typeof n.day === 'string' && n.day.length <= 32 ? n.day : '' },
+    gest: { bright: bo(g.bright, true), pinch: bo(g.pinch, true), dbl: en(g.dbl, ['off', 'night', 'mark', 'bars']) },
+    sel: { off: ids(s.off), order: ids(s.order), color: ['y', 'g', 'b', 'p', 'o'].includes(s.color) ? s.color : '' },
+    screen: { orient: en(sc.orient, ['auto', 'portrait', 'landscape']), spread: en(sc.spread, ['auto', 'land', 'off']) },
+    fresh: { set: nm(fr.set), pdf: nm(fr.pdf), toc: bo(fr.toc, false) },
+    spd: { cpm: num(sp.cpm, 100, 6000), spp: num(sp.spp, 5, 1200), n: typeof sp.n === 'number' && Number.isFinite(sp.n) ? Math.max(0, Math.min(1e6, Math.floor(sp.n))) : 0 },
+  };
 }
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
 export function normPdfDim(v) {
@@ -506,6 +566,11 @@ export function hydrateGame(g) {
     });
   }
   if (!out.notif) out.notif = { on: false, time: '20:00' };
+  /* 29.10 (arch.md notif.days / backupNag): same rules as js/core-b.js */
+  if (!(Array.isArray(out.notif.days) && out.notif.days.length === 7 && out.notif.days.every((x) => typeof x === 'boolean'))) out.notif.days = [true, true, true, true, true, true, true];
+  if (typeof out.notif.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(out.notif.time)) out.notif.time = '20:00';
+  if (typeof out.backupNag !== 'boolean') out.backupNag = true;
+  if (out.backupNagAt != null && !/^\d{4}-\d\d-\d\d$/.test(String(out.backupNagAt))) out.backupNagAt = null;
   if (!out.statuses)
     out.statuses = [
       [1, 'Новичок'],
@@ -571,6 +636,9 @@ export function hydrateSettings(s) {
   if (typeof out.pdfFont !== 'boolean') out.pdfFont = false;
   if (typeof out.pdfTheme !== 'boolean') out.pdfTheme = false;
   out.fz = normFz(out.fz);
+  out.presets = normPresets(out.presets);
+  out.bookSet = normBookSet(out.bookSet);
+  out.rx = normRx(out.rx);
   /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
   if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
   delete out.dim;

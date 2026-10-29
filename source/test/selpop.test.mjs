@@ -21,7 +21,7 @@ const select = () => p.evaluate(async () => {
   const c = document.getElementById('content'), w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT); let n;
   while ((n = w.nextNode())) { const r = n.parentElement.getBoundingClientRect(); if (n.textContent.trim().length > 20 && r.top > 80 && r.bottom < innerHeight - 200) break; }
   const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(n, 0); rg.setEnd(n, 15); s.addRange(rg);
-  updSelPop(); await new Promise(r => setTimeout(r, 200));
+  updSelPop(); SA.mini = false; selMiniApply(); selPlace(); /* 29.10: the circle went into the side menu, its pencil opens the bar */ await new Promise(r => setTimeout(r, 200));
 });
 // contrast of every visible label and icon against the bar's own background
 const measure = () => p.evaluate(() => {
@@ -54,7 +54,7 @@ for (const k of ['pencil', 'pencil-night', 'ellada', 'ellada-night', 'babochkovy
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
 await select();
 const fit = await p.evaluate(() => { const b = document.getElementById('selpop'), r = b.getBoundingClientRect(); /* 20.10: colours row + one row of actions */
-  const rows = new Set([...b.querySelectorAll(':scope > button')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top))).size;
+  const rows = new Set([...b.querySelectorAll(':scope > button')].filter(x => x.offsetParent && x.id !== 'spFold') /* «Свернуть» is a corner badge */.map(x => Math.round(x.getBoundingClientRect().top))).size;
   return { l: Math.round(r.left), r: Math.round(r.right), h: Math.round(r.height), rows }; });
 await shot('360');
 ok('360: bar inside the screen, actions in one row under the colours', fit.l >= 0 && fit.r <= 360 && fit.rows === 1 && fit.h < 120, fit);

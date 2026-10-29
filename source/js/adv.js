@@ -19,8 +19,27 @@ const ADV={src:'all',q:'',lang:'ru',items:[],more:null,busy:false,err:'',seq:0,d
 const ADV_LANGS=[['ru','Русские'],['en','English'],['de','Deutsch'],['fr','Français'],['','Все языки']];
 /* 25.10 (Джессика): portraits instead of name chips; public domain, Wikimedia Commons (hero/authors/credits.json); a missing file leaves the initial */
 const ADV_FACES={'Пушкин':'pushkin','Гоголь':'gogol','Толстой':'tolstoy','Чехов':'chekhov','Гомер':'homer','Шекспир':'shakespeare','Данте':'dante','Сервантес':'cervantes','Диккенс':'dickens','Гёте':'goethe','Жюль Верн':'verne','Андерсен':'andersen'};
-function advFace(s){const f=ADV_FACES[s];
-  return '<button type="button" class="advface" data-q="'+esc(s)+'"><span class="advph"><b>'+esc(s.charAt(0))+'</b>'+(f?'<img src="hero/authors/'+f+'.webp" alt="" loading="lazy" onerror="this.remove()">':'')+'</span><span class="advfn">'+esc(s)+'</span></button>';}
+/* 28.10 (Джессика: «гораздо больше портретов, а то они одни и те же»): [подпись, файл, кого искать на Викитеке]; the row is shuffled once a day */
+const ADV_FACES_MORE=[['Лермонтов','lermontov','Михаил Юрьевич Лермонтов'],['Тургенев','turgenev','Иван Сергеевич Тургенев'],['Достоевский','dostoevsky','Фёдор Михайлович Достоевский'],
+  ['Островский','ostrovsky','Александр Николаевич Островский'],['Грибоедов','griboyedov','Александр Сергеевич Грибоедов'],['Крылов','krylov','Иван Андреевич Крылов'],['Карамзин','karamzin','Николай Михайлович Карамзин'],
+  ['Горький','gorky','Максим Горький'],['Куприн','kuprin','Александр Иванович Куприн'],['Блок','blok','Александр Александрович Блок'],['Есенин','yesenin','Сергей Александрович Есенин'],
+  ['Маяковский','mayakovsky','Владимир Владимирович Маяковский'],['Цветаева','tsvetaeva','Марина Ивановна Цветаева'],['Жуковский','zhukovsky','Василий Андреевич Жуковский'],['Некрасов','nekrasov','Николай Алексеевич Некрасов'],
+  ['Тютчев','tyutchev','Фёдор Иванович Тютчев'],['Фет','fet','Афанасий Афанасьевич Фет'],['Салтыков-Щедрин','saltykov','Михаил Евграфович Салтыков-Щедрин'],['Лесков','leskov','Николай Семёнович Лесков'],
+  ['Державин','derzhavin','Гавриил Романович Державин'],['Ломоносов','lomonosov','Михаил Васильевич Ломоносов'],['Беляев','belyaev','Александр Романович Беляев'],
+  ['Платон','plato','Платон'],
+  ['Шиллер','schiller','Фридрих Шиллер'],['Байрон','byron','Байрон'],['Остин','austen','Джейн Остин'],['Бронте','bronte','Шарлотта Бронте'],['Дюма','dumas','Александр Дюма'],['Гюго','hugo','Виктор Гюго'],
+  ['Бальзак','balzac','Оноре де Бальзак'],['Флобер','flaubert','Гюстав Флобер'],['Мопассан','maupassant','Ги де Мопассан'],['Стендаль','stendhal','Стендаль'],['Вольтер','voltaire','Вольтер'],
+  ['Марк Твен','twain','Марк Твен'],['Эдгар По','poe','Эдгар По'],['Джек Лондон','london','Джек Лондон'],['Купер','cooper','Джеймс Фенимор Купер'],['Конан Дойл','doyle','Артур Конан Дойль'],
+  ['Стивенсон','stevenson','Роберт Льюис Стивенсон'],['Киплинг','kipling','Редьярд Киплинг'],['Уайльд','wilde','Оскар Уайльд'],['Свифт','swift','Джонатан Свифт'],['Дефо','defoe','Даниель Дефо'],
+  ['Вальтер Скотт','scott','Вальтер Скотт'],['Уэллс','wells','Герберт Уэллс'],['Кэрролл','carroll','Льюис Кэрролл'],['Братья Гримм','grimm','Братья Гримм'],['Мольер','moliere','Мольер'],
+  ['Петрарка','petrarch','Франческо Петрарка'],['Гейне','heine','Генрих Гейне'],['Бёрнс','burns','Роберт Бёрнс']];
+function advFaces(){
+  const all=Object.keys(ADV_FACES).map(function(n){return [n,ADV_FACES[n],n];}).concat(ADV_FACES_MORE);
+  let seed=+today().replace(/-/g,'')%2147483647||1;const rnd=function(){seed=seed*16807%2147483647;return seed/2147483647;};
+  for(let i=all.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1)),t=all[i];all[i]=all[j];all[j]=t;}
+  return all;}
+function advFace(x){
+  return '<button type="button" class="advface" data-q="'+esc(x[2])+'"><span class="advph"><b>'+esc(x[0].charAt(0))+'</b><img src="hero/authors/'+x[1]+'.webp" alt="" loading="lazy" onerror="this.remove()"></span><span class="advfn">'+esc(x[0])+'</span></button>';}
 const ADV_WS_HINTS=['Пушкин','Гоголь','Толстой','Чехов','Гомер','Шекспир','Данте','Сервантес','Диккенс','Гёте','Жюль Верн','Андерсен'];
 /* Джессика 18.10: ready collections on the first screen, one tap to a book. Wikisource titles checked live (GitHub Actions, 18.10) */
 const ADV_SETS=[
@@ -216,7 +235,7 @@ const ADV_SRC={
     async get(it,prog,inf){
       prog('Скачиваю…');const r=await fetch(inf.epub,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
       const blob=await r.blob();prog('Распаковываю…');
-      const p=await parseEpub(new File([blob],it.sid.slice(3).replace(/\//g,'_')+'.epub',{type:'application/epub+zip'}));
+      const p=await parseEpub(new File([blob],it.sid.slice(3).replace(/\//g,'_')+'.epub',{type:'application/epub+zip'}),{images:false}); /* 28.10: Standard Ebooks pictures are not kept */
       return {title:p.title||it.t,author:inf.author||p.author||it.a,text:p.text,toc:p.toc,lang:inf.lang||'en'};}},
   /* Internet Archive (Джессика 21.10, «Только свободные»): advancedsearch and /metadata send Access-Control-Allow-Origin: *, and so does the recognised
      text of a scan (_djvu.txt); its EPUB files do not (checked 21.10 from GitHub Actions). Only items marked public domain or published before 1930,
@@ -548,7 +567,7 @@ function advRenderList(){
       ADV_WS_HINTS.slice(0,8).map(function(s){return '<button type="button" class="fchip" data-q="'+esc(s)+'">'+esc(s)+'</button>';}).join('')+'</div>';
     else if(!advLat()&&!ADV.q)h+=advHome()+'<div class="bk-h">Подборки</div><div class="advsets">'+ADV_SETS.map(function(x){ /* audit 19.10 ADV-01: English collections off for the RU people test */
         return '<button type="button" class="advset" data-set="'+x.id+'">'+rqIcon(x.ic,22)+'<b>'+esc(x.t)+'</b><span>'+(x.pages?advSetLine(x):x.sub||'мировая классика')+'</span>'+(x.pages&&advSetProg(x)?advBar(advSetProg(x),x.pages.length):'')+'</button>';}).join('')+'</div>'+
-      '<div class="bk-h advauth-h">Авторы</div><div class="advfaces advhints">'+ADV_WS_HINTS.map(advFace).join('')+'</div>';
+      '<div class="bk-h advauth-h">Авторы</div><div class="advfaces advhints">'+advFaces().map(advFace).join('')+'</div>';
     else h+='<div class="advempty">Ничего не нашлось. Попробуйте другое название или автора</div>';
   }else{
     const flt=!ADV.set&&!advLat()&&ADV.items.some(function(x){return x.kind||x.size;});

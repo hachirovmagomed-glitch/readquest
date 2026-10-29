@@ -216,6 +216,7 @@ function renderLibrary(){
     if(lb&&!S.finished.includes(lid)){const pr=Math.round(rqPos(lid)*100);
       cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
     else cc.innerHTML='';}
+  if(typeof qDayRender==='function')qDayRender(); /* 28.10 «Цитата дня» (js/quotes.js) */
   const dc=el('dailyCard');
   if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">'+rqIcon('gift',18)+'<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
   const shelf=el('shelf');shelf.innerHTML='';shelf.className='grid v-'+libViewGet();
@@ -483,7 +484,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','
    a file already on the shelf (same fname + size) is skipped, so picking the same folder twice adds nothing; a single picked file is
    added as before (savetext contract). Unsupported extensions are ignored, a broken file does not stop the rest, the batch result is one
    toast (arch.md «1в: импорт пачкой»); a single file keeps its old alert. */
-const BOOK_EXT=/\.(txt|epub|fb2|pdf)$/i;
+const BOOK_EXT=/\.(txt|epub|fb2|pdf|zip)$/i; /* 28.10: + .fb2.zip (a .zip with an FB2 inside) */
 let bookIdN=0;
 function newBookId(){try{if(crypto&&crypto.randomUUID)return 'u'+crypto.randomUUID();}catch(e){}return 'u'+Date.now()+'-'+(++bookIdN);} /* arch.md 1в: id is never parsed as time */
 function importToast(t,err){flashMsg(t,{kind:err?'error':'info',ms:6000});const d=document.querySelector('.rq-toast');if(d)d.classList.add('imp');}
@@ -491,6 +492,17 @@ function importToast(t,err){flashMsg(t,{kind:err?'error':'info',ms:6000});const 
 function looksLikeText(t){const h=String(t||'').slice(0,65536);if(!h)return true;let bad=0;
   for(let i=0;i<h.length;i++){const c=h.charCodeAt(i);if(c===0)return false;if(c===0xFFFD||(c<32&&c!==9&&c!==10&&c!==13&&c!==12))bad++;}
   return bad/h.length<0.02;}
+/* 28.10: «Книга.fb2.zip» (how most Russian sites give FB2): the first .fb2 inside; JSZip is vendored (js/content.js loadJSZip) */
+async function fb2FromZip(f){
+  await loadJSZip();const zip=await window.JSZip.loadAsync(f);
+  const e=Object.keys(zip.files).find(function(n){return /\.fb2$/i.test(n)&&!zip.files[n].dir;});
+  if(!e)throw new Error('в архиве нет книги FB2');
+  return new File([await zip.file(e).async('uint8array')],e.split('/').pop());
+}
+/* 28.10: the pictures of an FB2 / EPUB, once, before the book reaches the shelf (IDB «img:<id>:<n>», js/reader.js rqBookImgs) */
+async function bookImgsPut(id,imgs){
+  for(let i=0;i<(imgs||[]).length;i++){const x=imgs[i];if(!x)continue;try{await idbPut('img:'+id+':'+i,new Blob([x.data],{type:x.type}));}catch(e){console.warn('[rq] img',e);}}
+}
 async function importBookFile(f,setBusy){
   let b;
   if(/\.pdf$/i.test(f.name)){
@@ -505,14 +517,16 @@ async function importBookFile(f,setBusy){
     await idbPut('pdf:'+id,buf);
     b={id:id,title:f.name.replace(/\.pdf$/i,''),author:'PDF',genre:'PDF',stat:'Воля',cover:'📄',type:'pdf',pages:nPages,text:'',fname:f.name,size:f.size};
     if(lt&&Number.isInteger(lt.l)){b.lvlText=lt.l;b.lvlWords=lt.w;b.lvlV=window.__rqGame.LVL_ALGO;}
-  }else if(/\.fb2$/i.test(f.name)){
+  }else if(/\.(fb2|zip)$/i.test(f.name)){
     setBusy('Разбираю FB2...');
-    const r=await parseFb2(f);
+    const r=await parseFb2(/\.zip$/i.test(f.name)?await fb2FromZip(f):f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
+    await bookImgsPut(b.id,r.imgs);
   }else if(/\.epub$/i.test(f.name)){
     setBusy('Распаковываю EPUB...');
     const r=await parseEpub(f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
+    await bookImgsPut(b.id,r.imgs);
   }else{
     let txt=await f.text();
     if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */
@@ -590,7 +604,7 @@ async function importSharedBooks(){
   try{const c=await caches.open(name);const reqs=await c.keys();
     for(const r of reqs){const res=await c.match(r);if(!res)continue;const blob=await res.blob();
       let fn='';try{fn=decodeURIComponent(res.headers.get('X-RQ-Name')||'');}catch(e){}
-      if(!BOOK_EXT.test(fn)){const t=blob.type||'';const ext=/pdf/.test(t)?'.pdf':/epub/.test(t)?'.epub':/fictionbook/.test(t)?'.fb2':/^text\/plain/.test(t)?'.txt':'';
+      if(!BOOK_EXT.test(fn)){const t=blob.type||'';const ext=/pdf/.test(t)?'.pdf':/epub/.test(t)?'.epub':/fictionbook/.test(t)?'.fb2':/zip/.test(t)?'.fb2.zip':/^text\/plain/.test(t)?'.txt':'';
         if(ext)fn=(fn||'Книга')+ext;} /* a shared file may come without its extension: the type tells which */
       files.push(new File([blob],fn||'book',{type:blob.type}));}
     await caches.delete(name);

@@ -92,7 +92,7 @@ await p.screenshot({ path: SHOTS + 'pdfhl-lines.png' });
 await p.evaluate(async () => { jumpTo(2); await new Promise(r => setTimeout(r, 1500)); });
 for (const how of ['touch', 'mouse']) {
   const s6 = await select(3); await sleep(300);
-  const pt = await p.evaluate(() => { const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
+  const pt = await p.evaluate(() => { if (el('selpop').classList.contains('mini')) el('spMini').click(); /* 27.10: the bar is a circle while selecting */ const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
   if (how === 'touch') await p.touchscreen.tap(pt.x, pt.y); else await p.mouse.click(pt.x, pt.y);
   await sleep(700);
   const a6 = await p.evaluate(() => ({ pg: R.page, n: S.quotes[R.book.id].length }));
@@ -132,6 +132,21 @@ const s9 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => s
   g.extend(low.firstChild, low.firstChild.length); await w(300); const st0 = box.scrollTop, len0 = String(g).length, hint = el('selEdge') && el('selEdge').className;
   await w(1100); return { st0, st1: box.scrollTop, len0, len1: String(g).length, hint }; }, bid);
 ok('9 PDF «Прокрутка»: end held at the bottom → hint, half a screen down, the selection grows', s9.hint === 'next' && s9.st1 > s9.st0 + 150 && s9.len1 > s9.len0, s9);
+// 10. 27.10 (Джессика: «стрелочку … выделение на предыдущих страницах никуда не исчезало … индикатор»): PDF «Страницы» — › with a selection
+// turns the page, the part already selected is kept (chip «Выделено со стр. N»), the first word of the new page is selected; a colour saves ONE quote on both pages
+const s10 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => setTimeout(r, ms));
+  await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); rqSaveSetGated(); S.quotes[id] = []; S.hl[id] = []; S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await w(3500);
+  goPage(2, true); await w(1500);
+  const sp = [...el('pdfText').querySelectorAll('span')].filter(x => x.textContent.trim().length > 12); const t = sp[sp.length - 1].firstChild;
+  const g = getSelection(); g.removeAllRanges(); g.setBaseAndExtent(t, 0, t, Math.min(10, t.length)); const t0 = String(g); await w(400);
+  const nav = !el('selNav').hidden; el('selNext').click(); await w(2000);
+  const out = { nav, page: R.page, sel: String(getSelection()), chip: !el('selFrom').hidden && el('selFromGo').textContent, x: !el('selFromX').hidden };
+  updSelPop(); await w(250); document.querySelector('#spColors button[data-c="g"]').click(); await w(500);
+  const qs = S.quotes[id]; out.n = qs.length; const q = qs[0]; out.p = q && q.pdf.p; out.more = q && (q.pdf.more || []).map(x => x.p); out.text = q && q.text; out.t0 = t0;
+  out.here = el('pdfText').querySelectorAll('.pdfhls i[data-q]').length; out.nav2 = el('selNav').hidden;
+  goPage(2, true); await w(1500); out.there = el('pdfText').querySelectorAll('.pdfhls i[data-q]').length; out.pend = el('pdfText').querySelectorAll('.pdfhls i.pend').length;
+  return out; }, bid);
+ok('10 PDF «Страницы»: › keeps the selection (chip), next page selected, one quote on pages 3 and 4', s10.nav && s10.page === 3 && s10.sel.length > 0 && /Выделено со стр/.test(s10.chip || '') && s10.x && s10.n === 1 && s10.p === 2 && JSON.stringify(s10.more) === '[3]' && s10.text.startsWith(s10.t0.trim()) && s10.text.endsWith(s10.sel.trim()) && s10.here > 0 && s10.there > 0 && !s10.pend && s10.nav2, s10);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

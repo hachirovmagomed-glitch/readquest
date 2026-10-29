@@ -71,6 +71,8 @@ export const PROGRESS_DEF = {
   diaries: [],
   /** 25.10: у книги сам заводится дневник при первой цитате или закладке */
   diaryAuto: true,
+  /** 28.10 «Цитата дня» на главной: день (YYYY-MM-DD), до конца которого она скрыта (✕); null = показывается */
+  qdayOff: null,
   bookStat: {},
   bookImp: {},
   status: {},
@@ -209,6 +211,7 @@ export const SET_DEF = {
   pdfFont: false,    // 20.10: PDF text in the reader font (arch.md SET.pdfFont)
   pdfTheme: false,   // 20.10: PDF page in the page-theme colours (arch.md SET.pdfTheme)
   fz: null,          // 25.10 «Фокус»: {pomo,len,rest,quiet,snd,vol,words,warn} (arch.md SET.fz), normFz
+  qSort: 'book',     // 28.10: order of quotes in «Навигация → Цитаты» and «Цитаты и заметки»: 'book' | 'new' | 'old'
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -373,6 +376,7 @@ export function hydrateProgress(p) {
   out.aiChat = aiChatMap(out.aiChat);
   out.diaries = diaryList(out.diaries);
   if (typeof out.diaryAuto !== 'boolean') out.diaryAuto = true;
+  out.qdayOff = typeof out.qdayOff === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(out.qdayOff) ? out.qdayOff : null;
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};
   out.status = out.status || {};
@@ -543,6 +547,7 @@ export function hydrateSettings(s) {
   out.pdfDim = normPdfDim(out.pdfDim);
   if (typeof out.readCounter !== 'boolean') out.readCounter = true;
   if (typeof out.pauseBtn !== 'boolean') out.pauseBtn = true;
+  if (!['book', 'new', 'old'].includes(out.qSort)) out.qSort = 'book';
   {
     const v = out.pauseXY, c = function (n) { return Math.round(Math.max(0, Math.min(1, n)) * 1000) / 1000; };
     out.pauseXY = v && typeof v === 'object' && typeof v.x === 'number' && typeof v.y === 'number' && isFinite(v.x) && isFinite(v.y) ? { x: c(v.x), y: c(v.y) } : null;

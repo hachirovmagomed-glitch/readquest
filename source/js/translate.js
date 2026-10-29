@@ -94,7 +94,7 @@ function trDetect(t){
 function trTo(from){return from==='ru'?'en':(S.lang==='en'?'en':'ru');}
 function trPair(q){return TR_LANGS[q.from]+' → '+TR_LANGS[q.to];}
 el('spDict').onclick=()=>{
-  const t=selText();if(!t)return;
+  const t=rqSelPlain()||selText();if(!t)return;
   const text=t.replace(/\s+/g,' ').trim().slice(0,1500),from=trDetect(text);
   const q={text,ctx:typeof selCtx==='function'?selCtx(t.trim()):'',from,to:trTo(from),title:((R.book||{}).title||'').slice(0,200)};
   if(q.to===q.from)q.to=from==='en'?'ru':'en';

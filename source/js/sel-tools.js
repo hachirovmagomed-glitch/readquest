@@ -19,6 +19,8 @@ function stPage(){
   const r=[...s.getRangeAt(0).getClientRects()].find(x=>x.width);return r?Math.max(0,Math.min(R.pageCount-1,selPageAt(r))):R.page;}
 function stLab(p){return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(p):String(p+1);}
 function stBar(id){return function(){const b=el(id);if(b)b.click();};}
+/** a bar button the reader switched off in «Чтение → Кнопки меню выделения» (js/read-extras.js, .rxoff) is off here too */
+function stOff(id){const b=el(id);return !b||b.classList.contains('rxoff');}
 
 function stBind(){
   el('ssCol').onclick=function(){const on=el('ssColBox').hidden;stMenu(false);stCol(on);};
@@ -30,6 +32,7 @@ function stBind(){
 function stUpd(){
   const q=el('ssCol');if(!q)return;const k=hlKey(SET.hlc);
   q.style.setProperty('--d',hlDot(k));q.style.setProperty('--d2',hlDot2(k));
+  q.hidden=stOff('spColors');el('ssDict').hidden=stOff('spDict');el('ssAI').hidden=stOff('spAI');
   const n=stWords(stText()),c=el('ssCnt');
   c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>';c.setAttribute('aria-label','Выделено '+n+' '+plural(n,'слово','слова','слов'));
 }
@@ -53,10 +56,10 @@ function stMenu(on){
   if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
   const nh=((S.chars||{})[R.book&&R.book.id]||[]).length;
   const it=[
-    ['note','pencil','Заметка'],
-    ['copy','copy','Копировать'],
-    ['word','book-open','В словарь'],
-    R.mode!=='pdf'&&['grow','align-justify','Предложение, потом абзац'],
+    !stOff('spNote')&&['note','pencil','Заметка'],
+    !stOff('spCopy')&&['copy','copy','Копировать'],
+    !stOff('spWord')&&['word','book-open','В словарь'],
+    R.mode!=='pdf'&&!stOff('spGrow')&&['grow','align-justify','Предложение, потом абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
     ['wiki','info','Википедия'],

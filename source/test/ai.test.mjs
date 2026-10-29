@@ -432,7 +432,7 @@ if (want('skins')) {
       const th = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin, theme: document.documentElement.dataset.theme || 'day' }));
       /* настройки: ИИ раскрыт, инструкция открыта */
       await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.tts = false; openGeneralSettings(false,'ai'); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(300);
-      const ov = await p.evaluate(() => { const c = document.querySelector('.nncard').getBoundingClientRect(); return [...document.querySelectorAll('.nncard *')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 4); });
+      const ov = await p.evaluate(() => { const n = document.querySelector('#settings .gsec[data-sec="ai"] .nncard'), c = n.getBoundingClientRect(); return [...n.querySelectorAll('*')].filter(e => { const b = e.getBoundingClientRect(); return b.width && (b.right > c.right + 1 || b.left < c.left - 1); }).map(e => e.tagName + '.' + e.className).slice(0, 4); });
       await shot(p, 'skin-' + sk + '-' + v + '-' + W + '-neyroseti');
       /* «Объясни» */
       await p.evaluate(() => { __navAllow = true; show('library'); __navAllow = false; });

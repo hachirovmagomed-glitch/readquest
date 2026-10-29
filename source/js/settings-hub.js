@@ -227,7 +227,7 @@ el('lookBack').onclick=function(){openGeneralSettings(false);};
 function gsIndex(){
   const out=[],txt=function(n){if(!n)return '';const c=n.cloneNode(true);c.querySelectorAll('.sub,small,svg,.rv,.xv').forEach(function(x){x.remove();});return c.textContent.replace(/\s+/g,' ').trim();};
   document.querySelectorAll('#settings .gsec').forEach(function(s){const k=s.dataset.sec;
-    s.querySelectorAll('.setrow,.xrow:not(.xpick)').forEach(function(r){if(r.closest('[hidden]:not(.gsec)')&&!r.closest('.nnbox'))return;
+    s.querySelectorAll('.setrow,.xrow:not(.xpick)').forEach(function(r){if((r.closest('[hidden]:not(.gsec)')&&!r.closest('.nnbox'))||r.closest('#nnSum'))return; /* the summary repeats the rows below */
       const t=r.classList.contains('xrow')?txt(r.querySelector('.xt')):txt(r.querySelector('.lab'));if(!t)return;
       const sub=r.querySelector('.sub,.xsub'),box=r.nextElementSibling&&r.nextElementSibling.classList.contains('nnbox')?r.nextElementSibling.textContent:'';
       out.push({t:t,w:GS_SECS[k],k:(t+' '+(sub?sub.textContent:'')+' '+(r.title||'')+' '+box).toLowerCase(),ic:(r.querySelector('use')||{getAttribute:function(){return '';}}).getAttribute('href').replace('#i-',''),go:function(){gsGoRow(k,r);}});});});

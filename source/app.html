@@ -1897,6 +1897,19 @@ html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-of
 #settings .pcard .gxbk>.lab{flex:1 1 auto;min-width:0}
 #settings .pcard .gxbk .ghostbtn{flex:none}
 .gxpick{position:fixed;left:50%;top:50%;width:1px;height:1px;opacity:0;pointer-events:none}
+/* 29.10 «Нейросети» (js/nn-extras.js) */
+.nnquick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.nnquick .ghostbtn,.nncheck .ghostbtn,#nnWipe{display:inline-flex;align-items:center;gap:6px}
+.aitestrow{flex-wrap:wrap;gap:6px}
+.nnlist{max-height:220px;overflow-y:auto;margin:6px 0;padding:2px}
+.nnlist .fchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nncheck{margin:8px 0 10px}
+#nnSum .nnsrow .sub{display:flex;align-items:center;gap:6px}
+.nnpriv{font-size:0.8125rem;line-height:1.45;color:var(--muted);padding:10px 2px 2px}
+.nnpriv p{margin:0 0 6px}.nnpriv b{color:var(--txt)}
+.nnpriv ul{margin:0 0 8px;padding-left:18px}.nnpriv li{margin:2px 0}
+#nnWipe{color:var(--danger,#b3261e);margin:4px 0 12px}
+#trMore .aisub,#nnUse .aisub{margin:2px 4px 6px;font-size:0.8125rem;line-height:1.4;color:var(--muted)}
 #wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
 #wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
 html[data-uisize="sm"]{font-size:90%}
@@ -2612,6 +2625,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard nncard" id="rxCard"></div><!-- 29.10 js/read-extras.js (SET.rx): строка внизу, чтение вслух, ночь, жесты, меню выделения, экран, новые книги -->
     </section>
     <section class="gsec" data-sec="ai" data-t="Нейросети" hidden>
+    <div class="pcard" id="nnSum"></div><!-- 29.10 js/nn-extras.js: сводка и «Проверить всё» -->
     <h2 id="aiHead">Нейросети</h2>
     <div class="pcard nncard">
       <button type="button" class="xrow" id="aiX" aria-controls="aiCard" aria-expanded="false"></button>
@@ -2620,10 +2634,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <button type="button" class="xrow xpick" id="aiProvX" aria-controls="aiProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="aiProvSeg" role="radiogroup" aria-label="Сервис ИИ" hidden></div>
         <details class="keyhow" id="aiHow"><summary>Как получить ключ</summary><div class="keyhowb" id="aiHowB"></div></details>
+        <div class="row nnquick"><button type="button" class="ghostbtn" id="aiGetKey"></button><button type="button" class="ghostbtn" id="aiPaste"></button></div>
         <input class="searchinp" id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API">
         <input class="searchinp" id="aiBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API">
         <input class="searchinp" id="aiModel" autocomplete="off" spellcheck="false" aria-label="Модель">
-        <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><span id="aiTestRes" role="status"></span></div>
+        <div class="presets nnlist" id="aiModels" role="radiogroup" aria-label="Модели сервиса" hidden></div>
+        <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><button class="ghostbtn" id="aiModelsBtn">Модели списком</button><span id="aiTestRes" role="status"></span></div>
       </div>
       <button type="button" class="xrow" id="ttsHead" aria-controls="ttsCard" aria-expanded="false"></button>
       <div id="ttsCard" class="nnbox" hidden>
@@ -2632,19 +2648,28 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки" hidden></div>
         <div id="ttsFields">
           <details class="keyhow" id="ttsHow"><summary>Как получить ключ</summary><div class="keyhowb" id="ttsHowB"></div></details>
+          <div class="row nnquick"><button type="button" class="ghostbtn" id="ttsGetKey"></button><button type="button" class="ghostbtn" id="ttsPaste"></button></div>
           <input class="searchinp" id="ttsKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API озвучки">
           <input class="searchinp" id="ttsBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API озвучки">
           <input class="searchinp" id="ttsVoice" autocomplete="off" spellcheck="false" aria-label="Голос">
           <div class="aisub" id="ttsVoiceHint"></div>
-          <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><span id="ttsTestRes" role="status"></span></div>
+          <div class="presets nnlist" id="ttsVoices" role="radiogroup" aria-label="Голоса сервиса" hidden></div>
+          <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><button class="ghostbtn" id="ttsVoicesBtn">Голоса списком</button><span id="ttsTestRes" role="status"></span></div>
         </div>
       </div>
       <button type="button" class="xrow" id="trX" aria-controls="trCard" aria-expanded="false"></button>
       <div id="trCard" class="nnbox" hidden>
         <div class="aisub">Кнопка с буквами при выделении текста переводит прямо в книге. Пакет языка скачивается один раз, дальше перевод работает без интернета, и текст никуда не уходит.</div>
+        <div id="trMore"></div>
         <div id="trList"></div>
       </div>
     </div>
+    <h2>Как отвечает ИИ</h2>
+    <div class="pcard" id="nnStyle"></div>
+    <h2>Расход</h2>
+    <div class="pcard" id="nnUse"></div>
+    <h2>Приватность</h2>
+    <div class="pcard" id="nnPriv"></div>
     </section>
     <section class="gsec" data-sec="goal" data-t="Цель и напоминание" hidden>
     <h2>Цель дня</h2>
@@ -3097,6 +3122,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/settings-hub.js"></script>
 <script src="js/read-extras.js"></script>
 <script src="js/goal-extras.js"></script>
+<script src="js/nn-extras.js"></script>
 <script src="js/ach-core.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/path.js"></script>

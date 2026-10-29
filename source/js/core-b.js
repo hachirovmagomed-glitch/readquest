@@ -330,6 +330,7 @@ function hydrateS(raw){
   if(!(Array.isArray(S.notif.days)&&S.notif.days.length===7&&S.notif.days.every(function(x){return typeof x==='boolean';})))S.notif.days=[true,true,true,true,true,true,true]; /* 29.10 arch.md notif.days */
   if(typeof S.notif.time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(S.notif.time))S.notif.time='20:00';
   if(typeof S.backupNag!=='boolean')S.backupNag=true;if(S.backupNagAt!=null&&!/^\d{4}-\d\d-\d\d$/.test(String(S.backupNagAt)))S.backupNagAt=null; /* 29.10 arch.md backupNag / backupNagAt */
+  S.aiPref=aiPrefNorm(S.aiPref); /* 29.10 arch.md aiPref */
   S.yearGoal=yearGoalNorm(S.yearGoal);S.bookGoals=bookGoalsNorm(S.bookGoals); /* 29.10 arch.md yearGoal / bookGoals */
   S.customStats.forEach(s=>{if(S.stats[s]===undefined)S.stats[s]=0;});
   S.skillMeta=S.skillMeta||{};
@@ -507,6 +508,12 @@ function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
 function yearGoalNorm(g){return (g&&typeof g==='object'&&Number.isInteger(g.y)&&g.y>=2000&&g.y<=2100&&Number.isInteger(g.n)&&g.n>=1&&g.n<=365)?{y:g.y,n:g.n}:null;}
 function bookGoalsNorm(o){const r={};if(!o||typeof o!=='object'||Array.isArray(o))return r;
   Object.keys(o).filter(function(k){return k&&k.length<=200&&typeof o[k]==='string'&&/^\d{4}-\d\d-\d\d$/.test(o[k]);}).slice(-200).forEach(function(k){r[k]=o[k];});return r;}
+/** 29.10 S.aiPref (arch.md «Нейросети»): как отвечает ИИ, спойлеры, дневной лимит, расход за месяц, язык перевода — same rules as storage/schema.js normAiPref */
+function aiPrefNorm(o){o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};const u=(o.use&&typeof o.use==='object'&&!Array.isArray(o.use))?o.use:{};
+  const en=function(v,a){return a.indexOf(v)>=0?v:a[0];},int=function(v,hi){return Number.isInteger(v)&&v>=0?Math.min(hi,v):0;};
+  return {len:en(o.len,['short','long']),tone:en(o.tone,['simple','expert']),lang:en(o.lang,['ru','en','book']),spoil:typeof o.spoil==='boolean'?o.spoil:true,lim:int(o.lim,500),
+    use:{m:typeof u.m==='string'&&/^\d{4}-\d\d$/.test(u.m)?u.m:'',n:int(u.n,1e7),ch:int(u.ch,1e10),tch:int(u.tch,1e10),d:typeof u.d==='string'&&/^\d{4}-\d\d-\d\d$/.test(u.d)?u.d:'',dn:int(u.dn,1e5)},
+    trTo:en(o.trTo,['','ru','en','de','fr','es','it'])};}
 function ttsNorm(t){
   if(!t||typeof t!=='object')t={};
   ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});

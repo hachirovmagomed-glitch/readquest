@@ -165,6 +165,7 @@ export const GAME_DEF = {
   ai: null,
   /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
   tts: null,
+  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo}, normAiPref
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -295,6 +296,15 @@ export function normBookSet(o) {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
   Object.keys(o).filter((k) => k && k.length <= 200).slice(-200).forEach((k) => { const v = typoPick(o[k], BOOK_KEYS); if (Object.keys(v).length) r[k] = v; });
   return r;
+}
+/** 29.10 S.aiPref (arch.md «Нейросети») — same rules as js/core-b.js aiPrefNorm */
+export function normAiPref(o) {
+  o = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  const u = o.use && typeof o.use === 'object' && !Array.isArray(o.use) ? o.use : {};
+  const en = (v, a) => (a.includes(v) ? v : a[0]), int = (v, hi) => (Number.isInteger(v) && v >= 0 ? Math.min(hi, v) : 0);
+  return { len: en(o.len, ['short', 'long']), tone: en(o.tone, ['simple', 'expert']), lang: en(o.lang, ['ru', 'en', 'book']), spoil: typeof o.spoil === 'boolean' ? o.spoil : true, lim: int(o.lim, 500),
+    use: { m: typeof u.m === 'string' && /^\d{4}-\d\d$/.test(u.m) ? u.m : '', n: int(u.n, 1e7), ch: int(u.ch, 1e10), tch: int(u.tch, 1e10), d: typeof u.d === 'string' && /^\d{4}-\d\d-\d\d$/.test(u.d) ? u.d : '', dn: int(u.dn, 1e5) },
+    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']) };
 }
 /** 29.10 S.yearGoal / S.bookGoals (arch.md) — same rules as js/core-b.js yearGoalNorm / bookGoalsNorm */
 export function normYearGoal(g) {
@@ -563,6 +573,7 @@ export function hydrateGame(g) {
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
   if (!out.ai) out.ai = { key: '', model: '', prov: 'deepseek', base: '' };
+  out.aiPref = normAiPref(out.aiPref);
   if (!out.tts || typeof out.tts !== 'object') out.tts = { prov: 'system', key: '', voice: '', base: '' }; /* 20.10: prov/base (arch.md); old ai without prov is normalised in core-b aiNorm */
   /* shop build removed the currency picker and ∞ money; the fields stay (old fields are never deleted): cur as stored, devMoney always false */
   out.devMoney = false;

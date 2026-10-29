@@ -21,7 +21,7 @@ const select = () => p.evaluate(async () => {
   const c = document.getElementById('content'), w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT); let n;
   while ((n = w.nextNode())) { const r = n.parentElement.getBoundingClientRect(); if (n.textContent.trim().length > 20 && r.top > 80 && r.bottom < innerHeight - 200) break; }
   const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(n, 0); rg.setEnd(n, 15); s.addRange(rg);
-  updSelPop(); await new Promise(r => setTimeout(r, 200));
+  updSelPop(); SA.bar = true; selMiniApply(); selPlace(); /* 29.10: the circle went into the side menu, its pencil opens the bar */ await new Promise(r => setTimeout(r, 200));
 });
 // contrast of every visible label and icon against the bar's own background
 const measure = () => p.evaluate(() => {
@@ -53,12 +53,11 @@ for (const k of ['pencil', 'pencil-night', 'ellada', 'ellada-night', 'babochkovy
 // 360: still one row inside the screen
 await p.setViewport({ width: 360, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }); await sleep(300);
 await select();
-const fit = await p.evaluate(() => { const b = document.getElementById('selpop'); const m = b.getBoundingClientRect(), mini = b.classList.contains('mini') && m.height <= 56 && m.left >= 0 && m.right <= 360;
-  el('spMini').click(); const r = b.getBoundingClientRect(); /* 20.10: colours row + one row of actions; 28.10: the folded bar fits too, the open one has the «what is selected» line and the quick row on top */
-  const rows = new Set([...b.querySelectorAll(':scope > button:not(#spInfo):not(#spFold)')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top))).size;
-  return { mini, l: Math.round(r.left), r: Math.round(r.right), h: Math.round(r.height), rows }; });
+const fit = await p.evaluate(() => { const b = document.getElementById('selpop'), r = b.getBoundingClientRect(); /* 20.10: colours row + one row of actions */
+  const rows = new Set([...b.querySelectorAll(':scope > button')].filter(x => x.offsetParent && x.id !== 'spFold') /* «Свернуть» is a corner badge */.map(x => Math.round(x.getBoundingClientRect().top))).size;
+  return { l: Math.round(r.left), r: Math.round(r.right), h: Math.round(r.height), rows }; });
 await shot('360');
-ok('360: bar inside the screen, actions in one row under the colours', fit.mini && fit.l >= 0 && fit.r <= 360 && fit.rows === 1 && fit.h < 240, fit);
+ok('360: bar inside the screen, actions in one row under the colours', fit.l >= 0 && fit.r <= 360 && fit.rows === 1 && fit.h < 120, fit);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

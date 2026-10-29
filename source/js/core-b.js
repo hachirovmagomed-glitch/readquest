@@ -309,10 +309,11 @@ function hydrateS(raw){
   S.bookLvl=lvlMap(S.bookLvl,4);S.bookLvlAi=lvlAiMap(S.bookLvlAi);S.bookLvlRep=lvlRepMap(S.bookLvlRep); /* 22.10 = storage/schema.js lvlAiMap */S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/);S.pomoPaid=lvlMap(S.pomoPaid,1e6,/^\d{4}-\d{2}-\d{2}$/);S.chalPaid=lvlMap(S.chalPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» */ /* 19.10 book level (arch.md) */
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
+  if(['sm','md','lg'].indexOf(S.ux.uiSize)<0)S.ux.uiSize='md'; /* 29.10 arch.md ux.uiSize «Размер интерфейса» */
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
   if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
-  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
+  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.diaries=diaryNorm(S.diaries);if(typeof S.diaryAuto!=='boolean')S.diaryAuto=true;S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
   /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
@@ -326,6 +327,9 @@ function hydrateS(raw){
   S.planned=S.planned||{};S.bookImp=S.bookImp||{};
   S.customQuests=S.customQuests||[];S.customStats=S.customStats||[];
   if(!S.notif)S.notif={on:false,time:'20:00'};
+  if(!(Array.isArray(S.notif.days)&&S.notif.days.length===7&&S.notif.days.every(function(x){return typeof x==='boolean';})))S.notif.days=[true,true,true,true,true,true,true]; /* 29.10 arch.md notif.days */
+  if(typeof S.notif.time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(S.notif.time))S.notif.time='20:00';
+  if(typeof S.backupNag!=='boolean')S.backupNag=true;if(S.backupNagAt!=null&&!/^\d{4}-\d\d-\d\d$/.test(String(S.backupNagAt)))S.backupNagAt=null; /* 29.10 arch.md backupNag / backupNagAt */
   S.customStats.forEach(s=>{if(S.stats[s]===undefined)S.stats[s]=0;});
   S.skillMeta=S.skillMeta||{};
   DEFAULT_SKILLS.forEach(k=>{if(S.skills[k]===undefined)S.skills[k]=0;if(!S.skillMeta[k])S.skillMeta[k]={links:Object.assign({},DEFAULT_SKILL_LINKS[k]||{})};});
@@ -469,6 +473,24 @@ function aiNorm(a){
 function vocabNorm(v){
   if(!v||typeof v!=='object')return;
   if('ex' in v&&typeof v.ex!=='string')delete v.ex;else if(typeof v.ex==='string')v.ex=v.ex.slice(0,600);
+}
+function diaryNorm(a){ /* = storage/schema.js diaryList; 25.10 «Дневники» (arch.md): [{id,t,b,bt,ba,cv,cc,pp,fn,fs,ink,rb,so,lh,al,d,u,e:[{id,t,x,tp,ch,pg,r,d,u,pin,cl}]}] ≤ 200, записей ≤ 1000 */
+  const out=[],seen={},str=function(v,n){return typeof v==='string'?v.slice(0,n):'';},one=function(v,l,d){return l.indexOf(v)>=0?v:d;},
+    day=function(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';},ms=function(v){return typeof v==='number'&&isFinite(v)&&v>=0?Math.floor(v):0;},
+    key=function(v){return typeof v==='string'&&/^[a-z0-9-]{1,24}$/.test(v)?v:'';};
+  if(!Array.isArray(a))return out;
+  a.forEach(function(y){
+    if(!y||typeof y!=='object'||typeof y.id!=='string'||!/^dy[a-z0-9]{1,22}$/.test(y.id)||seen[y.id]||out.length>=200)return;seen[y.id]=1;
+    const es=[],eseen={};
+    (Array.isArray(y.e)?y.e:[]).forEach(function(n){
+      if(!n||typeof n!=='object'||typeof n.id!=='string'||!/^e[a-z0-9]{1,22}$/.test(n.id)||eseen[n.id]||es.length>=1000)return;
+      const t=str(n.t,120),x=str(n.x,20000);if(!t&&!x)return;eseen[n.id]=1;
+      es.push({id:n.id,t:t,x:x,tp:key(n.tp),ch:str(n.ch,120),pg:Number.isInteger(n.pg)&&n.pg>=0?n.pg:0,r:typeof n.r==='number'&&n.r>=0&&n.r<=1?n.r:null,d:day(n.d),u:ms(n.u),pin:n.pin===true,cl:one(n.cl,['','red','orange','yellow','green','blue','violet'],'')});});
+    out.push({id:y.id,t:str(y.t,80),b:str(y.b,200),bt:str(y.bt,120),ba:str(y.ba,80),cv:key(y.cv)||'school',cc:key(y.cc),
+      pp:one(y.pp,['lines','grid','dots','plain','old','papyrus','pearl','stars'],'lines'),fn:one(y.fn,['hand','book','ui'],'hand'),fs:Number.isInteger(y.fs)&&y.fs>=14&&y.fs<=24?y.fs:17,
+      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
+      d:day(y.d),u:ms(y.u),e:es});});
+  return out;
 }
 function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
   const out={};

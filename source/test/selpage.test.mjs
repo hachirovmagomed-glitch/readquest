@@ -56,14 +56,13 @@ const s2 = await p.evaluate(() => { const us = (q) => { const e = document.query
 ok('only the book text is selectable in the reader', s2.content !== 'none' && s2.selpop === 'none' && s2.rfoot === 'none' && s2.rhead === 'none', s2);
 
 // 3. 27.10: nothing turns by itself — the focus that Chrome (a mouse drag) put on the next page goes back to the end of this page;
-// 28.10: no arrows in text books any more
 await p.evaluate(() => goPage(3, true)); await settle();
 const a3 = await p.evaluate(() => { __sel(__pc(0, 40), __pc(0, 60)); return __st(); }); await settle(300);
 await p.evaluate(() => { __ext(__pc(0, 120)); }); await settle(150);
 await p.evaluate(() => { __ext(__pc(1, 30)); }); await settle(1500);
 const b3 = await p.evaluate(() => { const st = __st(), rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width), v = el('viewer').getBoundingClientRect();
   return Object.assign(st, { inPage: rs.every(r => r.left >= v.left - 2 && r.right <= v.right + 2), nav: !!el('selNav') && !el('selNav').hidden }); });
-ok('focus put on the next page: no turn, the end stays on page 3, anchor kept, no arrows', b3.page === 3 && b3.an === a3.an && b3.inPage && !b3.nav, { a3, b3 });
+ok('focus put on the next page: no turn, the end stays on page 3, anchor kept', b3.page === 3 && b3.an === a3.an && b3.inPage, { a3, b3 });
 
 // 4. 28.10 (Джессика: «со стрелочками … сбивается … непонятно, что я скопировал»): our own selection — a long press starts it on a word,
 // a tap ends it, a swipe turns the page with it, a tap on the next page carries it on; Chrome's own selection never starts
@@ -72,20 +71,20 @@ const xy = (d, k) => p.evaluate((d, k) => { const c = __pc(d, k), r = document.c
 const ss0 = await p.evaluate(() => { window.__ss = 0; document.addEventListener('selectstart', e => { if (e.defaultPrevented) window.__ss++; }); return true; });
 let [lx, ly] = await xy(0, 40);
 await p.touchscreen.touchStart(lx, ly); await sleep(700); await p.touchscreen.touchEnd(); await settle(300);
-const a4 = await p.evaluate(() => Object.assign(__st(), { on: SM.on, info: el('spInfo').textContent, mini: el('selpop').classList.contains('mini'), lo: !el('smLo').hidden, hi: !el('smHi').hidden }));
-ok('long press on a word: that word selected, our handles at both ends, the folded bar says «Нажми на слово, где закончить»', a4.on && a4.len >= 2 && a4.len < 25 && a4.page === 3 && a4.mini && /Нажми на слово, где закончить/.test(a4.info) && a4.lo && a4.hi, a4);
+const a4 = await p.evaluate(() => Object.assign(__st(), { on: SM.on, info: document.body.innerText.includes('Нажми на слово, где закончить'), mini: el('selpop').classList.contains('mini'), lo: !el('smLo').hidden, hi: !el('smHi').hidden }));
+ok('long press on a word: that word selected, our handles at both ends, no bar, a hint «Нажми на слово, где закончить»', a4.on && a4.len >= 2 && a4.len < 25 && a4.page === 3 && a4.mini && a4.info && a4.lo && a4.hi, a4);
 [lx, ly] = await xy(0, 200); await p.touchscreen.tap(lx, ly); await settle(400);
-const b4 = await p.evaluate(() => Object.assign(__st(), { info: el('spInfo').textContent }));
-ok('tap on a later word: the selection ends there (the start kept), the bar shows how many characters', b4.page === 3 && b4.an === a4.an && b4.len > 150 && /\d+ знак/.test(b4.info), { a4, b4 });
+const b4 = await p.evaluate(() => Object.assign(__st(), { info: el('ssCnt').textContent }));
+ok('tap on a later word: the selection ends there (the start kept), the side menu counts the words', b4.page === 3 && b4.an === a4.an && b4.len > 150 && /\d+слов/.test(b4.info), { a4, b4 });
 await p.touchscreen.touchStart(320, 500); await p.touchscreen.touchMove(220, 500); await p.touchscreen.touchMove(80, 500); await p.touchscreen.touchEnd(); await settle(500);
 const c4 = await p.evaluate(() => Object.assign(__st(), { lo: el('smLo').hidden }));
 ok('swipe: page 4, the selection untouched (its start handle is on page 3, hidden here)', c4.page === 4 && c4.len === b4.len && c4.an === a4.an && c4.lo, c4);
 [lx, ly] = await xy(0, 150); await p.touchscreen.tap(lx, ly); await settle(400);
-const d4 = await p.evaluate(() => Object.assign(__st(), { info: el('spInfo').textContent, hi: !el('smHi').hidden }));
-ok('tap on page 4: the selection goes on from page 3 to there, «2 стр.» in the bar, end handle shown', d4.page === 4 && d4.an === a4.an && d4.len > b4.len + 100 && /^2 стр\. · /.test(d4.info) && d4.hi, d4);
-const e4 = await p.evaluate(async () => { const n = String(getSelection()).replace(/\s+/g, ' ').trim().length; el('spInfo').click(); await new Promise(r => setTimeout(r, 150)); el('spInfo').click(); await new Promise(r => setTimeout(r, 150));
+const d4 = await p.evaluate(() => Object.assign(__st(), { info: el('ssCnt').textContent, hi: !el('smHi').hidden }));
+ok('tap on page 4: the selection goes on from page 3 to there, «2 стр.» in the side menu, end handle shown', d4.page === 4 && d4.an === a4.an && d4.len > b4.len + 100 && /2 стр\./.test(d4.info) && d4.hi, d4);
+const e4 = await p.evaluate(async () => { const n = String(getSelection()).replace(/\s+/g, ' ').trim().length; SS.open = true; ssUpd(); el('ssCnt').click(); await new Promise(r => setTimeout(r, 150));
   const v = el('selView'), o = { open: !!v && !v.hidden, t: el('selViewT').textContent, n, txt: el('selViewTxt').textContent.replace(/\s+/g, ' ').trim().length }; el('selViewX').click(); return Object.assign(o, { closed: v.hidden, still: String(getSelection()).length > 0 }); });
-ok('the bar\'s line opens the whole selected text («Выделено: 2 стр. · N знаков»), closing keeps the selection', e4.open && /Выделено: 2 стр\./.test(e4.t) && e4.txt === e4.n && e4.closed && e4.still, e4);
+ok('the side menu\'s count opens the whole selected text («Выделено: 2 стр. · N знаков»), closing keeps the selection', e4.open && /Выделено: 2 стр\./.test(e4.t) && e4.txt === e4.n && e4.closed && e4.still, e4);
 ok('Chrome\'s own selection never started from the long press / taps', await p.evaluate(() => SM.on), await p.evaluate(() => window.__ss));
 
 // the two-page selection saves as ONE quote, marked on both pages
@@ -135,20 +134,15 @@ const [tx, ty] = await xy(0, 320);
 await p.touchscreen.touchStart(h6[0], h6[1]); await p.touchscreen.touchMove((h6[0] + tx) / 2, (h6[1] + ty + 22) / 2); await p.touchscreen.touchMove(tx, ty + 22); await p.touchscreen.touchEnd(); await settle(300);
 const c6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page }));
 ok('the end handle dragged down: the selection grows to there', c6.page === 3 && c6.len > b6.len + 30, { b6, c6 });
-// 6b. «Отменить» in the folded bar ends it all
-const n6 = await p.evaluate(async () => { SA.mini = true; selMiniApply(); el('spX').click(); await new Promise(r => setTimeout(r, 300)); return { on: SM.on, sel: String(getSelection()).length, h: el('smLo').hidden && el('smHi').hidden, bar: el('selpop').classList.contains('hidden') }; });
-ok('«Отменить»: no selection, no handles, no bar', !n6.on && !n6.sel && n6.h && n6.bar, n6);
+// 6b. «Снять выделение» in the side menu ends it all
+const n6 = await p.evaluate(async () => { SS.open = true; ssUpd(); el('ssX').click(); await new Promise(r => setTimeout(r, 300)); return { on: SM.on, sel: String(getSelection()).length, h: el('smLo').hidden && el('smHi').hidden, bar: el('selpop').classList.contains('hidden') }; });
+ok('«Снять выделение» in the side menu: no selection, no handles, no bar', !n6.on && !n6.sel && n6.h && n6.bar, n6);
 
-// 10. 27.10 (Джессика): while selecting the colour bar is a small circle; a tap opens it, «Свернуть» folds it
+// 10. 29.10 (Джессика: нижняя плашка при выделении — «Убрать, всё в меню»): while selecting no bar and no circle at the bottom, also while dragging
 const m10 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const sp = el('selpop');
-  goPage(3, true); await w(200); __sel(__pc(0, 40), __pc(0, 60)); await w(500);
-  const r0 = sp.getBoundingClientRect(), mini = sp.classList.contains('mini'), colsHidden = getComputedStyle(el('spColors')).display === 'none';
-  el('spMini').click(); await w(150); const r1 = sp.getBoundingClientRect(), open = !sp.classList.contains('mini') && getComputedStyle(el('spColors')).display !== 'none';
-  __ext(__pc(0, 90)); await w(1000); const stays = !sp.classList.contains('mini');
-  el('spFold').click(); await w(150); const folded = sp.classList.contains('mini');
-  return { mini, colsHidden, w0: Math.round(r0.width), h0: Math.round(r0.height), open, w1: Math.round(r1.width), stays, folded }; });
-ok('selection → the bar is folded (circle + one line, ≤ 56 px high), a tap opens it, it stays open while dragging, «Свернуть» folds it', m10.mini && m10.colsHidden && m10.w0 <= 330 && m10.h0 <= 56 && m10.open && m10.w1 > 150 && m10.stays && m10.folded, m10);
-
+  goPage(3, true); await w(200); __sel(__pc(0, 40), __pc(0, 60)); await w(500); const d0 = getComputedStyle(sp).display;
+  __ext(__pc(0, 90)); await w(1000); return { d0, d1: getComputedStyle(sp).display, side: !el('selSide').hidden }; });
+ok('selection → nothing at the bottom (no bar, no circle), also after dragging; the side menu is there', m10.d0 === 'none' && m10.d1 === 'none' && m10.side, m10);
 // 8. 26.10 (Джессика: «плашка с настройками мешает выделять текст»): the reader's bars hide as soon as text is selected
 await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(3, true); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 300)); });
 const b8 = await p.evaluate(async () => { const on = !el('reader').classList.contains('barsoff'); __sel(__pc(0, 40), __pc(0, 60)); await new Promise(r => setTimeout(r, 400)); return { before: on, after: el('reader').classList.contains('barsoff') }; });
@@ -156,16 +150,16 @@ ok('bars shown → a selection hides them', b8.before && b8.after, b8);
 
 // 9. the selection bar never covers the end being dragged: hidden while the end moves, back after it stops; at the top when the end is under it
 const b9 = await p.evaluate(async () => { const sp = el('selpop'); const w = (ms) => new Promise(r => setTimeout(r, ms));
-  __sel(__pc(0, 40), __pc(0, 60)); await w(400); el('spMini').click(); await w(100); const shown0 = !sp.classList.contains('hidden');
+  __sel(__pc(0, 40), __pc(0, 60)); await w(400); SA.bar = true; selMiniApply(); await w(100); const shown0 = !sp.classList.contains('hidden');
   __ext(__pc(0, 120)); await w(300); const mid = sp.classList.contains('hidden'); await w(700); const back = !sp.classList.contains('hidden');
   __ext(__pc(0, -30)); await w(1000); const end = (() => { const rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width); return rs[rs.length - 1]; })(), b = sp.getBoundingClientRect();
-  return { shown0, mid, back, top: sp.classList.contains('top'), covers: end.bottom > b.top && end.top < b.bottom }; });
+  const r = { shown0, mid, back, top: sp.classList.contains('top'), covers: end.bottom > b.top && end.top < b.bottom }; SA.bar = false; selMiniApply(); return r; });
 ok('bar hides while the end is dragged and comes back after it stops', b9.shown0 && b9.mid && b9.back, b9);
 ok('end of the selection near the bottom → the bar goes to the top and does not cover it', b9.top && !b9.covers, b9);
 
-// 11. 28.10 quick selection: «Предложение» → the sentence, «Абзац» → the paragraph, «+ предложение» / «+ абзац» add the next ones (also onto the next page),
-// «До конца стр.» → to the last word of the page
-const g11 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const q = (k) => document.querySelector('#spQuick [data-k="' + k + '"]').click();
+// 11. quick selection: «Предложение, потом абзац» → the sentence, then the paragraph; 28.10 «+ предложение» / «+ абзац» (side menu «Действия») add the next ones
+// (also onto the next page); «До конца страницы» → to the last word of the page
+const g11 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const q = (k) => ({ s: () => el('spGrow').click(), p: () => el('spGrow').click(), 's+': () => ST_ACT.sent(), 'p+': () => ST_ACT.parn(), pe: () => ST_ACT.page() })[k]();
   getSelection().removeAllRanges(); await w(100); goPage(2, true); await w(200);
   const ps = [...document.querySelectorAll('#content p:not(.meta)')].filter(x => { const r = x.getBoundingClientRect(), v = el('viewer').getBoundingClientRect(); return r.left >= v.left - 1 && r.right <= v.right + 1 && !x.querySelector('mark') && /[.!?]\s+\S.*[.!?]/.test(x.textContent); });
   const pg = ps[0], t = pg.firstChild, m = /[.!?]\s+([А-ЯЁA-Z][^\s.!?]{3,})/.exec(t.nodeValue); if (!m) return null; const i = m.index + m[0].indexOf(m[1]);
@@ -175,12 +169,12 @@ const g11 = await p.evaluate(async () => { const w = (ms) => new Promise(r => se
   q('pe'); await w(400); const s5 = String(g), pageNow = R.page;
   return { w0, s1, s2, para: pg.textContent.trim(), s3l: s3.length, s4l: s4.length, s2l: s2.length, nextIn: !!nx && s4.replace(/\s+/g, ' ').includes(nx.textContent.replace(/\s+/g, ' ').trim()), s5l: s5.length, pageNow, on: SM.on,
     grew: s1.length > w0.length && s1.includes(w0) && /[.!?…»"]$/.test(s1.trim()) && s1.trim()[0] === w0[0] }; });
-ok('«Предложение»: word → whole sentence; «Абзац» → whole paragraph', g11 && g11.grew && g11.s2.trim() === g11.para && g11.on, g11);
+ok('«Предложение, потом абзац»: word → whole sentence → whole paragraph', g11 && g11.grew && g11.s2.trim() === g11.para && g11.on, g11);
 ok('«+ предложение» adds one sentence, «+ абзац» adds the whole next paragraph, «До конца стр.» goes on to the end of the page', g11 && g11.s3l > g11.s2l && g11.s4l > g11.s3l && g11.nextIn && g11.s5l >= g11.s4l, g11);
 // «+ абзац» from the last paragraph of a page goes on onto the next page and shows it
 const g11b = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); getSelection().removeAllRanges(); await w(100); goPage(3, true); await w(200);
   const c = __pc(0, -3); getSelection().setBaseAndExtent(c[0], c[1], c[0], c[1] + 1); await w(200);
-  for (let i = 0; i < 2; i++) { document.querySelector('#spQuick [data-k="p+"]').click(); await w(300); } return { page: R.page, len: String(getSelection()).length }; });
+  for (let i = 0; i < 2; i++) { ST_ACT.parn(); await w(300); } return { page: R.page, len: String(getSelection()).length }; });
 ok('«+ абзац» at the end of a page: the selection goes on onto page 4 and page 4 is shown', g11b.page === 4 && g11b.len > 20, g11b);
 await p.evaluate(() => { getSelection().removeAllRanges(); });
 
@@ -204,6 +198,44 @@ const e12b = await p.evaluate(async () => { const w = (ms) => new Promise(r => s
   return { un, back: quoteMarks(q).length > 0, n: S.quotes[bid].length === n0 }; });
 ok('«Изменить границы» then tap away: the quote is back unchanged', e12b.un && e12b.back && e12b.n, e12b);
 
+// 14. 29.10 (Джессика: карандаш налезал на плашку «Выделено со стр.», «почему бы их не добавить влево, в боковое меню»; потом «закрывает текст …
+// перемещать то влево, то вправо … более прозрачным»): one narrow half-transparent side menu, folded into a tab on a new selection, dragged to any edge
+await p.evaluate(async () => { getSelection().removeAllRanges(); delete SET.selSide; saveSet(); goPage(3, true); await new Promise(r => setTimeout(r, 300)); });
+const m14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); __sel(__pc(0, 40), __pc(0, 60)); await w(600);
+  const n = el('selSide'), tab = el('ssTab').getBoundingClientRect(), cs = getComputedStyle(el('ssTab'));
+  return { shown: !!n && !n.hidden, open: n.classList.contains('open'), rail: getComputedStyle(el('ssRail')).display, tabL: Math.round(tab.left), tabW: Math.round(tab.width),
+    blur: /blur/.test(cs.backdropFilter || cs.webkitBackdropFilter || ''), see: /(color-mix|\/ 0\.6|, 0\.6)/.test(cs.backgroundColor) || !/^rgb\(/.test(cs.backgroundColor),
+    circle: getComputedStyle(el('selpop')).display, nav: getComputedStyle(el('selNav')).display, chip: getComputedStyle(el('selFrom')).display, side: n.dataset.side }; });
+ok('side menu: a selection shows only a tab at the left edge (≤ 32 px), half-transparent; no circle and no chip at the bottom, ‹ › stay in the corners', m14.shown && !m14.open && m14.rail === 'none' && m14.tabL === 0 && m14.tabW <= 32 && m14.blur && m14.see && m14.circle === 'none' && m14.nav !== 'none' && m14.chip === 'none' && m14.side === 'L', m14);
+const o14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssTab').click(); await w(150);
+  const r = el('ssRail').getBoundingClientRect(), vis = (id) => { const b = el(id).getBoundingClientRect(); return b.width > 0 && b.top >= 0 && b.bottom <= innerHeight; };
+  return { open: el('selSide').classList.contains('open'), tab: getComputedStyle(el('ssTab')).display, left: Math.round(r.left), w: Math.round(r.width), all: ['ssGrip', 'ssCol', 'ssCopy', 'ssDict', 'ssAI', 'ssMore', 'ssX', 'ssFold'].every(vis), arrows: !!(el('ssPrev') || el('ssNext')), from: el('ssFrom').hidden }; });
+ok('tab → the menu opens: narrow (≤ 56 px) at the edge, Цвета / Перевести / Объясни / Действия / «Снять» / fold on screen, no ‹ › in it, no «Начало» on one page', o14.open && o14.tab === 'none' && o14.left === 0 && o14.w <= 56 && o14.all && !o14.arrows && o14.from, o14);
+const t14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const a = __st(); el('selNext').click(); await w(500);
+  const b = __st(), from = !el('ssFrom').hidden && el('ssFromN').textContent, badge = el('ssN').textContent, fromLab = el('ssFrom').getAttribute('aria-label');
+  el('ssFrom').click(); await w(400); const c = __st(); goPage(4, true); await w(300);
+  return { a, b, from, badge, fromLab, c, still: el('selSide').classList.contains('open') }; });
+ok('corner › : next page, the selection goes on; «Начало: стр. 4» and «2» pages; a tap on it shows page 3, the menu stays open', t14.b.page === 4 && t14.b.an === t14.a.an && t14.b.len > t14.a.len && t14.from === '4' && t14.badge === '2' && /стр\. 4/.test(t14.fromLab) && t14.c.page === 3 && t14.still, t14);
+const pen14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssCol').click(); await w(150);
+  const a = { open: !el('ssColBox').hidden && el('spColors').parentNode === el('ssColBox'), bar: getComputedStyle(el('selpop')).display }; el('ssCol').click(); await w(150);
+  return Object.assign(a, { shut: el('ssColBox').hidden, back: el('spColors').parentNode === el('selpop'), sel: String(getSelection()).length }); });
+ok('menu «Цвета» opens the colour branch beside it (the bottom bar stays hidden), again closes it, the selection kept', pen14.open && pen14.bar === 'none' && pen14.shut && pen14.back && pen14.sel > 0, pen14);
+// drag by the grip across to the right edge, a bit higher: it sticks to the right edge, the place is remembered
+const g0 = await p.evaluate(() => { const b = el('ssGrip').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+await p.mouse.move(g0.x, g0.y); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(g0.x + (330 - g0.x) * i / 8, g0.y - 120 * i / 8); await p.mouse.up(); await settle(200);
+const d14 = await p.evaluate(() => { const r = el('ssRail').getBoundingClientRect(), nx = el('selNext').getBoundingClientRect(); return { clear: r.bottom <= nx.top, side: el('selSide').dataset.side, set: SET.selSide, right: Math.round(innerWidth - r.right), open: el('selSide').classList.contains('open'), sel: String(getSelection()).length }; });
+ok('dragged to the right: the menu sticks to the right edge, above ›, still open, the selection kept, the place saved', d14.side === 'R' && d14.right === 0 && d14.clear && d14.open && d14.sel > 0 && d14.set && d14.set.s === 'R' && d14.set.y > 0 && d14.set.y < 1, d14);
+const n14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssX').click(); await w(300); const gone = !String(getSelection()) && el('selSide').hidden;
+  __sel(__pc(0, 70), __pc(0, 90)); await w(500); const t = el('ssTab').getBoundingClientRect();
+  return { gone, open: el('selSide').classList.contains('open'), side: el('selSide').dataset.side, right: Math.round(innerWidth - t.right) }; });
+ok('«Снять» clears the selection and the menu; the next selection: a tab at the right edge again', n14.gone && !n14.open && n14.side === 'R' && n14.right === 0, n14);
+// the tab itself drags back to the left
+const t0 = await p.evaluate(() => { const b = el('ssTab').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+await p.mouse.move(t0.x, t0.y); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(t0.x - (t0.x - 40) * i / 8, t0.y + 60 * i / 8); await p.mouse.up(); await settle(200);
+const b14 = await p.evaluate(() => ({ side: el('selSide').dataset.side, open: el('selSide').classList.contains('open'), left: Math.round(el('ssTab').getBoundingClientRect().left) }));
+ok('the tab drags to the left edge and stays a tab (a drag is not a tap)', b14.side === 'L' && !b14.open && b14.left === 0, b14);
+await p.evaluate(() => { getSelection().removeAllRanges(); delete SET.selSide; saveSet(); });
+
 // 7. scroll mode: nothing turns by itself, the viewer still scrolls
 await p.evaluate(async () => { getSelection().removeAllRanges(); SET.flip = Object.assign({}, SET.flip, { mode: 'scroll' }); saveSet(); applySet && applySet(); if (typeof relayout === 'function') relayout(true); await new Promise(r => setTimeout(r, 600)); el('viewer').scrollTop = 600; await new Promise(r => setTimeout(r, 200)); });
 const s7 = await p.evaluate(() => ({ st: el('viewer').scrollTop, scroll: rqScrollMode() }));
@@ -215,6 +247,12 @@ const s13 = await p.evaluate(async () => { const w = (ms) => new Promise(r => se
   const z = at(vr.bottom - 12); __ext(z); await w(300); const st0 = v.scrollTop, len0 = String(getSelection()).length, hint = el('selEdge') && el('selEdge').className;
   await w(1100); return { st0, st1: v.scrollTop, len0, len1: String(getSelection()).length, hint }; });
 ok('scroll mode: end held at the bottom → hint, then half a screen down, the selection grows', s13.hint === 'next' && s13.st1 > s13.st0 + 200 && s13.len1 > s13.len0, s13);
+
+const s14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const v = el('viewer'), vr = v.getBoundingClientRect(); getSelection().removeAllRanges(); await w(200);
+  const at = (y) => { const r = document.caretRangeFromPoint(vr.left + 120, y); return [r.startContainer, r.startOffset]; };
+  __sel(at(vr.top + 200), at(vr.top + 260)); await w(500); el('ssTab').click(); await w(150);
+  const sh = (id) => getComputedStyle(el(id)).display !== 'none'; return { side: !el('selSide').hidden, pen: sh('ssCol'), x: sh('ssX'), prev: !el('selNav').hidden, from: sh('ssFrom') }; });
+ok('scroll mode: the side menu has «Цвета» and «Снять», no page arrows', s14.side && s14.pen && s14.x && !s14.prev && !s14.from, s14);
 
 ok('no page errors', errs.length === 0, errs);
 await browser.close();

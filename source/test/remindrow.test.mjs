@@ -12,7 +12,8 @@ const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d 
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
 await p.evaluate(() => { S.appTheme = 'light'; save(); applyAppTheme(); S.gold = 5000; save(); buy('skin-babochkovyi'); buy('skin-ellada'); });
-const probe = () => p.evaluate(() => { openGeneralSettings(false); renderSettings();
+const probe = () => p.evaluate(() => { S.notif.on = true; openGeneralSettings(false, 'goal'); renderSettings(); /* 29.10: the time row lives in «Цель и напоминание» and shows while the reminder is on */
+  document.querySelectorAll('#settings .gsec').forEach(s => { s.hidden = false; });
   const t = document.getElementById('calNotifTime'), row = t.closest('.setrow'), lab = row.querySelector('.lab'), g = row.querySelector('.stepgrp');
   const rl = lab.getBoundingClientRect(), rg = g.getBoundingClientRect(), rr = row.getBoundingClientRect();
   const lang = document.getElementById('langSeg').closest('.setrow');

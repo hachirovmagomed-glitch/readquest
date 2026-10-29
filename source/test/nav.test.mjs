@@ -27,7 +27,7 @@ const a = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 await p.evaluate(async () => { try { openDrawer(); await new Promise(r => setTimeout(r, 300)); closeDrawer(); openGeneralSettings(false); if (typeof openNavCfg === 'function') openNavCfg(); await new Promise(r => setTimeout(r, 300)); if (typeof closeNavCfg === 'function') closeNavCfg(); show('library'); } catch (e) {} await new Promise(r => setTimeout(r, 400)); });
 const b = await p.evaluate(() => localStorage.getItem(RQ_K.set));
 const bar = await p.evaluate(() => [...document.querySelectorAll('#botnav .botnav-btn')].filter(x => getComputedStyle(x).display !== 'none').map(x => x.dataset.nav || x.id));
-ok('nav: чтение не пишет (NS_set побайтно равен), панель = library,profile,stats,path', a === b && JSON.stringify(bar) === '["library","profile","stats","path"]', { same: a === b, bar });
+ok('nav: чтение не пишет (NS_set побайтно равен), панель = library,profile,diary,path (старый «Инвентарь» = «Дневники», 26.10)', a === b && JSON.stringify(bar) === '["library","profile","diary","path"]', { same: a === b, bar });
 // write: one saveSet through the gate; passive window refused
 const w = has ? await p.evaluate(async () => { const r1 = navSave(['library', 'rewards', 'quests', 'look']); await new Promise(r => setTimeout(r, 200));
   const s1 = JSON.parse(localStorage.getItem(RQ_K.set)).nav; const g = window.__rqWriter, m = g.mayWrite; g.mayWrite = () => false; let r2; try { r2 = navSave(['library']); } finally { g.mayWrite = m; }
@@ -44,7 +44,7 @@ await p.evaluate(() => { if (typeof navSave === 'function') navSave(['library', 
 const d = await p.evaluate(() => { const dr = document.getElementById('drawer'); const items = [...dr.querySelectorAll('.ditem')].filter(x => x.offsetParent && x.id !== 'dNight'); /* 18.10: ночная кнопка внизу меню — не раздел */
   return { w: Math.round(dr.getBoundingClientRect().width), ava: !!dr.querySelector('.dava'), name: (dr.querySelector('.dname') || {}).textContent || '', items: items.map(x => x.dataset.nav || x.id), pins: items.filter(x => x.querySelector('.dpin')).map(x => x.dataset.nav),
     h: items.length ? Math.round(items[0].getBoundingClientRect().height) : 0, cap: /закреплено в нижней панели/.test(dr.textContent), secs: [...dr.querySelectorAll('#dList .dsec')].map(x => x.textContent).join('|'), emoji: /\p{Extended_Pictographic}/u.test(dr.textContent) }; });
-ok('drawer: 85% ширины (≈332px), аватар и имя, 8 пунктов по разделам Чтение / Герой / Магазины (18.10, как в Habitica) + Настройки, пункты 48px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","adv","path","profile","quests","stats","rewards","look","settings"]' && d.secs === 'Чтение|Герой|Магазины' && d.h === 48 && !d.emoji, d);
+ok('drawer: 85% ширины (≈332px), аватар и имя, 8 пунктов по разделам Чтение / Герой / Магазины (18.10, как в Habitica; 25.10 «Дневники» в «Чтении», 26.10 «Инвентарь» внутри них) + Настройки, пункты 48px, без эмодзи', Math.abs(d.w - 332) <= 2 && d.ava && d.name.length > 0 && JSON.stringify(d.items) === '["library","adv","path","diary","profile","quests","rewards","look","settings"]' && d.secs === 'Чтение|Герой|Магазины' && d.h === 48 && !d.emoji, d);
 ok('drawer: значок pin у закреплённых (library,path,rewards,profile) и подпись внизу', JSON.stringify(d.pins.slice().sort()) === '["library","path","profile","rewards"]' && d.cap, d.pins);
 await p.evaluate(() => closeDrawer());
 // settings «Нижняя панель»

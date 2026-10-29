@@ -3,7 +3,7 @@
 // a dot over an existing highlight recolours it (no copy); «Заметка» = our sheet with a text field (no system prompt), «Отмена» saves nothing;
 // typing a space in the note never turns the page; an old quote without c = yellow; book text over every colour ≥ 7:1 in all themes and skins.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ [RQ_SHOTS=/workspace/out] node hlcolor.test.mjs
-// 27.10: the selection bar is a small circle while selecting — the tests open it (a tap on #spMini) before using the dots
+// 29.10: the selection bar is not shown while selecting (all is in the side menu) — the tests show it (SA.bar) to use the dots
 import puppeteer from 'puppeteer-core';
 import { mkdirSync } from 'fs';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
@@ -22,7 +22,7 @@ const bid = await p.evaluate(async () => { const id = allBooks()[0].id; S.quotes
 const select = (k = 0, o = 0, n = 14) => p.evaluate((k, o, n) => {
   const c = document.getElementById('content'), w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT); let x, i = 0;
   while ((x = w.nextNode())) { const r = x.parentElement.getBoundingClientRect(); if (x.textContent.trim().length > 30 && r.top > 80 && r.bottom < innerHeight - 220 && x.parentElement.tagName === 'P' && i++ === k) break; }
-  const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(x, o); rg.setEnd(x, o + n); s.addRange(rg); updSelPop(); if (el('selpop').classList.contains('mini')) el('spMini').click();
+  const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(x, o); rg.setEnd(x, o + n); s.addRange(rg); updSelPop(); SA.bar = true; selMiniApply(); selPlace();
   return String(s).trim();
 }, k, o, n);
 // the same, but the words themselves must be on the screen (columns: a text node can start on an earlier page)
@@ -32,7 +32,7 @@ const selectVis = (k = 0, n = 14) => p.evaluate((k, n) => {
     for (o = 0; o + n <= x.textContent.length; o += 40) { const q = document.createRange(); q.setStart(x, o); q.setEnd(x, o + n); const r = q.getBoundingClientRect();
       if (r.top > 80 && r.bottom < innerHeight - 220 && r.left >= 0 && r.right <= innerWidth && r.height < 40) break; }
     if (o + n <= x.textContent.length && i++ === k) break; }
-  const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(x, o); rg.setEnd(x, o + n); s.addRange(rg); updSelPop(); if (el('selpop').classList.contains('mini')) el('spMini').click();
+  const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(x, o); rg.setEnd(x, o + n); s.addRange(rg); updSelPop(); SA.bar = true; selMiniApply(); selPlace();
   return String(s).trim();
 }, k, n);
 const tap = async (sel) => { await p.evaluate((sel) => document.querySelector(sel).click(), sel); await sleep(250); };
@@ -63,7 +63,7 @@ ok('3 the ring stays on the last colour (green); it saves in green (22.10: no se
 
 // 4. selection inside an existing highlight + blue → recolour, no copy, no extra coins
 const g4 = await p.evaluate(() => S.gold);
-await p.evaluate(() => { const m = document.querySelector('#content mark'); const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); s.addRange(rg); updSelPop(); if (el('selpop').classList.contains('mini')) el('spMini').click(); });
+await p.evaluate(() => { const m = document.querySelector('#content mark'); const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); s.addRange(rg); updSelPop(); SA.bar = true; selMiniApply(); selPlace(); });
 await sleep(300); await tap('#spColors button[data-c="b"]');
 q = await qs(); mk = await p.evaluate(() => [...document.querySelectorAll('#content mark')].map(m => m.className));
 ok('4 inside a highlight: blue recolours that quote (c=b, mark hl-b), still 2 quotes, no coins', q.length === 2 && q[0].c === 'b' && mk[0] === 'hl-b' && (await p.evaluate(() => S.gold)) === g4, { q, mk });
@@ -105,7 +105,7 @@ ok('6b «Отмена» in the note sheet saves nothing', q.length === 4, q.leng
 async function shotSheet() { await p.screenshot({ path: SHOTS + 'hlcolor-note-360.png' }); }
 
 // 7. quotes screen: colour stripe; an old quote without c = yellow
-await p.evaluate((id) => { S.quotes[id].push({ text: 'старая цитата', note: '', date: today() }); save(); renderQuotes(); }, bid);
+await p.evaluate((id) => { SET.qSort = 'old'; /* 28.10: lists in the order made (default «По книге» = by page) */ S.quotes[id].push({ text: 'старая цитата', note: '', date: today() }); save(); renderQuotes(); }, bid);
 const cards = await p.evaluate(() => [...document.querySelectorAll('#quoteBox .qcard')].map(c => c.dataset.c).join(''));
 ok('7 quotes screen: each card carries its colour (b g own b), old quote without c → y', cards === 'bg#d0306aby', cards);
 
@@ -149,7 +149,7 @@ const w9 = await p.evaluate(() => { const T = bfTextIndex();
     while ((m = re.exec(x.nodeValue))) { const q = document.createRange(); q.setStart(x, m.index); q.setEnd(x, m.index + m[0].length); const r = q.getBoundingClientRect();
       if (!(r.top > 80 && r.bottom < innerHeight - 220 && r.left >= 0 && r.right <= innerWidth && r.height < 40)) continue;
       const first = T.s.indexOf(m[0]); if (first < 0 || first >= a.s + m.index || pageOfAnchor(bfNodeAt(T, first, false)) >= R.page) continue;
-      const s = getSelection(); s.removeAllRanges(); s.addRange(q); updSelPop(); if (el('selpop').classList.contains('mini')) el('spMini').click(); return { w: m[0], pg: R.page }; } }
+      const s = getSelection(); s.removeAllRanges(); s.addRange(q); updSelPop(); SA.bar = true; selMiniApply(); selPlace(); return { w: m[0], pg: R.page }; } }
   return null; });
 await sleep(300); await tap('#spColors button[data-c="g"]');
 const r9 = await p.evaluate((w) => { const q = S.quotes[R.book.id].at(-1), mk = [...document.querySelectorAll('#content mark')].filter(x => x.textContent === w); return { t: q.text, n: q.n, pages: mk.map(x => pageOfAnchor({ node: x.firstChild, offset: 0 })) }; }, w9 && w9.w);
@@ -161,14 +161,14 @@ ok('9d after reopening: the mark is still on that page, «Цитаты» opens i
 // 10. Джессика 21.10 «ничего не выделяется»: a selection over two paragraphs is painted in both (one mark per paragraph), after reopening too; a colour inside recolours all of it
 const s10 = await p.evaluate(() => { const ps = [...document.querySelectorAll('#content p:not(.meta)')].filter(x => x.textContent.length > 40 && !x.querySelector('mark'));
   for (let i = 0; i + 1 < ps.length; i++) { const a = ps[i].lastChild, z = ps[i + 1].firstChild; if (!a || !z || a.nodeType !== 3 || z.nodeType !== 3 || a.length < 25 || z.length < 25) continue;
-    const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(a, a.length - 20); rg.setEnd(z, 18); g.addRange(rg); updSelPop(); if (el('selpop').classList.contains('mini')) el('spMini').click(); return { t: String(g) }; } return null; });
+    const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(a, a.length - 20); rg.setEnd(z, 18); g.addRange(rg); updSelPop(); SA.bar = true; selMiniApply(); selPlace(); return { t: String(g) }; } return null; });
 await sleep(300); await tap('#spColors button[data-c="p"]');
 const m10 = () => p.evaluate(() => { const q = S.quotes[R.book.id].at(-1); const ms = quoteMarks(q); return { two: /\n/.test(q.text), c: q.c, n: new Set(ms.map(x => x.closest('p'))).size, k: q.text.split(/\s*\n\s*/).filter(Boolean).length, cls: ms.map(x => x.className) }; }); /* 26.10: n = paragraphs with a mark (a paragraph through an older quote has several pieces), k = paragraphs in the quote */
 let r10 = await m10();
 ok('10 two paragraphs: one quote, a mark in each paragraph in its colour', s10 && r10.two && r10.n === r10.k && r10.cls.every(c => c === 'hl-p'), { s10, r10 });
 await p.evaluate(async (id) => { await closeReader({ quiet: true }); __navAllow = true; openBook(id); __navAllow = false; await new Promise(r => setTimeout(r, 2500)); }, bid);
 r10 = await m10(); ok('10b after reopening: both marks are back', r10.n === r10.k && r10.cls.every(c => c === 'hl-p'), r10);
-await p.evaluate(() => { const q = S.quotes[R.book.id].at(-1), m = quoteMarks(q)[1]; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); g.addRange(rg); updSelPop(); if (el('selpop').classList.contains('mini')) el('spMini').click(); });
+await p.evaluate(() => { const q = S.quotes[R.book.id].at(-1), m = quoteMarks(q)[1]; const g = getSelection(); g.removeAllRanges(); const rg = document.createRange(); rg.setStart(m.firstChild, 2); rg.setEnd(m.firstChild, 8); g.addRange(rg); updSelPop(); SA.bar = true; selMiniApply(); selPlace(); });
 await sleep(300); const n10 = await p.evaluate(() => S.quotes[R.book.id].length); await tap('#spColors button[data-c="g"]');
 r10 = await m10(); ok('10c green inside the second paragraph recolours the whole quote, no copy', r10.c === 'g' && r10.n === r10.k && r10.cls.every(c => c === 'hl-g') && (await p.evaluate(() => S.quotes[R.book.id].length)) === n10, r10);
 // 11. Джессика 22.10 «уникализировать кружочки … под каждый скин»: each skin has its own five colours (dots and highlight), its own names and its own dot shape

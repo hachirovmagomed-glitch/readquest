@@ -101,7 +101,9 @@ self.addEventListener('fetch', function (e) {
   /* 21.10 перевод: движок vendor/bergamot не в precache (5 МБ) — его кладёт в NS + '_tr' кнопка «Скачать пакет» (js/translate.js) */
   e.respondWith(caches.open(CACHE).then(function (c) {
     return c.match(req).then(function (m) {
-      return m || caches.open(NS + '_tr').then(function (t) { return t.match(req); }).then(function (m2) { return m2 || fetch(req); });
+      return m || caches.open(NS + '_tr').then(function (t) { return t.match(req); })
+        .then(function (m2) { return m2 || caches.open(NS + '_ocr').then(function (t) { return t.match(req); }); }) /* 28.10 распознавание: движок и языки (js/ocr.js) */
+        .then(function (m3) { return m3 || fetch(req); });
     });
   }));
 });

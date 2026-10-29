@@ -1,4 +1,5 @@
 // Джессика 17.10: «Внешний вид» (тема, скин, анимации) is its own drawer item; «Инвентарь» = статистика, цитаты и заметки, словарь — one item with tabs.
+// 26.10 (Джессика: «вкладку Инвентарь слить с дневниками»): цитаты и словарь — вкладки «Дневников», пункта «Инвентарь» в меню нет.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node menu.test.mjs
 import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
@@ -11,7 +12,7 @@ p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.messag
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
 const cur = () => p.evaluate(() => SCREENS.find(s => !el(s).classList.contains('hidden')));
 const items = await p.evaluate(() => { openDrawer(); return [...document.querySelectorAll('#dList .ditem .dlab')].map(x => x.textContent); });
-ok('1 drawer: one «Инвентарь», no separate «Цитаты и заметки» / «Словарь» / «Статистика»', items.includes('Инвентарь') && !items.includes('Цитаты и заметки') && !items.includes('Словарь') && !items.includes('Статистика'), items);
+ok('1 drawer: «Дневники» hold quotes and vocab (26.10), no «Инвентарь», no separate «Цитаты и заметки» / «Словарь» / «Статистика»', items.includes('Дневники') && !items.includes('Инвентарь') && !items.includes('Цитаты и заметки') && !items.includes('Словарь') && !items.includes('Статистика'), items);
 ok('2 drawer: «Внешний вид» right before the separator and «Настройки»', items.slice(-2).join('|') === 'Внешний вид|Настройки', items);
 await p.evaluate(() => document.querySelector('#dList [data-nav="look"]').click()); await sleep(200);
 let r = await p.evaluate(() => ({ th: !!document.querySelector('#look #appThemeX'), sk: !!document.querySelector('#look #appSkinX'), an: !!document.querySelector('#look #uxAnim'), inSet: !!document.querySelector('#settings #appThemeBox'), on: el('dLook').classList.contains('on') }));
@@ -19,7 +20,8 @@ ok('3 «Внешний вид» opens a screen with Тема, Скин, Аним
 await p.evaluate(() => { S.gold = 600; save(); buy('skin-ellada'); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="ellada"]').click(); }); await sleep(300);
 ok('4 picking a skin on «Внешний вид» wears it', await p.evaluate(() => document.documentElement.dataset.skin) === 'ellada');
 await p.evaluate(() => { openGeneralSettings(false); }); await sleep(100);
-r = await p.evaluate(() => ({ row: !!el('btnLookCfg'), skin: !!document.querySelector('#settings #appSkinBox, #settings .shopcard'), txt: /Внешний вид|скин/i.test(el('settings').textContent) }));
+r = await p.evaluate(() => { const c = el('settings').cloneNode(true); c.querySelectorAll('#gsList [data-sec="look"], #setSearchRes').forEach(x => x.remove()); /* 29.10: the list of sections links to «Внешний вид» (its own screen) */
+  return { row: !!el('btnLookCfg'), skin: !!document.querySelector('#settings #appSkinBox, #settings .shopcard'), txt: /Внешний вид|скин/i.test(c.textContent) }; });
 ok('5 «Общие настройки» have nothing about skins any more (17.10)', !r.row && !r.skin && !r.txt, r);
 r = await p.evaluate(() => { const pane = el('rewPaneShop'); return { inLook: !!pane && !!pane.closest('#look'), cards: document.querySelectorAll('#look .shopcard').length, tab: !!el('rewTabShop') }; });
 ok('6 the skin shop is on «Внешний вид», «Награды» has no «Магазин» tab', r.inLook && r.cards >= 7 && !r.tab, r);
@@ -27,20 +29,20 @@ await p.evaluate(() => openRewardsSheet('shop')); await sleep(200);
 ok('6b an old «shop» link opens «Внешний вид»', (await cur()) === 'look' && await p.evaluate(() => !el('rewardsSheet').classList.contains('open')));
 await p.evaluate(() => navGo('stats')); await sleep(100);
 const tabs = await p.evaluate(() => [...document.querySelectorAll('#quotes .progtab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.dataset.sub));
-ok('7 «Инвентарь» opens quotes; MVP shows two tabs: Цитаты и заметки, Словарь (statistics moved to «Профиль», 18.10)', (await cur()) === 'quotes' && tabs.join() === 'quotes,vocab', tabs);
+ok('7 an old «Инвентарь» link opens quotes; MVP shows three tabs: Дневники, Цитаты и заметки, Словарь (statistics moved to «Профиль», 18.10)', (await cur()) === 'quotes' && tabs.join() === 'diary,quotes,vocab', tabs);
 await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"]').click()); await sleep(100);
-r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), di: el('dStats') && el('dStats').classList.contains('on') }));
+r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), di: el('dDiary') && el('dDiary').classList.contains('on') }));
 ok('8 the vocab tab works in MVP and is marked', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.di, r);
 await p.evaluate(() => { navGo('profile'); el('statCard').click(); applyMvpChrome(); }); await sleep(150);
 r = await p.evaluate(() => ({ h1: el('stats').querySelector('h1').textContent.trim(), tabs: el('stats').querySelectorAll('.progtab').length, prof: el('bnProf').classList.contains('on'), di: el('dProf').classList.contains('on') || !el('dProf') }));
 ok('9 «Статистика» opens from «Профиль»: own header, no inventory tabs, «Профиль» lit', (await cur()) === 'stats' && r.h1 === 'Статистика' && !r.tabs && r.prof, r);
 await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"]').click()); await sleep(100);
-r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), body: !!el('vocabBody').innerHTML, di: el('dStats').classList.contains('on') }));
-ok('9b the «Словарь» tab opens the vocab inside «Инвентарь»', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.body && r.di, r);
+r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), body: !!el('vocabBody').innerHTML, di: el('dDiary').classList.contains('on') }));
+ok('9b the «Словарь» tab opens the vocab inside «Дневники»', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.body && r.di, r);
 const nav = await p.evaluate(() => { SET.nav = ['library', 'notes', 'vocab', 'profile']; return navGet(); });
-ok('10 stored «notes» / «vocab» pins become one «Инвентарь» (stats), nothing else lost', nav.join() === 'library,stats,profile,path', nav); /* 20.10: always 4 tabs, the free slot gets «Путь» */
+ok('10 stored «notes» / «vocab» pins become one «Дневники» (diary), nothing else lost', nav.join() === 'library,diary,profile,path', nav); /* 20.10: always 4 tabs, the free slot gets «Путь» */
 await p.evaluate(() => { SET.nav = ['library', 'stats', 'profile']; renderNav(); openProgress('quotes'); applyMvpChrome(); });
-ok('11 the pinned «Статистика» tab lights on the quotes tab too', await p.evaluate(() => el('bnStats').classList.contains('on')));
+ok('11 a stored «Инвентарь» (stats) pin is «Дневники» now and lights on the quotes tab too', await p.evaluate(() => el('bnDiary').classList.contains('on')));
 await p.evaluate(() => navGo('quests')); await sleep(100);
 r = await p.evaluate(() => ({ tabs: document.querySelectorAll('#quests .jtab, #quests .ptabs').length, h1: el('quests').querySelector('h1').textContent.trim(), box: !!el('questBox').children.length }));
 ok('12 «Квесты» has no «Цитаты» / «Словарь» tabs any more (they live in «Инвентарь»)', (await cur()) === 'quests' && !r.tabs && r.h1 === 'Квесты' && r.box, r);

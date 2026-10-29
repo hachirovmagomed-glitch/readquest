@@ -1,7 +1,7 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
-const SCREENS=['library','path','adv','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','look','reader','summary'];
-const DRAWER={library:'dLib',path:'dPath',adv:'dAdv',quotes:'dStats',vocab:'dStats',profile:'dProf',quests:'dQuests',stats:'dProf',calendar:'dStats',achievements:'dStats',shelfScreen:'dStats',look:'dLook',settings:'dSet'};
+const SCREENS=['library','path','adv','diary','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','look','reader','summary'];
+const DRAWER={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',quotes:'dDiary',vocab:'dDiary',profile:'dProf',quests:'dQuests',stats:'dProf',calendar:'dProf',achievements:'dProf',shelfScreen:'dProf',look:'dLook',settings:'dSet'};
 let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
@@ -31,12 +31,12 @@ const NAV_CATALOG=[
   {id:'profile',t:'Профиль',ic:'user-round'},
   {id:'path',t:'Путь читателя',s:'Путь',ic:'map'},
   {id:'adv',t:'Приключения',ic:'compass'}, /* Джессика 18.10: free books from open libraries (js/adv.js) */
+  {id:'diary',t:'Дневники',ic:'notebook'}, /* Джессика 25.10: дневники и блокноты (js/diary.js); «Только в меню» — не в NAV_DEF */
   {id:'quests',t:'Квесты',ic:'target'},
-  {id:'stats',t:'Инвентарь',ic:'package'}, /* Джессика 17.10: «всё, что игрок собрал в путешествии по книгам» — статистика, цитаты и заметки, словарь: one item, tabs inside */
   {id:'look',t:'Внешний вид',s:'Вид',ic:'palette'}]; /* Джессика 17.10: тема, скин, анимации — own item (was a block in «Общие настройки») */
 /* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
-const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path']},{t:'Герой',ids:['profile','quests','stats']},{t:'Магазины',ids:['rewards','look']}];
-const NAV_ALIAS={notes:'stats',vocab:'stats'}; /* stored NS_set.nav from before 17.10 */
+const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path','diary']},{t:'Герой',ids:['profile','quests']},{t:'Магазины',ids:['rewards','look']}];
+const NAV_ALIAS={notes:'diary',vocab:'diary',stats:'diary'}; /* stored NS_set.nav from before 17.10; 26.10 (Джессика): «Инвентарь» слит с «Дневниками» */
 /* 20.10 (Джессика: «5 вкладок базой, количество менять нельзя, только что в них»): the bar always has NAV_N tabs around «Читать»
    (2 + 2, as in Habitica); stored lists that are short get the defaults / catalog appended, long ones are cut — in memory, never written back */
 const NAV_N=4, NAV_DEF=['library','path','rewards','profile'], NAV_MAX=NAV_N;
@@ -47,8 +47,8 @@ function navAvail(id){
   return !isMvp()||RQ_MVP_DRAWER_EXTRAS||['library','rewards','profile'].indexOf(id)>=0||id==='settings';}
 function navFill(out,ok){NAV_DEF.concat(NAV_CATALOG.map(function(it){return it.id;})).forEach(function(x){if(out.length<NAV_N&&out.indexOf(x)<0&&ok(x))out.push(x);});return out;}
 function navShown(){return navFill(navGet().filter(navAvail),navAvail);} /* view only: what the bar shows now (a hidden section's slot is filled from the shown ones) */
-const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
-const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
+const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',diary:'bnDiary',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
+const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
   const out=[];if(Array.isArray(v))v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
@@ -71,6 +71,7 @@ function navGo(id){
     else if(id==='profile'){renderProfile();show('profile');}
     else if(id==='path'){show('path');renderPath();}
     else if(id==='adv')openAdv();
+    else if(id==='diary')openDiary();
     else if(id==='quests')openJournal('quests');
     else if(id==='notes')openProgress('quotes');
     else if(id==='vocab')openProgress('vocab');
@@ -139,7 +140,7 @@ el('scrim').onclick=closeDrawer;
 
 let jrnLast='quests';
 /* tabs inside a drawer section: same MVP pass as the drawer item itself (the tabs used to bounce to the library in MVP) */
-function navShowSub(id){const own={quotes:'stats',stats:'profile',vocab:'stats',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
+function navShowSub(id){const own={quotes:'diary',stats:'profile',vocab:'diary',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
 function openLook(toShop){try{closeRewardsSheet();}catch(e){}renderSettings();try{renderShopPane();}catch(e){}__navAllow=true;try{show('look');}finally{__navAllow=false;}closeDrawer();
   if(toShop===true){const h=el('rewPaneShop');if(h)h.scrollIntoView({block:'start'});}}
 function openJournal(sub){
@@ -201,9 +202,10 @@ let __bootGold=0;
 function renderLibrary(){
   rollDay();
   if(!renderLibrary._bk){renderLibrary._bk=true;
-    const ub=(S.userBooks||[]).length;
-    const stale=!S.lastBackup||((Date.now()-new Date(S.lastBackup).getTime())>14*86400000);
-    if(ub>0&&stale)setTimeout(()=>{if(!el('library').classList.contains('hidden'))flashMsg('Совет: сделайте резервную копию своих книг (Настройки → Данные → Экспорт)',{kind:'info',icon:'info'});},1400); /* 1б: library tip only on the library, never over the text */
+    /* 29.10 «Напоминать о копии» (arch.md backupNag / backupNagAt): at most once a week, only with own books or read minutes, copy older than 7 days */
+    const ub=(S.userBooks||[]).length,day=864e5,ago=function(d){return d?(Date.now()-new Date(d).getTime())/day:Infinity;};
+    const due=S.backupNag!==false&&(ub>0||(S.totalMin||0)>=1)&&ago(S.lastBackup)>=7&&ago(S.backupNagAt)>=7;
+    if(due)setTimeout(()=>{if(el('library').classList.contains('hidden'))return;S.backupNagAt=today();save();flashMsg(S.lastBackup?'Резервной копии уже '+Math.floor(ago(S.lastBackup))+' '+plural(Math.floor(ago(S.lastBackup)),'день','дня','дней')+'. Настройки → Данные':'Сделайте резервную копию книг и прогресса: Настройки → Данные',{kind:'info',icon:'info',ms:4000});},1400);
   }
   libSortSync();libGoldRender(); /* balance as text, floor(S.gold), same source as the drawer; no writes */
   const gl=el('libGoldLine');if(gl){gl.textContent='';if(__bootGold)gl.textContent='+'+coinsP(__bootGold)+' за прошлую сессию';gl.classList.toggle('hidden',!__bootGold);}
@@ -215,6 +217,7 @@ function renderLibrary(){
     if(lb&&!S.finished.includes(lid)){const pr=Math.round(rqPos(lid)*100);
       cc.innerHTML='<button class="continuecard" onclick="openBook(\''+lid+'\')"><div class="cover">'+coverHtml(lb)+'</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:11px;color:var(--muted)">ПРОДОЛЖИТЬ ЧТЕНИЕ</div><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(lb.title)+'</b><div class="pbar" style="margin-top:6px"><i style="width:'+pr+'%"></i></div></div><span style="font-size:22px;opacity:.6">›</span></button>';}
     else cc.innerHTML='';}
+  if(typeof qDayRender==='function')qDayRender(); /* 28.10 «Цитата дня» (js/quotes.js) */
   const dc=el('dailyCard');
   if(dc){if(S.dailyClaim!==today()){const rew=dailyReward();dc.innerHTML='<button class="dailycard" onclick="claimDaily()">'+rqIcon('gift',18)+'<b style="margin:0 4px">Ежедневный бонус</b>+'+rew+' монет'+'<span style="margin-left:auto;font-size:12px">забрать ›</span></button>';}else dc.innerHTML='';}
   const shelf=el('shelf');shelf.innerHTML='';shelf.className='grid v-'+libViewGet();

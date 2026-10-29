@@ -152,6 +152,15 @@ ok('6b пакет языка en→ru скачан, отдельная книга
 ok('6c в читалке перевод отдельным абзацем курсивом с lang=ru; в карточке потом «Читать с переводом», обычное скачивание осталось', s6.reader && s6.p && s6.p.lang === 'ru' && s6.p.it === 'italic' &&
   s6.after.includes('Читать с переводом') && s6.after.some(x => /Скачать на телефон и читать/.test(x)), { p: s6.p, after: s6.after });
 
+// 7. portraits (28.10: «гораздо больше портретов»)
+const s7 = await p.evaluate(async () => { el('bookSheet').classList.add('hidden'); navGo('adv'); advSwitch('all'); ADV.q = ''; el('advQ').value = ''; advRenderList(); await new Promise(r => setTimeout(r, 200));
+  const faces = Array.from(document.querySelectorAll('#advList .advfaces .advface'));
+  const srcs = faces.map(b => b.querySelector('img').getAttribute('src'));
+  const ok = await Promise.all(srcs.map(u => fetch(u).then(r => r.ok && r.headers.get('content-type') !== 'text/html').catch(() => false)));
+  const t0 = window.today; const order = d => { window.today = () => d; const o = advFaces().map(x => x[1]).join(); window.today = t0; return o; };
+  return { n: faces.length, uniq: new Set(srcs).size, bad: srcs.filter((u, i) => !ok[i]), a: order('2026-10-28') === order('2026-10-28'), b: order('2026-10-28') !== order('2026-10-29') }; });
+ok('7 «Авторы»: больше 60 портретов, все файлы на месте, без повторов; порядок свой на каждый день и один и тот же в течение дня', s7.n >= 60 && s7.uniq === s7.n && !s7.bad.length && s7.a && s7.b, s7);
+
 ok('нет ошибок страницы и окон', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 const n = checks.filter(Boolean).length; console.log('SUMMARY adv5.test ' + n + '/' + checks.length);
 await browser.close(); process.exit(n === checks.length ? 0 : 1);

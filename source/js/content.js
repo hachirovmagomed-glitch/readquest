@@ -810,7 +810,7 @@ function selCtx(word){ /* предложение вокруг выделения
     return full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,400);}catch(e){return '';}
 }
 el('spAI').onclick=()=>{
-  const t=selText();if(!t)return;
+  const t=rqSelPlain()||selText();if(!t)return;
   if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
   selDone();
@@ -879,7 +879,7 @@ async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо
   if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
   const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
     ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
-  return String(t).trim().slice(0,2000);
+  return String(t).trim().slice(0,m.cap||2000); /* 28.10: «Текст страницы» через ИИ — вся страница (m.cap) */
 }
 function aiToVocab(q,ex){
   const word=q.text.trim().slice(0,60);if(!word)return;
@@ -976,6 +976,7 @@ async function removeBook(id,wipeFile){
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */
+  if(wipeFile){try{await idbDel('ocr:'+id);if(typeof OCR_MEM!=='undefined')delete OCR_MEM[id];}catch(e){}} /* 28.10: pages recognised on the phone (js/ocr.js) */
   save();el('bookSheet').classList.add('hidden');renderLibrary();
   flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');
 }

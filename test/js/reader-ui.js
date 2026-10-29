@@ -473,7 +473,10 @@ function quoteEdit(sq,withNote,color){
   put(null);
 }
 function quoteDel(){
-  const sq=SQ;if(!sq)return;quoteClose();el('selpop').classList.add('hidden');
+  const sq=SQ;if(!sq)return;quoteClose();el('selpop').classList.add('hidden');quoteRemove(sq);
+}
+/** 28.10: removes a quote with its highlight in the text ({bid, q, ms: its marks}); from the tapped quote's bar and from «Навигация → Цитаты» */
+function quoteRemove(sq){
   const qs=S.quotes[sq.bid]||[],i=qs.indexOf(sq.q);if(i<0)return;qs.splice(i,1);
   const h=S.hl[sq.bid]||[],j=h.indexOf(sq.q.text);if(j>-1)h.splice(j,1);save();
   sq.ms.forEach(m=>{if(m.isConnected){const p=m.parentNode;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize();}});
@@ -849,24 +852,42 @@ el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
 /* 21.10 (Джессика: «нажимаю на цитату — бросает в ебеня»): the quote's own page, not a guess from b.text (a PDF has no b.text → page 1).
    Text book: where its words are in the laid-out text. PDF: q.pdf.p; an older PDF quote without it is looked up page by page once, then remembered. */
+/* 28.10 (Джессика: «пусть там отмечается, на какой странице цитата»): the quote's page now — text book: where its highlight (or its words) stand
+   in the laid-out text, so it follows the font size; PDF: q.pdf.p. -1 = not found (an older PDF quote without q.pdf until it is opened once) */
+function quoteKeys(t){const a=bfNorm(String(t||'')).trim(),c=a.replace(/ {2,}/g,' ');return [a.slice(0,60),c.slice(0,60),c.replace(/-? /g,'').slice(0,30)].filter(Boolean);}
+/** the quote's marks in #content (its occurrence among the same words) */
+function quoteMarksOf(b,q){if(/\n/.test(q.text))return quoteMarks(q);const ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===q.text),m=ms[Math.max(0,hlSame(b.id,q.text).indexOf(q))];return m?[m]:[];}
+function quotePage(b,q){
+  if(R.mode==='pdf')return q.pdf&&Number.isInteger(q.pdf.p)&&q.pdf.p>=0&&q.pdf.p<R.pageCount?q.pdf.p:-1;
+  const mk=quoteMarksOf(b,q)[0];
+  if(mk&&mk.firstChild&&mk.firstChild.nodeType===3){const p=pageOfAnchor({node:mk.firstChild,offset:0});if(p>=0)return p;}
+  const T=bfTextIndex(),ks=quoteKeys(q.text);let o=T.low.indexOf(ks[0]);if(o<0)o=T.low.indexOf(ks[1]);
+  if(o>=0){const a=bfNodeAt(T,o,false);if(a)return Math.max(0,pageOfAnchor(a));}
+  return -1;
+}
+function quotePageLabel(p){return R.mode==='pdf'?pdfLabel(p):String(p+1);}
 async function quoteGo(i){
   const b=R.book,q=b&&(S.quotes[b.id]||[])[i];el('panel').classList.add('hidden');if(!q)return;
   const pdf=R.mode==='pdf',from=pdf&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let p=-1;
-  const keys=t=>{const a=bfNorm(String(t||'')).trim(),c=a.replace(/ {2,}/g,' ');return [a.slice(0,60),c.slice(0,60),c.replace(/-? /g,'').slice(0,30)].filter(Boolean);};
+  p=quotePage(b,q);
   if(pdf){
-    if(q.pdf&&Number.isInteger(q.pdf.p)&&q.pdf.p>=0&&q.pdf.p<R.pageCount)p=q.pdf.p;
-    else{const ks=keys(q.text);flashMsg('Ищу цитату в книге…');const doc=R.pdf;
+    if(p<0){const ks=quoteKeys(q.text);flashMsg('Ищу цитату в книге…');const doc=R.pdf;
       for(let k=0;k<R.pageCount&&p<0;k++){const n=(from+k)%R.pageCount,tx=bfNorm(await bfPdfText(n));if(R.pdf!==doc)return;const t2=tx.replace(/ {2,}/g,' ');
         if(tx.indexOf(ks[0])>=0||t2.indexOf(ks[1])>=0||(ks[2]&&t2.replace(/-? /g,'').indexOf(ks[2])>=0))p=n;}
       if(p>=0){q.pdf={p:p,r:[]};save();}}
-  }else{
-    const ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===q.text),mk=/\n/.test(q.text)?quoteMarks(q)[0]:ms[Math.max(0,hlSame(b.id,q.text).indexOf(q))];
-    if(mk&&mk.firstChild&&mk.firstChild.nodeType===3)p=Math.max(0,pageOfAnchor({node:mk.firstChild,offset:0}));
-    else{const T=bfTextIndex(),ks=keys(q.text);let o=T.low.indexOf(ks[0]);if(o<0)o=T.low.indexOf(ks[1]);
-      if(o>=0){const a=bfNodeAt(T,o,false);if(a)p=Math.max(0,pageOfAnchor(a));}}
   }
   if(p<0){rqAlert('Не нашёл это место в книге');return;}
   if(p!==from){jumpTo(p);showJumpBack(from);}
+}
+/** 28.10 (Джессика: «удалять цитаты прямо во время чтения»): the bin on a row in «Навигация → Цитаты» — asks, then removes the quote and its highlight */
+function quoteDelAt(i){
+  const b=R.book,q=b&&(S.quotes[b.id]||[])[i];if(!q)return;const t=String(q.text).replace(/\s*\n\s*/g,' ');
+  rqAsk({t:'Удалить цитату?',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»'+(q.note?' — и заметку к ней':''),ok:'Удалить',danger:true}).then(v=>{
+    if(!v||(S.quotes[b.id]||[]).indexOf(q)<0)return;
+    const ms=R.mode==='pdf'||!R.book||R.book.id!==b.id?[]:quoteMarksOf(b,q);
+    if(SQ&&SQ.q===q){quoteClose();el('selpop').classList.add('hidden');}
+    qOpen.i=-1;quoteRemove({bid:b.id,q,ms});if(panelTab==='qts')renderPanel('qts',{keep:true});
+  });
 }
 let qOpen={bid:null,i:-1};
 function quoteToggle(i){qOpen.i=qOpen.i===i?-1:i;renderPanel('qts');const on=el('panelBody').querySelector('.pq.on');if(on)try{on.scrollIntoView({block:'nearest'});}catch(e){}}
@@ -938,16 +959,11 @@ function renderPanel(tab,o){
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
       ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
-    const qs=S.quotes[b.id]||[];if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
+    if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
-       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there */
-    body.innerHTML=qs.length
-      ?qs.map((q,i)=>{const on=i===qOpen.i,t=String(q.text).replace(/\s*\n\s*/g,on?'\n':' ');
-        return '<div class="prow pq'+(on?' on':'')+'"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+';--d2:'+hlDot2(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
-          (on&&q.note?'<span class="pqn">'+esc(q.note)+'</span>':'')+'</span></button>'+
-          (on?'<button class="pqgo" onclick="quoteGo('+i+')">'+rqIcon('book-open',16)+' Открыть в книге</button>':'')+'</div>';
-      }).join('')
-      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
+       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there.
+       28.10: search, colour filter, order, export, card, «Объясни» / «Обсудить» — js/quotes.js */
+    qlPanel(body,b);
   }
 }
 

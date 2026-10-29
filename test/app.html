@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261029-1207',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261029-1226',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261029-1207"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261029-1226"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -972,6 +972,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 18.10 «Обзор» with real thumbnails (js/page-grid.js): a tile per page, a picture only near the screen */
 .pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px 10px}
 .pgt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;color:var(--muted);font-size:0.6875rem;font-variant-numeric:tabular-nums;cursor:pointer}
+.pgfr{display:block;position:relative} /* 29.10: the picture + its marks (the marks stay when the picture is dropped) */
 .pgth{display:block;position:relative;width:100%;aspect-ratio:var(--pg-asp,.66);background:var(--r-bg,#f4ecd8);border-radius:var(--rq-radius-xs);overflow:hidden;box-shadow:0 0 0 1px var(--card2)}
 .pgth canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 .pgsc{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
@@ -979,7 +980,35 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 .pgt.cur .pgth{box-shadow:0 0 0 2px var(--accent)}
 .pgt.cur .pgn{color:var(--txt);font-weight:700}
 .pgn{position:relative;text-align:center}
-.pgn .m{margin-left:3px;color:var(--accent)}
+/* 29.10 «Обзор» (Джессика, пункты 1, 2, 4, 7): bar «Стр. [__] Перейти · К текущей», chapter titles, marks on the pictures, the fast thumb */
+#panelBody .pgbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:6px;margin:0 -16px;padding:2px 16px 10px;background:var(--sheet)}
+.pgbar .pggo{display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--muted)}
+.pgbar input{width:5.2em;min-height:40px;padding:0 8px;border-radius:var(--rq-radius-sm);border:1px solid var(--card2);background:var(--card2);color:var(--txt);font:inherit;font-size:0.9375rem;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.pgbar input::-webkit-inner-spin-button,.pgbar input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pgbar input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pgbar .spacer{flex:1}
+.pgbar .pgbtn{display:inline-flex;align-items:center;gap:5px;min-height:40px;padding:0 10px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt);font-size:0.8125rem;font-weight:600;white-space:nowrap}
+.pgbar .pgbtn .ic{color:var(--accent)}
+.pgsec{position:relative}
+.pgsec+.pgsec{margin-top:14px}
+#panelBody .pgch{position:sticky;top:var(--pgbar-h,52px);z-index:3;display:flex;align-items:baseline;gap:8px;margin:0 -16px 8px;padding:6px 16px 7px;background:var(--sheet);font-size:0.8125rem;font-weight:700;color:var(--txt);border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.pgch .pgcht{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgch .pgchp{flex:none;font-size:0.6875rem;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.pgbm{position:absolute;top:-2px;right:6px;z-index:1;display:flex;color:var(--accent);filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.pgbm .ic{fill:currentColor}
+.pgqs{position:absolute;left:5px;bottom:5px;z-index:1;display:flex;align-items:center;gap:3px;padding:3px 4px;border-radius:999px;background:color-mix(in srgb,var(--sheet) 82%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--txt) 12%,transparent)}
+.pgqs i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%)}
+.pgqs .pgnote{display:flex;color:var(--txt)}
+.pgscr{position:absolute;right:2px;width:30px;z-index:6;pointer-events:none}
+.pgscr[hidden]{display:none}
+.pgscr-th{position:absolute;top:0;right:0;width:30px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;cursor:grab}
+.pgscr-th i{width:8px;height:40px;border-radius:999px;background:var(--accent);opacity:.55;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:width .15s,opacity .15s}
+.pgscr.on .pgscr-th i{width:12px;opacity:1}
+.pgscr-tip{position:absolute;top:0;right:36px;display:none;flex-direction:column;align-items:flex-end;gap:1px;max-width:min(240px,70vw);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--accent);color:var(--on-accent);font-size:0.75rem;line-height:1.25;box-shadow:var(--rq-shadow-2,0 4px 14px rgba(0,0,0,.3));white-space:nowrap}
+.pgscr-tip b{font-size:0.9375rem;font-variant-numeric:tabular-nums}
+.pgscr-tip span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pgscr.on .pgscr-tip{display:flex}
+@media (prefers-reduced-motion:reduce){.pgscr-th i{transition:none}}
 /* «Яркость» (#dimmer; was «Затемнение» until 20.10) = screen brightness (Джессика 17.10): the whole reader screen, bars included, evenly — a child of #reader, not of
    #viewer (that one is inset by the margins and scrolls in scroll mode). Above the bars (30), under the settings sheet (50). */
 #dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}
@@ -2157,7 +2186,7 @@ body:has(#rqTestBanner) .dyfbar{top:calc(44px + env(safe-area-inset-top))}
 .bk-dy{margin-top:12px}
 @media (prefers-reduced-motion:no-preference){#diary .rsw::after{transition:transform var(--rq-dur-fast,150ms)}}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261029-1207"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261029-1226"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2834,41 +2863,41 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261029-1207"></script>
-<script src="js/books-builtin.js?v=20261029-1207"></script>
-<script src="js/core-b.js?v=20261029-1207"></script>
-<script src="js/library.js?v=20261029-1207"></script>
-<script src="js/reader.js?v=20261029-1207"></script>
-<script src="js/pdf.js?v=20261029-1207"></script>
-<script src="js/pdf-scroll.js?v=20261029-1207"></script>
-<script src="js/page-curl.js?v=20261029-1207"></script>
-<script src="js/page-grid.js?v=20261029-1207"></script>
-<script src="js/reader-ui.js?v=20261029-1207"></script>
-<script src="js/book-find.js?v=20261029-1207"></script>
-<script src="js/focus.js?v=20261029-1207"></script>
-<script src="js/rpg.js?v=20261029-1207"></script>
-<script src="js/content.js?v=20261029-1207"></script>
-<script src="js/quotes.js?v=20261029-1207"></script>
-<script src="js/translate.js?v=20261029-1207"></script>
-<script src="js/ocr.js?v=20261029-1207"></script>
-<script src="js/hero-pencil.js?v=20261029-1207"></script>
-<script src="js/hero-celestial.js?v=20261029-1207"></script>
-<script src="js/hero.js?v=20261029-1207"></script>
-<script src="js/settings.js?v=20261029-1207"></script>
-<script src="js/v6-extras.js?v=20261029-1207"></script>
-<script src="js/ach-core.js?v=20261029-1207"></script>
-<script src="js/achievements.js?v=20261029-1207"></script>
-<script src="js/path.js?v=20261029-1207"></script>
-<script src="js/adv.js?v=20261029-1207"></script>
-<script src="js/diary.js?v=20261029-1207"></script>
-<script src="js/start.js?v=20261029-1207"></script>
+<script src="js/core-a.js?v=20261029-1226"></script>
+<script src="js/books-builtin.js?v=20261029-1226"></script>
+<script src="js/core-b.js?v=20261029-1226"></script>
+<script src="js/library.js?v=20261029-1226"></script>
+<script src="js/reader.js?v=20261029-1226"></script>
+<script src="js/pdf.js?v=20261029-1226"></script>
+<script src="js/pdf-scroll.js?v=20261029-1226"></script>
+<script src="js/page-curl.js?v=20261029-1226"></script>
+<script src="js/page-grid.js?v=20261029-1226"></script>
+<script src="js/reader-ui.js?v=20261029-1226"></script>
+<script src="js/book-find.js?v=20261029-1226"></script>
+<script src="js/focus.js?v=20261029-1226"></script>
+<script src="js/rpg.js?v=20261029-1226"></script>
+<script src="js/content.js?v=20261029-1226"></script>
+<script src="js/quotes.js?v=20261029-1226"></script>
+<script src="js/translate.js?v=20261029-1226"></script>
+<script src="js/ocr.js?v=20261029-1226"></script>
+<script src="js/hero-pencil.js?v=20261029-1226"></script>
+<script src="js/hero-celestial.js?v=20261029-1226"></script>
+<script src="js/hero.js?v=20261029-1226"></script>
+<script src="js/settings.js?v=20261029-1226"></script>
+<script src="js/v6-extras.js?v=20261029-1226"></script>
+<script src="js/ach-core.js?v=20261029-1226"></script>
+<script src="js/achievements.js?v=20261029-1226"></script>
+<script src="js/path.js?v=20261029-1226"></script>
+<script src="js/adv.js?v=20261029-1226"></script>
+<script src="js/diary.js?v=20261029-1226"></script>
+<script src="js/start.js?v=20261029-1226"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261029-1207"></script>
+<script src="js/pwa-lock.js?v=20261029-1226"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -2876,9 +2905,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261029-1207';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261029-1207';
-import * as game from './game-awards.js?v=20261029-1207';
+} from './storage/index.js?v=20261029-1226';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261029-1226';
+import * as game from './game-awards.js?v=20261029-1226';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

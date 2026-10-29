@@ -37,7 +37,7 @@ for (const w of [360, 390]) {
   ok(w + ' MVP: progress shows pos (40%), not farthest page', a.pct === '40%', a.pct);
   ok(w + ' MVP: reading time from bookStats.min, rounded down (135.7 → «2 ч 15 мин»)', a.time === '2 ч 15 мин', a.time);
   ok(w + ' MVP: author == genre shown once («PDF»)', a.sub === 'PDF', a.sub);
-  ok(w + ' MVP: 3 quick actions, cover + 2 removal lines', a.acts.length === 3 && a.lines.length === 3, [a.acts, a.lines]);
+  ok(w + ' MVP: 3 quick actions, diary line (25.10), cover + 2 removal lines', a.acts.length === 3 && a.lines.length === 4 && a.lines[0] === 'Завести дневник книги', [a.acts, a.lines]);
   ok(w + ' MVP: favourite toggles the on-state', a.favOn);
   ok(w + ' compact header: scroll stays put, card does not move, header full width', a.stick.every(x => x.st === x.y && x.stuck === (x.y > 24) && x.prog === 0 && x.full), a.stick);
   ok(w + ' nothing sticks out of the sheet', a.over.length === 0, a.over.slice(0, 5));

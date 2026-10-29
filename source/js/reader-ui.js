@@ -145,6 +145,7 @@ function addBookmark(){
   const arr=(S.marks[R.book.id]=S.marks[R.book.id]||[]);
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   arr.push({ratio:ratio,page:R.page+1,date:today()});
+  if(typeof diaryAuto==='function')diaryAuto(R.book.id); /* 25.10 «Дневники» */
   save();
   flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
@@ -717,6 +718,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     const q={text:tt,note:ed&&!note?ed.q.note||'':note,date:ed?ed.q.date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
     (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(tt);
+    if(typeof diaryAuto==='function')diaryAuto(bid); /* 25.10 «Дневники»: the book's diary on its first quote (S.diaryAuto) */
     if(!ed&&!(window.__rqWriter&&__rqWriter.noLocks)){ /* 26.10: a re-bordered quote is not a new one: no coins / XP again */
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
       addSkillXp('Аналитика',1);checkAchievements();

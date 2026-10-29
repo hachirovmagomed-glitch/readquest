@@ -1,7 +1,7 @@
 'use strict';
 /* ================= ЭКРАНЫ ================= */
-const SCREENS=['library','path','adv','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','look','reader','summary'];
-const DRAWER={library:'dLib',path:'dPath',adv:'dAdv',quotes:'dStats',vocab:'dStats',profile:'dProf',quests:'dQuests',stats:'dProf',calendar:'dStats',achievements:'dStats',shelfScreen:'dStats',look:'dLook',settings:'dSet'};
+const SCREENS=['library','path','adv','diary','quotes','vocab','shop','profile','quests','stats','calendar','achievements','shelfScreen','settings','look','reader','summary'];
+const DRAWER={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',quotes:'dDiary',vocab:'dDiary',profile:'dProf',quests:'dQuests',stats:'dProf',calendar:'dProf',achievements:'dProf',shelfScreen:'dProf',look:'dLook',settings:'dSet'};
 let __navAllow=false; /* drawer / bottom bar may open sections that MVP otherwise folds into the library */
 function show(id){
   /* Keep confetti on summary; clear on every other screen change */
@@ -31,12 +31,12 @@ const NAV_CATALOG=[
   {id:'profile',t:'Профиль',ic:'user-round'},
   {id:'path',t:'Путь читателя',s:'Путь',ic:'map'},
   {id:'adv',t:'Приключения',ic:'compass'}, /* Джессика 18.10: free books from open libraries (js/adv.js) */
+  {id:'diary',t:'Дневники',ic:'notebook'}, /* Джессика 25.10: дневники и блокноты (js/diary.js); «Только в меню» — не в NAV_DEF */
   {id:'quests',t:'Квесты',ic:'target'},
-  {id:'stats',t:'Инвентарь',ic:'package'}, /* Джессика 17.10: «всё, что игрок собрал в путешествии по книгам» — статистика, цитаты и заметки, словарь: one item, tabs inside */
   {id:'look',t:'Внешний вид',s:'Вид',ic:'palette'}]; /* Джессика 17.10: тема, скин, анимации — own item (was a block in «Общие настройки») */
 /* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
-const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path']},{t:'Герой',ids:['profile','quests','stats']},{t:'Магазины',ids:['rewards','look']}];
-const NAV_ALIAS={notes:'stats',vocab:'stats'}; /* stored NS_set.nav from before 17.10 */
+const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path','diary']},{t:'Герой',ids:['profile','quests']},{t:'Магазины',ids:['rewards','look']}];
+const NAV_ALIAS={notes:'diary',vocab:'diary',stats:'diary'}; /* stored NS_set.nav from before 17.10; 26.10 (Джессика): «Инвентарь» слит с «Дневниками» */
 /* 20.10 (Джессика: «5 вкладок базой, количество менять нельзя, только что в них»): the bar always has NAV_N tabs around «Читать»
    (2 + 2, as in Habitica); stored lists that are short get the defaults / catalog appended, long ones are cut — in memory, never written back */
 const NAV_N=4, NAV_DEF=['library','path','rewards','profile'], NAV_MAX=NAV_N;
@@ -47,8 +47,8 @@ function navAvail(id){
   return !isMvp()||RQ_MVP_DRAWER_EXTRAS||['library','rewards','profile'].indexOf(id)>=0||id==='settings';}
 function navFill(out,ok){NAV_DEF.concat(NAV_CATALOG.map(function(it){return it.id;})).forEach(function(x){if(out.length<NAV_N&&out.indexOf(x)<0&&ok(x))out.push(x);});return out;}
 function navShown(){return navFill(navGet().filter(navAvail),navAvail);} /* view only: what the bar shows now (a hidden section's slot is filled from the shown ones) */
-const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
-const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
+const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',diary:'bnDiary',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
+const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
   const out=[];if(Array.isArray(v))v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
@@ -71,6 +71,7 @@ function navGo(id){
     else if(id==='profile'){renderProfile();show('profile');}
     else if(id==='path'){show('path');renderPath();}
     else if(id==='adv')openAdv();
+    else if(id==='diary')openDiary();
     else if(id==='quests')openJournal('quests');
     else if(id==='notes')openProgress('quotes');
     else if(id==='vocab')openProgress('vocab');
@@ -139,7 +140,7 @@ el('scrim').onclick=closeDrawer;
 
 let jrnLast='quests';
 /* tabs inside a drawer section: same MVP pass as the drawer item itself (the tabs used to bounce to the library in MVP) */
-function navShowSub(id){const own={quotes:'stats',stats:'profile',vocab:'stats',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
+function navShowSub(id){const own={quotes:'diary',stats:'profile',vocab:'diary',quests:'quests'}[id];const prev=__navAllow;__navAllow=prev||!own||navAvail(own);try{show(id);}finally{__navAllow=prev;}}
 function openLook(toShop){try{closeRewardsSheet();}catch(e){}renderSettings();try{renderShopPane();}catch(e){}__navAllow=true;try{show('look');}finally{__navAllow=false;}closeDrawer();
   if(toShop===true){const h=el('rewPaneShop');if(h)h.scrollIntoView({block:'start'});}}
 function openJournal(sub){

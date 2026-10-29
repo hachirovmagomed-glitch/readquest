@@ -46,8 +46,8 @@ function applyMvpChrome(){
     /* 20.10 (Джессика: «нажимаю на Путь, а внизу не меняется»): one tab lit = the tab that owns the visible screen.
        Was: «Библиотека» lit on every screen but «Профиль», and «Путь»/«Приключения» had no screens listed. */
     const onRew=!!(el('rewardsSheet')&&el('rewardsSheet').classList.contains('open'));
-    const OWN={library:'library',path:'path',adv:'adv',profile:'profile',stats:'profile',quests:'quests', /* 18.10: statistics belong to «Профиль» */
-      quotes:'stats',vocab:'stats',calendar:'stats',achievements:'stats',shelfScreen:'stats',look:'look'}; /* settings is not a tab → nothing lit (14.10) */
+    const OWN={library:'library',path:'path',adv:'adv',diary:'diary',profile:'profile',stats:'profile',quests:'quests', /* 18.10: statistics belong to «Профиль» */
+      quotes:'diary',vocab:'diary',calendar:'profile',achievements:'profile',shelfScreen:'profile',look:'look'}; /* 26.10: «Инвентарь» = вкладки «Дневников» */ /* settings is not a tab → nothing lit (14.10) */
     const cur=(typeof SCREENS!=='undefined'?SCREENS:[]).find(function(s){return el(s)&&!el(s).classList.contains('hidden');});
     const tab=onRew?'rewards':(OWN[cur]||'');
     bn.querySelectorAll('.botnav-btn').forEach(function(b){const id=b.dataset.nav||{bnLib:'library',bnRew:'rewards',bnProf:'profile'}[b.id];b.classList.toggle('on',!!id&&id===tab);});

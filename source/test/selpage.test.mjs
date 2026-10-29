@@ -178,6 +178,44 @@ const e12b = await p.evaluate(async () => { const w = (ms) => new Promise(r => s
   return { un, back: quoteMarks(q).length > 0, n: S.quotes[bid].length === n0 }; });
 ok('«Изменить границы» then tap away: the quote is back unchanged', e12b.un && e12b.back && e12b.n, e12b);
 
+// 14. 29.10 (Джессика: карандаш налезал на плашку «Выделено со стр.», «почему бы их не добавить влево, в боковое меню»; потом «закрывает текст …
+// перемещать то влево, то вправо … более прозрачным»): one narrow half-transparent side menu, folded into a tab on a new selection, dragged to any edge
+await p.evaluate(async () => { getSelection().removeAllRanges(); delete SET.selSide; saveSet(); goPage(3, true); await new Promise(r => setTimeout(r, 300)); });
+const m14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); __sel(__pc(0, 40), __pc(0, 60)); await w(600);
+  const n = el('selSide'), tab = el('ssTab').getBoundingClientRect(), cs = getComputedStyle(el('ssTab'));
+  return { shown: !!n && !n.hidden, open: n.classList.contains('open'), rail: getComputedStyle(el('ssRail')).display, tabL: Math.round(tab.left), tabW: Math.round(tab.width),
+    blur: /blur/.test(cs.backdropFilter || cs.webkitBackdropFilter || ''), see: /(color-mix|\/ 0\.6|, 0\.6)/.test(cs.backgroundColor) || !/^rgb\(/.test(cs.backgroundColor),
+    circle: getComputedStyle(el('selpop')).display, nav: getComputedStyle(el('selNav')).display, chip: getComputedStyle(el('selFrom')).display, side: n.dataset.side }; });
+ok('side menu: a selection shows only a tab at the left edge (≤ 32 px), half-transparent; no circle and no chip at the bottom, ‹ › stay in the corners', m14.shown && !m14.open && m14.rail === 'none' && m14.tabL === 0 && m14.tabW <= 32 && m14.blur && m14.see && m14.circle === 'none' && m14.nav !== 'none' && m14.chip === 'none' && m14.side === 'L', m14);
+const o14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssTab').click(); await w(150);
+  const r = el('ssRail').getBoundingClientRect(), vis = (id) => { const b = el(id).getBoundingClientRect(); return b.width > 0 && b.top >= 0 && b.bottom <= innerHeight; };
+  return { open: el('selSide').classList.contains('open'), tab: getComputedStyle(el('ssTab')).display, left: Math.round(r.left), w: Math.round(r.width), all: ['ssGrip', 'ssPen', 'ssX', 'ssFold'].every(vis), arrows: !!(el('ssPrev') || el('ssNext')), from: el('ssFrom').hidden }; });
+ok('tab → the menu opens: narrow (≤ 56 px) at the edge, pencil / «Снять» / fold on screen, no ‹ › in it, no «Начало» on one page', o14.open && o14.tab === 'none' && o14.left === 0 && o14.w <= 56 && o14.all && !o14.arrows && o14.from, o14);
+const t14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const a = __st(); el('selNext').click(); await w(500);
+  const b = __st(), from = !el('ssFrom').hidden && el('ssFromN').textContent, badge = el('ssN').textContent, fromLab = el('ssFrom').getAttribute('aria-label');
+  el('ssFrom').click(); await w(400); const c = __st(); goPage(4, true); await w(300);
+  return { a, b, from, badge, fromLab, c, still: el('selSide').classList.contains('open') }; });
+ok('corner › : next page, the selection goes on; «Начало: стр. 4» and «2» pages; a tap on it shows page 3, the menu stays open', t14.b.page === 4 && t14.b.an === t14.a.an && t14.b.len > t14.a.len && t14.from === '4' && t14.badge === '2' && /стр\. 4/.test(t14.fromLab) && t14.c.page === 3 && t14.still, t14);
+const pen14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssPen').click(); await w(150);
+  const open = !el('selpop').classList.contains('mini') && getComputedStyle(el('spColors')).display !== 'none', pr = el('ssPen').getAttribute('aria-pressed');
+  el('ssPen').click(); await w(150); return { open, pr, back: el('selpop').classList.contains('mini'), pr2: el('ssPen').getAttribute('aria-pressed') }; });
+ok('menu pencil opens the colours and actions bar, again folds it', pen14.open && pen14.pr === 'true' && pen14.back && pen14.pr2 === 'false', pen14);
+// drag by the grip across to the right edge, a bit higher: it sticks to the right edge, the place is remembered
+const g0 = await p.evaluate(() => { const b = el('ssGrip').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+await p.mouse.move(g0.x, g0.y); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(g0.x + (330 - g0.x) * i / 8, g0.y - 120 * i / 8); await p.mouse.up(); await settle(200);
+const d14 = await p.evaluate(() => { const r = el('ssRail').getBoundingClientRect(), nx = el('selNext').getBoundingClientRect(); return { clear: r.bottom <= nx.top, side: el('selSide').dataset.side, set: SET.selSide, right: Math.round(innerWidth - r.right), open: el('selSide').classList.contains('open'), sel: String(getSelection()).length }; });
+ok('dragged to the right: the menu sticks to the right edge, above ›, still open, the selection kept, the place saved', d14.side === 'R' && d14.right === 0 && d14.clear && d14.open && d14.sel > 0 && d14.set && d14.set.s === 'R' && d14.set.y > 0 && d14.set.y < 1, d14);
+const n14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssX').click(); await w(300); const gone = !String(getSelection()) && el('selSide').hidden;
+  __sel(__pc(0, 70), __pc(0, 90)); await w(500); const t = el('ssTab').getBoundingClientRect();
+  return { gone, open: el('selSide').classList.contains('open'), side: el('selSide').dataset.side, right: Math.round(innerWidth - t.right) }; });
+ok('«Снять» clears the selection and the menu; the next selection: a tab at the right edge again', n14.gone && !n14.open && n14.side === 'R' && n14.right === 0, n14);
+// the tab itself drags back to the left
+const t0 = await p.evaluate(() => { const b = el('ssTab').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+await p.mouse.move(t0.x, t0.y); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(t0.x - (t0.x - 40) * i / 8, t0.y + 60 * i / 8); await p.mouse.up(); await settle(200);
+const b14 = await p.evaluate(() => ({ side: el('selSide').dataset.side, open: el('selSide').classList.contains('open'), left: Math.round(el('ssTab').getBoundingClientRect().left) }));
+ok('the tab drags to the left edge and stays a tab (a drag is not a tap)', b14.side === 'L' && !b14.open && b14.left === 0, b14);
+await p.evaluate(() => { getSelection().removeAllRanges(); delete SET.selSide; saveSet(); });
+
 // 7. scroll mode: nothing turns by itself, the viewer still scrolls
 await p.evaluate(async () => { getSelection().removeAllRanges(); SET.flip = Object.assign({}, SET.flip, { mode: 'scroll' }); saveSet(); applySet && applySet(); if (typeof relayout === 'function') relayout(true); await new Promise(r => setTimeout(r, 600)); el('viewer').scrollTop = 600; await new Promise(r => setTimeout(r, 200)); });
 const s7 = await p.evaluate(() => ({ st: el('viewer').scrollTop, scroll: rqScrollMode() }));
@@ -189,6 +227,12 @@ const s13 = await p.evaluate(async () => { const w = (ms) => new Promise(r => se
   const z = at(vr.bottom - 12); __ext(z); await w(300); const st0 = v.scrollTop, len0 = String(getSelection()).length, hint = el('selEdge') && el('selEdge').className;
   await w(1100); return { st0, st1: v.scrollTop, len0, len1: String(getSelection()).length, hint }; });
 ok('scroll mode: end held at the bottom → hint, then half a screen down, the selection grows', s13.hint === 'next' && s13.st1 > s13.st0 + 200 && s13.len1 > s13.len0, s13);
+
+const s14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const v = el('viewer'), vr = v.getBoundingClientRect(); getSelection().removeAllRanges(); await w(200);
+  const at = (y) => { const r = document.caretRangeFromPoint(vr.left + 120, y); return [r.startContainer, r.startOffset]; };
+  __sel(at(vr.top + 200), at(vr.top + 260)); await w(500); el('ssTab').click(); await w(150);
+  const sh = (id) => getComputedStyle(el(id)).display !== 'none'; return { side: !el('selSide').hidden, pen: sh('ssPen'), x: sh('ssX'), prev: !el('selNav').hidden, from: sh('ssFrom') }; });
+ok('scroll mode: the side menu has the pencil and «Снять», no page arrows', s14.side && s14.pen && s14.x && !s14.prev && !s14.from, s14);
 
 ok('no page errors', errs.length === 0, errs);
 await browser.close();

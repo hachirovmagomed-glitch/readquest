@@ -1,6 +1,6 @@
 // 29.10 (Джессика: «что мы можем добавить в боковое меню …» → «давай 1 2 3 5 7», «с 8-11 тоже»): the tools of the side menu of a selection
-// (js/sel-tools.js): «Цвета», «Перевести», «Объясни», the count of words; under «Действия» «Заметка», «Копировать», «В словарь», «В дневник»,
-// «Закладка здесь», «Википедия», «До конца абзаца», «До конца страницы», «Отметить героя», «Герои книги».
+// (js/sel-tools.js): «Цвета», «Копировать», «Перевести», «Объясни», the count of words; under «Действия» «Заметка», «В словарь», «В дневник»,
+// «Закладка здесь», «Википедия», «До конца абзаца», «До конца страницы». Heroes went away (29.10 17:02).
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node seltools.test.mjs
 import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
@@ -61,14 +61,13 @@ const t2 = await p.evaluate(async () => { el('ssDict').click(); await new Promis
 ok('«Перевести» opens the translation window', t2, t2);
 const a3 = await p.evaluate(async () => { __word('Очумелов'); await __open(); el('ssAI').click(); await new Promise(r => setTimeout(r, 300)); const s = !el('aiSheet').classList.contains('hidden'), txt = el('aiBody').textContent.slice(0, 60); el('aiSheet').classList.add('hidden'); return { s, txt }; });
 ok('«Объясни» opens the AI window (here: where to put the key)', a3.s, a3);
-const n4 = await p.evaluate(async () => { __word('Очумелов'); await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="copy"]').click(); await new Promise(r => setTimeout(r, 300)); return true; });
 await p.evaluate(() => getSelection().removeAllRanges()); await w(200);
 await p.evaluate(async () => { __word('Через базарную площадь'); await __open(); });
 
 // «⋯»: a labelled list next to the column, on the side of the text
 const m = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 150)); const mm = el('ssMenu'), r = mm.getBoundingClientRect(), rr = el('ssRail').getBoundingClientRect();
   return { shown: !mm.hidden, items: [...mm.querySelectorAll('button')].map(b => b.textContent.trim()), right: r.left >= rr.right, inside: r.top >= 0 && r.bottom <= innerHeight && r.right <= innerWidth }; });
-ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'Копировать', 'В словарь', 'Предложение, потом абзац', 'Закладка здесь', 'Википедия', 'До конца абзаца', 'До конца страницы', 'Отметить героя'].every(x => m.items.includes(x)) && m.items.some(x => /^Герои книги/.test(x)), m);
+ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'В словарь', 'Предложение, потом абзац', 'Закладка здесь', 'Википедия', 'До конца абзаца', 'До конца страницы'].every(x => m.items.includes(x)), m);
 const m2 = await p.evaluate(async () => { el('ssFold').click(); await new Promise(r => setTimeout(r, 50)); return el('ssMenu').hidden; });
 ok('«Действия» list closes with the menu', m2, m2);
 const act = (a) => p.evaluate(async (a) => { await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="' + a + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, a);
@@ -106,23 +105,13 @@ const w9 = await p.evaluate(() => { const o = el('stSheet'); return { shown: o &
 ok('9. «Википедия»: «Очумелов» → search → «Хамелеон (рассказ)», its note and a link', w9.shown && w9.h === 'Хамелеон (рассказ)' && /надзирателе/.test(w9.body) && /wikipedia\.org/.test(w9.href) && wiki.some(u => /opensearch/.test(u)) && wiki.every(u => /^https:\/\/ru\.wikipedia\.org/.test(u)), { w9, wiki });
 await p.evaluate(() => stSheetClose());
 
-// 11. heroes: mark «Очумелов» (twice = once), «Герои книги» lists it with the count, a tap opens the magnifier by its stem
-await act('hero'); await act('hero');
-const h11 = await p.evaluate(() => S.chars[R.book.id]);
-ok('11. «Отметить героя»: the name once in S.chars', JSON.stringify(h11) === '["Очумелов"]', h11);
-const h11b = await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); __word('Ребята, не пущай её! Нынче не велено'); await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="hero"]').click(); await new Promise(r => setTimeout(r, 200)); return S.chars[R.book.id].length; });
-ok('11. a long piece is not a name: nothing added', h11b === 1, h11b);
-await act('heroes');
-const h11c = await p.evaluate(async () => { const rows = [...el('stSheetB').querySelectorAll('.sthgo')].map(b => b.textContent); el('stSheetB').querySelector('.sthgo').click(); await new Promise(r => setTimeout(r, 900));
-  return { rows, find: !el('bookFind').hidden, q: el('bfQ').value, n: BF.hits.length, sheet: el('stSheet').hidden }; });
-ok('11. «Герои книги»: «Очумелов» with its count; a tap opens the magnifier with its places', /^Очумелов\d+ раз/.test(h11c.rows[0] || '') && h11c.find && h11c.q === 'Очумелов' && h11c.n > 3 && h11c.sheet, h11c);
-await p.evaluate(() => bfBack()); await w(300);
-// heroes are kept after a reload
-await p.evaluate(async () => { save(); await new Promise(r => setTimeout(r, 800)); });
-await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(600);
-const h11d = await p.evaluate(() => S.chars && S.chars[allBooks()[0].id]);
-ok('11. heroes are kept after a reload', JSON.stringify(h11d) === '["Очумелов"]', h11d);
-
+// 29.10 17:02 (Джессика: «поместим копирование в боковое меню … убери герой книги и убери отметить героя»)
+const k12 = await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); __word('Очумелов'); await __open();
+  let copied = null; const o = el('spCopy').onclick; el('spCopy').onclick = () => { copied = selText(); }; el('ssCopy').click(); el('spCopy').onclick = o;
+  el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); const items = [...el('ssMenu').querySelectorAll('button')].map(b => b.textContent.trim()); el('ssMore').click();
+  const rail = [...el('ssRail').children].map(x => x.id).filter(Boolean); return { copied, items, rail }; });
+ok('«Копировать» in the column (the bar\'s own copy), not in «Действия»; no heroes in «Действия»',
+  k12.copied === 'Очумелов' && k12.rail.indexOf('ssCopy') > k12.rail.indexOf('ssCol') && k12.rail.indexOf('ssCopy') < k12.rail.indexOf('ssDict') && !k12.items.some(x => /Копировать|геро/i.test(x)), k12);
 ok('no page errors', !errs.length, errs.slice(0, 3));
 await browser.close();
 const f = checks.filter(x => !x).length; console.log(f ? `${f} FAILED of ${checks.length}` : `ALL ${checks.length} PASSED`); process.exit(f ? 1 : 0);

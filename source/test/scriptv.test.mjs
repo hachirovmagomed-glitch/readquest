@@ -225,6 +225,7 @@ for (const [label, base, ns, a, b, pa, pb] of [['rq', '/readquest/', 'rq', A, B,
   await p.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update().catch(() => {}); });
   await p.waitForFunction(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting), { polling: 100, timeout: 15000 }).catch(() => {});
   await p.close();
+  await new Promise(r => setTimeout(r, 1000)); /* 29.10: the waiting SW activates only after the last window closed — give it a moment (async in Chrome), else the next open races it */
   p = await mk();
   await p.goto(ORIGIN + base, { waitUntil: 'load' }); await ready(p);
   const swB = await p.evaluate(() => new Promise((res) => { const c = navigator.serviceWorker.controller; if (!c) return res(null); const ch = new MessageChannel(); ch.port1.onmessage = (e) => res(e.data.build); c.postMessage({ t: 'build' }, [ch.port2]); setTimeout(() => res(null), 3000); }));

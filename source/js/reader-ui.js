@@ -260,7 +260,7 @@ function updSelPop(){
   if(!off)selPlace();
 }
 const SA={key:null,mini:true};
-function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');}
+function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
 /* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
    is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
 function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
@@ -372,7 +372,7 @@ function selPageAt(r){const v=el('viewer').getBoundingClientRect(),gap=R.step-v.
 function selUi(){
   const s=selBook(),pq=PQ&&R&&R.book&&PQ.bid===R.book.id?PQ:null;
   const on=selPagesOn()&&(s||(pq&&R.mode==='pdf'));
-  const n=el('selNav');if(!on){if(n)n.hidden=true;return;}
+  const n=el('selNav');if(!on){if(n)n.hidden=true;ssUpd();return;}
   selNavEl().hidden=false;
   el('selPrev').disabled=R.page<=0;el('selNext').disabled=R.page>=R.pageCount-1;
   let from=-1;
@@ -382,7 +382,7 @@ function selUi(){
   if(show){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('selFromGo').dataset.p=from;el('selFromGo').innerHTML=rqIcon('layers',16)+'<span>Выделено со стр. '+esc(lab)+' — всё на месте</span>';
     el('selFromX').hidden=!(R.mode==='pdf'&&pq);}
-  selNavDodge(s);
+  selNavDodge(s);ssUpd();
 }
 /* 28.10 (ревизия чтения, баг 10): ‹ › в нижних углах закрывали конец выделения на последней строке. Если под кнопкой выделенный текст,
    обе кнопки поднимаются выше него (ищем снизу вверх первое место, где в их колонках нет выделения). */
@@ -394,6 +394,60 @@ function selNavDodge(s){
   let bot=H-a.bottom;if(!hit(bot))return;
   while(bot<H*0.7&&hit(bot))bot+=8;
   if(!hit(bot))n.style.setProperty('--sel-up',Math.round(bot)+'px');
+}
+/* 29.10 (Джессика, скрин ReadEra: «некоторые настройки … компактно умещались в боковое меню слева, когда я выделяю текст»; внизу карандаш
+   налезал на плашку «Выделено со стр. N», рядом ‹ ›. Потом: «боковое меню закрывает сам текст … перемещать то влево, то вправо … более
+   прозрачным»): while text is selected the pencil, ‹ ›, the chip and «Снять» live in one narrow half-transparent menu at a screen edge.
+   A new selection shows only its tab; the grip (or the tab itself) drags it along the edge and across to the other side, it sticks to the
+   nearer edge, the place is remembered (SET.selSide). #selNav and the circle #spMini stay the state behind it, out of sight. */
+const SS={open:false,on:false,drag:null,moved:false};
+function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
+function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
+  const b=function(id,ic,lab){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+'</button>';};
+  n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
+    '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Перетащить меню" title="Перетащить"><i aria-hidden="true"></i></button>'+
+    b('ssPen','highlighter','Цвета и действия')+'<hr>'+
+    b('ssPrev','chevron-left','Страница назад, выделение сохранится')+b('ssNext','chevron-right','Страница вперёд, выделение продолжится')+'<hr class="ssPg">'+
+    '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
+    '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>';
+  el('reader').appendChild(n);
+  n.addEventListener('mousedown',function(e){e.preventDefault();}); /* a click here never takes the selection away */
+  const tap=function(f){return function(){if(SS.moved){SS.moved=false;return;}f();};};
+  el('ssTab').onclick=tap(function(){SS.open=true;ssUpd();});
+  el('ssFold').onclick=function(){SS.open=false;ssUpd();};
+  el('ssPen').onclick=function(){SA.mini=!SA.mini;selMiniApply();selPlace();};
+  el('ssPrev').onclick=function(){selTurn(-1);};el('ssNext').onclick=function(){selTurn(1);};
+  el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
+  el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
+  ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
+    h.addEventListener('pointerdown',function(e){const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
+    h.addEventListener('pointermove',function(e){const d=SS.drag;if(!d)return;
+      if(!d.go&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.go=true;n.classList.add('drag');
+      n.style.left=Math.round(e.clientX-d.dx)+'px';n.style.right='auto';n.style.top=Math.round(e.clientY-d.dy)+'px';});
+    const up=function(){const d=SS.drag;SS.drag=null;if(!d||!d.go)return;SS.moved=true;setTimeout(function(){SS.moved=false;},400);
+      const r=n.getBoundingClientRect();n.classList.remove('drag');n.style.left=n.style.right='';
+      SET.selSide={s:r.left+r.width/2<innerWidth/2?'L':'R',y:Math.round((r.top+r.height/2)/innerHeight*1000)/1000};saveSet();ssPlace();};
+    h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);});
+  return n;}
+/** the menu at its edge, its middle at the remembered height, whole on screen */
+function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p=ssPos();n.dataset.side=p.s;
+  const ch=rqIcon(p.s==='L'?'chevron-right':'chevron-left',18),cf=rqIcon(p.s==='L'?'chevron-left':'chevron-right',21);
+  n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;
+  const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-8,p.y*H-h/2));n.style.top=Math.round(top)+'px';}
+function ssUpd(){
+  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&(!!selBook()||pg);
+  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;return;}
+  const n=ssEl();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
+  el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
+  el('ssPen').setAttribute('aria-pressed',SA.mini?'false':'true');
+  const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
+  el('ssPrev').disabled=!pg||el('selPrev').disabled;el('ssNext').disabled=!pg||el('selNext').disabled;
+  el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
+  if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
+    el('ssFromN').textContent=lab;el('ssFrom').setAttribute('aria-label','Выделено со стр. '+lab+' — показать');el('ssFrom').title='Начало: стр. '+lab;
+    k.textContent=Math.abs(R.page-from)+1;}
+  ssPlace();
 }
 function selTurn(d){
   const np=R.page+d;if(np<0||np>=R.pageCount)return;
@@ -1178,7 +1232,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true; /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;
+  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();

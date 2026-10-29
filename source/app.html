@@ -755,6 +755,29 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selFromGo{display:flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;font-size:0.8125rem;text-align:left}
 #selFromGo .ic{color:var(--accent);flex:none}
 #selFromX{min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center}
+/* 29.10 (Джессика): the pencil circle, ‹ › and the chip went into one side menu (#selSide, js/reader-ui.js ssUpd); their old places stay as state only */
+#selNav,#selpop.mini{display:none!important}
+#selSide[hidden],#selSide.open #ssTab,#selSide:not(.open) #ssRail,#selSide.pgoff :is(#ssPrev,#ssNext,.ssPg),#ssFrom[hidden],#ssN[hidden]{display:none!important}
+#selSide{position:fixed;left:0;top:60%;z-index:62;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#selSide[data-side="R"]{left:auto;right:0}
+#selSide.drag{transition:none;opacity:.9}
+#ssTab,#ssRail{color:var(--txt);background:var(--sheet);background:color-mix(in srgb,var(--sheet) 62%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1.5px solid var(--accent);border-left:0;border-radius:0 20px 20px 0;box-shadow:0 2px 10px rgba(0,0,0,.22)}
+#selSide[data-side="R"] :is(#ssTab,#ssRail){border-left:1.5px solid var(--accent);border-right:0;border-radius:20px 0 0 20px}
+#selSide:active :is(#ssTab,#ssRail),#selSide.drag :is(#ssTab,#ssRail){background:var(--sheet)} /* solid while touched */
+#ssTab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:30px;height:64px;padding:0;touch-action:none;color:var(--txt)}
+#ssTab .ssChev,#ssFold .ssChev{display:flex}
+#ssTab>i,#ssGrip>i{display:block;width:12px;height:2px;border-radius:1px;background:currentColor;opacity:.5;box-shadow:0 4px 0 currentColor}
+#ssN{position:absolute;top:-9px;right:-10px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--accent);color:var(--sheet);font-size:11px;font-weight:700;line-height:20px;text-align:center}
+#selSide[data-side="R"] #ssN{right:auto;left:-10px}
+#ssRail{display:flex;flex-direction:column;align-items:center;gap:2px;width:52px;padding:2px 0 6px}
+#ssRail>button{position:relative;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--txt);background:none}
+#ssRail>button:disabled{opacity:.35}
+#ssRail>#ssGrip{height:24px;border-radius:12px;touch-action:none;cursor:grab}
+#ssPen{background:color-mix(in srgb,var(--accent) 22%,transparent)!important}#ssPen .ic{color:var(--accent)}
+#ssPen[aria-pressed="true"]{background:var(--accent)!important}#ssPen[aria-pressed="true"] .ic{color:var(--sheet)}
+#ssFrom{outline:1.5px dashed var(--accent);outline-offset:-3px}
+#ssFromN{position:absolute;right:0;bottom:1px;text-decoration:none;font-size:10px;font-weight:700;line-height:1;color:var(--accent);max-width:44px;overflow:hidden}
+#ssRail>hr{width:26px;margin:2px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
 #reader .textLayer .pdfhls i.pend{background:rgba(70,130,240,.3)!important;box-shadow:none!important}
 #selEdge{position:fixed;z-index:59;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
 #selEdge.next,#selEdge.prev{display:flex}#selEdge.prev .ic{transform:rotate(180deg)}

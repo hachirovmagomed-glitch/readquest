@@ -1,27 +1,29 @@
 'use strict';
 /* ================= ЦИТАТЫ ================= */
-function renderQuotes(){
-  const parts=[];
-  allBooks().forEach(b=>{
-    const qs=S.quotes[b.id]||[];if(!qs.length)return;
+function renderQuotes(o){
+  /* 28.10: search, colour, order, export (js/quotes.js); a card, «Объясни», «В дневник» on every quote */
+  if(!(o&&o.list)&&el('qaTools'))el('qaTools').innerHTML=qaToolsHtml();
+  const parts=[],any=allBooks().some(b=>(S.quotes[b.id]||[]).length),dy=qDiaryOn();
+  qaRows().forEach(g=>{const b=g.b;
     parts.push('<h2>'+esc(b.title)+'</h2>');
-    qs.forEach((q,i)=>{
+    g.rows.forEach(x=>{const q=x.q,i=x.i,a=(k,ic,t)=>'<button type="button" data-qact="'+k+'" data-bid="'+esc(b.id)+'" data-i="'+i+'">'+rqIcon(ic,14)+' '+t+'</button>';
       parts.push('<div class="qcard" data-c="'+hlKey(q.c)+'" style="--d:'+hlDot(q.c)+'"><div class="qtext">«'+esc(q.text)+'»</div>'+
         (q.note?'<div class="qnote">'+rqIcon('notebook-pen',14)+' '+esc(q.note)+'</div>':'')+
-        '<div class="qmeta"><span>'+q.date+'</span><div class="spacer"></div>'+
-        '<button onclick="copyQuote(\''+b.id+'\','+i+')">копировать</button>'+
-        '<button onclick="delQuote(\''+b.id+'\','+i+')">удалить</button></div></div>');
+        '<div class="qmeta"><span>'+esc(rqDayRu(q.date))+'</span><div class="spacer"></div>'+
+        a('card','image','карточка')+a('ai','sparkles','объясни')+(dy?a('dy','notebook-pen','в дневник'):'')+a('copy','copy','копировать')+a('del','trash-2','удалить')+'</div></div>');
     });
   });
-  el('quoteBox').innerHTML=parts.length?parts.join(''):
+  el('quoteBox').innerHTML=parts.length?parts.join(''):any?'<div class="emptyhint" style="color:var(--muted);text-align:center;padding:40px 0">Ничего не нашлось</div>':
     '<div class="emptyhint" style="color:var(--muted);text-align:center;padding:50px 0">Выделите текст в книге и нажмите цвет&nbsp;— '+rqIcon('highlighter',14)+'&nbsp;цитата появится здесь.'+(isMvp()?'':'<br><br>Каждая цитата приносит +2 '+curI())+'</div>'; /* MVP: quotes give no coins → no promise */
 }
 function copyQuote(bid,i){
   const b=allBooks().find(x=>x.id===bid);const q=(S.quotes[bid]||[])[i];if(!b||!q)return;
   copyText('«'+q.text+'»'+(q.note?'\n'+q.note:'')+'\n— '+b.title+', '+b.author);
 }
-function delQuote(bid,i){
-  const qs=S.quotes[bid]||[];const rm=qs.splice(i,1)[0];
+async function delQuote(bid,i){
+  const q0=(S.quotes[bid]||[])[i];if(!q0)return;const t0=String(q0.text).replace(/\s+/g,' ');
+  if(!await rqAsk({t:'Удалить цитату?',p:'«'+t0.slice(0,140)+(t0.length>140?'…':'')+'»'+(q0.note?' — и заметку к ней':''),ok:'Удалить',danger:true}))return; /* 28.10: as in «Навигация» */
+  const qs=S.quotes[bid]||[];if(qs.indexOf(q0)<0)return;i=qs.indexOf(q0);const rm=qs.splice(i,1)[0];
   if(rm){const h=S.hl[bid]||[];const j=h.indexOf(rm.text);if(j>-1)h.splice(j,1);}
   save();renderQuotes();
 }
@@ -678,6 +680,7 @@ function bookInfo(id){
     act('bookmark',want?'В «Хочу»':'Хочу прочитать','toggleWant',want)+
     act('share-2','Поделиться','shareBook',null)+
     '</div>'+
+    '<div class="bk-list bk-dy">'+line('notebook',diaryOf(id)?'Дневник книги · '+dyStats(diaryOf(id)):'Завести дневник книги','diaryFromBook')+'</div>'+ /* 25.10 «Дневники» (js/diary.js) */
     '<div class="bk-h">Мои полки</div><div class="chips bk-shelves">'+ /* 18.10: свои полки (library.js shelf*) */
     shelvesGet().map(sh=>'<button type="button" class="fchip'+(sh.b.indexOf(id)>=0?' on':'')+'" aria-pressed="'+(sh.b.indexOf(id)>=0)+'" onclick="shelfToggle(\''+id+'\',\''+sh.id+'\')">'+(sh.b.indexOf(id)>=0?rqIcon('check',14):'')+esc(sh.n)+'</button>').join('')+
     '<button type="button" class="fchip fshelfadd" onclick="shelfNew(\''+id+'\')">'+rqIcon('plus',14)+'Новая полка</button></div>'+
@@ -808,7 +811,7 @@ function selCtx(word){ /* предложение вокруг выделения
     return full.slice(a+1,(b>0?b+1:i+word.length+80)).trim().slice(0,400);}catch(e){return '';}
 }
 el('spAI').onclick=()=>{
-  const t=selText();if(!t)return;
+  const t=rqSelPlain()||selText();if(!t)return;
   if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
   selDone();
@@ -877,7 +880,7 @@ async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо
   if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
   const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
     ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
-  return String(t).trim().slice(0,2000);
+  return String(t).trim().slice(0,m.cap||2000); /* 28.10: «Текст страницы» через ИИ — вся страница (m.cap) */
 }
 function aiToVocab(q,ex){
   const word=q.text.trim().slice(0,60);if(!word)return;
@@ -974,6 +977,7 @@ async function removeBook(id,wipeFile){
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */
+  if(wipeFile){try{await idbDel('ocr:'+id);if(typeof OCR_MEM!=='undefined')delete OCR_MEM[id];}catch(e){}} /* 28.10: pages recognised on the phone (js/ocr.js) */
   save();el('bookSheet').classList.add('hidden');renderLibrary();
   flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');
 }

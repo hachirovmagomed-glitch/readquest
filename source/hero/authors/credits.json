@@ -70,5 +70,317 @@
   "license": "Public domain",
   "artist": "Thora Hallager",
   "url": "https://commons.wikimedia.org/wiki/File%3AHCA_by_Thora_Hallager_1869_crop.jpg"
+ },
+ "lermontov": {
+  "file": "File:Mikhail_lermontov.jpg",
+  "license": "Public domain",
+  "artist": "Petr Zabolotskiy",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMikhail_lermontov.jpg"
+ },
+ "turgenev": {
+  "file": "File:Turgenev_by_Repin.jpg",
+  "license": "Public domain",
+  "artist": "Ilya Repin",
+  "url": "https://commons.wikimedia.org/wiki/File%3ATurgenev_by_Repin.jpg"
+ },
+ "dostoevsky": {
+  "file": "File:Vasily_Perov_-_Портрет_Ф.М.Достоевского_-_Google_Art_Project.jpg",
+  "license": "Public domain",
+  "artist": "Vasily Perov",
+  "url": "https://commons.wikimedia.org/wiki/File%3AVasily_Perov_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%A4.%D0%9C.%D0%94%D0%BE%D1%81%D1%82%D0%BE%D0%B5%D0%B2%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_-_Google_Art_Project.jpg"
+ },
+ "ostrovsky": {
+  "file": "File:Перов_Островский.jpg",
+  "license": "Public domain",
+  "artist": "Vasily Perov",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%9F%D0%B5%D1%80%D0%BE%D0%B2_%D0%9E%D1%81%D1%82%D1%80%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9.jpg"
+ },
+ "griboyedov": {
+  "file": "File:Ivan_Nikolayevich_Kramskoi_-_Portrait_of_Alexander_Sergeyevich_Griboyedov,_1873.jpg",
+  "license": "Public domain",
+  "artist": "Ivan Kramskoi",
+  "url": "https://commons.wikimedia.org/wiki/File%3AIvan_Nikolayevich_Kramskoi_-_Portrait_of_Alexander_Sergeyevich_Griboyedov%2C_1873.jpg"
+ },
+ "krylov": {
+  "file": "File:Ivan_Krylov.jpg",
+  "license": "Public domain",
+  "artist": "Karl Bryullov",
+  "url": "https://commons.wikimedia.org/wiki/File%3AIvan_Krylov.jpg"
+ },
+ "karamzin": {
+  "file": "File:Karamzin_by_Tropinin_(1818,_Tretyakov_gallery).jpg",
+  "license": "Public domain",
+  "artist": "Vasily Andreevich Tropinin",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKaramzin_by_Tropinin_%281818%2C_Tretyakov_gallery%29.jpg"
+ },
+ "gorky": {
+  "file": "File:Maxim_Gorky_LOC_Restored_edit1.jpg",
+  "license": "Public domain",
+  "artist": "Herman Mishkin",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMaxim_Gorky_LOC_Restored_edit1.jpg"
+ },
+ "kuprin": {
+  "file": "File:Kuprin.jpg",
+  "license": "Public domain",
+  "artist": "Vokrugsveta",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKuprin.jpg"
+ },
+ "blok": {
+  "file": "File:Alexander_Blok.jpeg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAlexander_Blok.jpeg"
+ },
+ "yesenin": {
+  "file": "File:Esenin_Moscow_1922.jpg",
+  "license": "Public domain",
+  "artist": "UnknownUnknown",
+  "url": "https://commons.wikimedia.org/wiki/File%3AEsenin_Moscow_1922.jpg"
+ },
+ "mayakovsky": {
+  "file": "File:Mayakovsky_1918.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMayakovsky_1918.jpg"
+ },
+ "tsvetaeva": {
+  "file": "File:Марина_Цветаева_(1925)_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Pierre Choumoff",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%9C%D0%B0%D1%80%D0%B8%D0%BD%D0%B0_%D0%A6%D0%B2%D0%B5%D1%82%D0%B0%D0%B5%D0%B2%D0%B0_%281925%29_%28cropped%29.jpg"
+ },
+ "zhukovsky": {
+  "file": "File:Bryullov_portrait_of_Zhukovsky.jpg",
+  "license": "Public domain",
+  "artist": "Karl Bryullov",
+  "url": "https://commons.wikimedia.org/wiki/File%3ABryullov_portrait_of_Zhukovsky.jpg"
+ },
+ "nekrasov": {
+  "file": "File:Nikolay_Nekrasov_2cr.jpg",
+  "license": "Public domain",
+  "artist": "Vezenberg &amp; Co.",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANikolay_Nekrasov_2cr.jpg"
+ },
+ "tyutchev": {
+  "file": "File:Stepan_Alexandrovsky_after_Andrey_Denyer,_Fyodor_Tyutchev,_1876,_Tretyakov_Gallery_686.jpg",
+  "license": "Public domain",
+  "artist": "Stepan Alexandrovsky / After Andrey Denyer",
+  "url": "https://commons.wikimedia.org/wiki/File%3AStepan_Alexandrovsky_after_Andrey_Denyer%2C_Fyodor_Tyutchev%2C_1876%2C_Tretyakov_Gallery_686.jpg"
+ },
+ "fet": {
+  "file": "File:Fet_by_Repin.jpg",
+  "license": "Public domain",
+  "artist": "Ilya Repin",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFet_by_Repin.jpg"
+ },
+ "saltykov": {
+  "file": "File:Kramskoj_-_saltykov-schedrin.jpg",
+  "license": "Public domain",
+  "artist": "Ivan Kramskoi",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKramskoj_-_saltykov-schedrin.jpg"
+ },
+ "leskov": {
+  "file": "File:Serov_Leskov.jpg",
+  "license": "Public domain",
+  "artist": "Valentin Serov",
+  "url": "https://commons.wikimedia.org/wiki/File%3ASerov_Leskov.jpg"
+ },
+ "derzhavin": {
+  "file": "File:Derzhavin_by_Borovikovsky_(1811,_Pushkin_museum).jpg",
+  "license": "Public domain",
+  "artist": "Vladimir Borovikovsky",
+  "url": "https://commons.wikimedia.org/wiki/File%3ADerzhavin_by_Borovikovsky_%281811%2C_Pushkin_museum%29.jpg"
+ },
+ "lomonosov": {
+  "file": "File:M.V._Lomonosov_by_L.Miropolskiy_after_G.C.Prenner_(1787,_RAN).jpg",
+  "license": "Public domain",
+  "artist": "After Georg Caspar Prenner",
+  "url": "https://commons.wikimedia.org/wiki/File%3AM.V._Lomonosov_by_L.Miropolskiy_after_G.C.Prenner_%281787%2C_RAN%29.jpg"
+ },
+ "belyaev": {
+  "file": "File:Alexander_Belayev.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAlexander_Belayev.jpg"
+ },
+ "plato": {
+  "file": "File:Plato_Silanion_Musei_Capitolini_MC1377.png",
+  "license": "Public domain",
+  "artist": "Marie-Lan Nguyen",
+  "url": "https://commons.wikimedia.org/wiki/File%3APlato_Silanion_Musei_Capitolini_MC1377.png"
+ },
+ "schiller": {
+  "file": "File:Anton_Graff_-_Friedrich_Schiller.jpg",
+  "license": "Public domain",
+  "artist": "Anton Graff",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAnton_Graff_-_Friedrich_Schiller.jpg"
+ },
+ "byron": {
+  "file": "File:Byron_1813_by_Phillips.jpg",
+  "license": "Public domain",
+  "artist": "Thomas Phillips",
+  "url": "https://commons.wikimedia.org/wiki/File%3AByron_1813_by_Phillips.jpg"
+ },
+ "austen": {
+  "file": "File:CassandraAusten-JaneAusten(c.1810)_hires.jpg",
+  "license": "Public domain",
+  "artist": "Cassandra Austen",
+  "url": "https://commons.wikimedia.org/wiki/File%3ACassandraAusten-JaneAusten%28c.1810%29_hires.jpg"
+ },
+ "bronte": {
+  "file": "File:Charlotte_Brontë_by_Patrick_Branwell_Brontë_restored.jpg",
+  "license": "Public domain",
+  "artist": "Branwell Brontë",
+  "url": "https://commons.wikimedia.org/wiki/File%3ACharlotte_Bront%C3%AB_by_Patrick_Branwell_Bront%C3%AB_restored.jpg"
+ },
+ "dumas": {
+  "file": "File:Nadar_-_Alexander_Dumas_père_(1802-1870)_-_Google_Art_Project_2.jpg",
+  "license": "Public domain",
+  "artist": "Nadar",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANadar_-_Alexander_Dumas_p%C3%A8re_%281802-1870%29_-_Google_Art_Project_2.jpg"
+ },
+ "hugo": {
+  "file": "File:Victor_Hugo_by_Étienne_Carjat_1876_-_full.jpg",
+  "license": "Public domain",
+  "artist": "Étienne Carjat",
+  "url": "https://commons.wikimedia.org/wiki/File%3AVictor_Hugo_by_%C3%89tienne_Carjat_1876_-_full.jpg"
+ },
+ "balzac": {
+  "file": "File:奥·巴尔扎克.png",
+  "license": "Public domain",
+  "artist": "Louis-Auguste Bisson",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%E5%A5%A5%C2%B7%E5%B7%B4%E5%B0%94%E6%89%8E%E5%85%8B.png"
+ },
+ "flaubert": {
+  "file": "File:Gustave_Flaubert.jpg",
+  "license": "Public domain",
+  "artist": "Nadar",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGustave_Flaubert.jpg"
+ },
+ "maupassant": {
+  "file": "File:Maupassant_par_Nadar.jpg",
+  "license": "Public domain",
+  "artist": "Nadar",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMaupassant_par_Nadar.jpg"
+ },
+ "stendhal": {
+  "file": "File:Stendhal.jpg",
+  "license": "Public domain",
+  "artist": "Olof Johan Södermark",
+  "url": "https://commons.wikimedia.org/wiki/File%3AStendhal.jpg"
+ },
+ "voltaire": {
+  "file": "File:Nicolas_de_Largillière_-_Portrait_de_Voltaire_(1694-1778)_en_1718_-_P208_-_musée_Carnavalet_-_5_(cropped).jpg",
+  "license": "CC0",
+  "artist": "Nicolas de Largillière",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANicolas_de_Largilli%C3%A8re_-_Portrait_de_Voltaire_%281694-1778%29_en_1718_-_P208_-_mus%C3%A9e_Carnavalet_-_5_%28cropped%29.jpg"
+ },
+ "twain": {
+  "file": "File:Mark_Twain_by_AF_Bradley_(cropped_2).jpg",
+  "license": "Public domain",
+  "artist": "A.F. Bradley, New York",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMark_Twain_by_AF_Bradley_%28cropped_2%29.jpg"
+ },
+ "poe": {
+  "file": "File:Edgar_Allan_Poe,_circa_1849,_restored,_squared_off.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author; Restored by Yann Forget and Adam Cuerden",
+  "url": "https://commons.wikimedia.org/wiki/File%3AEdgar_Allan_Poe%2C_circa_1849%2C_restored%2C_squared_off.jpg"
+ },
+ "london": {
+  "file": "File:Jack_London_young.jpg",
+  "license": "Public domain",
+  "artist": "published by L C Page and Company Boston 1903",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJack_London_young.jpg"
+ },
+ "cooper": {
+  "file": "File:James_Fenimore_Cooper_by_Brady.jpg",
+  "license": "Public domain",
+  "artist": "Mathew Benjamin Brady",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJames_Fenimore_Cooper_by_Brady.jpg"
+ },
+ "doyle": {
+  "file": "File:Arthur_Conan_Doyle_by_Walter_Benington,_1914.png",
+  "license": "Public domain",
+  "artist": "Walter Benington",
+  "url": "https://commons.wikimedia.org/wiki/File%3AArthur_Conan_Doyle_by_Walter_Benington%2C_1914.png"
+ },
+ "stevenson": {
+  "file": "File:Robert_Louis_Stevenson_by_Henry_Walter_Barnett_bw.jpg",
+  "license": "Public domain",
+  "artist": "Henry Walter Barnett",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARobert_Louis_Stevenson_by_Henry_Walter_Barnett_bw.jpg"
+ },
+ "kipling": {
+  "file": "File:Rudyard_Kipling_(portrait).jpg",
+  "license": "Public domain",
+  "artist": "Elliott &amp; Fry",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARudyard_Kipling_%28portrait%29.jpg"
+ },
+ "wilde": {
+  "file": "File:Oscar_Wilde_by_Napoleon_Sarony._Three-quarter-length_photograph,_seated_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Napoleon Sarony / Adam Cuerden",
+  "url": "https://commons.wikimedia.org/wiki/File%3AOscar_Wilde_by_Napoleon_Sarony._Three-quarter-length_photograph%2C_seated_%28cropped%29.jpg"
+ },
+ "swift": {
+  "file": "File:Jonathan_Swift_by_Charles_Jervas.jpg",
+  "license": "Public domain",
+  "artist": "Charles Jervas",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJonathan_Swift_by_Charles_Jervas.jpg"
+ },
+ "defoe": {
+  "file": "File:Daniel_Defoe_Kneller_Style.jpg",
+  "license": "Public domain",
+  "artist": "UnknownUnknown , style of Sir Godfrey Kneller",
+  "url": "https://commons.wikimedia.org/wiki/File%3ADaniel_Defoe_Kneller_Style.jpg"
+ },
+ "scott": {
+  "file": "File:Sir_Thomas_Lawrence_(1769-1830)_-_Sir_Walter_Scott_(1771-1832)_-_RCIN_400644_-_Royal_Collection.jpg",
+  "license": "Public domain",
+  "artist": "Thomas Lawrence",
+  "url": "https://commons.wikimedia.org/wiki/File%3ASir_Thomas_Lawrence_%281769-1830%29_-_Sir_Walter_Scott_%281771-1832%29_-_RCIN_400644_-_Royal_Collection.jpg"
+ },
+ "wells": {
+  "file": "File:H.G._Wells_by_Beresford.jpg",
+  "license": "Public domain",
+  "artist": "George Charles Beresford",
+  "url": "https://commons.wikimedia.org/wiki/File%3AH.G._Wells_by_Beresford.jpg"
+ },
+ "carroll": {
+  "file": "File:LewisCarrollSelfPhoto.jpg",
+  "license": "Public domain",
+  "artist": "Lewis Carroll",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALewisCarrollSelfPhoto.jpg"
+ },
+ "grimm": {
+  "file": "File:Grimm.jpg",
+  "license": "Public domain",
+  "artist": "Elisabeth Baumann",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGrimm.jpg"
+ },
+ "moliere": {
+  "file": "File:Pierre_Mignard_-_Portrait_de_Jean-Baptiste_Poquelin_dit_Molière_(1622-1673)_-_Google_Art_Project_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Pierre Mignard I",
+  "url": "https://commons.wikimedia.org/wiki/File%3APierre_Mignard_-_Portrait_de_Jean-Baptiste_Poquelin_dit_Moli%C3%A8re_%281622-1673%29_-_Google_Art_Project_%28cropped%29.jpg"
+ },
+ "petrarch": {
+  "file": "File:Portrait_of_Francesco_Petrarca_(called_Petrarch)_-_French_school,_17th_century.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3APortrait_of_Francesco_Petrarca_%28called_Petrarch%29_-_French_school%2C_17th_century.jpg"
+ },
+ "heine": {
+  "file": "File:Heinrich_Heine-Oppenheim.jpg",
+  "license": "Public domain",
+  "artist": "Moritz Daniel Oppenheim",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHeinrich_Heine-Oppenheim.jpg"
+ },
+ "burns": {
+  "file": "File:PG_1063Burns_Naysmith.jpg",
+  "license": "Public domain",
+  "artist": "Alexander Nasmyth",
+  "url": "https://commons.wikimedia.org/wiki/File%3APG_1063Burns_Naysmith.jpg"
  }
 }

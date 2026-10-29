@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 HOST="${RQ_HOST:-http://127.0.0.1:8767}"
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
-ALL="menu modes export honest honest-ui export-test reset-timeout names savetext scriptv cap awards lvl golden back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 ellada babochkovyi celestial pencil2 headers nightbtn profbits skinsplit remindrow themecolors drawer uifix nav mvpflag extra achgate ach ach2 setentry expand qhint bookcard lvlcard sysback rowfix gatepick libhead blackcanvas importskin import-many path mvp-check audit1 audit2 pdf pdf-test pwa noemoji adv adv2 adv3 adv4 adv5 hero ai selpop hlcolor sliders pdfhl quotetap bookfind translate focus focusui selpage readfix panelfade"
+ALL="menu modes export honest honest-ui export-test reset-timeout names savetext scriptv cap awards lvl golden back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 ellada babochkovyi celestial pencil2 headers nightbtn profbits skinsplit remindrow themecolors drawer uifix nav mvpflag extra achgate ach ach2 setentry expand qhint bookcard lvlcard sysback rowfix gatepick libhead blackcanvas importskin import-many path mvp-check audit1 audit2 pdf pdf-test pwa noemoji adv adv2 adv3 adv4 adv5 hero ai selpop hlcolor sliders pdfhl quotetap bookfind translate focus focusui selpage readfix copy ocr panelfade quotelist quotemore diary overview"
 SEL="${*:-$ALL}"
 LOG="/tmp/rq-runall/$BUILD"; mkdir -p "$LOG"; rc=0  # per-run log dir: a rerun never overwrites the logs of a failed run
 for t in $SEL; do
@@ -74,7 +74,12 @@ for t in $SEL; do
     selpop)       cmd="env RQ_URL=$HOST/readquest/test/ node selpop.test.mjs";;
     selpage)      cmd="env RQ_URL=$HOST/readquest/test/ node selpage.test.mjs";;
     readfix)      cmd="env RQ_URL=$HOST/readquest/test/ node readfix.test.mjs";;
+    quotelist)    cmd="env RQ_URL=$HOST/readquest/test/ node quotelist.test.mjs";;
+    quotemore)    cmd="env RQ_URL=$HOST/readquest/test/ node quotemore.test.mjs";;
+    copy)         cmd="env RQ_URL=$HOST/readquest/test/ node copy.test.mjs";;
+    ocr)          cmd="env RQ_URL=$HOST/readquest/test/ node ocr.test.mjs";;
     panelfade)    cmd="env RQ_URL=$HOST/readquest/test/ node panelfade.test.mjs";;
+    overview)     cmd="env RQ_URL=$HOST/readquest/test/ node overview.test.mjs";;
     hlcolor)      cmd="env RQ_URL=$HOST/readquest/test/ node hlcolor.test.mjs";;
     sliders)      cmd="env RQ_URL=$HOST/readquest/test/ node sliders.test.mjs";;
     pdfhl)        cmd="env RQ_URL=$HOST/readquest/test/ node pdfhl.test.mjs";;
@@ -90,6 +95,7 @@ for t in $SEL; do
     hero)         cmd="env RQ_URL=$HOST/readquest/test/ node hero.test.mjs";;
     ai)           cmd="env RQ_URL=$HOST/readquest/test/ node ai.test.mjs";;
     translate)    cmd="env RQ_URL=$HOST/readquest/test/ node translate.test.mjs";;
+    diary)        cmd="env RQ_URL=$HOST/readquest/test/ node diary.test.mjs";;
     importskin)   cmd="bash serve-old-root.sh && env RQ_OLD_URL=http://127.0.0.1:8770/readquest/ node importskin.test.mjs";;
     import-many)  cmd="env RQ_URL=$HOST/readquest/test/ node import-many.test.mjs";;
     mvp-check)    cmd="node mvp-check.mjs";;

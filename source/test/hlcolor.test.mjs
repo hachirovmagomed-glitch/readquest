@@ -105,7 +105,7 @@ ok('6b «Отмена» in the note sheet saves nothing', q.length === 4, q.leng
 async function shotSheet() { await p.screenshot({ path: SHOTS + 'hlcolor-note-360.png' }); }
 
 // 7. quotes screen: colour stripe; an old quote without c = yellow
-await p.evaluate((id) => { S.quotes[id].push({ text: 'старая цитата', note: '', date: today() }); save(); renderQuotes(); }, bid);
+await p.evaluate((id) => { SET.qSort = 'old'; /* 28.10: lists in the order made (default «По книге» = by page) */ S.quotes[id].push({ text: 'старая цитата', note: '', date: today() }); save(); renderQuotes(); }, bid);
 const cards = await p.evaluate(() => [...document.querySelectorAll('#quoteBox .qcard')].map(c => c.dataset.c).join(''));
 ok('7 quotes screen: each card carries its colour (b g own b), old quote without c → y', cards === 'bg#d0306aby', cards);
 

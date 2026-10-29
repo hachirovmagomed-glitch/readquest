@@ -145,6 +145,7 @@ function addBookmark(){
   const arr=(S.marks[R.book.id]=S.marks[R.book.id]||[]);
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
   arr.push({ratio:ratio,page:R.page+1,date:today()});
+  if(typeof diaryAuto==='function')diaryAuto(R.book.id); /* 25.10 «Дневники» */
   save();
   flashMsg('Закладка на стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1)),{kind:'info',icon:'bookmark'});
 }
@@ -200,9 +201,53 @@ function rqAsk(o){return new Promise(function(res){
 function selText(){
   const s=window.getSelection&&window.getSelection();
   if(!s||s.isCollapsed)return SQ?SQ.q.text:''; /* 22.10: a tapped saved quote acts as the selection (copy, dictionary, «Объясни») */
-  const t=String(s).trim();
+  const t=(rqSelWhere(s)==='pdf'?rqSelPlain(s):String(s)).trim(); /* 28.10: a PDF quote is the clean text (its place is q.pdf, not the words) */
   return t.length>2?t:'';
 }
+/* 28.10 (Джессика: «чтобы система более умно сканировала текст… чтобы можно было корректно копировать»; «там все форматы»).
+   The text that leaves the reader (copy, «Копировать», «Объясни», «Перевод») is built from the selection, not from the browser's own
+   serialisation: PDF lines joined as the text layer marks them (js/pdf.js pdfReadOrder: a paragraph goes on with a space, a hyphenated
+   word is glued, verse lines stay lines, a new stanza = an empty line), line / page numbers left out; a book: one line per paragraph
+   and per verse line, an empty line around headings, without the title's «автор · формат» line, soft hyphens, note marks glued to
+   words («слово[1]», «слово1»), pictures. A scan's OCR layer: Latin look-alike letters inside Russian words → Cyrillic. */
+function rqSelWhere(s){
+  if(!s||!s.rangeCount)return '';let n=s.getRangeAt(0).commonAncestorContainer;if(n&&n.nodeType===3)n=n.parentNode;if(!n||!n.closest)return '';
+  if(n.closest('.textLayer')||(n.querySelector&&n.querySelector('.textLayer')&&n.closest('#pdfWrap,#pdfScroll')))return 'pdf';
+  const c=el('content');return c&&c.contains(n)?'book':'';
+}
+const RQ_LOOK={a:'а',e:'е',o:'о',p:'р',c:'с',x:'х',y:'у',A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',X:'Х'};
+function rqPlainFix(t,ocr){
+  t=String(t||'').replace(/\u00AD/g,'').replace(/[\u00A0\u2007\u202F]/g,' ').replace(/[\uFB00-\uFB06]/g,function(c){return c.normalize('NFKC');});
+  t=t.replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
+  if(ocr)t=t.replace(/[A-Za-zА-Яа-яЁё]+/g,function(w){return /[А-Яа-яЁё]/.test(w)&&/[A-Za-z]/.test(w)&&[...w].every(function(c){return /[А-Яа-яЁё]/.test(c)||RQ_LOOK[c];})?[...w].map(function(c){return RQ_LOOK[c]||c;}).join(''):w;});
+  return t.replace(/ *\t */g,'\t').replace(/ +/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
+function rqSelPlain(s){
+  s=s||window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return '';
+  const where=rqSelWhere(s);if(!where)return String(s).trim();
+  const rg=s.getRangeAt(0);let out='';
+  const brk=function(n){if(!out)return;out=out.replace(/ +$/,'');const have=(/\n*$/.exec(out)[0]||'').length;if(have<n)out+='\n'.repeat(n-have);};
+  let an=rg.commonAncestorContainer;if(an.nodeType===3)an=an.parentNode;
+  const vs0=!!(an&&an.closest&&an.closest('p.rq-vs')),tl0=!!(an&&an.closest&&an.closest('.textLayer'));
+  const walk=function(nd,vs,tl){nd.childNodes.forEach(function(c){
+    if(c.nodeType===3){if(where==='pdf'&&!tl)return; /* «Прокрутка»: page labels between the pages */
+      out+=where==='book'&&!vs?c.nodeValue.replace(/\s*\n\s*/g,' '):c.nodeValue;return;}
+    if(c.nodeType!==1)return;const k=c.classList,tg=c.tagName;
+    if(k.contains('nc')||k.contains('pdfhls')||k.contains('endOfContent')||k.contains('meta')||k.contains('rq-img')||tg==='STYLE'||tg==='SCRIPT'||tg==='IMG')return;
+    if(tg==='BR'){const j=c.dataset.j;if(j==='s')out+=' ';else if(j==='y')out=out.replace(/[-\u2010\u00AD]\s*$/,'');else brk(j==='p'?2:1);return;}
+    if(k.contains('textLayer')){brk(1);walk(c,false,true);brk(1);return;}
+    if(/^(P|H[1-6]|DIV|LI|BLOCKQUOTE|TR|PRE)$/.test(tg)){const big=/^H/.test(tg)||k.contains('rq-h');brk(big?2:1);walk(c,vs||k.contains('rq-vs'),tl);brk(big?2:1);return;}
+    if(tg==='TD'||tg==='TH'){if(out&&!/[\n\t]$/.test(out))out+='\t';walk(c,vs,tl);return;}
+    walk(c,vs,tl);});};
+  walk(rg.cloneContents(),vs0,tl0);
+  return rqPlainFix(out,where==='pdf');
+}
+/* the system «Копировать» (long press menu, Ctrl+C) gets the same clean text */
+document.addEventListener('copy',function(e){
+  const s=window.getSelection();if(!s||s.isCollapsed||!rqSelWhere(s)||!e.clipboardData)return;
+  const t=rqSelPlain(s);if(!t)return;
+  e.clipboardData.setData('text/plain',t);e.preventDefault();
+});
 function updSelPop(){
   const off=!selText()||el('reader').classList.contains('hidden');
   if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
@@ -216,7 +261,7 @@ function updSelPop(){
   if(!off)selPlace();
 }
 const SA={key:null,mini:true};
-function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');}
+function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
 /* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
    is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
 function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
@@ -328,7 +373,7 @@ function selPageAt(r){const v=el('viewer').getBoundingClientRect(),gap=R.step-v.
 function selUi(){
   const s=selBook(),pq=PQ&&R&&R.book&&PQ.bid===R.book.id?PQ:null;
   const on=selPagesOn()&&(s||(pq&&R.mode==='pdf'));
-  const n=el('selNav');if(!on){if(n)n.hidden=true;return;}
+  const n=el('selNav');if(!on){if(n)n.hidden=true;ssUpd();return;}
   selNavEl().hidden=false;
   el('selPrev').disabled=R.page<=0;el('selNext').disabled=R.page>=R.pageCount-1;
   let from=-1;
@@ -338,7 +383,7 @@ function selUi(){
   if(show){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('selFromGo').dataset.p=from;el('selFromGo').innerHTML=rqIcon('layers',16)+'<span>Выделено со стр. '+esc(lab)+' — всё на месте</span>';
     el('selFromX').hidden=!(R.mode==='pdf'&&pq);}
-  selNavDodge(s);
+  selNavDodge(s);ssUpd();
 }
 /* 28.10 (ревизия чтения, баг 10): ‹ › в нижних углах закрывали конец выделения на последней строке. Если под кнопкой выделенный текст,
    обе кнопки поднимаются выше него (ищем снизу вверх первое место, где в их колонках нет выделения). */
@@ -350,6 +395,59 @@ function selNavDodge(s){
   let bot=H-a.bottom;if(!hit(bot))return;
   while(bot<H*0.7&&hit(bot))bot+=8;
   if(!hit(bot))n.style.setProperty('--sel-up',Math.round(bot)+'px');
+}
+/* 29.10 (Джессика, скрин ReadEra: «некоторые настройки … компактно умещались в боковое меню слева, когда я выделяю текст»; внизу карандаш
+   налезал на плашку «Выделено со стр. N», рядом ‹ ›. Потом: «боковое меню закрывает сам текст … перемещать то влево, то вправо … более
+   прозрачным»): while text is selected the pencil, the chip and «Снять» live in one narrow half-transparent menu at a screen edge
+   (‹ › stay in the bottom corners: Джессика 29.10 «эти стрелки можно убрать из бокового меню, оставив там где они были раньше»).
+   A new selection shows only its tab; the grip (or the tab itself) drags it along the edge and across to the other side, it sticks to the
+   nearer edge, the place is remembered (SET.selSide). The chip #selFrom and the circle #spMini stay the state behind it, out of sight. */
+const SS={open:false,on:false,drag:null,moved:false};
+function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
+function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
+  const b=function(id,ic,lab){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+'</button>';};
+  n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
+    '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Перетащить меню" title="Перетащить"><i aria-hidden="true"></i></button>'+
+    b('ssPen','highlighter','Цвета и действия')+'<hr>'+
+    '<hr class="ssPg">'+
+    '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
+    '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>';
+  el('reader').appendChild(n);
+  n.addEventListener('mousedown',function(e){e.preventDefault();}); /* a click here never takes the selection away */
+  const tap=function(f){return function(){if(SS.moved){SS.moved=false;return;}f();};};
+  el('ssTab').onclick=tap(function(){SS.open=true;ssUpd();});
+  el('ssFold').onclick=function(){SS.open=false;ssUpd();};
+  el('ssPen').onclick=function(){SA.mini=!SA.mini;selMiniApply();selPlace();};
+  el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
+  el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
+  ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
+    h.addEventListener('pointerdown',function(e){const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
+    h.addEventListener('pointermove',function(e){const d=SS.drag;if(!d)return;
+      if(!d.go&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.go=true;n.classList.add('drag');
+      n.style.left=Math.round(e.clientX-d.dx)+'px';n.style.right='auto';n.style.top=Math.round(e.clientY-d.dy)+'px';});
+    const up=function(){const d=SS.drag;SS.drag=null;if(!d||!d.go)return;SS.moved=true;setTimeout(function(){SS.moved=false;},400);
+      const r=n.getBoundingClientRect();n.classList.remove('drag');n.style.left=n.style.right='';
+      SET.selSide={s:r.left+r.width/2<innerWidth/2?'L':'R',y:Math.round((r.top+r.height/2)/innerHeight*1000)/1000};saveSet();ssPlace();};
+    h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);});
+  return n;}
+/** the menu at its edge, its middle at the remembered height, whole on screen */
+function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p=ssPos();n.dataset.side=p.s;
+  const ch=rqIcon(p.s==='L'?'chevron-right':'chevron-left',18),cf=rqIcon(p.s==='L'?'chevron-left':'chevron-right',21);
+  n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;
+  const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
+function ssUpd(){
+  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&(!!selBook()||pg);
+  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;return;}
+  const n=ssEl();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
+  el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
+  el('ssPen').setAttribute('aria-pressed',SA.mini?'false':'true');
+  const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
+  el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
+  if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
+    el('ssFromN').textContent=lab;el('ssFrom').setAttribute('aria-label','Выделено со стр. '+lab+' — показать');el('ssFrom').title='Начало: стр. '+lab;
+    k.textContent=Math.abs(R.page-from)+1;}
+  ssPlace();
 }
 function selTurn(d){
   const np=R.page+d;if(np<0||np>=R.pageCount)return;
@@ -429,7 +527,10 @@ function quoteEdit(sq,withNote,color){
   put(null);
 }
 function quoteDel(){
-  const sq=SQ;if(!sq)return;quoteClose();el('selpop').classList.add('hidden');
+  const sq=SQ;if(!sq)return;quoteClose();el('selpop').classList.add('hidden');quoteRemove(sq);
+}
+/** 28.10: removes a quote with its highlight in the text ({bid, q, ms: its marks}); from the tapped quote's bar and from «Навигация → Цитаты» */
+function quoteRemove(sq){
   const qs=S.quotes[sq.bid]||[],i=qs.indexOf(sq.q);if(i<0)return;qs.splice(i,1);
   const h=S.hl[sq.bid]||[],j=h.indexOf(sq.q.text);if(j>-1)h.splice(j,1);save();
   sq.ms.forEach(m=>{if(m.isConnected){const p=m.parentNode;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize();}});
@@ -617,6 +718,7 @@ function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the col
     const q={text:tt,note:ed&&!note?ed.q.note||'':note,date:ed?ed.q.date:today(),c};if(geo)q.pdf=geo;if(n>0)q.n=n;
     (S.quotes[bid]=S.quotes[bid]||[]).push(q);
     (S.hl[bid]=S.hl[bid]||[]).push(tt);
+    if(typeof diaryAuto==='function')diaryAuto(bid); /* 25.10 «Дневники»: the book's diary on its first quote (S.diaryAuto) */
     if(!ed&&!(window.__rqWriter&&__rqWriter.noLocks)){ /* 26.10: a re-bordered quote is not a new one: no coins / XP again */
       if(!isMvp()){S.gold+=2;S.goldAllTime=(S.goldAllTime||0)+2;} /* MVP: no coins for quotes (not in the MVP economy); quote is still saved */
       addSkillXp('Аналитика',1);checkAchievements();
@@ -690,7 +792,7 @@ function addWord(){
 }
 if(el('spWord'))el('spWord').onclick=addWord;
 el('spCopy').onclick=()=>{
-  const t=selText();
+  const t=rqSelPlain()||selText();
   if(t&&R.book)copyText('«'+t+'» — '+R.book.title+', '+R.book.author);
   selDone();
 };
@@ -805,24 +907,42 @@ el('btnFind').onclick=()=>bfOpen();
 el('tabGrid').onclick=()=>renderPanel('grid');
 /* 21.10 (Джессика: «нажимаю на цитату — бросает в ебеня»): the quote's own page, not a guess from b.text (a PDF has no b.text → page 1).
    Text book: where its words are in the laid-out text. PDF: q.pdf.p; an older PDF quote without it is looked up page by page once, then remembered. */
+/* 28.10 (Джессика: «пусть там отмечается, на какой странице цитата»): the quote's page now — text book: where its highlight (or its words) stand
+   in the laid-out text, so it follows the font size; PDF: q.pdf.p. -1 = not found (an older PDF quote without q.pdf until it is opened once) */
+function quoteKeys(t){const a=bfNorm(String(t||'')).trim(),c=a.replace(/ {2,}/g,' ');return [a.slice(0,60),c.slice(0,60),c.replace(/-? /g,'').slice(0,30)].filter(Boolean);}
+/** the quote's marks in #content (its occurrence among the same words) */
+function quoteMarksOf(b,q){if(/\n/.test(q.text))return quoteMarks(q);const ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===q.text),m=ms[Math.max(0,hlSame(b.id,q.text).indexOf(q))];return m?[m]:[];}
+function quotePage(b,q){
+  if(R.mode==='pdf')return q.pdf&&Number.isInteger(q.pdf.p)&&q.pdf.p>=0&&q.pdf.p<R.pageCount?q.pdf.p:-1;
+  const mk=quoteMarksOf(b,q)[0];
+  if(mk&&mk.firstChild&&mk.firstChild.nodeType===3){const p=pageOfAnchor({node:mk.firstChild,offset:0});if(p>=0)return p;}
+  const T=bfTextIndex(),ks=quoteKeys(q.text);let o=T.low.indexOf(ks[0]);if(o<0)o=T.low.indexOf(ks[1]);
+  if(o>=0){const a=bfNodeAt(T,o,false);if(a)return Math.max(0,pageOfAnchor(a));}
+  return -1;
+}
+function quotePageLabel(p){return R.mode==='pdf'?pdfLabel(p):String(p+1);}
 async function quoteGo(i){
   const b=R.book,q=b&&(S.quotes[b.id]||[])[i];el('panel').classList.add('hidden');if(!q)return;
   const pdf=R.mode==='pdf',from=pdf&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;let p=-1;
-  const keys=t=>{const a=bfNorm(String(t||'')).trim(),c=a.replace(/ {2,}/g,' ');return [a.slice(0,60),c.slice(0,60),c.replace(/-? /g,'').slice(0,30)].filter(Boolean);};
+  p=quotePage(b,q);
   if(pdf){
-    if(q.pdf&&Number.isInteger(q.pdf.p)&&q.pdf.p>=0&&q.pdf.p<R.pageCount)p=q.pdf.p;
-    else{const ks=keys(q.text);flashMsg('Ищу цитату в книге…');const doc=R.pdf;
+    if(p<0){const ks=quoteKeys(q.text);flashMsg('Ищу цитату в книге…');const doc=R.pdf;
       for(let k=0;k<R.pageCount&&p<0;k++){const n=(from+k)%R.pageCount,tx=bfNorm(await bfPdfText(n));if(R.pdf!==doc)return;const t2=tx.replace(/ {2,}/g,' ');
         if(tx.indexOf(ks[0])>=0||t2.indexOf(ks[1])>=0||(ks[2]&&t2.replace(/-? /g,'').indexOf(ks[2])>=0))p=n;}
       if(p>=0){q.pdf={p:p,r:[]};save();}}
-  }else{
-    const ms=[...el('content').querySelectorAll('mark')].filter(x=>x.textContent===q.text),mk=/\n/.test(q.text)?quoteMarks(q)[0]:ms[Math.max(0,hlSame(b.id,q.text).indexOf(q))];
-    if(mk&&mk.firstChild&&mk.firstChild.nodeType===3)p=Math.max(0,pageOfAnchor({node:mk.firstChild,offset:0}));
-    else{const T=bfTextIndex(),ks=keys(q.text);let o=T.low.indexOf(ks[0]);if(o<0)o=T.low.indexOf(ks[1]);
-      if(o>=0){const a=bfNodeAt(T,o,false);if(a)p=Math.max(0,pageOfAnchor(a));}}
   }
   if(p<0){rqAlert('Не нашёл это место в книге');return;}
   if(p!==from){jumpTo(p);showJumpBack(from);}
+}
+/** 28.10 (Джессика: «удалять цитаты прямо во время чтения»): the bin on a row in «Навигация → Цитаты» — asks, then removes the quote and its highlight */
+function quoteDelAt(i){
+  const b=R.book,q=b&&(S.quotes[b.id]||[])[i];if(!q)return;const t=String(q.text).replace(/\s*\n\s*/g,' ');
+  rqAsk({t:'Удалить цитату?',p:'«'+t.slice(0,140)+(t.length>140?'…':'')+'»'+(q.note?' — и заметку к ней':''),ok:'Удалить',danger:true}).then(v=>{
+    if(!v||(S.quotes[b.id]||[]).indexOf(q)<0)return;
+    const ms=R.mode==='pdf'||!R.book||R.book.id!==b.id?[]:quoteMarksOf(b,q);
+    if(SQ&&SQ.q===q){quoteClose();el('selpop').classList.add('hidden');}
+    qOpen.i=-1;quoteRemove({bid:b.id,q,ms});if(panelTab==='qts')renderPanel('qts',{keep:true});
+  });
 }
 let qOpen={bid:null,i:-1};
 function quoteToggle(i){qOpen.i=qOpen.i===i?-1:i;renderPanel('qts');const on=el('panelBody').querySelector('.pq.on');if(on)try{on.scrollIntoView({block:'nearest'});}catch(e){}}
@@ -894,16 +1014,11 @@ function renderPanel(tab,o){
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
       ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
-    const qs=S.quotes[b.id]||[];if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
+    if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
-       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there */
-    body.innerHTML=qs.length
-      ?qs.map((q,i)=>{const on=i===qOpen.i,t=String(q.text).replace(/\s*\n\s*/g,on?'\n':' ');
-        return '<div class="prow pq'+(on?' on':'')+'"><button class="pqt" aria-expanded="'+on+'" onclick="quoteToggle('+i+')"><i class="pqd" aria-hidden="true" style="--d:'+hlDot(q.c)+';--d2:'+hlDot2(q.c)+'"></i><span class="ptt">«'+esc(on||t.length<=60?t:t.slice(0,60)+'…')+'»'+
-          (on&&q.note?'<span class="pqn">'+esc(q.note)+'</span>':'')+'</span></button>'+
-          (on?'<button class="pqgo" onclick="quoteGo('+i+')">'+rqIcon('book-open',16)+' Открыть в книге</button>':'')+'</div>';
-      }).join('')
-      :'<div class="pempty">'+rqIcon('quote',32)+'<div>Пока нет цитат — выделите текст в книге</div></div>';
+       a tap opens the quote in the list — whole text and note, the skin's own «current» look (.prow.on), «Открыть в книге» goes there.
+       28.10: search, colour filter, order, export, card, «Объясни» / «Обсудить» — js/quotes.js */
+    qlPanel(body,b);
   }
 }
 
@@ -1096,14 +1211,14 @@ async function closeReaderImpl(opts){
   const o=opts||{};
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo&&!fo.hidden)bfHide();} /* 20.10: the search lives with the open book only */
-  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');relWake();
+  stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');el('ocrSheet').classList.add('hidden');relWake();
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;
+  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();
@@ -1391,8 +1506,8 @@ window.addEventListener('popstate',function(e){
   if(readerIsOpen()){
     if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
-    const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ и (22.10) «Перевод» */
-    if(!ac.classList.contains('hidden')||!as.classList.contains('hidden')||!ts.classList.contains('hidden')){ac.classList.add('hidden');as.classList.add('hidden');ts.classList.add('hidden');navPush('reader');return;}
+    const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'),os=el('ocrSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ, (22.10) «Перевод» и (28.10) «Текст страницы» */
+    if(![ac,as,ts,os].every(x=>x.classList.contains('hidden'))){[ac,as,ts,os].forEach(x=>x.classList.add('hidden'));navPush('reader');return;}
     const sh=el('sheet'),pn=el('panel');
     if(!sh.classList.contains('hidden')||!pn.classList.contains('hidden')){sh.classList.add('hidden');pn.classList.add('hidden');navPush('reader');armChromeHide();return;}
     if(!el('reader').classList.contains('barsoff')){concealChrome('back');navPush('reader');return;}

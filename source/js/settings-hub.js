@@ -10,6 +10,9 @@ const GS_DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const GS_UISIZE=[['sm','Мелкий'],['md','Обычный'],['lg','Крупный']];
 /* «Что нового»: the last builds on /test/, newest first (one line each, words of the person who asked for it where possible) */
 const GS_NEWS=[
+  ['29.10','Раздел «Чтение»: строка внизу страницы (часы, процент, до конца главы), скорость и голос озвучки, ночь по расписанию, жесты, кнопки меню выделения, поворот и две страницы, набор для новых книг, «осталось ≈» по вашей скорости'],
+  ['29.10','Боковое меню выделения: быстрый цвет, «Найти в книге», «Озвучить выделенное», «Герои книги» и другое под «⋯»'],
+  ['29.10','«Приключения»: 30 писательниц в портретах авторов'],
   ['29.10','Настройки разделами: поиск, свои наборы оформления, «только к этой книге», дни напоминания, дата резервной копии, «Что нового»'],
   ['29.10','Пауза в верхней панели вместо круга; «Фокус» начинает круг без вопроса'],
   ['29.10','Вкладка «Обзор»: главы в сетке, метки, бегунок, «Перейти» и «К текущей»'],
@@ -171,11 +174,12 @@ function gsRenderGoal(){
 el('calNotifTimeIn').onchange=function(){const v=this.value;if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return;S.notif.time=v;save();try{renderCalendar();}catch(e){}renderSettings();};
 
 /* ---------- Язык и удобство: «Размер интерфейса» = html font-size 90 / 100 / 115 % of the phone's own size (arch.md ux.uiSize) ---------- */
-const GS_UISIZE_ON=true; /* 29.10: ждёт ответа Джессики на карточке (Маня 07.10 просил не возвращать); false = строки нет, значение не применяется */
+const GS_UISIZE_ON=false; /* 29.10: ждёт ответа Джессики на карточке (Маня 07.10 просил не возвращать); false = строки нет, значение не применяется */
 function gsUiSizeOn(){return GS_UISIZE_ON;}
 function applyUiSize(){const v=gsUiSizeOn()&&S&&S.ux?S.ux.uiSize:'md',h=document.documentElement;if(v==='sm'||v==='lg')h.dataset.uisize=v;else delete h.dataset.uisize;}
+if(!GS_UISIZE_ON&&el('uiSizeRow'))el('uiSizeRow').remove(); /* off: the row is not in the page at all (search, Маня 15.10) */
 function gsRenderLang(){
-  const row=el('uiSizeRow');row.hidden=!gsUiSizeOn();if(row.hidden)return;
+  const row=el('uiSizeRow');if(!row)return;row.hidden=!gsUiSizeOn();if(row.hidden)return;
   const box=el('uiSizeSeg'),cur=(S.ux&&S.ux.uiSize)||'md';box.innerHTML='';
   GS_UISIZE.forEach(function(o){const b=document.createElement('button');b.type='button';b.textContent=o[1];b.className=o[0]===cur?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',o[0]===cur?'true':'false');
     b.onclick=function(){S.ux.uiSize=o[0];save();applyUiSize();gsRender();};box.appendChild(b);});

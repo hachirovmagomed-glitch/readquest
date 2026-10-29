@@ -309,6 +309,7 @@ function hydrateS(raw){
   S.bookLvl=lvlMap(S.bookLvl,4);S.bookLvlAi=lvlAiMap(S.bookLvlAi);S.bookLvlRep=lvlRepMap(S.bookLvlRep); /* 22.10 = storage/schema.js lvlAiMap */S.lvlPaid=lvlMap(S.lvlPaid,1e6,/^\d{4}-\d{2}-\d{2}$/);S.pomoPaid=lvlMap(S.pomoPaid,1e6,/^\d{4}-\d{2}-\d{2}$/);S.chalPaid=lvlMap(S.chalPaid,1e6,/^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» */ /* 19.10 book level (arch.md) */
   if(!S.skills)S.skills={Концентрация:0,Дисциплина:0,Аналитика:0,Скорочтение:0};
   if(!S.ux)S.ux={anim:true,wake:false,vibe:true,scale:100};
+  if(['sm','md','lg'].indexOf(S.ux.uiSize)<0)S.ux.uiSize='md'; /* 29.10 arch.md ux.uiSize «Размер интерфейса» */
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
   if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
@@ -326,6 +327,9 @@ function hydrateS(raw){
   S.planned=S.planned||{};S.bookImp=S.bookImp||{};
   S.customQuests=S.customQuests||[];S.customStats=S.customStats||[];
   if(!S.notif)S.notif={on:false,time:'20:00'};
+  if(!(Array.isArray(S.notif.days)&&S.notif.days.length===7&&S.notif.days.every(function(x){return typeof x==='boolean';})))S.notif.days=[true,true,true,true,true,true,true]; /* 29.10 arch.md notif.days */
+  if(typeof S.notif.time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(S.notif.time))S.notif.time='20:00';
+  if(typeof S.backupNag!=='boolean')S.backupNag=true;if(S.backupNagAt!=null&&!/^\d{4}-\d\d-\d\d$/.test(String(S.backupNagAt)))S.backupNagAt=null; /* 29.10 arch.md backupNag / backupNagAt */
   S.customStats.forEach(s=>{if(S.stats[s]===undefined)S.stats[s]=0;});
   S.skillMeta=S.skillMeta||{};
   DEFAULT_SKILLS.forEach(k=>{if(S.skills[k]===undefined)S.skills[k]=0;if(!S.skillMeta[k])S.skillMeta[k]={links:Object.assign({},DEFAULT_SKILL_LINKS[k]||{})};});

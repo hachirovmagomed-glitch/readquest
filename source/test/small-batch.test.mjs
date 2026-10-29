@@ -41,7 +41,7 @@ for (const skin of ['default', 'pencil']) {
   if (skin === 'pencil') { await p.evaluate(() => { const q = document.getElementById('mvpQuestBox'); if (q) q.scrollIntoView({ block: 'center' }); }); await sleep(200); await p.screenshot({ path: SHOTS + 'small-quests-390.png' }); }
 
   // 3. settings: no bottom-nav item highlighted
-  await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
+  await p.evaluate(() => { openGeneralSettings(false); document.querySelectorAll('#settings .gsec').forEach(s => { s.hidden = false; }); el('settings').classList.add('gs-in'); /* 29.10: settings are sections now — show all of them to measure every control */ }); await sleep(300);
   const nv = await p.evaluate(() => ({ vis: getComputedStyle(document.getElementById('botnav')).display, on: [...document.querySelectorAll('#botnav button.on')].map(b => b.textContent.trim()) }));
   ok(`${tag}: in «Общие настройки» bottom nav highlights nothing`, !nv.on.length, nv);
 

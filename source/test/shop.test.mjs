@@ -82,7 +82,7 @@ const prof = await p.evaluate(() => { show('profile'); renderMvpProfile(); const
 ok('profile: no «Награды из жизни» button (moved to «Награды»)', !prof.btn, prof);
 
 // E. settings −/+ ≥ 44×44
-await p.evaluate(() => openGeneralSettings(false)); await sleep(300);
+await p.evaluate(() => { openGeneralSettings(false); document.querySelectorAll('#settings .gsec').forEach(s => { s.hidden = false; }); el('settings').classList.add('gs-in'); /* 29.10: settings are sections now — show all of them to measure every control */ }); await sleep(300);
 const st = await p.evaluate(() => [...document.querySelectorAll('#settings .stepbtn')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { id: b.id, w: Math.round(r.width), h: Math.round(r.height) }; }));
 const stBad = st.filter(x => x.w < 44 || x.h < 44);
 /* 15.10: «Размер интерфейса» (2 of the 4 steppers) removed by Маня's decision → at least 2 visible steppers remain, all ≥ 44×44 */

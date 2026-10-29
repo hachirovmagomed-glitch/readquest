@@ -40,6 +40,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   delete s.dim;delete s.warmNight;
   if(typeof s.pdfFont!=='boolean')s.pdfFont=false;if(typeof s.pdfTheme!=='boolean')s.pdfTheme=false; /* 20.10 arch.md SET.pdfFont / SET.pdfTheme */
   s.fz=fzNorm(s.fz); /* 25.10 «Фокус» (arch.md SET.fz) */
+  s.presets=rqPresetsNorm(s.presets);s.bookSet=rqBookSetNorm(s.bookSet); /* 29.10 arch.md SET.presets / SET.bookSet */
   flipNorm(s);return s;}
 /** 25.10 SET.fz (arch.md) = storage/schema.js normFz: pomo on/off, round 15/25/45, rest 3/5/10, quiet, sound slot 0…3 (0 = off; the
  *  slot is the skin's own sound №N), volume 0.05…1, focus words, warning on leaving. Junk → default, unknown keys dropped. */
@@ -49,9 +50,35 @@ function fzNorm(o){const d=FZ_DEF,f={};o=(o&&typeof o==='object'&&!Array.isArray
   f.len=[15,25,45].indexOf(o.len)>=0?o.len:d.len;f.rest=[3,5,10].indexOf(o.rest)>=0?o.rest:d.rest;
   f.snd=[0,1,2,3].indexOf(o.snd)>=0?o.snd:d.snd;
   f.vol=(typeof o.vol==='number'&&isFinite(o.vol))?Math.round(Math.max(0.05,Math.min(1,o.vol))*20)/20:d.vol;return f;}
+/* 29.10 (arch.md SET.presets / SET.bookSet): «Мои наборы» and «Только к этой книге» keep only these keys, each checked like the controls clamp it */
+const RQ_BOOK_KEYS=['font','size','lh','ls','weight','align','hyph','indent','margin'],RQ_PRESET_KEYS=RQ_BOOK_KEYS.concat(['bright','warm']);
+function rqTypoPick(o,keys){const n=function(v,lo,hi,st){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))/st)*st:undefined;},r={};
+  if(!o||typeof o!=='object'||Array.isArray(o))return r;
+  keys.forEach(function(k){const v=o[k];let x;
+    if(k==='font')x=(typeof v==='number'&&v>=0&&v<64&&Math.floor(v)===v)?v:undefined;
+    else if(k==='size')x=n(v,14,30,1);else if(k==="lh")x=n(v,1.2,2.4,0.05);else if(k==='ls')x=n(v,-1,3,0.5);else if(k==='margin')x=n(v,10,80,1);
+    else if(k==='weight')x=[300,400,600].indexOf(v)>=0?v:undefined;else if(k==='align')x=(v==='j'||v==='l')?v:undefined;
+    else if(k==='hyph'||k==='indent')x=typeof v==='boolean'?v:undefined;
+    else if(k==='bright')x=n(v,0.3,1,0.05);else if(k==='warm')x=n(v,0,0.6,0.05);
+    if(x!==undefined)r[k]=(k==='lh'||k==='bright'||k==='warm')?+x.toFixed(2):x;});
+  return r;}
+function rqPresetsNorm(a){return Array.isArray(a)?a.filter(function(p){return p&&typeof p==='object'&&typeof p.n==='string'&&p.n.trim();}).slice(0,8).map(function(p){return {n:p.n.trim().slice(0,24),v:rqTypoPick(p.v,RQ_PRESET_KEYS)};}):[];}
+function rqBookSetNorm(o){const r={};if(!o||typeof o!=='object'||Array.isArray(o))return r;
+  Object.keys(o).filter(function(k){return k&&k.length<=200;}).slice(-200).forEach(function(k){const v=rqTypoPick(o[k],RQ_BOOK_KEYS);if(Object.keys(v).length)r[k]=v;});return r;}
+/* While a book with its own look is open, SET holds that book's values in memory; rqSetForSave() gives the common values back to
+   rq_set / export and puts the book's own into bookSet[id]. RQ_OWN = {id, glob} or null. */
+let RQ_OWN=null;
+function rqSetForSave(){if(!RQ_OWN)return SET;const o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);return o;}
+function rqOwnEnter(id){rqOwnLeave();const v=SET.bookSet&&SET.bookSet[id];if(!v||!Object.keys(v).length)return;RQ_OWN={id:id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};Object.assign(SET,v);}
+function rqOwnLeave(){if(!RQ_OWN)return;SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;}
+/** «Только к этой» on: the book keeps the current look, the common one stays as it is; off: the book follows the common look again */
+function rqOwnSet(on){const b=typeof R!=='undefined'&&R&&R.book;if(!b)return;
+  if(on){if(RQ_OWN)return;RQ_OWN={id:b.id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[b.id]=rqTypoPick(SET,RQ_BOOK_KEYS);}
+  else{if(RQ_OWN)Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;if(SET.bookSet&&SET.bookSet[b.id]){SET.bookSet=Object.assign({},SET.bookSet);delete SET.bookSet[b.id];}}
+  saveSet();}
 normSet(SET);
 /* the ONE raw NS_set write; called only by the gate below (arch.md 15.10, wave 2) */
-function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(SET));}catch(e){}}
+function saveSetRaw(){try{localStorage.setItem(RQ_K.set,JSON.stringify(rqSetForSave()));}catch(e){}}
 /* user pick → NS_set only through the gate (Архитектор 14.10): writer must exist AND allow. Before __rqReady: applied in memory,
    one flag (no queue); on ready start.js does exactly ONE write with the current SET, again only if the gate allows. */
 function rqSaveSetGated(){if(!window.__rqReady){window.__rqSetPending=true;return;}if(window.__rqWriter&&__rqWriter.mayWrite())saveSetRaw();}
@@ -290,6 +317,7 @@ async function openBook(id){
   c.style.transform='translateX(0)'; /* never show the previous book's offset (blank first frame) */
   el('viewer').scrollTop=0;el('reader').classList.toggle('scrollmode',rqScrollMode());
   hideJumpBack(); /* 1б-fix #1: plaque never survives into another open */
+  rqOwnEnter(b.id); /* 29.10: the book's own look (SET.bookSet) */
   show('reader');navPush('reader');applySet();reqWake();resetTimer();armChromeHide();
   if(window.innerWidth<700){enterImmersive();if(!isMvp())flashMsg('Полный экран · тап по центру — показать панель');}
   startDayBar();

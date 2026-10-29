@@ -1777,6 +1777,73 @@ html[data-skin] #settings#settings#settings.over .wrap > .row:first-child{backgr
 .gset .setrow>.ic{color:var(--muted)}
 .gset h2{font-size:0.8125rem;margin:18px 0 8px}
 .gset .pcard{padding:4px 14px}
+/* ===== 29.10 «Общие настройки» разделами (js/settings-hub.js): the list of sections, a section page, search ===== */
+#settings.gs-in #gsHub,#settings.gs-in .dev-only{display:none!important}
+#settings .gsec[hidden]{display:none!important}
+#settings .gsec > h2:first-child{margin-top:6px}
+.gsearch{position:relative;margin:2px 0 14px}
+.gsearch>.ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.gsearch .searchinp{width:100%;box-sizing:border-box;margin:0;padding-left:44px;padding-right:44px;min-height:48px}
+.gsearch .searchinp::-webkit-search-cancel-button{display:none}
+.gsearchx{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:none;border:0;color:var(--muted)}
+.gsearchx[hidden]{display:none}
+#setSearchRes{margin-bottom:14px}
+#setSearchRes[hidden]{display:none}
+.gsres{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 0;border:0;border-bottom:1px solid var(--card2);background:none;color:var(--txt);text-align:left;font:inherit}
+.gsres:last-child{border-bottom:0}
+.gsres>.ic{color:var(--muted);flex:none}
+.gsres span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:0.875rem}
+.gsres small{font-size:0.75rem;color:var(--muted)}
+.gsres mark{background:none;color:var(--accent);font-weight:700}
+.gsnone{padding:14px 0;font-size:0.875rem;color:var(--muted)}
+:is(#settings) .pcard .setrow.setstack{flex-wrap:wrap}
+:is(#settings) .pcard .setrow.setstack>.lab{flex:1 1 calc(100% - 40px)}
+:is(#settings) .pcard .setrow.setstack>.lab+*{margin-left:auto;flex:0 1 auto}
+:is(#settings) .pcard .setrow.setstack>.presets,:is(#settings) .pcard .setrow.setstack>.gsdays,:is(#settings) .pcard .setrow.setstack>#uiSizeSeg{flex:1 1 100%;margin-left:0}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets .fchip,#sheet .rpresets .fchip{height:40px;min-height:40px;padding:0 14px;color:var(--txt);border:1px solid transparent;border-radius:var(--rq-radius-pill);line-height:1;box-sizing:border-box}
+#settings.gs-in #aiHead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0}
+.presets .fchip.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+.presets .fchip.pdel{padding:0 10px}
+.presets .fchip.padd{background:none;border-color:var(--muted)}
+.presets .pempty,#sheet .rpresets .pempty{flex:1 1 100%;font-size:0.8125rem;color:var(--muted)}
+.gsdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.gsdays button{min-height:40px;padding:0;border-radius:var(--rq-radius-pill);background:var(--card2);color:var(--txt);font-size:0.8125rem;border:1px solid transparent}
+.gsdays button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:600}
+.gstime{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:72px;min-height:44px;padding:0 6px;border-radius:var(--rq-radius-md);cursor:pointer}
+.gstime b{font-size:1.0625rem;text-decoration:underline dotted;text-underline-offset:4px}
+.gstime input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer}
+#settings .setrow[hidden]{display:none}
+.gsval{font-size:0.9375rem;white-space:nowrap}
+#settings .nobr{white-space:nowrap}
+.gsdanger{border:1.5px solid var(--danger)!important}
+.gsdanger .setrow .lab{color:var(--danger)}
+.gsdanger .setrow>.ic{color:var(--danger)}
+.gsdanger #btnReset2{color:var(--danger);border-color:var(--danger)}
+.gsdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;flex:none}
+.gsdot.ok{background:var(--good,#2e9e5b)}.gsdot.no{background:var(--danger)}.gsdot.warn{background:var(--accent2,#d68910)}
+.gsflash{animation:gsflash 1.6s ease-out 1}
+@keyframes gsflash{0%,35%{background:color-mix(in srgb,var(--accent) 22%,transparent)}100%{background:transparent}}
+html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-offset:-2px}
+#wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
+#wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
+html[data-uisize="sm"]{font-size:90%}
+html[data-uisize="lg"]{font-size:115%}
+/* the reader settings sheet opened from «Общие настройки» without a book: lives on <body>, a sample paragraph on top shows the look */
+#sheet.gsalone{position:fixed;z-index:96;left:0;right:0;bottom:0;max-height:88vh}
+#gsSheetScrim{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.35)}
+#gsSheetScrim[hidden]{display:none}
+#gsPrev{display:none;margin:0 -16px 10px;padding:14px 18px;border-radius:var(--rq-radius-md);max-height:150px;overflow:hidden;-webkit-mask:linear-gradient(#000 70%,transparent);mask:linear-gradient(#000 70%,transparent)}
+#sheet.gsalone #gsPrev{display:block}
+#sheet.gsalone .pdfonly,#sheet .rrow[hidden]{display:none!important} /* outside #reader the «PDF only» rule of the reader does not reach the sheet */
+#sheet .rpresets .pempty{text-align:left}
+#gsPrev p{margin:0;text-indent:1.5em}
+#gsPrev.noind p{text-indent:0}
+/* «Мои наборы» and «Только к этой книге» inside the reader settings sheet */
+#sheet .rpresets{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px}
+#sheet .rpresets .fchip{min-height:40px;padding:0 14px;color:var(--txt);border:1px solid transparent}
+#sheet .rpresets .fchip.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+#sheet .rpresets .fchip.padd{background:none;border-color:var(--muted)}
 .btnpair{display:flex;gap:6px}
 .ghostbtn.sw{position:relative;width:52px;height:30px;min-width:52px;padding:0;border-radius:var(--rq-radius-pill);border:2px solid var(--muted);background:transparent;font-size:0;color:transparent;flex:none}
 .ghostbtn.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform var(--rq-dur-fast,150ms)}
@@ -2437,13 +2504,42 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <!-- НАСТРОЙКИ -->
 <div id="settings" class="screen hidden">
   <div class="scroll"><div class="wrap gset">
-    <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
+    <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1 id="setTitle">Общие настройки</h1></div>
+    <!-- 29.10 (Джессика: «разные секции настроек, чтобы они не были смешаны в одну кучу»): the screen is a list of sections, each opens its own page (js/settings-hub.js) -->
+    <div id="gsHub">
+      <div class="gsearch"><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input class="searchinp" id="setSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Найти настройку" aria-label="Найти настройку"><button type="button" class="gsearchx" id="setSearchX" aria-label="Очистить" hidden><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
+      <div class="pcard" id="setSearchRes" role="list" hidden></div>
+      <div class="pcard gshub" id="gsList">
+      <button type="button" class="setrow navrow" data-sec="read"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><div class="lab">Чтение<div class="sub" id="gsSubRead"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="look"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><div class="lab">Внешний вид<div class="sub" id="gsSubLook"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="ai"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Нейросети<div class="sub" id="gsSubAi"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="goal"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><div class="lab">Цель и напоминание<div class="sub" id="gsSubGoal"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="lang"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык и удобство<div class="sub" id="gsSubLang"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="data"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-archive"/></svg><div class="lab">Данные<div class="sub" id="gsSubData"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="about"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">О приложении<div class="sub" id="gsSubAbout"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      </div>
+    </div>
+    <section class="gsec" data-sec="read" data-t="Чтение" hidden>
+    <h2>Книга</h2>
+    <div class="pcard">
+      <button type="button" class="setrow navrow" data-rtab="grpText"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-type"/></svg><div class="lab">Текст<div class="sub" id="gsSubText"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-rtab="grpPage"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><div class="lab">Страница<div class="sub" id="gsSubPage"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-rtab="grpNav"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><div class="lab">Листание<div class="sub" id="gsSubNav"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-rtab="grpFocus"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-focus"/></svg><div class="lab">Фокус<div class="sub" id="gsSubFocus"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+    </div>
+    <h2>Мои наборы</h2>
+    <div class="pcard">
+      <div class="setrow setstack"><div class="lab">Наборы оформления<div class="sub">Шрифт, размер, интервалы, поля, яркость. Нажмите на набор, чтобы включить его.</div></div><div class="presets" id="gsPresets"></div></div>
+      <div class="setrow" id="gsBookSetRow" hidden><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg><div class="lab">Книги со своим оформлением<div class="sub" id="gsBookSetSub"></div></div><button class="ghostbtn" id="gsBookSetReset">Сбросить</button></div>
+    </div>
     <h2>Во время чтения</h2>
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-smartphone"/></svg><div class="lab">Не гасить экран<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn sw" id="uxWake" role="switch">Выкл</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-vibrate"/></svg><div class="lab">Вибрация<div class="sub">При наградах и отметках</div></div><button class="ghostbtn sw" id="uxVibe" role="switch">Вкл</button></div>
     </div>
-    <h2 id="aiHead">Нейросети</h2><!-- 20.10: ИИ и озвучка на своём ключе (content.js, reader-ui.js, arch.md 20.10); Джессика 20.10 «ужмём»: две строки, раскрываются по нажатию -->
+    </section>
+    <section class="gsec" data-sec="ai" data-t="Нейросети" hidden>
+    <h2 id="aiHead">Нейросети</h2>
     <div class="pcard nncard">
       <button type="button" class="xrow" id="aiX" aria-controls="aiCard" aria-expanded="false"></button>
       <div id="aiCard" class="nnbox" hidden>
@@ -2476,28 +2572,58 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div id="trList"></div>
       </div>
     </div>
-    <h2>Язык и напоминание</h2>
+    </section>
+    <section class="gsec" data-sec="goal" data-t="Цель и напоминание" hidden>
+    <h2>Цель дня</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><div class="lab">Читать в день<div class="sub" id="gsGoalSub"></div></div><b class="gsval" id="gsGoalVal"></b></div>
+    </div>
+    <h2>Напоминание почитать</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
+      <div class="setrow setrow-time" id="calNotifTimeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время</div>
+        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus" aria-label="На 30 минут раньше">−</button><label class="gstime"><b id="calNotifTime">20:00</b><input type="time" id="calNotifTimeIn" aria-label="Время напоминания"></label><button class="stepbtn" id="calNotifPlus" aria-label="На 30 минут позже">+</button></span></div>
+      <div class="setrow setstack" id="calNotifDaysRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Дни<div class="sub" id="calNotifDaysSub"></div></div><div class="gsdays" id="calNotifDays" role="group" aria-label="Дни напоминания"></div></div>
+    </div>
+    </section>
+    <section class="gsec" data-sec="lang" data-t="Язык и удобство" hidden>
+    <h2>Язык</h2>
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
-      <div class="setrow setrow-time"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время напоминания</div>
-        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">+</button></span></div>
+    </div>
+    <h2>Удобство</h2>
+    <div class="pcard">
+      <div class="setrow setstack" id="uiSizeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-a-large-small"/></svg><div class="lab">Размер интерфейса<div class="sub">Кнопки и надписи вне книги. Шрифт телефона тоже учитывается.</div></div><div class="seg" id="uiSizeSeg" role="radiogroup" aria-label="Размер интерфейса"></div></div>
     </div>
     <h2>Управление</h2>
     <div class="pcard">
       <button type="button" class="setrow navrow" id="btnNavCfg"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg><div class="lab">Нижняя панель<div class="sub" id="navCfgSub">3 вкладки</div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
     </div>
-    <h2>Данные</h2>
+    </section>
+    <section class="gsec" data-sec="data" data-t="Данные" hidden>
+    <h2>Резервная копия</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><div class="lab">Экспорт и импорт<div class="sub">Резервная копия в файл (JSON)</div></div><span class="btnpair"><button class="ghostbtn" id="btnExport">Сохранить</button><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></span></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><div class="lab">Журнал запуска<div class="sub">Пришлите его, если приложение долго открывалось</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
-      <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
-      <div class="setrow setdanger"><div class="lab" style="color:var(--danger)">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+      <div class="setrow setstack"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><div class="lab">Копия в файл<div class="sub" id="backupSub"></div></div><span class="btnpair"><button class="ghostbtn" id="btnExport">Сохранить</button><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></span></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Напоминать о копии<div class="sub">Раз в неделю, если копии давно не было</div></div><button class="ghostbtn sw" role="switch" id="backupNagTgl">Вкл</button></div>
     </div>
-    <h2>О приложении</h2>
+    <h2>Книги</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-library"/></svg><div class="lab">Вернуть удалённые <span class="nobr">демо-книги</span></div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
     </div>
+    <h2>Опасная зона</h2>
+    <div class="pcard gsdanger">
+      <div class="setrow setdanger"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-trash-2"/></svg><div class="lab">Сбросить весь прогресс<div class="sub">Сначала предложит сохранить копию</div></div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+    </div>
+    </section>
+    <section class="gsec" data-sec="about" data-t="О приложении" hidden>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub" id="buildSub">Если тут старая дата — нажмите «Обновить»</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-rotate-cw"/></svg><div class="lab">Обновить приложение<div class="sub" id="updSub">Проверить новую версию</div></div><button class="ghostbtn" id="btnUpdate">Обновить</button></div>
+      <button type="button" class="xrow" id="wnX" aria-controls="wnBox" aria-expanded="false"></button>
+      <div id="wnBox" class="nnbox" hidden></div>
+      <div class="setrow setstack"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg><div class="lab">Сообщить о проблеме<div class="sub">Журнал запуска скопируется: вставьте его в сообщение и опишите, что случилось.</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
+    </div>
+    </section>
     <div class="dev-only"><!-- «Режим» (MVP switch + read-only goal/anti) only with ?dev=1; .mvp-hide here also hid it from ?dev=1 (regression 77f2775) -->
     <h2>Режим</h2>
     <div class="pcard">
@@ -2531,7 +2657,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <!-- ВНЕШНИЙ ВИД (Джессика 17.10: тема, скин и анимации — отдельный пункт бокового меню) -->
 <div id="look" class="screen hidden">
   <div class="scroll"><div class="wrap gset">
-    <div class="row" style="margin-bottom:6px"><button class="menubtn" id="menuLook" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Внешний вид</h1></div>
+    <div class="row" style="margin-bottom:6px"><button class="menubtn" id="menuLook" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="lookBack" aria-label="Назад" hidden><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Внешний вид</h1></div>
     <div class="pcard">
       <div class="seg" id="appThemeBox"></div>
       <div class="seg" id="appSkinBox"></div>
@@ -2788,6 +2914,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="grab" aria-hidden="true"></div>
     <button class="closes" id="sheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
     <h3 id="sheetH">Настройки чтения</h3>
+    <div id="gsPrev" aria-hidden="true"><p>Через базарную площадь идёт полицейский надзиратель Очумелов в новой шинели и с узелком в руке. За ним шагает рыжий городовой с решетом, доверху наполненным конфискованным крыжовником.</p></div>
     <div class="settabs" id="setCats" role="tablist">
       <button class="on" data-g="grpText" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-type"/></svg><span>Текст</span></button>
       <button data-g="grpPage" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Страница</span></button>
@@ -2796,6 +2923,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     </div>
     </div>
     <div class="setgrp on" id="grpText">
+      <div class="rrow stack" id="rPresetRow"><span class="rl" id="rPresetL">Мои наборы<small>шрифт, размер, интервалы, поля и яркость одним нажатием</small></span><div class="rpresets" id="rPresets" role="group" aria-labelledby="rPresetL"></div></div>
+      <div class="rrow stack" id="rBookOnlyRow"><span class="rl" id="rBookOnlyL">Оформление текста<small id="rBookOnlyS">шрифт, размер, интервалы и поля</small></span><div class="rseg" id="rBookOnly" role="radiogroup" aria-labelledby="rBookOnlyL"><button type="button" data-v="all" role="radio">Ко всем книгам</button><button type="button" data-v="one" role="radio">Только к этой</button></div></div>
       <div class="rrow pdfonly"><span class="rl" id="pdfFontTglL">Шрифт читалки в PDF<small>текст страницы выбранным шрифтом, как в ReadEra</small></span><button class="rsw" id="pdfFontTgl" role="switch" aria-checked="false" aria-labelledby="pdfFontTglL"></button></div>
       <div class="rrow pdfonly"><span class="rl" id="ocrRowL">Текст страницы<small>распознать скан, скопировать весь текст</small></span><button type="button" class="ghostbtn" id="ocrRowB" aria-describedby="ocrRowL">Открыть</button></div>
       <div class="rrow txtonly"><span class="rl" id="szValL">Размер текста</span><div class="rstep" role="group" aria-labelledby="szValL"><button id="szMinus" aria-label="Меньше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="szVal" aria-live="polite"></span><button id="szPlus" aria-label="Больше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
@@ -2887,6 +3016,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/hero.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>
+<script src="js/settings-hub.js"></script>
 <script src="js/ach-core.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/path.js"></script>

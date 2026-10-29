@@ -1218,7 +1218,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;
+  R.book=null;PQ=null;rqOwnLeave(); /* 29.10: the common look back in SET (SET.bookSet) */if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();
@@ -1504,7 +1504,8 @@ window.addEventListener('popstate',function(e){
   const st=(e.state&&e.state.rq)||null;
   if(window.__rqWriter&&__rqWriter.passive)return;
   if(readerIsOpen()){
-    if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
+    if(generalOverReader()){if(gsCur()&&gsPushed()&&st!=='gsec'){gsClose();if(st!=='settings')navPush('settings');return;} /* 29.10: a section → back to the list of sections */
+      closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
     const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'),os=el('ocrSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ, (22.10) «Перевод» и (28.10) «Текст страницы» */
     if(![ac,as,ts,os].every(x=>x.classList.contains('hidden'))){[ac,as,ts,os].forEach(x=>x.classList.add('hidden'));navPush('reader');return;}

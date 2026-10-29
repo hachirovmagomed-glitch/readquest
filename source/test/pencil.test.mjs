@@ -31,7 +31,7 @@ if (pt) { await pt.evaluate(e => e.scrollIntoView({ block: 'center' })); await s
 else await p.evaluate(() => { SET.theme = 'pencil'; saveSet(); applySet(); renderSettings(); }); /* no tile (red run): still measure the rest in the skin */
 const sk = !pt ? { skin: 'no tile' } : await p.evaluate(() => ({ skin: document.documentElement.dataset.skin || '', theme: SET.theme, on: [...document.querySelectorAll('#appSkinBox .appsw.on')].map(b => b.dataset.k) }));
 ok('click «Карандашный» → data-skin=pencil, SET.theme=pencil, tile selected', sk.skin === 'pencil' && sk.theme === 'pencil' && sk.on.join() === 'pencil', sk);
-await p.evaluate(() => openGeneralSettings(false)); await sleep(300); /* 17.10: tiles live on «Внешний вид»; the rest is measured on «Общие настройки» */
+await p.evaluate(() => { openGeneralSettings(false); document.querySelectorAll('#settings .gsec').forEach(s => { s.hidden = false; }); el('settings').classList.add('gs-in'); /* 29.10: settings are sections now — show all of them to measure every control */ }); await sleep(300); /* 17.10: tiles live on «Внешний вид»; the rest is measured on «Общие настройки» */
 n = await nav();
 ok('pencil: nav 4 items + «Читать», each a Lucide icon', n.length === 5 && n.every(x => /^#i-/.test(x.ic)), n);
 
@@ -93,7 +93,7 @@ const hy = await p.evaluate(() => {
     while ((nd = tw.nextNode())) { const re = /\S+/g; let m; while ((m = re.exec(nd.data))) { const rg = document.createRange(); rg.setStart(nd, m.index); rg.setEnd(nd, m.index + m[0].length);
       const tops = new Set([...rg.getClientRects()].filter(r => r.width > 0).map(r => Math.round(r.top))); if (tops.size > 1) split.push(m[0]); } } }
   const over = rows.map(r => { const c = r.closest('.pcard').getBoundingClientRect(); return [...r.querySelectorAll('button')].filter(b => b.offsetParent).map(b => { const q = b.getBoundingClientRect(); return { b: b.id, out: q.right > c.right + .5 || q.left < c.left - .5 }; }).filter(x => x.out); }).flat();
-  const want = ['Журнал запуска', 'Вернуть удалённые демо-книги', 'Если тут старая дата — обновите страницу'].map(s => ({ s, found: texts.some(e => e.textContent.includes(s)) }));
+  const want = ['Журнал запуска', 'Вернуть удалённые демо-книги', 'Если тут старая дата — нажмите «Обновить»'].map(s => ({ s, found: texts.some(e => e.textContent.includes(s)) }));
   return { bad, split, over, want };
 });
 ok('hyphens:none + overflow-wrap:normal on settings texts', !hy.bad.length, hy.bad.slice(0, 10));
@@ -103,7 +103,7 @@ ok('row buttons stay inside the card (wrap below the text)', !hy.over.length, hy
 // screenshots
 await p.evaluate(() => { const s = document.querySelector('#settings .scroll'); if (s) s.scrollTop = 0; }); await sleep(200);
 await p.screenshot({ path: SHOTS + 'pencil-settings-390.png' });
-await p.evaluate(() => { const h = [...document.querySelectorAll('#settings h2')].find(x => x.textContent === 'Данные'); h.scrollIntoView({ block: 'start' }); }); await sleep(200);
+await p.evaluate(() => { const h = [...document.querySelectorAll('#settings h2')].find(x => x.textContent === 'Резервная копия'); h.scrollIntoView({ block: 'start' }); }); await sleep(200);
 await p.screenshot({ path: SHOTS + 'pencil-data-390.png' });
 
 // 7. another app theme tile leaves the skin (palette would be masked by the skin otherwise)

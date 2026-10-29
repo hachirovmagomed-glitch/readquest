@@ -121,7 +121,7 @@ function bfPdfPageText(items,vp){
   const U=window.pdfjsLib&&pdfjsLib.Util,g=[];
   items.forEach(function(it){if(!it.str)return;const t=U&&vp?U.transform(vp.transform,it.transform||[1,0,0,1,0,0]):(it.transform||[1,0,0,1,0,0]),fh=Math.hypot(t[2],t[3])||12;
     g.push({str:it.str,x:t[4],base:t[5],fh:fh,w:(it.width||0)*(vp?vp.scale:1),rot:Math.abs(Math.atan2(t[1],t[0]))>0.01});});
-  let s='';pdfReadOrder(g,vp?vp.width:1000,vp?vp.height:1000).seq.forEach(function(e){if(e.j&&!/\s$/.test(s))s+=' ';s+=g[e.i].str;});
+  let s='';pdfReadOrder(g,vp?vp.width:1000,vp?vp.height:1000).seq.forEach(function(e){if(e.hdr)return;if(e.j&&!/\s$/.test(s))s+=' ';s+=g[e.i].str;});
   return s;
 }
 async function bfPdfText(n){

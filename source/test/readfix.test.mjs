@@ -172,7 +172,7 @@ const sel = await p.evaluate(async () => {
   const lt = Math.max(...cs.map(c => c[2].top)), line = cs.filter(c => Math.abs(c[2].top - lt) < 3), f = line.reduce((x, y) => y[2].left < x[2].left ? y : x), l = line.reduce((x, y) => y[2].right > x[2].right ? y : x);
   const [fn, fi] = f, [ln, li] = l;
   getSelection().setBaseAndExtent(fn, fi, ln, li + 1); document.dispatchEvent(new Event('selectionchange'));
-  await new Promise(r => setTimeout(r, 700)); SA.mini = false; selMiniApply(); selPlace(); await new Promise(r => setTimeout(r, 200)); // the bar opened from its circle
+  await new Promise(r => setTimeout(r, 700)); SA.bar = true; selMiniApply(); selPlace(); await new Promise(r => setTimeout(r, 200)); // the bar opened from its circle
   const rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width && r.height), hit = (e) => { const b = e.getBoundingClientRect(); return rs.some(r => r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top); };
   const nav = el('selNav'), sp = el('selpop'), fold = el('spFold'), fr = fold ? fold.getBoundingClientRect() : null;
   return { n: rs.length, nav: !!nav && !nav.hidden, pv: hit(el('selPrev')), nx: hit(el('selNext')), top: sp.classList.contains('top'), foldTop: fr && fr.top, foldShown: fr && fr.width > 0, text: String(getSelection()).slice(0, 40) };

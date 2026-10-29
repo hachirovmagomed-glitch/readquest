@@ -162,7 +162,7 @@ function flashMsg(t,o){
   const kind=opt.kind||(RQ_GAME_RE.test(String(t||''))?'game':'info');
   const inReader=!!(el('reader')&&!el('reader').classList.contains('hidden'));
   if(inReader&&kind==='game')return;
-  if(inReader&&kind!=='error'&&el('selpop')&&!el('selpop').classList.contains('hidden'))return; /* audit 19.10 RD-SEL-02: nothing over the selection bar */
+  if(inReader&&kind!=='error'&&el('selpop')&&!el('selpop').classList.contains('hidden')&&!el('selpop').classList.contains('mini'))return; /* audit 19.10 RD-SEL-02: nothing over the selection bar (29.10: the folded bar is out of sight, the side menu's toasts show) */
   const ms=opt.ms;
   document.querySelectorAll('.rq-toast').forEach(function(x){x.remove();}); /* one toast at a time */
   const d=document.createElement('div');
@@ -261,7 +261,7 @@ function updSelPop(){
   if(!off)selPlace();
 }
 const SA={key:null,mini:true};
-function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
+function selMiniApply(){const sp=el('selpop'),m=!SQ&&!SA.bar; /* 29.10 (Джессика выбрала «Убрать, всё в меню»): while selecting, the bar is never shown, all is in #selSide (SA.bar: only the tests of the bar's own buttons) */sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
 /* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
    is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
 function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
@@ -408,16 +408,19 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   const b=function(id,ic,lab){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+'</button>';};
   n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
     '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Перетащить меню" title="Перетащить"><i aria-hidden="true"></i></button>'+
-    b('ssPen','highlighter','Цвета и действия')+'<hr>'+
-    '<hr class="ssPg">'+
+    '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i></button>'+
+    b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести')+b('ssAI','sparkles','Объясни')+
+    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+'</button><hr>'+
     '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
-    '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>';
+    '<div id="ssCnt" role="status"></div>'+
+    '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>'+
+    '<div id="ssMenu" role="menu" aria-label="Действия" hidden></div><div id="ssColBox" role="group" aria-label="Цвет цитаты" hidden></div>';
   el('reader').appendChild(n);
   n.addEventListener('mousedown',function(e){e.preventDefault();}); /* a click here never takes the selection away */
   const tap=function(f){return function(){if(SS.moved){SS.moved=false;return;}f();};};
   el('ssTab').onclick=tap(function(){SS.open=true;ssUpd();});
   el('ssFold').onclick=function(){SS.open=false;ssUpd();};
-  el('ssPen').onclick=function(){SA.mini=!SA.mini;selMiniApply();selPlace();};
+  if(typeof stBind==='function')stBind(); /* 29.10 the tools: js/sel-tools.js */
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
   el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
@@ -436,17 +439,18 @@ function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p
   n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;
   const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
 function ssUpd(){
-  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&(!!selBook()||pg);
-  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;return;}
+  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&!window.__rqFindOpen&&(!!selBook()||pg);
+  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;if(typeof stCol==='function')stCol(false);return;}
   const n=ssEl();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
-  el('ssPen').setAttribute('aria-pressed',SA.mini?'false':'true');
+  if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
   const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('ssFromN').textContent=lab;el('ssFrom').setAttribute('aria-label','Выделено со стр. '+lab+' — показать');el('ssFrom').title='Начало: стр. '+lab;
     k.textContent=Math.abs(R.page-from)+1;}
+  if(typeof stUpd==='function')stUpd();
   ssPlace();
 }
 function selTurn(d){
@@ -826,11 +830,12 @@ el('viewer').addEventListener('gesturestart',e=>{e.preventDefault();}); /* iOS S
 let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
   if(R.mode==='pdf'){pdfTouchStart(e);return;}
+  if(e.touches.length===2&&!rqRx().gest.pinch){tx0=null;bright=null;return;} /* 29.10 SET.rx.gest.pinch off: two fingers do nothing */
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   tx0=e.touches[0].clientX;
-  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode())bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
+  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
@@ -1012,7 +1017,7 @@ function renderPanel(tab,o){
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
-      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
+      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+(m.t?' <span class="mkt">«'+esc(m.t)+'»</span>':'')+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
     if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
@@ -1037,7 +1042,8 @@ function pauseOn(){return honestOn()&&!!R.book;}
 function pauseApply(){
   if(__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(!R.paused&&!ttsOn&&(isMvp()||!!R.timerOn));
   const b=el('rqPause');if(b){b.classList.toggle('on',!!R.paused);b.setAttribute('aria-pressed',R.paused?'true':'false');
-    b.setAttribute('aria-label',R.paused?'Продолжить счёт':'Пауза');b.innerHTML=rqIcon(R.paused?'play':'pause',20);}
+    b.setAttribute('aria-label',R.paused?'Продолжить счёт':'Пауза');b.innerHTML=rqIcon(R.paused?'play':'pause',22);}
+  const rd=el('reader');if(rd)rd.classList.toggle('paused',!!R.paused);
   clearInterval(pauseIv);pauseIv=R.paused==='auto'?setInterval(pauseCheck,1000):null;
   try{document.dispatchEvent(new CustomEvent('rq-pause',{detail:{paused:R.paused||false}}));}catch(e){} /* «Фокус»: the pomodoro circle shows «на паузе» */
 }
@@ -1056,25 +1062,9 @@ function pauseCheck(){
 }
 function pauseShow(){
   const b=el('rqPause');if(!b)return;
-  const on=pauseOn()&&SET.pauseBtn!==false;b.hidden=!on;if(!on)return;
-  const xy=SET.pauseXY||{x:0.88,y:0.7};pausePlace(xy.x*innerWidth,xy.y*innerHeight);
+  const on=pauseOn()&&SET.pauseBtn!==false;b.hidden=!on; /* 28.10: a header button, no position (SET.pauseXY is kept, unused) */
 }
-function pausePlace(cx,cy){const b=el('rqPause'),r=26,m=6;
-  cx=Math.max(r+m,Math.min(innerWidth-r-m,cx));cy=Math.max(r+m,Math.min(innerHeight-r-m,cy));
-  b.style.left=(cx-r)+'px';b.style.top=(cy-r)+'px';return {x:cx,y:cy};}
-(function wirePause(){
-  const b=el('rqPause');if(!b)return;let d=null;
-  b.addEventListener('pointerdown',function(e){e.stopPropagation();d={x:e.clientX,y:e.clientY,moved:false};try{b.setPointerCapture(e.pointerId);}catch(_){}});
-  b.addEventListener('pointermove',function(e){if(!d)return;
-    if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.moved=true;b.classList.add('drag');pausePlace(e.clientX,e.clientY);});
-  b.addEventListener('pointerup',function(e){e.stopPropagation();if(!d)return;const was=d;d=null;b.classList.remove('drag');
-    if(was.moved){const p=pausePlace(e.clientX,e.clientY);SET.pauseXY={x:Math.round(p.x/innerWidth*1000)/1000,y:Math.round(p.y/innerHeight*1000)/1000};saveSet();}
-    else pauseSet(R.paused?false:'me');});
-  b.addEventListener('pointercancel',function(){d=null;b.classList.remove('drag');});
-  b.addEventListener('click',function(e){e.stopPropagation();});
-  b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pauseSet(R.paused?false:'me');}});
-  addEventListener('resize',function(){if(!b.hidden)pauseShow();});
-})();
+(function wirePause(){const b=el('rqPause');if(!b)return;b.addEventListener('click',function(e){e.stopPropagation();pauseSet(R.paused?false:'me');});})();
 /* Джессика 16.10: the bare «stop» square read as a glitch. Listening = a pause icon on a highlighted button (aria-pressed), stop = the speaker again. */
 function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
   const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
@@ -1153,13 +1143,14 @@ function nttsSay(t,onend,onstart,onpos,next){
     a.ontimeupdate=function(){if(gen!==nttsGen||!ttsOn||!onpos||!a.duration||!isFinite(a.duration))return;onpos(Math.floor(t.length*a.currentTime/a.duration));};
     a.onended=function(){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);if(onend)onend();};
     a.onerror=function(){if(gen!==nttsGen)return;ttsFail('телефон не смог проиграть звук');};
-    a.src=nttsUrl;const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
+    a.src=nttsUrl;try{a.playbackRate=rqRx().tts.rate;a.preservesPitch=true;}catch(e){}const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
   },function(e){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);ttsFail(e&&e.message);});
 }
 function ttsSay(t,onend,onstart,onpos,next){
   if(nttsOn()){nttsSay(t,onend,onstart,onpos,next);return;}
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
-  const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
+  const v=ttsVoices(),rx=rqRx().tts;if(v.length)try{u.voice=v.find(function(x){return x.voiceURI===rx.voice;})||v[0];}catch(e){} /* 29.10 SET.rx.tts: own voice and speed */
+  u.rate=rx.rate;
   let started=false;const t0=Date.now();
   u.onstart=function(){started=true;if(ttsOn&&onstart)onstart();};
   u.onboundary=function(e){if(!started){started=true;if(ttsOn&&onstart)onstart();}if(ttsOn&&onpos&&typeof e.charIndex==='number')onpos(e.charIndex);};
@@ -1167,7 +1158,7 @@ function ttsSay(t,onend,onstart,onpos,next){
   u.onerror=function(e){const k=e&&e.error;if(k==='interrupted'||k==='canceled')return;ttsFail();};
   speaking=true;speechSynthesis.speak(u);
 }
-function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
+function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1||!rqRx().tts.follow)return; /* 29.10 SET.rx.tts.follow off: the voice reads on, the page stays */const np=Math.round((pos/b.text.length)*(R.pageCount-1));
   if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
 function ttsChunkEnd(text,st){let end=Math.min(text.length,st+1500);const tail=text.slice(end,end+220).search(/[.!?…\n]/);if(tail>=0)end+=tail+1;return end;}
 function ttsTextNext(){
@@ -1230,10 +1221,10 @@ async function closeReaderImpl(opts){
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
-  if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true; /* 25.10 */
+  if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;
+  R.book=null;PQ=null;rqOwnLeave(); /* 29.10: the common look back in SET (SET.bookSet) */if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();
@@ -1519,7 +1510,8 @@ window.addEventListener('popstate',function(e){
   const st=(e.state&&e.state.rq)||null;
   if(window.__rqWriter&&__rqWriter.passive)return;
   if(readerIsOpen()){
-    if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
+    if(generalOverReader()){if(gsCur()&&gsPushed()&&st!=='gsec'){gsClose();if(st!=='settings')navPush('settings');return;} /* 29.10: a section → back to the list of sections */
+      closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
     const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'),os=el('ocrSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ, (22.10) «Перевод» и (28.10) «Текст страницы» */
     if(![ac,as,ts,os].every(x=>x.classList.contains('hidden'))){[ac,as,ts,os].forEach(x=>x.classList.add('hidden'));navPush('reader');return;}

@@ -125,16 +125,11 @@ ok('‹ : page 2, anchor kept, more selected, chip names page 4', b6.page === 2 
 const n6 = await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 300)); return el('selNav').hidden; });
 ok('no selection: the arrows are gone', n6, n6);
 
-// 10. 27.10 (Джессика): while selecting the colour bar is a small circle; a tap opens it, «Свернуть» folds it
+// 10. 29.10 (Джессика: нижняя плашка при выделении — «Убрать, всё в меню»): while selecting no bar and no circle at the bottom, also while dragging
 const m10 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const sp = el('selpop');
-  goPage(3, true); await w(200); __sel(__pc(0, 40), __pc(0, 60)); await w(500);
-  const r0 = sp.getBoundingClientRect(), mini = sp.classList.contains('mini'), colsHidden = getComputedStyle(el('spColors')).display === 'none';
-  el('spMini').click(); await w(150); const r1 = sp.getBoundingClientRect(), open = !sp.classList.contains('mini') && getComputedStyle(el('spColors')).display !== 'none';
-  __ext(__pc(0, 90)); await w(1000); const stays = !sp.classList.contains('mini');
-  el('spFold').click(); await w(150); const folded = sp.classList.contains('mini');
-  return { mini, colsHidden, w0: Math.round(r0.width), h0: Math.round(r0.height), open, w1: Math.round(r1.width), stays, folded }; });
-ok('selection → the bar is a circle (≤ 56 px), a tap opens it, it stays open while dragging, «Свернуть» folds it', m10.mini && m10.colsHidden && m10.w0 <= 56 && m10.h0 <= 56 && m10.open && m10.w1 > 150 && m10.stays && m10.folded, m10);
-
+  goPage(3, true); await w(200); __sel(__pc(0, 40), __pc(0, 60)); await w(500); const d0 = getComputedStyle(sp).display;
+  __ext(__pc(0, 90)); await w(1000); return { d0, d1: getComputedStyle(sp).display, side: !el('selSide').hidden }; });
+ok('selection → nothing at the bottom (no bar, no circle), also after dragging; the side menu is there', m10.d0 === 'none' && m10.d1 === 'none' && m10.side, m10);
 // 8. 26.10 (Джессика: «плашка с настройками мешает выделять текст»): the reader's bars hide as soon as text is selected
 await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(3, true); await new Promise(r => setTimeout(r, 200)); revealChrome(); await new Promise(r => setTimeout(r, 300)); });
 const b8 = await p.evaluate(async () => { const on = !el('reader').classList.contains('barsoff'); __sel(__pc(0, 40), __pc(0, 60)); await new Promise(r => setTimeout(r, 400)); return { before: on, after: el('reader').classList.contains('barsoff') }; });
@@ -142,10 +137,10 @@ ok('bars shown → a selection hides them', b8.before && b8.after, b8);
 
 // 9. the selection bar never covers the end being dragged: hidden while the end moves, back after it stops; at the top when the end is under it
 const b9 = await p.evaluate(async () => { const sp = el('selpop'); const w = (ms) => new Promise(r => setTimeout(r, ms));
-  __sel(__pc(0, 40), __pc(0, 60)); await w(400); el('spMini').click(); await w(100); const shown0 = !sp.classList.contains('hidden');
+  __sel(__pc(0, 40), __pc(0, 60)); await w(400); SA.bar = true; selMiniApply(); await w(100); const shown0 = !sp.classList.contains('hidden');
   __ext(__pc(0, 120)); await w(300); const mid = sp.classList.contains('hidden'); await w(700); const back = !sp.classList.contains('hidden');
   __ext(__pc(0, -30)); await w(1000); const end = (() => { const rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width); return rs[rs.length - 1]; })(), b = sp.getBoundingClientRect();
-  return { shown0, mid, back, top: sp.classList.contains('top'), covers: end.bottom > b.top && end.top < b.bottom }; });
+  const r = { shown0, mid, back, top: sp.classList.contains('top'), covers: end.bottom > b.top && end.top < b.bottom }; SA.bar = false; selMiniApply(); return r; });
 ok('bar hides while the end is dragged and comes back after it stops', b9.shown0 && b9.mid && b9.back, b9);
 ok('end of the selection near the bottom → the bar goes to the top and does not cover it', b9.top && !b9.covers, b9);
 
@@ -189,17 +184,17 @@ const m14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => se
 ok('side menu: a selection shows only a tab at the left edge (≤ 32 px), half-transparent; no circle and no chip at the bottom, ‹ › stay in the corners', m14.shown && !m14.open && m14.rail === 'none' && m14.tabL === 0 && m14.tabW <= 32 && m14.blur && m14.see && m14.circle === 'none' && m14.nav !== 'none' && m14.chip === 'none' && m14.side === 'L', m14);
 const o14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssTab').click(); await w(150);
   const r = el('ssRail').getBoundingClientRect(), vis = (id) => { const b = el(id).getBoundingClientRect(); return b.width > 0 && b.top >= 0 && b.bottom <= innerHeight; };
-  return { open: el('selSide').classList.contains('open'), tab: getComputedStyle(el('ssTab')).display, left: Math.round(r.left), w: Math.round(r.width), all: ['ssGrip', 'ssPen', 'ssX', 'ssFold'].every(vis), arrows: !!(el('ssPrev') || el('ssNext')), from: el('ssFrom').hidden }; });
-ok('tab → the menu opens: narrow (≤ 56 px) at the edge, pencil / «Снять» / fold on screen, no ‹ › in it, no «Начало» on one page', o14.open && o14.tab === 'none' && o14.left === 0 && o14.w <= 56 && o14.all && !o14.arrows && o14.from, o14);
+  return { open: el('selSide').classList.contains('open'), tab: getComputedStyle(el('ssTab')).display, left: Math.round(r.left), w: Math.round(r.width), all: ['ssGrip', 'ssCol', 'ssCopy', 'ssDict', 'ssAI', 'ssMore', 'ssX', 'ssFold'].every(vis), arrows: !!(el('ssPrev') || el('ssNext')), from: el('ssFrom').hidden }; });
+ok('tab → the menu opens: narrow (≤ 56 px) at the edge, Цвета / Перевести / Объясни / Действия / «Снять» / fold on screen, no ‹ › in it, no «Начало» on one page', o14.open && o14.tab === 'none' && o14.left === 0 && o14.w <= 56 && o14.all && !o14.arrows && o14.from, o14);
 const t14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const a = __st(); el('selNext').click(); await w(500);
   const b = __st(), from = !el('ssFrom').hidden && el('ssFromN').textContent, badge = el('ssN').textContent, fromLab = el('ssFrom').getAttribute('aria-label');
   el('ssFrom').click(); await w(400); const c = __st(); goPage(4, true); await w(300);
   return { a, b, from, badge, fromLab, c, still: el('selSide').classList.contains('open') }; });
 ok('corner › : next page, the selection goes on; «Начало: стр. 4» and «2» pages; a tap on it shows page 3, the menu stays open', t14.b.page === 4 && t14.b.an === t14.a.an && t14.b.len > t14.a.len && t14.from === '4' && t14.badge === '2' && /стр\. 4/.test(t14.fromLab) && t14.c.page === 3 && t14.still, t14);
-const pen14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssPen').click(); await w(150);
-  const open = !el('selpop').classList.contains('mini') && getComputedStyle(el('spColors')).display !== 'none', pr = el('ssPen').getAttribute('aria-pressed');
-  el('ssPen').click(); await w(150); return { open, pr, back: el('selpop').classList.contains('mini'), pr2: el('ssPen').getAttribute('aria-pressed') }; });
-ok('menu pencil opens the colours and actions bar, again folds it', pen14.open && pen14.pr === 'true' && pen14.back && pen14.pr2 === 'false', pen14);
+const pen14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssCol').click(); await w(150);
+  const a = { open: !el('ssColBox').hidden && el('spColors').parentNode === el('ssColBox'), bar: getComputedStyle(el('selpop')).display }; el('ssCol').click(); await w(150);
+  return Object.assign(a, { shut: el('ssColBox').hidden, back: el('spColors').parentNode === el('selpop'), sel: String(getSelection()).length }); });
+ok('menu «Цвета» opens the colour branch beside it (the bottom bar stays hidden), again closes it, the selection kept', pen14.open && pen14.bar === 'none' && pen14.shut && pen14.back && pen14.sel > 0, pen14);
 // drag by the grip across to the right edge, a bit higher: it sticks to the right edge, the place is remembered
 const g0 = await p.evaluate(() => { const b = el('ssGrip').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
 await p.mouse.move(g0.x, g0.y); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(g0.x + (330 - g0.x) * i / 8, g0.y - 120 * i / 8); await p.mouse.up(); await settle(200);
@@ -231,8 +226,8 @@ ok('scroll mode: end held at the bottom → hint, then half a screen down, the s
 const s14 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); const v = el('viewer'), vr = v.getBoundingClientRect(); getSelection().removeAllRanges(); await w(200);
   const at = (y) => { const r = document.caretRangeFromPoint(vr.left + 120, y); return [r.startContainer, r.startOffset]; };
   __sel(at(vr.top + 200), at(vr.top + 260)); await w(500); el('ssTab').click(); await w(150);
-  const sh = (id) => getComputedStyle(el(id)).display !== 'none'; return { side: !el('selSide').hidden, pen: sh('ssPen'), x: sh('ssX'), prev: !el('selNav').hidden, from: sh('ssFrom') }; });
-ok('scroll mode: the side menu has the pencil and «Снять», no page arrows', s14.side && s14.pen && s14.x && !s14.prev && !s14.from, s14);
+  const sh = (id) => getComputedStyle(el(id)).display !== 'none'; return { side: !el('selSide').hidden, pen: sh('ssCol'), x: sh('ssX'), prev: !el('selNav').hidden, from: sh('ssFrom') }; });
+ok('scroll mode: the side menu has «Цвета» and «Снять», no page arrows', s14.side && s14.pen && s14.x && !s14.prev && !s14.from, s14);
 
 ok('no page errors', errs.length === 0, errs);
 await browser.close();

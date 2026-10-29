@@ -21,7 +21,7 @@ const select = () => p.evaluate(async () => {
   const c = document.getElementById('content'), w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT); let n;
   while ((n = w.nextNode())) { const r = n.parentElement.getBoundingClientRect(); if (n.textContent.trim().length > 20 && r.top > 80 && r.bottom < innerHeight - 200) break; }
   const s = getSelection(); s.removeAllRanges(); const rg = document.createRange(); rg.setStart(n, 0); rg.setEnd(n, 15); s.addRange(rg);
-  updSelPop(); SA.mini = false; selMiniApply(); selPlace(); /* 29.10: the circle went into the side menu, its pencil opens the bar */ await new Promise(r => setTimeout(r, 200));
+  updSelPop(); SA.bar = true; selMiniApply(); selPlace(); /* 29.10: the circle went into the side menu, its pencil opens the bar */ await new Promise(r => setTimeout(r, 200));
 });
 // contrast of every visible label and icon against the bar's own background
 const measure = () => p.evaluate(() => {

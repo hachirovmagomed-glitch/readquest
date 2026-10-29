@@ -19,7 +19,7 @@ const ADV={src:'all',q:'',lang:'ru',items:[],more:null,busy:false,err:'',seq:0,d
 const ADV_LANGS=[['ru','Русские'],['en','English'],['de','Deutsch'],['fr','Français'],['','Все языки']];
 /* 25.10 (Джессика): portraits instead of name chips; public domain, Wikimedia Commons (hero/authors/credits.json); a missing file leaves the initial */
 const ADV_FACES={'Пушкин':'pushkin','Гоголь':'gogol','Толстой':'tolstoy','Чехов':'chekhov','Гомер':'homer','Шекспир':'shakespeare','Данте':'dante','Сервантес':'cervantes','Диккенс':'dickens','Гёте':'goethe','Жюль Верн':'verne','Андерсен':'andersen'};
-/* 28.10 (Джессика: «гораздо больше портретов, а то они одни и те же»): [подпись, файл, кого искать на Викитеке]; the row is shuffled once a day */
+/* 28.10 (Джессика: «гораздо больше портретов, а то они одни и те же»): [подпись, файл, кого искать на Викитеке] */
 const ADV_FACES_MORE=[['Лермонтов','lermontov','Михаил Юрьевич Лермонтов'],['Тургенев','turgenev','Иван Сергеевич Тургенев'],['Достоевский','dostoevsky','Фёдор Михайлович Достоевский'],
   ['Островский','ostrovsky','Александр Николаевич Островский'],['Грибоедов','griboyedov','Александр Сергеевич Грибоедов'],['Крылов','krylov','Иван Андреевич Крылов'],['Карамзин','karamzin','Николай Михайлович Карамзин'],
   ['Горький','gorky','Максим Горький'],['Куприн','kuprin','Александр Иванович Куприн'],['Блок','blok','Александр Александрович Блок'],['Есенин','yesenin','Сергей Александрович Есенин'],
@@ -27,17 +27,21 @@ const ADV_FACES_MORE=[['Лермонтов','lermontov','Михаил Юрьев
   ['Тютчев','tyutchev','Фёдор Иванович Тютчев'],['Фет','fet','Афанасий Афанасьевич Фет'],['Салтыков-Щедрин','saltykov','Михаил Евграфович Салтыков-Щедрин'],['Лесков','leskov','Николай Семёнович Лесков'],
   ['Державин','derzhavin','Гавриил Романович Державин'],['Ломоносов','lomonosov','Михаил Васильевич Ломоносов'],['Беляев','belyaev','Александр Романович Беляев'],
   ['Платон','plato','Платон'],
-  ['Шиллер','schiller','Фридрих Шиллер'],['Байрон','byron','Байрон'],['Остин','austen','Джейн Остин'],['Бронте','bronte','Шарлотта Бронте'],['Дюма','dumas','Александр Дюма'],['Гюго','hugo','Виктор Гюго'],
+  ['Шиллер','schiller','Фридрих Шиллер'],['Байрон','byron','Байрон'],['Остин','austen','Джейн Остин'],['Шарлотта Бронте','bronte','Шарлотта Бронте'],['Дюма','dumas','Александр Дюма'],['Гюго','hugo','Виктор Гюго'],
   ['Бальзак','balzac','Оноре де Бальзак'],['Флобер','flaubert','Гюстав Флобер'],['Мопассан','maupassant','Ги де Мопассан'],['Стендаль','stendhal','Стендаль'],['Вольтер','voltaire','Вольтер'],
   ['Марк Твен','twain','Марк Твен'],['Эдгар По','poe','Эдгар По'],['Джек Лондон','london','Джек Лондон'],['Купер','cooper','Джеймс Фенимор Купер'],['Конан Дойл','doyle','Артур Конан Дойль'],
   ['Стивенсон','stevenson','Роберт Льюис Стивенсон'],['Киплинг','kipling','Редьярд Киплинг'],['Уайльд','wilde','Оскар Уайльд'],['Свифт','swift','Джонатан Свифт'],['Дефо','defoe','Даниель Дефо'],
   ['Вальтер Скотт','scott','Вальтер Скотт'],['Уэллс','wells','Герберт Уэллс'],['Кэрролл','carroll','Льюис Кэрролл'],['Братья Гримм','grimm','Братья Гримм'],['Мольер','moliere','Мольер'],
-  ['Петрарка','petrarch','Франческо Петрарка'],['Гейне','heine','Генрих Гейне'],['Бёрнс','burns','Роберт Бёрнс']];
-function advFaces(){
+  ['Петрарка','petrarch','Франческо Петрарка'],['Гейне','heine','Генрих Гейне'],['Бёрнс','burns','Роберт Бёрнс'],
+  /* 29.10 (Джессика: «разнообразь женщинами»): писательницы */
+  ['Эмили Бронте','ebronte','Эмили Бронте'],['Энн Бронте','abronte','Энн Бронте'],['Джордж Элиот','eliot','Джордж Элиот'],['Мэри Шелли','mshelley','Мэри Шелли'],['Луиза Олкотт','alcott','Луиза Мэй Олкотт'],['Бичер-Стоу','stowe','Гарриет Бичер-Стоу'],['Эмили Дикинсон','dickinson','Эмили Дикинсон'],['Вирджиния Вулф','woolf','Вирджиния Вулф'],['Гаскелл','gaskell','Элизабет Гаскелл'],['Жорж Санд','sand','Жорж Санд'],['Сельма Лагерлёф','lagerlof','Сельма Лагерлёф'],['Эдит Несбит','nesbit','Эдит Несбит'],['Фрэнсис Бёрнетт','burnett','Фрэнсис Ходжсон Бёрнетт'],['Люси Монтгомери','montgomery','Люси Мод Монтгомери'],['Элизабет Браунинг','ebrowning','Элизабет Барретт Браунинг'],['Кристина Россетти','rossetti','Кристина Россетти'],['Эдит Уортон','wharton','Эдит Уортон'],['Жермена де Сталь','stael','Жермена де Сталь'],['Ростопчина','rostopchina','Евдокия Петровна Ростопчина'],['Каролина Павлова','pavlova','Каролина Карловна Павлова'],['Надежда Дурова','durova','Надежда Андреевна Дурова'],['Зинаида Гиппиус','gippius','Зинаида Николаевна Гиппиус'],['Мирра Лохвицкая','lokhvitskaya','Мирра Александровна Лохвицкая'],['Софья Ковалевская','kovalevskaya','Софья Васильевна Ковалевская'],['Екатерина Дашкова','dashkova','Екатерина Романовна Дашкова'],['Мэри Уолстонкрафт','wollstonecraft','Мэри Уолстонкрафт'],['Элиза Ожешко','orzeszkowa','Элиза Ожешко'],['Эбнер-Эшенбах','ebnereschenbach','Мария фон Эбнер-Эшенбах'],['Мадам де Севинье','sevigne','Мадам де Севинье'],['Мадам де Лафайет','lafayette','Мадам де Лафайет']];
+/* 29.10 (Джессика: «каждый раз перемешаны»): a new order on every opening of «Приключения» (openAdv), kept while the screen re-renders */
+let advFaceOrder=null;
+function advFacesShuffle(){
   const all=Object.keys(ADV_FACES).map(function(n){return [n,ADV_FACES[n],n];}).concat(ADV_FACES_MORE);
-  let seed=+today().replace(/-/g,'')%2147483647||1;const rnd=function(){seed=seed*16807%2147483647;return seed/2147483647;};
-  for(let i=all.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1)),t=all[i];all[i]=all[j];all[j]=t;}
-  return all;}
+  for(let i=all.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=all[i];all[i]=all[j];all[j]=t;}
+  advFaceOrder=all;}
+function advFaces(){if(!advFaceOrder)advFacesShuffle();return advFaceOrder;}
 function advFace(x){
   return '<button type="button" class="advface" data-q="'+esc(x[2])+'"><span class="advph"><b>'+esc(x[0].charAt(0))+'</b><img src="hero/authors/'+x[1]+'.webp" alt="" loading="lazy" onerror="this.remove()"></span><span class="advfn">'+esc(x[0])+'</span></button>';}
 const ADV_WS_HINTS=['Пушкин','Гоголь','Толстой','Чехов','Гомер','Шекспир','Данте','Сервантес','Диккенс','Гёте','Жюль Верн','Андерсен'];
@@ -504,7 +508,7 @@ async function advAuthor(name){
       if(a0.items.length)advCatPut('lists','author|'+name,{author:ADV.author,items:a0.items});advRenderList();return;}catch(e){if(seq!==ADV.seq)return;}}
     found=await advAuthorFind(name);if(seq!==ADV.seq)return;
     if(found.length>1){ADV.author.pick=found.slice(0,8);ADV.busy=false;advRenderList();return;}
-    if(!found.length){ADV.busy=false;ADV.err='На Викитеке нет страницы автора «'+name+'». Попробуйте поиск';advRenderList();return;}
+    if(!found.length){ADV.busy=false;ADV.set=null;ADV.author=null;ADV.q=name;el('advQ').value=name;advSearch();return;} /* 29.10: no author page (Тэффи, Жорж Санд…) → their books by the name */
     const a=await advAuthorLoad(found[0]);if(seq!==ADV.seq)return;
     ADV.author={name:a.name,years:a.years,pick:null};ADV.items=a.items;
     if(a.items.length)advCatPut('lists','author|'+name,{author:ADV.author,items:a.items});
@@ -535,7 +539,7 @@ function advDayItem(){const pool=[].concat.apply([],ADV_SETS.filter(function(x){
   const d=new Date(),k=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);return advWsItem(pool[k%pool.length]);}
 
 /* ---------- экран ---------- */
-function openAdv(){renderAdv();show('adv');if(!ADV.items.length&&!ADV.busy&&(advLat()||ADV.q))advSearch();}
+function openAdv(){advFacesShuffle();renderAdv();show('adv');if(!ADV.items.length&&!ADV.busy&&(advLat()||ADV.q))advSearch();}
 function advSwitch(k){ADV.src=k;ADV.q='';ADV.fk='';ADV.fl='';ADV.seq++;ADV.busy=false;ADV.items=[];ADV.more=null;ADV.err='';ADV.set=null;ADV.alt='';advSugHide();renderAdv();if(advLat())advSearch();}
 function renderAdv(){
   const src=ADV_SRC[ADV.src];

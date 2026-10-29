@@ -757,7 +757,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selFromX{min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center}
 /* 29.10 (Джессика): the pencil circle and the chip went into one side menu (#selSide, js/reader-ui.js ssUpd); ‹ › stay in the corners */
 #selFrom,#selpop.mini{display:none!important}
-#selSide[hidden],#selSide.open #ssTab,#selSide:not(.open) #ssRail,#selSide.pgoff .ssPg,#ssFrom[hidden],#ssN[hidden]{display:none!important}
+#selSide[hidden],#selSide.open #ssTab,#selSide:not(.open) #ssRail,#selSide.pgoff .ssPg,#ssFrom[hidden],#ssRail>button[hidden],#ssN[hidden]{display:none!important}
 #selSide{position:fixed;left:0;top:60%;z-index:62;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #selSide[data-side="R"]{left:auto;right:0}
 #selSide.drag{transition:none;opacity:.9}
@@ -773,11 +773,36 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #ssRail>button{position:relative;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--txt);background:none}
 #ssRail>button:disabled{opacity:.35}
 #ssRail>#ssGrip{height:24px;border-radius:12px;touch-action:none;cursor:grab}
-#ssPen{background:color-mix(in srgb,var(--accent) 22%,transparent)!important}#ssPen .ic{color:var(--accent)}
-#ssPen[aria-pressed="true"]{background:var(--accent)!important}#ssPen[aria-pressed="true"] .ic{color:var(--sheet)}
 #ssFrom{outline:1.5px dashed var(--accent);outline-offset:-3px}
 #ssFromN{position:absolute;right:0;bottom:1px;text-decoration:none;font-size:10px;font-weight:700;line-height:1;color:var(--accent);max-width:44px;overflow:hidden}
 #ssRail>hr{width:26px;margin:2px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
+/* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
+#ssCol i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
+#ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
+#ssCnt{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
+#ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
+#ssMenu[hidden],#ssColBox[hidden],#stSheet[hidden]{display:none!important}
+#ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}
+/* 29.10 «Цвета»: the bar's #spColors moved into a narrow column next to the menu (skin rules on #spColors keep their drops) */
+#ssColBox{position:absolute;left:calc(100% + 6px);top:0;padding:4px;border-radius:26px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+#selSide[data-side="R"] #ssColBox{left:auto;right:calc(100% + 6px)}
+#ssColBox #spColors{flex-direction:column;gap:2px;padding:0;margin:0;border:0}
+#ssColBox #spColors button{width:48px;height:48px;border-radius:50%;background:none}
+#selSide[data-side="R"] #ssMenu{left:auto;right:calc(100% + 6px)}
+#ssMenu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border-radius:12px;text-align:left;font-size:0.9375rem;color:var(--txt);background:none}
+#ssMenu>button:active{background:var(--card2)}
+#ssMenu .ic{flex:none;color:var(--accent)}
+#stSheet{position:fixed;left:0;right:0;bottom:0;z-index:96;max-height:62vh;overflow:auto;background:var(--sheet);color:var(--txt);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4);padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);-webkit-user-select:none;user-select:none}
+#stSheet .sthead{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;min-height:52px;background:var(--sheet)}
+#stSheet .sthead b{flex:1;font-size:1.0625rem}
+#stSheet .stmuted{color:var(--muted);font-size:0.875rem;margin:2px 0 10px}
+#stSheet .stwiki{font-size:0.9375rem;line-height:1.5;margin:0 0 10px}
+#stSheet .stlink{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);font-weight:600}
+#stSheet .sthero{display:flex;align-items:center;gap:4px;border-top:1px solid color-mix(in srgb,var(--txt) 12%,transparent)}
+#stSheet .sthgo{flex:1;display:flex;align-items:center;gap:10px;min-height:48px;padding:0;text-align:left;color:var(--txt);background:none}
+#stSheet .sthgo .ic{color:var(--accent);flex:none}#stSheet .sthgo span{flex:1}#stSheet .sthgo small{color:var(--muted);font-size:0.8125rem}
+#stSheet .sthdel{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);background:none}
+.prow .mkt{color:var(--muted);font-size:0.8125rem}
 #reader .textLayer .pdfhls i.pend{background:rgba(70,130,240,.3)!important;box-shadow:none!important}
 #selEdge{position:fixed;z-index:59;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--sheet);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none}
 #selEdge.next,#selEdge.prev{display:flex}#selEdge.prev .ic{transform:rotate(180deg)}
@@ -1405,10 +1430,12 @@ body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 .achv-tile{display:flex;gap:12px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:8px}
 .achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
 .achv-tile .pbar{margin-top:6px}
-#rqPause{position:fixed;z-index:30;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
-  background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--txt);border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);opacity:.45;touch-action:none;transition:opacity .2s}
-#rqPause[hidden]{display:none}#rqPause.on{opacity:.95;color:var(--accent);border-color:var(--accent)}#rqPause.drag{opacity:.9;transition:none}
-@media (prefers-reduced-motion:reduce){#rqPause{transition:none}}
+/* 28.10 (Джессика: «неудобно, когда она плавает… пусть она будет во вкладках либо снизу, либо сверху»): the pause is a header button
+   (hides and shows with the bars); on pause it takes the accent and a quiet «Пауза» stays in the page-number strip */
+#rqPause[hidden]{display:none}#rqPause.on{color:var(--rq-accent-text,var(--accent))}
+#rqPausedTag{display:none;margin-right:auto;font:600 12px/1 system-ui,-apple-system,sans-serif;color:var(--rq-accent-text,var(--accent))}
+#reader.paused #rqPausedTag{display:block}
+#reader.paused.fzrun #rqPausedTag{display:none}
 #sumQuiz{text-align:left;font-size:0.875rem;line-height:1.45;margin:4px 0 10px}
 #sumQuiz .qz-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#sumQuiz .qz-h .ic{flex:none;color:var(--accent2)}
 #sumQuiz .qz-t{color:var(--muted)}#sumQuiz .qz-q{font-weight:600;margin-bottom:8px}
@@ -1775,6 +1802,101 @@ html[data-skin] #settings#settings#settings.over .wrap > .row:first-child{backgr
 .gset .setrow>.ic{color:var(--muted)}
 .gset h2{font-size:0.8125rem;margin:18px 0 8px}
 .gset .pcard{padding:4px 14px}
+/* ===== 29.10 «Общие настройки» разделами (js/settings-hub.js): the list of sections, a section page, search ===== */
+#settings.gs-in #gsHub,#settings.gs-in .dev-only{display:none!important}
+#settings .gsec[hidden]{display:none!important}
+#settings .gsec > h2:first-child{margin-top:6px}
+.gsearch{position:relative;margin:2px 0 14px}
+.gsearch>.ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.gsearch .searchinp{width:100%;box-sizing:border-box;margin:0;padding-left:44px;padding-right:44px;min-height:48px}
+.gsearch .searchinp::-webkit-search-cancel-button{display:none}
+.gsearchx{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:none;border:0;color:var(--muted)}
+.gsearchx[hidden]{display:none}
+#setSearchRes{margin-bottom:14px}
+#setSearchRes[hidden]{display:none}
+.gsres{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 0;border:0;border-bottom:1px solid var(--card2);background:none;color:var(--txt);text-align:left;font:inherit}
+.gsres:last-child{border-bottom:0}
+.gsres>.ic{color:var(--muted);flex:none}
+.gsres span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:0.875rem}
+.gsres small{font-size:0.75rem;color:var(--muted)}
+.gsres mark{background:none;color:var(--accent);font-weight:700}
+.gsnone{padding:14px 0;font-size:0.875rem;color:var(--muted)}
+:is(#settings) .pcard .setrow.setstack{flex-wrap:wrap}
+:is(#settings) .pcard .setrow.setstack>.lab{flex:1 1 calc(100% - 40px)}
+:is(#settings) .pcard .setrow.setstack>.lab+*{margin-left:auto;flex:0 1 auto}
+:is(#settings) .pcard .setrow.setstack>.presets,:is(#settings) .pcard .setrow.setstack>.gsdays,:is(#settings) .pcard .setrow.setstack>#uiSizeSeg{flex:1 1 100%;margin-left:0}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.presets .fchip,#sheet .rpresets .fchip{height:40px;min-height:40px;padding:0 14px;color:var(--txt);border:1px solid transparent;border-radius:var(--rq-radius-pill);line-height:1;box-sizing:border-box}
+#settings.gs-in #aiHead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0}
+.presets .fchip.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+.presets .fchip.pdel{padding:0 10px}
+.presets .fchip.padd{background:none;border-color:var(--muted)}
+.presets .pempty,#sheet .rpresets .pempty{flex:1 1 100%;font-size:0.8125rem;color:var(--muted)}
+.gsdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.gsdays button{min-height:40px;padding:0;border-radius:var(--rq-radius-pill);background:var(--card2);color:var(--txt);font-size:0.8125rem;border:1px solid transparent}
+.gsdays button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:600}
+.gstime{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:72px;min-height:44px;padding:0 6px;border-radius:var(--rq-radius-md);cursor:pointer}
+.gstime b{font-size:1.0625rem;text-decoration:underline dotted;text-underline-offset:4px}
+.gstime input{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;cursor:pointer}
+#settings .setrow[hidden]{display:none}
+.gsval{font-size:0.9375rem;white-space:nowrap}
+#settings .nobr{white-space:nowrap}
+.gsdanger{border:1.5px solid var(--danger)!important}
+.gsdanger .setdanger{margin-top:0} /* the card itself is set apart now */
+.gsdanger .setrow .lab{color:var(--danger)}
+.gsdanger .setrow>.ic{color:var(--danger)}
+.gsdanger #btnReset2{color:var(--danger);border-color:var(--danger)}
+.gsdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;flex:none}
+.gsdot.ok{background:var(--good,#2e9e5b)}.gsdot.no{background:var(--danger)}.gsdot.warn{background:var(--accent2,#d68910)}
+.gsflash{animation:gsflash 1.6s ease-out 1}
+@keyframes gsflash{0%,35%{background:color-mix(in srgb,var(--accent) 22%,transparent)}100%{background:transparent}}
+html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-offset:-2px}
+/* 29.10 «Удобство чтения» (js/read-extras.js, SET.rx) */
+:is(#settings) .pcard .setrow.setstack>.rxfull{flex:1 1 100%;margin-left:0}
+.rxbox .setrow{padding-left:4px;padding-right:4px}
+.rxbox .stepgrp .rxv{min-width:3.6em;text-align:center;font-variant-numeric:tabular-nums}
+.rxbox .rxtest{margin:4px 0 4px;justify-content:flex-start}
+.rxbox .rxtest .ghostbtn{display:inline-flex;align-items:center;gap:6px}
+.rxsel .lab{flex:1 1 auto;min-width:0}
+.rxmv{display:inline-flex;gap:4px;margin-right:6px}
+.rxmv .stepbtn{min-width:40px;width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.rxmv .stepbtn:disabled{opacity:.3}
+.rxdot{display:block;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%)}
+#rxSelColor .fchip{min-width:40px;justify-content:center;padding:0 10px}
+#rxSelColor .fchip:has(.rxdot){width:40px;padding:0}
+#rxSelColor{gap:4px}
+.rxbox .aisub{font-size:0.8125rem;line-height:1.4;color:var(--muted);margin:8px 4px 4px}
+#settings .pcard .rxbox .setrow:not(.setstack){flex-wrap:nowrap}
+#settings .pcard .rxbox .setrow:not(.setstack)>.lab{flex:1 1 auto;min-width:0}
+#settings .pcard .rxbox .rxsel>.lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#settings .rxmv .stepbtn{width:40px;min-width:40px;height:40px;min-height:40px}
+#rxClock,#rxInfo{font:500 11px/1 system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--r-txt-2);letter-spacing:.2px;white-space:nowrap}
+#rxClock{margin-right:auto}
+#rxInfo{margin-right:10px;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#rxClock:empty,#rxInfo:empty{display:none}
+#reader:not(.barsoff):not(.imm) :is(#rxClock,#rxInfo){visibility:hidden}
+#reader.focus :is(#rxClock,#rxInfo),#reader.paused #rxClock,#reader.fzrun #rxClock,#reader.rxnopg #pgNum{display:none}
+#reader.rxnopg #rxInfo{margin-right:0}
+#selpop>.rxoff{display:none!important}
+#wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
+#wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
+html[data-uisize="sm"]{font-size:90%}
+html[data-uisize="lg"]{font-size:115%}
+/* the reader settings sheet opened from «Общие настройки» without a book: lives on <body>, a sample paragraph on top shows the look */
+#sheet.gsalone{position:fixed;z-index:96;left:0;right:0;bottom:0;max-height:88vh}
+#gsSheetScrim{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.35)}
+#gsSheetScrim[hidden]{display:none}
+#gsPrev{display:none;margin:0 -16px 10px;padding:14px 18px;border-radius:var(--rq-radius-md);max-height:150px;overflow:hidden;-webkit-mask:linear-gradient(#000 70%,transparent);mask:linear-gradient(#000 70%,transparent)}
+#sheet.gsalone #gsPrev{display:block}
+#sheet.gsalone .pdfonly,#sheet .rrow[hidden]{display:none!important} /* outside #reader the «PDF only» rule of the reader does not reach the sheet */
+#sheet .rpresets .pempty{text-align:left}
+#gsPrev p{margin:0;text-indent:1.5em}
+#gsPrev.noind p{text-indent:0}
+/* «Мои наборы» and «Только к этой книге» inside the reader settings sheet */
+#sheet .rpresets{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 10px}
+#sheet .rpresets .fchip{min-height:40px;padding:0 14px;color:var(--txt);border:1px solid transparent}
+#sheet .rpresets .fchip.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+#sheet .rpresets .fchip.padd{background:none;border-color:var(--muted)}
 .btnpair{display:flex;gap:6px}
 .ghostbtn.sw{position:relative;width:52px;height:30px;min-width:52px;padding:0;border-radius:var(--rq-radius-pill);border:2px solid var(--muted);background:transparent;font-size:0;color:transparent;flex:none}
 .ghostbtn.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform var(--rq-dur-fast,150ms)}
@@ -2435,13 +2557,44 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <!-- НАСТРОЙКИ -->
 <div id="settings" class="screen hidden">
   <div class="scroll"><div class="wrap gset">
-    <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
+    <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1 id="setTitle">Общие настройки</h1></div>
+    <!-- 29.10 (Джессика: «разные секции настроек, чтобы они не были смешаны в одну кучу»): the screen is a list of sections, each opens its own page (js/settings-hub.js) -->
+    <div id="gsHub">
+      <div class="gsearch"><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><input class="searchinp" id="setSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Найти настройку" aria-label="Найти настройку"><button type="button" class="gsearchx" id="setSearchX" aria-label="Очистить" hidden><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button></div>
+      <div class="pcard" id="setSearchRes" role="list" hidden></div>
+      <div class="pcard gshub" id="gsList">
+      <button type="button" class="setrow navrow" data-sec="read"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><div class="lab">Чтение<div class="sub" id="gsSubRead"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="look"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><div class="lab">Внешний вид<div class="sub" id="gsSubLook"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="ai"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Нейросети<div class="sub" id="gsSubAi"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="goal"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><div class="lab">Цель и напоминание<div class="sub" id="gsSubGoal"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="lang"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык и удобство<div class="sub" id="gsSubLang"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="data"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-archive"/></svg><div class="lab">Данные<div class="sub" id="gsSubData"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-sec="about"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">О приложении<div class="sub" id="gsSubAbout"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      </div>
+    </div>
+    <section class="gsec" data-sec="read" data-t="Чтение" hidden>
+    <h2>Книга</h2>
+    <div class="pcard">
+      <button type="button" class="setrow navrow" data-rtab="grpText"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-type"/></svg><div class="lab">Текст<div class="sub" id="gsSubText"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-rtab="grpPage"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><div class="lab">Страница<div class="sub" id="gsSubPage"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-rtab="grpNav"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><div class="lab">Листание<div class="sub" id="gsSubNav"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+      <button type="button" class="setrow navrow" data-rtab="grpFocus"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-focus"/></svg><div class="lab">Фокус<div class="sub" id="gsSubFocus"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
+    </div>
+    <h2>Мои наборы</h2>
+    <div class="pcard">
+      <div class="setrow setstack"><div class="lab">Наборы оформления<div class="sub">Шрифт, размер, интервалы, поля, яркость. Нажмите на набор, чтобы включить его.</div></div><div class="presets" id="gsPresets"></div></div>
+      <div class="setrow" id="gsBookSetRow" hidden><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-marked"/></svg><div class="lab">Книги со своим оформлением<div class="sub" id="gsBookSetSub"></div></div><button class="ghostbtn" id="gsBookSetReset">Сбросить</button></div>
+    </div>
     <h2>Во время чтения</h2>
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-smartphone"/></svg><div class="lab">Не гасить экран<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn sw" id="uxWake" role="switch">Выкл</button></div>
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-vibrate"/></svg><div class="lab">Вибрация<div class="sub">При наградах и отметках</div></div><button class="ghostbtn sw" id="uxVibe" role="switch">Вкл</button></div>
     </div>
-    <h2 id="aiHead">Нейросети</h2><!-- 20.10: ИИ и озвучка на своём ключе (content.js, reader-ui.js, arch.md 20.10); Джессика 20.10 «ужмём»: две строки, раскрываются по нажатию -->
+    <h2>Удобство чтения</h2>
+    <div class="pcard nncard" id="rxCard"></div><!-- 29.10 js/read-extras.js (SET.rx): строка внизу, чтение вслух, ночь, жесты, меню выделения, экран, новые книги -->
+    </section>
+    <section class="gsec" data-sec="ai" data-t="Нейросети" hidden>
+    <h2 id="aiHead">Нейросети</h2>
     <div class="pcard nncard">
       <button type="button" class="xrow" id="aiX" aria-controls="aiCard" aria-expanded="false"></button>
       <div id="aiCard" class="nnbox" hidden>
@@ -2474,28 +2627,58 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div id="trList"></div>
       </div>
     </div>
-    <h2>Язык и напоминание</h2>
+    </section>
+    <section class="gsec" data-sec="goal" data-t="Цель и напоминание" hidden>
+    <h2>Цель дня</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><div class="lab">Читать в день<div class="sub" id="gsGoalSub"></div></div><b class="gsval" id="gsGoalVal"></b></div>
+    </div>
+    <h2>Напоминание почитать</h2>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
+      <div class="setrow setrow-time" id="calNotifTimeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время</div>
+        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus" aria-label="На 30 минут раньше">−</button><label class="gstime"><b id="calNotifTime">20:00</b><input type="time" id="calNotifTimeIn" aria-label="Время напоминания"></label><button class="stepbtn" id="calNotifPlus" aria-label="На 30 минут позже">+</button></span></div>
+      <div class="setrow setstack" id="calNotifDaysRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Дни<div class="sub" id="calNotifDaysSub"></div></div><div class="gsdays" id="calNotifDays" role="group" aria-label="Дни напоминания"></div></div>
+    </div>
+    </section>
+    <section class="gsec" data-sec="lang" data-t="Язык и удобство" hidden>
+    <h2>Язык</h2>
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык интерфейса</div><div class="seg" id="langSeg" style="flex:none"></div></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg><div class="lab">Напоминание почитать<div class="sub">Уведомление от браузера, пока приложение открыто</div></div><button class="ghostbtn sw" role="switch" id="calNotifTgl">Выкл</button></div>
-      <div class="setrow setrow-time"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время напоминания</div>
-        <span class="stepgrp"><button class="stepbtn" id="calNotifMinus">−</button><b id="calNotifTime" style="width:64px;text-align:center">20:00</b><button class="stepbtn" id="calNotifPlus">+</button></span></div>
+    </div>
+    <h2>Удобство</h2>
+    <div class="pcard">
+      <div class="setrow setstack" id="uiSizeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-a-large-small"/></svg><div class="lab">Размер интерфейса<div class="sub">Кнопки и надписи вне книги. Шрифт телефона тоже учитывается.</div></div><div class="seg" id="uiSizeSeg" role="radiogroup" aria-label="Размер интерфейса"></div></div>
     </div>
     <h2>Управление</h2>
     <div class="pcard">
       <button type="button" class="setrow navrow" id="btnNavCfg"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-pin"/></svg><div class="lab">Нижняя панель<div class="sub" id="navCfgSub">3 вкладки</div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
     </div>
-    <h2>Данные</h2>
+    </section>
+    <section class="gsec" data-sec="data" data-t="Данные" hidden>
+    <h2>Резервная копия</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><div class="lab">Экспорт и импорт<div class="sub">Резервная копия в файл (JSON)</div></div><span class="btnpair"><button class="ghostbtn" id="btnExport">Сохранить</button><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></span></div>
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg><div class="lab">Журнал запуска<div class="sub">Пришлите его, если приложение долго открывалось</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
-      <div class="setrow"><div class="lab">Вернуть удалённые демо-книги</div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
-      <div class="setrow setdanger"><div class="lab" style="color:var(--danger)">Сбросить весь прогресс</div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+      <div class="setrow setstack"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-download"/></svg><div class="lab">Копия в файл<div class="sub" id="backupSub"></div></div><span class="btnpair"><button class="ghostbtn" id="btnExport">Сохранить</button><button class="ghostbtn" id="btnImport">Загрузить</button><input type="file" id="impInp" accept=".json" style="display:none"></span></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Напоминать о копии<div class="sub">Раз в неделю, если копии давно не было</div></div><button class="ghostbtn sw" role="switch" id="backupNagTgl">Вкл</button></div>
     </div>
-    <h2>О приложении</h2>
+    <h2>Книги</h2>
     <div class="pcard">
-      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub">Если тут старая дата — обновите страницу</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-library"/></svg><div class="lab">Вернуть удалённые <span class="nobr">демо-книги</span></div><button class="ghostbtn" id="btnUnhide">Вернуть</button></div>
     </div>
+    <h2>Опасная зона</h2>
+    <div class="pcard gsdanger">
+      <div class="setrow setdanger"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-trash-2"/></svg><div class="lab">Сбросить весь прогресс<div class="sub">Сначала предложит сохранить копию</div></div><button class="ghostbtn" id="btnReset2">Сброс</button></div>
+    </div>
+    </section>
+    <section class="gsec" data-sec="about" data-t="О приложении" hidden>
+    <div class="pcard">
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-info"/></svg><div class="lab">ReadQuest<div class="sub" id="buildSub">Если тут старая дата — нажмите «Обновить»</div></div><b id="buildVer" style="font-size:12px;opacity:.75;font-weight:600"></b></div>
+      <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-rotate-cw"/></svg><div class="lab">Обновить приложение<div class="sub" id="updSub">Проверить новую версию</div></div><button class="ghostbtn" id="btnUpdate">Обновить</button></div>
+      <button type="button" class="xrow" id="wnX" aria-controls="wnBox" aria-expanded="false"></button>
+      <div id="wnBox" class="nnbox" hidden></div>
+      <div class="setrow setstack"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg><div class="lab">Сообщить о проблеме<div class="sub">Журнал запуска скопируется: вставьте его в сообщение и опишите, что случилось.</div></div><button class="ghostbtn" id="btnDiagCopy" onclick="window.__rqDiag&&__rqDiag.copy(this)">Скопировать журнал запуска</button></div>
+    </div>
+    </section>
     <div class="dev-only"><!-- «Режим» (MVP switch + read-only goal/anti) only with ?dev=1; .mvp-hide here also hid it from ?dev=1 (regression 77f2775) -->
     <h2>Режим</h2>
     <div class="pcard">
@@ -2529,7 +2712,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <!-- ВНЕШНИЙ ВИД (Джессика 17.10: тема, скин и анимации — отдельный пункт бокового меню) -->
 <div id="look" class="screen hidden">
   <div class="scroll"><div class="wrap gset">
-    <div class="row" style="margin-bottom:6px"><button class="menubtn" id="menuLook" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Внешний вид</h1></div>
+    <div class="row" style="margin-bottom:6px"><button class="menubtn" id="menuLook" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="lookBack" aria-label="Назад" hidden><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Внешний вид</h1></div>
     <div class="pcard">
       <div class="seg" id="appThemeBox"></div>
       <div class="seg" id="appSkinBox"></div>
@@ -2723,6 +2906,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="rtitle" id="rTitle"></div>
     <button id="btnAiChat" title="Обсудить книгу" aria-label="Обсудить книгу"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg></button><!-- 20.10 ИИ-чат по книге (content.js) -->
     <button id="btnTts" title="Озвучка" aria-label="Озвучка" aria-pressed="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
+    <button id="rqPause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 28.10 пауза в верхней панели вместо плавающего круга (Джессика: «неудобно, когда она плавает»), js/reader-ui.js pauseApply -->
     <button id="btnFind" type="button" title="Поиск по книге" aria-label="Поиск по книге" aria-haspopup="dialog"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><!-- 20.10 лупа: поиск по книге (js/book-find.js) -->
     <div class="rbright" id="rBright"><button type="button" class="rbb lo" id="barBrightLo" aria-label="Темнее"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><button type="button" class="rbb hi" id="barBrightHi" aria-label="Ярче"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button></div>
   </header>
@@ -2751,13 +2935,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button id="navNext" class="navbtn hidden" aria-label="Следующая страница">›</button>
   <div id="warmer"></div>
   <div id="dimmer"></div>
-  <div id="pgLine"><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
+  <div id="pgLine"><span id="rqPausedTag">Пауза</span><span id="fzChip" role="status"></span><span id="rxClock" aria-hidden="true"></span><span id="rxInfo" aria-hidden="true"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <i id="fzLine" aria-hidden="true"></i><!-- 25.10 «Фокус»: thin line of the round (js/focus.js) -->
   <div id="fzHold" class="fzcard hidden" role="alertdialog" aria-labelledby="fzHoldT"><p id="fzHoldT"></p><p class="fzsub">Если это был звонок или что-то срочное, круг можно продолжить один раз. Минуты за время выхода не идут.</p><div class="fzbtns"><button type="button" class="cta" id="fzHoldGo">Продолжить круг</button><button type="button" class="ghostbtn" id="fzHoldNew">Начать заново</button></div></div>
   <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
-  <button id="rqPause" class="rq-pause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 25.10 пауза (js/reader-ui.js pauseApply) -->
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
@@ -2786,6 +2969,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="grab" aria-hidden="true"></div>
     <button class="closes" id="sheetClose" aria-label="Закрыть"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-x"/></svg></button>
     <h3 id="sheetH">Настройки чтения</h3>
+    <div id="gsPrev" aria-hidden="true"><p>Через базарную площадь идёт полицейский надзиратель Очумелов в новой шинели и с узелком в руке. За ним шагает рыжий городовой с решетом, доверху наполненным конфискованным крыжовником.</p></div>
     <div class="settabs" id="setCats" role="tablist">
       <button class="on" data-g="grpText" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-type"/></svg><span>Текст</span></button>
       <button data-g="grpPage" role="tab"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-file-text"/></svg><span>Страница</span></button>
@@ -2794,6 +2978,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     </div>
     </div>
     <div class="setgrp on" id="grpText">
+      <div class="rrow stack" id="rPresetRow"><span class="rl" id="rPresetL">Мои наборы<small>шрифт, размер, интервалы, поля и яркость одним нажатием</small></span><div class="rpresets" id="rPresets" role="group" aria-labelledby="rPresetL"></div></div>
+      <div class="rrow stack" id="rBookOnlyRow"><span class="rl" id="rBookOnlyL">Оформление текста<small id="rBookOnlyS">шрифт, размер, интервалы и поля</small></span><div class="rseg" id="rBookOnly" role="radiogroup" aria-labelledby="rBookOnlyL"><button type="button" data-v="all" role="radio">Ко всем книгам</button><button type="button" data-v="one" role="radio">Только к этой</button></div></div>
       <div class="rrow pdfonly"><span class="rl" id="pdfFontTglL">Шрифт читалки в PDF<small>текст страницы выбранным шрифтом, как в ReadEra</small></span><button class="rsw" id="pdfFontTgl" role="switch" aria-checked="false" aria-labelledby="pdfFontTglL"></button></div>
       <div class="rrow pdfonly"><span class="rl" id="ocrRowL">Текст страницы<small>распознать скан, скопировать весь текст</small></span><button type="button" class="ghostbtn" id="ocrRowB" aria-describedby="ocrRowL">Открыть</button></div>
       <div class="rrow txtonly"><span class="rl" id="szValL">Размер текста</span><div class="rstep" role="group" aria-labelledby="szValL"><button id="szMinus" aria-label="Меньше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="szVal" aria-live="polite"></span><button id="szPlus" aria-label="Больше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
@@ -2825,7 +3011,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="setgrp" id="grpFocus">
       <div class="rrow stack"><span class="rl" id="focusSegL">Режим фокуса</span><div class="rseg" id="focusSeg" role="group" aria-labelledby="focusSegL"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div></div>
       <div class="rnote">Остаётся только текст. Выход — тап в центр.</div>
-      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>круг на странице: на паузе время, опыт и монеты не идут; передвинь пальцем</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
+      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>в верхней панели: на паузе время, опыт и монеты не идут</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
       <div class="rrow"><span class="rl" id="readCntTglL">Счётчик минут<small>«7 / 10 мин» в углу в режиме фокуса</small></span><button class="rsw" id="readCntTgl" role="switch" aria-checked="false" aria-labelledby="readCntTglL"></button></div>
       <div id="fzBox" hidden></div><!-- 25.10 помодоро, тихий режим, звуки, фокус-слова, вызовы недели, карта (js/focus.js) -->
     </div>
@@ -2885,11 +3071,14 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/hero.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/v6-extras.js"></script>
+<script src="js/settings-hub.js"></script>
+<script src="js/read-extras.js"></script>
 <script src="js/ach-core.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/path.js"></script>
 <script src="js/adv.js"></script>
 <script src="js/diary.js"></script>
+<script src="js/sel-tools.js"></script>
 <script src="js/start.js"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>

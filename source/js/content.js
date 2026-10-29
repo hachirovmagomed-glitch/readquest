@@ -973,7 +973,7 @@ async function removeBook(id,wipeFile){
     :{t:'Убрать «'+b.title+'»?',p:'Прогресс и цитаты по этой книге удалятся. Файл на устройстве останется.',ok:'Убрать',danger:true}))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
-  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
+  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];if(S.chars)delete S.chars[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */

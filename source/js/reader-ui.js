@@ -1043,7 +1043,8 @@ function pauseOn(){return honestOn()&&!!R.book;}
 function pauseApply(){
   if(__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(!R.paused&&!ttsOn&&(isMvp()||!!R.timerOn));
   const b=el('rqPause');if(b){b.classList.toggle('on',!!R.paused);b.setAttribute('aria-pressed',R.paused?'true':'false');
-    b.setAttribute('aria-label',R.paused?'Продолжить счёт':'Пауза');b.innerHTML=rqIcon(R.paused?'play':'pause',20);}
+    b.setAttribute('aria-label',R.paused?'Продолжить счёт':'Пауза');b.innerHTML=rqIcon(R.paused?'play':'pause',22);}
+  const rd=el('reader');if(rd)rd.classList.toggle('paused',!!R.paused);
   clearInterval(pauseIv);pauseIv=R.paused==='auto'?setInterval(pauseCheck,1000):null;
   try{document.dispatchEvent(new CustomEvent('rq-pause',{detail:{paused:R.paused||false}}));}catch(e){} /* «Фокус»: the pomodoro circle shows «на паузе» */
 }
@@ -1062,25 +1063,9 @@ function pauseCheck(){
 }
 function pauseShow(){
   const b=el('rqPause');if(!b)return;
-  const on=pauseOn()&&SET.pauseBtn!==false;b.hidden=!on;if(!on)return;
-  const xy=SET.pauseXY||{x:0.88,y:0.7};pausePlace(xy.x*innerWidth,xy.y*innerHeight);
+  const on=pauseOn()&&SET.pauseBtn!==false;b.hidden=!on; /* 28.10: a header button, no position (SET.pauseXY is kept, unused) */
 }
-function pausePlace(cx,cy){const b=el('rqPause'),r=26,m=6;
-  cx=Math.max(r+m,Math.min(innerWidth-r-m,cx));cy=Math.max(r+m,Math.min(innerHeight-r-m,cy));
-  b.style.left=(cx-r)+'px';b.style.top=(cy-r)+'px';return {x:cx,y:cy};}
-(function wirePause(){
-  const b=el('rqPause');if(!b)return;let d=null;
-  b.addEventListener('pointerdown',function(e){e.stopPropagation();d={x:e.clientX,y:e.clientY,moved:false};try{b.setPointerCapture(e.pointerId);}catch(_){}});
-  b.addEventListener('pointermove',function(e){if(!d)return;
-    if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.moved=true;b.classList.add('drag');pausePlace(e.clientX,e.clientY);});
-  b.addEventListener('pointerup',function(e){e.stopPropagation();if(!d)return;const was=d;d=null;b.classList.remove('drag');
-    if(was.moved){const p=pausePlace(e.clientX,e.clientY);SET.pauseXY={x:Math.round(p.x/innerWidth*1000)/1000,y:Math.round(p.y/innerHeight*1000)/1000};saveSet();}
-    else pauseSet(R.paused?false:'me');});
-  b.addEventListener('pointercancel',function(){d=null;b.classList.remove('drag');});
-  b.addEventListener('click',function(e){e.stopPropagation();});
-  b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pauseSet(R.paused?false:'me');}});
-  addEventListener('resize',function(){if(!b.hidden)pauseShow();});
-})();
+(function wirePause(){const b=el('rqPause');if(!b)return;b.addEventListener('click',function(e){e.stopPropagation();pauseSet(R.paused?false:'me');});})();
 /* Джессика 16.10: the bare «stop» square read as a glitch. Listening = a pause icon on a highlighted button (aria-pressed), stop = the speaker again. */
 function ttsBtn(on){const b=el('btnTts');if(!b)return;b.innerHTML=rqIcon(on?'pause':'volume-2');b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',on?'true':'false');
   const l=on?'Остановить озвучку':'Озвучка';b.setAttribute('aria-label',l);b.title=l;}
@@ -1236,7 +1221,7 @@ async function closeReaderImpl(opts){
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
-  if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true; /* 25.10 */
+  if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
   R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();

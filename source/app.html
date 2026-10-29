@@ -995,6 +995,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 18.10 «Обзор» with real thumbnails (js/page-grid.js): a tile per page, a picture only near the screen */
 .pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px 10px}
 .pgt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;color:var(--muted);font-size:0.6875rem;font-variant-numeric:tabular-nums;cursor:pointer}
+.pgfr{display:block;position:relative} /* 29.10: the picture + its marks (the marks stay when the picture is dropped) */
 .pgth{display:block;position:relative;width:100%;aspect-ratio:var(--pg-asp,.66);background:var(--r-bg,#f4ecd8);border-radius:var(--rq-radius-xs);overflow:hidden;box-shadow:0 0 0 1px var(--card2)}
 .pgth canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 .pgsc{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
@@ -1002,7 +1003,35 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 .pgt.cur .pgth{box-shadow:0 0 0 2px var(--accent)}
 .pgt.cur .pgn{color:var(--txt);font-weight:700}
 .pgn{position:relative;text-align:center}
-.pgn .m{margin-left:3px;color:var(--accent)}
+/* 29.10 «Обзор» (Джессика, пункты 1, 2, 4, 7): bar «Стр. [__] Перейти · К текущей», chapter titles, marks on the pictures, the fast thumb */
+#panelBody .pgbar{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:6px;margin:0 -16px;padding:2px 16px 10px;background:var(--sheet)}
+.pgbar .pggo{display:flex;align-items:center;gap:6px;font-size:0.8125rem;color:var(--muted)}
+.pgbar input{width:5.2em;min-height:40px;padding:0 8px;border-radius:var(--rq-radius-sm);border:1px solid var(--card2);background:var(--card2);color:var(--txt);font:inherit;font-size:0.9375rem;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.pgbar input::-webkit-inner-spin-button,.pgbar input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.pgbar input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pgbar .spacer{flex:1}
+.pgbar .pgbtn{display:inline-flex;align-items:center;gap:5px;min-height:40px;padding:0 10px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt);font-size:0.8125rem;font-weight:600;white-space:nowrap}
+.pgbar .pgbtn .ic{color:var(--accent)}
+.pgsec{position:relative}
+.pgsec+.pgsec{margin-top:14px}
+#panelBody .pgch{position:sticky;top:var(--pgbar-h,52px);z-index:3;display:flex;align-items:baseline;gap:8px;margin:0 -16px 8px;padding:6px 16px 7px;background:var(--sheet);font-size:0.8125rem;font-weight:700;color:var(--txt);border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+.pgch .pgcht{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgch .pgchp{flex:none;font-size:0.6875rem;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.pgbm{position:absolute;top:-2px;right:6px;z-index:1;display:flex;color:var(--accent);filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.pgbm .ic{fill:currentColor}
+.pgqs{position:absolute;left:5px;bottom:5px;z-index:1;display:flex;align-items:center;gap:3px;padding:3px 4px;border-radius:999px;background:color-mix(in srgb,var(--sheet) 82%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--txt) 12%,transparent)}
+.pgqs i{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--d) 30%,var(--d2,var(--d)) 70%)}
+.pgqs .pgnote{display:flex;color:var(--txt)}
+.pgscr{position:absolute;right:2px;width:30px;z-index:6;pointer-events:none}
+.pgscr[hidden]{display:none}
+.pgscr-th{position:absolute;top:0;right:0;width:30px;height:48px;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;cursor:grab}
+.pgscr-th i{width:8px;height:40px;border-radius:999px;background:var(--accent);opacity:.55;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:width .15s,opacity .15s}
+.pgscr.on .pgscr-th i{width:12px;opacity:1}
+.pgscr-tip{position:absolute;top:0;right:36px;display:none;flex-direction:column;align-items:flex-end;gap:1px;max-width:min(240px,70vw);padding:6px 10px;border-radius:var(--rq-radius-sm);background:var(--accent);color:var(--on-accent);font-size:0.75rem;line-height:1.25;box-shadow:var(--rq-shadow-2,0 4px 14px rgba(0,0,0,.3));white-space:nowrap}
+.pgscr-tip b{font-size:0.9375rem;font-variant-numeric:tabular-nums}
+.pgscr-tip span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pgscr.on .pgscr-tip{display:flex}
+@media (prefers-reduced-motion:reduce){.pgscr-th i{transition:none}}
 /* «Яркость» (#dimmer; was «Затемнение» until 20.10) = screen brightness (Джессика 17.10): the whole reader screen, bars included, evenly — a child of #reader, not of
    #viewer (that one is inset by the margins and scrolls in scroll mode). Above the bars (30), under the settings sheet (50). */
 #dimmer{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:45}
@@ -1399,10 +1428,12 @@ body.rew-open .screen:not(#rewardsSheet){visibility:hidden}
 .achv-tile{display:flex;gap:12px;padding:12px;border-radius:var(--rq-radius-md);background:var(--card);margin-bottom:8px}
 .achv-tile.got .achv-ic{color:var(--accent2);box-shadow:inset 0 0 0 1.5px var(--accent2)}
 .achv-tile .pbar{margin-top:6px}
-#rqPause{position:fixed;z-index:30;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;
-  background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--txt);border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);opacity:.45;touch-action:none;transition:opacity .2s}
-#rqPause[hidden]{display:none}#rqPause.on{opacity:.95;color:var(--accent);border-color:var(--accent)}#rqPause.drag{opacity:.9;transition:none}
-@media (prefers-reduced-motion:reduce){#rqPause{transition:none}}
+/* 28.10 (Джессика: «неудобно, когда она плавает… пусть она будет во вкладках либо снизу, либо сверху»): the pause is a header button
+   (hides and shows with the bars); on pause it takes the accent and a quiet «Пауза» stays in the page-number strip */
+#rqPause[hidden]{display:none}#rqPause.on{color:var(--rq-accent-text,var(--accent))}
+#rqPausedTag{display:none;margin-right:auto;font:600 12px/1 system-ui,-apple-system,sans-serif;color:var(--rq-accent-text,var(--accent))}
+#reader.paused #rqPausedTag{display:block}
+#reader.paused.fzrun #rqPausedTag{display:none}
 #sumQuiz{text-align:left;font-size:0.875rem;line-height:1.45;margin:4px 0 10px}
 #sumQuiz .qz-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#sumQuiz .qz-h .ic{flex:none;color:var(--accent2)}
 #sumQuiz .qz-t{color:var(--muted)}#sumQuiz .qz-q{font-weight:600;margin-bottom:8px}
@@ -2717,6 +2748,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="rtitle" id="rTitle"></div>
     <button id="btnAiChat" title="Обсудить книгу" aria-label="Обсудить книгу"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-message-circle"/></svg></button><!-- 20.10 ИИ-чат по книге (content.js) -->
     <button id="btnTts" title="Озвучка" aria-label="Озвучка" aria-pressed="false"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-volume-2"/></svg></button>
+    <button id="rqPause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 28.10 пауза в верхней панели вместо плавающего круга (Джессика: «неудобно, когда она плавает»), js/reader-ui.js pauseApply -->
     <button id="btnFind" type="button" title="Поиск по книге" aria-label="Поиск по книге" aria-haspopup="dialog"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></button><!-- 20.10 лупа: поиск по книге (js/book-find.js) -->
     <div class="rbright" id="rBright"><button type="button" class="rbb lo" id="barBrightLo" aria-label="Темнее"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button><input type="range" id="barBright" min="30" max="100" step="5" value="100" aria-label="Яркость"><button type="button" class="rbb hi" id="barBrightHi" aria-label="Ярче"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button></div>
   </header>
@@ -2745,13 +2777,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <button id="navNext" class="navbtn hidden" aria-label="Следующая страница">›</button>
   <div id="warmer"></div>
   <div id="dimmer"></div>
-  <div id="pgLine"><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
+  <div id="pgLine"><span id="rqPausedTag">Пауза</span><span id="fzChip" role="status"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <i id="fzLine" aria-hidden="true"></i><!-- 25.10 «Фокус»: thin line of the round (js/focus.js) -->
   <div id="fzHold" class="fzcard hidden" role="alertdialog" aria-labelledby="fzHoldT"><p id="fzHoldT"></p><p class="fzsub">Если это был звонок или что-то срочное, круг можно продолжить один раз. Минуты за время выхода не идут.</p><div class="fzbtns"><button type="button" class="cta" id="fzHoldGo">Продолжить круг</button><button type="button" class="ghostbtn" id="fzHoldNew">Начать заново</button></div></div>
   <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>
-  <button id="rqPause" class="rq-pause" type="button" hidden aria-pressed="false" aria-label="Пауза"></button><!-- 25.10 пауза (js/reader-ui.js pauseApply) -->
   <button id="jumpBack" class="hidden" type="button"><span class="jb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span id="jumpBackN"></span></span></button>
   <i id="jumpMark" class="hidden" aria-hidden="true"></i>
   <div id="pinchHint" class="hidden" aria-hidden="true"><b>Aa</b> <span id="pinchHintN"></span></div>
@@ -2819,7 +2850,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="setgrp" id="grpFocus">
       <div class="rrow stack"><span class="rl" id="focusSegL">Режим фокуса</span><div class="rseg" id="focusSeg" role="group" aria-labelledby="focusSegL"><button data-f="off">Выкл</button><button data-f="button">Кнопкой</button><button data-f="auto">Авто</button></div></div>
       <div class="rnote">Остаётся только текст. Выход — тап в центр.</div>
-      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>круг на странице: на паузе время, опыт и монеты не идут; передвинь пальцем</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
+      <div class="rrow"><span class="rl" id="pauseTglL">Кнопка паузы<small>в верхней панели: на паузе время, опыт и монеты не идут</small></span><button class="rsw" id="pauseTgl" role="switch" aria-checked="true" aria-labelledby="pauseTglL"></button></div>
       <div class="rrow"><span class="rl" id="readCntTglL">Счётчик минут<small>«7 / 10 мин» в углу в режиме фокуса</small></span><button class="rsw" id="readCntTgl" role="switch" aria-checked="false" aria-labelledby="readCntTglL"></button></div>
       <div id="fzBox" hidden></div><!-- 25.10 помодоро, тихий режим, звуки, фокус-слова, вызовы недели, карта (js/focus.js) -->
     </div>

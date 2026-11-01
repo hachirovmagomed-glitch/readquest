@@ -1,10 +1,13 @@
-/* 29.10 (Джессика: «что мы можем добавить в боковое меню, чтобы оно было максимально крутым и полезным?» → «давай 1 2 3 5 7», «с 8-11 тоже»):
+/* 29.10 (Джессика: «что мы можем добавить в боковое меню, чтобы оно было максимально крутым и полезным?» → «давай 1 2 3 5 7», «с 8-11 тоже»;
+   потом «поиск, озвучку убираем из бокового меню. Вместо них … перевод, "объяснить" от нейронки», «в одном боковом меню на две разные кнопки
+   открывались разные ветки», нижняя плашка при выделении убрана — «Убрать, всё в меню»; «копирование в боковое меню… убери герой книги и отметить героя»):
    the tools of the side menu of a selection (#selSide, js/reader-ui.js ssEl/ssUpd).
-   In the column: the last colour in one tap, «Найти в книге» (the magnifier with the selected words), «Озвучить выделенное», the count of words.
-   Under «⋯»: «В дневник», «Закладка здесь» (the page where the selection begins, its words in the list), «Википедия» (a short note, ru/en),
-   «До конца абзаца», «До конца страницы», «Отметить героя» and «Герои книги» (S.chars[bookId] = names; a name opens the magnifier
-   with all its places). */
-const ST={say:null};
+   In the column: «Цвета» (a branch with the skin's colours and «свой цвет»: the real #spColors moves in, so every skin draws its own drops),
+   «Копировать», «Перевести», «Объясни», «Действия» (a branch: «Заметка», «В словарь», «Предложение, потом абзац», «В дневник», «Закладка здесь»,
+   «Википедия», «До конца абзаца», «До конца страницы»), the count of words.
+   «Копировать», «Перевести», «Объясни», «Заметка», «В словарь», «Предложение…» are the buttons of the bar (#selpop) — the same code.
+   S.chars (heroes, 29.10) stays in the data, its buttons are gone. */
+const ST={};
 function stText(){let t=(typeof selText==='function'&&selText())||'';
   if(typeof PQ!=='undefined'&&PQ&&R.book&&PQ.bid===R.book.id&&PQ.text)t=PQ.text+' '+t;
   return String(t).replace(/\s+/g,' ').trim();}
@@ -15,70 +18,61 @@ function stPage(){
   const s=window.getSelection();if(R.mode==='pdf'||!s||!s.rangeCount||!selPagesOn())return R.page;
   const r=[...s.getRangeAt(0).getClientRects()].find(x=>x.width);return r?Math.max(0,Math.min(R.pageCount-1,selPageAt(r))):R.page;}
 function stLab(p){return R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(p):String(p+1);}
+function stBar(id){return function(){const b=el(id);if(b)b.click();};}
+/** a bar button the reader switched off in «Чтение → Кнопки меню выделения» (js/read-extras.js, .rxoff) is off here too */
+function stOff(id){const b=el(id);return !b||b.classList.contains('rxoff');}
 
 function stBind(){
-  el('ssQuick').onclick=function(){if(stText())addQuote(false,hlKey(SET.hlc));};
-  el('ssFind').onclick=stFind;
-  el('ssSay').onclick=stSay;
-  el('ssMore').onclick=function(){stMenu(el('ssMenu').hidden);};
+  el('ssCol').onclick=function(){const on=el('ssColBox').hidden;stMenu(false);stCol(on);};
+  el('ssCopy').onclick=stBar('spCopy');
+  el('ssCnt').onclick=function(){if(typeof selView==='function')selView();};
+  el('ssDict').onclick=stBar('spDict');
+  el('ssAI').onclick=stBar('spAI');
+  el('ssMore').onclick=function(){const on=el('ssMenu').hidden;stCol(false);stMenu(on);};
   el('ssMenu').onclick=function(e){const b=e.target.closest&&e.target.closest('button[data-a]');if(!b)return;const f=ST_ACT[b.dataset.a];stMenu(false);if(f)f();};
 }
 function stUpd(){
-  const q=el('ssQuick');if(!q)return;const k=hlKey(SET.hlc),nm=k[0]==='#'?'Свой цвет':hlName(k); /* a hex = the reader's own colour, hlName knows only the presets */
+  const q=el('ssCol');if(!q)return;const k=hlKey(SET.hlc);
   q.style.setProperty('--d',hlDot(k));q.style.setProperty('--d2',hlDot2(k));
-  q.setAttribute('aria-label','Цитата цветом «'+nm+'»');q.title='Цитата: '+nm;
-  const n=stWords(stText()),c=el('ssCnt');
-  c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>';c.setAttribute('aria-label','Выделено '+n+' '+plural(n,'слово','слова','слов'));
-  const sy=el('ssSay'),on=!!ST.say;sy.setAttribute('aria-pressed',on?'true':'false');
-  if(sy.dataset.on!==String(on)){sy.dataset.on=String(on);sy.innerHTML=rqIcon(on?'square':'volume-2',21);sy.setAttribute('aria-label',on?'Остановить озвучку':'Озвучить выделенное');sy.title=sy.getAttribute('aria-label');}
+  q.hidden=stOff('spColors');el('ssCopy').hidden=stOff('spCopy');el('ssDict').hidden=stOff('spDict');el('ssAI').hidden=stOff('spAI');
+  const n=stWords(stText()),c=el('ssCnt'),pg=typeof selStats==='function'?selStats().pages:1;
+  /* 28.10 (Джессика: «непонятно, что я скопировал»): the count also says over how many pages; a tap shows the whole selected text */
+  c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>'+(pg>1?'<span>'+pg+' стр.</span>':'');
+  c.setAttribute('aria-label','Выделено '+n+' '+plural(n,'слово','слова','слов')+(pg>1?' на '+pg+' '+plural(pg,'странице','страницах','страницах'):'')+' — показать текст');
 }
-
-/* «⋯»: a labelled list next to the column (on the side of the text) */
-function stMenu(on){
-  const m=el('ssMenu'),b=el('ssMore');if(!m)return;
-  if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
-  const nh=((S.chars||{})[R.book&&R.book.id]||[]).length;
-  const it=[
-    typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
-    ['mark','bookmark','Закладка здесь'],
-    ['wiki','info','Википедия'],
-    R.mode!=='pdf'&&['para','align-justify','До конца абзаца'],
-    selPagesOn()&&['page','chevron-down','До конца страницы'],
-    ['hero','user-round','Отметить героя'],
-    ['heroes','list','Герои книги'+(nh?' · '+nh:'')]
-  ].filter(Boolean);
-  m.innerHTML=it.map(x=>'<button type="button" role="menuitem" data-a="'+x[0]+'">'+rqIcon(x[1],18)+'<span>'+esc(x[2])+'</span></button>').join('');
-  m.hidden=false;b.setAttribute('aria-expanded','true');
+/** a branch next to the column, at the height of its button, whole on screen */
+function stBranch(m,b){
   const sd=el('selSide').getBoundingClientRect(),br=b.getBoundingClientRect(),h=m.getBoundingClientRect().height;
   const top=Math.max(8-sd.top,Math.min(innerHeight-8-h-sd.top,br.top-sd.top-h/2+br.height/2));m.style.top=Math.round(top)+'px';
 }
+/* «Цвета»: the bar's own colour buttons (#spColors, its click = a quote in that colour, «свой цвет» = the picker) move into the branch
+   and go back to the bar when the branch closes (a tapped saved quote still recolours in the bar) */
+function stCol(on){
+  const m=el('ssColBox'),b=el('ssCol'),c=el('spColors');if(!m||!c)return;
+  if(!on){if(c.parentNode!==el('selpop'))el('selpop').insertBefore(c,el('spNote'));m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
+  if(typeof renderSpColors==='function')renderSpColors();
+  m.appendChild(c);m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
+}
 
-function stFind(){
-  const t=stText().slice(0,80);if(t.length<2||typeof bfOpen!=='function')return;
-  bfOpen();const i=el('bfQ');i.value=t;bfSet(t);bfClrSync();setTimeout(function(){try{i.blur();}catch(e){}},40);ssUpd();
+/* «Действия»: a labelled list next to the column (on the side of the text) */
+function stMenu(on){
+  const m=el('ssMenu'),b=el('ssMore');if(!m)return;
+  if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
+  const it=[
+    !stOff('spNote')&&['note','pencil','Заметка'],
+    !stOff('spWord')&&['word','book-open','В словарь'],
+    R.mode!=='pdf'&&!stOff('spGrow')&&['grow','align-justify','Предложение, потом абзац'],
+    R.mode!=='pdf'&&!stOff('spGrow')&&['sent','plus','+ предложение'], /* 28.10 (Джессика: «кнопки быстрого выделения»): the next one, also onto the next page */
+    R.mode!=='pdf'&&!stOff('spGrow')&&['parn','plus','+ абзац'],
+    typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
+    ['mark','bookmark','Закладка здесь'],
+    ['wiki','info','Википедия'],
+    R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
+    selPagesOn()&&['page','chevron-down','До конца страницы'],
+  ].filter(Boolean);
+  m.innerHTML=it.map(x=>'<button type="button" role="menuitem" data-a="'+x[0]+'">'+rqIcon(x[1],18)+'<span>'+esc(x[2])+'</span></button>').join('');
+  m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
 }
-/* «Озвучить выделенное»: only these words, by the reader's own voice settings (system voice, or the neural one on their key) */
-function stSay(){
-  if(ST.say){stSayStop();return;}
-  const t=stText().slice(0,3000);if(!t)return;
-  if(typeof ttsOn!=='undefined'&&ttsOn)ttsStop();
-  if(typeof nttsOn==='function'&&nttsOn()){
-    const me={a:null};ST.say=me;stUpd();
-    nttsFetch(t).then(function(blob){if(ST.say!==me)return;const a=new Audio(URL.createObjectURL(blob));me.a=a;
-      a.onended=a.onerror=function(){if(ST.say===me)stSayStop();};const pp=a.play();if(pp&&pp.catch)pp.catch(function(){if(ST.say===me)stSayStop();});},
-      function(e){if(ST.say!==me)return;stSayStop();flashMsg('Не получилось озвучить'+(e&&e.message?': '+e.message:''),{kind:'error'});});
-    return;
-  }
-  if(!window.speechSynthesis||typeof SpeechSynthesisUtterance==='undefined'){flashMsg('На этом устройстве нет озвучки',{kind:'error'});return;}
-  try{speechSynthesis.cancel();}catch(e){}
-  const u=new SpeechSynthesisUtterance(t),ru=/[а-яё]/i.test(t);u.lang=ru?'ru-RU':'en-US';
-  if(ru){const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}}
-  const me={u:u};ST.say=me;u.onend=u.onerror=function(){if(ST.say===me)stSayStop();};
-  speechSynthesis.speak(u);stUpd();
-}
-function stSayStop(){const x=ST.say;ST.say=null;
-  if(x){if(x.a){try{x.a.pause();URL.revokeObjectURL(x.a.src);}catch(e){}}if(x.u){try{speechSynthesis.cancel();}catch(e){}}}
-  if(el('ssSay'))stUpd();}
 
 function stDiary(){
   const t=stText(),bid=R.book&&R.book.id;if(!t||!bid||!qDiaryOn())return;const p=stPage();
@@ -146,27 +140,4 @@ function stWiki(){
   },function(){if(ST.wiki!==me)return;stSheet('Википедия','<p class="stmuted">Нет связи с Википедией. Проверьте интернет и попробуйте ещё раз</p>');});
 }
 
-/* «Герои книги»: names the reader marked; a name is looked for by its stem (Анна → «Анн»: Анну, Анны), the magnifier shows every place */
-function stHeroes(){const b=R.book&&R.book.id;if(!b)return [];S.chars=S.chars||{};return S.chars[b]=S.chars[b]||[];}
-function stStem(n){return n.split(' ').map(function(w){return w.length>3?w.replace(/[аяоеиыуюйь]$/i,''):w;}).join(' ');}
-function stHero(){
-  const t=stText().replace(/^[^\p{L}]+|[^\p{L}]+$/gu,'');
-  if(!t||t.length>40||t.split(' ').length>4){flashMsg('Выделите имя героя: от одного до четырёх слов',{kind:'info',icon:'user-round'});return;}
-  const hs=stHeroes(),lo=t.toLowerCase();
-  if(!hs.some(function(x){return x.toLowerCase()===lo;})){hs.push(t);save();}
-  flashMsg('«'+t+'» в героях книги',{kind:'info',icon:'user-round'});
-}
-function stHeroCount(n){const b=R.book;if(!b||!b.text||typeof bfNorm!=='function')return -1;
-  const q=bfNorm(stStem(n)),tx=bfNorm(b.text);let c=0,i=0;while((i=tx.indexOf(q,i))>-1){c++;i+=q.length;}return c;}
-function stHeroesOpen(){
-  const hs=stHeroes();
-  const rows=hs.map(function(n,i){const c=stHeroCount(n);
-    return '<div class="sthero"><button type="button" class="sthgo" data-i="'+i+'">'+rqIcon('user-round',18)+'<span>'+esc(n)+'</span>'+(c>=0?'<small>'+c+' '+plural(c,'раз','раза','раз')+'</small>':'')+'</button>'+
-      '<button type="button" class="sthdel" data-i="'+i+'" aria-label="Убрать «'+esc(n)+'» из героев">'+rqIcon('x',16)+'</button></div>';}).join('');
-  const box=stSheet('Герои книги',hs.length?rows:'<p class="stmuted">Пока никого. Выделите имя в книге и нажмите «⋯» → «Отметить героя»</p>');
-  box.onclick=function(e){const g=e.target.closest('.sthgo'),d=e.target.closest('.sthdel');
-    if(d){hs.splice(+d.dataset.i,1);save();stHeroesOpen();return;}
-    if(g){const n=hs[+g.dataset.i];if(!n)return;stSheetClose();window.getSelection().removeAllRanges();
-      bfOpen();const q=stStem(n),i=el('bfQ');i.value=q;bfSet(q);bfClrSync();setTimeout(function(){try{i.blur();}catch(er){}},40);}};
-}
-const ST_ACT={diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,hero:stHero,heroes:stHeroesOpen};
+const ST_ACT={note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd};

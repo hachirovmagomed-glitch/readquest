@@ -1,6 +1,6 @@
 // 29.10 (Джессика: «что мы можем добавить в боковое меню …» → «давай 1 2 3 5 7», «с 8-11 тоже»): the tools of the side menu of a selection
-// (js/sel-tools.js): the last colour in one tap, «Найти в книге», «Озвучить выделенное», the count of words; under «⋯» «В дневник»,
-// «Закладка здесь», «Википедия», «До конца абзаца», «До конца страницы», «Отметить героя», «Герои книги».
+// (js/sel-tools.js): «Цвета», «Копировать», «Перевести», «Объясни», the count of words; under «Действия» «Заметка», «В словарь», «В дневник»,
+// «Закладка здесь», «Википедия», «До конца абзаца», «До конца страницы». Heroes went away (29.10 17:02).
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node seltools.test.mjs
 import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
@@ -35,37 +35,41 @@ const w = (ms) => sleep(ms);
 
 // 7. the count of words
 const c7 = await p.evaluate(async () => { __word('Через базарную площадь'); await __open(); return { cnt: el('ssCnt').textContent, lab: el('ssCnt').getAttribute('aria-label') }; });
-ok('7. count: «3 слова» under the tools', c7.cnt === '3слова' && c7.lab === 'Выделено 3 слова', c7);
+ok('7. count: «3 слова» under the tools', c7.cnt === '3слова' && /^Выделено 3 слова — показать текст$/.test(c7.lab), c7); // 28.10: a tap on the count shows the selected text
 
-// 1. the last colour: one tap saves the quote in it; the dot shows the colour
-const q1 = await p.evaluate(async () => { SET.hlc = 'g'; saveSet(); ssUpd(); const lab = el('ssQuick').getAttribute('aria-label'), d = el('ssQuick').style.getPropertyValue('--d');
-  const bid = R.book.id, n0 = (S.quotes[bid] || []).length; el('ssQuick').click(); await new Promise(r => setTimeout(r, 400));
-  const qs = S.quotes[bid] || [], q = qs.at(-1); return { lab, d, n: qs.length - n0, t: q && q.text, c: q && q.c, sel: String(getSelection()) }; });
-ok('1. quick colour: the dot is the last colour, a tap saves the quote in it and clears the selection', q1.n === 1 && q1.t === 'Через базарную площадь' && q1.c === 'g' && /dot-g/.test(q1.d) && /«/.test(q1.lab) && !q1.sel, q1);
+// 29.10 (Джессика: «поиск, озвучку убираем … поставь перевод, "объяснить"», «в одном боковом меню на две разные кнопки открывались
+// разные ветки», нижняя плашка — «Убрать, всё в меню»): no magnifier and no voice in the column; «Цвета» and «Действия» open branches
+const r0 = await p.evaluate(() => ({ find: !!el('ssFind'), say: !!el('ssSay'), quick: !!el('ssQuick'), pen: !!el('ssPen'), bar: getComputedStyle(el('selpop')).display,
+  col: [...el('ssRail').children].map(x => x.id).filter(Boolean) }));
+ok('column: Цвета, Перевести, Объясни, Действия; no search, voice or pencil; the bottom bar is not shown while selecting',
+  !r0.find && !r0.say && !r0.quick && !r0.pen && r0.bar === 'none' && ['ssCol', 'ssDict', 'ssAI', 'ssMore'].every(x => r0.col.includes(x)), r0);
 
-const q1b = await p.evaluate(async () => { __word('Очумелов'); await __open(); SET.hlc = '#3366aa'; saveSet(); ssUpd(); const lab = el('ssQuick').getAttribute('aria-label'); SET.hlc = 'y'; saveSet(); getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); return lab; });
-ok('1. the reader\'s own colour is the last one: the dot says «Свой цвет»', q1b === 'Цитата цветом «Свой цвет»', q1b);
+// «Цвета»: the bar's own colour buttons (skin drops + «свой цвет») in a column beside the menu; a tap saves the quote in that colour
+const c1 = await p.evaluate(async () => { el('ssCol').click(); await new Promise(r => setTimeout(r, 150)); const b = el('ssColBox'), r = b.getBoundingClientRect(), rr = el('ssRail').getBoundingClientRect();
+  return { shown: !b.hidden, inBox: el('spColors').parentNode === b, n: el('spColors').querySelectorAll('button').length, own: !!el('spOwn'), right: r.left >= rr.right, inside: r.top >= 0 && r.bottom <= innerHeight, col: r.height > r.width * 3, exp: el('ssCol').getAttribute('aria-expanded') }; });
+ok('«Цвета»: a column of 5 colours + «свой цвет» beside the menu, on screen', c1.shown && c1.inBox && c1.n === 6 && c1.own && c1.right && c1.inside && c1.col && c1.exp === 'true', c1);
+const c1b = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 100)); const a = { col: el('ssColBox').hidden, menu: !el('ssMenu').hidden }; el('ssCol').click(); await new Promise(r => setTimeout(r, 100)); return Object.assign(a, { menu2: el('ssMenu').hidden, col2: !el('ssColBox').hidden }); });
+ok('one branch at a time: «Действия» closes «Цвета» and back', c1b.col && c1b.menu && c1b.menu2 && c1b.col2, c1b);
+const c1c = await p.evaluate(async () => { const bid = R.book.id, n0 = (S.quotes[bid] || []).length; el('spColors').querySelector('[data-c="g"]').click(); await new Promise(r => setTimeout(r, 400));
+  const qs = S.quotes[bid] || [], q = qs.at(-1); return { n: qs.length - n0, t: q && q.text, c: q && q.c, sel: String(getSelection()), back: el('spColors').parentNode.id, side: el('selSide').hidden }; });
+ok('«Цвета» → green: the quote is saved in green, the selection and menu go, the colours go back to the bar', c1c.n === 1 && c1c.t === 'Через базарную площадь' && c1c.c === 'g' && !c1c.sel && c1c.back === 'selpop' && c1c.side, c1c);
+const c1d = await p.evaluate(async () => { SET.hlc = 'g'; saveSet(); __word('Очумелов'); await __open(); return el('ssCol').style.getPropertyValue('--d'); });
+ok('the «Цвета» button shows the last colour', /dot-g/.test(c1d), c1d);
 
-// 2. «Найти в книге»: the magnifier opens with the selected words, the menu goes away
-const f2 = await p.evaluate(async () => { __word('Очумелов'); await __open(); el('ssFind').click(); await new Promise(r => setTimeout(r, 900));
-  return { open: !el('bookFind').hidden, q: el('bfQ').value, n: BF.hits.length, side: el('selSide').hidden }; });
-ok('2. «Найти в книге»: the magnifier with «Очумелов», places found, the side menu hidden', f2.open && f2.q === 'Очумелов' && f2.n > 3 && f2.side, f2);
-await p.evaluate(() => { bfBack(); getSelection().removeAllRanges(); }); await w(300);
-
-// 3. «Озвучить выделенное»: only these words, Russian voice; again = stop
-const s3 = await p.evaluate(async () => { window.__said = []; __word('Через базарную площадь'); await __open(); el('ssSay').click(); await new Promise(r => setTimeout(r, 100));
-  const a = { said: window.__said.slice(), pressed: el('ssSay').getAttribute('aria-pressed') }; const c0 = window.__cancel || 0; el('ssSay').click(); await new Promise(r => setTimeout(r, 100));
-  return Object.assign(a, { stop: el('ssSay').getAttribute('aria-pressed'), cancelled: (window.__cancel || 0) > c0 }); });
-ok('3. «Озвучить»: the selected words in ru-RU, the button pressed; a second tap stops', s3.said.length === 1 && s3.said[0].t === 'Через базарную площадь' && s3.said[0].lang === 'ru-RU' && s3.pressed === 'true' && s3.stop === 'false' && s3.cancelled, s3);
-const s3b = await p.evaluate(async () => { el('ssSay').click(); await new Promise(r => setTimeout(r, 50)); window.__lastU.onend(); await new Promise(r => setTimeout(r, 50)); return el('ssSay').getAttribute('aria-pressed'); });
-ok('3. the button goes back when the reading ends', s3b === 'false', s3b);
+// «Перевести» and «Объясни»: the same windows as from the bar
+const t2 = await p.evaluate(async () => { el('ssDict').click(); await new Promise(r => setTimeout(r, 300)); const tr = !el('trSheet').classList.contains('hidden'); el('trSheetClose').click(); return tr; });
+ok('«Перевести» opens the translation window', t2, t2);
+const a3 = await p.evaluate(async () => { __word('Очумелов'); await __open(); el('ssAI').click(); await new Promise(r => setTimeout(r, 300)); const s = !el('aiSheet').classList.contains('hidden'), txt = el('aiBody').textContent.slice(0, 60); el('aiSheet').classList.add('hidden'); return { s, txt }; });
+ok('«Объясни» opens the AI window (here: where to put the key)', a3.s, a3);
+await p.evaluate(() => getSelection().removeAllRanges()); await w(200);
+await p.evaluate(async () => { __word('Через базарную площадь'); await __open(); });
 
 // «⋯»: a labelled list next to the column, on the side of the text
 const m = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 150)); const mm = el('ssMenu'), r = mm.getBoundingClientRect(), rr = el('ssRail').getBoundingClientRect();
   return { shown: !mm.hidden, items: [...mm.querySelectorAll('button')].map(b => b.textContent.trim()), right: r.left >= rr.right, inside: r.top >= 0 && r.bottom <= innerHeight && r.right <= innerWidth }; });
-ok('«⋯» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Закладка здесь', 'Википедия', 'До конца абзаца', 'До конца страницы', 'Отметить героя'].every(x => m.items.includes(x)) && m.items.some(x => /^Герои книги/.test(x)), m);
+ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'В словарь', 'Предложение, потом абзац', 'Закладка здесь', 'Википедия', 'До конца абзаца', 'До конца страницы'].every(x => m.items.includes(x)), m);
 const m2 = await p.evaluate(async () => { el('ssFold').click(); await new Promise(r => setTimeout(r, 50)); return el('ssMenu').hidden; });
-ok('«⋯» list closes with the menu', m2, m2);
+ok('«Действия» list closes with the menu', m2, m2);
 const act = (a) => p.evaluate(async (a) => { await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="' + a + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, a);
 
 // 5. «В дневник»: an entry with the words as a quote and the page
@@ -101,23 +105,13 @@ const w9 = await p.evaluate(() => { const o = el('stSheet'); return { shown: o &
 ok('9. «Википедия»: «Очумелов» → search → «Хамелеон (рассказ)», its note and a link', w9.shown && w9.h === 'Хамелеон (рассказ)' && /надзирателе/.test(w9.body) && /wikipedia\.org/.test(w9.href) && wiki.some(u => /opensearch/.test(u)) && wiki.every(u => /^https:\/\/ru\.wikipedia\.org/.test(u)), { w9, wiki });
 await p.evaluate(() => stSheetClose());
 
-// 11. heroes: mark «Очумелов» (twice = once), «Герои книги» lists it with the count, a tap opens the magnifier by its stem
-await act('hero'); await act('hero');
-const h11 = await p.evaluate(() => S.chars[R.book.id]);
-ok('11. «Отметить героя»: the name once in S.chars', JSON.stringify(h11) === '["Очумелов"]', h11);
-const h11b = await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); __word('Ребята, не пущай её! Нынче не велено'); await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="hero"]').click(); await new Promise(r => setTimeout(r, 200)); return S.chars[R.book.id].length; });
-ok('11. a long piece is not a name: nothing added', h11b === 1, h11b);
-await act('heroes');
-const h11c = await p.evaluate(async () => { const rows = [...el('stSheetB').querySelectorAll('.sthgo')].map(b => b.textContent); el('stSheetB').querySelector('.sthgo').click(); await new Promise(r => setTimeout(r, 900));
-  return { rows, find: !el('bookFind').hidden, q: el('bfQ').value, n: BF.hits.length, sheet: el('stSheet').hidden }; });
-ok('11. «Герои книги»: «Очумелов» with its count; a tap opens the magnifier with its places', /^Очумелов\d+ раз/.test(h11c.rows[0] || '') && h11c.find && h11c.q === 'Очумелов' && h11c.n > 3 && h11c.sheet, h11c);
-await p.evaluate(() => bfBack()); await w(300);
-// heroes are kept after a reload
-await p.evaluate(async () => { save(); await new Promise(r => setTimeout(r, 800)); });
-await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(600);
-const h11d = await p.evaluate(() => S.chars && S.chars[allBooks()[0].id]);
-ok('11. heroes are kept after a reload', JSON.stringify(h11d) === '["Очумелов"]', h11d);
-
+// 29.10 17:02 (Джессика: «поместим копирование в боковое меню … убери герой книги и убери отметить героя»)
+const k12 = await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); __word('Очумелов'); await __open();
+  let copied = null; const o = el('spCopy').onclick; el('spCopy').onclick = () => { copied = selText(); }; el('ssCopy').click(); el('spCopy').onclick = o;
+  el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); const items = [...el('ssMenu').querySelectorAll('button')].map(b => b.textContent.trim()); el('ssMore').click();
+  const rail = [...el('ssRail').children].map(x => x.id).filter(Boolean); return { copied, items, rail }; });
+ok('«Копировать» in the column (the bar\'s own copy), not in «Действия»; no heroes in «Действия»',
+  k12.copied === 'Очумелов' && k12.rail.indexOf('ssCopy') > k12.rail.indexOf('ssCol') && k12.rail.indexOf('ssCopy') < k12.rail.indexOf('ssDict') && !k12.items.some(x => /Копировать|геро/i.test(x)), k12);
 ok('no page errors', !errs.length, errs.slice(0, 3));
 await browser.close();
 const f = checks.filter(x => !x).length; console.log(f ? `${f} FAILED of ${checks.length}` : `ALL ${checks.length} PASSED`); process.exit(f ? 1 : 0);

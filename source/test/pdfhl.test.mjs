@@ -92,7 +92,7 @@ await p.screenshot({ path: SHOTS + 'pdfhl-lines.png' });
 await p.evaluate(async () => { jumpTo(2); await new Promise(r => setTimeout(r, 1500)); });
 for (const how of ['touch', 'mouse']) {
   const s6 = await select(3); await sleep(300);
-  const pt = await p.evaluate(() => { if (el('selpop').classList.contains('mini')) el('spMini').click(); /* 27.10: the bar is a circle while selecting */ const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
+  const pt = await p.evaluate(() => { SA.bar = true; selMiniApply(); selPlace(); /* 27.10: the bar is a circle while selecting */ const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
   if (how === 'touch') await p.touchscreen.tap(pt.x, pt.y); else await p.mouse.click(pt.x, pt.y);
   await sleep(700);
   const a6 = await p.evaluate(() => ({ pg: R.page, n: S.quotes[R.book.id].length }));

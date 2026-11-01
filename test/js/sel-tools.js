@@ -25,6 +25,7 @@ function stOff(id){const b=el(id);return !b||b.classList.contains('rxoff');}
 function stBind(){
   el('ssCol').onclick=function(){const on=el('ssColBox').hidden;stMenu(false);stCol(on);};
   el('ssCopy').onclick=stBar('spCopy');
+  el('ssCnt').onclick=function(){if(typeof selView==='function')selView();};
   el('ssDict').onclick=stBar('spDict');
   el('ssAI').onclick=stBar('spAI');
   el('ssMore').onclick=function(){const on=el('ssMenu').hidden;stCol(false);stMenu(on);};
@@ -34,8 +35,10 @@ function stUpd(){
   const q=el('ssCol');if(!q)return;const k=hlKey(SET.hlc);
   q.style.setProperty('--d',hlDot(k));q.style.setProperty('--d2',hlDot2(k));
   q.hidden=stOff('spColors');el('ssCopy').hidden=stOff('spCopy');el('ssDict').hidden=stOff('spDict');el('ssAI').hidden=stOff('spAI');
-  const n=stWords(stText()),c=el('ssCnt');
-  c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>';c.setAttribute('aria-label','Выделено '+n+' '+plural(n,'слово','слова','слов'));
+  const n=stWords(stText()),c=el('ssCnt'),pg=typeof selStats==='function'?selStats().pages:1;
+  /* 28.10 (Джессика: «непонятно, что я скопировал»): the count also says over how many pages; a tap shows the whole selected text */
+  c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>'+(pg>1?'<span>'+pg+' стр.</span>':'');
+  c.setAttribute('aria-label','Выделено '+n+' '+plural(n,'слово','слова','слов')+(pg>1?' на '+pg+' '+plural(pg,'странице','страницах','страницах'):'')+' — показать текст');
 }
 /** a branch next to the column, at the height of its button, whole on screen */
 function stBranch(m,b){
@@ -59,6 +62,8 @@ function stMenu(on){
     !stOff('spNote')&&['note','pencil','Заметка'],
     !stOff('spWord')&&['word','book-open','В словарь'],
     R.mode!=='pdf'&&!stOff('spGrow')&&['grow','align-justify','Предложение, потом абзац'],
+    R.mode!=='pdf'&&!stOff('spGrow')&&['sent','plus','+ предложение'], /* 28.10 (Джессика: «кнопки быстрого выделения»): the next one, also onto the next page */
+    R.mode!=='pdf'&&!stOff('spGrow')&&['parn','plus','+ абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
     ['wiki','info','Википедия'],
@@ -135,4 +140,4 @@ function stWiki(){
   },function(){if(ST.wiki!==me)return;stSheet('Википедия','<p class="stmuted">Нет связи с Википедией. Проверьте интернет и попробуйте ещё раз</p>');});
 }
 
-const ST_ACT={note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd};
+const ST_ACT={note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd};

@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261029-2007',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261101-1028',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261029-2007"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261101-1028"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -741,9 +741,24 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selpop.top #spFold{top:auto;bottom:-18px} /* 28.10 (ревизия, баг 9): плашка у верхнего края — значок «Свернуть» снизу, иначе его срезает экран */
 /* 27.10 (Джессика): while selecting the bar is a small circle (#spMini) — a tap opens it, «Свернуть» folds it back */
 #spMini{display:none!important}
-#selpop.mini{padding:0;border-radius:50%;gap:0}
+#selpop.mini{padding:0 4px 0 0;border-radius:999px;gap:0;align-items:center;flex-wrap:nowrap}
 #selpop.mini>*{display:none!important}
 #selpop.mini>#spMini{display:inline-flex!important;width:48px;height:48px;border-radius:50%;padding:0;color:var(--txt);box-shadow:inset 0 0 0 2px var(--accent)}
+/* our own selection's handles (28.10): a stem from the line's bottom and a round knob; 44 px to grab */
+.smh{position:fixed;z-index:62;width:44px;height:46px;margin-left:-22px;touch-action:none;cursor:grab}
+.smh[hidden]{display:none}
+.smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.smh i::before{content:'';position:absolute;left:9px;top:-6px;width:2px;height:8px;background:var(--accent)}
+.smh.on i{transform:scale(1.15)}
+#selView{position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+#selView[hidden]{display:none}
+#selView .sv-card{background:var(--sheet);color:var(--txt);width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-radius:var(--rq-radius-md) var(--rq-radius-md) 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
+#selView .sv-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#selView .sv-h button{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+#selView .sv-t{overflow:auto;font-size:0.9375rem;line-height:1.5;white-space:pre-wrap}
+#selView .sv-b{display:flex;gap:8px}
+#selView .sv-b button{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt)}
+#selView .sv-b button.pri{background:var(--accent);color:var(--on-accent)}
 #selpop #spFold{position:absolute;top:-18px;right:-4px;min-width:36px;min-height:36px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--sheet);box-shadow:0 2px 8px rgba(0,0,0,.35)} /* a corner badge: the actions keep one row */
 #selpop.qmode #spFold{display:none}
 /* 27.10: ‹ › turn the page with the selection kept; the chip between them says the earlier pages' part is still there (at the bottom: the new page's first word, where the selection goes on, is at the top) */
@@ -779,7 +794,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
 #ssCol i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
 #ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
-#ssCnt{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
+#ssCnt{cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
 #ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
 #ssMenu[hidden],#ssColBox[hidden],#stSheet[hidden]{display:none!important}
 #ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}
@@ -2308,7 +2323,7 @@ body:has(#rqTestBanner) .dyfbar{top:calc(44px + env(safe-area-inset-top))}
 .bk-dy{margin-top:12px}
 @media (prefers-reduced-motion:no-preference){#diary .rsw::after{transition:transform var(--rq-dur-fast,150ms)}}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261029-2007"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261101-1028"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -3049,44 +3064,44 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261029-2007"></script>
-<script src="js/books-builtin.js?v=20261029-2007"></script>
-<script src="js/core-b.js?v=20261029-2007"></script>
-<script src="js/library.js?v=20261029-2007"></script>
-<script src="js/reader.js?v=20261029-2007"></script>
-<script src="js/pdf.js?v=20261029-2007"></script>
-<script src="js/pdf-scroll.js?v=20261029-2007"></script>
-<script src="js/page-curl.js?v=20261029-2007"></script>
-<script src="js/page-grid.js?v=20261029-2007"></script>
-<script src="js/reader-ui.js?v=20261029-2007"></script>
-<script src="js/book-find.js?v=20261029-2007"></script>
-<script src="js/focus.js?v=20261029-2007"></script>
-<script src="js/rpg.js?v=20261029-2007"></script>
-<script src="js/content.js?v=20261029-2007"></script>
-<script src="js/quotes.js?v=20261029-2007"></script>
-<script src="js/translate.js?v=20261029-2007"></script>
-<script src="js/ocr.js?v=20261029-2007"></script>
-<script src="js/hero-pencil.js?v=20261029-2007"></script>
-<script src="js/hero-celestial.js?v=20261029-2007"></script>
-<script src="js/hero.js?v=20261029-2007"></script>
-<script src="js/settings.js?v=20261029-2007"></script>
-<script src="js/v6-extras.js?v=20261029-2007"></script>
-<script src="js/settings-hub.js?v=20261029-2007"></script>
-<script src="js/read-extras.js?v=20261029-2007"></script>
-<script src="js/ach-core.js?v=20261029-2007"></script>
-<script src="js/achievements.js?v=20261029-2007"></script>
-<script src="js/path.js?v=20261029-2007"></script>
-<script src="js/adv.js?v=20261029-2007"></script>
-<script src="js/diary.js?v=20261029-2007"></script>
-<script src="js/sel-tools.js?v=20261029-2007"></script>
-<script src="js/start.js?v=20261029-2007"></script>
+<script src="js/core-a.js?v=20261101-1028"></script>
+<script src="js/books-builtin.js?v=20261101-1028"></script>
+<script src="js/core-b.js?v=20261101-1028"></script>
+<script src="js/library.js?v=20261101-1028"></script>
+<script src="js/reader.js?v=20261101-1028"></script>
+<script src="js/pdf.js?v=20261101-1028"></script>
+<script src="js/pdf-scroll.js?v=20261101-1028"></script>
+<script src="js/page-curl.js?v=20261101-1028"></script>
+<script src="js/page-grid.js?v=20261101-1028"></script>
+<script src="js/reader-ui.js?v=20261101-1028"></script>
+<script src="js/book-find.js?v=20261101-1028"></script>
+<script src="js/focus.js?v=20261101-1028"></script>
+<script src="js/rpg.js?v=20261101-1028"></script>
+<script src="js/content.js?v=20261101-1028"></script>
+<script src="js/quotes.js?v=20261101-1028"></script>
+<script src="js/translate.js?v=20261101-1028"></script>
+<script src="js/ocr.js?v=20261101-1028"></script>
+<script src="js/hero-pencil.js?v=20261101-1028"></script>
+<script src="js/hero-celestial.js?v=20261101-1028"></script>
+<script src="js/hero.js?v=20261101-1028"></script>
+<script src="js/settings.js?v=20261101-1028"></script>
+<script src="js/v6-extras.js?v=20261101-1028"></script>
+<script src="js/settings-hub.js?v=20261101-1028"></script>
+<script src="js/read-extras.js?v=20261101-1028"></script>
+<script src="js/ach-core.js?v=20261101-1028"></script>
+<script src="js/achievements.js?v=20261101-1028"></script>
+<script src="js/path.js?v=20261101-1028"></script>
+<script src="js/adv.js?v=20261101-1028"></script>
+<script src="js/diary.js?v=20261101-1028"></script>
+<script src="js/sel-tools.js?v=20261101-1028"></script>
+<script src="js/start.js?v=20261101-1028"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261029-2007"></script>
+<script src="js/pwa-lock.js?v=20261101-1028"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -3094,9 +3109,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261029-2007';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261029-2007';
-import * as game from './game-awards.js?v=20261029-2007';
+} from './storage/index.js?v=20261101-1028';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261101-1028';
+import * as game from './game-awards.js?v=20261101-1028';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

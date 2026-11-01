@@ -86,6 +86,8 @@ export const PROGRESS_DEF = {
   lastBackup: null,
   backupNag: true,     // 29.10 «Напоминать о копии» (arch.md backupNag)
   backupNagAt: null,   // 29.10: day of the last reminder 'YYYY-MM-DD'
+  yearGoal: null,      // 29.10 «Цель на год» {y, n} (arch.md yearGoal)
+  bookGoals: {},       // 29.10 «Дочитать к дате» {<book id>: 'YYYY-MM-DD'} ≤ 200 (arch.md bookGoals)
 };
 
 /**
@@ -163,6 +165,7 @@ export const GAME_DEF = {
   ai: null,
   /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
   tts: null,
+  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo}, normAiPref
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -294,6 +297,25 @@ export function normBookSet(o) {
   Object.keys(o).filter((k) => k && k.length <= 200).slice(-200).forEach((k) => { const v = typoPick(o[k], BOOK_KEYS); if (Object.keys(v).length) r[k] = v; });
   return r;
 }
+/** 29.10 S.aiPref (arch.md «Нейросети») — same rules as js/core-b.js aiPrefNorm */
+export function normAiPref(o) {
+  o = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  const u = o.use && typeof o.use === 'object' && !Array.isArray(o.use) ? o.use : {};
+  const en = (v, a) => (a.includes(v) ? v : a[0]), int = (v, hi) => (Number.isInteger(v) && v >= 0 ? Math.min(hi, v) : 0);
+  return { len: en(o.len, ['short', 'long']), tone: en(o.tone, ['simple', 'expert']), lang: en(o.lang, ['ru', 'en', 'book']), spoil: typeof o.spoil === 'boolean' ? o.spoil : true, lim: int(o.lim, 500),
+    use: { m: typeof u.m === 'string' && /^\d{4}-\d\d$/.test(u.m) ? u.m : '', n: int(u.n, 1e7), ch: int(u.ch, 1e10), tch: int(u.tch, 1e10), d: typeof u.d === 'string' && /^\d{4}-\d\d-\d\d$/.test(u.d) ? u.d : '', dn: int(u.dn, 1e5) },
+    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']) };
+}
+/** 29.10 S.yearGoal / S.bookGoals (arch.md) — same rules as js/core-b.js yearGoalNorm / bookGoalsNorm */
+export function normYearGoal(g) {
+  return g && typeof g === 'object' && Number.isInteger(g.y) && g.y >= 2000 && g.y <= 2100 && Number.isInteger(g.n) && g.n >= 1 && g.n <= 365 ? { y: g.y, n: g.n } : null;
+}
+export function normBookGoals(o) {
+  const r = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
+  Object.keys(o).filter((k) => k && k.length <= 200 && typeof o[k] === 'string' && /^\d{4}-\d\d-\d\d$/.test(o[k])).slice(-200).forEach((k) => { r[k] = o[k]; });
+  return r;
+}
 /** 29.10 SET.rx (arch.md «раздел Чтение») — same rules as js/reader.js rqRxNorm */
 export const RX_SEL = ['colors', 'note', 'word', 'dict', 'ai', 'grow', 'copy'];
 export function normRx(o) {
@@ -420,6 +442,11 @@ function intMap(o, max, keyRe) {
 
 export function hydrateProgress(p) {
   const out = Object.assign({}, PROGRESS_DEF, p || {});
+  /* 29.10 (arch.md backupNag / yearGoal / bookGoals; progress domain): same rules as js/core-b.js */
+  if (typeof out.backupNag !== 'boolean') out.backupNag = true;
+  if (out.backupNagAt != null && !/^\d{4}-\d\d-\d\d$/.test(String(out.backupNagAt))) out.backupNagAt = null;
+  out.yearGoal = normYearGoal(out.yearGoal);
+  out.bookGoals = normBookGoals(out.bookGoals);
   out.progress = out.progress || {};
   out.finished = out.finished || [];
   out.hist = out.hist || {};
@@ -546,6 +573,7 @@ export function hydrateGame(g) {
     };
   if (!out.ux) out.ux = { anim: true, wake: false, vibe: true, scale: 100 };
   if (!out.ai) out.ai = { key: '', model: '', prov: 'deepseek', base: '' };
+  out.aiPref = normAiPref(out.aiPref);
   if (!out.tts || typeof out.tts !== 'object') out.tts = { prov: 'system', key: '', voice: '', base: '' }; /* 20.10: prov/base (arch.md); old ai without prov is normalised in core-b aiNorm */
   /* shop build removed the currency picker and ∞ money; the fields stay (old fields are never deleted): cur as stored, devMoney always false */
   out.devMoney = false;
@@ -569,8 +597,6 @@ export function hydrateGame(g) {
   /* 29.10 (arch.md notif.days / backupNag): same rules as js/core-b.js */
   if (!(Array.isArray(out.notif.days) && out.notif.days.length === 7 && out.notif.days.every((x) => typeof x === 'boolean'))) out.notif.days = [true, true, true, true, true, true, true];
   if (typeof out.notif.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(out.notif.time)) out.notif.time = '20:00';
-  if (typeof out.backupNag !== 'boolean') out.backupNag = true;
-  if (out.backupNagAt != null && !/^\d{4}-\d\d-\d\d$/.test(String(out.backupNagAt))) out.backupNagAt = null;
   if (!out.statuses)
     out.statuses = [
       [1, 'Новичок'],

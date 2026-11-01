@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261101-1028',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261101-1138',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261101-1028"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261101-1138"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -1893,6 +1893,40 @@ html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-of
 #reader.focus :is(#rxClock,#rxInfo),#reader.paused #rxClock,#reader.fzrun #rxClock,#reader.rxnopg #pgNum{display:none}
 #reader.rxnopg #rxInfo{margin-right:0}
 #selpop>.rxoff{display:none!important}
+/* 29.10 «Цель и напоминание» (js/goal-extras.js) */
+.gxweek{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:12px 0 6px}
+.gxday{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.75rem;color:var(--muted)}
+.gxday b{font-weight:600;color:var(--txt)}
+.gxday i{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px var(--card2);color:var(--on-accent)}
+.gxday.ok i{background:var(--accent);box-shadow:none}
+.gxday.part i{box-shadow:inset 0 0 0 2px var(--accent)}
+.gxday.today b{color:var(--accent-text,var(--accent))}
+.gxday.today i{outline:2px solid var(--accent);outline-offset:2px}
+.gxday small{min-height:1em;font-variant-numeric:tabular-nums}
+.gxwsub{font-size:0.8125rem;color:var(--muted);padding:4px 2px 12px;text-align:center}
+.gxbar{position:relative;height:8px;border-radius:999px;background:var(--card2);margin:4px 0 2px}
+.gxbar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent)}
+.gxbar u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--txt);opacity:.5;text-decoration:none}
+:is(#settings) .pcard .setrow.setstack>.gxbar{flex:1 1 100%;margin-left:0}
+:is(#settings) .pcard .setrow.setstack>.gxoff{margin-left:0}
+.gxv{min-width:2.4em;text-align:center;font-variant-numeric:tabular-nums}
+#settings .pcard .gxbk{flex-wrap:nowrap}
+#settings .pcard .gxbk>.lab{flex:1 1 auto;min-width:0}
+#settings .pcard .gxbk .ghostbtn{flex:none}
+.gxpick{position:fixed;left:50%;top:50%;width:1px;height:1px;opacity:0;pointer-events:none}
+/* 29.10 «Нейросети» (js/nn-extras.js) */
+.nnquick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.nnquick .ghostbtn,.nncheck .ghostbtn,#nnWipe{display:inline-flex;align-items:center;gap:6px}
+.aitestrow{flex-wrap:wrap;gap:6px}
+.nnlist{max-height:220px;overflow-y:auto;margin:6px 0;padding:2px}
+.nnlist .fchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nncheck{margin:8px 0 10px}
+#nnSum .nnsrow .sub{display:flex;align-items:center;gap:6px}
+.nnpriv{font-size:0.8125rem;line-height:1.45;color:var(--muted);padding:10px 2px 2px}
+.nnpriv p{margin:0 0 6px}.nnpriv b{color:var(--txt)}
+.nnpriv ul{margin:0 0 8px;padding-left:18px}.nnpriv li{margin:2px 0}
+#nnWipe{color:var(--danger,#b3261e);margin:4px 0 12px}
+#trMore .aisub,#nnUse .aisub{margin:2px 4px 6px;font-size:0.8125rem;line-height:1.4;color:var(--muted)}
 #wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
 #wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
 html[data-uisize="sm"]{font-size:90%}
@@ -2323,7 +2357,7 @@ body:has(#rqTestBanner) .dyfbar{top:calc(44px + env(safe-area-inset-top))}
 .bk-dy{margin-top:12px}
 @media (prefers-reduced-motion:no-preference){#diary .rsw::after{transition:transform var(--rq-dur-fast,150ms)}}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261101-1028"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261101-1138"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -2579,7 +2613,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="pcard" id="setSearchRes" role="list" hidden></div>
       <div class="pcard gshub" id="gsList">
       <button type="button" class="setrow navrow" data-sec="read"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><div class="lab">Чтение<div class="sub" id="gsSubRead"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
-      <button type="button" class="setrow navrow" data-sec="look"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><div class="lab">Внешний вид<div class="sub" id="gsSubLook"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
       <button type="button" class="setrow navrow" data-sec="ai"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Нейросети<div class="sub" id="gsSubAi"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
       <button type="button" class="setrow navrow" data-sec="goal"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><div class="lab">Цель и напоминание<div class="sub" id="gsSubGoal"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
       <button type="button" class="setrow navrow" data-sec="lang"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык и удобство<div class="sub" id="gsSubLang"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
@@ -2609,6 +2642,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard nncard" id="rxCard"></div><!-- 29.10 js/read-extras.js (SET.rx): строка внизу, чтение вслух, ночь, жесты, меню выделения, экран, новые книги -->
     </section>
     <section class="gsec" data-sec="ai" data-t="Нейросети" hidden>
+    <div class="pcard" id="nnSum"></div><!-- 29.10 js/nn-extras.js: сводка и «Проверить всё» -->
     <h2 id="aiHead">Нейросети</h2>
     <div class="pcard nncard">
       <button type="button" class="xrow" id="aiX" aria-controls="aiCard" aria-expanded="false"></button>
@@ -2617,10 +2651,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <button type="button" class="xrow xpick" id="aiProvX" aria-controls="aiProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="aiProvSeg" role="radiogroup" aria-label="Сервис ИИ" hidden></div>
         <details class="keyhow" id="aiHow"><summary>Как получить ключ</summary><div class="keyhowb" id="aiHowB"></div></details>
+        <div class="row nnquick"><button type="button" class="ghostbtn" id="aiGetKey"></button><button type="button" class="ghostbtn" id="aiPaste"></button></div>
         <input class="searchinp" id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API">
         <input class="searchinp" id="aiBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API">
         <input class="searchinp" id="aiModel" autocomplete="off" spellcheck="false" aria-label="Модель">
-        <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><span id="aiTestRes" role="status"></span></div>
+        <div class="presets nnlist" id="aiModels" role="radiogroup" aria-label="Модели сервиса" hidden></div>
+        <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><button class="ghostbtn" id="aiModelsBtn">Модели списком</button><span id="aiTestRes" role="status"></span></div>
       </div>
       <button type="button" class="xrow" id="ttsHead" aria-controls="ttsCard" aria-expanded="false"></button>
       <div id="ttsCard" class="nnbox" hidden>
@@ -2629,19 +2665,28 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки" hidden></div>
         <div id="ttsFields">
           <details class="keyhow" id="ttsHow"><summary>Как получить ключ</summary><div class="keyhowb" id="ttsHowB"></div></details>
+          <div class="row nnquick"><button type="button" class="ghostbtn" id="ttsGetKey"></button><button type="button" class="ghostbtn" id="ttsPaste"></button></div>
           <input class="searchinp" id="ttsKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API озвучки">
           <input class="searchinp" id="ttsBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API озвучки">
           <input class="searchinp" id="ttsVoice" autocomplete="off" spellcheck="false" aria-label="Голос">
           <div class="aisub" id="ttsVoiceHint"></div>
-          <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><span id="ttsTestRes" role="status"></span></div>
+          <div class="presets nnlist" id="ttsVoices" role="radiogroup" aria-label="Голоса сервиса" hidden></div>
+          <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><button class="ghostbtn" id="ttsVoicesBtn">Голоса списком</button><span id="ttsTestRes" role="status"></span></div>
         </div>
       </div>
       <button type="button" class="xrow" id="trX" aria-controls="trCard" aria-expanded="false"></button>
       <div id="trCard" class="nnbox" hidden>
         <div class="aisub">Кнопка с буквами при выделении текста переводит прямо в книге. Пакет языка скачивается один раз, дальше перевод работает без интернета, и текст никуда не уходит.</div>
+        <div id="trMore"></div>
         <div id="trList"></div>
       </div>
     </div>
+    <h2>Как отвечает ИИ</h2>
+    <div class="pcard" id="nnStyle"></div>
+    <h2>Расход</h2>
+    <div class="pcard" id="nnUse"></div>
+    <h2>Приватность</h2>
+    <div class="pcard" id="nnPriv"></div>
     </section>
     <section class="gsec" data-sec="goal" data-t="Цель и напоминание" hidden>
     <h2>Цель дня</h2>
@@ -2654,7 +2699,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow setrow-time" id="calNotifTimeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время</div>
         <span class="stepgrp"><button class="stepbtn" id="calNotifMinus" aria-label="На 30 минут раньше">−</button><label class="gstime"><b id="calNotifTime">20:00</b><input type="time" id="calNotifTimeIn" aria-label="Время напоминания"></label><button class="stepbtn" id="calNotifPlus" aria-label="На 30 минут позже">+</button></span></div>
       <div class="setrow setstack" id="calNotifDaysRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Дни<div class="sub" id="calNotifDaysSub"></div></div><div class="gsdays" id="calNotifDays" role="group" aria-label="Дни напоминания"></div></div>
+      <div class="setrow" id="gxCalRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Календарь телефона<div class="sub">Будильник календаря придёт, даже когда приложение закрыто</div></div><button class="ghostbtn" id="gxCal">Добавить</button></div>
     </div>
+    <h2>Неделя</h2>
+    <div class="pcard" id="gxWeek"></div><!-- 29.10 js/goal-extras.js: 7 дней и «N из 4 дней» -->
+    <h2>Большие цели</h2>
+    <div class="pcard" id="gxBig"></div><!-- 29.10 js/goal-extras.js: S.yearGoal, S.bookGoals -->
     </section>
     <section class="gsec" data-sec="lang" data-t="Язык и удобство" hidden>
     <h2>Язык</h2>
@@ -3064,44 +3114,46 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261101-1028"></script>
-<script src="js/books-builtin.js?v=20261101-1028"></script>
-<script src="js/core-b.js?v=20261101-1028"></script>
-<script src="js/library.js?v=20261101-1028"></script>
-<script src="js/reader.js?v=20261101-1028"></script>
-<script src="js/pdf.js?v=20261101-1028"></script>
-<script src="js/pdf-scroll.js?v=20261101-1028"></script>
-<script src="js/page-curl.js?v=20261101-1028"></script>
-<script src="js/page-grid.js?v=20261101-1028"></script>
-<script src="js/reader-ui.js?v=20261101-1028"></script>
-<script src="js/book-find.js?v=20261101-1028"></script>
-<script src="js/focus.js?v=20261101-1028"></script>
-<script src="js/rpg.js?v=20261101-1028"></script>
-<script src="js/content.js?v=20261101-1028"></script>
-<script src="js/quotes.js?v=20261101-1028"></script>
-<script src="js/translate.js?v=20261101-1028"></script>
-<script src="js/ocr.js?v=20261101-1028"></script>
-<script src="js/hero-pencil.js?v=20261101-1028"></script>
-<script src="js/hero-celestial.js?v=20261101-1028"></script>
-<script src="js/hero.js?v=20261101-1028"></script>
-<script src="js/settings.js?v=20261101-1028"></script>
-<script src="js/v6-extras.js?v=20261101-1028"></script>
-<script src="js/settings-hub.js?v=20261101-1028"></script>
-<script src="js/read-extras.js?v=20261101-1028"></script>
-<script src="js/ach-core.js?v=20261101-1028"></script>
-<script src="js/achievements.js?v=20261101-1028"></script>
-<script src="js/path.js?v=20261101-1028"></script>
-<script src="js/adv.js?v=20261101-1028"></script>
-<script src="js/diary.js?v=20261101-1028"></script>
-<script src="js/sel-tools.js?v=20261101-1028"></script>
-<script src="js/start.js?v=20261101-1028"></script>
+<script src="js/core-a.js?v=20261101-1138"></script>
+<script src="js/books-builtin.js?v=20261101-1138"></script>
+<script src="js/core-b.js?v=20261101-1138"></script>
+<script src="js/library.js?v=20261101-1138"></script>
+<script src="js/reader.js?v=20261101-1138"></script>
+<script src="js/pdf.js?v=20261101-1138"></script>
+<script src="js/pdf-scroll.js?v=20261101-1138"></script>
+<script src="js/page-curl.js?v=20261101-1138"></script>
+<script src="js/page-grid.js?v=20261101-1138"></script>
+<script src="js/reader-ui.js?v=20261101-1138"></script>
+<script src="js/book-find.js?v=20261101-1138"></script>
+<script src="js/focus.js?v=20261101-1138"></script>
+<script src="js/rpg.js?v=20261101-1138"></script>
+<script src="js/content.js?v=20261101-1138"></script>
+<script src="js/quotes.js?v=20261101-1138"></script>
+<script src="js/translate.js?v=20261101-1138"></script>
+<script src="js/ocr.js?v=20261101-1138"></script>
+<script src="js/hero-pencil.js?v=20261101-1138"></script>
+<script src="js/hero-celestial.js?v=20261101-1138"></script>
+<script src="js/hero.js?v=20261101-1138"></script>
+<script src="js/settings.js?v=20261101-1138"></script>
+<script src="js/v6-extras.js?v=20261101-1138"></script>
+<script src="js/settings-hub.js?v=20261101-1138"></script>
+<script src="js/read-extras.js?v=20261101-1138"></script>
+<script src="js/goal-extras.js?v=20261101-1138"></script>
+<script src="js/nn-extras.js?v=20261101-1138"></script>
+<script src="js/ach-core.js?v=20261101-1138"></script>
+<script src="js/achievements.js?v=20261101-1138"></script>
+<script src="js/path.js?v=20261101-1138"></script>
+<script src="js/adv.js?v=20261101-1138"></script>
+<script src="js/diary.js?v=20261101-1138"></script>
+<script src="js/sel-tools.js?v=20261101-1138"></script>
+<script src="js/start.js?v=20261101-1138"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261101-1028"></script>
+<script src="js/pwa-lock.js?v=20261101-1138"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -3109,9 +3161,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261101-1028';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261101-1028';
-import * as game from './game-awards.js?v=20261101-1028';
+} from './storage/index.js?v=20261101-1138';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261101-1138';
+import * as game from './game-awards.js?v=20261101-1138';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

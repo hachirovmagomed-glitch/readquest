@@ -10,6 +10,10 @@ const GS_DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const GS_UISIZE=[['sm','Мелкий'],['md','Обычный'],['lg','Крупный']];
 /* «Что нового»: the last builds on /test/, newest first (one line each, words of the person who asked for it where possible) */
 const GS_NEWS=[
+  ['01.11','«Цель и напоминание»: неделя по дням, цель на год, «Дочитать к дате» в карточке книги, напоминание в календарь телефона'],
+  ['01.11','«Нейросети»: сводка и проверка ключей, вставка ключа одной кнопкой, список моделей и голосов, язык перевода, стиль ответов, расход и дневной лимит, «Стереть ключи»'],
+  ['01.11','Своё выделение в книгах: через границу страницы, «+ предложение» и «+ абзац»'],
+  ['01.11','Из списка настроек убран «Внешний вид»'],
   ['29.10','Раздел «Чтение»: строка внизу страницы (часы, процент, до конца главы), скорость и голос озвучки, ночь по расписанию, жесты, кнопки меню выделения, поворот и две страницы, набор для новых книг, «осталось ≈» по вашей скорости'],
   ['29.10','Боковое меню выделения: быстрый цвет, «Найти в книге», «Озвучить выделенное», «Герои книги» и другое под «⋯»'],
   ['29.10','«Приключения»: 30 писательниц в портретах авторов'],
@@ -227,7 +231,7 @@ el('lookBack').onclick=function(){openGeneralSettings(false);};
 function gsIndex(){
   const out=[],txt=function(n){if(!n)return '';const c=n.cloneNode(true);c.querySelectorAll('.sub,small,svg,.rv,.xv').forEach(function(x){x.remove();});return c.textContent.replace(/\s+/g,' ').trim();};
   document.querySelectorAll('#settings .gsec').forEach(function(s){const k=s.dataset.sec;
-    s.querySelectorAll('.setrow,.xrow:not(.xpick)').forEach(function(r){if(r.closest('[hidden]:not(.gsec)')&&!r.closest('.nnbox'))return;
+    s.querySelectorAll('.setrow,.xrow:not(.xpick)').forEach(function(r){if((r.closest('[hidden]:not(.gsec)')&&!r.closest('.nnbox'))||r.closest('#nnSum'))return; /* the summary repeats the rows below */
       const t=r.classList.contains('xrow')?txt(r.querySelector('.xt')):txt(r.querySelector('.lab'));if(!t)return;
       const sub=r.querySelector('.sub,.xsub'),box=r.nextElementSibling&&r.nextElementSibling.classList.contains('nnbox')?r.nextElementSibling.textContent:'';
       out.push({t:t,w:GS_SECS[k],k:(t+' '+(sub?sub.textContent:'')+' '+(r.title||'')+' '+box).toLowerCase(),ic:(r.querySelector('use')||{getAttribute:function(){return '';}}).getAttribute('href').replace('#i-',''),go:function(){gsGoRow(k,r);}});});});
@@ -235,8 +239,6 @@ function gsIndex(){
     g.querySelectorAll('.rrow,.srow').forEach(function(r){if(r.classList.contains('pdfonly')||r.id==='rBookOnlyRow')return;
       const l=r.querySelector('.rl,label,.xl');const t=txt(l);if(!t)return;
       out.push({t:t,w:'Чтение → '+GS_TABS[g.id],k:(t+' '+(l.querySelector('small')?l.querySelector('small').textContent:'')).toLowerCase(),ic:'book-open',go:function(){gsGoSheet(g.id,r);}});});});
-  [['Тема приложения','тема цвет авто светлая тёмная'],['Скин','скин оформление небесный эллада'],['Анимации','анимация движение'],['Магазин скинов','магазин купить скин']].forEach(function(x){
-    out.push({t:x[0],w:'Внешний вид',k:(x[0]+' '+x[1]).toLowerCase(),ic:'palette',go:gsOpenLook});});
   return out;
 }
 function gsFlash(r){if(!r)return;r.classList.remove('gsflash');void r.offsetWidth;r.classList.add('gsflash');setTimeout(function(){r.classList.remove('gsflash');},1700);}

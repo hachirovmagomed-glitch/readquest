@@ -86,6 +86,7 @@ function rqRxNorm(o){
     sel:{off:ids(s.off),order:ids(s.order),color:['y','g','b','p','o'].indexOf(s.color)>=0?s.color:''},
     screen:{orient:en(sc.orient,['auto','portrait','landscape']),spread:en(sc.spread,['auto','land','off'])},
     fresh:{set:nm(fr.set),pdf:nm(fr.pdf),toc:bo(fr.toc,false)},
+    sm:(function(m){return {lp:en(m.lp,['n','f','s']),tap:bo(m.tap,true),drag:en(m.drag,['edge','any','off']),lpd:bo(m.lpd,true),unit:en(m.unit,['word','char']),edge:en(m.edge,['off','f','s']),hand:en(m.hand,['n','b']),vib:bo(m.vib,true),hint:bo(m.hint,true)};})(ob(o.sm)),
     spd:{cpm:num(sp.cpm,100,6000),spp:num(sp.spp,5,1200),n:(typeof sp.n==='number'&&isFinite(sp.n))?Math.max(0,Math.min(1e6,Math.floor(sp.n))):0}
   };
 }

@@ -489,6 +489,8 @@ function selPdfShown(n){
    after a swipe — is where it ends (before the start — where it begins). Our round handles at both ends move the borders. The selection is the
    page's real Selection (set by code), so the bar, colours, notes, copy and «Объясни» work on it as before. Pages turn by swipe only meanwhile. */
 const SM={on:false,lo:null,hi:null,set:false,ptr:'',lp:null,tapAt:0,drag:null,raf:0,prog:false};
+/** 04.11 (Джессика: «чтобы можно было тянуть выделение и тапать … тонкие настройки этого процесса»): «Чтение → Выделение текста», SET.rx.sm */
+function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
 function smOk(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'||R.mode==='pdf')&&!el('reader').classList.contains('hidden');} /* 04.11 (Джессика: «в тхт и Epub с Fb2 … выделять нужный участок … С PDF так делать нельзя, нужно тянуть»): PDF too */
 /** a book's text: the column of a text book or a PDF page's text layer (not the painted quote boxes on it) */
 function smInText(n){const e=n&&(n.nodeType===3?n.parentNode:n);if(!e||!e.closest||e.closest('.pdfhls'))return false;return el('content').contains(e)||!!e.closest('#viewer .textLayer');}
@@ -507,13 +509,16 @@ function smWord(p){const t=p[0].nodeValue;let a=p[1],z=p[1];
   if(a===z){if(/\s/.test(t[a]||''))return null;z=a+1;}return [[p[0],a],[p[0],z]];}
 function smCmp(a,b){const r=document.createRange();r.setStart(a[0],a[1]);return r.comparePoint(b[0],b[1]);} /* 1: b after a */
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
-function smStart(lo,hi){SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();if((SM.hints=(SM.hints||0)+1)<=3)flashMsg('Нажми на слово, где закончить. Листать можно свайпом',{kind:'info',icon:'highlighter'});if(navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
+function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
+function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
+  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f;}
 function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smDraw();}
 function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return false;const rg=s.getRangeAt(0);if(!smInText(rg.commonAncestorContainer))return false;
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
 /** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
 function smTap(x,y){
-  const p=smPt(x,y);if(!p)return;const w=smWord(p);if(!w)return;
+  if(!smCfg().tap)return;
+  const p=smPt(x,y);if(!p)return;const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
   if(smCmp(SM.lo,w[0])>=0)SM.hi=w[1];else SM.lo=w[0];
   SM.set=true;smApply();setTimeout(updSelPop,30);
 }
@@ -523,17 +528,34 @@ function smTapAt(cx,cy){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-S
 function smLpStart(e){
   if(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop,.smh'))return;
   SM.tapAt=Date.now();SM.lpHeld=false;if(!smOk()||e.touches.length!==1){smLpCancel();return;}
-  const t=e.touches[0];
-  smLpCancel();SM.lp={x:t.clientX,y:t.clientY,t:setTimeout(function(){const l=SM.lp;SM.lp=null;if(l)smLongAt(l.x,l.y);},460)};
+  const t=e.touches[0];SM.grab=SM.on&&!SM.drag?smGrabAt(t.clientX,t.clientY):null;
+  smLpCancel();SM.lp={x:t.clientX,y:t.clientY,t:setTimeout(function(){const l=SM.lp;SM.lp=null;if(l)smLongAt(l.x,l.y);},SM_LP[smCfg().lp]||460)};
 }
+const SM_LP={f:300,n:460,s:700};
+/** a finger put down while selecting: which end it will drag if it moves («За край выделения»: only near an end; «С любого места»: anywhere on the text) */
+function smGrabAt(x,y){const c=smCfg();if(c.drag==='off'||!SM.lo||!SM.hi)return null;
+  const a=smCharRect(SM.lo[0],SM.lo[1]),b=smCharRect(SM.hi[0],SM.hi[1]-1),R0=c.hand==='b'?56:44;
+  const da=a&&smIn(a)?Math.hypot(x-a.left,y-(a.top+a.bottom)/2):1e9,db=b&&smIn(b)?Math.hypot(x-b.right,y-(b.top+b.bottom)/2):1e9;
+  if(Math.min(da,db)<=R0)return {x:x,y:y,end:db<=da?'hi':'lo',dy:0};
+  if(c.drag!=='any'||(R.mode==='pdf'?(typeof PS!=='undefined'&&PS.on):(typeof rqScrollMode==='function'&&rqScrollMode())))return null; /* in «Прокрутке» a finger on the text scrolls */
+  const p=smPt(x,y);if(!p)return null;
+  const end=smCmp(SM.hi,p)>0?'hi':smCmp(p,SM.lo)>0?'lo':(db<=da?'hi':'lo');return {x:x,y:y,end:end,dy:22};}
 function smLpCancel(){if(SM.lp){clearTimeout(SM.lp.t);SM.lp=null;}}
-function smLongAt(x,y){const p=smPt(x,y);if(!p)return;const w=smWord(p);if(!w)return;SM.lpAt=Date.now();SM.lpXY=[x,y];SM.lpHeld=true;quoteClose();smStart(w[0],w[1]);setTimeout(updSelPop,30);}
+function smLongAt(x,y){const p=smPt(x,y);if(!p)return;const w=smWord(p);if(!w)return;SM.lpAt=Date.now();SM.lpXY=[x,y];SM.lpHeld=true;SM.fdy=null;SM.grab=null;quoteClose();smStart(w[0],w[1]);setTimeout(updSelPop,30);}
 el('viewer').addEventListener('touchstart',smLpStart,{passive:true});
 el('viewer').addEventListener('touchmove',function(e){
-  /* 04.11: the finger that made the long press, moved on without lifting, drags the end of the selection (no swipe, no scroll meanwhile) */
-  if(SM.lpHeld&&SM.on&&e.touches.length===1){if(e.cancelable)e.preventDefault();const t=e.touches[0];if(!SM.drag)SM.drag='hi';smDragTo(t.clientX,t.clientY+22);return;}
-  const l=SM.lp;if(!l)return;const t=e.touches[0];if(!t||Math.abs(t.clientX-l.x)>10||Math.abs(t.clientY-l.y)>10)smLpCancel();},{passive:false});
-el('viewer').addEventListener('touchend',function(e){if(SM.lpHeld&&!e.touches.length){SM.drag=null;setTimeout(updSelPop,30);}},{passive:true});
+  /* 04.11: the finger that made the long press, moved on without lifting, drags the end of the selection (no swipe, no scroll meanwhile);
+     a finger put on an end of the selection (or anywhere, by the setting) and moved drags that end. Capture: before the page's swipe sees it. */
+  const t=e.touches[0];
+  if(SM.on&&e.touches.length===1&&!SM.lpHeld&&SM.grab&&t&&Math.hypot(t.clientX-SM.grab.x,t.clientY-SM.grab.y)>6){SM.lpHeld=true;SM.drag=SM.grab.end;SM.fdy=SM.grab.dy;SM.grab=null;smLpCancel();}
+  if(SM.lpHeld&&SM.on&&e.touches.length===1){if(e.cancelable)e.preventDefault();e.stopPropagation();if(!smCfg().lpd&&SM.fdy==null)return;if(!SM.drag)SM.drag='hi';smDragTo(t.clientX,t.clientY+(SM.fdy!=null?SM.fdy:22));smEdgeAt(t.clientX);return;}
+  const l=SM.lp;if(!l)return;if(!t||Math.abs(t.clientX-l.x)>10||Math.abs(t.clientY-l.y)>10)smLpCancel();},{passive:false,capture:true});
+el('viewer').addEventListener('touchend',function(e){SM.grab=null;if(SM.lpHeld&&!e.touches.length){if(SM.drag)SM.tapAt=0; /* a drag is not a tap: «Снять» right after it clears */SM.drag=null;SM.fdy=null;smEdgeOff();setTimeout(updSelPop,30);}},{passive:true});
+/* «Листать у края»: a dragging finger held at the left / right edge turns the page, the selection goes on there */
+function smEdgeOff(){if(SM.edge){clearTimeout(SM.edge.t);SM.edge=null;}}
+function smEdgeAt(x){const c=smCfg();if(c.edge==='off'){smEdgeOff();return;}const v=el('viewer').getBoundingClientRect(),d=x<v.left+28?-1:x>v.right-28?1:0;
+  if(!d||(d<0&&R.mode==='pdf')){smEdgeOff();return;} /* a PDF selection goes on forward only */if(SM.edge&&SM.edge.d===d)return;smEdgeOff();
+  SM.edge={d:d,t:setTimeout(function rep(){if(!SM.edge||!SM.on)return;const dr=SM.drag;try{selTurn(d);}catch(e){}SM.drag=dr;SM.edge.t=setTimeout(rep,(c.edge==='f'?600:1000)+400);},c.edge==='f'?600:1000)};}
 el('viewer').addEventListener('touchend',smLpCancel,{passive:true});
 el('viewer').addEventListener('touchcancel',smLpCancel,{passive:true});
 document.addEventListener('pointerdown',function(e){SM.ptr=e.pointerType||'';},true);
@@ -559,7 +581,8 @@ function smH(id){let h=el(id);if(h)return h;h=document.createElement('div');h.id
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});
   return h;}
 function smDragTo(x,y){
-  const p=smPt(x,y-22);if(!p)return; /* the point just above the finger: the finger does not cover it */
+  let p=smPt(x,y-22);if(!p)return; /* the point just above the finger: the finger does not cover it */
+  if(smCfg().unit!=='char'){const w=smWord(p);if(w)p=SM.drag==='hi'?(smCmp(SM.lo,w[1])>0?w[1]:w[0]):(smCmp(w[0],SM.hi)>0?w[0]:w[1]);} /* by whole words */
   if(SM.drag==='hi'){if(smCmp(SM.lo,p)>0)SM.hi=p;else{SM.hi=SM.lo;SM.lo=p;SM.drag='lo';}}
   else{if(smCmp(p,SM.hi)>0)SM.lo=p;else{SM.lo=SM.hi;SM.hi=p;SM.drag='hi';}}
   SM.set=true;smApply();

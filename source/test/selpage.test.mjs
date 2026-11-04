@@ -134,6 +134,35 @@ const [tx, ty] = await xy(0, 320);
 await p.touchscreen.touchStart(h6[0], h6[1]); await p.touchscreen.touchMove((h6[0] + tx) / 2, (h6[1] + ty + 22) / 2); await p.touchscreen.touchMove(tx, ty + 22); await p.touchscreen.touchEnd(); await settle(300);
 const c6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page }));
 ok('the end handle dragged down: the selection grows to there', c6.page === 3 && c6.len > b6.len + 30, { b6, c6 });
+// 6c. 04.11 (Джессика: «чтобы можно было тянуть выделение и тапать … тонкие настройки»): a finger on the end of the selection drags it,
+// taps still work; «Чтение → Выделение текста» (SET.rx.sm) switches taps off, lets a finger drag from anywhere
+const endXY = () => p.evaluate(() => { const r = smCharRect(SM.hi[0], SM.hi[1] - 1); return [r.right - 2, (r.top + r.bottom) / 2]; });
+let [ex, ey] = await endXY(); const [gx, gy] = await xy(0, 420);
+await p.touchscreen.touchStart(ex, ey); await p.touchscreen.touchMove(ex, ey + 12); await p.touchscreen.touchMove((ex + gx) / 2, (ey + gy) / 2 + 22); await p.touchscreen.touchMove(gx, gy + 22); await p.touchscreen.touchEnd(); await settle(300);
+const g6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page, on: SM.on }));
+ok('finger put on the end of the selection (not the handle) and moved: the end follows, no page turn', g6.on && g6.page === 3 && g6.len > c6.len + 30, { c6, g6 });
+[lx, ly] = await xy(0, 470); await p.touchscreen.tap(lx, ly); await settle(300);
+const t6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page }));
+ok('…and a tap on a later word still moves the end', t6.page === 3 && t6.len > g6.len + 10, { g6, t6 });
+await p.evaluate(() => { SET.rx.sm.tap = false; });
+[lx, ly] = await xy(0, 520); await p.touchscreen.tap(lx, ly); await settle(300);
+const u6 = await p.evaluate(() => ({ len: String(getSelection()).length, on: SM.on }));
+ok('setting «Нажатие ставит конец» off: a tap leaves the selection as it is', u6.on && u6.len === t6.len, { t6, u6 });
+await p.evaluate(() => { SET.rx.sm.tap = true; SET.rx.sm.drag = 'any'; });
+const [ax, ay] = await xy(0, 560), [bx, by] = await xy(0, 640);
+await p.touchscreen.touchStart(ax, ay); await p.touchscreen.touchMove(ax - 20, ay); await p.touchscreen.touchMove(bx, by + 22); await p.touchscreen.touchEnd(); await settle(300);
+const v6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page, on: SM.on }));
+ok('«Тянуть пальцем: с любого места»: a finger anywhere on the text drags the nearest end, a sideways move does not turn the page', v6.on && v6.page === 3 && v6.len > u6.len + 20, { u6, v6 });
+await p.evaluate(() => { SET.rx.sm.drag = 'off'; });
+[ex, ey] = await endXY(); const [hx, hy] = await xy(0, 700);
+await p.touchscreen.touchStart(ex, ey); await p.touchscreen.touchMove(ex, ey + 12); await p.touchscreen.touchMove(hx, hy + 22); await p.touchscreen.touchEnd(); await settle(300);
+const w6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page }));
+ok('«Только кружки»: a finger on the end does not drag it', w6.len === v6.len, { v6, w6 });
+await sleep(800); /* the 0,7 s after a touch on the text, when a collapsed selection is put back, is over */
+const st6 = await p.evaluate(() => { SET.rx = rqRxNorm(Object.assign({}, SET.rx, { sm: { drag: 'bad', lp: 's', hand: 'b' } })); const m = SET.rx.sm; const r = { m, ms: SM_LP[smCfg().lp] };
+  RX_EXP.smx = true; rxRender(); const b = el('rxB' + 'smx'); r.open = b && !b.hidden; r.drag = [...el('rxSmDrag').children].map(x => x.textContent); r.on = (el('rxSmDrag').querySelector('.on') || {}).textContent;
+  r.rows = b ? b.querySelectorAll('.setrow').length : 0; SET.rx = rqRxNorm(Object.assign({}, SET.rx, { sm: null })); rxRender(); return r; });
+ok('settings «Выделение текста»: 9 rows, «Тянуть пальцем» За край / С любого места / Только кружки, bad values → defaults, «Дольше» = 700 мс', st6.open && st6.rows === 9 && st6.drag.join('|') === 'За край|С любого места|Только кружки' && st6.on === 'За край' && st6.m.drag === 'edge' && st6.ms === 700 && st6.m.hand === 'b' && st6.m.tap === true, st6);
 // 6b. «Снять выделение» in the side menu ends it all
 const n6 = await p.evaluate(async () => { SS.open = true; ssUpd(); el('ssX').click(); await new Promise(r => setTimeout(r, 300)); return { on: SM.on, sel: String(getSelection()).length, h: el('smLo').hidden && el('smHi').hidden, bar: el('selpop').classList.contains('hidden') }; });
 ok('«Снять выделение» in the side menu: no selection, no handles, no bar', !n6.on && !n6.sel && n6.h && n6.bar, n6);

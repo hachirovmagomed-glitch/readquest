@@ -11,6 +11,12 @@ const RX_DBL=[['off','Ничего'],['night','День и ночь'],['mark','�
 const RX_ORIENT=[['auto','Как у телефона'],['portrait','Книжный'],['landscape','Альбомный']];
 const RX_SPREAD=[['auto','На планшете'],['land','И в альбомной'],['off','Никогда']];
 const RX_EXP={};
+/* 04.11 (Джессика: «тянуть выделение и тапать … тонкие настройки этого процесса»): SET.rx.sm, used by smCfg() in reader-ui.js */
+const RX_SM_LP=[['f','Быстро'],['n','Обычно'],['s','Дольше']];
+const RX_SM_DRAG=[['edge','За край'],['any','С любого места'],['off','Только кружки']];
+const RX_SM_UNIT=[['word','По словам'],['char','По буквам']];
+const RX_SM_EDGE=[['off','Нет'],['f','Быстро'],['s','Спокойно']];
+const RX_SM_HAND=[['n','Обычные'],['b','Крупные']];
 function rxS(){if(!SET.rx)SET.rx=rqRxNorm(null);return SET.rx;}
 function rxSave(){saveSet();rxApply();rxRender();}
 
@@ -172,6 +178,17 @@ function rxBuild(){
   rxCardHtml('sel','highlighter','Меню выделения',
     '<div class="aisub">Какие кнопки показывать и в каком порядке.</div><div id="rxSelList"></div>'+
     rxRow('','pencil','Цвет для «Заметки»','И отмеченный цвет при выделении','<div class="presets rxfull" id="rxSelColor" role="radiogroup" aria-label="Цвет для заметки"></div>','setstack'))+
+  rxCardHtml('smx','highlighter','Выделение текста',
+    '<div class="aisub">Как выделять в книгах и PDF: начать долгим нажатием на слово, дальше нажимать или тянуть.</div>'+
+    rxRow('','timer','Долгое нажатие','Сколько держать палец, чтобы начать',rxSegHtml('rxSmLp','Долгое нажатие'),'setstack')+
+    rxRow('','circle-check','Нажатие ставит конец','Нажмите на слово — выделение дойдёт до него, и на другой странице тоже',rxSwHtml('rxSmTap'))+
+    rxRow('rxSmDragRow','highlighter','Тянуть пальцем','',rxSegHtml('rxSmDrag','Тянуть пальцем'),'setstack')+
+    rxRow('','circle-plus','Тянуть сразу после долгого нажатия','Не отпуская палец',rxSwHtml('rxSmLpd'))+
+    rxRow('','type','Край двигается','',rxSegHtml('rxSmUnit','Край двигается'),'setstack')+
+    rxRow('','book-open','Листать, когда палец у края страницы','Подержите палец у левого или правого края, пока тянете',rxSegHtml('rxSmEdge','Листать у края'),'setstack')+
+    rxRow('','circle','Кружки на краях','',rxSegHtml('rxSmHand','Кружки на краях'),'setstack')+
+    rxRow('','vibrate','Вибрация в начале',null,rxSwHtml('rxSmVib'))+
+    rxRow('','info','Подсказка в начале','Первые три раза',rxSwHtml('rxSmHint')))+
   rxCardHtml('screen','rotate-cw','Экран',
     rxRow('','rotate-cw','Поворот экрана','Работает в установленном приложении и в полном экране',rxSegHtml('rxOrient','Поворот экрана'),'setstack')+
     rxRow('','book-open','Две страницы рядом','Для книг, не PDF',rxSegHtml('rxSpread','Две страницы рядом'),'setstack'))+
@@ -195,6 +212,10 @@ function rxBuild(){
   ['rxNightFrom','rxNightTo'].forEach(function(id){el(id).onchange=function(){const v=this.value;if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(v))return;rxS().night[id==='rxNightFrom'?'from':'to']=v;rxNightLast=null;rxSave();};});
   sw('rxGBright',function(){const g=rxS().gest;g.bright=!g.bright;});
   sw('rxGPinch',function(){const g=rxS().gest;g.pinch=!g.pinch;});
+  sw('rxSmTap',function(){const m=rxS().sm;m.tap=!m.tap;});
+  sw('rxSmLpd',function(){const m=rxS().sm;m.lpd=!m.lpd;});
+  sw('rxSmVib',function(){const m=rxS().sm;m.vib=!m.vib;});
+  sw('rxSmHint',function(){const m=rxS().sm;m.hint=!m.hint;});
   sw('rxFreshToc',function(){const f=rxS().fresh;f.toc=!f.toc;});
   if(window.speechSynthesis)try{speechSynthesis.addEventListener('voiceschanged',function(){if(RX_EXP.tts)rxRender();});}catch(e){}
 }
@@ -238,6 +259,17 @@ function rxRender(){
      d.querySelectorAll('.rxmv button').forEach(function(b){b.onclick=function(){const j=i+(+b.dataset.d);if(j<0||j>=o.length)return;const a=o.slice();a[i]=a[j];a[j]=k;rxS().sel.order=a;rxSave();
        requestAnimationFrame(function(){const r=document.querySelector('#rxSelList [data-k="'+k+'"] .rxmv button[data-d="'+b.dataset.d+'"]');if(r&&!r.disabled)r.focus();});};});});
    rxChips('rxSelColor',[['','Последний']].concat(HL_COLORS.map(function(c){return [c.k,hlName(c.k),'<i class="rxdot" style="--d:'+hlDot(c.k)+';--d2:'+hlDot2(c.k)+'" aria-hidden="true"></i>'];})),s.color,function(v){rxS().sel.color=v;rxSave();});}
+  /* выделение текста */
+  {const m=x.sm,nm=function(a,v){return a.find(function(o){return o[0]===v;})[1];};
+   const dw=m.drag==='edge'?'пальцем за край':m.drag==='any'?'пальцем с любого места':'';
+   rxHead('smx',m.tap&&dw?'Нажатием и '+dw:m.tap?'Нажатием и кружками':dw?'Только '+dw:'Только кружками');
+   rxSeg('rxSmLp',RX_SM_LP,m.lp,function(v){rxS().sm.lp=v;rxSave();});
+   rxSw('rxSmTap',m.tap);rxSw('rxSmLpd',m.lpd);rxSw('rxSmVib',m.vib);rxSw('rxSmHint',m.hint);
+   rxSeg('rxSmDrag',RX_SM_DRAG,m.drag,function(v){rxS().sm.drag=v;rxSave();});
+   el('rxSmDragRowS').textContent=m.drag==='edge'?'Возьмитесь за начало или конец выделения. Свайп в другом месте листает':m.drag==='any'?'Палец в любом месте текста двигает ближайший край. Листать — стрелками внизу (в «Прокрутке» — за край)':'Края двигают только кружки';
+   rxSeg('rxSmUnit',RX_SM_UNIT,m.unit,function(v){rxS().sm.unit=v;rxSave();});
+   rxSeg('rxSmEdge',RX_SM_EDGE,m.edge,function(v){rxS().sm.edge=v;rxSave();});
+   rxSeg('rxSmHand',RX_SM_HAND,m.hand,function(v){rxS().sm.hand=v;rxSave();if(typeof SM!=='undefined'&&SM.on)el('reader').classList.toggle('smbig',v==='b');});}
   /* 6 */
   {const sc=x.screen;rxHead('screen',RX_ORIENT.find(function(o){return o[0]===sc.orient;})[1]+' · две страницы: '+RX_SPREAD.find(function(o){return o[0]===sc.spread;})[1].toLowerCase());
    rxSeg('rxOrient',RX_ORIENT,sc.orient,function(v){rxS().screen.orient=v;rxSave();});

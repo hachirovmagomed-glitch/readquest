@@ -547,6 +547,7 @@ function pdfZoomAt(z,cx,cy){
 }
 /* --- taps: edges flip at once at width; centre waits ≤250 ms for a double tap; when zoomed every tap waits --- */
 function pdfTap(cx,cy){
+  if(typeof SM!=='undefined'&&SM.on){smTapAt(cx,cy);return;} /* 04.11: selecting — the tap moves the end of the selection, as in a book */
   const sel=selText();
   pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
   if(quoteTapAt(cx,cy))return; /* 22.10: a saved highlight → its bar (no double-tap wait) */
@@ -599,8 +600,9 @@ function pdfSelecting(){const g=window.getSelection&&window.getSelection();if(!g
   const n=g.anchorNode.nodeType===3?g.anchorNode.parentNode:g.anchorNode;return !!(n&&n.closest&&n.closest('.textLayer'));}
 function pdfTouchMove(e){
   if(PS.on){psTouchMove(e);return;}
+  if(SM.lpHeld)return; /* 04.11: the long-press finger drags the end of our selection */
   const g=P.g;if(!g)return;
-  if(g.type==='one'&&e.touches.length===1&&(g.sel||(g.sel=pdfSelecting()||(!g.moved&&!g.bright&&performance.now()-g.t0>450))))return; /* selecting */
+  if(g.type==='one'&&e.touches.length===1&&!SM.on&&(g.sel||(g.sel=pdfSelecting()||(!g.moved&&!g.bright&&performance.now()-g.t0>450))))return; /* selecting */
   if(e.cancelable)e.preventDefault(); /* the browser must never zoom/scroll the page itself */
   const r=pdfVR();
   if(g.type==='pinch'&&e.touches.length>=2){
@@ -638,9 +640,10 @@ function pdfTouchEnd(e){
   if(g.type==='quiet'){if(!e.touches.length)P.g=null;return;}
   if(e.touches.length)return;
   P.g=null;
+  if(SM.lpHeld)return; /* 04.11: the end of a long press (and its drag) is not a swipe / tap */
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
   if(g.bright&&g.moved){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}
-  if(g.sel||pdfSelecting()){if(g.pannable&&g.moved)pdfApply();return;} /* 22.10: the end of a selection drag is not a swipe / tap */
+  if(g.sel||(!SM.on&&pdfSelecting())){if(g.pannable&&g.moved)pdfApply();return;} /* 22.10: the end of a selection drag is not a swipe / tap */
   const swipeOn=flipGet().swipe!==false; /* 28.10: свайп не зависит от «Поменять стороны» */
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
   pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
@@ -653,7 +656,7 @@ function pdfTouchEnd(e){
     if(moved>0)pdfAct('pan',{fraction:moved});
     return;
   }
-  if(swipeOn&&horiz){fsResume();pdfFlip(dx<0?1:-1);return;}
+  if(swipeOn&&horiz){fsResume();if(SM.on&&selBook()){selTurn(dx<0?1:-1);return;} /* 04.11: the selection goes on onto the next page */pdfFlip(dx<0?1:-1);return;}
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&performance.now()-g.t0<450&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
@@ -983,7 +986,7 @@ el('viewer').addEventListener('click',e=>{
 /* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
    click right after a swipe), mouse/keyboard clicks via 'click'. */
 function viewerTap(cx,cy){
-  if(typeof SM!=='undefined'&&SM.on&&R.mode==='text'){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-SM.lpXY[0])<16&&Math.abs(cy-SM.lpXY[1])<16))smTap(cx,cy);return;} /* not the click Chrome may send after the long press itself */ /* 28.10: selecting — the tap moves the end of the selection, pages turn by swipe */
+  if(typeof SM!=='undefined'&&SM.on&&R.mode==='text'){smTapAt(cx,cy);return;} /* 28.10: selecting — the tap moves the end of the selection, pages turn by swipe */
   if(quoteTapAt(cx,cy))return; /* 22.10: a tap on a saved highlight opens its bar; with the bar open the tap only closes it */
   if(selText())return; // идёт выделение текста — не листаем
   const r=el('viewer').getBoundingClientRect();

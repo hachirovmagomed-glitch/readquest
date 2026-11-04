@@ -64,6 +64,7 @@ const SHOP_CATALOG=(function(){
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
   sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   sk('babochkovyi','Бабочковый',500,'Перламутровые крылья, летний луг и мотыльки',[['base','Бабочковый','#f4f2f8']]); /* handoff/skins/babochkovyi (16.10) */
+  sk('alisa','Страна чудес',500,'Игральные карты, карманные часы и чаепитие по Кэрроллу',[['base','Страна чудес','#f4ecd9']]); /* handoff/skins/alisa (04.11, пак strana-chudes); день и ночь внутри скина */
   const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
   return Object.freeze(L.map(Object.freeze));
 })();
@@ -72,7 +73,7 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
+const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial','skin-alisa'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;const sid=it.type==='skin'?it.id:it.skin;
   return SHOP_READY.indexOf(sid)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */

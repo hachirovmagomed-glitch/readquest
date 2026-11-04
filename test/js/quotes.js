@@ -185,7 +185,8 @@ const QC_ORN={
   ellada:{band:'--el-meander',mark:'--el-laurel'},
   celestial:{corners:['--cl-ctl','--cl-ctr','--cl-cbl','--cl-cbr'],div:'--cl-div',scatter:'--cl-spark',mark:'--cl-stars3'},
   babochkovyi:{scatter:'--bb-fly',mark:'--bb-flyers'},
-  pencil:{spiral:'--pc-spiral',under:'--pc-under',mark:'--pc-star'}
+  pencil:{spiral:'--pc-spiral',under:'--pc-under',mark:'--pc-star'},
+  alisa:{corners:['--al-ctl','--al-ctr','--al-cbl','--al-cbr'],div:'--al-div',scatter:'--al-scatter',mark:'--al-roses'}
 };
 function qcVar(name){const cs=getComputedStyle(document.documentElement);let night=false;try{night=appIsNight();}catch(e){}
   const v=(night&&cs.getPropertyValue(name+'-n').trim())||cs.getPropertyValue(name).trim();const m=/^url\(\s*(["']?)([\s\S]*)\1\s*\)$/.exec(v);return m?m[2]:'';}

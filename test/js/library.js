@@ -451,6 +451,21 @@ function celCover(b){
   /* the title and author are printed on the cover (the shelf grid shows them, small covers hide them) */
   return '<span class="cl-cover cl-'+CL_INKS[h%CL_INKS.length]+'"><i>'+bookFmt(b)+'</i><b class="cl-t">'+esc(b.title||'')+'</b><small class="cl-a">'+esc(bookAuthor(b))+'</small><svg viewBox="0 0 30 30" aria-hidden="true" focusable="false">'+CL_EMB[em[(m>>>8)%em.length]]+'</svg></span>';
 }
+/* «Страна чудес» (04.11, пак handoff/skins/strana-chudes): обложка = игральная карта. Пять «рубашек»: бумага, черва, сад, нора (ночная синь),
+   шахматная доска; в углах индекс (ранг + масть), на сетке полки — название (Playfair Display SC) и автор, на маленьких обложках — крупная масть.
+   Рубашка по хешу id, ранг и масть по смешанному хешу. Цвета = токены пака (--sc-*), текст на заливках с контрастом ≥ 7. */
+const AL_KINDS=['paper','red','garden','night','chess'];
+const AL_RANKS=['7','8','9','10','В','Д','К','Т'];
+const AL_SUITS={h:'M12 21C3 15 2.5 8.5 7 7c2.4-.8 4.2.6 5 2.6C12.8 7.6 14.6 6.2 17 7c4.5 1.5 4 8-5 14z',d:'M12 2 19 12 12 22 5 12z',
+  s:'M12 2.5C3 9 3.5 15 7.6 15.6c2 .3 3.3-.6 4.1-1.8L10 21h4l-1.7-7.2c.8 1.2 2.1 2.1 4.1 1.8C20.5 15 21 9 12 2.5z',
+  c:'M12 3a3.6 3.6 0 0 0-2.6 6.1A3.6 3.6 0 1 0 10.6 15L9.6 21h4.8l-1-6A3.6 3.6 0 1 0 14.6 9.1 3.6 3.6 0 0 0 12 3z'};
+function alisaCover(b){
+  let h=0;const k=String(b.id||b.title||'');for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;
+  const m=Math.imul(h^(h>>>15),2654435761)>>>0,kind=AL_KINDS[h%AL_KINDS.length],sk=Object.keys(AL_SUITS),su=sk[(m>>>8)%sk.length],rk=AL_RANKS[(m>>>13)%AL_RANKS.length];
+  const red=su==='h'||su==='d',ix='<b class="al-r">'+rk+'</b><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+AL_SUITS[su]+'"/></svg>';
+  return '<span class="al-cover al-'+kind+(red?' al-redsuit':'')+'"><span class="al-ix">'+ix+'</span><span class="al-ix al-ix2">'+ix+'</span><i>'+bookFmt(b)+'</i>'+
+    '<b class="al-t">'+esc(b.title||'')+'</b><small class="al-a">'+esc(bookAuthor(b))+'</small><svg class="al-big" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+AL_SUITS[su]+'"/></svg></span>';
+}
 function statOf(b){return S.bookStat[b.id]||b.stat;}
 function coverHtml(b){
   const cv=S.covers[b.id];
@@ -459,6 +474,7 @@ function coverHtml(b){
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
   if(document.documentElement.dataset.skin==='celestial')return celCover(b);
+  if(document.documentElement.dataset.skin==='alisa')return alisaCover(b);
   return genCover(b); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) */
 }
 /* 18.10: the filter row under the header is gone (filters live in «⋮», libFilterItems); #libChips stays empty and hidden */

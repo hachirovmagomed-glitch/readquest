@@ -11,7 +11,7 @@ function uiHiddenClean(h){return Array.isArray(h)?h.filter(function(k,i){return 
 /* ================= MVP helpers ================= */
 const REWARD_TIERS={small:100,mid:250,big:500};
 const REWARD_TIER_LABELS={small:'Мелочь · 100',mid:'Приятное · 250',big:'Крупное · 500'};
-const RQ_BUILD='20261104-2253'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
+const RQ_BUILD='20261105-0121'; /* replaced by build-dist.sh (visible in Настройки → Данные) */
 function isMvp(){return SET.mvp!==false;}
 /** audit 19.10 LIB-04: the author as shown — '' for the import placeholders («Моя книга», «PDF», «Неизвестен»), same list as ach-core NOT_AUTHOR */
 function bookAuthor(b){const a=String((b&&b.author)||'').trim();return /^(моя книга|pdf|неизвестен|неизвестный автор)$/i.test(a)?'':a;}
@@ -179,7 +179,8 @@ const LVL_SKIN_NAMES={
   pencil:['Набросок','Этюд','Штудия','Мастер-класс','Шедевр'],
   ellada:['Смертный','Герой','Полубог','Титан','Олимп'],
   babochkovyi:['Гусеница','Куколка','Бабочка','Махаон','Монарх'],
-  celestial:['Звезда','Созвездие','Туманность','Галактика','Вселенная']
+  celestial:['Звезда','Созвездие','Туманность','Галактика','Вселенная'],
+  alisa:['Двойка','Валет','Дама','Король','Туз']
 };
 function lvlName(i){const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!L[i])return '';const a=LVL_SKIN_NAMES[document.documentElement.dataset.skin||''];return (a&&a[i])||L[i].n;}
 function awardPendingSessions(){

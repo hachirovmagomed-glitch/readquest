@@ -15,6 +15,7 @@ function show(id){
     id = 'library';
   }
   SCREENS.forEach(s=>el(s).classList.toggle('hidden',s!==id));
+  if(typeof dyBotSync==='function')dyBotSync();
   const tgt=DRAWER[id];
   Array.from(new Set(Object.values(DRAWER))).forEach(di=>{const e=el(di);if(e)e.classList.toggle('on',di===tgt);});
   if(el('dRew'))el('dRew').classList.remove('on');

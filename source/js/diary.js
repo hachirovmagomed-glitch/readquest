@@ -226,7 +226,7 @@ function dyEditHtml(y,n){
 function dyPick(act,list,cur,sw){
   return '<div class="dypick" role="radiogroup">'+list.map(function(x){const on=x[0]===cur,lk=x[2]&&!dySkinOwned(x[2]);
     return '<button type="button" class="dyp'+(on?' on':'')+(lk?' lk':'')+'" role="radio" aria-checked="'+on+'" data-act="'+(lk?'lock':act)+'" data-v="'+esc(x[0])+'"'+(lk?' data-sk="'+x[2]+'" aria-label="'+esc(x[1]+', со скином «'+dySkinName(x[2])+'»')+'"':'')+'>'+
-      (sw?'<i class="dysw" data-'+sw+'="'+esc(x[0])+'"></i>':'')+'<span>'+esc(x[1])+'</span>'+(lk?rqIcon('lock',14):'')+'</button>';}).join('')+'</div>';}
+      (sw?'<i class="dysw" data-'+sw+'="'+esc(x[0])+'"></i>':'')+'<span'+(sw==='fn'?' class="dyfn-'+esc(x[0])+'"':'')+'>'+esc(x[1])+'</span>'+(lk?rqIcon('lock',14):'')+'</button>';}).join('')+'</div>';}
 function dyTagPick(cur){return '<div class="dypick dytags" role="radiogroup" aria-label="Метка записи">'+DIARY_TAGS.map(function(x){const on=x[0]===cur;
   return '<button type="button" class="dytag'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" data-act="cl" data-v="'+x[0]+'" aria-label="'+esc(x[1])+'" title="'+esc(x[1])+'"><i data-cl="'+x[0]+'">'+(x[0]?'':rqIcon('x',14))+'</i></button>';}).join('')+'</div>';}
 function dyFsStep(y){return '<div class="dystep"><button type="button" data-act="fs" data-v="-1" aria-label="Мельче"'+(y.fs<=14?' disabled':'')+'>'+rqIcon('minus',18)+'</button><output id="dyFsO" aria-live="polite">'+y.fs+'</output><button type="button" data-act="fs" data-v="1" aria-label="Крупнее"'+(y.fs>=24?' disabled':'')+'>'+rqIcon('plus',18)+'</button></div>';}
@@ -290,6 +290,7 @@ function dyRender(){
   if(DY.view==='edit'&&!n)DY.view='book';
   if(DY.view==='shelf'&&DY.full){DY.full=false;dyFsSet(false);}
   const sc=el('diary');if(sc){sc.dataset.view=DY.view;sc.classList.toggle('dyn',dyNight());if(el('dySheet'))el('dySheet').classList.toggle('dyn',dyNight());sc.classList.toggle('dyfull',DY.full);}
+  dyBotSync();
   box.innerHTML=(DY.view==='shelf'?dyShelfHtml():DY.view==='book'?dyBookHtml(y):dyEditHtml(y,n))+(DY.full?dyFullBar():'');
   const m=el('menuDiary');if(m)m.onclick=openDrawer;
   const q=el('dyQ');if(q)q.oninput=function(){DY.q=q.value;const pos=q.selectionStart;dyRender();const q2=el('dyQ');if(q2){q2.focus();try{q2.setSelectionRange(pos,pos);}catch(e){}}};
@@ -395,6 +396,9 @@ function dyBack(){
   if(DY.view==='edit'){if(navState()==='diaryEd')history.back();else{dyEditClose();dyRender();}return;}
   if(DY.view==='book'){if(navState()==='diary')history.back();else{DY.view='shelf';DY.id=null;DY.q='';dyRender();}}
 }
+/** 04.11: the open diary hides the bottom bar by a class on <body>, not «body:has(#diary…)»: that :has() made every change
+    anywhere on the page restyle the whole book being read («Обзор» stuttered) */
+function dyBotSync(){const d=el('diary');document.body.classList.toggle('dynobot',!!d&&!d.classList.contains('hidden')&&/^(book|edit)$/.test(d.dataset.view||''));}
 function diaryIsOpen(){const d=el('diary');return !!d&&!d.classList.contains('hidden');}
 window.addEventListener('popstate',function(e){
   if(!diaryIsOpen())return;const st=(e.state&&e.state.rq)||null;

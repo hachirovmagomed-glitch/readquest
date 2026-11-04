@@ -112,6 +112,30 @@ const k12 = await p.evaluate(async () => { getSelection().removeAllRanges(); awa
   const rail = [...el('ssRail').children].map(x => x.id).filter(Boolean); return { copied, items, rail }; });
 ok('«Копировать» in the column (the bar\'s own copy), not in «Действия»; no heroes in «Действия»',
   k12.copied === 'Очумелов' && k12.rail.indexOf('ssCopy') > k12.rail.indexOf('ssCol') && k12.rail.indexOf('ssCopy') < k12.rail.indexOf('ssDict') && !k12.items.some(x => /Копировать|геро/i.test(x)), k12);
+// 04.11 (Джессика: «возможность выбирать в настройках виды бокового меню … ещё 3 варианта»): five looks, SET.selLook
+for (const lk of ['bar', 'bubble', 'dock', 'big']) {
+  const r = await p.evaluate(async (lk) => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); SET.selLook = lk; saveSet(); __word('Очумелов'); await new Promise(r => setTimeout(r, 700));
+    const n = el('selSide'), b = n.getBoundingClientRect(), s = [...getSelection().getRangeAt(0).getClientRects()][0], vis = (id) => { const e = el(id); return !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0; };
+    return { look: n.dataset.look, open: n.classList.contains('open'), tab: vis('ssTab'), inside: b.left >= 0 && b.right <= innerWidth + 0.5 && b.top >= 0 && b.bottom <= innerHeight, covers: s.bottom > b.top && s.top < b.bottom && s.right > b.left && s.left < b.right,
+      colsIn: el('spColors').parentNode.id, note: vis('ssNote'), copy: vis('ssCopy'), dict: vis('ssDict'), ai: vis('ssAI'), more: vis('ssMore'), cap: vis('ssL') || [...n.querySelectorAll('.ssL')].some(x => getComputedStyle(x).display !== 'none'),
+      bar: getComputedStyle(el('selpop')).display, w: Math.round(b.width), h: Math.round(b.height), top: Math.round(b.top), selTop: Math.round(s.top) }; }, lk);
+  const card = lk === 'bar' || lk === 'big';
+  ok(lk + ': open at once (no tab), on screen, not over the words; colours ' + (card ? 'on the card' : 'behind «Цвета»') + '; copy, translate, explain, more; no bottom bar',
+    r.look === lk && r.open && !r.tab && r.inside && !r.covers && (card ? r.colsIn === 'ssColBox' : r.colsIn === 'selpop') && r.copy && r.dict && r.ai && r.more && r.note === (lk !== 'bubble') && r.cap === (lk === 'big') && r.bar === 'none'
+    && (lk !== 'bubble' || (r.top < r.selTop && r.h < 60)), r);
+  const m = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 150)); const b = el('ssMenu').getBoundingClientRect(), items = [...el('ssMenu').querySelectorAll('button')].map(x => x.textContent.trim()); el('ssMore').click();
+    return { inside: b.left >= 0 && b.right <= innerWidth + 0.5 && b.top >= 0 && b.bottom <= innerHeight, h: Math.round(b.height), note: items.includes('Заметка'), n: items.length }; });
+  ok(lk + ': «Ещё» opens whole on screen; «Заметка» is in the row, not in the list' + (lk === 'bubble' ? ' (here in the list)' : ''), m.inside && m.h > 100 && m.note === (lk === 'bubble'), m);
+}
+const lq = await p.evaluate(async () => { SET.selLook = 'bar'; saveSet(); getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); __word('Ребята'); await new Promise(r => setTimeout(r, 700));
+  const bid = R.book.id, n0 = (S.quotes[bid] || []).length; el('spColors').querySelector('[data-c="b"]').click(); await new Promise(r => setTimeout(r, 400));
+  const q = (S.quotes[bid] || []).at(-1); return { n: (S.quotes[bid] || []).length - n0, t: q && q.text, c: q && q.c, back: el('spColors').parentNode.id, side: el('selSide').hidden }; });
+ok('«Плашка»: a tap on a colour saves the quote, the card goes, the colours go back to the bar', lq.n === 1 && lq.t === 'Ребята' && lq.c === 'b' && lq.back === 'selpop' && lq.side, lq);
+const ls = await p.evaluate(async () => { SET.selLook = 'side'; saveSet(); openGeneralSettings && openGeneralSettings(true); await new Promise(r => setTimeout(r, 300)); rxRender(); const box = el('rxSelLook');
+  const chips = box ? [...box.querySelectorAll('button')].map(b => b.textContent) : []; const on0 = box && box.querySelector('.on') && box.querySelector('.on').textContent;
+  if (box) [...box.querySelectorAll('button')].find(b => b.textContent === 'У текста').click(); await new Promise(r => setTimeout(r, 100));
+  const r = { chips, on0, set: SET.selLook, on1: el('rxSelLook').querySelector('.on').textContent }; SET.selLook = 'side'; saveSet(); return r; });
+ok('settings «Чтение → Меню выделения → Вид меню»: five looks, «Сбоку» by default, a tap picks one', JSON.stringify(ls.chips) === JSON.stringify(['Сбоку', 'Плашка', 'У текста', 'Полоса снизу', 'С подписями']) && ls.on0 === 'Сбоку' && ls.set === 'bubble' && ls.on1 === 'У текста', ls);
 ok('no page errors', !errs.length, errs.slice(0, 3));
 await browser.close();
 const f = checks.filter(x => !x).length; console.log(f ? `${f} FAILED of ${checks.length}` : `ALL ${checks.length} PASSED`); process.exit(f ? 1 : 0);

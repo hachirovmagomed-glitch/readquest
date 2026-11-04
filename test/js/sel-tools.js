@@ -6,7 +6,8 @@
    «Копировать», «Перевести», «Объясни», «Действия» (a branch: «Заметка», «В словарь», «Предложение, потом абзац», «В дневник», «Закладка здесь»,
    «Википедия», «До конца абзаца», «До конца страницы»), the count of words.
    «Копировать», «Перевести», «Объясни», «Заметка», «В словарь», «Предложение…» are the buttons of the bar (#selpop) — the same code.
-   S.chars (heroes, 29.10) stays in the data, its buttons are gone. */
+   S.chars (heroes, 29.10) stays in the data, its buttons are gone.
+   04.11: five looks of the menu (ssLook in js/reader-ui.js); in the row looks «Заметка» is in the row, the branches open above it. */
 const ST={};
 function stText(){let t=(typeof selText==='function'&&selText())||'';
   if(typeof PQ!=='undefined'&&PQ&&R.book&&PQ.bid===R.book.id&&PQ.text)t=PQ.text+' '+t;
@@ -24,6 +25,7 @@ function stOff(id){const b=el(id);return !b||b.classList.contains('rxoff');}
 
 function stBind(){
   el('ssCol').onclick=function(){const on=el('ssColBox').hidden;stMenu(false);stCol(on);};
+  el('ssNote').onclick=stBar('spNote');
   el('ssCopy').onclick=stBar('spCopy');
   el('ssCnt').onclick=function(){if(typeof selView==='function')selView();};
   el('ssDict').onclick=stBar('spDict');
@@ -34,7 +36,7 @@ function stBind(){
 function stUpd(){
   const q=el('ssCol');if(!q)return;const k=hlKey(SET.hlc);
   q.style.setProperty('--d',hlDot(k));q.style.setProperty('--d2',hlDot2(k));
-  q.hidden=stOff('spColors');el('ssCopy').hidden=stOff('spCopy');el('ssDict').hidden=stOff('spDict');el('ssAI').hidden=stOff('spAI');
+  q.hidden=stOff('spColors');el('ssNote').hidden=stOff('spNote');el('ssCopy').hidden=stOff('spCopy');el('ssDict').hidden=stOff('spDict');el('ssAI').hidden=stOff('spAI');
   const n=stWords(stText()),c=el('ssCnt'),pg=typeof selStats==='function'?selStats().pages:1;
   /* 28.10 (Джессика: «непонятно, что я скопировал»): the count also says over how many pages; a tap shows the whole selected text */
   c.innerHTML='<b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span>'+(pg>1?'<span>'+pg+' стр.</span>':'');
@@ -43,23 +45,31 @@ function stUpd(){
 /** a branch next to the column, at the height of its button, whole on screen */
 function stBranch(m,b){
   const sd=el('selSide').getBoundingClientRect(),br=b.getBoundingClientRect(),h=m.getBoundingClientRect().height;
+  if(ssLook()!=='side'){ /* 04.11 the row looks: the branch above the row (under it when the row is at the top), at its button, whole on screen */
+    const w=m.getBoundingClientRect().width,x=Math.max(8,Math.min(innerWidth-8-w,br.left+br.width/2-w/2));
+    m.style.left=Math.round(x-sd.left)+'px';m.style.top=Math.round(sd.top-h-6>=8?-h-6:sd.height+6)+'px';return;}
+  m.style.left='';
   const top=Math.max(8-sd.top,Math.min(innerHeight-8-h-sd.top,br.top-sd.top-h/2+br.height/2));m.style.top=Math.round(top)+'px';
 }
 /* «Цвета»: the bar's own colour buttons (#spColors, its click = a quote in that colour, «свой цвет» = the picker) move into the branch
    and go back to the bar when the branch closes (a tapped saved quote still recolours in the bar) */
 function stCol(on){
   const m=el('ssColBox'),b=el('ssCol'),c=el('spColors');if(!m||!c)return;
+  const lk0=ssLook();if(!on&&SS.open&&(lk0==='bar'||lk0==='big')&&!el('selSide').hidden)return; /* the card keeps its colours while it is shown */
   if(!on){if(c.parentNode!==el('selpop'))el('selpop').insertBefore(c,el('spNote'));m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
   if(typeof renderSpColors==='function')renderSpColors();
-  m.appendChild(c);m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
+  m.appendChild(c);m.hidden=false;b.setAttribute('aria-expanded','true');
+  const lk=ssLook();if(lk==='bar'||lk==='big'){m.style.left=m.style.top='';return;} /* on the card the colours are its top row */
+  stBranch(m,b);
 }
 
 /* «Действия»: a labelled list next to the column (on the side of the text) */
 function stMenu(on){
   const m=el('ssMenu'),b=el('ssMore');if(!m)return;
   if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
+  const nb=el('ssNote'),own=nb&&getComputedStyle(nb).display!=='none'; /* «Заметка» has its own button in the row looks */
   const it=[
-    !stOff('spNote')&&['note','pencil','Заметка'],
+    !own&&!stOff('spNote')&&['note','pencil','Заметка'],
     !stOff('spWord')&&['word','book-open','В словарь'],
     R.mode!=='pdf'&&!stOff('spGrow')&&['grow','align-justify','Предложение, потом абзац'],
     R.mode!=='pdf'&&!stOff('spGrow')&&['sent','plus','+ предложение'], /* 28.10 (Джессика: «кнопки быстрого выделения»): the next one, also onto the next page */

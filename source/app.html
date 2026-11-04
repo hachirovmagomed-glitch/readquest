@@ -812,6 +812,38 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #ssMenu>button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border-radius:12px;text-align:left;font-size:0.9375rem;color:var(--txt);background:none}
 #ssMenu>button:active{background:var(--card2)}
 #ssMenu .ic{flex:none;color:var(--accent)}
+/* 04.11 the looks of the menu (SET.selLook, js/reader-ui.js ssLook/ssPlaceLook): «Плашка», «У текста», «Полоса снизу», «С подписями» */
+.ssL{display:none}
+#selSide:not([data-look="side"]) :is(#ssTab,#ssGrip,#ssFold){display:none!important}
+#selSide:is([data-look="side"],[data-look="bubble"]) #ssNote{display:none!important}
+#selSide:not([data-look="side"]) #ssRail{flex-direction:row;flex-wrap:wrap;justify-content:center;width:auto;padding:4px 6px;border:1.5px solid var(--accent);border-radius:24px;background:var(--sheet)}
+#selSide:not([data-look="side"]) #ssRail>hr{width:0;height:24px;margin:0 2px;border:0;border-left:1px solid var(--txt)}
+#selSide:not([data-look="side"]) #ssRail>button{width:42px;height:44px}
+#selSide:not([data-look="side"]) #ssCnt{padding:0 4px;justify-content:center}
+#selSide:not([data-look="side"]) #ssMenu{left:0;top:auto}
+#selSide:not([data-look="side"]) #ssColBox #spColors{flex-direction:row}
+#selSide:not([data-look="side"]) #ssColBox{left:0}
+/* «У текста»: a small row next to the words; no count, no «Начало» */
+#selSide[data-look="bubble"]{left:0;top:0;right:auto}
+#selSide[data-look="bubble"] #ssRail{flex-wrap:nowrap;border-radius:22px;padding:2px 4px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+#selSide[data-look="bubble"] :is(#ssCnt,#ssRail>hr){display:none!important}
+/* «Плашка» and «С подписями»: a card at the bottom above ‹ ›, the colours its first row */
+#selSide:is([data-look="bar"],[data-look="big"],[data-look="dock"]){left:50%;right:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 16px)}
+#selSide:is([data-look="bar"],[data-look="big"],[data-look="dock"]).attop{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
+#selSide:is([data-look="bar"],[data-look="big"]){display:flex;flex-direction:column;background:var(--sheet);color:var(--txt);border-radius:26px;box-shadow:0 6px 24px rgba(0,0,0,.28);padding:6px 6px 4px}
+#selSide:is([data-look="bar"],[data-look="big"]) #ssCol{display:none!important}
+#selSide:is([data-look="bar"],[data-look="big"]) #ssColBox{order:-1;position:static;border:0;box-shadow:none;background:none;padding:2px 0 4px;margin:0 6px;border-bottom:1px solid color-mix(in srgb,var(--txt) 18%,transparent);border-radius:0}
+#selSide:is([data-look="bar"],[data-look="big"]) #ssColBox #spColors{justify-content:space-around;gap:4px}
+#selSide:is([data-look="bar"],[data-look="big"]) #ssRail{border:0;background:none;box-shadow:none;border-radius:0;padding:2px 0 0}
+/* «Полоса снизу»: one row across the screen */
+#selSide[data-look="dock"]{left:8px;right:8px;transform:none;width:auto;max-width:none}
+#selSide[data-look="dock"] #ssRail{flex-wrap:nowrap;justify-content:space-around;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+#selSide[data-look="dock"] #ssRail>button{width:auto;min-width:36px;flex:1 1 0}
+/* «С подписями»: bigger buttons with a word under the icon, two rows on a phone */
+#selSide[data-look="big"] .ssL{display:block;font-size:11.5px;line-height:1.1;margin-top:2px;white-space:nowrap}
+#selSide[data-look="big"] #ssRail>button{flex-direction:column;width:68px;height:58px;border-radius:14px}
+#selSide[data-look="big"] #ssRail>hr{display:none}
+#selSide[data-look="big"] #ssColBox #spColors button{width:52px;height:52px}
 #stSheet{position:fixed;left:0;right:0;bottom:0;z-index:96;max-height:62vh;overflow:auto;background:var(--sheet);color:var(--txt);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4);padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);-webkit-user-select:none;user-select:none}
 #stSheet .sthead{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;min-height:52px;background:var(--sheet)}
 #stSheet .sthead b{flex:1;font-size:1.0625rem}

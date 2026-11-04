@@ -165,6 +165,110 @@ out['--al-roses-n'] = uri(svg(76, 22, rose(9, 8, .9, N_RED, N_BLUE) + rose(67, 8
                                       f"<path d='{heart(38, 9, 5)}' fill='{N_RED}'/><path d='M20 9H31M45 9H56' stroke='{N_BLUE}' stroke-width='.8'/>"))
 out['--al-scatter'] = uri(svg(24, 24, f"<path d='{heart(12, 12.4, 8)}' fill='{RED}'/>"))
 
+
+# ===== 04.11 v2 (Джессика: «надо как-то сильнее его уникализировать») =====
+# rose rows for the progress bar: white roses (track) and the same roses «painted red» (fill)
+def rose_row(petal, ink):
+    return svg(20, 16, f"<path d='M10 9.5v6M10 13c-2-.9-3.4-.5-4.2.6 1.4.8 2.9.8 4.2-.6z' stroke='{ink}' stroke-width='.8' fill='{GARDEN}'/>"
+               f"<circle cx='10' cy='6' r='4.6' fill='{petal}' stroke='{ink}' stroke-width='.9'/>"
+               f"<path d='M8.4 5.6a1.7 1.7 0 1 1 2.1 1.7M7 7.4c1.6 1.7 4.4 1.7 6 0' fill='none' stroke='{ink}' stroke-width='.7'/>")
+out['--al-rose-w'] = uri(rose_row('#fbf6ea', INK))
+out['--al-rose-r'] = uri(rose_row(RED, INK))
+out['--al-rose-w-n'] = uri(rose_row('#2a2f52', N_BLUE))
+out['--al-rose-r-n'] = uri(rose_row(N_RED, N_BLUE))
+# card back for the face-down tabs: a red lattice (day) / blue (night), drawn faint under the label
+def back(c):
+    return svg(12, 12, f"<path d='M0 6L6 0L12 6L6 12Z' fill='none' stroke='{c}' stroke-width='.7'/><circle cx='6' cy='6' r='1' fill='{c}'/>")
+out['--al-back'] = uri(back(RED))
+out['--al-back-n'] = uri(back(N_BLUE))
+# «Съешь меня»: a little cake with currants and a tag, for the «+» (add a book)
+def cake(ink, sponge, icing, tag, red):
+    return svg(44, 44, f"<path d='M8 25h28v9a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z' fill='{sponge}' stroke='{ink}' stroke-width='1.3'/>"
+               f"<path d='M7 25c0-6 6.5-10 15-10s15 4 15 10c-2 1.6-4 1.6-5 0-1 1.6-3.6 1.6-5 0-1.4 1.6-3.6 1.6-5 0-1.4 1.6-3.6 1.6-5 0-1.4 1.6-3.6 1.6-5 0-1 1.6-3 1.6-5 0z' fill='{icing}' stroke='{ink}' stroke-width='1.3'/>"
+               f"<circle cx='14' cy='30' r='1.1' fill='{ink}'/><circle cx='22' cy='32' r='1.1' fill='{ink}'/><circle cx='30' cy='29.6' r='1.1' fill='{ink}'/>"
+               f"<path d='M22 15V9' stroke='{ink}' stroke-width='1'/><path d='{heart(22, 7.4, 2.6)}' fill='{red}'/>"
+               f"<path d='M29 18l7-5 4 4-7 5z' fill='{tag}' stroke='{ink}' stroke-width='.9'/><path d='M31.6 17.2l4-2.8M32.8 19l3-2.1' stroke='{ink}' stroke-width='.6'/>")
+out['--al-cake'] = uri(cake(INK, '#e9c98a', EXL, PARCH, RED))
+out['--al-cake-n'] = uri(cake(N_BLUE, '#3a3550', '#ece4d2', '#1f2440', N_RED))
+out['--al-bottle'] = uri(svg(20, 28, bottle(10, 27, .95, INK, '#cfe0f4', PARCH)))
+out['--al-bottle-n'] = uri(svg(20, 28, bottle(10, 27, .95, N_BLUE, '#22305a', '#1f2440')))
+# the mad tea table: a long cloth, cups, the teapot and a clock stuck at six
+def teacup(x, y, s, ink, fill, red):
+    return (f"<g transform='translate({n(x)} {n(y)}) scale({n(s)})' fill='{fill}' stroke='{ink}' stroke-width='{n(1.1/s)}' stroke-linejoin='round'>"
+            f"<path d='M-6 -7h12c0 5-2.6 7-6 7s-6-2-6-7z'/><path d='M6 -5.4c2.4-.4 3.4 2.8.2 3.6' fill='none'/><path d='M-8.5 .6h17' fill='none'/>"
+            f"<path d='{heart(0, -3.6, 1.3)}' fill='{red}' stroke='none'/></g>")
+def table(ink, fill, red, cloth_bg):
+    cloth = ''.join(f"<rect x='{i*10}' y='44' width='10' height='6' fill='{red if (i % 2) == 0 else cloth_bg}'/><rect x='{i*10}' y='50' width='10' height='6' fill='{cloth_bg if (i % 2) == 0 else red}'/>" for i in range(36))
+    clock = watch(180, 18, 13, fill, ink, red, crown=True).replace(f"M180 18V{n(18-13*.55)}", "M180 18V5.5")  # hands pointing to six: minute up, hour down
+    clock = re.sub(r"M180 18L[\d.]+ [\d.]+", f"M180 18L180 {n(18+13*.5)}", clock)
+    return svg(360, 60, cloth + f"<path d='M0 44H360M0 56H360' stroke='{ink}' stroke-width='1'/>" +
+               teacup(40, 43, 1.2, ink, fill, red) + teacup(88, 43, 1, ink, fill, red) + teapot(130, 43, 1.25, ink, fill, red) +
+               clock + teacup(232, 43, 1.1, ink, fill, red) + bottle(276, 43, .7, ink, fill, fill) + teacup(318, 43, 1.2, ink, fill, red))
+out['--al-table'] = uri(table(INK, EXL, RED, EXL))
+out['--al-table-n'] = uri(table(N_BLUE, N_SURF, N_RED, N_SURF))
+out['--al-cup'] = uri(svg(26, 20, teacup(13, 16, 1.25, INK, EXL, RED)))
+out['--al-cup-n'] = uri(svg(26, 20, teacup(13, 16, 1.25, N_BLUE, N_SURF, N_RED)))
+# night = Looking-Glass: chess pieces fall instead of cards
+def pawn(x, y, s, c, f):
+    return (f"<g transform='translate({n(x)} {n(y)}) scale({n(s)})' fill='{f}' stroke='{c}' stroke-width='{n(1/s)}'>"
+            f"<circle cx='0' cy='-11' r='3.2'/><path d='M-2.6 -8.2c-.6 3-2 5-3.4 6.6h12c-1.4-1.6-2.8-3.6-3.4-6.6z'/><path d='M-6.5 -1.6h13v2.6h-13z'/></g>")
+def rook(x, y, s, c, f):
+    return (f"<g transform='translate({n(x)} {n(y)}) scale({n(s)})' fill='{f}' stroke='{c}' stroke-width='{n(1/s)}'>"
+            f"<path d='M-5 -15h2.2v2h1.8v-2h2v2h1.8v-2H5v4.4l-1.6 1.6v6.4l2.4 2.6H-5.8l2.4-2.6V-9l-1.6-1.6z'/><path d='M-6.5 -1.6h13v2.6h-13z'/></g>")
+def knight(x, y, s, c, f):
+    return (f"<g transform='translate({n(x)} {n(y)}) scale({n(s)})' fill='{f}' stroke='{c}' stroke-width='{n(1/s)}' stroke-linejoin='round'>"
+            f"<path d='M-4.6 -1.6c0-4 2.6-5.6 3-8-1.6 1-3.4 1.2-4.4.4-.6-.8 0-2 1.6-3.4 1.6-1.6 2.4-3.6 3.6-4.4l.4 1.6c2.6.2 5.4 2.6 5.6 7.4.2 3-1 4.8-1.2 6.4z'/>"
+            f"<path d='M-6.5 -1.6h13v2.6h-13z'/><circle cx='.4' cy='-11.2' r='.5' fill='{c}'/></g>")
+def queen(x, y, s, c, f):
+    return (f"<g transform='translate({n(x)} {n(y)}) scale({n(s)})' fill='{f}' stroke='{c}' stroke-width='{n(1/s)}' stroke-linejoin='round'>"
+            f"<path d='M-6 -14l2.2 8 1.6-9 2.2 8.6 2.2-8.6 1.6 9 2.2-8L4 -1.6h-8z'/><circle cx='0' cy='-17' r='1.4'/><path d='M-6.5 -1.6h13v2.6h-13z'/></g>")
+def fall_n(ink, red, op):
+    b = (rook(36, 56, 1.3, ink, 'none') + key(150, 70, 6, 'none', ink) + f"<path d='{heart(100, 150, 6)}' fill='{red}'/>" +
+         queen(44, 250, 1.3, ink, 'none') + knight(160, 270, 1.3, ink, 'none') + pawn(110, 345, 1.3, ink, 'none') +
+         f"<path d='{diam(30, 350, 6)}' fill='{red}'/>" + pawn(180, 395, 1.1, ink, ink) + bottle(80, 100, .55, ink, 'none', 'none'))
+    return svg(200, 400, f"<g opacity='{op}'>{b}</g>")
+out['--al-fall-n'] = uri(fall_n(N_BLUE, N_RED, .25))
+# the rabbit hole wall for «падение в нору»: shelves with jars («ORANGE MARMALADE» style labels), a clock, a map, all in pale ink
+def hole(paper, ink, red, op):
+    b = (f"<rect width='240' height='320' fill='{paper}'/><g opacity='{op}' fill='none' stroke='{ink}' stroke-width='1.2' stroke-linecap='round'>"
+         f"<path d='M20 70H130M20 74H130M140 190H226M140 194H226M14 270H120M14 274H120'/>"
+         f"<path d='M34 70V48c0-3 2-4 4-5h12c2 1 4 2 4 5V70ZM36 43h16M38 58h12' />"
+         f"<path d='M70 70V52c0-2 2-4 4-4h12c2 0 4 2 4 4V70ZM72 60h16'/><path d='M100 70V54h18V70Z'/>"
+         f"<rect x='160' y='40' width='54' height='40' rx='2'/><path d='M166 70c8-12 14 2 22-10s14 0 20-6' stroke-dasharray='2 2'/>"
+         f"<path d='M150 190v-26h20v26M156 164v-6h8v6M180 190v-18c0-3 3-5 6-5s6 2 6 5v18M200 190v-30l10-6 10 6v30'/>"
+         f"<path d='M24 270v-24c0-2 2-4 4-4h12c2 0 4 2 4 4v24M52 270v-14h20v14M86 270v-30h26v30M92 252h14'/>"
+         f"</g>" + f"<g opacity='{op}'>" + watch(60, 160, 18, 'none', ink, red) + teapot(200, 300, 1.4, ink, 'none', red) +
+         f"<path d='{heart(196, 120, 6)}' fill='{red}'/><path d='{diam(30, 210, 5)}' fill='{red}'/></g>")
+    return svg(240, 320, b)
+out['--al-hole'] = uri(hole('#efe4c9', INK, RED, .55))
+out['--al-hole-n'] = uri(hole('#0b0d19', N_BLUE, N_RED, .6))
+# the Cheshire Cat (our drawing, engraving manner): the grin alone, and the rest of the head
+CAT_GRIN = ("<path d='M26 62Q60 94 94 62Q60 78 26 62Z' fill='#fbf6ea' stroke='#1c1a17' stroke-width='1.6' stroke-linejoin='round'/>"
+            "<path d='M34 67.5l1 5M42 71l.8 6M50 73l.5 6.4M60 74v6.6M70 73l-.5 6.4M78 71l-.8 6M86 67.5l-1 5' stroke='#1c1a17' stroke-width='1.1'/>")
+CAT_HEAD = ("<g fill='none' stroke='#1c1a17' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'>"
+            "<path d='M18 58C16 36 30 24 60 24S104 36 102 58C100 80 84 92 60 92S20 80 18 58Z' fill='#f1e6cc'/>"
+            "<path d='M26 38L22 8 46 27M94 38l4-30-24 19' fill='#f1e6cc'/><path d='M28 30l-2-14 10 9M92 30l2-14-10 9' stroke-width='1'/>"
+            "<path d='M48 25l2 9M60 24v10M72 25l-2 9M22 52l8 2M21 60l8 0M98 52l-8 2M99 60h-8' stroke-width='1.2'/>"
+            "<path d='M4 58l22 2M6 66l20-2M116 58l-22 2M114 66l-20-2' stroke-width='.8'/>"
+            "<ellipse cx='44' cy='48' rx='8' ry='5.6' fill='#e8d47a'/><ellipse cx='76' cy='48' rx='8' ry='5.6' fill='#e8d47a'/>"
+            "<path d='M44 43v10M76 43v10' stroke-width='2.4'/><path d='M57 58l3 3 3-3z' fill='#7e1820' stroke-width='1'/>"
+            "<path d='M30 84q-6 6-14 7M90 84q6 6 14 7' stroke-width='1'/></g>")
+out['--al-cat-grin'] = uri(svg(120, 100, CAT_GRIN))
+out['--al-cat-head'] = uri(svg(120, 100, CAT_HEAD))
+out['--al-cat-grin-n'] = uri(svg(120, 100, CAT_GRIN.replace('#fbf6ea', '#ece4d2').replace('#1c1a17', '#a9bcff')))
+# the White Rabbit running with his watch (our drawing): long ears, waistcoat, umbrella-less, watch held out
+RABBIT = ("<g fill='#fbf6ea' stroke='#1c1a17' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'>"
+          "<path d='M50 22c-3-10-2-19 2-21 4 2 4 11 1 21M56 22c1-10 5-17 9-17 3 3 0 11-5 18'/>"
+          "<path d='M44 34c0-8 6-13 13-13 8 0 12 6 11 12-1 5-5 8-11 8-7 0-13-2-13-7z'/><circle cx='60' cy='30' r='1.6' fill='#7e1820'/><path d='M67 34l2 .4'/>"
+          "<path d='M46 40c-6 4-8 14-6 24l4 8h18l3-10c2-8-1-18-8-22z' fill='#a3202a'/><path d='M52 44l4 10 4-10' fill='#f1e6cc'/>"
+          "<path d='M62 50c6 0 10-2 14-6' fill='none'/><circle cx='80' cy='42' r='5.4' fill='#e8c66a'/><path d='M80 39v3l2 1.4' stroke-width='1'/><path d='M80 36.4v-2'/>"
+          "<path d='M46 52c-4 4-6 8-5 12' fill='none'/>"
+          "<path d='M46 72l-10 12-8 2M58 72l10 10 9 0' fill='none' stroke-width='1.6'/><path d='M26 85.4c2 2 6 2 8 0M74 82c2 2 6 2 8-.4' fill='none'/>"
+          "<circle cx='40' cy='64' r='4' fill='#fbf6ea'/></g>")
+out['--al-rabbit'] = uri(svg(90, 92, RABBIT))
+# the mouse's tail («Mouse's Tale»): a curling ribbon behind the empty-quotes hint
+out['--al-tail'] = uri(svg(120, 40, f"<path d='M4 30c18-24 36 8 54-6s30-20 44-6c6 6 4 14-3 14-5 0-6-6-2-8' fill='none' stroke='{INK}' stroke-width='1.2' stroke-linecap='round' stroke-dasharray='1 3' opacity='.6'/>"))
+
 vars_css = 'html[data-skin="alisa"]{\n' + ''.join(f'  {k}:{v};\n' for k, v in out.items()) + '}\n'
 
 RULES = r'''
@@ -318,6 +422,58 @@ html[data-skin="alisa"] #diary .dypaper{border-radius:var(--rq-radius-sm);box-sh
 /* «Настройки чтения»: the sheet title with the screen-header rule */
 html[data-skin="alisa"] #sheet #sheetH::after{content:"";position:absolute;left:0;right:-48px;bottom:0;height:12px;background:var(--al-div) center/160px 12px no-repeat,linear-gradient(var(--rq-border-strong),var(--rq-border-strong)) 0 6px/100% .8px no-repeat;pointer-events:none}
 html[data-skin="alisa"][data-theme="night"] #sheet #sheetH::after{background-image:var(--al-div-n),linear-gradient(var(--sc-blue),var(--sc-blue))}
+/* ===== v2 (04.11, Джессика: «сильнее уникализировать»): падение в нору, розы, чаепитие, карты-вкладки, кот, Кролик, пирожок, Зазеркалье, хвост ===== */
+/* 1. falling down the rabbit hole (js/alisa.js alFall, on opening a book): shelves and jars slide up past the screen, then fade */
+#alFall{display:none}
+html[data-skin="alisa"] #alFall.on{display:block;position:fixed;inset:0;z-index:2147480000;pointer-events:none;background:var(--al-hole) 0 0/240px 320px repeat;animation:alDrop 1s cubic-bezier(.45,.05,.55,.95) forwards}
+html[data-skin="alisa"][data-theme="night"] #alFall.on{background-image:var(--al-hole-n)}
+@keyframes alDrop{0%{background-position:0 0;opacity:0}12%{opacity:1}75%{opacity:1}100%{background-position:0 -1280px;opacity:0}}
+/* 4. progress = white roses painted red: the track is a row of white roses, the filled part the same roses in red */
+html[data-skin="alisa"] :is(#shelf,.continuecard) .pbar{height:16px;border-radius:0;box-shadow:none;background:var(--al-rose-w) 0 0/20px 16px repeat-x}
+html[data-skin="alisa"] :is(#shelf,.continuecard) .pbar i{height:100%;border-radius:0;background:var(--al-rose-r) 0 0/20px 16px repeat-x}
+html[data-skin="alisa"][data-theme="night"] :is(#shelf,.continuecard) .pbar{background-image:var(--al-rose-w-n)}
+html[data-skin="alisa"][data-theme="night"] :is(#shelf,.continuecard) .pbar i{background-image:var(--al-rose-r-n)}
+/* 5. «Безумное чаепитие»: the rewards are laid on a long table (cloth, cups, the teapot, a clock stuck at six); each reward card is a cup */
+html[data-skin="alisa"] #rewSlots::before{content:"";display:block;height:60px;margin:0 -16px 14px;background:var(--al-table) center bottom/360px 60px repeat-x}
+html[data-skin="alisa"][data-theme="night"] #rewSlots::before{background-image:var(--al-table-n)}
+html[data-skin="alisa"] #rewSlots .pcard{position:relative;padding-top:26px}
+html[data-skin="alisa"] #rewSlots .pcard::before{content:"";position:absolute;left:50%;top:-1px;width:26px;height:20px;margin-left:-13px;background:var(--al-cup) center/contain no-repeat}
+html[data-skin="alisa"][data-theme="night"] #rewSlots .pcard::before{background-image:var(--al-cup-n)}
+/* 6. the tabs are cards: face down (a faint red lattice, the card back) until chosen; the chosen one turns face up */
+html[data-skin="alisa"] #botnav .botnav-btn{position:relative;isolation:isolate}
+html[data-skin="alisa"] #botnav .botnav-btn:not(.on)::before{content:"";position:absolute;inset:3px 4px;z-index:-1;border:1px solid var(--rq-line);border-radius:4px;background:var(--al-back) 0 0/12px 12px;opacity:.2}
+html[data-skin="alisa"][data-theme="night"] #botnav .botnav-btn:not(.on)::before{background-image:var(--al-back-n)}
+html[data-skin="alisa"] #botnav .botnav-btn.on{animation:alFlip .42s ease-out}
+@keyframes alFlip{0%{transform:perspective(320px) rotateY(90deg)}100%{transform:perspective(320px) rotateY(0)}}
+/* 2. the Cheshire Cat (js/alisa.js): the grin first, then the head; at night the grin alone; above the bottom nav, never over the text */
+#alCat{display:none}
+html[data-skin="alisa"] #alCat{display:block;position:fixed;right:12px;bottom:calc(150px + env(safe-area-inset-bottom));width:104px;height:87px;z-index:30;pointer-events:none;opacity:0;visibility:hidden}
+html[data-skin="alisa"] #alCat::before,html[data-skin="alisa"] #alCat::after{content:"";position:absolute;inset:0;background:center/contain no-repeat}
+html[data-skin="alisa"] #alCat::before{background-image:var(--al-cat-head);opacity:0}
+html[data-skin="alisa"] #alCat::after{background-image:var(--al-cat-grin)}
+html[data-skin="alisa"] #alCat.on{visibility:visible;opacity:1;transition:opacity 1.6s}
+html[data-skin="alisa"] #alCat.on::before{opacity:.92;transition:opacity 2.2s 1.8s}
+html[data-skin="alisa"][data-theme="night"] #alCat::before{display:none}
+html[data-skin="alisa"][data-theme="night"] #alCat::after{background-image:var(--al-cat-grin-n)}
+/* 3. the White Rabbit with his watch runs across, over the bottom nav (goal of the day met; js/alisa.js) */
+#alRabbit{display:none}
+html[data-skin="alisa"] #alRabbit.on{display:block;position:fixed;left:0;bottom:calc(84px + env(safe-area-inset-bottom));width:72px;height:74px;z-index:40;pointer-events:none;background:var(--al-rabbit) center/contain no-repeat;animation:alRun 3s linear forwards}
+@keyframes alRun{0%{transform:translate(-90px,0)}10%{transform:translate(calc(10vw - 90px),-6px)}20%{transform:translate(calc(20vw - 90px),0)}30%{transform:translate(calc(30vw - 90px),-6px)}40%{transform:translate(calc(40vw - 90px),0)}50%{transform:translate(calc(50vw - 90px),-6px)}60%{transform:translate(calc(60vw - 90px),0)}70%{transform:translate(calc(70vw - 90px),-6px)}80%{transform:translate(calc(80vw - 90px),0)}90%{transform:translate(calc(90vw - 90px),-6px)}100%{transform:translate(100vw,0)}}
+/* 7. «Съешь меня»: «+» (add a book) is a little cake; «Выпей меня»: the bottle by «Размер текста» */
+html[data-skin="alisa"] #btnAdd.addicon{background:var(--al-cake) center/40px 40px no-repeat;border:0;box-shadow:none}
+html[data-skin="alisa"][data-theme="night"] #btnAdd.addicon{background-image:var(--al-cake-n)}
+html[data-skin="alisa"] #btnAdd.addicon > svg{opacity:0}
+html[data-skin="alisa"] #szValL::before{content:"";display:inline-block;vertical-align:-5px;width:14px;height:20px;margin-right:6px;background:var(--al-bottle) center/contain no-repeat}
+html[data-skin="alisa"][data-theme="night"] #szValL::before{background-image:var(--al-bottle-n)}
+/* 8. night = Through the Looking-Glass: chess pieces fall instead of cards (--al-fall-n), screen titles appear mirrored for a moment */
+html[data-skin="alisa"][data-theme="night"] .screen:not(.hidden) :is(#libTitle,.wrap > .row > h1){animation:alMirror .9s ease-out}
+@keyframes alMirror{0%{transform:scaleX(-1);opacity:.4}45%{transform:scaleX(-1);opacity:1}100%{transform:scaleX(1)}}
+/* 9. «Mouse's Tale»: the empty-quotes hint runs down a tail (js/alisa.js alTail); the plain text stays for screen readers */
+html[data-skin="alisa"] #quoteBox .emptyhint.al-tailed{position:relative;font-size:0;line-height:0;color:transparent}
+html[data-skin="alisa"] #quoteBox .emptyhint.al-tailed :is(svg.ic){display:none}
+html[data-skin="alisa"] #quoteBox .al-tail{display:block;width:220px;max-width:100%;height:auto;margin:0 auto;font-family:var(--rq-font-display);fill:var(--rq-text-2)}
+#quoteBox .emptyhint:not(.al-tailed) .al-tail{display:none}
+@media (prefers-reduced-motion:reduce){html[data-skin="alisa"] :is(#alFall,#alRabbit){display:none!important}html[data-skin="alisa"] :is(#botnav .botnav-btn.on,.screen h1,#libTitle){animation:none!important}html[data-skin="alisa"] :is(#alCat,#alCat::before){transition:none!important}}
 @media (max-width:374px){html[data-skin="alisa"] #libTitle{font-size:1.625rem}html[data-skin="alisa"] #libHead{gap:4px}html[data-skin="alisa"] #goldChip{padding:4px 8px 4px 4px;gap:4px}}
 '''
 

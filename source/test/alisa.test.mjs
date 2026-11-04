@@ -107,6 +107,44 @@ await p.evaluate(() => wear('skin-pencil')); await sleep(300);
 const lv = await p.evaluate(() => ({ skin: document.documentElement.dataset.skin, al: document.querySelectorAll('.al-cover').length, gift: document.getElementById('i-gift').innerHTML.includes('M18.3 12.6') }));
 ok('10b leaving the skin: no card covers or alisa icons left', lv.skin === 'pencil' && lv.al === 0 && !lv.gift, lv);
 
+// 11. v2 (04.11 «сильнее уникализировать»): roses, tea table, card tabs, cake, cat, rabbit, fall, mouse tail, looking-glass night
+await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+await p.evaluate(() => { wear('skin-alisa'); if (appIsNight()) toggleAppNight(); navGo('library'); renderLibrary(); }); await sleep(400);
+const v2 = await p.evaluate(() => { const pb = document.querySelector('#shelf .pbar'), bt = document.querySelector('#botnav .botnav-btn:not(.on)'), add = document.getElementById('btnAdd');
+  return { roses: pb && /data:image\/svg/.test(getComputedStyle(pb).backgroundImage) && /data:image\/svg/.test(getComputedStyle(pb.querySelector('i')).backgroundImage),
+    back: bt && /data:image\/svg/.test(getComputedStyle(bt, '::before').backgroundImage), cake: add && /data:image\/svg/.test(getComputedStyle(add).backgroundImage),
+    flip: getComputedStyle(document.querySelector('#botnav .botnav-btn.on')).animationName }; });
+ok('11 roses for progress, face-down card tabs, the active tab flips, «+» is the «Съешь меня» cake', v2.roses && v2.back && v2.cake && v2.flip === 'alFlip', v2);
+await sleep(7600);
+const catOn = await p.evaluate(() => { const c = document.getElementById('alCat'); return c && c.classList.contains('on') && getComputedStyle(c).visibility; });
+await p.mouse.click(200, 300); await sleep(200);
+const cat2 = await p.evaluate(() => document.getElementById('alCat').classList.contains('on'));
+ok('11b the Cheshire Cat shows after 7 s of quiet in the library and goes at a touch', catOn === 'visible' && cat2 === false, { catOn, cat2 });
+const rb = await p.evaluate(() => { const r0 = alRabbit(false), on0 = !!document.querySelector('#alRabbit.on'); const r1 = alRabbit(true); return { r0, on0, r1, on: !!document.querySelector('#alRabbit.on') }; });
+ok('11c the White Rabbit runs only when the goal is met (not met → no run)', rb.r0 === false && !rb.on0 && rb.r1 && rb.on, rb);
+await p.evaluate(() => { const r = document.getElementById('alRabbit'); if (r) r.classList.remove('on'); navGo('rewards'); }); await sleep(400);
+const tea = await p.evaluate(() => /data:image\/svg/.test(getComputedStyle(document.getElementById('rewSlots'), '::before').backgroundImage));
+ok('11d «Безумное чаепитие»: the tea table over the rewards', tea, tea);
+await p.evaluate(() => { __navAllow = true; openBook(allBooks()[0].id); __navAllow = false; }); await sleep(150);
+const fall = await p.evaluate(() => { const f = document.getElementById('alFall'); return f && f.classList.contains('on') && getComputedStyle(f).animationName; });
+await sleep(2500);
+const fall2 = await p.evaluate(() => document.getElementById('alFall').classList.contains('on'));
+ok('11e opening a book: the fall down the rabbit hole plays once and goes', fall === 'alDrop' && fall2 === false, { fall, fall2 });
+await p.evaluate(() => { try { closeReader(); } catch (e) { navGo('library'); } }); await sleep(500);
+const tail = await p.evaluate(async () => { const b = el('quoteBox'); b.innerHTML = '<div class="emptyhint">Выделите текст в книге и нажмите цвет — цитата появится здесь.</div>'; await new Promise(q => setTimeout(q, 50));
+  return { svg: !!b.querySelector('.al-tail textPath'), text: b.querySelector('.emptyhint').textContent.includes('Выделите') }; });
+ok('11f «Mouse\'s Tale»: the empty-quotes hint runs down a tail, the plain text stays', tail.svg && tail.text, tail);
+await p.evaluate(() => { toggleAppNight(); navGo('rewards'); navGo('library'); }); await sleep(100);
+const mir = await p.evaluate(() => ({ a: getComputedStyle(document.getElementById('libTitle')).animationName, fall: /data:image\/svg/.test(getComputedStyle(document.documentElement).backgroundImage) }));
+ok('11g night = Looking-Glass: the title flips in from the mirror', mir.a === 'alMirror' && mir.fall, mir);
+await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+const calm = await p.evaluate(() => { alFall(); const r = alRabbit(true); return { fall: !!document.querySelector('#alFall.on'), r, a: getComputedStyle(document.getElementById('libTitle')).animationName }; });
+ok('11h reduced motion: no fall, no rabbit, no mirror', !calm.fall && calm.r === false && calm.a === 'none', calm);
+await p.emulateMediaFeatures([]);
+await p.evaluate(() => { toggleAppNight(); wear('skin-pencil'); navGo('library'); }); await sleep(7600);
+const off = await p.evaluate(() => ({ cat: !!document.querySelector('#alCat.on'), vis: document.getElementById('alCat') ? getComputedStyle(document.getElementById('alCat')).display : 'none' }));
+ok('11i other skins: no cat', !off.cat && off.vis === 'none', off);
+
 ok('no page errors', !errs.length, errs);
 const pass = checks.filter(Boolean).length; console.log(`SUMMARY alisa.test ${pass}/${checks.length}`);
 await browser.close(); process.exit(pass === checks.length ? 0 : 1);

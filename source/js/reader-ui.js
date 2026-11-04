@@ -715,7 +715,7 @@ function quoteRemove(sq){
    Свой цвет (Джессика: «кастомным цветом») — q.c = '#rrggbb', последний свой — SET.hlx; прозрачность подбирается под страницу, текст книги ≥ 7:1 */
 const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
 const HL_HEX=/^#[0-9a-f]{6}$/;
-const HL_NAMES={pencil:{y:'Лимонад',g:'Мята',b:'Васильки',p:'Малина',o:'Охра'},ellada:{y:'Золото',g:'Лавр',b:'Эгейское',p:'Пурпур',o:'Амфора'},babochkovyi:{y:'Лимонница',g:'Мятница',b:'Голубянка',p:'Павлиний глаз',o:'Зорька'},celestial:{y:'Рассвет',g:'Аврора',b:'Туманность',p:'Аметист',o:'Комета'}}; /* 22.10: the skin's own names of its two-colour combos */
+const HL_NAMES={pencil:{y:'Лимонад',g:'Мята',b:'Васильки',p:'Малина',o:'Охра'},ellada:{y:'Золото',g:'Лавр',b:'Эгейское',p:'Пурпур',o:'Амфора'},babochkovyi:{y:'Лимонница',g:'Мятница',b:'Голубянка',p:'Павлиний глаз',o:'Зорька'},celestial:{y:'Рассвет',g:'Аврора',b:'Туманность',p:'Аметист',o:'Комета'},alisa:{y:'Золотой ключик',g:'Королевский сад',b:'Выпей меня',p:'Червы',o:'Чаепитие'}}; /* 22.10: the skin's own names of its two-colour combos */
 function hlName(k){const s=document.documentElement.dataset.skin,m=s&&HL_NAMES[s];return (m&&m[k])||HL_COLORS.find(x=>x.k===k).n;}
 function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
 function hlDot2(c){const k=hlKey(c);return k[0]==='#'?k:'var(--dot2-'+k+','+hlDot(k)+')';} /* 22.10: the combo's second colour (no skin: the same) */

@@ -179,7 +179,8 @@ const LVL_SKIN_NAMES={
   pencil:['Набросок','Этюд','Штудия','Мастер-класс','Шедевр'],
   ellada:['Смертный','Герой','Полубог','Титан','Олимп'],
   babochkovyi:['Гусеница','Куколка','Бабочка','Махаон','Монарх'],
-  celestial:['Звезда','Созвездие','Туманность','Галактика','Вселенная']
+  celestial:['Звезда','Созвездие','Туманность','Галактика','Вселенная'],
+  alisa:['Двойка','Валет','Дама','Король','Туз']
 };
 function lvlName(i){const L=window.__rqGame&&window.__rqGame.LEVELS;if(!L||!L[i])return '';const a=LVL_SKIN_NAMES[document.documentElement.dataset.skin||''];return (a&&a[i])||L[i].n;}
 function awardPendingSessions(){

@@ -28,7 +28,9 @@ const SKIN_THEMES={
  babochkovyi:{name:'Бабочковый',bg:'#fcfbf8',txt:'#1d2140',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2'},
  'babochkovyi-night':{name:'Бабочковый',bg:'#0e1019',txt:'#e4e6ef',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2',night:true,base:'babochkovyi'},
  celestial:{name:'Небесный',bg:'#fbf6ea',txt:'#2b2742',skin:'celestial',shop:'skin-celestial',icon:'moon'},
- 'celestial-night':{name:'Небесный',bg:'#14172a',txt:'#e7dcc6',skin:'celestial',shop:'skin-celestial',icon:'moon',night:true,base:'celestial'}
+ 'celestial-night':{name:'Небесный',bg:'#14172a',txt:'#e7dcc6',skin:'celestial',shop:'skin-celestial',icon:'moon',night:true,base:'celestial'},
+ alisa:{name:'Страна чудес',bg:'#f8f3e6',txt:'#1c1a17',skin:'alisa',shop:'skin-alisa',icon:'heart'},
+ 'alisa-night':{name:'Страна чудес',bg:'#0f1120',txt:'#e2dccb',skin:'alisa',shop:'skin-alisa',icon:'heart',night:true,base:'alisa'}
 };
 function themeBase(k){const v=THEME_VARIANTS[k]||SKIN_THEMES[k];return v&&v.base?v.base:k;}
 /** owned shop skin theme for a saved key, else null (unknown / not bought / not styled yet) */
@@ -176,6 +178,33 @@ babochkovyi:{ /* луг: всё мягкое и круглое, крылья и 
  'gift':'<path d="M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1"/><circle cx="12" cy="8" r="2"'+IC_FILL+'/><path d="M12 10v12"/><path d="M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z"'+IC_SOFT+'/><path d="M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z"'+IC_SOFT+'/>',
  'user-round':'<circle cx="12" cy="14" r="6"'+IC_SOFT+'/><path d="M10 8.5 7.5 3.5M14 8.5l2.5-5"/><path d="M6.5 3.5h2M15.5 3.5h2"/><path d="M4 12c-2-1-2.5-4 0-5 1.5.5 2.5 2 2.8 3.5M20 12c2-1 2.5-4 0-5-1.5.5-2.5 2-2.8 3.5"/><path d="M10 13.5v.01M14 13.5v.01M10.5 16.5q1.5 1 3 0"/>'
 }};
+/* 04.11 «Страна чудес» (пак handoff/skins/strana-chudes, по Кэрроллу и манере гравюр Тенниела): тонкая чернильная линия, масти карт
+   и сердечки залиты червой (--ic-fill). Библиотека = веер карт, награды = чайник, профиль = Алиса с лентой, настройки = часы с шестерёнкой,
+   монеты = золотой ключик, серия = свеча, ночь = улыбка Чеширского кота, путь = шахматная доска, оглавление = масти */
+function icHeart(x,y,s){return 'M'+icN(x)+' '+icN(y+s*.9)+'C'+icN(x-s*1.35)+' '+icN(y+s*.05)+' '+icN(x-s*.95)+' '+icN(y-s*1.15)+' '+icN(x)+' '+icN(y-s*.4)+'C'+icN(x+s*.95)+' '+icN(y-s*1.15)+' '+icN(x+s*1.35)+' '+icN(y+s*.05)+' '+icN(x)+' '+icN(y+s*.9)+'Z';}
+function icDiam(x,y,s){return 'M'+icN(x)+' '+icN(y-s)+'L'+icN(x+s*.72)+' '+icN(y)+'L'+icN(x)+' '+icN(y+s)+'L'+icN(x-s*.72)+' '+icN(y)+'Z';}
+function icSpade(x,y,s){return 'M'+icN(x)+' '+icN(y-s*1.05)+'C'+icN(x-s*1.35)+' '+icN(y-s*.15)+' '+icN(x-s*.95)+' '+icN(y+s*.95)+' '+icN(x)+' '+icN(y+s*.3)+'C'+icN(x+s*.95)+' '+icN(y+s*.95)+' '+icN(x+s*1.35)+' '+icN(y-s*.15)+' '+icN(x)+' '+icN(y-s*1.05)+'ZM'+icN(x)+' '+icN(y+s*.2)+'L'+icN(x-s*.45)+' '+icN(y+s*1.05)+'H'+icN(x+s*.45)+'Z';}
+function icClub(x,y,s){const r=icN(s*.43),c=(cx,cy)=>'M'+icN(cx-s*.43)+' '+icN(cy)+'a'+r+' '+r+' 0 1 0 '+icN(s*.86)+' 0a'+r+' '+r+' 0 1 0 '+icN(-s*.86)+' 0';
+  return c(x,y-s*.5)+c(x-s*.5,y+s*.18)+c(x+s*.5,y+s*.18)+'M'+icN(x)+' '+icN(y)+'L'+icN(x-s*.42)+' '+icN(y+s*1.05)+'H'+icN(x+s*.42)+'Z';}
+const IC_RED=d=>'<path d="'+d+'"'+IC_FILL+'/>';
+SKIN_ICONS.alisa={
+ 'book-open':'<path d="M2 19c3-1.4 7-1.4 10 0 3-1.4 7-1.4 10 0V8c-3-1.4-7-1.4-10 0-3-1.4-7-1.4-10 0z"/><path d="M12 8v11"/><path d="M4.5 10.5c1.8-.5 3.8-.5 5 0M4.5 13.5c1.8-.5 3.8-.5 5 0M14.5 10.5c1.3-.5 3.3-.5 5 0"/>'+IC_RED(icHeart(17,14.6,1.9)),
+ 'library':'<path d="M3.2 8.6l5.6-2.4 4.3 10.2-5.6 2.4z"/><path d="M8.6 5.6h6.2v12.2H8.6"/><path d="M14.8 6.2l6 1.6-3.2 11.8-2.8-.8"/>'+IC_RED(icHeart(11.7,10.2,1.6)),
+ 'gift':'<path d="M5.6 10.5c-.6 5.2 1.6 8.7 6.4 8.7s7-3.5 6.4-8.7z"/><path d="M5 10.5h14"/><path d="M9.5 10.5c.2-2 1.2-3 2.5-3s2.3 1 2.5 3"/><path d="M12 7.5V6"/><path d="M18.3 12.6c1.8-.2 2.7-1.6 3.2-3.4"/><path d="M5.8 12.5c-2.6-.2-3.4-3-1.4-4.2"/><path d="M8 20.5h8"/>'+IC_RED(icHeart(12,14.4,1.8)),
+ 'user-round':'<circle cx="12" cy="9" r="4.2"/><path d="M8 7.3c2.4-1.9 5.6-1.9 8 0"/><path d="M7.9 9.5c-.6 3.6-1.6 6.3-3.1 8M16.1 9.5c.6 3.6 1.6 6.3 3.1 8"/><path d="M6.5 21c1-2.8 3-4.3 5.5-4.3s4.5 1.5 5.5 4.3"/>'+IC_RED('M16 6.2l2.2-1.4.2 2.3z'),
+ 'settings':'<circle cx="12" cy="13" r="8"/><path d="M12 5V3M10.4 2.8h3.2"/><circle cx="12" cy="13" r="2.4"/><path d="'+icTicks(8,2.4,4.4,0).replace(/(\d+(?:\.\d+)?) (\d+(?:\.\d+)?)/g,function(m,a,b){return a+' '+icN(+b+1);})+'"/>',
+ 'clock':'<circle cx="12" cy="13" r="8"/><path d="M12 5V3M10.4 2.8h3.2"/><path d="M12 13V8.6M12 13l3 1.8"/><path d="M12 6.8v.9M12 18.3v.9M5.8 13h.9M17.3 13h.9"/>',
+ 'coins':'<path d="'+icHeart(6.6,12,3.4)+'"/><path d="M10 12h11.5M17.5 12v3.6M20.5 12v2.6"/>',
+ 'flame':'<path d="M12 3.2c2.1 2.4 2.2 4.6 0 6.1-2.2-1.5-2.1-3.7 0-6.1z"/><path d="M10 11h4v9h-4z"/><path d="M6.5 20.5h11"/><path d="M12 9.3V11"/>',
+ 'trophy':'<path d="M4.5 18 3.5 8.2l4.6 3.6L12 5l3.9 6.8 4.6-3.6-1 9.8z"/><path d="M4.5 21h15"/>'+IC_RED(icHeart(12,14.2,1.6)),
+ 'moon':'<path d="M3.5 11.5c3.3 5.8 13.7 5.8 17 0-3.4 3-13.6 3-17 0z"/><path d="M7.4 13.6v1.3M10 14.4v1.6M14 14.4v1.6M16.6 13.6v1.3"/><path d="M6.6 7.4q1.6-1.3 3.2 0M14.2 7.4q1.6-1.3 3.2 0"/>',
+ 'sun':'<circle cx="12" cy="12" r="5.6"/><path d="'+icTicks(8,7.8,10.3,0)+'"/>'+IC_RED(icHeart(12,12.2,2.4)),
+ 'list':'<path d="M10 6h11M10 12h11M10 18h11"/>'+IC_RED(icHeart(5,6.2,2))+'<path d="'+icSpade(5,11.8,2)+'"'+IC_FILL.replace('var(--ic-fill,currentColor)','currentColor')+'/>'+IC_RED(icDiam(5,18,2.2)),
+ 'focus':'<path d="M3 7.5V3h4.5M16.5 3H21v4.5M21 16.5V21h-4.5M7.5 21H3v-4.5"/><circle cx="12" cy="10.2" r="2.4"/><path d="M10.9 12.4 10.1 16.6h3.8l-.8-4.2"/>',
+ 'map':'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 3h4.5v4.5H3zM12 3h4.5v4.5H12zM7.5 7.5H12V12H7.5zM16.5 7.5H21V12h-4.5zM3 12h4.5v4.5H3zM12 12h4.5v4.5H12zM7.5 16.5H12V21H7.5zM16.5 16.5H21V21h-4.5z"'+IC_SOFT+'/>',
+ 'arrow-left':'<path d="M18 12H5"/><path d="M10.5 6.5 5 12l5.5 5.5"/>'+IC_RED(icHeart(20,12,1.9).replace(/^M/,'M')),
+ 'heart':'<path d="'+icHeart(12,12.4,7.6)+'"/>'+IC_RED(icHeart(12,12,2.6))
+};
 Object.keys(SKIN_ICONS_V2).forEach(function(k){Object.assign(SKIN_ICONS[k],SKIN_ICONS_V2[k]);});
 /* Confetti per skin (Джессика 17.10): sprite symbol names; unknown skin / no skin → default. A new skin adds its line here.
    «Эллада»: амфора, свиток, Гелиос, венок; «Бабочковый»: бабочка, цветы, кокон; «Карандашный»: карандаш, тетрадь. */
@@ -207,6 +236,17 @@ const CONFETTI_ART={
    bolt:{sz:24,f:['goldg','gold'],svg:'<path d="M14 2 5 13.5h6L9 22l10-12.5h-6.2Z"/>'},
    ribbon:{sz:28,f:['blue'],svg:'<path d="M2 9c4-4 7 2 11-1s6-4 9-2v6c-3-2-5-1-9 2s-7-3-11 1Z"/>'},
    dot:{sz:7,f:['gold','blue'],svg:'<circle cx="12" cy="12" r="3.2"/>'}}},
+ alisa:{ /* «Страна чудес»: масти карт, карта рубашкой, золотой ключик, розовый лепесток — черва, чернила, золото; кружатся как карты в конце сказки */
+  seq:['heart','card','spade','diamond','key','club','heart','petal','card','diamond','spade','heart'],
+  fills:{red:'var(--sc-red)',ink:'var(--sc-ink)',gold:'var(--sc-gold)'},
+  shapes:{
+   heart:{sz:20,f:['red'],svg:'<path d="'+icHeart(12,12.6,8)+'"/>'},
+   diamond:{sz:18,f:['red'],svg:'<path d="'+icDiam(12,12,9.5)+'"/>'},
+   spade:{sz:20,f:['ink'],svg:'<path d="'+icSpade(12,11.5,8)+'"/>'},
+   club:{sz:20,f:['ink'],svg:'<path d="'+icClub(12,11.5,9)+'"/>'},
+   card:{sz:24,f:['red','ink'],svg:'<path fill-rule="evenodd" d="M6 2.5h12a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V4A1.5 1.5 0 0 1 6 2.5zM6.6 4.6v14.8h10.8V4.6z'+icHeart(12,12.2,3.2)+'"/>'},
+   key:{sz:24,f:['gold'],svg:'<path fill-rule="evenodd" d="'+icHeart(6.6,12,4.2)+icHeart(6.6,12,1.9)+'M10 10.9h12v2.2h-1.2v3.6h-2v-3.6h-1.4v2.6h-2v-2.6H10z"/>'},
+   petal:{sz:14,f:['red'],svg:'<path d="M12 3c5 3 6 9 0 18-6-9-5-15 0-18z"/>'}}},
  celestial:{ /* «Небесный»: звёзды, искры, месяц, солнце, кружки — золото, чернильная синева, сирень заката */
   seq:['star','spark','moon','star','dot','sun','spark','star','dot','moon'],
   fills:{gold:'var(--cl-gold)',goldg:'url(#rqcClGold)',ink:'var(--rq-accent)',lilac:'var(--cl-lilac)'},

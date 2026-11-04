@@ -404,15 +404,23 @@ function selNavDodge(s){
    A new selection shows only its tab; the grip (or the tab itself) drags it along the edge and across to the other side, it sticks to the
    nearer edge, the place is remembered (SET.selSide). The chip #selFrom and the circle #spMini stay the state behind it, out of sight. */
 const SS={open:false,on:false,drag:null,moved:false};
+/* 04.11 (Джессика прислала плашку с цветами сверху и значками снизу: «может сделаем боковое меню таким? Сделаем возможность выбирать в
+   настройках виды бокового меню. Можно сделать ещё 3 варианта»): one menu, five looks (SET.selLook, «Чтение → Меню выделения»):
+   side = the column at an edge (as before), bar = a card at the bottom, colours on top and icons under them (as on her picture),
+   bubble = a small row right next to the selected words, dock = one row across the screen above ‹ ›, big = the card with captions.
+   The same buttons and branches in all of them, only the CSS (#selSide[data-look]) and the place (ssPlace) differ. */
+const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста'],['dock','Полоса снизу'],['big','С подписями']];
+function ssLook(){const v=SET.selLook;return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
 function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
 function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
-  const b=function(id,ic,lab){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+'</button>';};
+  const L=function(t){return '<span class="ssL" aria-hidden="true">'+t+'</span>';}; /* a caption: only in the look «С подписями» */
+  const b=function(id,ic,lab,cap){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+L(cap||lab)+'</button>';};
   n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
     '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Свернуть меню, потянуть — перетащить" title="Свернуть / перетащить"><span class="ssChev"></span></button>'+
-    '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i></button>'+
-    b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести')+b('ssAI','sparkles','Объясни')+
-    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+'</button><hr>'+
-    '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
+    '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i>'+L('Цвета')+'</button>'+
+    b('ssNote','pencil','Заметка')+b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести','Перевод')+b('ssAI','sparkles','Объясни')+
+    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+L('Ещё')+'</button><hr>'+
+    '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s>'+L('Начало')+'</button>'+b('ssX','x','Снять выделение','Снять')+'<hr>'+
     '<div id="ssCnt" role="button" tabindex="0"></div>'+
     '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>'+
     '<div id="ssMenu" role="menu" aria-label="Действия" hidden></div><div id="ssColBox" role="group" aria-label="Цвет цитаты" hidden></div>';
@@ -426,7 +434,7 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
   el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
-    h.addEventListener('pointerdown',function(e){const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
+    h.addEventListener('pointerdown',function(e){if(ssLook()!=='side')return;const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
     h.addEventListener('pointermove',function(e){const d=SS.drag;if(!d)return;
       if(!d.go&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.go=true;n.classList.add('drag');
       n.style.left=Math.round(e.clientX-d.dx)+'px';n.style.right='auto';n.style.top=Math.round(e.clientY-d.dy)+'px';});
@@ -435,18 +443,38 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
       SET.selSide={s:r.left+r.width/2<innerWidth/2?'L':'R',y:Math.round((r.top+r.height/2)/innerHeight*1000)/1000};saveSet();ssPlace();};
     h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);});
   return n;}
-/** the menu at its edge, its middle at the remembered height, whole on screen */
+/** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
 function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p=ssPos();n.dataset.side=p.s;
+  if(ssLook()!=='side'){ssPlaceLook(n);return;}
+  n.style.left=n.style.right='';n.classList.remove('attop');
   const ch=rqIcon(p.s==='L'?'chevron-right':'chevron-left',18),cf=rqIcon(p.s==='L'?'chevron-left':'chevron-right',21);
   n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;n.querySelector('#ssGrip .ssChev').innerHTML=rqIcon(p.s==='L'?'chevron-left':'chevron-right',16);
   const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
+/** the selected words on screen (the moving end last) */
+function ssSelRects(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return [];const W=innerWidth,H=innerHeight;
+  return [...s.getRangeAt(0).getClientRects()].filter(function(r){return r.width&&r.right>0&&r.left<W&&r.bottom>0&&r.top<H;});}
+/* the card and the row live at the bottom, above ‹ ›; they go to the top of the screen when the selection's end is under them.
+   «У текста»: just above the first selected line, or under the last one when there is no room above */
+function ssPlaceLook(n){
+  const lk=ssLook(),rs=ssSelRects(),W=innerWidth,H=innerHeight;n.style.right='';
+  if(lk==='bubble'){n.classList.remove('attop');n.style.left='0px';n.style.top='0px';
+    const r=n.getBoundingClientRect(),w=r.width,h=r.height;let x=(W-w)/2,y=H*.4;
+    if(rs.length){const a=rs[0],z=rs[rs.length-1],mid=(Math.min(a.left,z.left)+Math.max(a.right,z.right))/2;x=mid-w/2;
+      y=a.top-h-12>=8?a.top-h-12:(z.bottom+12+h<=H-8?z.bottom+12:Math.max(8,(H-h)/2));}
+    n.style.left=Math.round(Math.max(8,Math.min(W-w-8,x)))+'px';n.style.top=Math.round(Math.max(8,Math.min(H-h-8,y)))+'px';return;}
+  n.style.left='';n.style.top='';n.classList.remove('attop');
+  if(!rs.length)return;const b=n.getBoundingClientRect(),z=rs[rs.length-1];
+  if(z.bottom>b.top-8&&z.top>b.height+40)n.classList.add('attop');
+}
 function ssUpd(){
   const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&!window.__rqFindOpen&&(!!selBook()||pg);
   if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;if(typeof stCol==='function')stCol(false);return;}
-  const n=ssEl();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  const n=ssEl(),lk=ssLook();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  n.dataset.look=lk;if(lk!=='side')SS.open=true; /* 04.11: the other looks have no tab, they are open at once */
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
   if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
+  if((lk==='bar'||lk==='big')&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card */
   const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);

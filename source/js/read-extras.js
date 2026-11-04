@@ -176,6 +176,7 @@ function rxBuild(){
     rxRow('','a-large-small','Щипок меняет размер текста','В PDF щипок всегда увеличивает',rxSwHtml('rxGPinch'))+
     rxRow('','circle-plus','Двойной тап','В книгах; в PDF он увеличивает страницу',rxSegHtml('rxGDbl','Двойной тап'),'setstack'))+
   rxCardHtml('sel','highlighter','Меню выделения',
+    rxRow('','layers','Вид меню','Как показывать кнопки, когда выделен текст','<div class="presets rxfull" id="rxSelLook" role="radiogroup" aria-label="Вид меню выделения"></div>','setstack')+
     '<div class="aisub">Какие кнопки показывать и в каком порядке.</div><div id="rxSelList"></div>'+
     rxRow('','pencil','Цвет для «Заметки»','И отмеченный цвет при выделении','<div class="presets rxfull" id="rxSelColor" role="radiogroup" aria-label="Цвет для заметки"></div>','setstack'))+
   rxCardHtml('smx','highlighter','Выделение текста',
@@ -250,7 +251,7 @@ function rxRender(){
    rxHead('gest',(on.length?on.join(', ').replace(/^./,function(c){return c.toUpperCase();}):'Без яркости и щипка')+(g.dbl!=='off'?' · двойной тап: '+d[1].toLowerCase():''));
    rxSw('rxGBright',g.bright);rxSw('rxGPinch',g.pinch);rxSeg('rxGDbl',RX_DBL,g.dbl,function(v){rxS().gest.dbl=v;rxSave();});}
   /* 5 */
-  {const s=x.sel,o=rxSelOrder(),n=o.length-s.off.length;rxHead('sel',n===o.length?'Все кнопки':n+' из '+o.length+' кнопок');
+  {const s=x.sel,o=rxSelOrder(),n=o.length-s.off.length;rxHead('sel',(typeof SS_LOOKS!=='undefined'?SS_LOOKS.find(function(l){return l[0]===ssLook();})[1]+' · ':'')+(n===o.length?'все кнопки':n+' из '+o.length+' кнопок'));
    const box=el('rxSelList');box.innerHTML='';
    o.forEach(function(k,i){const on=s.off.indexOf(k)<0,nm=RX_SEL_N[k];const d=document.createElement('div');d.className='setrow rxsel';d.dataset.k=k;
      d.innerHTML=rqIcon(nm[1],22)+'<div class="lab">'+esc(nm[0])+'</div><span class="rxmv"><button type="button" class="stepbtn" data-d="-1" aria-label="Выше"'+(i?'':' disabled')+'>'+rqIcon('chevron-up',18)+'</button><button type="button" class="stepbtn" data-d="1" aria-label="Ниже"'+(i<o.length-1?'':' disabled')+'>'+rqIcon('chevron-down',18)+'</button></span>'+rxSwHtml('rxSel_'+k);
@@ -258,6 +259,8 @@ function rxRender(){
      d.querySelector('.sw').onclick=function(){const z=rxS().sel;if(on){if(o.length-z.off.length<=1){flashMsg('Хотя бы одна кнопка');return;}z.off=z.off.concat([k]);}else z.off=z.off.filter(function(q){return q!==k;});rxSave();};
      d.querySelectorAll('.rxmv button').forEach(function(b){b.onclick=function(){const j=i+(+b.dataset.d);if(j<0||j>=o.length)return;const a=o.slice();a[i]=a[j];a[j]=k;rxS().sel.order=a;rxSave();
        requestAnimationFrame(function(){const r=document.querySelector('#rxSelList [data-k="'+k+'"] .rxmv button[data-d="'+b.dataset.d+'"]');if(r&&!r.disabled)r.focus();});};});});
+   /* 04.11 (Джессика: «возможность выбирать в настройках виды бокового меню»): js/reader-ui.js SS_LOOKS */
+   if(typeof SS_LOOKS!=='undefined')rxChips('rxSelLook',SS_LOOKS.map(function(l){return [l[0],l[1]];}),ssLook(),function(v){SET.selLook=v;saveSet();rxRender();if(typeof ssUpd==='function'&&el('selSide'))ssUpd();});
    rxChips('rxSelColor',[['','Последний']].concat(HL_COLORS.map(function(c){return [c.k,hlName(c.k),'<i class="rxdot" style="--d:'+hlDot(c.k)+';--d2:'+hlDot2(c.k)+'" aria-hidden="true"></i>'];})),s.color,function(v){rxS().sel.color=v;rxSave();});}
   /* выделение текста */
   {const m=x.sm,nm=function(a,v){return a.find(function(o){return o[0]===v;})[1];};

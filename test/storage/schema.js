@@ -221,7 +221,7 @@ export const SET_DEF = {
   qSort: 'book',     // 28.10: order of quotes in «Навигация → Цитаты» and «Цитаты и заметки»: 'book' | 'new' | 'old'
   presets: [],       // 29.10 «Мои наборы» (arch.md SET.presets): ≤ 8 {n, v}, normPresets
   bookSet: {},       // 29.10 «Только к этой книге» (arch.md SET.bookSet): {<book id>: {...}} ≤ 200, normBookSet
-  rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,spd}, normRx
+  rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,sm,spd}, normRx
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
 
@@ -334,6 +334,7 @@ export function normRx(o) {
     sel: { off: ids(s.off), order: ids(s.order), color: ['y', 'g', 'b', 'p', 'o'].includes(s.color) ? s.color : '' },
     screen: { orient: en(sc.orient, ['auto', 'portrait', 'landscape']), spread: en(sc.spread, ['auto', 'land', 'off']) },
     fresh: { set: nm(fr.set), pdf: nm(fr.pdf), toc: bo(fr.toc, false) },
+    sm: ((m) => ({ lp: en(m.lp, ['n', 'f', 's']), tap: bo(m.tap, true), drag: en(m.drag, ['edge', 'any', 'off']), lpd: bo(m.lpd, true), unit: en(m.unit, ['word', 'char']), edge: en(m.edge, ['off', 'f', 's']), hand: en(m.hand, ['n', 'b']), vib: bo(m.vib, true), hint: bo(m.hint, true) }))(ob(o.sm)),
     spd: { cpm: num(sp.cpm, 100, 6000), spp: num(sp.spp, 5, 1200), n: typeof sp.n === 'number' && Number.isFinite(sp.n) ? Math.max(0, Math.min(1e6, Math.floor(sp.n))) : 0 },
   };
 }

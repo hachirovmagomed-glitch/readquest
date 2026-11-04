@@ -223,6 +223,11 @@ await openGrid();
 const lb = await p.evaluate(() => { const t = (n) => el('panelBody').querySelector('.pgt[data-n="' + n + '"] .pgn').textContent; return { pc: R.pageCount, a: t(0), d: t(3), e: t(4), f: t(10) }; });
 ok('6: PDF page labels under the pictures: «i · 1», «iv · 4», «2 · 5», «8 · 11»', lb.pc === 144 && lb.a === 'i · 1' && lb.d === 'iv · 4' && lb.e === '2 · 5' && lb.f === '8 · 11', lb);
 
+/* 04.11 (Джессика: «чутка подтормаживает в начале»): far tiles are skipped (content-visibility) at the right height */
+const perf = await p.evaluate(async () => { const B = el('panelBody'); if (!B.querySelector('.pgsecs')) { showChrome(); if (el('panel').classList.contains('hidden')) el('btnPanel').click(); el('tabGrid').click(); await new Promise(r => setTimeout(r, 1200)); }
+  const t = B.querySelector('.pgsecs .pgt:not(.cur)'), h = parseFloat(getComputedStyle(B.querySelector('.pgsecs')).getPropertyValue('--pgt-h')), o = t.querySelector('.pgopen').offsetHeight;
+  return { cv: getComputedStyle(t).contentVisibility, h, o, cache: GRID_TC.m.size }; });
+ok('speed: far tiles skipped, kept at the real tile height', perf.cv === 'auto' && Math.abs(perf.h - perf.o) < 1, perf);
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`overview: ${pass}/${checks.length}`); process.exit(pass === checks.length ? 0 : 1);

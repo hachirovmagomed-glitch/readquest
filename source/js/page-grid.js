@@ -111,6 +111,7 @@ function rqGridRender(body){
   if(open)html+='</div></section>';
   body.innerHTML=html+'<div class="pgnone pempty" hidden></div></div>';
   const secs=body.querySelector('.pgsecs'),bar=body.querySelector('.pgbar'),top=body.querySelector('.pgtop'),seq=GRID.seq;
+  rqGridTileH(secs);
   body.style.setProperty('--pgbar-h',top.offsetHeight+'px'); /* 04.11: only «Стр. · Перейти · К текущей» stays on top, the rows under it scroll away */
   rqGridFilterApply(body);
   secs.addEventListener('click',function(e){
@@ -137,10 +138,19 @@ function rqGridRender(body){
       if(e.isIntersecting){if(!t.classList.contains('done')&&GRID.want.indexOf(t)<0)GRID.want.push(t);}
       else{const k=GRID.want.indexOf(t);if(k>=0)GRID.want.splice(k,1);if(GRID.live.has(t)){rqGridEmpty(t);GRID.live.delete(t);}}});
     rqGridPump(seq);
-  },{rootMargin:'300px 0px'});
+  },{rootMargin:'500px 0px'});
   secs.querySelectorAll('.pgt').forEach(function(t){GRID.io.observe(t);});
+  GRID.fly=null;body.addEventListener('scroll',function fl(){if(seq!==GRID.seq){body.removeEventListener('scroll',fl);return;}
+    const now=performance.now(),y=body.scrollTop,f=GRID.fly;GRID.fly={t:now,y:y,v:f&&now>f.t?Math.abs(y-f.y)/(now-f.t):0};},{passive:true});
   GRID.chs=chs;GRID.mk=mk;GRID.hitsNow=hits;GRID.readTo=readTo;rqGridScroller(body,seq);rqGridSelBar();
   requestAnimationFrame(function(){if(seq===GRID.seq)rqGridShowCur(false);});
+}
+/** the height a far-away tile keeps (its content is skipped): one real tile, measured */
+function rqGridTileH(secs,again){
+  const t=secs.querySelector('.pgt:not([hidden]):not(.cur)')||secs.querySelector('.pgt'),o=t&&t.querySelector('.pgopen');if(!o)return;
+  const h=o.offsetHeight; /* the inside is measured: a skipped tile itself reports its stand-in height; offsetHeight: the panel may still be scaling in */
+  if(h>0)secs.style.setProperty('--pgt-h',h+'px'); /* contain-intrinsic-size is the content box: the padding comes on top by itself */
+  else if(!again)requestAnimationFrame(function(){if(secs.isConnected)rqGridTileH(secs,true);});
 }
 /** re-draw the grid where it was (after a bookmark, a fold, another size) */
 function rqGridRedo(y0){const B=el('panelBody');if(!B||panelTab!=='grid')return;const y=y0>=0?y0:B.scrollTop;rqGridRender(B);GRID.keepY=true;B.scrollTop=y;
@@ -266,21 +276,53 @@ function rqGridScroller(body,seq){
   requestAnimationFrame(place);setTimeout(place,350);
 }
 function rqGridGo(n){const from=R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page;rqGridStop();rqGridSelClose();jumpTo(n);el('panel').classList.add('hidden');if(n!==from&&typeof showJumpBack==='function')showJumpBack(from);}
-/** fill the wanted tiles one by one (text copies in small batches, PDF renders strictly one at a time) */
+/** fill the wanted tiles, nearest to the middle of the screen first. PDF: strictly one render at a time.
+    04.11 (Джессика: «чутка подтормаживает в начале»): text pages come in batches (rqTextPageCopies: one re-layout per batch, not
+    one per page), a copy once made is kept (GRID_TC, ~160 pages) so scrolling back costs only a clone, and nothing new is made
+    while the grid flies fast under the finger: a frame is never held up mid-fling, the pictures come in as it slows down. */
+const GRID_TC={key:'',m:new Map()};
+function rqGridTcKey(){const v=el('viewer'),c=el('content');
+  return [R.book&&R.book.id,R.step,R.pageCount,v.clientWidth,v.clientHeight,SET.margin||0,rqScrollMode()?1:0,c.children.length,c.style.cssText].join('|');}
+function rqGridTcGet(n){const m=GRID_TC.m,s=m.get(n);if(s){m.delete(n);m.set(n,s);}return s||null;}
+function rqGridTcPut(n,s){const m=GRID_TC.m;m.set(n,s);while(m.size>160)m.delete(m.keys().next().value);}
+function rqGridTcCheck(){const k=rqGridTcKey();if(k!==GRID_TC.key){GRID_TC.key=k;GRID_TC.m.clear();}}
+function rqGridFast(){const f=GRID.fly;return !!f&&performance.now()-f.t<110&&f.v>1.1;} /* px per ms */
+function rqGridNear(){
+  const body=el('panelBody');if(!body||GRID.want.length<2)return;
+  const br=body.getBoundingClientRect(),mid=br.top+br.height/2;
+  GRID.want.sort(function(a,b){const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+    return Math.abs(ra.top+ra.height/2-mid)-Math.abs(rb.top+rb.height/2-mid)||(+a.dataset.n)-(+b.dataset.n);});
+}
 function rqGridPump(seq){
   if(GRID.busy||seq!==GRID.seq)return;
-  const t=GRID.want.shift();if(!t)return;
-  if(!t.isConnected||t.classList.contains('done')){rqGridPump(seq);return;}
+  GRID.want=GRID.want.filter(function(t){return t.isConnected&&!t.classList.contains('done');});
+  if(!GRID.want.length)return;
+  if(rqGridFast()){clearTimeout(GRID.flyT);GRID.flyT=setTimeout(function(){rqGridPump(seq);},120);return;}
+  rqGridNear();
   GRID.busy=true;
   const fin=function(){GRID.busy=false;if(seq===GRID.seq)setTimeout(function(){rqGridPump(seq);},0);};
-  if(R.mode==='pdf'){rqGridPdf(t,seq).then(fin,fin);return;}
-  try{rqGridText(t);}catch(e){}
+  if(R.mode==='pdf'){const t=GRID.want.shift();rqGridPdf(t,seq).then(fin,fin);return;}
+  try{
+    rqGridTcCheck();
+    const take=GRID.want.splice(0,12),need=[],sz=rqGridSz(take[0]);sz.ok=true;
+    take.forEach(function(t){const n=+t.dataset.n;if(!GRID_TC.m.has(n))need.push(n);});
+    if(need.length){
+      if(rqScrollMode())need.forEach(function(n){const s=rqGridScrollCopy(n);if(s)rqGridTcPut(n,s);});
+      else{const got=rqTextPageCopies(need);Object.keys(got).forEach(function(n){rqGridTcPut(+n,got[n]);});}
+    }
+    take.forEach(function(t){try{rqGridText(t,sz);}catch(e){}});
+  }catch(e){}
   fin();
 }
-function rqGridText(t){
-  const box=t.querySelector('.pgth'),v=el('viewer'),W=v.clientWidth,H=v.clientHeight,w=box.clientWidth;
+/** sz: the sizes read once for a whole batch (reading a size after a picture went in would lay the page out again each time) */
+function rqGridSz(t){const v=el('viewer'),b=t&&t.querySelector('.pgth');return {W:v.clientWidth,H:v.clientHeight,w:b?b.clientWidth:0};}
+function rqGridText(t,sz){
+  const box=t.querySelector('.pgth');sz=sz||rqGridSz(t);const W=sz.W,H=sz.H,w=sz.w;
   if(!w||!W)return;
-  const sheet=rqScrollMode()?rqGridScrollCopy(+t.dataset.n):rqTextPageCopy(+t.dataset.n);if(!sheet)return;
+  const n=+t.dataset.n;if(!sz.ok)rqGridTcCheck();
+  let src=rqGridTcGet(n);
+  if(!src){src=rqScrollMode()?rqGridScrollCopy(n):rqTextPageCopy(n);if(!src)return;rqGridTcPut(n,src);}
+  const sheet=src.cloneNode(true);
   const m=SET.margin||0,sc=document.createElement('div'),pg=document.createElement('div');sc.className='pgsc';pg.className='pgtx';
   sc.style.width=(W+2*m)+'px';sc.style.height=H+'px';sc.style.transform='scale('+(w/(W+2*m)).toFixed(5)+')';
   pg.style.left=m+'px';pg.style.width=W+'px';pg.style.height=H+'px';pg.appendChild(sheet);sc.appendChild(pg);box.appendChild(sc);t.classList.add('done');GRID.live.add(t);GRID.renders++;

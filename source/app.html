@@ -1017,6 +1017,12 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 18.10 «Обзор» with real thumbnails (js/page-grid.js): a tile per page, a picture only near the screen */
 .pgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px 10px}
 .pgt{position:relative;min-width:0}
+/* 04.11 (Джессика: «Обзор» «чутка подтормаживает в начале»): a page far from the screen is not styled, laid out or painted at all;
+   it keeps its place by the measured height (--pgt-h). Paint containment would cut the ribbon and the frame, so each tile gets
+   a few px of room (padding, given back by the margin); the page being read keeps its glow uncut */
+.pgsecs .pgt{content-visibility:auto;contain-intrinsic-size:auto var(--pgt-h,180px);padding:8px 5px 0;margin:-8px -5px 0}
+.pgsecs.pgc5 .pgt{padding:8px 3px 0;margin:-8px -3px 0}
+.pgsecs .pgt.cur{content-visibility:visible}
 .pgt[hidden],.pgsec[hidden]{display:none}
 .pgopen{display:flex;flex-direction:column;align-items:stretch;gap:5px;width:100%;padding:0;background:none;border:0;color:var(--muted);font-size:0.625rem;font-variant-numeric:tabular-nums;cursor:pointer;-webkit-touch-callout:none;user-select:none}
 .pgfr{display:block;position:relative} /* 29.10: the picture + its marks (the marks stay when the picture is dropped) */
@@ -2359,8 +2365,9 @@ html[data-skin="pencil"] .ghostbtn.sw::before{content:"";position:absolute;inset
 .dysw[data-ink="ink"]{background:#1f2633}.dysw[data-ink="blue"]{background:#1d4596}.dysw[data-ink="brown"]{background:#5a3518}.dysw[data-ink="green"]{background:#1b5233}.dysw[data-ink="violet"]{background:#4a2a7a}
 .dysw[data-rb]{border-radius:2px;width:12px;height:24px;clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);box-shadow:none}
 .dysw[data-rb="red"]{background:#b8323a}.dysw[data-rb="blue"]{background:#2f5aa8}.dysw[data-rb="green"]{background:#2f7a4a}.dysw[data-rb="gold"]{background:#c99a2e}.dysw[data-rb="black"]{background:#26241f}
-.dyp:has(.dysw[data-fn="hand"]) span{font-family:"Caveat",cursive;font-size:1.125rem}
-.dyp:has(.dysw[data-fn="book"]) span{font-family:"Lora","IBM Plex Serif",Georgia,serif}
+.dyp span.dyfn-hand{ /* 04.11: a class, not :has() — «.dyp:has(…) span» made every change anywhere restyle the whole book (Обзор) */
+font-family:"Caveat",cursive;font-size:1.125rem}
+.dyp span.dyfn-book{font-family:"Lora","IBM Plex Serif",Georgia,serif}
 /* 26.10: разметка, интервал, края */
 .dymd h5{font-size:1em;font-weight:700;opacity:.85;margin:0}
 .dymd ol{padding-left:1.5em}
@@ -2430,7 +2437,7 @@ button.dyckb::after{content:"";position:absolute;inset:-12px}
 /* «Инвентарь» во вкладках «Дневников» */
 #diary .dyinv{margin:0 0 12px}
 /* на весь экран (Джессика 25.10): открытый дневник без нижней панели; «На весь экран» — только лист от края до края */
-body:has(#diary:not(.hidden):is([data-view="book"],[data-view="edit"])) #botnav{display:none!important}
+body.dynobot #botnav{display:none!important}
 body.mvp #diary:is([data-view="book"],[data-view="edit"]) > .scroll{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 #diary.dyfull > .scroll{padding:0!important}
 #diary.dyfull .wrap{max-width:none}

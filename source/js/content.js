@@ -843,7 +843,7 @@ async function aiExplain(q,again){
   if(navigator.onLine===false){aiRender('err','Нужен интернет. Включите сеть и нажмите «Ещё раз».');return;}
   aiRender('wait');
   let out='',err='';
-  try{out=await aiViaKey(aiMsgs(q));}
+  try{out=await aiViaKey(aiMsgs(q),typeof aiPref==='function'&&aiPref().len==='long'?900:500);}
   catch(e){err=e&&e.message||'ошибка';}
   if(my!==aiSeq||el('aiSheet').classList.contains('hidden'))return; /* закрыли или спросили другое */
   if(out){AI_CACHE[k]=out;aiRender('ok',out);}else aiRender('err','Не получилось ответить'+(err?': '+err:'')+'.');
@@ -852,7 +852,7 @@ const AI_SYS='Ты помощник в приложении для чтения 
   'Если выделено слово или выражение, объясни, что оно значит именно здесь. Если это имя, место, бог, обычай или историческое событие, коротко скажи, кто или что это. '+
   'Если это сложная фраза, перескажи её смысл проще. Не рассказывай, что будет дальше в книге, без спойлеров. Если не уверен, так и скажи.';
 function aiMsgs(q){
-  return {system:AI_SYS,user:'Книга: «'+q.title+'»'+(q.author?', '+q.author:'')+'\nФрагмент: «'+q.text+'»'+(q.ctx&&q.ctx!==q.text?'\nПредложение вокруг: «'+q.ctx+'»':'')};
+  return {system:typeof aiSysExplain==='function'?aiSysExplain():AI_SYS,user:'Книга: «'+q.title+'»'+(q.author?', '+q.author:'')+'\nФрагмент: «'+q.text+'»'+(q.ctx&&q.ctx!==q.text?'\nПредложение вокруг: «'+q.ctx+'»':'')};
 }
 async function aiFetch(url,opt){
   const ac=typeof AbortController==='function'?new AbortController():null;const tm=setTimeout(()=>{if(ac)ac.abort();},25000);
@@ -936,8 +936,8 @@ async function chatAsk(){
   chatBusy=true;chatRender(true);
   const ctx=await chatBookText();
   const sys='Ты собеседник читателя в приложении для чтения. Обсуждаете книгу «'+book.title+'»'+(bookAuthor(book)?' ('+bookAuthor(book)+')':'')+'. '+
-    'Отвечай по-русски, живо и по делу, обычно 2–6 предложений. Опирайся на текст ниже: это всё, что человек прочитал к этому моменту. '+
-    'Не рассказывай, что будет дальше, даже если знаешь книгу: никаких спойлеров. Если спрашивают о будущем сюжете, мягко откажись. Если не уверен, так и скажи.'+
+    (typeof aiChatStyle==='function'?aiChatStyle():'Отвечай по-русски, живо и по делу, обычно 2–6 предложений. ')+'Опирайся на текст ниже: это всё, что человек прочитал к этому моменту. '+
+    (typeof aiPref!=='function'||aiPref().spoil?'Не рассказывай, что будет дальше, даже если знаешь книгу: никаких спойлеров. Если спрашивают о будущем сюжете, мягко откажись. ':'Если человек спрашивает, что будет дальше, можно рассказать: спойлеры он разрешил в настройках. ')+'Если не уверен, так и скажи.'+
     (ctx?'\n\nТекст до текущего места (конец фрагмента — где читатель сейчас):\n«…'+ctx+'»':'');
   const msgs=[];chatList().slice(-12).forEach(m=>{const role=m.r==='u'?'user':'assistant';const last=msgs[msgs.length-1];
     if(last&&last.role===role)last.content+='\n\n'+m.t;else msgs.push({role:role,content:m.t});});

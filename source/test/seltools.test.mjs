@@ -35,7 +35,7 @@ const w = (ms) => sleep(ms);
 
 // 7. the count of words
 const c7 = await p.evaluate(async () => { __word('Через базарную площадь'); await __open(); return { cnt: el('ssCnt').textContent, lab: el('ssCnt').getAttribute('aria-label') }; });
-ok('7. count: «3 слова» under the tools', c7.cnt === '3слова' && c7.lab === 'Выделено 3 слова', c7);
+ok('7. count: «3 слова» under the tools', c7.cnt === '3слова' && /^Выделено 3 слова — показать текст$/.test(c7.lab), c7); // 28.10: a tap on the count shows the selected text
 
 // 29.10 (Джессика: «поиск, озвучку убираем … поставь перевод, "объяснить"», «в одном боковом меню на две разные кнопки открывались
 // разные ветки», нижняя плашка — «Убрать, всё в меню»): no magnifier and no voice in the column; «Цвета» and «Действия» open branches

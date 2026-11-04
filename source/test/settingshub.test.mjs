@@ -23,7 +23,7 @@ await p.evaluate(() => openGeneralSettings(false)); await sleep(200);
 let r = await p.evaluate(() => ({ rows: [...document.querySelectorAll('#gsList [data-sec]')].filter(b => b.offsetParent).map(b => b.dataset.sec),
   secs: [...document.querySelectorAll('#settings .gsec')].filter(s => s.offsetParent).length, t: el('setTitle').textContent,
   subs: [...document.querySelectorAll('#gsList .sub')].filter(s => s.offsetParent).every(s => s.textContent.trim().length > 0) }));
-ok('1 «Общие настройки» = 7 sections, none open, every row has a summary', r.rows.join() === 'read,look,ai,goal,lang,data,about' && r.secs === 0 && r.t === 'Общие настройки' && r.subs, r);
+ok('1 «Общие настройки» = 6 sections (no «Внешний вид»: Джессика 29.10), none open, every row has a summary', r.rows.join() === 'read,ai,goal,lang,data,about' && r.secs === 0 && r.t === 'Общие настройки' && r.subs, r);
 
 // 2. a section is its own page; «назад» goes back to the list
 await p.click('#gsList [data-sec="ai"]'); await sleep(200);
@@ -160,7 +160,7 @@ r = await p.evaluate(async () => {
   const w = ms => new Promise(r => setTimeout(r, ms));
   await openBook(BOOKS[0].id); await w(800); openGeneralSettings(true); await w(100);
   document.querySelector('#gsList [data-sec="goal"]').click(); await w(100); history.back(); await w(400);
-  const a = { set: !el('settings').classList.contains('hidden'), list: !!el('gsList').offsetParent, look: !!document.querySelector('#gsList [data-sec="look"]').offsetParent };
+  const a = { set: !el('settings').classList.contains('hidden'), list: !!el('gsList').offsetParent, look: !!document.querySelector('#gsList [data-sec="look"]') };
   history.back(); await w(400);
   const b = { set: el('settings').classList.contains('hidden'), rdr: !el('reader').classList.contains('hidden') };
   return { a, b };

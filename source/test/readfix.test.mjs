@@ -175,7 +175,7 @@ const sel = await p.evaluate(async () => {
   await new Promise(r => setTimeout(r, 700)); SA.bar = true; selMiniApply(); selPlace(); await new Promise(r => setTimeout(r, 200)); // the bar opened from its circle
   const rs = [...getSelection().getRangeAt(0).getClientRects()].filter(r => r.width && r.height), hit = (e) => { const b = e.getBoundingClientRect(); return rs.some(r => r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top); };
   const nav = el('selNav'), sp = el('selpop'), fold = el('spFold'), fr = fold ? fold.getBoundingClientRect() : null;
-  return { n: rs.length, nav: !!nav && !nav.hidden, pv: hit(el('selPrev')), nx: hit(el('selNext')), top: sp.classList.contains('top'), foldTop: fr && fr.top, foldShown: fr && fr.width > 0, text: String(getSelection()).slice(0, 40) };
+  return { n: rs.length, nav: !!nav && !nav.hidden, pv: !!nav && hit(el('selPrev')), nx: !!nav && hit(el('selNext')), top: sp.classList.contains('top'), foldTop: fr && fr.top, foldShown: fr && fr.width > 0, text: String(getSelection()).slice(0, 40) };
 });
 ok('10. ‹ › are shown and do not cover the selected last line', sel.nav && !sel.pv && !sel.nx && sel.n > 0, sel);
 ok('9. bar moved to the top: «Свернуть» is shown and fully on screen', sel.top && sel.foldShown && sel.foldTop >= 0, sel);

@@ -741,9 +741,24 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selpop.top #spFold{top:auto;bottom:-18px} /* 28.10 (ревизия, баг 9): плашка у верхнего края — значок «Свернуть» снизу, иначе его срезает экран */
 /* 27.10 (Джессика): while selecting the bar is a small circle (#spMini) — a tap opens it, «Свернуть» folds it back */
 #spMini{display:none!important}
-#selpop.mini{padding:0;border-radius:50%;gap:0}
+#selpop.mini{padding:0 4px 0 0;border-radius:999px;gap:0;align-items:center;flex-wrap:nowrap}
 #selpop.mini>*{display:none!important}
 #selpop.mini>#spMini{display:inline-flex!important;width:48px;height:48px;border-radius:50%;padding:0;color:var(--txt);box-shadow:inset 0 0 0 2px var(--accent)}
+/* our own selection's handles (28.10): a stem from the line's bottom and a round knob; 44 px to grab */
+.smh{position:fixed;z-index:62;width:44px;height:46px;margin-left:-22px;touch-action:none;cursor:grab}
+.smh[hidden]{display:none}
+.smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.smh i::before{content:'';position:absolute;left:9px;top:-6px;width:2px;height:8px;background:var(--accent)}
+.smh.on i{transform:scale(1.15)}
+#selView{position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+#selView[hidden]{display:none}
+#selView .sv-card{background:var(--sheet);color:var(--txt);width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-radius:var(--rq-radius-md) var(--rq-radius-md) 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
+#selView .sv-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#selView .sv-h button{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+#selView .sv-t{overflow:auto;font-size:0.9375rem;line-height:1.5;white-space:pre-wrap}
+#selView .sv-b{display:flex;gap:8px}
+#selView .sv-b button{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--rq-radius-sm);background:var(--card2);color:var(--txt)}
+#selView .sv-b button.pri{background:var(--accent);color:var(--on-accent)}
 #selpop #spFold{position:absolute;top:-18px;right:-4px;min-width:36px;min-height:36px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--sheet);box-shadow:0 2px 8px rgba(0,0,0,.35)} /* a corner badge: the actions keep one row */
 #selpop.qmode #spFold{display:none}
 /* 27.10: ‹ › turn the page with the selection kept; the chip between them says the earlier pages' part is still there (at the bottom: the new page's first word, where the selection goes on, is at the top) */
@@ -779,7 +794,7 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 /* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
 #ssCol i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
 #ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
-#ssCnt{display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
+#ssCnt{cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
 #ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
 #ssMenu[hidden],#ssColBox[hidden],#stSheet[hidden]{display:none!important}
 #ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}
@@ -1920,6 +1935,40 @@ html.rq-still .gsflash{animation:none;outline:2px solid var(--accent);outline-of
 #reader.focus :is(#rxClock,#rxInfo),#reader.paused #rxClock,#reader.fzrun #rxClock,#reader.rxnopg #pgNum{display:none}
 #reader.rxnopg #rxInfo{margin-right:0}
 #selpop>.rxoff{display:none!important}
+/* 29.10 «Цель и напоминание» (js/goal-extras.js) */
+.gxweek{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:12px 0 6px}
+.gxday{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.75rem;color:var(--muted)}
+.gxday b{font-weight:600;color:var(--txt)}
+.gxday i{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px var(--card2);color:var(--on-accent)}
+.gxday.ok i{background:var(--accent);box-shadow:none}
+.gxday.part i{box-shadow:inset 0 0 0 2px var(--accent)}
+.gxday.today b{color:var(--accent-text,var(--accent))}
+.gxday.today i{outline:2px solid var(--accent);outline-offset:2px}
+.gxday small{min-height:1em;font-variant-numeric:tabular-nums}
+.gxwsub{font-size:0.8125rem;color:var(--muted);padding:4px 2px 12px;text-align:center}
+.gxbar{position:relative;height:8px;border-radius:999px;background:var(--card2);margin:4px 0 2px}
+.gxbar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent)}
+.gxbar u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--txt);opacity:.5;text-decoration:none}
+:is(#settings) .pcard .setrow.setstack>.gxbar{flex:1 1 100%;margin-left:0}
+:is(#settings) .pcard .setrow.setstack>.gxoff{margin-left:0}
+.gxv{min-width:2.4em;text-align:center;font-variant-numeric:tabular-nums}
+#settings .pcard .gxbk{flex-wrap:nowrap}
+#settings .pcard .gxbk>.lab{flex:1 1 auto;min-width:0}
+#settings .pcard .gxbk .ghostbtn{flex:none}
+.gxpick{position:fixed;left:50%;top:50%;width:1px;height:1px;opacity:0;pointer-events:none}
+/* 29.10 «Нейросети» (js/nn-extras.js) */
+.nnquick{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.nnquick .ghostbtn,.nncheck .ghostbtn,#nnWipe{display:inline-flex;align-items:center;gap:6px}
+.aitestrow{flex-wrap:wrap;gap:6px}
+.nnlist{max-height:220px;overflow-y:auto;margin:6px 0;padding:2px}
+.nnlist .fchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nncheck{margin:8px 0 10px}
+#nnSum .nnsrow .sub{display:flex;align-items:center;gap:6px}
+.nnpriv{font-size:0.8125rem;line-height:1.45;color:var(--muted);padding:10px 2px 2px}
+.nnpriv p{margin:0 0 6px}.nnpriv b{color:var(--txt)}
+.nnpriv ul{margin:0 0 8px;padding-left:18px}.nnpriv li{margin:2px 0}
+#nnWipe{color:var(--danger,#b3261e);margin:4px 0 12px}
+#trMore .aisub,#nnUse .aisub{margin:2px 4px 6px;font-size:0.8125rem;line-height:1.4;color:var(--muted)}
 #wnBox ul{margin:4px 0 8px;padding-left:18px;font-size:0.8125rem;line-height:1.4}
 #wnBox h4{margin:10px 0 2px;font-size:0.8125rem;color:var(--muted);font-weight:600}
 html[data-uisize="sm"]{font-size:90%}
@@ -2607,7 +2656,6 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="pcard" id="setSearchRes" role="list" hidden></div>
       <div class="pcard gshub" id="gsList">
       <button type="button" class="setrow navrow" data-sec="read"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-book-open"/></svg><div class="lab">Чтение<div class="sub" id="gsSubRead"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
-      <button type="button" class="setrow navrow" data-sec="look"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-palette"/></svg><div class="lab">Внешний вид<div class="sub" id="gsSubLook"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
       <button type="button" class="setrow navrow" data-sec="ai"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-sparkles"/></svg><div class="lab">Нейросети<div class="sub" id="gsSubAi"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
       <button type="button" class="setrow navrow" data-sec="goal"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><div class="lab">Цель и напоминание<div class="sub" id="gsSubGoal"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
       <button type="button" class="setrow navrow" data-sec="lang"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-languages"/></svg><div class="lab">Язык и удобство<div class="sub" id="gsSubLang"></div></div><svg class="ic" width="20" height="20" aria-hidden="true" focusable="false"><use href="#i-chevron-right"/></svg></button>
@@ -2637,6 +2685,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
     <div class="pcard nncard" id="rxCard"></div><!-- 29.10 js/read-extras.js (SET.rx): строка внизу, чтение вслух, ночь, жесты, меню выделения, экран, новые книги -->
     </section>
     <section class="gsec" data-sec="ai" data-t="Нейросети" hidden>
+    <div class="pcard" id="nnSum"></div><!-- 29.10 js/nn-extras.js: сводка и «Проверить всё» -->
     <h2 id="aiHead">Нейросети</h2>
     <div class="pcard nncard">
       <button type="button" class="xrow" id="aiX" aria-controls="aiCard" aria-expanded="false"></button>
@@ -2645,10 +2694,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <button type="button" class="xrow xpick" id="aiProvX" aria-controls="aiProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="aiProvSeg" role="radiogroup" aria-label="Сервис ИИ" hidden></div>
         <details class="keyhow" id="aiHow"><summary>Как получить ключ</summary><div class="keyhowb" id="aiHowB"></div></details>
+        <div class="row nnquick"><button type="button" class="ghostbtn" id="aiGetKey"></button><button type="button" class="ghostbtn" id="aiPaste"></button></div>
         <input class="searchinp" id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API">
         <input class="searchinp" id="aiBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API">
         <input class="searchinp" id="aiModel" autocomplete="off" spellcheck="false" aria-label="Модель">
-        <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><span id="aiTestRes" role="status"></span></div>
+        <div class="presets nnlist" id="aiModels" role="radiogroup" aria-label="Модели сервиса" hidden></div>
+        <div class="row aitestrow"><button class="ghostbtn" id="aiTest">Проверить ключ</button><button class="ghostbtn" id="aiModelsBtn">Модели списком</button><span id="aiTestRes" role="status"></span></div>
       </div>
       <button type="button" class="xrow" id="ttsHead" aria-controls="ttsCard" aria-expanded="false"></button>
       <div id="ttsCard" class="nnbox" hidden>
@@ -2657,19 +2708,28 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки" hidden></div>
         <div id="ttsFields">
           <details class="keyhow" id="ttsHow"><summary>Как получить ключ</summary><div class="keyhowb" id="ttsHowB"></div></details>
+          <div class="row nnquick"><button type="button" class="ghostbtn" id="ttsGetKey"></button><button type="button" class="ghostbtn" id="ttsPaste"></button></div>
           <input class="searchinp" id="ttsKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API озвучки">
           <input class="searchinp" id="ttsBase" type="url" autocomplete="off" spellcheck="false" placeholder="Адрес API, например https://api.example.com/v1" aria-label="Адрес API озвучки">
           <input class="searchinp" id="ttsVoice" autocomplete="off" spellcheck="false" aria-label="Голос">
           <div class="aisub" id="ttsVoiceHint"></div>
-          <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><span id="ttsTestRes" role="status"></span></div>
+          <div class="presets nnlist" id="ttsVoices" role="radiogroup" aria-label="Голоса сервиса" hidden></div>
+          <div class="row aitestrow"><button class="ghostbtn" id="ttsTest">Послушать</button><button class="ghostbtn" id="ttsVoicesBtn">Голоса списком</button><span id="ttsTestRes" role="status"></span></div>
         </div>
       </div>
       <button type="button" class="xrow" id="trX" aria-controls="trCard" aria-expanded="false"></button>
       <div id="trCard" class="nnbox" hidden>
         <div class="aisub">Кнопка с буквами при выделении текста переводит прямо в книге. Пакет языка скачивается один раз, дальше перевод работает без интернета, и текст никуда не уходит.</div>
+        <div id="trMore"></div>
         <div id="trList"></div>
       </div>
     </div>
+    <h2>Как отвечает ИИ</h2>
+    <div class="pcard" id="nnStyle"></div>
+    <h2>Расход</h2>
+    <div class="pcard" id="nnUse"></div>
+    <h2>Приватность</h2>
+    <div class="pcard" id="nnPriv"></div>
     </section>
     <section class="gsec" data-sec="goal" data-t="Цель и напоминание" hidden>
     <h2>Цель дня</h2>
@@ -2682,7 +2742,12 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="setrow setrow-time" id="calNotifTimeRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-timer"/></svg><div class="lab">Время</div>
         <span class="stepgrp"><button class="stepbtn" id="calNotifMinus" aria-label="На 30 минут раньше">−</button><label class="gstime"><b id="calNotifTime">20:00</b><input type="time" id="calNotifTimeIn" aria-label="Время напоминания"></label><button class="stepbtn" id="calNotifPlus" aria-label="На 30 минут позже">+</button></span></div>
       <div class="setrow setstack" id="calNotifDaysRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Дни<div class="sub" id="calNotifDaysSub"></div></div><div class="gsdays" id="calNotifDays" role="group" aria-label="Дни напоминания"></div></div>
+      <div class="setrow" id="gxCalRow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><div class="lab">Календарь телефона<div class="sub">Будильник календаря придёт, даже когда приложение закрыто</div></div><button class="ghostbtn" id="gxCal">Добавить</button></div>
     </div>
+    <h2>Неделя</h2>
+    <div class="pcard" id="gxWeek"></div><!-- 29.10 js/goal-extras.js: 7 дней и «N из 4 дней» -->
+    <h2>Большие цели</h2>
+    <div class="pcard" id="gxBig"></div><!-- 29.10 js/goal-extras.js: S.yearGoal, S.bookGoals -->
     </section>
     <section class="gsec" data-sec="lang" data-t="Язык и удобство" hidden>
     <h2>Язык</h2>
@@ -3116,6 +3181,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/v6-extras.js"></script>
 <script src="js/settings-hub.js"></script>
 <script src="js/read-extras.js"></script>
+<script src="js/goal-extras.js"></script>
+<script src="js/nn-extras.js"></script>
 <script src="js/ach-core.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/path.js"></script>

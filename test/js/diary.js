@@ -483,10 +483,11 @@ function diaryFromBook(bid){
   __navAllow=true;try{openDiary();}finally{__navAllow=false;}dyOpen(y.id);
 }
 /* reader «Навигация → Цитаты»: a quick entry tied to the chapter and page being read; the diary is made if needed */
-function diaryQuickNote(){
-  if(!R.book)return;const b=R.book;
-  let ch='';try{const toc=tocOf(b),i=tocCur(b,toc);if(i>=0&&toc[i])ch=String(toc[i].t||'');}catch(e){}
-  const pg=(R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page)+1,r=R.pageCount>1?Math.min(1,(pg-1)/(R.pageCount-1)):0;
+/** at: a page index (04.11 «Обзор» → «Заметка» in the large view); none = the page on screen */
+function diaryQuickNote(at){
+  if(!R.book)return;const b=R.book,given=Number.isInteger(at)&&at>=0&&at<R.pageCount;
+  let ch='';try{const toc=tocOf(b);let i=-1;if(given){let cp=-1;toc.forEach(function(x,k){const p=tocPg(b,x);if(p<=at&&p>=cp){i=k;cp=p;}});}else i=tocCur(b,toc);if(i>=0&&toc[i])ch=String(toc[i].t||'');}catch(e){}
+  const pg=(given?at:(R.mode==='pdf'&&typeof P!=='undefined'&&P.shown>=0?P.shown:R.page))+1,r=R.pageCount>1?Math.min(1,(pg-1)/(R.pageCount-1)):0;
   const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(pg-1):pg;
   return rqAsk({t:'Запись в дневник',p:[ch,'стр. '+lab].filter(Boolean).join(' · '),ok:'Сохранить',input:''}).then(function(v){
     if(!v)return;const y=diaryOf(b.id)||diaryNew({b:b.id});

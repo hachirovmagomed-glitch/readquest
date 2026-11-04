@@ -894,6 +894,7 @@ el('pgSlider').onchange=e=>{
   if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);pdfReach(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
   const from=R.slideFrom;R.slideFrom=null;R.posPreSlide=null;
+  if(R.mode==='pdf'&&typeof rqRecentNote==='function')rqRecentNote(from,v); /* text: jumpTo above notes it */
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
 /* «Карандашный»: hand-drawn page slider. LOOK ONLY — the <input> under it keeps every behaviour (thumb-only drag,
@@ -970,6 +971,7 @@ el('jumpBack').onclick=function(e){e.stopPropagation();const f=R.jumpFrom;hideJu
 window.addEventListener('resize',function(){placeJumpBack();});
 /** 1б: jump (slider release, TOC, bookmark, search) — not a page flip. */
 function jumpTo(p){
+  if(typeof rqRecentNote==='function')rqRecentNote(R.slideFrom!=null?R.slideFrom:(R.mode==='pdf'&&P.shown>=0?P.shown:R.page),p); /* 04.11 «Обзор»: «Был на стр. …» */
   if(R.mode==='pdf'){pdfGo(p,'nav');return;}
   R.jumping=true;try{goPage(p,false);}finally{R.jumping=false;}
   if(__tracker&&__tracker.isRunning&&__tracker.isRunning()&&__tracker.snapshot().page!==R.page)__tracker.jumped(R.page); /* slider: page already moved while dragging */

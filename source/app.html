@@ -750,6 +750,9 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 .smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .smh i::before{content:'';position:absolute;left:9px;top:-6px;width:2px;height:8px;background:var(--accent)}
 .smh.on i{transform:scale(1.15)}
+#reader.smbig .smh{width:56px;height:58px;margin-left:-28px}
+#reader.smbig .smh i{left:14px;top:8px;width:28px;height:28px}
+#reader.smbig .smh i::before{left:13px;top:-8px;height:10px}
 #selView{position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
 #selView[hidden]{display:none}
 #selView .sv-card{background:var(--sheet);color:var(--txt);width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-radius:var(--rq-radius-md) var(--rq-radius-md) 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.4)}
@@ -780,21 +783,23 @@ html[data-skin="celestial"] #reader .pdfhls i{background:linear-gradient(100deg,
 #selSide[data-side="R"] :is(#ssTab,#ssRail){border-left:1.5px solid var(--accent);border-right:0;border-radius:20px 0 0 20px}
 #selSide:active :is(#ssTab,#ssRail),#selSide.drag :is(#ssTab,#ssRail){background:var(--sheet)} /* solid while touched */
 #ssTab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:30px;height:64px;padding:0;touch-action:none;color:var(--txt)}
-#ssTab .ssChev,#ssFold .ssChev{display:flex}
+#ssTab .ssChev,#ssFold .ssChev,#ssGrip .ssChev{display:flex}
 #ssTab>i,#ssGrip>i{display:block;width:12px;height:2px;border-radius:1px;background:currentColor;opacity:.5;box-shadow:0 4px 0 currentColor}
 #ssN{position:absolute;top:-9px;right:-10px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--accent);color:var(--sheet);font-size:11px;font-weight:700;line-height:20px;text-align:center}
 #selSide[data-side="R"] #ssN{right:auto;left:-10px}
-#ssRail{display:flex;flex-direction:column;align-items:center;gap:2px;width:52px;padding:2px 0 6px}
-#ssRail>button{position:relative;width:44px;height:44px;min-height:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--txt);background:none}
+#ssRail{display:flex;flex-direction:column;align-items:center;gap:0;width:48px;padding:0 0 4px}
+/* 04.11 (Джессика: «боковое меню … чуть более компактным, а то оно на всю страницу почти вылазит»): lower rows, the grip folds it (no «Свернуть» row) */
+#ssRail>#ssFold{display:none}
+#ssRail>button{position:relative;width:44px;height:38px;min-height:0;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--txt);background:none}
 #ssRail>button:disabled{opacity:.35}
-#ssRail>#ssGrip{height:24px;border-radius:12px;touch-action:none;cursor:grab}
+#ssRail>#ssGrip{height:28px;border-radius:14px;touch-action:none;cursor:grab;opacity:.75}
 #ssFrom{outline:1.5px dashed var(--accent);outline-offset:-3px}
 #ssFromN{position:absolute;right:0;bottom:1px;text-decoration:none;font-size:10px;font-weight:700;line-height:1;color:var(--accent);max-width:44px;overflow:hidden}
-#ssRail>hr{width:26px;margin:2px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
+#ssRail>hr{width:26px;margin:1px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
 /* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
 #ssCol i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
 #ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
-#ssCnt{cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1;padding:2px 0 0;color:var(--txt)}
+#ssCnt{cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.05;padding:2px 0 2px;color:var(--txt)}
 #ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
 #ssMenu[hidden],#ssColBox[hidden],#stSheet[hidden]{display:none!important}
 #ssMenu{position:absolute;left:calc(100% + 6px);top:0;width:max-content;min-width:196px;max-width:min(260px,calc(100vw - 76px));padding:6px;border-radius:16px;background:var(--sheet);color:var(--txt);border:1.5px solid var(--accent);box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:2px}

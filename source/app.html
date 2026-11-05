@@ -1955,6 +1955,14 @@ html[data-skin="pencil"][data-theme="night"] #sheet #warmRange{--sl-w-fill:repea
 #reader.half .rbar button>span{display:none}
 #reader.half #pgLine{height:14px;font-size:.7rem}
 #reader:not(.half) #ssAsk{display:none}
+/* 05.11 «обратная дорога»: плашка «Ответ нейросети — вставить» (js/content.js aiBackShow) */
+#aiBackChip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));z-index:31;display:flex;align-items:center;gap:2px;background:var(--card);color:var(--txt);border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.28);padding:2px 4px 2px 2px;max-width:calc(100% - 32px)}
+#aiBackChip[hidden]{display:none}
+#aiBackChip button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border-radius:999px;font:600 .875rem/1.2 var(--rq-font-ui,system-ui);color:inherit;white-space:nowrap}
+#aiBackChip #aiBackX{padding:0 10px;opacity:.7}
+#reader.half #aiBackChip{bottom:calc(48px + env(safe-area-inset-bottom))}
+#aiBody #aiBackTx{width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin:4px 0 8px;border-radius:var(--rq-radius-md);padding:10px 12px;font:inherit;font-size:.9rem}
+#aiBody .ai-back-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 #reader.nobaranim .rhead,#reader.nobaranim .rbot{transition:none}
 @media (prefers-reduced-motion:reduce){#reader .rhead,#reader .rbot{transition:none}}
 /* reading modes (16.10, arch.md SET.flip.mode): vertical scroll for text — the browser scrolls #viewer; pinch stays ours */

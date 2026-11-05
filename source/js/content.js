@@ -828,6 +828,7 @@ function selCtx(word){ /* предложение вокруг выделения
 el('spAI').onclick=()=>{
   const t=rqSelPlain()||selText();if(!t)return;
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
+  aiBackCtx({frag:q.text,n:typeof hlSelN==='function'?hlSelN(t.trim()):0});
   if(!aiOn()){selDone();const ask=aiMsgs(q).user+'\n\nОбъясни простым языком, 2–4 предложения, без спойлеров.';if(aiVia()){aiElseGo(aiVia(),ask);return;}aiNoKey(ask);return;} /* 05.11 своя нейросеть — сразу, без окна */
   selDone();
   aiExplain(q);
@@ -849,15 +850,15 @@ function aiElseHtml(){return '<div class="ai-else"><div class="ai-note">Без �
   AI_ELSE.map(function(s){return '<button type="button" class="fchip" data-ai-else="'+s[0]+'">'+esc(s[1])+'</button>';}).join('')+
   '<button type="button" class="fchip" data-ai-else="share">'+rqIcon('share-2',14)+' Поделиться</button></div></div>';}
 function aiElseBind(box,txt){
-  box.querySelectorAll('[data-ai-else]').forEach(function(b){b.onclick=async function(){const id=b.getAttribute('data-ai-else');
+  box.querySelectorAll('[data-ai-else]').forEach(function(b){b.onclick=async function(){const id=b.getAttribute('data-ai-else');aiBackArm({q:txt});
     if(id==='share'){if(navigator.share){try{await navigator.share({text:txt});}catch(e){}return;}
       flashMsg(await aiElseCopy(txt)?'Вопрос скопирован, вставьте его в приложение нейросети':'Телефон не дал поделиться');return;}
     const u=aiElseUrl(id,txt),cp=await aiElseCopy(txt);window.open(u,'_blank','noopener');
     if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');};});
 }
-function aiElseGo(id,txt){const u=aiElseUrl(id,txt);aiElseCopy(txt).then(function(cp){if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');});window.open(u,'_blank','noopener');}
+function aiElseGo(id,txt){aiBackArm({q:txt});const u=aiElseUrl(id,txt);aiElseCopy(txt).then(function(cp){if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');});window.open(u,'_blank','noopener');}
 function aiVia(){try{const v=aiPref().via;return AI_ELSE.some(function(x){return x[0]===v;})?v:'';}catch(e){return '';}}
-function aiNoKey(ask){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает); ask — готовый вопрос для «без ключа» */
+function aiNoKey(ask){aiTitle('Объясни'); /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает); ask — готовый вопрос для «без ключа» */
   aiCur=null;aiSeq++;
   el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ отвечал прямо в книге, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
     '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>'+(ask?aiElseHtml():'');
@@ -874,11 +875,12 @@ function aiRender(state,txt){
      :'<div class="ai-a">'+esc(txt)+'</div>'+
       (word&&R.book?'<button class="ghostbtn" id="aiToVocab">'+rqIcon('book-open',16)+' В словарь с объяснением</button>':'')+
       '<div class="ai-note">Ответ ИИ, может ошибаться</div>')+(state==='err'?aiElseHtml():''); /* ключ не сработал — можно спросить в своём аккаунте */
+  if(state==='err'){aiBackCtx({frag:q.text});}
   if(state==='err')aiElseBind(el('aiBody'),aiMsgs(q).user+'\n\nОбъясни простым языком, без спойлеров.');
   if(el('aiRetry'))el('aiRetry').onclick=()=>aiExplain(q,true);
   if(el('aiToVocab'))el('aiToVocab').onclick=()=>aiToVocab(q,txt);
 }
-async function aiExplain(q,again){
+async function aiExplain(q,again){aiTitle('Объясни');
   aiCur=q;const my=++aiSeq;const k=q.title+'\n'+q.text;
   el('aiSheet').classList.remove('hidden');
   if(AI_CACHE[k]&&!again){aiRender('ok',AI_CACHE[k]);return;}
@@ -922,6 +924,56 @@ async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо
     ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
   return String(t).trim().slice(0,m.cap||2000); /* 28.10: «Текст страницы» через ИИ — вся страница (m.cap) */
 }
+/* --- 05.11 «обратная дорога» (Джессика: «посредник… направлять запрос из читалки в нейросеть и обратно» → «Делай обратную дорогу»).
+   Вопрос ушёл в ChatGPT/Грок/… (кнопки «Спросить в…», «Поделиться», «Вопрос» на половине экрана) — читалка помнит, откуда (AI_BACK:
+   книга, фрагмент, номер его вхождения n, страница; sessionStorage, 45 минут). Внизу читалки плашка «Ответ нейросети — вставить»:
+   тап читает буфер (или поле, куда вставить руками), ответ можно положить заметкой к цитате на этом месте, в словарь (к слову) или в дневник.
+   Ничего не уходит в сеть; ни опыта, ни монет — как у остального ИИ. */
+let AI_BACK=null,AI_BACK_CTX=null;const AI_BACK_TTL=45*60*1000;
+function aiTitle(t){const h=el('aiSheet')&&el('aiSheet').querySelector('h3');if(h)h.innerHTML=rqIcon('sparkles',18)+' '+esc(t);}
+function aiBackCtx(o){AI_BACK_CTX=Object.assign({},o||{});}
+function aiBackArm(extra){if(!R.book)return;const p=R.page||0;
+  AI_BACK=Object.assign({bid:R.book.id,title:R.book.title||'',pdf:R.mode==='pdf',page:p,ratio:R.pageCount>1?p/(R.pageCount-1):0,at:Date.now()},AI_BACK_CTX||{},extra||{});
+  try{sessionStorage.setItem('rqAiBack',JSON.stringify(AI_BACK));}catch(e){}
+  setTimeout(aiBackShow,1200);}
+function aiBackGet(){if(!AI_BACK){try{AI_BACK=JSON.parse(sessionStorage.getItem('rqAiBack')||'null');}catch(e){}}
+  if(AI_BACK&&(!AI_BACK.at||Date.now()-AI_BACK.at>AI_BACK_TTL)){aiBackDrop();return null;}return AI_BACK;}
+function aiBackDrop(){AI_BACK=null;try{sessionStorage.removeItem('rqAiBack');}catch(e){}const c=el('aiBackChip');if(c)c.hidden=true;}
+function aiBackShow(){const b=aiBackGet(),r=el('reader');let c=el('aiBackChip');
+  const on=!!b&&r&&!r.classList.contains('hidden')&&R.book&&R.book.id===b.bid;
+  if(!c){if(!on)return;c=document.createElement('div');c.id='aiBackChip';c.setAttribute('role','group');c.setAttribute('aria-label','Ответ нейросети');
+    c.innerHTML='<button type="button" id="aiBackGo">'+rqIcon('clipboard',18)+'<span>Ответ нейросети — вставить</span></button><button type="button" id="aiBackX" aria-label="Не нужно">'+rqIcon('x',18)+'</button>';
+    r.appendChild(c);el('aiBackGo').onclick=aiBackPaste;el('aiBackX').onclick=aiBackDrop;}
+  c.hidden=!on;}
+async function aiBackPaste(){const b=aiBackGet();if(!b)return;let t='';
+  try{t=String(await navigator.clipboard.readText()||'').trim();}catch(e){}
+  if(t&&b.q&&t===b.q.trim())t=''; /* в буфере ещё наш же вопрос */
+  aiBackSheet(t);}
+function aiBackSheet(t){const b=aiBackGet();if(!b)return;aiCur=null;aiSeq++;aiTitle('Ответ нейросети');
+  const here=R.book&&R.book.id===b.bid,canQ=here&&!b.pdf&&!!b.frag,canW=!!b.frag&&b.frag.length<=60,canD=typeof qDiaryOn==='function'&&qDiaryOn();
+  el('aiBody').innerHTML=(b.frag?'<div class="ai-q">«'+esc(b.frag.length>160?b.frag.slice(0,160)+'…':b.frag)+'»</div>':'')+
+    '<textarea id="aiBackTx" class="searchinp" rows="6" placeholder="Скопируйте ответ в нейросети и вставьте сюда долгим нажатием" aria-label="Ответ нейросети"></textarea>'+
+    (t?'':'<div class="ai-note">'+(b.q?'В буфере пока нет ответа. ':'')+'Скопируйте ответ в нейросети и вставьте его сюда.</div>')+
+    '<div class="ai-back-row">'+(canQ?'<button class="ghostbtn" id="aiBackQ">'+rqIcon('quote',16)+' Заметкой к цитате</button>':'')+
+    (canW?'<button class="ghostbtn" id="aiBackW">'+rqIcon('book-open',16)+' В словарь</button>':'')+
+    (canD?'<button class="ghostbtn" id="aiBackD">'+rqIcon('notebook-pen',16)+' В дневник</button>':'')+'</div>';
+  el('aiBackTx').value=t.slice(0,8000);el('aiSheet').classList.remove('hidden');
+  const get=function(){const v=el('aiBackTx').value.trim();if(!v){flashMsg('Сначала вставьте ответ');el('aiBackTx').focus();}return v;};
+  if(el('aiBackQ'))el('aiBackQ').onclick=function(){const v=get();if(v)aiBackToQuote(b,v);};
+  if(el('aiBackW'))el('aiBackW').onclick=function(){const v=get();if(!v)return;aiToVocab({text:b.frag,ctx:'',title:b.title},v);aiBackDone();};
+  if(el('aiBackD'))el('aiBackD').onclick=function(){const v=get();if(v)aiBackToDiary(b,v);};
+}
+function aiBackDone(){aiBackDrop();el('aiSheet').classList.add('hidden');}
+function aiBackToQuote(b,v){const bid=b.bid,qs=(S.quotes[bid]=S.quotes[bid]||[]),n=b.n||0,note=v.slice(0,4000);
+  const old=qs.find(function(x){return x.text===b.frag&&!x.pdf&&(x.n||0)===n;});
+  if(old){old.note=old.note?old.note+'\n\n'+note:note;save();}
+  else{const c=hlKey(SET.hlc),q={text:b.frag,note:note,date:today(),c:c};if(n>0)q.n=n;qs.push(q);(S.hl[bid]=S.hl[bid]||[]).push(b.frag);
+    if(typeof diaryAuto==='function')diaryAuto(bid);save();if(R.book&&R.book.id===bid&&typeof markInContent==='function')try{markInContent(b.frag,c,n);}catch(e){}}
+  flashMsg('Ответ сохранён заметкой к цитате',{kind:'info',icon:'quote'});aiBackDone();}
+function aiBackToDiary(b,v){const y=diaryOf(b.bid)||diaryNew({b:b.bid});const e=dyNewEntry(y,'',{pg:(b.page||0)+1,r:b.ratio||0});
+  e.x=((b.frag?'> '+b.frag+'\n\n':'')+v).slice(0,20000);dyTouch(y);flashMsg('Записано в дневник',{kind:'info',icon:'notebook-pen'});aiBackDone();}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')aiBackShow();});
+window.addEventListener('focus',aiBackShow);
 function aiToVocab(q,ex){
   const word=q.text.trim().slice(0,60);if(!word)return;
   S.vocab=S.vocab||[];
@@ -961,6 +1013,7 @@ function chatRender(wait){
 }
 function openAiChat(){
   if(!R.book)return;
+  aiBackCtx({});
   if(!aiOn()){const ask=('Давай обсудим книгу «'+R.book.title+'»'+(bookAuthor(R.book)?' ('+bookAuthor(R.book)+')':'')+'. Я её читаю и сейчас примерно на '+Math.max(1,Math.round(100*(R.page+1)/Math.max(1,R.pageCount)))+'%. Не рассказывай, что будет дальше, без спойлеров. Мой вопрос: ');if(aiVia()){aiElseGo(aiVia(),ask);return;}aiNoKey(ask);return;}
   chatErr=null;el('aiChat').classList.remove('hidden');chatRender(chatBusy);
 }

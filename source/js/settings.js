@@ -209,9 +209,9 @@ el('btnReset2').onclick=async()=>{
 el('btnExport').onclick=async ()=>{
   let payload;
   if(__rq&&__rq.exportBackup){
-    payload=await __rq.exportBackup(null,SET,{includeTextBodies:false});
+    payload=await __rq.exportBackup(null,rqSetForSave(),{includeTextBodies:false});
   }else{
-    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{},S.tts?{tts:Object.assign({},S.tts,{key:''})}:{}),settings:SET}; /* arch.md 2026-10-15: no API key in a backup */
+    payload={format:'readquest-backup',schemaVersion:1,ns:window.RQ_NS||'rq',build:(RQ_BUILD.indexOf('__')===0?null:RQ_BUILD),readquest:Object.assign({},S,S.ai?{ai:Object.assign({},S.ai,{key:''})}:{},S.tts?{tts:Object.assign({},S.tts,{key:''})}:{}),settings:rqSetForSave()}; /* arch.md 2026-10-15: no API key in a backup */
   }
   const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
   const a=document.createElement('a');

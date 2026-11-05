@@ -20,7 +20,8 @@ ok('3 «Внешний вид» opens a screen with Тема, Скин, Аним
 await p.evaluate(() => { S.gold = 600; save(); buy('skin-ellada'); renderSettings(); document.querySelector('#appSkinBox .appsw[data-k="ellada"]').click(); }); await sleep(300);
 ok('4 picking a skin on «Внешний вид» wears it', await p.evaluate(() => document.documentElement.dataset.skin) === 'ellada');
 await p.evaluate(() => { openGeneralSettings(false); }); await sleep(100);
-r = await p.evaluate(() => ({ row: !!el('btnLookCfg'), skin: !!document.querySelector('#settings #appSkinBox, #settings .shopcard'), txt: /Внешний вид|скин/i.test(el('settings').textContent) }));
+r = await p.evaluate(() => { const c = el('settings').cloneNode(true); c.querySelectorAll('#gsList [data-sec="look"], #setSearchRes').forEach(x => x.remove()); /* 29.10: the list of sections links to «Внешний вид» (its own screen) */
+  return { row: !!el('btnLookCfg'), skin: !!document.querySelector('#settings #appSkinBox, #settings .shopcard'), txt: /Внешний вид|скин/i.test(c.textContent) }; });
 ok('5 «Общие настройки» have nothing about skins any more (17.10)', !r.row && !r.skin && !r.txt, r);
 r = await p.evaluate(() => { const pane = el('rewPaneShop'); return { inLook: !!pane && !!pane.closest('#look'), cards: document.querySelectorAll('#look .shopcard').length, tab: !!el('rewTabShop') }; });
 ok('6 the skin shop is on «Внешний вид», «Награды» has no «Магазин» tab', r.inLook && r.cards >= 7 && !r.tab, r);

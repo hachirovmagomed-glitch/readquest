@@ -64,6 +64,7 @@ const SHOP_CATALOG=(function(){
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
   sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   sk('babochkovyi','Бабочковый',500,'Перламутровые крылья, летний луг и мотыльки',[['base','Бабочковый','#f4f2f8']]); /* handoff/skins/babochkovyi (16.10) */
+  sk('alisa','Страна чудес',500,'Игральные карты, карманные часы и чаепитие по Кэрроллу',[['base','Страна чудес','#f4ecd9']]); /* handoff/skins/alisa (04.11, пак strana-chudes); день и ночь внутри скина */
   const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
   return Object.freeze(L.map(Object.freeze));
 })();
@@ -72,7 +73,7 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
+const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial','skin-alisa'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;const sid=it.type==='skin'?it.id:it.skin;
   return SHOP_READY.indexOf(sid)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */
@@ -789,6 +790,8 @@ const KEY_HOW={
   anthropic:{url:'https://console.anthropic.com/settings/keys',steps:['Откройте консоль Anthropic по ссылке ниже и войдите.','«Create Key», скопируйте ключ (sk-ant-…).','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Из России без VPN и зарубежной карты не работает.'},
   custom:{steps:['Возьмите у своего сервиса адрес API (обычно оканчивается на /v1), ключ и название модели.','Сервис должен понимать запросы как у OpenAI и пускать запросы из браузера.','Заполните три поля и нажмите «Проверить».'],note:'Для тех, кто знает, что это.'},
   elevenlabs:{url:'https://elevenlabs.io/app/settings/api-keys',steps:['Откройте ElevenLabs по ссылке ниже и войдите.','«Create API key», скопируйте ключ.','Голос по желанию: «Voices» → выберите голос → скопируйте его Voice ID в поле «Голос».','Вставьте ключ сюда и нажмите «Послушать».'],note:'Очень живые голоса, в том числе русские. На бесплатном тарифе немного знаков в месяц, потом подписка. Из России без VPN и зарубежной карты не работает.'},
+  yandex:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-tts.user.','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Голос по желанию: alena, filipp, ermil, jane, omazh, zahar, madirus.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Работает из России, оплата российской картой. Платите по числу знаков.'},
+  xai:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Голос по желанию: ara, eve, leo, rex, sal.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Тот же Грок, что в приложении X, но озвучка оплачивается отдельно по числу знаков. Из России без VPN и зарубежной карты, скорее всего, не работает.'},
   google:{url:'https://console.cloud.google.com/apis/library/texttospeech.googleapis.com',steps:['Откройте Google Cloud по ссылке ниже, войдите и создайте проект.','Нажмите «Enable» у Cloud Text-to-Speech API (попросит привязать карту).','«APIs & Services» → «Credentials» → «Create credentials» → «API key», скопируйте ключ.','Лучше сразу ограничить ключ: только Text-to-Speech API.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Каждый месяц часть знаков бесплатно. Из России без VPN и зарубежной карты не работает.'}
 };
 function keyHowHtml(k,tts){
@@ -843,7 +846,7 @@ async function aiExplain(q,again){
   if(navigator.onLine===false){aiRender('err','Нужен интернет. Включите сеть и нажмите «Ещё раз».');return;}
   aiRender('wait');
   let out='',err='';
-  try{out=await aiViaKey(aiMsgs(q));}
+  try{out=await aiViaKey(aiMsgs(q),typeof aiPref==='function'&&aiPref().len==='long'?900:500);}
   catch(e){err=e&&e.message||'ошибка';}
   if(my!==aiSeq||el('aiSheet').classList.contains('hidden'))return; /* закрыли или спросили другое */
   if(out){AI_CACHE[k]=out;aiRender('ok',out);}else aiRender('err','Не получилось ответить'+(err?': '+err:'')+'.');
@@ -852,7 +855,7 @@ const AI_SYS='Ты помощник в приложении для чтения 
   'Если выделено слово или выражение, объясни, что оно значит именно здесь. Если это имя, место, бог, обычай или историческое событие, коротко скажи, кто или что это. '+
   'Если это сложная фраза, перескажи её смысл проще. Не рассказывай, что будет дальше в книге, без спойлеров. Если не уверен, так и скажи.';
 function aiMsgs(q){
-  return {system:AI_SYS,user:'Книга: «'+q.title+'»'+(q.author?', '+q.author:'')+'\nФрагмент: «'+q.text+'»'+(q.ctx&&q.ctx!==q.text?'\nПредложение вокруг: «'+q.ctx+'»':'')};
+  return {system:typeof aiSysExplain==='function'?aiSysExplain():AI_SYS,user:'Книга: «'+q.title+'»'+(q.author?', '+q.author:'')+'\nФрагмент: «'+q.text+'»'+(q.ctx&&q.ctx!==q.text?'\nПредложение вокруг: «'+q.ctx+'»':'')};
 }
 async function aiFetch(url,opt){
   const ac=typeof AbortController==='function'?new AbortController():null;const tm=setTimeout(()=>{if(ac)ac.abort();},25000);
@@ -936,8 +939,8 @@ async function chatAsk(){
   chatBusy=true;chatRender(true);
   const ctx=await chatBookText();
   const sys='Ты собеседник читателя в приложении для чтения. Обсуждаете книгу «'+book.title+'»'+(bookAuthor(book)?' ('+bookAuthor(book)+')':'')+'. '+
-    'Отвечай по-русски, живо и по делу, обычно 2–6 предложений. Опирайся на текст ниже: это всё, что человек прочитал к этому моменту. '+
-    'Не рассказывай, что будет дальше, даже если знаешь книгу: никаких спойлеров. Если спрашивают о будущем сюжете, мягко откажись. Если не уверен, так и скажи.'+
+    (typeof aiChatStyle==='function'?aiChatStyle():'Отвечай по-русски, живо и по делу, обычно 2–6 предложений. ')+'Опирайся на текст ниже: это всё, что человек прочитал к этому моменту. '+
+    (typeof aiPref!=='function'||aiPref().spoil?'Не рассказывай, что будет дальше, даже если знаешь книгу: никаких спойлеров. Если спрашивают о будущем сюжете, мягко откажись. ':'Если человек спрашивает, что будет дальше, можно рассказать: спойлеры он разрешил в настройках. ')+'Если не уверен, так и скажи.'+
     (ctx?'\n\nТекст до текущего места (конец фрагмента — где читатель сейчас):\n«…'+ctx+'»':'');
   const msgs=[];chatList().slice(-12).forEach(m=>{const role=m.r==='u'?'user':'assistant';const last=msgs[msgs.length-1];
     if(last&&last.role===role)last.content+='\n\n'+m.t;else msgs.push({role:role,content:m.t});});
@@ -973,7 +976,7 @@ async function removeBook(id,wipeFile){
     :{t:'Убрать «'+b.title+'»?',p:'Прогресс и цитаты по этой книге удалятся. Файл на устройстве останется.',ok:'Убрать',danger:true}))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
-  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];
+  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];if(S.chars)delete S.chars[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */

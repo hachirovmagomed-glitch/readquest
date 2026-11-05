@@ -22,3 +22,14 @@ Bellota Text — Copyright 2019 The Bellota Project Authors (https://github.com/
 Liberation Serif 2.1.5 — Digitized data copyright (c) 2010 Google Corporation with Reserved Font Arimo, Tinos and Cousine; Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name Liberation.
 Licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
 reader-liberationserif-regular.woff2 / -bold.woff2 are subsets (Latin, Latin Extended, Cyrillic, punctuation) made with fontTools pyftsubset (28.10, reading font «Times» on phones without Times New Roman).
+
+Skin «Алиса» (alisa-*.woff2), subsets (Latin, Latin-1, Cyrillic, punctuation, arrows) made with fontTools pyftsubset from the TTFs in
+github.com/google/fonts (ofl/playfairdisplaysc, ofl/firasans). SIL Open Font License, Version 1.1: https://openfontlicense.org
+Playfair Display SC — Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display)
+Fira Sans — Copyright 2012-2015 The Mozilla Foundation and Telefonica S.A. (https://github.com/mozilla/Fira)
+
+Andika — Copyright (c) 2004-2022 SIL International (https://software.sil.org/andika/)
+Literata — Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata)
+Both licensed under the SIL Open Font License, Version 1.1: https://openfontlicense.org
+These copies (reader-andika-*.woff2, reader-literata-*.woff2) are the Cyrillic and Latin subsets, regular 400 and bold 700,
+taken unchanged from the @fontsource/andika and @fontsource/literata 5.3.0 packages (05.11.2026, reading fonts «Andika» and «Literata»).

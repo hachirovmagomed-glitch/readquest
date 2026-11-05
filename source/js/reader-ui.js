@@ -162,7 +162,7 @@ function flashMsg(t,o){
   const kind=opt.kind||(RQ_GAME_RE.test(String(t||''))?'game':'info');
   const inReader=!!(el('reader')&&!el('reader').classList.contains('hidden'));
   if(inReader&&kind==='game')return;
-  if(inReader&&kind!=='error'&&el('selpop')&&!el('selpop').classList.contains('hidden'))return; /* audit 19.10 RD-SEL-02: nothing over the selection bar */
+  if(inReader&&kind!=='error'&&el('selpop')&&!el('selpop').classList.contains('hidden')&&!el('selpop').classList.contains('mini'))return; /* audit 19.10 RD-SEL-02: nothing over the selection bar (29.10: the folded bar is out of sight, the side menu's toasts show) */
   const ms=opt.ms;
   document.querySelectorAll('.rq-toast').forEach(function(x){x.remove();}); /* one toast at a time */
   const d=document.createElement('div');
@@ -261,7 +261,7 @@ function updSelPop(){
   if(!off)selPlace();
 }
 const SA={key:null,mini:true};
-function selMiniApply(){const sp=el('selpop'),m=SA.mini&&!SQ;sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
+function selMiniApply(){const sp=el('selpop'),m=!SQ&&!SA.bar; /* 29.10 (Джессика выбрала «Убрать, всё в меню»): while selecting, the bar is never shown, all is in #selSide (SA.bar: only the tests of the bar's own buttons) */sp.classList.toggle('mini',m);const b=el('spMini');if(b)b.setAttribute('aria-expanded',m?'false':'true');const p=el('ssPen');if(p)p.setAttribute('aria-pressed',m?'false':'true');}
 /* 26.10 (Джессика: плашка закрывала строки, куда тянешь ручку): the bar goes to the top of the screen when the moving end of the selection
    is under it; while a handle is being dragged the bar waits until the end stops (selectionchange below) */
 function selFwd(s){try{const a=document.createRange();a.setStart(s.anchorNode,s.anchorOffset);return a.comparePoint(s.focusNode,s.focusOffset)>=0;}catch(e){return true;}}
@@ -279,7 +279,7 @@ function selUx(){
   if(!s||s.isCollapsed||!s.rangeCount){SU.a=null;if(QED&&!QED.wait)quoteReselectUndo();return false;}
   const n=s.anchorNode,e=n&&(n.nodeType===3?n.parentElement:n);if(!e||!(el('content').contains(e)||e.closest('.textLayer')))return false;
   if(!rd.classList.contains('barsoff')){clearTimeout(chromeTimer);rd.classList.toggle('nobaranim',rqBarsStill());rd.classList.add('barsoff');}
-  const f=(s.focusNode.nodeValue||'')+'@'+s.focusOffset,drag=SU.a===n&&SU.o===s.anchorOffset&&SU.f!==f;SU.a=n;SU.o=s.anchorOffset;SU.f=f;return drag; /* the same start, a new end = a handle is being dragged */
+  const f=(s.focusNode.nodeValue||'')+'@'+s.focusOffset,drag=!SM.on&&SU.a===n&&SU.o===s.anchorOffset&&SU.f!==f;SU.a=n;SU.o=s.anchorOffset;SU.f=f;return drag; /* the same start, a new end = a handle is being dragged */
 }
 let selT=null;
 document.addEventListener('selectionchange',()=>{const g=window.getSelection();if(SQ&&g&&!g.isCollapsed)quoteClose();if(selT)clearTimeout(selT);
@@ -310,6 +310,7 @@ function selHint(d){let h=el('selEdge');if(!h){if(!d)return;h=document.createEle
 function selEdge(){
   clearTimeout(SX.t);SX.t=0;selHint(0);
   if(typeof R==='undefined'||!R||!R.book||el('reader').classList.contains('hidden'))return;
+  if(SM.on)return; /* 28.10: our own selection is moved by taps and our handles, never by Chrome's */
   const scroll=R.mode==='text'?rqScrollMode():!!(typeof PS!=='undefined'&&PS.on);
   if(R.mode!=='text'&&!scroll)return; /* a PDF page by page: one page's text at a time, nothing to go on to */
   const s=window.getSelection(),c=scroll?(R.mode==='text'?el('viewer'):psBox()):el('content');
@@ -358,7 +359,7 @@ function selEdge(){
 let PQ=null; /* PDF «Страницы»: {bid, parts:[{p,r,v}], text, want} — the part of a selection on the pages before this one */
 function selBook(){const s=window.getSelection(),rd=el('reader');if(!rd||rd.classList.contains('hidden')||!s||s.isCollapsed||!s.rangeCount)return null;
   const n=s.anchorNode,e=n&&(n.nodeType===3?n.parentElement:n);return e&&(el('content').contains(e)||e.closest('.textLayer'))?s:null;}
-function selPagesOn(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'?!rqScrollMode():!(typeof PS!=='undefined'&&PS.on));}
+function selPagesOn(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'?!rqScrollMode():!(typeof PS!=='undefined'&&PS.on));} /* ‹ › stay in the bottom corners (Джессика 29.10); with our own selection a swipe turns too (SM below) */
 function selNavEl(){let n=el('selNav');if(n)return n;n=document.createElement('div');n.id='selNav';n.hidden=true;
   n.innerHTML='<button type="button" id="selPrev" aria-label="Предыдущая страница, выделение сохранится">'+rqIcon('chevron-left',22)+'</button>'+
     '<button type="button" id="selNext" aria-label="Следующая страница, выделение продолжится">'+rqIcon('chevron-right',22)+'</button>'+
@@ -403,25 +404,37 @@ function selNavDodge(s){
    A new selection shows only its tab; the grip (or the tab itself) drags it along the edge and across to the other side, it sticks to the
    nearer edge, the place is remembered (SET.selSide). The chip #selFrom and the circle #spMini stay the state behind it, out of sight. */
 const SS={open:false,on:false,drag:null,moved:false};
+/* 04.11 (Джессика прислала плашку с цветами сверху и значками снизу: «может сделаем боковое меню таким? Сделаем возможность выбирать в
+   настройках виды бокового меню. Можно сделать ещё 3 варианта»): one menu, five looks (SET.selLook, «Чтение → Меню выделения»):
+   side = the column at an edge (as before), bar = a card at the bottom, colours on top and icons under them (as on her picture),
+   bubble = a small row right next to the selected words, dock = one row across the screen above ‹ ›, big = the card with captions.
+   The same buttons and branches in all of them, only the CSS (#selSide[data-look]) and the place (ssPlace) differ. */
+const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста'],['dock','Полоса снизу'],['big','С подписями']];
+function ssLook(){const v=SET.selLook;return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
 function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
 function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
-  const b=function(id,ic,lab){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+'</button>';};
+  const L=function(t){return '<span class="ssL" aria-hidden="true">'+t+'</span>';}; /* a caption: only in the look «С подписями» */
+  const b=function(id,ic,lab,cap){return '<button type="button" id="'+id+'" aria-label="'+lab+'" title="'+lab+'">'+rqIcon(ic,21)+L(cap||lab)+'</button>';};
   n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
-    '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Перетащить меню" title="Перетащить"><i aria-hidden="true"></i></button>'+
-    b('ssPen','highlighter','Цвета и действия')+'<hr>'+
-    '<hr class="ssPg">'+
-    '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s></button>'+b('ssX','x','Снять выделение')+'<hr>'+
-    '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>';
+    '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Свернуть меню, потянуть — перетащить" title="Свернуть / перетащить"><span class="ssChev"></span></button>'+
+    '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i>'+L('Цвета')+'</button>'+
+    b('ssNote','pencil','Заметка')+b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести','Перевод')+b('ssAI','sparkles','Объясни')+
+    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+L('Ещё')+'</button><hr>'+
+    '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s>'+L('Начало')+'</button>'+b('ssX','x','Снять выделение','Снять')+'<hr>'+
+    '<div id="ssCnt" role="button" tabindex="0"></div>'+
+    '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>'+
+    '<div id="ssMenu" role="menu" aria-label="Действия" hidden></div><div id="ssColBox" role="group" aria-label="Цвет цитаты" hidden></div>';
   el('reader').appendChild(n);
   n.addEventListener('mousedown',function(e){e.preventDefault();}); /* a click here never takes the selection away */
   const tap=function(f){return function(){if(SS.moved){SS.moved=false;return;}f();};};
   el('ssTab').onclick=tap(function(){SS.open=true;ssUpd();});
   el('ssFold').onclick=function(){SS.open=false;ssUpd();};
-  el('ssPen').onclick=function(){SA.mini=!SA.mini;selMiniApply();selPlace();};
+  el('ssGrip').onclick=tap(function(){SS.open=false;ssUpd();}); /* 04.11 (Джессика: «боковое меню … чуть более компактным»): the grip folds it too, no own row for «Свернуть» */
+  if(typeof stBind==='function')stBind(); /* 29.10 the tools: js/sel-tools.js */
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
   el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
-    h.addEventListener('pointerdown',function(e){const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
+    h.addEventListener('pointerdown',function(e){if(ssLook()!=='side')return;const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
     h.addEventListener('pointermove',function(e){const d=SS.drag;if(!d)return;
       if(!d.go&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.go=true;n.classList.add('drag');
       n.style.left=Math.round(e.clientX-d.dx)+'px';n.style.right='auto';n.style.top=Math.round(e.clientY-d.dy)+'px';});
@@ -430,23 +443,44 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
       SET.selSide={s:r.left+r.width/2<innerWidth/2?'L':'R',y:Math.round((r.top+r.height/2)/innerHeight*1000)/1000};saveSet();ssPlace();};
     h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);});
   return n;}
-/** the menu at its edge, its middle at the remembered height, whole on screen */
+/** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
 function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p=ssPos();n.dataset.side=p.s;
+  if(ssLook()!=='side'){ssPlaceLook(n);return;}
+  n.style.left=n.style.right='';n.classList.remove('attop');
   const ch=rqIcon(p.s==='L'?'chevron-right':'chevron-left',18),cf=rqIcon(p.s==='L'?'chevron-left':'chevron-right',21);
-  n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;
+  n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;n.querySelector('#ssGrip .ssChev').innerHTML=rqIcon(p.s==='L'?'chevron-left':'chevron-right',16);
   const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
+/** the selected words on screen (the moving end last) */
+function ssSelRects(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return [];const W=innerWidth,H=innerHeight;
+  return [...s.getRangeAt(0).getClientRects()].filter(function(r){return r.width&&r.right>0&&r.left<W&&r.bottom>0&&r.top<H;});}
+/* the card and the row live at the bottom, above ‹ ›; they go to the top of the screen when the selection's end is under them.
+   «У текста»: just above the first selected line, or under the last one when there is no room above */
+function ssPlaceLook(n){
+  const lk=ssLook(),rs=ssSelRects(),W=innerWidth,H=innerHeight;n.style.right='';
+  if(lk==='bubble'){n.classList.remove('attop');n.style.left='0px';n.style.top='0px';
+    const r=n.getBoundingClientRect(),w=r.width,h=r.height;let x=(W-w)/2,y=H*.4;
+    if(rs.length){const a=rs[0],z=rs[rs.length-1],mid=(Math.min(a.left,z.left)+Math.max(a.right,z.right))/2;x=mid-w/2;
+      y=a.top-h-12>=8?a.top-h-12:(z.bottom+12+h<=H-8?z.bottom+12:Math.max(8,(H-h)/2));}
+    n.style.left=Math.round(Math.max(8,Math.min(W-w-8,x)))+'px';n.style.top=Math.round(Math.max(8,Math.min(H-h-8,y)))+'px';return;}
+  n.style.left='';n.style.top='';n.classList.remove('attop');
+  if(!rs.length)return;const b=n.getBoundingClientRect(),z=rs[rs.length-1];
+  if(z.bottom>b.top-8&&z.top>b.height+40)n.classList.add('attop');
+}
 function ssUpd(){
-  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&(!!selBook()||pg);
-  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;return;}
-  const n=ssEl();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&!window.__rqFindOpen&&(!!selBook()||pg);
+  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;if(typeof stCol==='function')stCol(false);return;}
+  const n=ssEl(),lk=ssLook();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  n.dataset.look=lk;if(lk!=='side')SS.open=true; /* 04.11: the other looks have no tab, they are open at once */
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
-  el('ssPen').setAttribute('aria-pressed',SA.mini?'false':'true');
+  if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
+  if((lk==='bar'||lk==='big')&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card */
   const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('ssFromN').textContent=lab;el('ssFrom').setAttribute('aria-label','Выделено со стр. '+lab+' — показать');el('ssFrom').title='Начало: стр. '+lab;
     k.textContent=Math.abs(R.page-from)+1;}
+  if(typeof stUpd==='function')stUpd();
   ssPlace();
 }
 function selTurn(d){
@@ -455,7 +489,7 @@ function selTurn(d){
     const s=selBook();
     if(d>0&&s){const g=pdfSelGeo(),t=selText();
       if(g&&t){if(!PQ||PQ.bid!==R.book.id)PQ={bid:R.book.id,parts:[],text:''};
-        [g].concat(g.more||[]).forEach(function(x){PQ.parts.push({p:x.p,r:x.r,v:2});});PQ.text=(PQ.text?PQ.text+' ':'')+t;PQ.want=np;}
+        [g].concat(g.more||[]).forEach(function(x){PQ.parts.push({p:x.p,r:x.r,v:2});});PQ.text=(PQ.text?PQ.text+' ':'')+t;PQ.want=np;SM.keep=SM.on;} /* 04.11: our selection goes on on the new page */
       s.removeAllRanges();}
     goPage(np,true);setTimeout(selUi,60);return;
   }
@@ -472,11 +506,179 @@ function selTurn(d){
 /** PDF «Страницы»: the new page is on screen — after a turn with a selection, its first word is selected (the handles are here to drag on) */
 function selPdfShown(n){
   if(!PQ||R.mode!=='pdf')return;
-  if(PQ.want===n){PQ.want=null;const sp=[...el('pdfText').querySelectorAll('span')].find(x=>x.firstChild&&x.firstChild.nodeType===3&&/\S/.test(x.textContent));
+  if(PQ.want===n){PQ.want=null;SM.keep=false;const sp=[...el('pdfText').querySelectorAll('span')].find(x=>x.firstChild&&x.firstChild.nodeType===3&&/\S/.test(x.textContent));
     if(sp){const t=sp.firstChild,v=t.nodeValue;let a=0;while(a<v.length&&/\s/.test(v[a]))a++;let z=a;while(z<v.length&&!/\s/.test(v[z]))z++;
       try{window.getSelection().setBaseAndExtent(t,a,t,z);}catch(e){}}}
   setTimeout(selUi,60);
 }
+/* 28.10 (Джессика, видео: «со стрелочками … сбивается, непонятно, что я скопировал … кнопки быстрого выделения»; выбрала «Все четыре»):
+   our own selection in text books instead of Chrome's. A long press on a word starts it (Chrome's own selection, its handles, magnifier and
+   «Копировать / Выбрать все» menu never start: selectstart / contextmenu are cancelled); then a tap on any word — on this page or on any page
+   after a swipe — is where it ends (before the start — where it begins). Our round handles at both ends move the borders. The selection is the
+   page's real Selection (set by code), so the bar, colours, notes, copy and «Объясни» work on it as before. Pages turn by swipe only meanwhile. */
+const SM={on:false,lo:null,hi:null,set:false,ptr:'',lp:null,tapAt:0,drag:null,raf:0,prog:false};
+/** 04.11 (Джессика: «чтобы можно было тянуть выделение и тапать … тонкие настройки этого процесса»): «Чтение → Выделение текста», SET.rx.sm */
+function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
+function smOk(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'||R.mode==='pdf')&&!el('reader').classList.contains('hidden');} /* 04.11 (Джессика: «в тхт и Epub с Fb2 … выделять нужный участок … С PDF так делать нельзя, нужно тянуть»): PDF too */
+/** a book's text: the column of a text book or a PDF page's text layer (not the painted quote boxes on it) */
+function smInText(n){const e=n&&(n.nodeType===3?n.parentNode:n);if(!e||!e.closest||e.closest('.pdfhls'))return false;return el('content').contains(e)||!!e.closest('#viewer .textLayer');}
+function smIn(r){const v=el('viewer').getBoundingClientRect();return r&&r.width>=0&&r.left>=v.left-2&&r.right<=v.right+2&&r.top>=v.top-2&&r.bottom<=v.bottom+2;}
+function smCharRect(n,o){if(!n||n.nodeType!==3)return null;const v=n.nodeValue;if(!v.length)return null;const k=Math.max(0,Math.min(v.length-1,o)),r=document.createRange();r.setStart(n,k);r.setEnd(n,k+1);return r.getClientRects()[0]||null;}
+/** the text point under a finger, only on the shown page (Chrome's hit test under a column's last line lands on another page) */
+function smPt(x,y){
+  const r=document.caretRangeFromPoint&&document.caretRangeFromPoint(x,y);if(!r)return null;const n=r.startContainer;
+  if(!n||n.nodeType!==3||!smInText(n)||(n.parentNode&&n.parentNode.closest('.meta')))return null;
+  const o=r.startOffset,q=smCharRect(n,o)||smCharRect(n,o-1);return q&&smIn(q)?[n,o]:null;
+}
+const SM_W=/[\p{L}\p{N}'’́-]/u;
+function smWord(p){const t=p[0].nodeValue;let a=p[1],z=p[1];
+  if(!SM_W.test(t[a]||'')&&SM_W.test(t[a-1]||''))a=z=a-1;
+  while(a>0&&SM_W.test(t[a-1]))a--;while(z<t.length&&SM_W.test(t[z]))z++;
+  if(a===z){if(/\s/.test(t[a]||''))return null;z=a+1;}return [[p[0],a],[p[0],z]];}
+function smCmp(a,b){const r=document.createRange();r.setStart(a[0],a[1]);return r.comparePoint(b[0],b[1]);} /* 1: b after a */
+function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
+function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
+function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
+  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f;}
+function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smDraw();}
+function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return false;const rg=s.getRangeAt(0);if(!smInText(rg.commonAncestorContainer))return false;
+  SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
+/** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
+function smTap(x,y){
+  if(!smCfg().tap)return;
+  const p=smPt(x,y);if(!p)return;const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
+  if(smCmp(SM.lo,w[0])>=0)SM.hi=w[1];else SM.lo=w[0];
+  SM.set=true;smApply();setTimeout(updSelPop,30);
+}
+/** a tap from the reader's tap handlers while selecting — not the click Chrome may send after the long press itself */
+function smTapAt(cx,cy){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-SM.lpXY[0])<16&&Math.abs(cy-SM.lpXY[1])<16))smTap(cx,cy);}
+/* long press: our timer (Chrome's own long press is cancelled below) */
+function smLpStart(e){
+  if(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop,.smh'))return;
+  SM.tapAt=Date.now();SM.lpHeld=false;if(!smOk()||e.touches.length!==1){smLpCancel();return;}
+  const t=e.touches[0];SM.grab=SM.on&&!SM.drag?smGrabAt(t.clientX,t.clientY):null;
+  smLpCancel();SM.lp={x:t.clientX,y:t.clientY,t:setTimeout(function(){const l=SM.lp;SM.lp=null;if(l)smLongAt(l.x,l.y);},SM_LP[smCfg().lp]||460)};
+}
+const SM_LP={f:300,n:460,s:700};
+/** a finger put down while selecting: which end it will drag if it moves («За край выделения»: only near an end; «С любого места»: anywhere on the text) */
+function smGrabAt(x,y){const c=smCfg();if(c.drag==='off'||!SM.lo||!SM.hi)return null;
+  const a=smCharRect(SM.lo[0],SM.lo[1]),b=smCharRect(SM.hi[0],SM.hi[1]-1),R0=c.hand==='b'?56:44;
+  const da=a&&smIn(a)?Math.hypot(x-a.left,y-(a.top+a.bottom)/2):1e9,db=b&&smIn(b)?Math.hypot(x-b.right,y-(b.top+b.bottom)/2):1e9;
+  if(Math.min(da,db)<=R0)return {x:x,y:y,end:db<=da?'hi':'lo',dy:0};
+  if(c.drag!=='any'||(R.mode==='pdf'?(typeof PS!=='undefined'&&PS.on):(typeof rqScrollMode==='function'&&rqScrollMode())))return null; /* in «Прокрутке» a finger on the text scrolls */
+  const p=smPt(x,y);if(!p)return null;
+  const end=smCmp(SM.hi,p)>0?'hi':smCmp(p,SM.lo)>0?'lo':(db<=da?'hi':'lo');return {x:x,y:y,end:end,dy:22};}
+function smLpCancel(){if(SM.lp){clearTimeout(SM.lp.t);SM.lp=null;}}
+function smLongAt(x,y){const p=smPt(x,y);if(!p)return;const w=smWord(p);if(!w)return;SM.lpAt=Date.now();SM.lpXY=[x,y];SM.lpHeld=true;SM.fdy=null;SM.grab=null;quoteClose();smStart(w[0],w[1]);setTimeout(updSelPop,30);}
+el('viewer').addEventListener('touchstart',smLpStart,{passive:true});
+el('viewer').addEventListener('touchmove',function(e){
+  /* 04.11: the finger that made the long press, moved on without lifting, drags the end of the selection (no swipe, no scroll meanwhile);
+     a finger put on an end of the selection (or anywhere, by the setting) and moved drags that end. Capture: before the page's swipe sees it. */
+  const t=e.touches[0];
+  if(SM.on&&e.touches.length===1&&!SM.lpHeld&&SM.grab&&t&&Math.hypot(t.clientX-SM.grab.x,t.clientY-SM.grab.y)>6){SM.lpHeld=true;SM.drag=SM.grab.end;SM.fdy=SM.grab.dy;SM.grab=null;smLpCancel();}
+  if(SM.lpHeld&&SM.on&&e.touches.length===1){if(e.cancelable)e.preventDefault();e.stopPropagation();if(!smCfg().lpd&&SM.fdy==null)return;if(!SM.drag)SM.drag='hi';smDragTo(t.clientX,t.clientY+(SM.fdy!=null?SM.fdy:22));smEdgeAt(t.clientX);return;}
+  const l=SM.lp;if(!l)return;if(!t||Math.abs(t.clientX-l.x)>10||Math.abs(t.clientY-l.y)>10)smLpCancel();},{passive:false,capture:true});
+el('viewer').addEventListener('touchend',function(e){SM.grab=null;if(SM.lpHeld&&!e.touches.length){if(SM.drag)SM.tapAt=0; /* a drag is not a tap: «Снять» right after it clears */SM.drag=null;SM.fdy=null;smEdgeOff();setTimeout(updSelPop,30);}},{passive:true});
+/* «Листать у края»: a dragging finger held at the left / right edge turns the page, the selection goes on there */
+function smEdgeOff(){if(SM.edge){clearTimeout(SM.edge.t);SM.edge=null;}}
+function smEdgeAt(x){const c=smCfg();if(c.edge==='off'){smEdgeOff();return;}const v=el('viewer').getBoundingClientRect(),d=x<v.left+28?-1:x>v.right-28?1:0;
+  if(!d||(d<0&&R.mode==='pdf')){smEdgeOff();return;} /* a PDF selection goes on forward only */if(SM.edge&&SM.edge.d===d)return;smEdgeOff();
+  SM.edge={d:d,t:setTimeout(function rep(){if(!SM.edge||!SM.on)return;const dr=SM.drag;try{selTurn(d);}catch(e){}SM.drag=dr;SM.edge.t=setTimeout(rep,(c.edge==='f'?600:1000)+400);},c.edge==='f'?600:1000)};}
+el('viewer').addEventListener('touchend',smLpCancel,{passive:true});
+el('viewer').addEventListener('touchcancel',smLpCancel,{passive:true});
+document.addEventListener('pointerdown',function(e){SM.ptr=e.pointerType||'';},true);
+/* Chrome's own selection by touch never starts in the book text (a mouse still selects as usual) */
+document.addEventListener('selectstart',function(e){
+  if(SM.prog||SM.ptr==='mouse'||!smOk())return;const t=e.target,n=t&&(t.nodeType===3?t.parentNode:t);
+  if(n&&smInText(n))e.preventDefault();
+},true);
+el('viewer').addEventListener('contextmenu',function(e){
+  if(!smOk()||SM.ptr==='mouse')return;e.preventDefault();
+  if(SM.lp){const l=SM.lp;smLpCancel();smLongAt(l.x,l.y);} /* Chrome's long press came first */
+});
+/* a tap on the text must not clear the selection while selecting (the tap moves its end instead) */
+el('viewer').addEventListener('mousedown',function(e){if(SM.on&&SM.ptr!=='mouse')e.preventDefault();},true);
+/* round handles at both ends: dragged, they move that border */
+function smH(id){let h=el(id);if(h)return h;h=document.createElement('div');h.id=id;h.className='smh';h.setAttribute('aria-hidden','true');h.innerHTML='<i></i>';el('reader').appendChild(h);
+  h.addEventListener('touchstart',function(e){e.stopPropagation();if(e.cancelable)e.preventDefault();SM.drag=id==='smLo'?'lo':'hi';h.classList.add('on');},{passive:false});
+  h.addEventListener('touchmove',function(e){if(!SM.drag)return;e.stopPropagation();if(e.cancelable)e.preventDefault();const t=e.touches[0];smDragTo(t.clientX,t.clientY);},{passive:false});
+  const end=function(e){e.stopPropagation();SM.drag=null;h.classList.remove('on');setTimeout(updSelPop,30);};
+  h.addEventListener('touchend',end);h.addEventListener('touchcancel',end);
+  h.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();SM.drag=id==='smLo'?'lo':'hi';
+    const mv=function(ev){smDragTo(ev.clientX,ev.clientY);},up=function(){SM.drag=null;document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);setTimeout(updSelPop,30);};
+    document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});
+  return h;}
+function smDragTo(x,y){
+  let p=smPt(x,y-22);if(!p)return; /* the point just above the finger: the finger does not cover it */
+  if(smCfg().unit!=='char'){const w=smWord(p);if(w)p=SM.drag==='hi'?(smCmp(SM.lo,w[1])>0?w[1]:w[0]):(smCmp(w[0],SM.hi)>0?w[0]:w[1]);} /* by whole words */
+  if(SM.drag==='hi'){if(smCmp(SM.lo,p)>0)SM.hi=p;else{SM.hi=SM.lo;SM.lo=p;SM.drag='lo';}}
+  else{if(smCmp(p,SM.hi)>0)SM.lo=p;else{SM.lo=SM.hi;SM.hi=p;SM.drag='hi';}}
+  SM.set=true;smApply();
+}
+function smDraw(){
+  const lo=el('smLo'),hi=el('smHi');
+  if(!SM.on||!SM.lo){if(lo)lo.hidden=true;if(hi)hi.hidden=true;return;}
+  const a=smCharRect(SM.lo[0],SM.lo[1]),b=smCharRect(SM.hi[0],SM.hi[1]-1);
+  const put=function(h,r,left){if(!r||!smIn(r)){h.hidden=true;return;}h.hidden=false;h.style.left=Math.round(left?r.left:r.right)+'px';h.style.top=Math.round(r.bottom)+'px';};
+  put(smH('smLo'),a,true);put(smH('smHi'),b,false);
+}
+function smLoop(){cancelAnimationFrame(SM.raf);const f=function(){if(!SM.on)return;smDraw();SM.raf=requestAnimationFrame(f);};SM.raf=requestAnimationFrame(f);}
+/* the selection gone (a colour saved it, «Отменить», a tap outside the text): our selection ends too; a tap's own clearing is undone */
+document.addEventListener('selectionchange',function(){
+  if(!SM.on||SM.prog||SM.keep)return;const s=window.getSelection(); /* SM.keep: a PDF page is being turned with the selection (selTurn) */
+  if(s&&!s.isCollapsed){const rg=s.rangeCount&&s.getRangeAt(0);if(rg&&smInText(rg.commonAncestorContainer)){SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];}return;}
+  if(Date.now()-SM.tapAt<700&&smOk()&&SM.lo&&SM.lo[0].isConnected&&SM.hi[0].isConnected){smApply();return;}
+  smOff();
+});
+
+/* --- quick selection (the side menu's «Действия»): «+ предложение», «+ абзац» — the end goes on by one more, also onto the next page --- */
+const SM_SENT=/[.!?…]+[»"”)\]]*(?=\s|$)/g;
+function smBlock(n){const e=n.nodeType===3?n.parentElement:n;return e&&e.closest?e.closest('#content p, #content h1, #content h2, #content h3, #content h4, #content li, #content blockquote'):null;}
+function smOff_(b,p){const r=document.createRange();r.setStart(b,0);r.setEnd(p[0],p[1]);return r.toString().length;}
+function smAt(b,k){const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,last=null;while((n=w.nextNode())){if(k<=n.nodeValue.length)return [n,k];k-=n.nodeValue.length;last=n;}return last?[last,last.nodeValue.length]:null;}
+function smBlockNext(b){const all=[...el('content').querySelectorAll('p, h1, h2, h3, h4, li, blockquote')].filter(x=>!x.closest('.meta')&&x.textContent.trim());const i=all.indexOf(b);return i>-1?all[i+1]||null:null;}
+function smTrim(t){return [t.length-t.replace(/^\s+/,'').length,t.replace(/\s+$/,'').length];}
+function smSentEnd(t,k){let m;SM_SENT.lastIndex=0;while((m=SM_SENT.exec(t))){if(m.index+m[0].length>=k)return m.index+m[0].length;}return smTrim(t)[1];}
+function smQuick(kind){
+  if(!smOk())return;if(!SM.on&&!smFromSel())return;if(!SM.lo||!SM.hi)return;
+  const bh=smBlock(SM.hi[0]);if(!bh)return;
+  const th=bh.textContent,kh=smOff_(bh,SM.hi);
+  let lo=SM.lo,hi=SM.hi;
+  if(kind==='s+'){let b=bh,t=th,k=kh;while(k<t.length&&/[\s»"”)\]]/.test(t[k]))k++;
+    if(k>=smTrim(t)[1]){b=smBlockNext(bh);if(!b)return;t=b.textContent;k=smTrim(t)[0];}
+    hi=smAt(b,smSentEnd(t,k+1));}
+  else if(kind==='p+'){let b=bh;if(kh>=smTrim(th)[1]){b=smBlockNext(bh);if(!b)return;}hi=smAt(b,smTrim(b.textContent)[1]);}
+  if(!lo||!hi)return;SM.lo=lo;SM.hi=hi;SM.set=true;smApply();
+  /* the end went on to another page: show it there (the start stays where it is, the side menu says how much is selected) */
+  if(!rqScrollMode()){const r=smCharRect(hi[0],hi[1]-1);if(r){const pg=selPageAt(r);if(pg!==R.page&&pg>=0&&pg<R.pageCount)goPage(pg,true);}}
+  else{const r=smCharRect(hi[0],hi[1]-1),v=el('viewer'),b=v.getBoundingClientRect();if(r&&r.bottom>b.bottom)v.scrollTop+=r.bottom-b.bottom+40;}
+  setTimeout(updSelPop,60);
+}
+
+/* --- what is selected: «2 стр. · 1 240 знаков», a tap shows the whole text with «Копировать» / «В цитаты» --- */
+function smPl(n,a,b,c){const k=n%100,j=n%10;return k>10&&k<20?c:j===1?a:j>1&&j<5?b:c;}
+function selStats(){
+  const s=window.getSelection();let t=s&&!s.isCollapsed?String(s):'';let pages=1;
+  if(R&&R.mode==='pdf'){const pq=PQ&&R.book&&PQ.bid===R.book.id?PQ:null;if(pq){t=pq.text+' '+t;pages=new Set(pq.parts.map(x=>x.p).concat([R.page])).size;}}
+  else if(s&&!s.isCollapsed&&s.rangeCount&&!rqScrollMode()){const rs=[...s.getRangeAt(0).getClientRects()].filter(r=>r.width>0&&r.height>0);
+    if(rs.length){const p0=selPageAt(rs[0]),p1=selPageAt(rs[rs.length-1]);pages=Math.abs(p1-p0)+1;}}
+  const raw=t.replace(/[ \t\u00a0]+/g,' ').replace(/ *\n[\s]*/g,'\n\n').trim();t=t.replace(/\s+/g,' ').trim();return {t,raw,n:t.length,pages};
+}
+function selInfoText(st){return (st.pages>1?st.pages+' стр. · ':'')+st.n.toLocaleString('ru-RU')+' '+smPl(st.n,'знак','знака','знаков');}
+function selView(){
+  const st=selStats();if(!st.t)return;let v=el('selView');
+  if(!v){v=document.createElement('div');v.id='selView';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','selViewT');
+    v.innerHTML='<div class="sv-card"><div class="sv-h"><b id="selViewT"></b><button type="button" id="selViewX" aria-label="Закрыть">'+rqIcon('x',20)+'</button></div><div class="sv-t" id="selViewTxt"></div>'+
+      '<div class="sv-b"><button type="button" id="selViewCopy">'+rqIcon('copy',18)+'<span>Копировать</span></button><button type="button" id="selViewQ" class="pri">'+rqIcon('quote',18)+'<span>В цитаты</span></button></div></div>';
+    document.body.appendChild(v);
+    v.addEventListener('click',function(e){if(e.target===v)selViewClose();});
+    el('selViewX').onclick=selViewClose;
+    el('selViewCopy').onclick=function(){selViewClose();el('spCopy').click();};
+    el('selViewQ').onclick=function(){selViewClose();addQuote(false);};
+  }
+  el('selViewT').textContent='Выделено: '+selInfoText(st);el('selViewTxt').textContent=st.raw;v.hidden=false;
+}
+function selViewClose(){const v=el('selView');if(v)v.hidden=true;}
 /* Chrome reveals a selection end by scrolling even overflow:hidden boxes — the whole reader slid up and the page shifted (video 25.10).
    In the reader nothing of ours scrolls but the scroll mode's #viewer and the panels, so these boxes go straight back. */
 document.addEventListener('scroll',function(e){
@@ -541,7 +743,7 @@ function quoteRemove(sq){
    Свой цвет (Джессика: «кастомным цветом») — q.c = '#rrggbb', последний свой — SET.hlx; прозрачность подбирается под страницу, текст книги ≥ 7:1 */
 const HL_COLORS=[{k:'y',n:'Жёлтый',d:'#f5c518'},{k:'g',n:'Зелёный',d:'#5cb85c'},{k:'b',n:'Голубой',d:'#4aa3ec'},{k:'p',n:'Сиреневый',d:'#a97be0'},{k:'o',n:'Оранжевый',d:'#f39237'}];
 const HL_HEX=/^#[0-9a-f]{6}$/;
-const HL_NAMES={pencil:{y:'Лимонад',g:'Мята',b:'Васильки',p:'Малина',o:'Охра'},ellada:{y:'Золото',g:'Лавр',b:'Эгейское',p:'Пурпур',o:'Амфора'},babochkovyi:{y:'Лимонница',g:'Мятница',b:'Голубянка',p:'Павлиний глаз',o:'Зорька'},celestial:{y:'Рассвет',g:'Аврора',b:'Туманность',p:'Аметист',o:'Комета'}}; /* 22.10: the skin's own names of its two-colour combos */
+const HL_NAMES={pencil:{y:'Лимонад',g:'Мята',b:'Васильки',p:'Малина',o:'Охра'},ellada:{y:'Золото',g:'Лавр',b:'Эгейское',p:'Пурпур',o:'Амфора'},babochkovyi:{y:'Лимонница',g:'Мятница',b:'Голубянка',p:'Павлиний глаз',o:'Зорька'},celestial:{y:'Рассвет',g:'Аврора',b:'Туманность',p:'Аметист',o:'Комета'},alisa:{y:'Золотой ключик',g:'Королевский сад',b:'Выпей меня',p:'Червы',o:'Чаепитие'}}; /* 22.10: the skin's own names of its two-colour combos */
 function hlName(k){const s=document.documentElement.dataset.skin,m=s&&HL_NAMES[s];return (m&&m[k])||HL_COLORS.find(x=>x.k===k).n;}
 function hlKey(c){if(typeof c==='string'&&HL_HEX.test(c.toLowerCase()))return c.toLowerCase();return HL_COLORS.some(x=>x.k===c)?c:'y';}
 function hlDot2(c){const k=hlKey(c);return k[0]==='#'?k:'var(--dot2-'+k+','+hlDot(k)+')';} /* 22.10: the combo's second colour (no skin: the same) */
@@ -694,7 +896,7 @@ function selMark(){
   try{const s=window.getSelection();if(!s||!s.rangeCount)return null;let n=s.getRangeAt(0).commonAncestorContainer;if(n&&n.nodeType===3)n=n.parentNode;
     const m=n&&n.closest&&n.closest('mark');return m&&el('content').contains(m)?m:null;}catch(e){return null;}
 }
-function selDone(){quoteClose();if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
+function selDone(){smOff();selViewClose();quoteClose();if(window.getSelection)window.getSelection().removeAllRanges();el('selpop').classList.add('hidden');}
 function addQuote(withNote,color,pick){ /* pick = {m,t,bid} taken before the colour picker opened */
   const sq=pick?pick.sq:SQ;if(sq)return quoteEdit(sq,withNote,color); /* 22.10: a tapped saved quote */
   const pq=PQ&&R.book&&PQ.bid===R.book.id&&PQ.parts.length?PQ:null;
@@ -772,7 +974,7 @@ function quoteReselect(){
   quoteClose();let a=null,z=null;
   ms.forEach(m=>{const t=document.createTextNode(m.textContent);m.replaceWith(t);if(!a)a=t;z=t;});
   QED={bid:sq.bid,q:sq.q,wait:false};SU.a=null;
-  const s=window.getSelection();s.removeAllRanges();s.setBaseAndExtent(a,0,z,z.nodeValue.length);
+  const s=window.getSelection();s.removeAllRanges();SM.prog=true;s.setBaseAndExtent(a,0,z,z.nodeValue.length);SM.prog=false;smFromSel(); /* 28.10: our handles move its borders */
 }
 function quoteReselectUndo(){const e=QED;QED=null;if(!e||!R.book||R.book.id!==e.bid||(S.quotes[e.bid]||[]).indexOf(e.q)<0)return;markInContent(e.q.text,hlKey(e.q.c),e.q.n||0);}
 el('spEdit').onclick=quoteReselect;
@@ -792,8 +994,9 @@ function addWord(){
 }
 if(el('spWord'))el('spWord').onclick=addWord;
 el('spCopy').onclick=()=>{
-  const t=rqSelPlain()||selText();
-  if(t&&R.book)copyText('«'+t+'» — '+R.book.title+', '+R.book.author);
+  const st=selStats(),t=rqSelPlain()||(st.n>2?st.t:selText()); /* 28.10: a PDF selection over pages — all of it */
+  if(t&&R.book){copyText('«'+t+'» — '+R.book.title+', '+R.book.author);flashMsg('Скопировано: '+t.length.toLocaleString('ru-RU')+' '+smPl(t.length,'знак','знака','знаков'),{kind:'info',icon:'copy'});} /* 28.10: «непонятно, что я скопировал» */
+  if(PQ&&R.book&&PQ.bid===R.book.id){PQ=null;pdfHlRefresh();}
   selDone();
 };
 document.addEventListener('keydown',e=>{
@@ -826,11 +1029,12 @@ el('viewer').addEventListener('gesturestart',e=>{e.preventDefault();}); /* iOS S
 let ty0=null,tt0=0;
 el('viewer').addEventListener('touchstart',e=>{
   if(R.mode==='pdf'){pdfTouchStart(e);return;}
+  if(e.touches.length===2&&!rqRx().gest.pinch){tx0=null;bright=null;return;} /* 29.10 SET.rx.gest.pinch off: two fingers do nothing */
   if(e.touches.length===2){pinch0=tDist(e);zoom0=R.zoom||1;tx0=null;bright=null;pinchSize0=SET.size;pinchTarget=SET.size;if(R.mode!=='pdf')showPinchHint(SET.size);return;}
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   tx0=e.touches[0].clientX;
-  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode())bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
+  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
@@ -853,6 +1057,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
+  if(SM.lpHeld){tx0=null;return;} /* 04.11: the end of a long press (and its drag) is not a swipe / tap */
   if(bright){const mv=bright.mv;bright=null;if(mv){tx0=null;SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
   if(pinch0){
     pinch0=null;tx0=null;
@@ -873,7 +1078,7 @@ el('viewer').addEventListener('touchend',e=>{
 /* 28.10 (ревизия чтения, баг 5): поля слева и справа от колонки текста — тоже страница: тап листает, свайп листает */
 let mg0=null;
 function rqMarginHit(e,t){if(R.mode==='pdf'||e.target!==el('reader'))return false;const r=el('viewer').getBoundingClientRect();return t.clientY>=r.top&&t.clientY<=r.bottom&&(t.clientX<r.left||t.clientX>r.right);}
-function rqMarginTap(x,y){const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
+function rqMarginTap(x,y){if(SM.on)return;const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
 el('reader').addEventListener('touchstart',e=>{mg0=null;if(e.touches.length===1&&rqMarginHit(e,e.touches[0]))mg0={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
 el('reader').addEventListener('touchend',e=>{
   const m=mg0;mg0=null;if(!m||e.touches.length)return;
@@ -1012,7 +1217,7 @@ function renderPanel(tab,o){
   }else if(tab==='marks'){
     const ms=S.marks[b.id]||[];
     body.innerHTML='<button class="prow add" onclick="addBookmark();renderPanel(\'marks\')">'+rqIcon('plus',16)+'Закладка на текущей странице</button>'+
-      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
+      ms.map((m,i)=>'<div class="prow"><button style="flex:1;text-align:left" onclick="jumpRatio('+m.ratio.toFixed(4)+')">'+rqIcon('bookmark',14)+' Стр. '+m.page+(m.t?' <span class="mkt">«'+esc(m.t)+'»</span>':'')+'</button><span style="font-size:11px;color:var(--muted)">'+esc(rqDayRu(m.date))+'</span><button onclick="delMark('+i+')" style="color:var(--muted)">✕</button></div>').join('');
   }else{
     if(qOpen.bid!==b.id)qOpen={bid:b.id,i:-1};
     /* 22.10 (Джессика: «при нажатии на цитату она будет выделяться (у каждого скина по-своему) и раскрываться полностью»):
@@ -1090,6 +1295,9 @@ const TTS_PROV={
   openai:{name:'OpenAI',voice:'nova',voices:'alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer'},
   elevenlabs:{name:'ElevenLabs',voice:'JBFqnCBsd6RMkjVDRZzb',voices:'ID голоса из библиотеки ElevenLabs'},
   google:{name:'Google',voice:'ru-RU-Wavenet-D',voices:'ru-RU-Wavenet-A…E, ru-RU-Standard-A…E'},
+  /* 05.11 Джессика: «Можем добавить сюда грок и яндекс?» — Яндекс SpeechKit (API v1) и Грок (xAI /v1/tts), тоже на своём ключе */
+  yandex:{name:'Яндекс',voice:'alena',voices:'alena, filipp, ermil, jane, omazh, zahar, madirus'},
+  xai:{name:'Грок',voice:'eve',voices:'ara, eve, leo, rex, sal'},
   custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
 };
 function nttsCfg(){const t=S.tts||{};const p=TTS_PROV[t.prov]?t.prov:'system';
@@ -1105,6 +1313,13 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
   if(c.prov==='elevenlabs'){
     r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
       headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify({text:text,model_id:'eleven_multilingual_v2'})});
+  }else if(c.prov==='yandex'){ /* SpeechKit v1: параметры формой; ключ сервисного аккаунта (Api-Key) или IAM-токен t1.… (Bearer) */
+    r=await net('https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize',{method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':(/^t1\./.test(c.key)?'Bearer ':'Api-Key ')+c.key},
+      body:new URLSearchParams({text:text,lang:'ru-RU',voice:c.voice,format:'mp3'}).toString()});
+  }else if(c.prov==='xai'){ /* Грок: ответ сразу mp3; язык auto — книга может быть и не на русском */
+    r=await net('https://api.x.ai/v1/tts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify({text:text,voice_id:c.voice,language:'auto'})});
   }else if(c.prov==='google'){
     r=await net('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({input:{text:text},voice:{languageCode:'ru-RU',name:c.voice},audioConfig:{audioEncoding:'MP3'}})});
@@ -1117,7 +1332,7 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
   if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
   if(r.status===402)throw new Error('на счёте сервиса нет денег');
   if(r.status===429)throw new Error('слишком много запросов или кончился лимит');
-  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||'';}catch(e){}
+  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||(d&&(d.error_message||d.message))||'';}catch(e){}
     throw new Error((typeof m==='string'&&m?m.slice(0,120):'сервис ответил '+r.status));}
   if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');
     const bin=atob(d.audioContent),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Blob([u8],{type:'audio/mpeg'});}
@@ -1138,13 +1353,14 @@ function nttsSay(t,onend,onstart,onpos,next){
     a.ontimeupdate=function(){if(gen!==nttsGen||!ttsOn||!onpos||!a.duration||!isFinite(a.duration))return;onpos(Math.floor(t.length*a.currentTime/a.duration));};
     a.onended=function(){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);if(onend)onend();};
     a.onerror=function(){if(gen!==nttsGen)return;ttsFail('телефон не смог проиграть звук');};
-    a.src=nttsUrl;const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
+    a.src=nttsUrl;try{a.playbackRate=rqRx().tts.rate;a.preservesPitch=true;}catch(e){}const pp=a.play();if(pp&&pp.catch)pp.catch(function(e){if(gen===nttsGen&&ttsOn)ttsFail(e&&e.name==='NotAllowedError'?'нажмите «Слушать» ещё раз':'звук не запустился');});
   },function(e){if(gen!==nttsGen||!ttsOn)return;NTTS_CACHE.delete(t);ttsFail(e&&e.message);});
 }
 function ttsSay(t,onend,onstart,onpos,next){
   if(nttsOn()){nttsSay(t,onend,onstart,onpos,next);return;}
   const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';
-  const v=ttsVoices();if(v.length)try{u.voice=v[0];}catch(e){}
+  const v=ttsVoices(),rx=rqRx().tts;if(v.length)try{u.voice=v.find(function(x){return x.voiceURI===rx.voice;})||v[0];}catch(e){} /* 29.10 SET.rx.tts: own voice and speed */
+  u.rate=rx.rate;
   let started=false;const t0=Date.now();
   u.onstart=function(){started=true;if(ttsOn&&onstart)onstart();};
   u.onboundary=function(e){if(!started){started=true;if(ttsOn&&onstart)onstart();}if(ttsOn&&onpos&&typeof e.charIndex==='number')onpos(e.charIndex);};
@@ -1152,7 +1368,7 @@ function ttsSay(t,onend,onstart,onpos,next){
   u.onerror=function(e){const k=e&&e.error;if(k==='interrupted'||k==='canceled')return;ttsFail();};
   speaking=true;speechSynthesis.speak(u);
 }
-function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1)return;const np=Math.round((pos/b.text.length)*(R.pageCount-1));
+function ttsPageAt(pos){const b=R.book;if(!b||!b.text||R.pageCount<=1||!rqRx().tts.follow)return; /* 29.10 SET.rx.tts.follow off: the voice reads on, the page stays */const np=Math.round((pos/b.text.length)*(R.pageCount-1));
   if(np>R.page){R.ttsAdv=true;try{goPage(np,false);}finally{R.ttsAdv=false;}}} /* 1в: via:'tts', not «reached»; forward only */
 function ttsChunkEnd(text,st){let end=Math.min(text.length,st+1500);const tail=text.slice(end,end+220).search(/[.!?…\n]/);if(tail>=0)end+=tail+1;return end;}
 function ttsTextNext(){
@@ -1218,7 +1434,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
-  R.book=null;PQ=null;if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;
+  R.book=null;PQ=null;smOff();rqOwnLeave(); /* 29.10: the common look back in SET (SET.bookSet) */if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
   stopTimerTick();
@@ -1504,7 +1720,8 @@ window.addEventListener('popstate',function(e){
   const st=(e.state&&e.state.rq)||null;
   if(window.__rqWriter&&__rqWriter.passive)return;
   if(readerIsOpen()){
-    if(generalOverReader()){closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
+    if(generalOverReader()){if(gsCur()&&gsPushed()&&st!=='gsec'){gsClose();if(st!=='settings')navPush('settings');return;} /* 29.10: a section → back to the list of sections */
+      closeGeneralSettings();if(st!=='reader')navPush('reader');return;}
     if(st==='reader')return;
     const ac=el('aiChat'),as=el('aiSheet'),ts=el('trSheet'),os=el('ocrSheet'); /* 20.10: системный «назад» сначала закрывает окна ИИ, (22.10) «Перевод» и (28.10) «Текст страницы» */
     if(![ac,as,ts,os].every(x=>x.classList.contains('hidden'))){[ac,as,ts,os].forEach(x=>x.classList.add('hidden'));navPush('reader');return;}

@@ -16,7 +16,8 @@ const FZ_SOUNDS={
   pencil:[['glass','Дождь по стеклу'],['clock','Часы'],['studio','Мастерская']],
   ellada:[['sea','Море'],['cicada','Цикады'],['olive','Ветер в оливах']],
   babochkovyi:[['garden','Сад и птицы'],['brook','Ручей'],['meadow','Летний луг']],
-  celestial:[['space','Космос'],['starwind','Звёздный ветер'],['chimes','Колокольчики']]
+  celestial:[['space','Космос'],['starwind','Звёздный ветер'],['chimes','Колокольчики']],
+  alisa:[['clock','Часы Кролика'],['garden','Королевский сад'],['brook','Море слёз']]
 };
 /* 25.10 вечером (Джессика: «Давай уберём эти вопросы в начале фокуса, они лишние»): the question is not asked any more */
 const FZ_ASK_WORDS=false;

@@ -547,6 +547,7 @@ function pdfZoomAt(z,cx,cy){
 }
 /* --- taps: edges flip at once at width; centre waits ≤250 ms for a double tap; when zoomed every tap waits --- */
 function pdfTap(cx,cy){
+  if(typeof SM!=='undefined'&&SM.on){smTapAt(cx,cy);return;} /* 04.11: selecting — the tap moves the end of the selection, as in a book */
   const sel=selText();
   pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
   if(quoteTapAt(cx,cy))return; /* 22.10: a saved highlight → its bar (no double-tap wait) */
@@ -591,7 +592,7 @@ function pdfTouchStart(e){
   if(P.g&&(P.g.type==='pinch'||P.g.type==='quiet')){pdfLog({ev:'start-blocked',g:P.g.type,n:e.touches.length});return;}
   const t=e.touches[0],G=pdfGeom();
   P.g={type:'one',x0:t.clientX,y0:t.clientY,t0:performance.now(),tx0:P.tx,ty0:P.ty,atL:G.atL,atR:G.atR,pannable:G.pannable,moved:false,
-    bright:(t.clientX-r.left<28&&!G.pannable)?{y0:t.clientY,d0:SET.bright==null?1:SET.bright}:null};
+    bright:(t.clientX-r.left<28&&!G.pannable&&rqRx().gest.bright)?{y0:t.clientY,d0:SET.bright==null?1:SET.bright}:null};
 }
 /* 22.10 (Джессика: «PDF более отзывчивы к выделению текста»): while text is being selected (a long press made a selection, or the finger
    has rested on the page), one finger belongs to the selection — no pan, no swipe flip, no blocked move, so the selection follows the finger */
@@ -599,8 +600,9 @@ function pdfSelecting(){const g=window.getSelection&&window.getSelection();if(!g
   const n=g.anchorNode.nodeType===3?g.anchorNode.parentNode:g.anchorNode;return !!(n&&n.closest&&n.closest('.textLayer'));}
 function pdfTouchMove(e){
   if(PS.on){psTouchMove(e);return;}
+  if(SM.lpHeld)return; /* 04.11: the long-press finger drags the end of our selection */
   const g=P.g;if(!g)return;
-  if(g.type==='one'&&e.touches.length===1&&(g.sel||(g.sel=pdfSelecting()||(!g.moved&&!g.bright&&performance.now()-g.t0>450))))return; /* selecting */
+  if(g.type==='one'&&e.touches.length===1&&!SM.on&&(g.sel||(g.sel=pdfSelecting()||(!g.moved&&!g.bright&&performance.now()-g.t0>450))))return; /* selecting */
   if(e.cancelable)e.preventDefault(); /* the browser must never zoom/scroll the page itself */
   const r=pdfVR();
   if(g.type==='pinch'&&e.touches.length>=2){
@@ -638,9 +640,10 @@ function pdfTouchEnd(e){
   if(g.type==='quiet'){if(!e.touches.length)P.g=null;return;}
   if(e.touches.length)return;
   P.g=null;
+  if(SM.lpHeld)return; /* 04.11: the end of a long press (and its drag) is not a swipe / tap */
   const ct=e.changedTouches[0],dx=ct.clientX-g.x0,dy=ct.clientY-g.y0;
   if(g.bright&&g.moved){SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}
-  if(g.sel||pdfSelecting()){if(g.pannable&&g.moved)pdfApply();return;} /* 22.10: the end of a selection drag is not a swipe / tap */
+  if(g.sel||(!SM.on&&pdfSelecting())){if(g.pannable&&g.moved)pdfApply();return;} /* 22.10: the end of a selection drag is not a swipe / tap */
   const swipeOn=flipGet().swipe!==false; /* 28.10: свайп не зависит от «Поменять стороны» */
   const horiz=Math.abs(dx)>PDF_SWIPE&&Math.abs(dx)>Math.abs(dy)*1.2;
   pdfLog({ev:'end',dx:Math.round(dx),dy:Math.round(dy),horiz:horiz,pan:g.pannable,moved:g.moved,ms:Math.round(performance.now()-g.t0),t:Math.round(performance.now())});
@@ -653,7 +656,7 @@ function pdfTouchEnd(e){
     if(moved>0)pdfAct('pan',{fraction:moved});
     return;
   }
-  if(swipeOn&&horiz){fsResume();pdfFlip(dx<0?1:-1);return;}
+  if(swipeOn&&horiz){fsResume();if(SM.on&&selBook()){selTurn(dx<0?1:-1);return;} /* 04.11: the selection goes on onto the next page */pdfFlip(dx<0?1:-1);return;}
   if(Math.abs(dx)<12&&Math.abs(dy)<12&&performance.now()-g.t0<450&&
      !(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop'))){
     touchTapAt=Date.now();pdfTap(ct.clientX,ct.clientY);
@@ -669,10 +672,12 @@ function pdfWheel(e){
   pdfFlip(e.deltaY>0?1:-1);
 }
 window.__rqLayoutCount=0; /* test hook: number of full column reflows */
-function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin].join('|')+(rqScrollMode()?'|s':'');}
+function layoutKey(w,h){return [w,h,SET.font,SET.size,SET.lh,SET.ls,SET.weight,SET.align,SET.hyph,SET.indent,SET.margin,rqRx().screen.spread].join('|')+(rqScrollMode()?'|s':'');}
+/** 29.10 SET.rx.screen.spread: two text columns from 860 px (as before) / also in landscape from 520 px / always one */
+function rqCols(w){const sp=rqRx().screen.spread;if(sp==='off')return 1;if(w>=860)return 2;return sp==='land'&&window.innerWidth>window.innerHeight&&w>=520?2:1;}
 /* audit 19.10 RD-TAB-01: on a tablet in portrait (600–859 px) the line stays ≈ 36 em (60–75 characters): the side fields grow; 860+ is two columns */
 function rqTextMargin(){const v=el('viewer');if(!v||R.mode==='pdf')return;const W=window.innerWidth,m=SET.margin;
-  const mw=(W>=600&&W<860)?Math.max(m,Math.floor((W-SET.size*36)/2)):m;
+  const mw=(W>=600&&W<860&&!(rqRx().screen.spread==='land'&&W>window.innerHeight))?Math.max(m,Math.floor((W-SET.size*36)/2)):m; /* 29.10: two pages in landscape keep the plain margins */
   if(v._mw!==mw){v._mw=mw;v.style.margin='0 '+mw+'px';el('reader').style.setProperty('--r-margin',mw+'px');}}
 function layout(){
   if(R.mode==='pdf'){pdfOnResize();return;}
@@ -686,7 +691,7 @@ function layout(){
     R.layoutKey=layoutKey(w,h)+'|s';window.__rqLayoutCount++;return;
   }
   if(v.scrollTop)v.scrollTop=0; /* back from the scroll mode */
-  const cols=w>=860?2:1;
+  const cols=rqCols(w);
   const cw=(w-gap*(cols-1))/cols;
   c.style.columnWidth=cw+'px';c.style.columnGap=gap+'px';
   c.style.height=h+'px';c.style.width=w+'px';
@@ -889,6 +894,7 @@ el('pgSlider').onchange=e=>{
   if(R.mode==='pdf'){P.sliding=false;pdfGo(v,'slider');if(P.target===P.shown){pdfNumbers(P.shown);pdfReach(P.shown);if(P.jump){P.jump=false;if(__tracker&&__tracker.jumped)__tracker.jumped(P.shown);}}}
   else{R.sliding=false;jumpTo(v);}
   const from=R.slideFrom;R.slideFrom=null;R.posPreSlide=null;
+  if(R.mode==='pdf'&&typeof rqRecentNote==='function')rqRecentNote(from,v); /* text: jumpTo above notes it */
   if(from!=null&&from>=0&&from!==v)showJumpBack(from);
 };
 /* «Карандашный»: hand-drawn page slider. LOOK ONLY — the <input> under it keeps every behaviour (thumb-only drag,
@@ -965,6 +971,7 @@ el('jumpBack').onclick=function(e){e.stopPropagation();const f=R.jumpFrom;hideJu
 window.addEventListener('resize',function(){placeJumpBack();});
 /** 1б: jump (slider release, TOC, bookmark, search) — not a page flip. */
 function jumpTo(p){
+  if(typeof rqRecentNote==='function')rqRecentNote(R.slideFrom!=null?R.slideFrom:(R.mode==='pdf'&&P.shown>=0?P.shown:R.page),p); /* 04.11 «Обзор»: «Был на стр. …» */
   if(R.mode==='pdf'){pdfGo(p,'nav');return;}
   R.jumping=true;try{goPage(p,false);}finally{R.jumping=false;}
   if(__tracker&&__tracker.isRunning&&__tracker.isRunning()&&__tracker.snapshot().page!==R.page)__tracker.jumped(R.page); /* slider: page already moved while dragging */
@@ -981,6 +988,7 @@ el('viewer').addEventListener('click',e=>{
 /* Tap zones. Touch taps are handled directly on touchend (Chrome may swallow the synthetic
    click right after a swipe), mouse/keyboard clicks via 'click'. */
 function viewerTap(cx,cy){
+  if(typeof SM!=='undefined'&&SM.on&&R.mode==='text'){smTapAt(cx,cy);return;} /* 28.10: selecting — the tap moves the end of the selection, pages turn by swipe */
   if(quoteTapAt(cx,cy))return; /* 22.10: a tap on a saved highlight opens its bar; with the bar open the tap only closes it */
   if(selText())return; // идёт выделение текста — не листаем
   const r=el('viewer').getBoundingClientRect();

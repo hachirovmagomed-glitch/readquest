@@ -119,6 +119,7 @@ setInterval(()=>{
   const now=new Date();
   const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const tk=today();
+  if(S.notif.days&&S.notif.days[(now.getDay()+6)%7]===false)return; /* 29.10 arch.md notif.days: Monday first */
   if(hm===notifTime()&&lastNotifDay!==tk){
     lastNotifDay=tk;
     const h=S.hist[tk];

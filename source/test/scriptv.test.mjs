@@ -93,8 +93,9 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
        Перевод (21.10): translate.js (the «Перевод» sheet + language packs), right after content.js.
        Текст страницы (28.10): ocr.js (распознавание сканов), right after translate.js.
        Цитаты (28.10): quotes.js (search / colour / order of quotes, card picture, quote of the day, export, AI, diary), right after content.js.
-       Дневники (25.10, arch.md): diary.js (diaries and notebooks), right after adv.js. */
-    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero-pencil.js', 'js/hero-celestial.js', 'js/hero.js', 'js/pdf-scroll.js', 'js/page-curl.js', 'js/page-grid.js', 'js/book-find.js', 'js/focus.js', 'js/translate.js', 'js/ocr.js', 'js/quotes.js', 'js/diary.js'];
+       Дневники (25.10, arch.md): diary.js (diaries and notebooks), right after adv.js.
+       Настройки разделами (29.10, arch.md): settings-hub.js (list of sections, search, «Мои наборы»), right after v6-extras.js. */
+    const NEW_JS = ['js/ach-core.js', 'js/achievements.js', 'js/path.js', 'js/adv.js', 'js/hero-pencil.js', 'js/hero-celestial.js', 'js/hero.js', 'js/pdf-scroll.js', 'js/page-curl.js', 'js/page-grid.js', 'js/book-find.js', 'js/focus.js', 'js/translate.js', 'js/ocr.js', 'js/quotes.js', 'js/diary.js', 'js/settings-hub.js', 'js/read-extras.js', 'js/sel-tools.js', 'js/goal-extras.js', 'js/nn-extras.js', 'js/read-more.js', 'js/alisa.js', 'js/read-more2.js'];
     const hOld = ht.filter(f => NEW_JS.indexOf(f) < 0);
     ok(`(split HEAD) <script src="js/…"> order in app.html = the 1a order of ${SPLIT_TREE} (${tt.length} tags; new since then: ${NEW_JS.join(', ')}), every js/ file has exactly one tag`, ht.length > 0 && JSON.stringify(hOld) === JSON.stringify(tt) && JSON.stringify([...ht].sort()) === JSON.stringify(REAL), { head: ht, tree: tt, files: REAL });
     const STR = "'use strict';\n", strictBad = [];
@@ -224,6 +225,7 @@ for (const [label, base, ns, a, b, pa, pb] of [['rq', '/readquest/', 'rq', A, B,
   await p.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update().catch(() => {}); });
   await p.waitForFunction(() => navigator.serviceWorker.getRegistration().then(r => !!r.waiting), { polling: 100, timeout: 15000 }).catch(() => {});
   await p.close();
+  await new Promise(r => setTimeout(r, 1000)); /* 29.10: the waiting SW activates only after the last window closed — give it a moment (async in Chrome), else the next open races it */
   p = await mk();
   await p.goto(ORIGIN + base, { waitUntil: 'load' }); await ready(p);
   const swB = await p.evaluate(() => new Promise((res) => { const c = navigator.serviceWorker.controller; if (!c) return res(null); const ch = new MessageChannel(); ch.port1.onmessage = (e) => res(e.data.build); c.postMessage({ t: 'build' }, [ch.port2]); setTimeout(() => res(null), 3000); }));

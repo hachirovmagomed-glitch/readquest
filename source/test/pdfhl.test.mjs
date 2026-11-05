@@ -92,7 +92,7 @@ await p.screenshot({ path: SHOTS + 'pdfhl-lines.png' });
 await p.evaluate(async () => { jumpTo(2); await new Promise(r => setTimeout(r, 1500)); });
 for (const how of ['touch', 'mouse']) {
   const s6 = await select(3); await sleep(300);
-  const pt = await p.evaluate(() => { if (el('selpop').classList.contains('mini')) el('spMini').click(); /* 27.10: the bar is a circle while selecting */ const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
+  const pt = await p.evaluate(() => { SA.bar = true; selMiniApply(); selPlace(); /* 27.10: the bar is a circle while selecting */ const r = document.querySelector('#spColors button[data-c="o"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, pg: R.page, n: S.quotes[R.book.id].length }; });
   if (how === 'touch') await p.touchscreen.tap(pt.x, pt.y); else await p.mouse.click(pt.x, pt.y);
   await sleep(700);
   const a6 = await p.evaluate(() => ({ pg: R.page, n: S.quotes[R.book.id].length }));
@@ -147,6 +147,33 @@ const s10 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => 
   goPage(2, true); await w(1500); out.there = el('pdfText').querySelectorAll('.pdfhls i[data-q]').length; out.pend = el('pdfText').querySelectorAll('.pdfhls i.pend').length;
   return out; }, bid);
 ok('10 PDF «Страницы»: › keeps the selection (chip), next page selected, one quote on pages 3 and 4', s10.nav && s10.page === 3 && s10.sel.length > 0 && /Выделено со стр/.test(s10.chip || '') && s10.x && s10.n === 1 && s10.p === 2 && JSON.stringify(s10.more) === '[3]' && s10.text.startsWith(s10.t0.trim()) && s10.text.endsWith(s10.sel.trim()) && s10.here > 0 && s10.there > 0 && !s10.pend && s10.nav2, s10);
+// 11. 04.11 (Джессика: «в тхт и Epub с Fb2 можно … выделять нужный участок … С PDF так делать нельзя, нужно тянуть»): our own selection in a PDF —
+// a long press selects a word, a tap ends it, a swipe goes on to the next page with it (the part before is kept), a tap there carries it on;
+// a colour saves one quote on both pages; the long-press finger moved on drags the end
+const s11 = await p.evaluate(async (id) => { const w = (ms) => new Promise(r => setTimeout(r, ms));
+  await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'page' }); rqSaveSetGated(); S.quotes[id] = []; S.hl[id] = []; S.progress[id] = { ratio: 0, pos: 0 }; save(); openBook(id); await w(3500);
+  goPage(2, true); await w(1500); return true; }, bid);
+const spxy = (k) => p.evaluate((k) => { const sp = [...el('pdfText').querySelectorAll('span')].filter(s => s.textContent.trim().length > 8 && s.getBoundingClientRect().width > 40); const s = sp[k < 0 ? sp.length + k : k]; const r = s.getBoundingClientRect(); return [r.left + Math.min(20, r.width / 3), r.top + r.height / 2]; }, k);
+const st11 = () => p.evaluate(() => ({ on: SM.on, len: String(getSelection()).length, page: R.page, pq: PQ ? PQ.parts.length : 0, lo: !!el('smLo') && !el('smLo').hidden, hi: !!el('smHi') && !el('smHi').hidden }));
+let [x11, y11] = await spxy(2); await p.touchscreen.touchStart(x11, y11); await sleep(700); await p.touchscreen.touchEnd(); await sleep(400);
+const a11 = await st11();
+ok('11 PDF «Страницы»: long press → a word selected, our handles, no Chrome selection', a11.on && a11.len > 2 && a11.len < 30 && a11.lo && a11.hi, a11);
+[x11, y11] = await spxy(-2); await p.touchscreen.tap(x11, y11); await sleep(500);
+const b11 = await st11();
+ok('11 tap on a later line: the selection ends there, the page stays', b11.on && b11.len > a11.len + 200 && b11.page === 2, b11);
+await p.touchscreen.touchStart(320, 500); await p.touchscreen.touchMove(220, 500); await p.touchscreen.touchMove(80, 500); await p.touchscreen.touchEnd(); await sleep(2200);
+const c11 = await st11();
+ok('11 swipe: page 4, the part on page 3 kept aside, the selection goes on (first word)', c11.on && c11.page === 3 && c11.pq === 1 && c11.len > 0, c11);
+[x11, y11] = await spxy(5); await p.touchscreen.tap(x11, y11); await sleep(500);
+const d11 = await st11();
+ok('11 tap on page 4: the selection there grows', d11.on && d11.page === 3 && d11.len > c11.len + 50, d11);
+const e11 = await p.evaluate(async (id) => { document.querySelector('#spColors button[data-c="g"]').click(); await new Promise(r => setTimeout(r, 500)); const q = S.quotes[id]; return { n: q.length, p: q[0] && q[0].pdf.p, more: q[0] && (q[0].pdf.more || []).map(x => x.p), on: SM.on }; }, bid);
+ok('11 a colour: one quote on pages 3 and 4, the selection ends', e11.n === 1 && e11.p === 2 && JSON.stringify(e11.more) === '[3]' && !e11.on, e11);
+[x11, y11] = await spxy(3); await p.touchscreen.touchStart(x11, y11); await sleep(700); const [x12, y12] = await spxy(8);
+await p.touchscreen.touchMove((x11 + x12) / 2, (y11 + y12) / 2); await p.touchscreen.touchMove(x12, y12); await sleep(200); await p.touchscreen.touchEnd(); await sleep(500);
+const f11 = await st11();
+ok('11 long press and the finger moved on: the end follows, no page turn', f11.on && f11.len > 100 && f11.page === 3, f11);
+await p.evaluate(() => getSelection().removeAllRanges());
 ok('no page errors', errs.length === 0, errs);
 await browser.close();
 const pass = checks.filter(Boolean).length; console.log(`\n${pass}/${checks.length} passed`); process.exit(pass === checks.length ? 0 : 1);

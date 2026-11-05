@@ -5,7 +5,7 @@
    8 перевод: место на телефоне и язык по умолчанию · 9 что уходит в сервис и «Стереть все ключи». Keys stay only on the phone (S.ai.key / S.tts.key). */
 const NN_LANG={ru:'Отвечай по-русски.',en:'Answer in English.',book:'Отвечай на языке книги.'};
 /* rough prices, USD: AI per 1M tokens (input and output mixed), neural voice per 1M characters; ~3 characters a token */
-const NN_PRICE_AI={deepseek:0.7,openrouter:0.7,openai:0.4,anthropic:3,xai:0.5,yandex:0,custom:0},NN_PRICE_TTS={openai:15,google:16,elevenlabs:0,yandex:0,xai:15,custom:0};
+const NN_PRICE_AI={gemini:0,deepseek:0.7,openrouter:0.7,openai:0.4,anthropic:3,xai:0.5,yandex:0,custom:0},NN_PRICE_TTS={openai:15,google:16,elevenlabs:0,yandex:0,xai:15,custom:0};
 const NN_LIM=[0,10,20,30,50,100,200];
 const NN_CHK={ai:'',tts:'',tr:''};let nnChecking=false;
 function aiPref(){if(!S.aiPref)S.aiPref=aiPrefNorm(null);return S.aiPref;}
@@ -69,12 +69,13 @@ el('aiModelsBtn').onclick=async function(){
     if(!res.ok)throw new Error(nnHttpErr(res.status,d,S.ai.key)||('сервис ответил '+res.status));
     let ids=((d&&d.data)||[]).map(function(x){return x&&(x.id||x.name);}).filter(function(x){return typeof x==='string'&&x;});
     if(p==='openai')ids=ids.filter(function(x){return /^(gpt|o\d|chatgpt)/.test(x)&&!/(audio|realtime|tts|transcribe|search|image|embedding|instruct)/.test(x);});
-    ids=ids.sort().slice(0,80);if(!ids.length)throw new Error('сервис не прислал список');
+    ids=ids.sort(function(a,b){return (/:free$/.test(b)-/:free$/.test(a))||(a<b?-1:a>b?1:0);}).slice(0,80); /* 05.11 бесплатные модели OpenRouter первыми */
+    if(p==='gemini')ids=ids.map(function(x){return x.replace(/^models\//,'');}).filter(function(x){return /^gemini/.test(x)&&!/(embedding|tts|image|audio|live)/.test(x);});if(!ids.length)throw new Error('сервис не прислал список');
     nnModels=ids;r.textContent=ids.length+' '+plural(ids.length,'модель','модели','моделей')+', нажмите нужную';nnModelsRender();box.hidden=false;
   }catch(e){r.textContent='Список не пришёл: '+((e&&e.message)||'ошибка')+'. Модель можно вписать руками';}
   finally{this.disabled=false;}
 };
-function nnModelsRender(){if(!nnModels)return;nnChips(el('aiModels'),nnModels.map(function(x){return [x,x];}),aiModel(),function(v){S.ai.model=v;save();renderAiSet();nnModelsRender();el('aiTestRes').textContent='Модель: '+v;});}
+function nnModelsRender(){if(!nnModels)return;nnChips(el('aiModels'),nnModels.map(function(x){return [x,/:free$/.test(x)?'бесплатно · '+x.replace(/:free$/,''):x];}),aiModel(),function(v){S.ai.model=v;save();renderAiSet();nnModelsRender();el('aiTestRes').textContent='Модель: '+v;});}
 
 /* ---------- 7: voices from the service; a tapped voice says a phrase ---------- */
 el('ttsVoicesBtn').onclick=async function(){
@@ -151,11 +152,13 @@ function nnStyleRender(){
     '<div class="setrow setstack">'+rqIcon('align-left',22)+'<div class="lab">Длина ответа<div class="sub">Для «Объясни» и чата о книге</div></div><div class="seg rxfull" id="nnLen" role="radiogroup" aria-label="Длина ответа"></div></div>'+
     '<div class="setrow setstack">'+rqIcon('sparkles',22)+'<div class="lab">Как объяснять</div><div class="seg rxfull" id="nnTone" role="radiogroup" aria-label="Как объяснять"></div></div>'+
     '<div class="setrow setstack">'+rqIcon('languages',22)+'<div class="lab">Язык ответа</div><div class="seg rxfull" id="nnLang" role="radiogroup" aria-label="Язык ответа"></div></div>'+
+    '<div class="setrow setstack">'+rqIcon('message-circle',22)+'<div class="lab">Своя нейросеть без ключа<div class="sub">Если ключа нет, «Объясни» и «Обсудить книгу» сразу открывают её в вашем аккаунте (по подписке или бесплатно) с готовым вопросом</div></div><div id="nnVia" role="radiogroup" aria-label="Своя нейросеть"></div></div>'+
     '<div class="setrow">'+rqIcon('shield',22)+'<div class="lab">Без спойлеров<div class="sub">ИИ видит текст только до текущей страницы и не рассказывает, что будет дальше</div></div><button class="ghostbtn sw" id="nnSpoil" role="switch">Вкл</button></div>';
   const set=function(k,v){aiPref()[k]=v;save();nnStyleRender();};
   nnSeg('nnLen',[['short','Коротко'],['long','Подробно']],p.len,function(v){set('len',v);});
   nnSeg('nnTone',[['simple','Простыми словами'],['expert','Как филолог']],p.tone,function(v){set('tone',v);});
   nnSeg('nnLang',[['ru','Русский'],['en','English'],['book','Язык книги']],p.lang,function(v){set('lang',v);});
+  nnChips(el('nnVia'),[['','Спрашивать']].concat(AI_ELSE.map(function(x){return [x[0],x[1]];})),p.via||'',function(v){set('via',v);});
   const sw=el('nnSpoil');sw.textContent=p.spoil?'Вкл':'Выкл';sw.setAttribute('aria-checked',p.spoil?'true':'false');sw.onclick=function(){set('spoil',!aiPref().spoil);};
 }
 

@@ -24,7 +24,7 @@ async function fresh(width, reply) {
   await p.setRequestInterception(true);
   p.on('request', r => {
     const u = r.url();
-    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com|tts\.api\.cloud\.yandex\.net|llm\.api\.cloud\.yandex\.net|api\.x\.ai)\//.test(u)) {
+    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|generativelanguage\.googleapis\.com|api\.elevenlabs\.io|texttospeech\.googleapis\.com|tts\.api\.cloud\.yandex\.net|llm\.api\.cloud\.yandex\.net|api\.x\.ai)\//.test(u)) {
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
       const q = { url: u, headers: r.headers(), raw: r.postData() || '', body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
       const a = reply ? reply(q) : { status: 500, json: {} };
@@ -188,6 +188,26 @@ if (want('else')) { /* 05.11 «Оба способа»: без ключа — н
   ok('else: без ключа — ChatGPT, Грок, Claude, DeepSeek, Алиса, Поделиться; ChatGPT открывается с вопросом в ссылке, Алиса — с вопросом в буфере, «Поделиться» отдаёт вопрос; запросов нет',
     r.chips.join('|') === 'ChatGPT|Грок|Claude|DeepSeek|Алиса|Поделиться' && /^https:\/\/chatgpt\.com\/\?q=.*%D0%A5%D0%B0%D0%BC%D0%B5%D0%BB%D0%B5%D0%BE%D0%BD/.test(r.open[0]) && r.open[1] === 'https://alice.yandex.ru/' && /Хамелеон/.test(r.clip) && /Хамелеон/.test(r.shared) && /без спойлеров/.test(r.shared) && reqs.length === 0, { chips: r.chips, open: r.open.map(u => u.slice(0, 60)), n: reqs.length });
   await shot(p, '390-15-bez-klyucha');
+  await ctx.close();
+}
+
+if (want('cheap')) { /* 05.11 «выдели самые доступные нейросети», Gemini, своя нейросеть без ключа */
+  const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { content: 'Gemini ответил.' } }] } }));
+  const r = await p.evaluate(async () => { NN_EXP.ai = NN_EXP.aiP = NN_EXP.tts = NN_EXP.ttsP = true; openGeneralSettings(false, 'ai'); renderAiSet(); renderTtsSet(); renderNn();
+    const tags = (id) => [...el(id).querySelectorAll('button')].map(b => b.textContent + (b.dataset.tag ? ':' + b.dataset.tag : ''));
+    const out = { ai: tags('aiProvSeg'), tts: tags('ttsProvSeg'), leg: !!el('aiProvLegend').offsetHeight, after: getComputedStyle([...el('aiProvSeg').querySelectorAll('button')][1], '::after').content };
+    [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Gemini').click(); S.ai.key = 'AIza-1'; save();
+    out.t = await aiViaKey({ system: 's', user: 'u' }, 20); return out; });
+  const q = reqs[0] || {};
+  ok('cheap: доступные первыми и с меткой (DeepSeek дёшево, Gemini/Телефон бесплатно, OpenRouter бесплатные, Яндекс рубли), подпись видна', r.ai.slice(0, 4).join('|') === 'DeepSeek:дёшево|Gemini:бесплатно|OpenRouter:бесплатные|YandexGPT:рубли' && r.tts.slice(0, 2).join('|') === 'Телефон:бесплатно|Яндекс:рубли' && r.leg && /бесплатно/.test(r.after), r);
+  ok('cheap: Gemini — generativelanguage …/v1beta/openai/chat/completions, Bearer, gemini-2.5-flash', q.url === 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' && q.headers.authorization === 'Bearer AIza-1' && q.body.model === 'gemini-2.5-flash' && /Gemini ответил/.test(r.t), { url: q.url, m: q.body && q.body.model });
+  await shot(p, '390-16-dostupnye');
+  const v = await p.evaluate(async () => { window.__open = []; window.open = (u) => { window.__open.push(u); return null; }; try { navigator.clipboard.writeText = async () => {}; } catch (e) {}
+    S.ai.key = ''; save(); NN_EXP.ai = false; renderNn(); nnStyleRender(); const chips = [...el('nnVia').querySelectorAll('button')].map(b => b.textContent);
+    [...el('nnVia').querySelectorAll('button')].find(b => b.textContent === 'Грок').click(); return { chips, via: S.aiPref.via, n: aiPrefNorm({ via: 'zzz' }).via }; });
+  await openAndSelect(p, 'Хамелеон'); await p.click('#spAI'); await sleep(300);
+  const g = await p.evaluate(() => ({ open: window.__open, sheet: !el('aiSheet').classList.contains('hidden') }));
+  ok('cheap: «Своя нейросеть» = Грок → «Объясни» без ключа сразу открывает grok.com с вопросом, без окна; мусор → «Спрашивать»', v.chips.join('|') === 'Спрашивать|ChatGPT|Грок|Claude|DeepSeek|Алиса' && v.via === 'grok' && v.n === '' && /^https:\/\/grok\.com\/\?q=/.test(g.open[0] || '') && !g.sheet, { v, g });
   await ctx.close();
 }
 
@@ -398,7 +418,7 @@ if (want('compact')) for (const W of [360, 390]) {
   });
   ok('compact ' + W + ': «Нейросети» — три строки (ИИ, озвучка, перевод), всё свёрнуто, карточка не выше 210px', r.r0.ai && r.r0.tts && r.r0.cardH <= 210 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
   ok('compact ' + W + ': строка ИИ раскрывается; список сервисов скрыт за кнопкой «Сервис DeepSeek»', !r.r1.ai && r.r1.list && /Сервис\s*DeepSeek/.test(r.r1.pick) && r.r1.key > 0, r.r1);
-  ok('compact ' + W + ': «Сервис» раскрывает 7 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 7 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
+  ok('compact ' + W + ': «Сервис» раскрывает 8 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 8 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
   await p.evaluate(() => { NN_EXP.ai = false; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
   await shot(p, W + '-13-neyroseti-svernuto');
   await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.aiP = true; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
@@ -413,7 +433,7 @@ if (want('keyhow')) for (const W of [360, 390]) {
     for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
     return out;
   });
-  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com', 'tts:Яндекс': 'console.yandex.cloud', 'tts:Грок': 'console.x.ai', 'ai:Грок': 'console.x.ai', 'ai:YandexGPT': 'console.yandex.cloud' };
+  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com', 'tts:Яндекс': 'console.yandex.cloud', 'tts:Грок': 'console.x.ai', 'ai:Грок': 'console.x.ai', 'ai:YandexGPT': 'console.yandex.cloud', 'ai:Gemini': 'aistudio.google.com' };
   const bad = Object.keys(want_).filter(k => !r[k] || r[k].a.indexOf('https://' + want_[k]) !== 0 || !/как пароль/.test(r[k].t));
   ok('keyhow ' + W + ': у каждого сервиса шаги, ссылка на страницу ключей и совет про пароль', !bad.length && r['ai:DeepSeek'].tgt === '_blank' && /Проверить ключ/.test(r['ai:DeepSeek'].t) && /Послушать/.test(r['tts:OpenAI'].t) && r['ai:Другой'].a === '' && /адрес API/.test(r['ai:Другой'].t), { bad, deep: r['ai:DeepSeek'] });
   await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')][0].click(); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); });

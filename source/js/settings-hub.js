@@ -244,7 +244,7 @@ function gsIndex(){
       const sub=r.querySelector('.sub,.xsub'),box=r.nextElementSibling&&r.nextElementSibling.classList.contains('nnbox')?r.nextElementSibling.textContent:'';
       out.push({t:t,w:GS_SECS[k],k:(t+' '+(sub?sub.textContent:'')+' '+(r.title||'')+' '+box).toLowerCase(),ic:(r.querySelector('use')||{getAttribute:function(){return '';}}).getAttribute('href').replace('#i-',''),go:function(){gsGoRow(k,r);}});});});
   document.querySelectorAll('#sheet .setgrp').forEach(function(g){
-    g.querySelectorAll('.rrow,.srow').forEach(function(r){if(r.classList.contains('pdfonly')||r.id==='rBookOnlyRow')return;
+    g.querySelectorAll('.rrow,.srow').forEach(function(r){if(r.classList.contains('pdfonly')||r.classList.contains('pdfbook')||r.id==='rBookOnlyRow')return;
       const l=r.querySelector('.rl,label,.xl');const t=txt(l);if(!t)return;
       out.push({t:t,w:'Чтение → '+GS_TABS[g.id],k:(t+' '+(l.querySelector('small')?l.querySelector('small').textContent:'')).toLowerCase(),ic:'book-open',go:function(){gsGoSheet(g.id,r);}});});});
   return out;

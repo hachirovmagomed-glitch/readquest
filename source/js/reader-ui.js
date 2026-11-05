@@ -216,10 +216,33 @@ function rqSelWhere(s){
   const c=el('content');return c&&c.contains(n)?'book':'';
 }
 const RQ_LOOK={a:'а',e:'е',o:'о',p:'р',c:'с',x:'х',y:'у',A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',X:'Х'};
-function rqPlainFix(t,ocr){
+/* 05.11 (Джессика выбрала «старая орфография»): a copy of a pre-1918 text in modern spelling when SET.rm.orth is on. Only a text
+   that has old letters (ѣ, і, ѳ, ѵ or ъ ending a word) is touched, so «низко», «благо» and a modern book never change: ѣ→е, і/ѵ→и,
+   ѳ→ф, ъ at a word's end dropped, -аго/-яго → -ого/-его (not in names), -ыя → -ые, ея → её, без/воз/из/раз/чрез before a voiceless
+   consonant → с. */
+const RQ_ORTH_L='а-яёѣіѳѵ',RQ_ORTH_X={благо:1,наго:1,драго:1};
+function rqOrth(t){
+  t=String(t||'');
+  if(!/[ѣѢіІѳѲѵѴ]|[бвгджзклмнпрстфхцчшщБВГДЖЗКЛМНПРСТФХЦЧШЩ][ъЪ](?![а-яёА-ЯЁѣѢіІѳѲѵѴ])/.test(t))return t;
+  const W=new RegExp('[А-ЯЁа-яёѢѣІіѲѳѴѵ]+','g');
+  return t.replace(W,function(w){
+    let x=w.replace(/ѣ/g,'е').replace(/Ѣ/g,'Е').replace(/[іѵ]/g,'и').replace(/[ІѴ]/g,'И').replace(/ѳ/g,'ф').replace(/Ѳ/g,'Ф');
+    x=x.replace(/([бвгджзклмнпрстфхцчшщБВГДЖЗКЛМНПРСТФХЦЧШЩ])[ъЪ]$/,'$1');
+    const lo=x.toLowerCase(),up=x===x.toUpperCase()&&x.length>1,cap=!up&&x.charAt(0)!==lo.charAt(0);
+    let y=lo;
+    if(y.length>=5&&!cap&&!RQ_ORTH_X[y])y=y.replace(/аго$/,'ого').replace(/яго$/,'его');
+    if(y.length>=5)y=y.replace(/ыя$/,'ые');
+    if(y==='ея')y='её';
+    y=y.replace(/^(без|воз|из|раз|чрез)(?=[кпстфхцчшщ])/,function(p){return p.slice(0,-1)+'с';});
+    if(y===lo)return x;
+    return up?y.toUpperCase():cap?y.charAt(0).toUpperCase()+y.slice(1):y;
+  });
+}
+function rqPlainFix(t,ocr,raw){ /* raw (05.11, «Читать текстом»): the book's own text — note marks and the spelling stay */
   t=String(t||'').replace(/\u00AD/g,'').replace(/[\u00A0\u2007\u202F]/g,' ').replace(/[\uFB00-\uFB06]/g,function(c){return c.normalize('NFKC');});
-  t=t.replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
+  if(!raw)t=t.replace(/([^\s⁰¹²³⁴⁵⁶⁷⁸⁹])[⁰¹²³⁴⁵⁶⁷⁸⁹]{1,3}/g,'$1').replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
   if(ocr)t=t.replace(/[A-Za-zА-Яа-яЁё]+/g,function(w){return /[А-Яа-яЁё]/.test(w)&&/[A-Za-z]/.test(w)&&[...w].every(function(c){return /[А-Яа-яЁё]/.test(c)||RQ_LOOK[c];})?[...w].map(function(c){return RQ_LOOK[c]||c;}).join(''):w;});
+  if(!raw&&typeof rqRm==='function'&&rqRm().orth)t=rqOrth(t);
   return t.replace(/ *\t */g,'\t').replace(/ +/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
 }
 function rqSelPlain(s){

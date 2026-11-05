@@ -1846,7 +1846,7 @@ html[data-skin="pencil"] .apptile .chk{background:var(--rq-accent);color:var(--r
 #sheet .rl{flex:1;min-width:0;font-size:0.875rem;color:var(--txt);line-height:1.25;overflow-wrap:break-word}
 #sheet .rl small{display:block;font-size:0.75rem;color:var(--muted);margin-top:2px}
 /* 20.10 SET.pdfFont / SET.pdfTheme: PDF-only rows; text-only rows hidden for PDF; font list and weight only with «Шрифт читалки в PDF» */
-#reader:not(.pdfmode) .pdfonly,#reader.pdfmode .txtonly,#reader.pdfmode:not(.pdffont) .pdffontdep{display:none!important}
+#reader:not(.pdfbook) .pdfbook,#sheet.gsalone .pdfbook,#reader:not(.pdfmode) .pdfonly,#reader.pdfmode .txtonly,#reader.pdfmode:not(.pdffont) .pdffontdep{display:none!important}
 #sheet .rlv{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 #sheet .rlv label{font:inherit;color:inherit;width:auto}
 #sheet .rv{font-size:0.875rem;color:var(--txt);font-variant-numeric:tabular-nums}
@@ -3298,6 +3298,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rrow stack" id="rBookOnlyRow"><span class="rl" id="rBookOnlyL">Оформление текста<small id="rBookOnlyS">шрифт, размер, интервалы и поля</small></span><div class="rseg" id="rBookOnly" role="radiogroup" aria-labelledby="rBookOnlyL"><button type="button" data-v="all" role="radio">Ко всем книгам</button><button type="button" data-v="one" role="radio">Только к этой</button></div></div>
       <div class="rrow pdfonly"><span class="rl" id="pdfFontTglL">Шрифт читалки в PDF<small>текст страницы выбранным шрифтом, как в ReadEra</small></span><button class="rsw" id="pdfFontTgl" role="switch" aria-checked="false" aria-labelledby="pdfFontTglL"></button></div>
       <div class="rrow pdfonly"><span class="rl" id="ocrRowL">Текст страницы<small>распознать скан, скопировать весь текст</small></span><button type="button" class="ghostbtn" id="ocrRowB" aria-describedby="ocrRowL">Открыть</button></div>
+      <div class="rrow pdfbook"><span class="rl" id="ptxtTglL">Читать текстом<small id="ptxtTglS">PDF или распознанный скан как обычная книга: свой шрифт, размер, скины</small></span><button class="rsw" id="ptxtTgl" role="switch" aria-checked="false" aria-labelledby="ptxtTglL"></button></div>
+      <div class="rrow"><span class="rl" id="orthTglL">Современная орфография при копировании<small>для старых книг: ѣ → е, і → и, «миръ» → «мир»</small></span><button class="rsw" id="orthTgl" role="switch" aria-checked="false" aria-labelledby="orthTglL"></button></div>
       <div class="rrow txtonly"><span class="rl" id="szValL">Размер текста</span><div class="rstep" role="group" aria-labelledby="szValL"><button id="szMinus" aria-label="Меньше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="szVal" aria-live="polite"></span><button id="szPlus" aria-label="Больше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="srow pdffontdep"><div class="seg" id="fontSeg"></div></div>
       <div class="rrow txtonly"><span class="rl" id="lhValL">Межстрочный интервал</span><div class="rstep" role="group" aria-labelledby="lhValL"><button id="lhMinus" aria-label="Плотнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="lhVal" aria-live="polite"></span><button id="lhPlus" aria-label="Свободнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
@@ -3399,6 +3401,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/diary.js"></script>
 <script src="js/sel-tools.js"></script>
 <script src="js/read-more2.js"></script>
+<script src="js/pdf-more.js"></script>
 <script src="js/alisa.js"></script>
 <script src="js/start.js"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">

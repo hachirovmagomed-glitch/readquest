@@ -97,17 +97,17 @@ async function ocrBook(id){
 async function ocrPage(n){if(!R||!R.book||R.mode!=='pdf')return null;const b=await ocrBook(R.book.id);return b.p[n]||null;}
 async function ocrSave(id,n,rec){const b=await ocrBook(id);b.p[n]=rec;try{await idbPut('ocr:'+id,b);}catch(e){console.warn('[rq] ocr save',e);}}
 /* весь текст страницы по словам (файла или распознанным) в порядке чтения, как копия выделения */
-function ocrPlain(g,W,H){
+function ocrPlain(g,W,H,keep){ /* keep: also the numbers (.nc) but not the running headers — for finding a note's text; 'book' (js/pdf-more.js «Читать текстом»): note marks as superscript digits (¹, as js/read-more.js rmFnAt reads them), a note at the foot starts with «\uE000N » */
   const O=pdfReadOrder(g,W,H);let s='';
-  O.seq.forEach(function(e){const j=e.j;if(j==='w'||j==='s')s+=' ';else if(j==='t')s+='\t';else if(j==='y')s=s.replace(/[-\u2010\u00AD]\s*$/,'');else if(j==='h')s+='\n';else if(j==='p')s+='\n\n';if(!e.nc)s+=g[e.i].str;}); /* a line number carries its line's break */
-  return rqPlainFix(s,true);
+  O.seq.forEach(function(e){const j=e.j;if(j==='w'||j==='s')s+=' ';else if(j==='t')s+='\t';else if(j==='y')s=s.replace(/[-\u2010\u00AD]\s*$/,'');else if(j==='h')s+='\n';else if(j==='p')s+='\n\n';if(keep==='book'&&e.note)s+=e.note.replace(/\d/g,function(d){return '⁰¹²³⁴⁵⁶⁷⁸⁹'.charAt(+d);});else if(keep==='book'&&e.fnum)s+='\uE000'+e.fnum+' ';else if(!e.nc||(keep&&e.fnum))s+=(keep==='book'&&e.fsm?'\uE000':'')+g[e.i].str;}); /* a line number carries its line's break */
+  return rqPlainFix(s,true,keep==='book');
 }
-async function ocrFileText(n){
+async function ocrFileText(n,keep){
   const pg=await R.pdf.getPage(n+1),vp=pg.getViewport({scale:1}),U=pdfjsLib.Util;
-  const oc=await ocrPage(n);if(oc)return {t:ocrPlain(oc.items.map(function(q){return {str:q.s,x:q.x,base:q.b,fh:q.h,w:q.w};}),vp.width,vp.height),ocr:true};
+  const oc=await ocrPage(n);if(oc)return {t:ocrPlain(oc.items.map(function(q){return {str:q.s,x:q.x,base:q.b,fh:q.h,w:q.w};}),vp.width,vp.height,keep),ocr:true};
   const tc=await pg.getTextContent(),g=[];
   tc.items.forEach(function(it){if(!it.str)return;const t=U.transform(vp.transform,it.transform);g.push({str:it.str,x:t[4],base:t[5],fh:Math.hypot(t[2],t[3])||12,w:it.width||0,rot:Math.abs(Math.atan2(t[1],t[0]))>0.01});});
-  return {t:ocrPlain(g,vp.width,vp.height),ocr:false};
+  return {t:ocrPlain(g,vp.width,vp.height,keep),ocr:false};
 }
 function ocrCurPage(){return PS&&PS.on?R.page:(P&&P.shown>=0?P.shown:R.page);}
 

@@ -243,13 +243,22 @@ function pdfReadOrder(g,W,H){
     const colN=flat.some(function(o){return o!==q&&isN(o)&&(Math.abs(o.l-q.l)<fm*1.5||Math.abs(o.r-q.r)<fm*1.5)&&Math.abs(o.b-q.b)>q.fh*0.5&&Math.abs(o.b-q.b)<fm*2.2;});
     if(q.fh<fm*0.85||(!colN&&((same.length&&!near)||(!same.length&&edge))))q.nc=true;
   });
+  /* 05.11 a note mark: a small number or * raised at the end of a word («слово¹») — not copied (.nc), a tap shows the note (js/pdf-more.js) */
+  flat.forEach(function(q){
+    if(!q.nc)return;const m=/^\s*[\[(]?(\d{1,3}|\*{1,3})[\])]?\s*$/.exec(q.str);if(!m)return;
+    const h=flat.find(function(o){return o!==q&&!o.nc&&q.fh<o.fh*0.85&&q.l-o.r>-o.fh*0.3&&q.l-o.r<o.fh*0.5&&q.b<o.b-o.fh*0.1&&q.b>o.b-o.fh*0.9;});
+    if(h){q.note=m[1];q.host=h.i;return;}
+    /* the number a note starts with at the foot of the page: small, its text right after it */
+    if(q.fh<fm*0.85&&flat.some(function(o){return o!==q&&!o.nc&&Math.abs(o.b-q.b)<o.fh*0.6&&o.l-q.r>-q.fh*0.2&&o.l-q.r<q.fh*1.2;}))q.fnum=m[1];
+  });
+  flat.forEach(function(q){if(!q.nc&&q.fh<fm*0.85&&/^\s*[\[(]?(\d{1,3}|\*{1,3})[\])]?[.)]?\s+\S/.test(q.str))q.fsm=true;}); /* «1 Текст сноски» in one piece, in small type */
   /* 28.10 running headers / footers («Старшая Эдда» on top of every page): a short line at the top or bottom edge, away from the
      text, is not copied or searched (.nc, hdr) when it is small, upper-case, has a page number beside it, or stood there on another
      page of this file (a chapter title on top of its first page is bigger and stays) */
   (function(){
     const ls=[];flat.filter(function(q){return !q.nc;}).forEach(function(q){
       const L=ls.find(function(L){return Math.abs(L.b-q.b)<Math.max(L.fh,q.fh)*0.5;});if(L){L.a.push(q);L.fh=Math.max(L.fh,q.fh);}else ls.push({a:[q],b:q.b,fh:q.fh});});
-    if(ls.length<5)return;
+    if(ls.length<4)return;
     const bl=Math.min.apply(null,flat.map(function(q){return q.l;})),br=Math.max.apply(null,flat.map(function(q){return q.r;}));
     ls.forEach(function(L){
       L.t=Math.min.apply(null,L.a.map(function(q){return q.t;}));L.u=Math.max.apply(null,L.a.map(function(q){return q.u;}));
@@ -329,13 +338,14 @@ function pdfReadOrder(g,W,H){
     let j='';
     if(pL)j=pB!==B&&pB.cell[2]>B.cell[0]+1?'p':join(pL,pB,L,B); /* a block below → an empty line; the next column → as within a block */
     L.a.forEach(function(q,n){const pv=n?L.a[n-1]:null;
-      seq.push({i:q.i,j:n?(B.tb&&B.tb.col(q)!==B.tb.col(pv)?'t':q.l-pv.r>q.fh*0.15&&!/\s$/.test(pv.str)&&!/^\s/.test(q.str)?'w':''):j,first:!n,last:n===L.a.length-1});
+      seq.push({i:q.i,fsm:!n&&!!q.fsm,j:n?(B.tb&&B.tb.col(q)!==B.tb.col(pv)?'t':q.l-pv.r>q.fh*0.15&&!/\s$/.test(pv.str)&&!/^\s/.test(q.str)?'w':''):j,first:!n,last:n===L.a.length-1});
       cells[q.i]=B.cell;nb[q.i]=k+1<B.ls.length?B.ls[k+1].b-B.ls[k+1].fh:B.cell[3];});
     pL=L;pB=B;});});
   /* nc pieces go in front of the line they stand on (nearest baseline, then nearest x) */
   flat.filter(function(q){return q.nc;}).forEach(function(q){
     let best=-1,bd=Infinity;seq.forEach(function(e,k){if(!e.first)return;const o=its[e.i];const d=Math.abs(o.b-q.b)*4+Math.abs(o.l-q.r);if(d<bd){bd=d;best=k;}});
-    const e={i:q.i,j:'',nc:true,hdr:!!q.hdr};
+    const e={i:q.i,j:'',nc:true,hdr:!!q.hdr,note:q.note||'',fnum:q.fnum||''};
+    if(q.note){const k=seq.findIndex(function(x){return x.i===q.host;});if(k>=0){seq.splice(k+1,0,e);return;}} /* a note mark right after its word */
     if(q.hdr&&q.t<H/2){if(seq.length&&!seq[0].j)seq[0].j='h';seq.unshift(e);return;} /* a header on top goes first */
     if(best<0||Math.abs(its[seq[best].i].b-q.b)>q.fh*1.5){seq.push(Object.assign(e,{j:seq.length?'h':''}));return;}
     e.j=seq[best].j;seq[best].j='';seq.splice(best,0,e);});
@@ -392,6 +402,7 @@ async function pdfTextLayer(page,s0,look){
       if(e.j==='w'||e.j==='t'){const pv=its[O.seq[k-1].i],g=document.createElement('span');g.textContent=e.j==='t'?'\t':' ';g.style.left=(pv.x+pv.w).toFixed(2)+'px';g.style.top=(q.base-q.fh).toFixed(2)+'px';g.style.fontSize=q.fh.toFixed(2)+'px';frag.appendChild(g);}
       else if(e.j){const br=document.createElement('br');br.dataset.j=e.j;frag.appendChild(br);}
       if(e.nc)q.sp.classList.add('nc');
+      if(e.note){q.sp.classList.add('pnote');q.sp.dataset.fn=e.note;const pt=vp.convertToPdfPoint(q.x,q.base);q.sp.dataset.pp=pt[0].toFixed(1)+','+pt[1].toFixed(1);q.sp.dataset.pg=page.pageNumber-1;}
       /* no dead gaps between and around the lines: each span reaches down to the next line of its block, the first one of a line out to
          the block's left edge, the last one out to its right edge (padding, so the glyphs stay put). A finger or a selection handle in
          a gap, in the margin or under the text lands on the nearest line of the SAME column, not on the page header or the other column. */

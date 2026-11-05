@@ -7,7 +7,7 @@
 const RX_CPM0=1000,RX_SPP0=90; /* before the speed is learned: 1000 знаков в минуту, 90 секунд на страницу PDF */
 const RX_SEL_N={colors:['Цвета','highlighter'],note:['Заметка','pencil'],word:['В словарь','book-open'],dict:['Перевести','languages'],ai:['Объясни','sparkles'],grow:['Предложение','align-justify'],copy:['Копировать','copy']};
 const RX_SEL_ID={colors:'spColors',note:'spNote',word:'spWord',dict:'spDict',ai:'spAI',grow:'spGrow',copy:'spCopy'};
-const RX_DBL=[['off','Ничего'],['night','День и ночь'],['mark','Закладка'],['bars','Панели']];
+const RX_DBL=[['off','Ничего'],['night','День и ночь'],['mark','Закладка'],['bars','Панели'],['auto','Автолистание']]; /* 05.11: + автолистание (js/read-more.js) */
 const RX_ORIENT=[['auto','Как у телефона'],['portrait','Книжный'],['landscape','Альбомный']];
 const RX_SPREAD=[['auto','На планшете'],['land','И в альбомной'],['off','Никогда']];
 const RX_EXP={};
@@ -93,7 +93,7 @@ function rxOrient(){
 }
 
 /* ---------- 4: double tap (text books; in a PDF a double tap zooms) ---------- */
-function rxDbl(a){if(a==='night')toggleDayNight();else if(a==='mark')addBookmark();else if(a==='bars')toggleChrome();}
+function rxDbl(a){if(a==='auto'&&typeof rmAutoToggle==='function')rmAutoToggle();else if(a==='night')toggleDayNight();else if(a==='mark')addBookmark();else if(a==='bars')toggleChrome();}
 {const v0=viewerTap;let pend=null;
   viewerTap=function(cx,cy){
     const a=rqRx().gest.dbl;if(a==='off'||R.mode==='pdf'){if(pend){clearTimeout(pend.tm);pend=null;}return v0.apply(this,arguments);}
@@ -166,6 +166,7 @@ function rxBuild(){
     rxRow('','timer','Скорость голоса','',' <span class="stepgrp"><button class="stepbtn" id="rxRateMinus" aria-label="Медленнее">−</button><b class="rxv" id="rxRateV"></b><button class="stepbtn" id="rxRatePlus" aria-label="Быстрее">+</button></span>')+
     rxRow('rxVoiceRow','smartphone','Голос телефона','','<div class="presets rxfull" id="rxVoices" role="radiogroup" aria-label="Голос телефона"></div>','setstack')+
     rxRow('','book-open','Листать за голосом','В книгах; PDF листается всегда',rxSwHtml('rxFollow'))+
+    (typeof rmRxTtsRows==='function'?rmRxTtsRows():'')+ /* 05.11 таймер сна, подсветка читаемого (js/read-more.js) */
     '<div class="row rxtest"><button class="ghostbtn" id="rxTtsTest">'+rqIcon('play',18)+'<span>Послушать</span></button></div>')+
   rxCardHtml('night','moon','Ночь по расписанию',
     rxRow('','moon','Включать ночную тему','Сама вечером и утром. Вручную можно переключить в любой момент.',rxSwHtml('rxNightOn'))+
@@ -197,7 +198,8 @@ function rxBuild(){
     '<div class="aisub">Как открывать книгу в первый раз. Набор станет своим оформлением этой книги.</div>'+
     rxRow('','type','Набор для книг','',' <div class="presets rxfull" id="rxFreshSet" role="radiogroup" aria-label="Набор для книг"></div>','setstack')+
     rxRow('','file-text','Набор для PDF','Шрифт и поля, когда PDF показан текстом',' <div class="presets rxfull" id="rxFreshPdf" role="radiogroup" aria-label="Набор для PDF"></div>','setstack')+
-    rxRow('','list','Оглавление при первом открытии','Если в книге больше одной главы',rxSwHtml('rxFreshToc')));
+    rxRow('','list','Оглавление при первом открытии','Если в книге больше одной главы',rxSwHtml('rxFreshToc')))+
+  (typeof rmRxCards==='function'?rmRxCards():''); /* 05.11 сноски, «Что было раньше», наборы по времени суток (js/read-more.js) */
   c.querySelectorAll('.xrow').forEach(function(x){x.onclick=function(){const k=x.id.slice(3);RX_EXP[k]=!RX_EXP[k];rxRender();};});
   const sw=function(id,fn){el(id).onclick=function(){fn();rxSave();};};
   sw('rxFootPage',function(){const f=rxS().foot;f.page=!f.page;});
@@ -219,6 +221,7 @@ function rxBuild(){
   sw('rxSmHint',function(){const m=rxS().sm;m.hint=!m.hint;});
   sw('rxFreshToc',function(){const f=rxS().fresh;f.toc=!f.toc;});
   if(window.speechSynthesis)try{speechSynthesis.addEventListener('voiceschanged',function(){if(RX_EXP.tts)rxRender();});}catch(e){}
+  if(typeof rmRxWire==='function')rmRxWire();
 }
 function rxSeg(id,opts,cur,pick){const box=el(id);box.innerHTML='';opts.forEach(function(o){const b=document.createElement('button');b.type='button';b.textContent=o[1];
   b.className=o[0]===cur?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',o[0]===cur?'true':'false');b.onclick=function(){if(o[0]!==cur)pick(o[0]);};box.appendChild(b);});}
@@ -285,6 +288,7 @@ function rxRender(){
    rxChips('rxFreshPdf',opts,has(fr.pdf)?fr.pdf:'',function(v){rxS().fresh.pdf=v;rxSave();});
    if(!ps.length){['rxFreshSet','rxFreshPdf'].forEach(function(id){el(id).insertAdjacentHTML('beforeend','<span class="pempty">Наборы сохраняются выше, в «Мои наборы»</span>');});}
    rxSw('rxFreshToc',fr.toc);}
+  if(typeof rmRxRender==='function')rmRxRender(x);
 }
 function rxTtsTest(){
   if(!window.speechSynthesis){flashMsg('Озвучка не поддерживается этим браузером');return;}

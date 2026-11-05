@@ -159,7 +159,7 @@ ok('11. colour swatches show the colours in use after Ночь and after Ден�
 const fo = await p.evaluate(async () => { const t = FONTS.map(f => f.css || f.f || f.v || JSON.stringify(f)).join(' | ');
   let ld = false; try { await document.fonts.load('16px "RQ Liberation Serif"'); ld = document.fonts.check('16px "RQ Liberation Serif"'); } catch (e) {}
   return { t: t.slice(0, 400), ld, n: FONTS.length }; });
-ok('8. «Times» falls back to the bundled Liberation Serif, and it loads', /RQ Liberation Serif/.test(fo.t) && fo.ld && fo.n === 10, fo);
+ok('8. «Times» falls back to the bundled Liberation Serif, and it loads', /RQ Liberation Serif/.test(fo.t) && fo.ld && fo.n === 13, fo);
 ok('8. no Windows-only faces without a fallback (Palatino, Book Antiqua)', !/Palatino|Book Antiqua/.test(fo.t), fo.t);
 
 // 9 + 10. selection near the bottom: ‹ › do not cover it; the bar at the top keeps its «Свернуть» on screen

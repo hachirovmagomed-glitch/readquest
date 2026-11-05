@@ -221,6 +221,9 @@ export const SET_DEF = {
   qSort: 'book',     // 28.10: order of quotes in «Навигация → Цитаты» and «Цитаты и заметки»: 'book' | 'new' | 'old'
   presets: [],       // 29.10 «Мои наборы» (arch.md SET.presets): ≤ 8 {n, v}, normPresets
   bookSet: {},       // 29.10 «Только к этой книге» (arch.md SET.bookSet): {<book id>: {...}} ≤ 200, normBookSet
+  wsp: 0,           // 05.11 между словами, px 0…8 (arch.md SET.wsp)
+  psp: 0,           // 05.11 между абзацами, em 0…1.5 шаг 0.25 (arch.md SET.psp)
+  rm: null,          // 05.11 «ещё для чтения» (arch.md SET.rm, js/read-more.js), normRm
   rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,sm,spd}, normRx
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
@@ -264,7 +267,7 @@ export function normFz(o) {
   return f;
 }
 /** 29.10 SET.presets / SET.bookSet (arch.md) — same rules as js/reader.js rqTypoPick / rqPresetsNorm / rqBookSetNorm */
-export const BOOK_KEYS = ['font', 'size', 'lh', 'ls', 'weight', 'align', 'hyph', 'indent', 'margin'];
+export const BOOK_KEYS = ['font', 'size', 'lh', 'ls', 'weight', 'align', 'hyph', 'indent', 'margin', 'wsp', 'psp'];
 export const PRESET_KEYS = BOOK_KEYS.concat(['bright', 'warm']);
 export function typoPick(o, keys) {
   const n = (v, lo, hi, st) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.max(lo, Math.min(hi, v)) / st) * st : undefined), r = {};
@@ -277,6 +280,8 @@ export function typoPick(o, keys) {
     else if (k === 'lh') x = n(v, 1.2, 2.4, 0.05);
     else if (k === 'ls') x = n(v, -1, 3, 0.5);
     else if (k === 'margin') x = n(v, 10, 80, 1);
+    else if (k === 'wsp') x = n(v, 0, 8, 1);
+    else if (k === 'psp') x = n(v, 0, 1.5, 0.25);
     else if (k === 'weight') x = [300, 400, 600].includes(v) ? v : undefined;
     else if (k === 'align') x = v === 'j' || v === 'l' ? v : undefined;
     else if (k === 'hyph' || k === 'indent') x = typeof v === 'boolean' ? v : undefined;
@@ -330,12 +335,31 @@ export function normRx(o) {
     foot: { page: bo(f.page, true), pct: bo(f.pct, false), clock: bo(f.clock, false), chap: bo(f.chap, false) },
     tts: { rate: typeof t.rate === 'number' && Number.isFinite(t.rate) ? Math.round(Math.max(0.5, Math.min(2, t.rate)) * 20) / 20 : 1, voice: typeof t.voice === 'string' ? t.voice.slice(0, 200) : '', follow: bo(t.follow, true) },
     night: { on: bo(n.on, false), from: hm(n.from, '22:00'), to: hm(n.to, '07:00'), day: typeof n.day === 'string' && n.day.length <= 32 ? n.day : '' },
-    gest: { bright: bo(g.bright, true), pinch: bo(g.pinch, true), dbl: en(g.dbl, ['off', 'night', 'mark', 'bars']) },
+    gest: { bright: bo(g.bright, true), pinch: bo(g.pinch, true), dbl: en(g.dbl, ['off', 'night', 'mark', 'bars', 'auto']) },
     sel: { off: ids(s.off), order: ids(s.order), color: ['y', 'g', 'b', 'p', 'o'].includes(s.color) ? s.color : '' },
     screen: { orient: en(sc.orient, ['auto', 'portrait', 'landscape']), spread: en(sc.spread, ['auto', 'land', 'off']) },
     fresh: { set: nm(fr.set), pdf: nm(fr.pdf), toc: bo(fr.toc, false) },
     sm: ((m) => ({ lp: en(m.lp, ['n', 'f', 's']), tap: bo(m.tap, true), drag: en(m.drag, ['edge', 'any', 'off']), lpd: bo(m.lpd, true), unit: en(m.unit, ['word', 'char']), edge: en(m.edge, ['off', 'f', 's']), hand: en(m.hand, ['n', 'b']), vib: bo(m.vib, true), hint: bo(m.hint, true) }))(ob(o.sm)),
     spd: { cpm: num(sp.cpm, 100, 6000), spp: num(sp.spp, 5, 1200), n: typeof sp.n === 'number' && Number.isFinite(sp.n) ? Math.max(0, Math.min(1e6, Math.floor(sp.n))) : 0 },
+  };
+}
+/** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения») — same rules as js/reader.js rqRmNorm */
+export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts'];
+export function normRm(o) {
+  const ob = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), bo = (v, d) => (typeof v === 'boolean' ? v : d),
+    hm = (v, d) => (typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : d), nm = (v) => (typeof v === 'string' ? v.trim().slice(0, 24) : '');
+  o = ob(o);
+  const a = ob(o.auto), r = ob(o.ruler), t = ob(o.tod);
+  return {
+    bion: bo(o.bion, false), cap: bo(o.cap, false), maxw: [0, 55, 65, 75].includes(o.maxw) ? o.maxw : 0,
+    ufont: typeof o.ufont === 'string' ? o.ufont.trim().slice(0, 40) : '',
+    auto: { sec: typeof a.sec === 'number' && Number.isFinite(a.sec) && a.sec >= 5 && a.sec <= 600 ? Math.round(a.sec) : 0 },
+    fn: bo(o.fn, true),
+    zones: Array.isArray(o.zones) && o.zones.length === 9 && o.zones.every((z) => RM_ZONE.includes(z)) ? o.zones.slice() : null,
+    sleep: [0, 15, 30, 45, 60, -1].includes(o.sleep) ? o.sleep : 0, ttsHl: bo(o.ttsHl, true), recap: bo(o.recap, true),
+    ruler: { on: bo(r.on, false), n: [1, 2, 3].includes(r.n) ? r.n : 1, auto: bo(r.auto, false) },
+    eink: bo(o.eink, false),
+    tod: { on: bo(t.on, false), day: nm(t.day), eve: nm(t.eve), from: hm(t.from, '20:00'), to: hm(t.to, '07:00') },
   };
 }
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
@@ -666,6 +690,9 @@ export function hydrateSettings(s) {
   out.presets = normPresets(out.presets);
   out.bookSet = normBookSet(out.bookSet);
   out.rx = normRx(out.rx);
+  out.wsp = typoPick({ wsp: out.wsp }, ['wsp']).wsp || 0;
+  out.psp = typoPick({ psp: out.psp }, ['psp']).psp || 0;
+  out.rm = normRm(out.rm);
   /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
   if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
   delete out.dim;

@@ -306,7 +306,13 @@ const FONTS=[ /* 28.10 (ревизия чтения): only Georgia / system sans
  {label:'Manrope',v:'"Manrope", system-ui, sans-serif'},
  {label:'Alegreya Sans',v:'"Alegreya Sans", system-ui, sans-serif'},
  {label:'Caveat',v:'"Caveat", "Segoe UI", system-ui, sans-serif'}, /* was «Comic»: no Comic Sans on Android; a bundled hand-written face instead */
- {label:'Mono',v:'"Courier New", "Droid Sans Mono", "Liberation Mono", monospace'}
+ {label:'Mono',v:'"Courier New", "Droid Sans Mono", "Liberation Mono", monospace'},
+ /* 05.11 (идеи для чтения, п. 3): fonts for easy reading, bundled (fonts/, OFL). Andika (SIL) — letters that are hard to confuse,
+    made for those who learn to read or mix letters up; Literata — the book face of Google Play Books. Both with Cyrillic. */
+ {label:'Andika',v:'"RQ Andika", "Nunito", system-ui, sans-serif',easy:true},
+ {label:'Literata',v:'"RQ Literata", Georgia, serif'},
+ /* п. 2: the reader's own font file (js/read-more.js, IDB «ufont», SET.rm.ufont = its name). Hidden in the list until a file is loaded */
+ {label:'Свой шрифт',v:'"RQ User Font", Georgia, serif',user:true}
 ];
 
 /* ================= СОСТОЯНИЕ ================= */

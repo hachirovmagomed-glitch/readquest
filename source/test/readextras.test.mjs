@@ -28,10 +28,10 @@ ok('1 rqRxNorm = schema normRx; junk → defaults, unknown keys dropped', JSON.s
   r.a.screen.orient === 'auto' && r.a.screen.spread === 'land' && r.a.fresh.set === 'Ночь' && r.a.spd.cpm === null && r.a.spd.spp === 30 && r.a.spd.n === 0 && !('extra' in r.a), { page: r.a, node: nd });
 ok('1 a fresh start has SET.rx with the defaults (nothing changes for anyone)', JSON.stringify(r.set) === JSON.stringify(r.d) && r.d.foot.page && !r.d.foot.pct && r.d.gest.bright && r.d.gest.dbl === 'off' && r.d.screen.spread === 'auto', r.set);
 
-// 2. the settings: «Чтение → Удобство чтения», eight cards (04.11 + «Выделение текста»), search finds a row inside a closed card
+// 2. the settings: «Чтение → Удобство чтения», ten cards (04.11 + «Выделение текста» + 05.11 «Сноски…», «Наборы по времени суток»), search finds a row inside a closed card
 await p.evaluate(() => openGeneralSettings(false, 'read')); await sleep(200);
 r = await p.evaluate(() => ({ cards: [...document.querySelectorAll('#rxCard > .xrow')].filter(x => x.offsetParent).map(x => x.querySelector('.xt').textContent), open: [...document.querySelectorAll('#rxCard .rxbox')].some(b => !b.hidden) }));
-ok('2 eight cards, all closed', r.cards.length === 8 && r.cards.includes('Выделение текста') && r.cards[0] === 'Строка внизу страницы' && !r.open, r);
+ok('2 ten cards, all closed', r.cards.length === 10 && r.cards.includes('Выделение текста') && r.cards[0] === 'Строка внизу страницы' && !r.open, r);
 await p.evaluate(() => openGeneralSettings(false)); await sleep(150);
 await p.type('#setSearch', 'двойной'); await sleep(200);
 await p.evaluate(() => [...document.querySelectorAll('#setSearchRes .gsres')].find(b => /Двойной тап/.test(b.textContent)).click()); await sleep(400);

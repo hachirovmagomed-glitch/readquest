@@ -1719,6 +1719,11 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 .nncard .xpick{background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));margin:0 0 8px}
 .nncard .xpick .xl{color:var(--muted)}
 .nncard .tierseg{margin:0 0 8px}
+:is(#aiProvSeg,#ttsProvSeg) button[data-tag]{display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+:is(#aiProvSeg,#ttsProvSeg) button[data-tag]::after{content:attr(data-tag);font-size:.68rem;font-weight:700;color:var(--rq-ok,#2e9d5b);opacity:.95}
+:is(#aiProvSeg,#ttsProvSeg) button.on[data-tag]::after{color:inherit}
+.nnlegend{margin:-2px 0 8px}#aiProvSeg[hidden]+.nnlegend,#ttsProvSeg[hidden]+.nnlegend{display:none} /* 05.11 доступные сервисы с меткой */
+#nnVia{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .keyhow{margin:0 0 8px;font-size:0.8125rem}
 .keyhow>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--accent);font-weight:600;list-style:none}
 .keyhow>summary::-webkit-details-marker{display:none}
@@ -1942,6 +1947,22 @@ html[data-skin="pencil"][data-theme="night"] #sheet #warmRange{--sl-w-fill:repea
 #reader.barsoff .rhead{transform:translateY(-100%)}
 #reader.barsoff .rbot{transform:translateY(100%)}
 #reader.barsoff .rhead,#reader.barsoff .rfoot,#reader.barsoff .rbar{display:flex}
+/* 05.11 половина экрана (#reader.half, js/reader.js rqHalfSync): панели тоньше, яркость и подписи кнопок спрятаны — больше места тексту */
+#reader.half .rhead{padding-top:calc(2px + env(safe-area-inset-top));flex-wrap:nowrap}
+#reader.half .rhead button{min-height:38px;min-width:38px}
+#reader.half #rBright{display:none}
+#reader.half .rbar button{min-height:40px;gap:0}
+#reader.half .rbar button>span{display:none}
+#reader.half #pgLine{height:14px;font-size:.7rem}
+#reader:not(.half) #ssAsk{display:none}
+/* 05.11 «обратная дорога»: плашка «Ответ нейросети — вставить» (js/content.js aiBackShow) */
+#aiBackChip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));z-index:31;display:flex;align-items:center;gap:2px;background:var(--card);color:var(--txt);border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.28);padding:2px 4px 2px 2px;max-width:calc(100% - 32px)}
+#aiBackChip[hidden]{display:none}
+#aiBackChip button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border-radius:999px;font:600 .875rem/1.2 var(--rq-font-ui,system-ui);color:inherit;white-space:nowrap}
+#aiBackChip #aiBackX{padding:0 10px;opacity:.7}
+#reader.half #aiBackChip{bottom:calc(48px + env(safe-area-inset-bottom))}
+#aiBody #aiBackTx{width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin:4px 0 8px;border-radius:var(--rq-radius-md);padding:10px 12px;font:inherit;font-size:.9rem}
+#aiBody .ai-back-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 #reader.nobaranim .rhead,#reader.nobaranim .rbot{transition:none}
 @media (prefers-reduced-motion:reduce){#reader .rhead,#reader .rbot{transition:none}}
 /* reading modes (16.10, arch.md SET.flip.mode): vertical scroll for text — the browser scrolls #viewer; pinch stays ours */
@@ -2940,6 +2961,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="aisub">«Объясни» при выделении текста и чат о книге в шапке читалки. Нужен свой ключ, он хранится только на этом телефоне.</div>
         <button type="button" class="xrow xpick" id="aiProvX" aria-controls="aiProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="aiProvSeg" role="radiogroup" aria-label="Сервис ИИ" hidden></div>
+        <div class="aisub nnlegend" id="aiProvLegend">«бесплатно» — ключ без карты, с лимитом в день; «рубли» — оплата российской картой; «дёшево» — копейки за ответ. Без ключа можно спросить свою нейросеть по подписке: «Объясни» → кнопки ChatGPT, Грок, Алиса…</div>
         <details class="keyhow" id="aiHow"><summary>Как получить ключ</summary><div class="keyhowb" id="aiHowB"></div></details>
         <div class="row nnquick"><button type="button" class="ghostbtn" id="aiGetKey"></button><button type="button" class="ghostbtn" id="aiPaste"></button></div>
         <input class="searchinp" id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API">
@@ -2953,6 +2975,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="aisub">Чем читать вслух кнопкой «Озвучка» в книге. «Телефон» бесплатный, нейросетевой голос живее, но нужен свой ключ: платите сервису по числу знаков.</div>
         <button type="button" class="xrow xpick" id="ttsProvX" aria-controls="ttsProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки" hidden></div>
+        <div class="aisub nnlegend" id="ttsProvLegend">«бесплатно» — голос телефона; «рубли» — оплата российской картой.</div>
         <div id="ttsFields">
           <details class="keyhow" id="ttsHow"><summary>Как получить ключ</summary><div class="keyhowb" id="ttsHowB"></div></details>
           <div class="row nnquick"><button type="button" class="ghostbtn" id="ttsGetKey"></button><button type="button" class="ghostbtn" id="ttsPaste"></button></div>
@@ -3353,6 +3376,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rrow pdfonly"><span class="rl" id="pdfThemeTglL">Цвета темы для PDF<small>фон и текст страницы как у темы, картинки в два цвета</small></span><button class="rsw" id="pdfThemeTgl" role="switch" aria-checked="false" aria-labelledby="pdfThemeTglL"></button></div>
       <div class="rrow"><span class="rl">Свои цвета</span><div class="rcolors"><label class="rcol"><input type="color" id="cTxt" value="#5b4636"><span>Текст</span></label><label class="rcol"><input type="color" id="cBg" value="#f4ecd8"><span>Фон</span></label><button id="cReset" aria-label="Сбросить свои цвета"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-rotate-cw"/></svg></button></div></div>
       <div class="rrow"><span class="rl" id="mgValL">Поля</span><div class="rstep" role="group" aria-labelledby="mgValL"><button id="mgMinus" aria-label="Уже"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="mgVal" aria-live="polite"></span><button id="mgPlus" aria-label="Шире"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
+      <div class="rrow"><span class="rl" id="halfTglL">Половина экрана<small id="halfTglS">свой размер шрифта и поля, когда читалка открыта рядом с другим приложением</small></span><button class="rsw" id="halfTgl" role="switch" aria-checked="true" aria-labelledby="halfTglL"></button></div>
       <div class="rrow stack"><span class="rl rlv"><label for="brightRange">Яркость</label><span class="rv" id="brightVal">100 %</span></span><input type="range" id="brightRange" min="30" max="100" step="5" value="100"></div>
       <div class="rrow stack"><span class="rl rlv"><label for="warmRange">Тёплый оттенок</label><span class="rv" id="warmVal">0 %</span></span><input type="range" id="warmRange" min="0" max="60" step="5" value="0"></div>
     </div>

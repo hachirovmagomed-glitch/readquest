@@ -134,7 +134,7 @@ el('ttsProvX').onclick=()=>{NN_EXP.ttsP=!NN_EXP.ttsP;renderNn();};
 function renderAiSet(){
   const p=aiProv(),box=el('aiProvSeg');box.innerHTML='';
   Object.keys(AI_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':AI_PROV[k].name.replace(/ \(.*\)$/,'');
-    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');if(AI_PROV[k].tag){b.dataset.tag=AI_PROV[k].tag;b.setAttribute('aria-description',AI_PROV[k].tag);}
     b.onclick=()=>{NN_EXP.aiP=false;if(aiProv()!==k){S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';}renderAiSet();};box.appendChild(b);});
   el('aiHowB').innerHTML=keyHowHtml(p,false);
   el('aiKey').value=(S.ai&&S.ai.key)||'';
@@ -148,7 +148,7 @@ function renderAiSet(){
 function renderTtsSet(){
   const t=S.tts,p=TTS_PROV[t.prov]?t.prov:'system',box=el('ttsProvSeg');box.innerHTML='';
   Object.keys(TTS_PROV).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k==='custom'?'Другой':TTS_PROV[k].name;
-    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');
+    b.className=k===p?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',k===p?'true':'false');if(TTS_PROV[k].tag){b.dataset.tag=TTS_PROV[k].tag;b.setAttribute('aria-description',TTS_PROV[k].tag);}
     b.onclick=()=>{NN_EXP.ttsP=false;if(t.prov!==k){if(ttsOn||speaking)ttsStop();t.prov=k;t.voice='';save();el('ttsTestRes').textContent='';}renderTtsSet();};box.appendChild(b);});
   el('ttsFields').hidden=p==='system';
   el('ttsHowB').innerHTML=keyHowHtml(p,true);

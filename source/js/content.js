@@ -823,15 +823,39 @@ function selCtx(word){ /* предложение вокруг выделения
 }
 el('spAI').onclick=()=>{
   const t=rqSelPlain()||selText();if(!t)return;
-  if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
+  if(!aiOn()){selDone();aiNoKey(aiMsgs(q).user+'\n\nОбъясни простым языком, 2–4 предложения, без спойлеров.');return;}
   selDone();
   aiExplain(q);
 };
-function aiNoKey(){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает) */
+/* 05.11 Джессика: «подсоединить экран нейросети из другого приложения», выбрала «Оба способа». Показать чужой чат внутри читалки
+   нельзя (сайты запрещают открывать себя в чужом окне), поэтому без ключа: открыть ChatGPT/Грок/Claude/DeepSeek/Алису в своём
+   аккаунте человека с готовым вопросом, или «Поделиться» в любое приложение. Вопрос всегда копируется: где сайт не берёт его
+   из ссылки, его вставляют сами. Ничего не уходит, пока человек сам не нажмёт. */
+const AI_ELSE=[
+  ['chatgpt','ChatGPT','https://chatgpt.com/?q='],
+  ['grok','Грок','https://grok.com/?q='],
+  ['claude','Claude','https://claude.ai/new?q='],
+  ['deepseek','DeepSeek','https://chat.deepseek.com/'],
+  ['alice','Алиса','https://alice.yandex.ru/']
+];
+function aiElseUrl(id,txt){const s=AI_ELSE.find(function(x){return x[0]===id;});if(!s)return '';return /=$/.test(s[2])?s[2]+encodeURIComponent(String(txt).slice(0,1800)):s[2];}
+async function aiElseCopy(txt){try{await navigator.clipboard.writeText(txt);return true;}catch(e){return false;}}
+function aiElseHtml(){return '<div class="ai-else"><div class="ai-note">Без ключа — в своём аккаунте нейросети, вопрос уже готов:</div><div class="ai-else-row">'+
+  AI_ELSE.map(function(s){return '<button type="button" class="fchip" data-ai-else="'+s[0]+'">'+esc(s[1])+'</button>';}).join('')+
+  '<button type="button" class="fchip" data-ai-else="share">'+rqIcon('share-2',14)+' Поделиться</button></div></div>';}
+function aiElseBind(box,txt){
+  box.querySelectorAll('[data-ai-else]').forEach(function(b){b.onclick=async function(){const id=b.getAttribute('data-ai-else');
+    if(id==='share'){if(navigator.share){try{await navigator.share({text:txt});}catch(e){}return;}
+      flashMsg(await aiElseCopy(txt)?'Вопрос скопирован, вставьте его в приложение нейросети':'Телефон не дал поделиться');return;}
+    const u=aiElseUrl(id,txt),cp=await aiElseCopy(txt);window.open(u,'_blank','noopener');
+    if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');};});
+}
+function aiNoKey(ask){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает); ask — готовый вопрос для «без ключа» */
   aiCur=null;aiSeq++;
-  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
-    '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
+  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ отвечал прямо в книге, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
+    '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>'+(ask?aiElseHtml():'');
+  if(ask)aiElseBind(el('aiBody'),ask);
   el('aiSheet').classList.remove('hidden');
   el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');NN_EXP.ai=true;openGeneralSettings(true);el('aiHow').open=true;settingsScrollTo('aiHead');};
 }
@@ -843,7 +867,8 @@ function aiRender(state,txt){
      :state==='err'?'<div class="ai-a" role="alert">'+esc(txt)+'</div><button class="ghostbtn" id="aiRetry">'+rqIcon('rotate-cw',16)+' Ещё раз</button>'
      :'<div class="ai-a">'+esc(txt)+'</div>'+
       (word&&R.book?'<button class="ghostbtn" id="aiToVocab">'+rqIcon('book-open',16)+' В словарь с объяснением</button>':'')+
-      '<div class="ai-note">Ответ ИИ, может ошибаться</div>');
+      '<div class="ai-note">Ответ ИИ, может ошибаться</div>')+(state==='err'?aiElseHtml():''); /* ключ не сработал — можно спросить в своём аккаунте */
+  if(state==='err')aiElseBind(el('aiBody'),aiMsgs(q).user+'\n\nОбъясни простым языком, без спойлеров.');
   if(el('aiRetry'))el('aiRetry').onclick=()=>aiExplain(q,true);
   if(el('aiToVocab'))el('aiToVocab').onclick=()=>aiToVocab(q,txt);
 }
@@ -930,7 +955,7 @@ function chatRender(wait){
 }
 function openAiChat(){
   if(!R.book)return;
-  if(!aiOn()){aiNoKey();return;}
+  if(!aiOn()){aiNoKey('Давай обсудим книгу «'+R.book.title+'»'+(bookAuthor(R.book)?' ('+bookAuthor(R.book)+')':'')+'. Я её читаю и сейчас примерно на '+Math.max(1,Math.round(100*(R.page+1)/Math.max(1,R.pageCount)))+'%. Не рассказывай, что будет дальше, без спойлеров. Мой вопрос: ');return;}
   chatErr=null;el('aiChat').classList.remove('hidden');chatRender(chatBusy);
 }
 async function chatSend(txt){

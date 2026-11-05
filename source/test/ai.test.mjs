@@ -175,6 +175,22 @@ if (want('errwhy')) { /* 05.11 «сервисы не принимают ключ
   await ctx.close();
 }
 
+if (want('else')) { /* 05.11 «Оба способа»: без ключа — нейросеть в своём аккаунте с готовым вопросом или «Поделиться» */
+  const { ctx, p, reqs } = await fresh(390);
+  await p.evaluate(() => { window.__open = []; window.open = (u) => { window.__open.push(u); return null; }; window.__shared = null; navigator.share = async (o) => { window.__shared = o; };
+    try { navigator.clipboard.writeText = async (t) => { window.__clip = t; }; } catch (e) {} });
+  await openAndSelect(p, 'Хамелеон'); await p.click('#spAI'); await sleep(300);
+  const r = await p.evaluate(async () => { const out = { chips: [...document.querySelectorAll('#aiBody [data-ai-else]')].map(b => b.textContent.trim()) };
+    document.querySelector('#aiBody [data-ai-else="chatgpt"]').click(); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#aiBody [data-ai-else="alice"]').click(); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#aiBody [data-ai-else="share"]').click(); await new Promise(r => setTimeout(r, 100));
+    out.open = window.__open; out.clip = window.__clip || ''; out.shared = window.__shared && window.__shared.text || ''; return out; });
+  ok('else: без ключа — ChatGPT, Грок, Claude, DeepSeek, Алиса, Поделиться; ChatGPT открывается с вопросом в ссылке, Алиса — с вопросом в буфере, «Поделиться» отдаёт вопрос; запросов нет',
+    r.chips.join('|') === 'ChatGPT|Грок|Claude|DeepSeek|Алиса|Поделиться' && /^https:\/\/chatgpt\.com\/\?q=.*%D0%A5%D0%B0%D0%BC%D0%B5%D0%BB%D0%B5%D0%BE%D0%BD/.test(r.open[0]) && r.open[1] === 'https://alice.yandex.ru/' && /Хамелеон/.test(r.clip) && /Хамелеон/.test(r.shared) && /без спойлеров/.test(r.shared) && reqs.length === 0, { chips: r.chips, open: r.open.map(u => u.slice(0, 60)), n: reqs.length });
+  await shot(p, '390-15-bez-klyucha');
+  await ctx.close();
+}
+
 if (want('err')) {
   let code = 401;
   const { ctx, p, reqs } = await fresh(390, () => code === 401 ? { status: 401, json: { error: { message: 'Authentication Fails' } } } : { status: 200, json: { choices: [{ message: { content: 'Со второго раза.' } }] } });

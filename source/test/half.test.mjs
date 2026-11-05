@@ -47,7 +47,7 @@ ok('на половине в меню выделения есть «Вопрос
 if (SHOTS) await p.screenshot({ path: SHOTS + '/half-2-vopros.png' });
 await vp(844); await sleep(1000);
 const hid = await p.evaluate(() => { const b = el('ssAsk'); return !b || getComputedStyle(b).display === 'none'; });
-ok('на полном экране отдельной кнопки «Вопрос» нет (она в «Действиях»)', hid);
+ok('на полном экране кнопки «Вопрос» нет', hid);
 /* выключатель */
 await p.evaluate(() => { el('halfTgl').click(); }); await vp(400); await sleep(1200);
 const s6 = await st();

@@ -77,7 +77,6 @@ function stMenu(on){
     R.mode!=='pdf'&&!stOff('spGrow')&&['parn','plus','+ абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
-    ['ask','clipboard','Вопрос для ИИ в буфер'],
     ['wiki','info','Википедия'],
     R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
     selPagesOn()&&['page','chevron-down','До конца страницы'],
@@ -153,7 +152,7 @@ function stWiki(){
 }
 
 /* 05.11 Джессика: читаю на половине экрана и спрашиваю ChatGPT рядом — выделенное вместе с вопросом в буфер, дальше только вставить.
-   На половине экрана это отдельная кнопка в меню (#ssAsk, видна только в #reader.half), всегда — в «Действиях». */
+   Это отдельная кнопка в меню (#ssAsk), видна только на половине экрана (#reader.half); на полном — «Объясни» → «Спросить в…». */
 async function stAsk(){
   const t=stText();if(!t)return;const b=R.book||{},au=typeof bookAuthor==='function'?bookAuthor(b):'';
   const q='Книга: «'+(b.title||'')+'»'+(au?', '+au:'')+'\nФрагмент: «'+t.slice(0,1500)+'»\n\nОбъясни простым языком, что здесь происходит и что значат непонятные слова. Без спойлеров.';

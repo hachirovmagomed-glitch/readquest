@@ -34,7 +34,11 @@ const ADV_FACES_MORE=[['Лермонтов','lermontov','Михаил Юрьев
   ['Вальтер Скотт','scott','Вальтер Скотт'],['Уэллс','wells','Герберт Уэллс'],['Кэрролл','carroll','Льюис Кэрролл'],['Братья Гримм','grimm','Братья Гримм'],['Мольер','moliere','Мольер'],
   ['Петрарка','petrarch','Франческо Петрарка'],['Гейне','heine','Генрих Гейне'],['Бёрнс','burns','Роберт Бёрнс'],
   /* 29.10 (Джессика: «разнообразь женщинами»): писательницы */
-  ['Эмили Бронте','ebronte','Эмили Бронте'],['Энн Бронте','abronte','Энн Бронте'],['Джордж Элиот','eliot','Джордж Элиот'],['Мэри Шелли','mshelley','Мэри Шелли'],['Луиза Олкотт','alcott','Луиза Мэй Олкотт'],['Бичер-Стоу','stowe','Гарриет Бичер-Стоу'],['Эмили Дикинсон','dickinson','Эмили Дикинсон'],['Вирджиния Вулф','woolf','Вирджиния Вулф'],['Гаскелл','gaskell','Элизабет Гаскелл'],['Жорж Санд','sand','Жорж Санд'],['Сельма Лагерлёф','lagerlof','Сельма Лагерлёф'],['Эдит Несбит','nesbit','Эдит Несбит'],['Фрэнсис Бёрнетт','burnett','Фрэнсис Ходжсон Бёрнетт'],['Люси Монтгомери','montgomery','Люси Мод Монтгомери'],['Элизабет Браунинг','ebrowning','Элизабет Барретт Браунинг'],['Кристина Россетти','rossetti','Кристина Россетти'],['Эдит Уортон','wharton','Эдит Уортон'],['Жермена де Сталь','stael','Жермена де Сталь'],['Ростопчина','rostopchina','Евдокия Петровна Ростопчина'],['Каролина Павлова','pavlova','Каролина Карловна Павлова'],['Надежда Дурова','durova','Надежда Андреевна Дурова'],['Зинаида Гиппиус','gippius','Зинаида Николаевна Гиппиус'],['Мирра Лохвицкая','lokhvitskaya','Мирра Александровна Лохвицкая'],['Софья Ковалевская','kovalevskaya','Софья Васильевна Ковалевская'],['Екатерина Дашкова','dashkova','Екатерина Романовна Дашкова'],['Мэри Уолстонкрафт','wollstonecraft','Мэри Уолстонкрафт'],['Элиза Ожешко','orzeszkowa','Элиза Ожешко'],['Эбнер-Эшенбах','ebnereschenbach','Мария фон Эбнер-Эшенбах'],['Мадам де Севинье','sevigne','Мадам де Севинье'],['Мадам де Лафайет','lafayette','Мадам де Лафайет']];
+  ['Эмили Бронте','ebronte','Эмили Бронте'],['Энн Бронте','abronte','Энн Бронте'],['Джордж Элиот','eliot','Джордж Элиот'],['Мэри Шелли','mshelley','Мэри Шелли'],['Луиза Олкотт','alcott','Луиза Мэй Олкотт'],['Бичер-Стоу','stowe','Гарриет Бичер-Стоу'],['Эмили Дикинсон','dickinson','Эмили Дикинсон'],['Вирджиния Вулф','woolf','Вирджиния Вулф'],['Гаскелл','gaskell','Элизабет Гаскелл'],['Жорж Санд','sand','Жорж Санд'],['Сельма Лагерлёф','lagerlof','Сельма Лагерлёф'],['Эдит Несбит','nesbit','Эдит Несбит'],['Фрэнсис Бёрнетт','burnett','Фрэнсис Ходжсон Бёрнетт'],['Люси Монтгомери','montgomery','Люси Мод Монтгомери'],['Элизабет Браунинг','ebrowning','Элизабет Барретт Браунинг'],['Кристина Россетти','rossetti','Кристина Россетти'],['Эдит Уортон','wharton','Эдит Уортон'],['Жермена де Сталь','stael','Жермена де Сталь'],['Ростопчина','rostopchina','Евдокия Петровна Ростопчина'],['Каролина Павлова','pavlova','Каролина Карловна Павлова'],['Надежда Дурова','durova','Надежда Андреевна Дурова'],['Зинаида Гиппиус','gippius','Зинаида Николаевна Гиппиус'],['Мирра Лохвицкая','lokhvitskaya','Мирра Александровна Лохвицкая'],['Софья Ковалевская','kovalevskaya','Софья Васильевна Ковалевская'],['Екатерина Дашкова','dashkova','Екатерина Романовна Дашкова'],['Мэри Уолстонкрафт','wollstonecraft','Мэри Уолстонкрафт'],['Элиза Ожешко','orzeszkowa','Элиза Ожешко'],['Эбнер-Эшенбах','ebnereschenbach','Мария фон Эбнер-Эшенбах'],['Мадам де Севинье','sevigne','Мадам де Севинье'],['Мадам де Лафайет','lafayette','Мадам де Лафайет'],
+  /* 05.11 (Джессика: «побольше писателей самых разных»): Азия, Америка, Африка, Европа, ещё русские и украинские */
+  ['Нацумэ Сосэки','soseki','Нацумэ Сосэки'],['Акутагава','akutagawa','Рюноскэ Акутагава'],['Хигути Итиё','ichiyo','Хигути Итиё'],['Лу Синь','luxun','Лу Синь'],['Хафиз','hafez','Хафиз'],['Руми','rumi','Джалаладдин Руми'],['Рубен Дарио','dario','Рубен Дарио'],['Машаду де Ассис','machado','Машаду де Ассис'],['Хуана Инес де ла Крус','sorjuana','Хуана Инес де ла Крус'],['Фредерик Дуглас','douglass','Фредерик Дуглас'],['Олауда Эквиано','equiano','Олауда Эквиано'],['Чернышевский','chernyshevsky','Николай Гаврилович Чернышевский'],['Герцен','herzen','Александр Иванович Герцен'],['Короленко','korolenko','Владимир Галактионович Короленко'],['Леонид Андреев','andreyev','Леонид Николаевич Андреев'],['Александр Грин','grin','Александр Грин'],['Хлебников','khlebnikov','Велимир Хлебников'],['Мандельштам','mandelstam','Осип Эмильевич Мандельштам'],['Гумилёв','gumilev','Николай Степанович Гумилёв'],['Волошин','voloshin','Максимилиан Александрович Волошин'],['Брюсов','bryusov','Валерий Яковлевич Брюсов'],['Бальмонт','balmont','Константин Дмитриевич Бальмонт'],['Андрей Белый','bely','Андрей Белый'],['Сологуб','sologub','Фёдор Сологуб'],['Гаршин','garshin','Всеволод Михайлович Гаршин'],['Мамин-Сибиряк','mamin','Дмитрий Наркисович Мамин-Сибиряк'],['Батюшков','batyushkov','Константин Николаевич Батюшков'],['Баратынский','baratynsky','Евгений Абрамович Баратынский'],['Кольцов','koltsov','Алексей Васильевич Кольцов'],['Тарас Шевченко','shevchenko','Тарас Григорьевич Шевченко'],['Леся Украинка','ukrainka','Леся Украинка'],['Мицкевич','mickiewicz','Адам Мицкевич'],['Сенкевич','sienkiewicz','Генрик Сенкевич'],['Мария Конопницкая','konopnicka','Мария Конопницкая'],['Гашек','hasek','Ярослав Гашек'],['Карел Чапек','capek','Карел Чапек'],['Коллоди','collodi','Карло Коллоди'],['Лопе де Вега','lopedevega','Лопе де Вега'],['Беккер','becquer','Густаво Адольфо Беккер'],['Камоэнс','camoes','Луис де Камоэнс'],['Гофман','hoffmann','Эрнст Теодор Амадей Гофман'],['Кафка','kafka','Франц Кафка'],['Рильке','rilke','Райнер Мария Рильке'],['Лессинг','lessing','Готхольд Эфраим Лессинг'],['Берта фон Зутнер','suttner','Берта фон Зутнер'],['Ибсен','ibsen','Генрик Ибсен'],['Стриндберг','strindberg','Август Стриндберг'],['Бьёрнсон','bjornson','Бьёрнстьерне Бьёрнсон'],['Готорн','hawthorne','Натаниэль Готорн'],['Мелвилл','melville','Герман Мелвилл'],['Торо','thoreau','Генри Дэвид Торо'],['О. Генри','ohenry','О. Генри'],['Вашингтон Ирвинг','irving','Вашингтон Ирвинг'],['Томас Гарди','hardy','Томас Гарди'],['Джозеф Конрад','conrad','Джозеф Конрад'],['Теккерей','thackeray','Уильям Мейкпис Теккерей'],['Мильтон','milton','Джон Мильтон'],['Рабле','rabelais','Франсуа Рабле'],['Монтень','montaigne','Мишель де Монтень'],['Руссо','rousseau','Жан-Жак Руссо'],['Верлен','verlaine','Поль Верлен'],['Рембо','rimbaud','Артюр Рембо'],['Бодлер','baudelaire','Шарль Бодлер'],['Золя','zola','Эмиль Золя'],['Йейтс','yeats','Уильям Батлер Йейтс'],['Тору Датт','toru','Тору Датт'],['Сароджини Найду','naidu','Сароджини Найду'],['Пандита Рамабаи','ramabai','Пандита Рамабаи']];
+/* 05.11: the authors' names in Latin letters, for their books in Gutenberg, Standard Ebooks and Internet Archive */
+const ADV_FACE_LAT={pushkin:'Alexander Pushkin',gogol:'Nikolai Gogol',tolstoy:'Leo Tolstoy',chekhov:'Anton Chekhov',homer:'Homer',shakespeare:'William Shakespeare',dante:'Dante Alighieri',cervantes:'Miguel de Cervantes',dickens:'Charles Dickens',goethe:'Johann Wolfgang von Goethe',verne:'Jules Verne',andersen:'Hans Christian Andersen',lermontov:'Mikhail Lermontov',turgenev:'Ivan Turgenev',dostoevsky:'Fyodor Dostoevsky',ostrovsky:'Alexander Ostrovsky',griboyedov:'Alexander Griboyedov',krylov:'Ivan Krylov',karamzin:'Nikolay Karamzin',gorky:'Maxim Gorky',kuprin:'Aleksandr Kuprin',blok:'Alexander Blok',yesenin:'Sergei Yesenin',mayakovsky:'Vladimir Mayakovsky',tsvetaeva:'Marina Tsvetaeva',zhukovsky:'Vasily Zhukovsky',nekrasov:'Nikolay Nekrasov',tyutchev:'Fyodor Tyutchev',fet:'Afanasy Fet',saltykov:'Mikhail Saltykov-Shchedrin',leskov:'Nikolai Leskov',derzhavin:'Gavrila Derzhavin',lomonosov:'Mikhail Lomonosov',belyaev:'Alexander Belyaev',plato:'Plato',schiller:'Friedrich Schiller',byron:'Lord Byron',austen:'Jane Austen',bronte:'Charlotte Bronte',dumas:'Alexandre Dumas',hugo:'Victor Hugo',balzac:'Honore de Balzac',flaubert:'Gustave Flaubert',maupassant:'Guy de Maupassant',stendhal:'Stendhal',voltaire:'Voltaire',twain:'Mark Twain',poe:'Edgar Allan Poe',london:'Jack London',cooper:'James Fenimore Cooper',doyle:'Arthur Conan Doyle',stevenson:'Robert Louis Stevenson',kipling:'Rudyard Kipling',wilde:'Oscar Wilde',swift:'Jonathan Swift',defoe:'Daniel Defoe',scott:'Walter Scott',wells:'H. G. Wells',carroll:'Lewis Carroll',grimm:'Brothers Grimm',moliere:'Moliere',petrarch:'Petrarch',heine:'Heinrich Heine',burns:'Robert Burns',ebronte:'Emily Bronte',abronte:'Anne Bronte',eliot:'George Eliot',mshelley:'Mary Shelley',alcott:'Louisa May Alcott',stowe:'Harriet Beecher Stowe',dickinson:'Emily Dickinson',woolf:'Virginia Woolf',gaskell:'Elizabeth Gaskell',sand:'George Sand',lagerlof:'Selma Lagerlof',nesbit:'E. Nesbit',burnett:'Frances Hodgson Burnett',montgomery:'Lucy Maud Montgomery',ebrowning:'Elizabeth Barrett Browning',rossetti:'Christina Rossetti',wharton:'Edith Wharton',stael:'Germaine de Stael',rostopchina:'Yevdokiya Rostopchina',pavlova:'Karolina Pavlova',durova:'Nadezhda Durova',gippius:'Zinaida Gippius',lokhvitskaya:'Mirra Lokhvitskaya',kovalevskaya:'Sofya Kovalevskaya',dashkova:'Yekaterina Dashkova',wollstonecraft:'Mary Wollstonecraft',orzeszkowa:'Eliza Orzeszkowa',ebnereschenbach:'Marie von Ebner-Eschenbach',sevigne:'Madame de Sevigne',lafayette:'Madame de La Fayette',soseki:'Natsume Soseki',akutagawa:'Ryunosuke Akutagawa',ichiyo:'Higuchi Ichiyo',luxun:'Lu Xun',hafez:'Hafez',rumi:'Rumi',dario:'Ruben Dario',machado:'Machado de Assis',sorjuana:'Juana Ines de la Cruz',douglass:'Frederick Douglass',equiano:'Olaudah Equiano',chernyshevsky:'Nikolay Chernyshevsky',herzen:'Alexander Herzen',korolenko:'Vladimir Korolenko',andreyev:'Leonid Andreyev',grin:'Alexander Grin',khlebnikov:'Velimir Khlebnikov',mandelstam:'Osip Mandelstam',gumilev:'Nikolay Gumilyov',voloshin:'Maximilian Voloshin',bryusov:'Valery Bryusov',balmont:'Konstantin Balmont',bely:'Andrei Bely',sologub:'Fyodor Sologub',garshin:'Vsevolod Garshin',mamin:'Dmitry Mamin-Sibiryak',batyushkov:'Konstantin Batyushkov',baratynsky:'Yevgeny Baratynsky',koltsov:'Aleksey Koltsov',shevchenko:'Taras Shevchenko',ukrainka:'Lesya Ukrainka',mickiewicz:'Adam Mickiewicz',sienkiewicz:'Henryk Sienkiewicz',konopnicka:'Maria Konopnicka',hasek:'Jaroslav Hasek',capek:'Karel Capek',collodi:'Carlo Collodi',lopedevega:'Lope de Vega',becquer:'Gustavo Adolfo Becquer',camoes:'Luis de Camoes',hoffmann:'E. T. A. Hoffmann',kafka:'Franz Kafka',rilke:'Rainer Maria Rilke',lessing:'Gotthold Ephraim Lessing',suttner:'Bertha von Suttner',ibsen:'Henrik Ibsen',strindberg:'August Strindberg',bjornson:'Bjørnstjerne Bjørnson',hawthorne:'Nathaniel Hawthorne',melville:'Herman Melville',thoreau:'Henry David Thoreau',ohenry:'O. Henry',irving:'Washington Irving',hardy:'Thomas Hardy',conrad:'Joseph Conrad',thackeray:'William Makepeace Thackeray',milton:'John Milton',rabelais:'Francois Rabelais',montaigne:'Michel de Montaigne',rousseau:'Jean-Jacques Rousseau',verlaine:'Paul Verlaine',rimbaud:'Arthur Rimbaud',baudelaire:'Charles Baudelaire',zola:'Emile Zola',yeats:'W. B. Yeats',toru:'Toru Dutt',naidu:'Sarojini Naidu',ramabai:'Pandita Ramabai'};
 /* 29.10 (Джессика: «каждый раз перемешаны»): a new order on every opening of «Приключения» (openAdv), kept while the screen re-renders */
 let advFaceOrder=null;
 function advFacesShuffle(){
@@ -43,7 +47,7 @@ function advFacesShuffle(){
   advFaceOrder=all;}
 function advFaces(){if(!advFaceOrder)advFacesShuffle();return advFaceOrder;}
 function advFace(x){
-  return '<button type="button" class="advface" data-q="'+esc(x[2])+'"><span class="advph"><b>'+esc(x[0].charAt(0))+'</b><img src="hero/authors/'+x[1]+'.webp" alt="" loading="lazy" onerror="this.remove()"></span><span class="advfn">'+esc(x[0])+'</span></button>';}
+  return '<button type="button" class="advface" data-q="'+esc(x[2])+'" data-lat="'+esc(ADV_FACE_LAT[x[1]]||'')+'"><span class="advph"><b>'+esc(x[0].charAt(0))+'</b><img src="hero/authors/'+x[1]+'.webp" alt="" loading="lazy" onerror="this.remove()"></span><span class="advfn">'+esc(x[0])+'</span></button>';}
 const ADV_WS_HINTS=['Пушкин','Гоголь','Толстой','Чехов','Гомер','Шекспир','Данте','Сервантес','Диккенс','Гёте','Жюль Верн','Андерсен'];
 /* Джессика 18.10: ready collections on the first screen, one tap to a book. Wikisource titles checked live (GitHub Actions, 18.10) */
 const ADV_SETS=[
@@ -496,27 +500,70 @@ async function advAuthorLoad(page){
     seen[root]=1;out.push(advWsItem(root));});
   return {name:p.title.replace(/^Автор:/,''),years:b||e?(b||'?')+' — '+(e||'?'):'',items:out};
 }
+/* 05.11 (Джессика: «у многих писателей не высвечиваются никакие книги»): the author's books are looked for in every library, not only on Wikisource.
+   Wikisource keeps Russian texts and has no page for many foreign authors; Gutenberg and Standard Ebooks know them by the Latin name, Internet Archive
+   by either. Only books whose author field carries the surname are kept: a search by name also finds books about the author */
+function advFold(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ё/g,'е');}
+function advAuthorLat(name){
+  const n=String(name||'').replace(/^Автор:/,'');
+  const f=advFaces().find(function(x){return x[2]===n||x[0]===n;});if(f&&ADV_FACE_LAT[f[1]])return ADV_FACE_LAT[f[1]];
+  const a=ADV_AUTHORS.find(function(x){return x[0]===n||x[2]===n;});if(a)return a[1];
+  return /[а-яё]/i.test(n)?advLatin(n):n;}
+function advAuthorIs(it,ru,lat){
+  const a=advFold(it.a),r=advFold(ru).split(/[\s-]+/).filter(function(w){return w.length>2;}).pop()||'',l=advFold(lat).split(/[\s-]+/).filter(function(w){return w.length>2;}).pop()||'',noy=function(x){return x.replace(/[yj]/g,'');};
+  return !!a&&((r&&a.indexOf(r)>=0)||(l&&noy(a).indexOf(noy(l))>=0));} /* «Dostoevsky» and Gutenberg's «Dostoyevsky» */
+async function advAuthorElse(ru,lat,more){
+  const m=more||{first:true},safe=function(p){return p.catch(function(e){console.warn('[rq] adv author else',e);return {items:[],more:null,err:e};});},none={items:[],more:null};
+  const ruN=String(ru||'').replace(/^Автор:/,'').split(/\s+/).filter(function(w){return !/\.$/.test(w);}).join(' ');
+  const r=await Promise.all([lat&&(m.first||m.g)?safe(ADV_SRC.gutenberg.search(lat,m.g||null,'')):none,lat&&(m.first||m.s)?safe(ADV_SRC.se.search(lat,m.s||null)):none,
+    m.first||m.a?safe(advIaAuthorSearch(ruN,lat,m.a||1)):none]);
+  const keep=function(x){return x.items.filter(function(it){return advAuthorIs(it,ruN,lat);});};
+  const ia=keep(r[2]),iaRu=ia.filter(function(it){return it.lang==='ru';});
+  return {items:iaRu.concat(keep(r[1]),keep(r[0]),ia.filter(function(it){return it.lang!=='ru';})),
+    more:r[0].more||r[1].more||r[2].more?{g:r[0].more,s:r[1].more,a:r[2].more}:null,err:r[0].err&&r[1].err&&r[2].err?r[0].err:null};}
+/* Internet Archive by the author field only, in Russian or in Latin letters */
+async function advIaAuthorSearch(ru,lat,page){
+  const t=[advIaTerms(ru),advIaTerms(lat)].filter(Boolean);if(!t.length)return {items:[],more:null};
+  const qs=['('+t.map(function(w){return 'creator:'+w;}).join(' OR ')+')','mediatype:texts','format:DjVuTXT',ADV_IA_FREE,ADV_IA_NOT];
+  const d=await advJson(ADV_IA+'/advancedsearch.php?q='+encodeURIComponent(qs.join(' AND '))+'&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=date&fl[]=year&fl[]=language&rows=30&page='+page+'&sort[]=downloads+desc&output=json');
+  const r=d.response||{},out=[];
+  (r.docs||[]).forEach(function(x){if(!x.identifier||!x.title)return;const y=advIaYear(x);
+    out.push({sid:'ia:'+x.identifier,ia:x.identifier,t:advModernIf(String(x.title).trim()),old:advHasOld(x.title)||undefined,a:advIaAuthor(x.creator),lang:advIaLang(x.language),y:y||undefined,cover:ADV_IA+'/services/img/'+encodeURIComponent(x.identifier)});});
+  return {items:out,more:page*30<(r.numFound||0)?page+1:null};}
+function advAuthorAdd(items){const seen={};ADV.items.forEach(function(x){seen[x.sid]=1;});
+  ADV.items=ADV.items.concat(items.filter(function(x){if(seen[x.sid])return false;seen[x.sid]=1;return true;}));}
+async function advAuthorMore(){
+  const au=ADV.author,seq=ADV.seq;if(!au||!ADV.more)return;ADV.busy=true;advRenderList();
+  try{const r=await advAuthorElse(au.ru,au.lat,ADV.more);if(seq!==ADV.seq)return;advAuthorAdd(r.items);ADV.more=r.more;}
+  catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv author more',e);ADV.more=null;}
+  ADV.busy=false;advRenderList();}
 /* opened from the card, the author chips, a suggestion or a search for a known name; one match = the page, several = pick one */
-async function advAuthor(name){
+async function advAuthor(name,lat){
   if(!name)return;el('bookSheet').classList.add('hidden');advSugHide();
-  const seq=++ADV.seq;ADV.set='author';ADV.author={name:name,years:'',pick:null};ADV.items=[];ADV.more=null;ADV.err='';ADV.alt='';ADV.busy=true;advRenderList();
+  lat=lat||advAuthorLat(name);const ru=ADV.author&&ADV.author.ru&&/^Автор:/.test(name)?ADV.author.ru:name; /* a page picked from the list keeps the name it was asked by */
+  const seq=++ADV.seq;ADV.set='author';ADV.author={name:name.replace(/^Автор:/,''),years:'',pick:null,ru:ru,lat:lat,ws:0};ADV.items=[];ADV.more=null;ADV.err='';ADV.alt='';ADV.busy=true;advRenderList();
   const sc=el('adv');if(sc&&sc.scrollTo)sc.scrollTo(0,0);
+  const other=advAuthorElse(ru,lat).catch(function(e){return {items:[],more:null,err:e};}); /* the other libraries load while Wikisource answers */
+  let wsErr=null;
   try{
     const kn=ADV_AUTHORS.find(function(x){return x[0]===name&&x[2];});
-    let found=null;
-    if(kn){try{const a0=await advAuthorLoad('Автор:'+kn[2]);if(seq!==ADV.seq)return;ADV.author={name:a0.name,years:a0.years,pick:null};ADV.items=a0.items;ADV.busy=false;
-      if(a0.items.length)advCatPut('lists','author|'+name,{author:ADV.author,items:a0.items});advRenderList();return;}catch(e){if(seq!==ADV.seq)return;}}
-    found=await advAuthorFind(name);if(seq!==ADV.seq)return;
-    if(found.length>1){ADV.author.pick=found.slice(0,8);ADV.busy=false;advRenderList();return;}
-    if(!found.length){ADV.busy=false;ADV.set=null;ADV.author=null;ADV.q=name;el('advQ').value=name;advSearch();return;} /* 29.10: no author page (Тэффи, Жорж Санд…) → their books by the name */
-    const a=await advAuthorLoad(found[0]);if(seq!==ADV.seq)return;
-    ADV.author={name:a.name,years:a.years,pick:null};ADV.items=a.items;
-    if(a.items.length)advCatPut('lists','author|'+name,{author:ADV.author,items:a.items});
-  }catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv author',e);
-    const c=await advCatGet('lists','author|'+name);if(seq!==ADV.seq)return;
-    if(c){ADV.author=c.author;ADV.items=c.items;ADV.offl={seq:seq,ts:c.ts};}else ADV.err=advNetErr(e);}
+    let page=kn?'Автор:'+kn[2]:null;
+    if(!page){const found=await advAuthorFind(name);if(seq!==ADV.seq)return;
+      if(found.length>1)ADV.author.pick=found.slice(0,8);else if(found.length)page=found[0];}
+    if(page){const a=await advAuthorLoad(page);if(seq!==ADV.seq)return;
+      ADV.author.name=a.name;ADV.author.years=a.years;ADV.author.ws=a.items.length;ADV.items=a.items;}
+  }catch(e){if(seq!==ADV.seq)return;console.warn('[rq] adv author',e);wsErr=e;}
+  const o=await other;if(seq!==ADV.seq)return;
+  advAuthorAdd(o.items);ADV.more=o.more;
+  if(ADV.items.length){if(!wsErr&&!o.err)advCatPut('lists','author|'+name,{author:ADV.author,items:ADV.items});}
+  else if(!ADV.author.pick&&!wsErr&&!o.err){ADV.busy=false;ADV.set=null;ADV.author=null;ADV.q=name.replace(/^Автор:/,'');el('advQ').value=ADV.q;advSearch();return;} /* nothing anywhere: the name as a plain search */
+  else if(!ADV.author.pick){const c=await advCatGet('lists','author|'+name);if(seq!==ADV.seq)return;
+    if(c){ADV.author=c.author;ADV.items=c.items;ADV.offl={seq:seq,ts:c.ts};}else ADV.err=advNetErr(wsErr||o.err);}
   ADV.busy=false;advRenderList();
 }
+function advPickHtml(au){return '<div class="advalt">На Викитеке несколько авторов с таким именем:</div>'+au.pick.map(function(t){return '<button type="button" class="advrow advauthrow" data-author="'+esc(t)+'" data-lat="'+esc(au.lat||'')+'">'+rqIcon('user-round',22)+'<span class="advmeta"><b>'+esc(t.replace(/^Автор:/,''))+'</b></span>'+rqIcon('chevron-right',18)+'</button>';}).join('');}
+function advAuthorLine(au){const n=ADV.items.length,w=au.ws||0,o=n-w;
+  return [w?w+' '+advWorks(w)+' на Викитеке':'',o?o+(ADV.more?'+':'')+' в других библиотеках':''].filter(Boolean).join(', ');}
 
 /* ---------- «Хочу прочитать», последние поиски, книга дня (arch.md 19.10) ---------- */
 function advWantGet(){return Array.isArray(S.advWant)?S.advWant.filter(function(x){return x&&typeof x.sid==='string'&&/^(wikisource|gutenberg|se|ia):./.test(x.sid);}):[];}
@@ -557,14 +604,15 @@ function advRenderList(){
   const box=el('advList');let h='';const au=ADV.set==='author'?ADV.author||{}:null;
   const set=au?{t:au.name}:ADV.set==='want'?{t:'Хочу прочитать'}:ADV.set&&ADV_SETS.find(function(x){return x.id===ADV.set;});
   if(set)h='<button type="button" class="advback" id="advBack">'+rqIcon('chevron-left',18)+(au?' Назад':' Все подборки')+'</button><h2 class="advseth">'+esc(set.t)+'</h2>'+
-    (au&&au.years?'<div class="advalt">'+esc(au.years)+'</div>':'')+(set.pages?'<div class="advalt advsetprog">'+advSetLine(set)+'</div>'+advBar(advSetProg(set),set.pages.length):'')+(ADV.set==='want'?advWantDlHtml():'')+(au&&ADV.items.length?'<div class="advalt">'+ADV.items.length+' '+advWorks(ADV.items.length)+' на Викитеке</div>':'');
+    (au&&au.years?'<div class="advalt">'+esc(au.years)+'</div>':'')+(set.pages?'<div class="advalt advsetprog">'+advSetLine(set)+'</div>'+advBar(advSetProg(set),set.pages.length):'')+(ADV.set==='want'?advWantDlHtml():'')+(au&&ADV.items.length?'<div class="advalt">'+esc(advAuthorLine(au))+'</div>':'');
   else{if(ADV.alt&&ADV.items.length)h+='<div class="advalt">Показано по запросу «'+esc(ADV.alt)+'»</div>';
     const aq=(ADV.alt||ADV.q).trim().toLowerCase(),k=aq&&!advByName()&&!ADV.busy&&ADV_AUTHORS.find(function(x){return x[0].toLowerCase()===aq||x[0].split(' ').pop().toLowerCase()===aq;});
     if(k)h+='<button type="button" class="advrow advauthrow" data-author="'+esc(k[0])+'">'+rqIcon('user-round',22)+'<span class="advmeta"><b>'+esc(k[0])+'</b><span class="advauth">Все книги автора на Викитеке</span></span>'+rqIcon('chevron-right',18)+'</button>';}
+  if(au&&au.pick&&ADV.items.length)h+=advPickHtml(au);
   if(ADV.offl&&ADV.offl.seq===ADV.seq&&ADV.items.length)h+='<div class="advalt advoffl">'+rqIcon('info',14)+' '+esc(advOfflNote(ADV.offl.ts))+'</div>';
   if(!ADV.items.length){
     if(ADV.busy)h+='<div class="advempty">Ищу в библиотеке…</div>';
-    else if(au&&au.pick)h+='<div class="advalt">На Викитеке несколько авторов с таким именем:</div>'+au.pick.map(function(t){return '<button type="button" class="advrow advauthrow" data-author="'+esc(t)+'">'+rqIcon('user-round',22)+'<span class="advmeta"><b>'+esc(t.replace(/^Автор:/,''))+'</b></span>'+rqIcon('chevron-right',18)+'</button>';}).join('');
+    else if(au&&au.pick)h+=advPickHtml(au);
     else if(ADV.err)h+='<div class="advempty">'+esc(ADV.err)+'</div>';
     else if(ADV.set==='want')h+='<div class="advempty">Список пуст. Откройте книгу и нажмите «Хочу прочитать»</div>';
     else if(ADV.src==='ia'&&!ADV.q)h+='<div class="advempty">Напишите название или автора. В Интернет-архиве сканы старых изданий, мы показываем только изданные до 1930 года</div><div class="chips advrecent">'+
@@ -582,7 +630,7 @@ function advRenderList(){
       return '<button type="button" class="advrow" data-i="'+i+'"><span class="cover">'+advCover(it)+'</span><span class="advmeta"><b>'+esc(it.t)+'</b>'+
         '<span class="advauth">'+esc(it.a||'')+(it.tr?' · пер. '+esc(it.tr):'')+(it.y?(it.a?' · ':'')+it.y:'')+'</span>'+(own?'<span class="advown">'+rqIcon('check',14)+(advDone(it.sid)?' Прочитано':' На полке')+'</span>':'')+
         (quote&&it.snip&&advSnip(it.snip)?'<span class="advsnip">«…'+advSnip(it.snip)+'…»</span>':'')+
-        (ADV.src==='all'&&!ADV.set?'<span class="advtags"><span class="chip">'+esc(advSrcOf(it)?advSrcOf(it).t:'')+'</span>'+(it.ru?'<span class="chip advru">есть по-русски</span>':'')+'</span>':'')+'</span>'+rqIcon('chevron-right',18)+'</button>';}).join('');
+        (ADV.src==='all'&&!ADV.set||ADV.set==='author'?'<span class="advtags"><span class="chip">'+esc(advSrcOf(it)?advSrcOf(it).t:'')+'</span>'+(it.ru?'<span class="chip advru">есть по-русски</span>':'')+'</span>':'')+'</span>'+rqIcon('chevron-right',18)+'</button>';}).join('');
     if(flt&&!shown)h+='<div class="advempty">Под фильтр ничего не подошло. Нажмите «Показать ещё» или снимите фильтр</div>';
     if(ADV.more)h+='<button type="button" class="buy advmore" id="advMore"'+(ADV.busy?' disabled':'')+'>'+(ADV.busy?'Загружаю…':'Показать ещё')+'</button>';
   }
@@ -595,11 +643,11 @@ function advRenderList(){
   const wa=el('advWantAll');if(wa)wa.onclick=function(){advSet('want');};
   const rc=el('advRecentClear');if(rc)rc.onclick=advRecentClear;
   box.querySelectorAll('.advrecent .fchip').forEach(function(b){b.onclick=function(){ADV.q=b.dataset.q;el('advQ').value=ADV.q;advSugHide();advSearch();};});
-  box.querySelectorAll('.advhints .advface').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.q);};});
+  box.querySelectorAll('.advhints .advface').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.q,b.dataset.lat);};});
   box.querySelectorAll('.advset').forEach(function(b){b.onclick=function(){advSet(b.dataset.set);};});
   const bb=el('advBack');if(bb)bb.onclick=function(){const wasAu=ADV.set==='author';ADV.seq++;ADV.busy=false;ADV.err='';ADV.set=null;ADV.author=null;ADV.items=[];if(wasAu&&ADV.q.trim())advSearch();else advRenderList();};
-  box.querySelectorAll('[data-author]').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.author);};});
-  const mb=el('advMore');if(mb)mb.onclick=function(){advSearch(true);};
+  box.querySelectorAll('[data-author]').forEach(function(b){b.onclick=function(){advAuthor(b.dataset.author,b.dataset.lat);};});
+  const mb=el('advMore');if(mb)mb.onclick=function(){if(ADV.set==='author')advAuthorMore();else advSearch(true);};
   const wd=el('advWantDl');if(wd)wd.onclick=advWantAll;
   box.querySelectorAll('#advFlt .fchip').forEach(function(b){b.onclick=function(){if(b.dataset.fk!==undefined)ADV.fk=b.dataset.fk;else ADV.fl=ADV.fl===b.dataset.fl?'':b.dataset.fl;advRenderList();};});
 }

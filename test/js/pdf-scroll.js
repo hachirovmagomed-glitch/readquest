@@ -81,7 +81,7 @@ async function psOpen(p){
 }
 function psReset(){
   PS.seq++;PS.on=false;clearTimeout(PS.settleT);clearTimeout(PS.rsT);PS.want=[];PS.g=null;
-  PS.cv.forEach(function(cv){cv.width=0;cv.height=0;});PS.cv.clear();
+  PS.cv.forEach(function(cv){cv.width=0;cv.height=0;});PS.cv.clear();PS.keep.clear();
   const b=psBox();if(b){b.textContent='';b.classList.add('hidden');b.scrollTop=0;}
 }
 /** the empty strips above and below a page's content → {t,b}, parts of the page height.
@@ -111,12 +111,22 @@ async function psCropOf(page,cv,vp){
 /** canvases for the pages on screen ±1; free the rest; render the nearest first */
 /** a page's canvas leaves the strip: its bitmap and its text layer go with it */
 function psFree(cv){cv.remove();cv.width=0;cv.height=0;if(cv._tl){cv._tl.remove();cv._tl=null;}}
+/* 05.11 (Джессика, видео: в PDF «Прокрутке» после прокрутки тап и ручка выделения больше ничего не двигали): a page far from the screen lost
+   its text layer, and with it the start of the selection — the selection shrank and every later tap / drag threw on the dead node.
+   Now the pages the selection runs over keep their text layers (only the bitmap goes); coming back, the page is drawn under the same layer. */
+PS.keep=new Map();
+function psSelPages(){if(typeof SM==='undefined'||!SM.on||!SM.lo||!SM.hi)return null;
+  const n=function(x){const e=x&&(x.nodeType===3?x.parentElement:x),q=e&&e.closest&&e.closest('#pdfScroll .psl');return q?+q.dataset.n:-1;};
+  const a=n(SM.lo[0]),b=n(SM.hi[0]);return a<0||b<0?null:[Math.min(a,b),Math.max(a,b)];}
+function psKeepGc(){const r=psSelPages();PS.keep.forEach(function(tl,n){if((!r||n<r[0]||n>r[1])&&!PS.cv.has(n)){tl.remove();PS.keep.delete(n);}else if(PS.cv.has(n)&&PS.cv.get(n)._tl===tl)PS.keep.delete(n);});}
 function psUpdate(){
   if(!PS.on||!R.pdf)return;
   const b=psBox(),top=b.scrollTop,bot=top+b.clientHeight;
   let a=psPageAt(top),z=a;while(z<R.pageCount-1&&PS.tops[z+1]<bot)z++;
   a=Math.max(0,a-PS_KEEP);z=Math.min(R.pageCount-1,z+PS_KEEP);
-  PS.cv.forEach(function(cv,n){if(n<a-1||n>z+1){psFree(cv);PS.cv.delete(n);}});
+  const sel=psSelPages();
+  PS.cv.forEach(function(cv,n){if(n<a-1||n>z+1){if(sel&&n>=sel[0]&&n<=sel[1]&&cv._tl){PS.keep.set(n,cv._tl);cv._tl=null;}psFree(cv);PS.cv.delete(n);}});
+  psKeepGc();
   const cur=psPageAt(),list=[];for(let i=a;i<=z;i++)if(!PS.cv.has(i)||PS.cv.get(i)._w!==PS.w)list.push(i);
   list.sort(function(x,y){return Math.abs(x-cur)-Math.abs(y-cur);});
   PS.want=list;psPump();
@@ -149,9 +159,14 @@ async function psRender(n,seq){
   /* the whole page, shifted up by the cut top; the slot shows only the visible part */
   const fh=w*asp,ft=(-c.t*fh).toFixed(2)+'px';cv.style.top=ft;cv.style.height=fh.toFixed(2)+'px';
   /* 19.10: a text layer per page, so text can be selected / quoted / copied in «Прокрутка» too (same builder as «Страницы») */
+  const kept=PS.keep.get(n);
+  if(kept&&kept.isConnected&&kept._w===w&&kept.parentNode===s){ /* 05.11: the selection runs over this page — its own text layer stays (not moved: a moved node drops the selection) */
+    PS.keep.delete(n);cv._w=w;cv._tl=kept;const old=PS.cv.get(n);if(old&&old._tl===kept)old._tl=null;s.insertBefore(cv,kept);PS.cv.set(n,cv);s.classList.add('done');
+    if(old&&old!==cv)psFree(old);return;}
   const tl=document.createElement('div');tl.className='textLayer';tl.appendChild(await pdfTextLayer(page,w/v1.width,gl&&{g:gl,k:w/v1.width/sc}));
   if(seq!==PS.seq||!s.isConnected){cv.width=0;cv.height=0;return;}
-  tl.style.top=ft;tl.style.bottom='auto';tl.style.height=fh.toFixed(2)+'px';
+  tl.style.top=ft;tl.style.bottom='auto';tl.style.height=fh.toFixed(2)+'px';tl._w=w;
+  if(kept){kept.remove();PS.keep.delete(n);}
   cv._w=w;cv._tl=tl;const old=PS.cv.get(n);s.appendChild(cv);s.appendChild(tl);if(typeof pdfHlPaint==='function')pdfHlPaint(tl,n);PS.cv.set(n,cv);s.classList.add('done');
   if(old&&old!==cv)psFree(old);
 }

@@ -10,7 +10,7 @@ const RM={uf:false,auto:{on:false,paused:false,t0:0,raf:0,acc:0,last:0,lastIn:0,
   hl:{key:'',range:null},jb:{back:[],fwd:[]},todLast:'',ruler:{y:0,ivAt:0},eink:0,recapOffer:null};
 const RM_AUTO_STEPS=[5,8,10,12,15,20,25,30,40,50,60,75,90,120,150,180,240,300,420,600];
 const RM_AUTO_IDLE=30*60000; /* 30 min without a touch → the autoscroll stops (a dozing reader is not reading) */
-const RM_ZONE_N={none:'Ничего',prev:'Назад',next:'Вперёд',bars:'Панели',night:'День / ночь',mark:'Закладка',auto:'Автолистание',tts:'Слушать'};
+const RM_ZONE_N={none:'Ничего',prev:'Назад',next:'Вперёд',bars:'Панели',night:'День / ночь',mark:'Закладка',auto:'Автолистание',tts:'Слушать',rsvp:'Слово за словом'};
 const RM_ZONE_DEF=['night','bars','mark','prev','bars','next','prev','bars','next'];
 const RM_SLEEP=[[0,'Выкл'],[15,'15 мин'],[30,'30 мин'],[45,'45 мин'],[60,'1 час'],[-1,'До конца главы']];
 const RM_MAXW=[[0,'Нет'],[55,'55'],[65,'65'],[75,'75']];
@@ -210,6 +210,7 @@ function rmZoneAt(x,y){const z=rqRm().zones;if(!z||flipGet().tap===false)return 
 function rmZoneAct(a){
   if(a==='auto'){rmAutoToggle();return true;}
   if(a==='tts'){const b=el('btnTts');if(b)b.click();return true;}
+  if(a==='rsvp'){if(typeof rsOpen==='function')rsOpen();return true;}
   if(a==='none')return true;
   return false;
 }
@@ -225,7 +226,7 @@ function rmZoneAct(a){
       const txt=rmFnFind(R.book,f.key,at);if(txt){rmFnShow(f.key,txt,cx,cy);return;}}}
     const r=el('viewer').getBoundingClientRect(),x=(cx-r.left)/r.width,y=(cy-r.top)/r.height;
     if(RM.auto.on&&x>=0.3&&x<=0.7&&y>=0.12&&!quoteHit(cx,cy)){rmAutoPause(!RM.auto.paused);return;}
-    const a=rmZoneAt(x,y);if(a&&['auto','tts','none'].indexOf(a)>=0){if(quoteTapAt(cx,cy))return;rmZoneAct(a);return;}
+    const a=rmZoneAt(x,y);if(a&&['auto','tts','none','rsvp'].indexOf(a)>=0){if(quoteTapAt(cx,cy))return;rmZoneAct(a);return;}
   }
   return v0.apply(this,arguments);};}
 
@@ -339,7 +340,7 @@ new MutationObserver(function(){if(el('aiSheet').classList.contains('hidden'))rm
 function rmRecapOffer(days){
   const d=el('rmRecapOffer');if(!d)return;clearTimeout(RM.recapOffer);
   d.innerHTML='<span>'+rqIcon('history',18)+' Книга не открывалась '+days+' '+plural(days,'день','дня','дней')+'. Напомнить, что было?</span><button type="button" class="ghostbtn" id="rmRecapYes">Напомнить</button><button type="button" class="closes" id="rmRecapNo" aria-label="Не надо">'+rqIcon('x',18)+'</button>';
-  const hd=el('reader').querySelector('.rhead'),bo=el('reader').classList.contains('barsoff');d.style.top=((!bo&&hd?hd.getBoundingClientRect().bottom:8)+8)+'px';
+  const hd=el('reader').querySelector('.rhead'),bo=el('reader').classList.contains('barsoff');d.style.top=((!bo&&hd&&!rqRm().oneh?hd.getBoundingClientRect().bottom:8)+8)+'px';
   d.hidden=false;el('rmRecapYes').onclick=function(e){e.stopPropagation();d.hidden=true;rmRecap();};el('rmRecapNo').onclick=function(e){e.stopPropagation();d.hidden=true;};
   RM.recapOffer=setTimeout(function(){d.hidden=true;},15000);
 }
@@ -376,10 +377,12 @@ async function rmBiMake(id){
   const put=function(){const body=el('bookSheetBody');if(!body||body.querySelector('.rmcard'))return;const rows=[];
     if(rqPos(id)>0.02&&b.type!=='pdf')rows.push('<button type="button" class="bk-line" id="rmRecapCard">'+rqIcon('history',18)+'<span class="rmbl"><span>Что было раньше</span><small>короткий пересказ без спойлеров, через ИИ</small></span></button>');
     if(rmBiOk(b)&&rmBookLang(b)!=='ru'&&TR_LANGS[rmBookLang(b)])rows.push('<button type="button" class="bk-line" id="rmBiGo">'+rqIcon('languages',18)+'<span class="rmbl"><span>Книга с переводом рядом</span><small>'+esc(TR_LANGS[rmBookLang(b)])+' → русский: абзац, под ним перевод. Отдельной книгой, на телефоне, без интернета</small></span></button>');
+    if(rqPos(id)>0.02&&typeof r2Heroes==='function')rows.push('<button type="button" class="bk-line" id="r2HeroGo">'+rqIcon('users',18)+'<span class="rmbl"><span>Герои книги</span><small>кто уже встретился, без спойлеров (нужен ключ ИИ)</small></span></button>');
     if(!rows.length)return;
     const host=body.querySelector('.bk-list')||body;host.insertAdjacentHTML(host===body?'beforeend':'beforebegin','<div class="bk-list rmcard">'+rows.join('')+'</div>');
     if(el('rmRecapCard'))el('rmRecapCard').onclick=function(){rmRecap(b);};
-    if(el('rmBiGo'))el('rmBiGo').onclick=function(){rmBiMake(id);};};
+    if(el('rmBiGo'))el('rmBiGo').onclick=function(){rmBiMake(id);};
+    if(el('r2HeroGo'))el('r2HeroGo').onclick=function(){r2Heroes(b);};};
   if(b.type!=='pdf'&&!b.text&&typeof __rq!=='undefined'&&__rq&&__rq.idb)__rq.idb.getText(b.id).then(function(t){if(typeof t==='string'&&!b.text)b.text=t;put();}).catch(put);else put();
   return r;};}
 

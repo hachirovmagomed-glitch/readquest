@@ -344,7 +344,7 @@ export function normRx(o) {
   };
 }
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения») — same rules as js/reader.js rqRmNorm */
-export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts'];
+export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts', 'rsvp'];
 export function normRm(o) {
   const ob = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), bo = (v, d) => (typeof v === 'boolean' ? v : d),
     hm = (v, d) => (typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : d), nm = (v) => (typeof v === 'string' ? v.trim().slice(0, 24) : '');
@@ -360,6 +360,10 @@ export function normRm(o) {
     ruler: { on: bo(r.on, false), n: [1, 2, 3].includes(r.n) ? r.n : 1, auto: bo(r.auto, false) },
     eink: bo(o.eink, false),
     tod: { on: bo(t.on, false), day: nm(t.day), eve: nm(t.eve), from: hm(t.from, '20:00'), to: hm(t.to, '07:00') },
+    dlg: bo(o.dlg, false), hard: bo(o.hard, false), chEnd: bo(o.chEnd, true), chQ: bo(o.chQ, true),
+    rsvp: typeof o.rsvp === 'number' && o.rsvp >= 100 && o.rsvp <= 1000 ? Math.round(o.rsvp / 50) * 50 : 300,
+    oneh: bo(o.oneh, false), edge: bo(o.edge, true),
+    roles: { on: bo(ob(o.roles).on, false), v: typeof ob(o.roles).v === 'string' ? ob(o.roles).v.trim().slice(0, 80) : '', sv: typeof ob(o.roles).sv === 'string' ? ob(o.roles).sv.slice(0, 200) : '' },
   };
 }
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */

@@ -98,7 +98,7 @@ function rqRx(){return (SET&&SET.rx)||rqRxNorm(null);}
  *  zones свои зоны тапа (9 действий или null) · sleep таймер сна озвучки (минуты, -1 = до конца главы) · ttsHl подсветка читаемого ·
  *  recap «Что было раньше» при открытии после перерыва · ruler линейка строки · eink · tod наборы по времени суток.
  *  Same rules as storage/schema.js normRm: junk → default, unknown keys dropped. */
-const RM_ZONE=['none','prev','next','bars','night','mark','auto','tts'];
+const RM_ZONE=['none','prev','next','bars','night','mark','auto','tts','rsvp'];
 function rqRmNorm(o){
   const ob=function(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};},bo=function(v,d){return typeof v==='boolean'?v:d;},
     hm=function(v,d){return (typeof v==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v))?v:d;},nm=function(v){return typeof v==='string'?v.trim().slice(0,24):'';};
@@ -112,7 +112,10 @@ function rqRmNorm(o){
     sleep:[0,15,30,45,60,-1].indexOf(o.sleep)>=0?o.sleep:0,ttsHl:bo(o.ttsHl,true),recap:bo(o.recap,true),
     ruler:{on:bo(r.on,false),n:[1,2,3].indexOf(r.n)>=0?r.n:1,auto:bo(r.auto,false)},
     eink:bo(o.eink,false),
-    tod:{on:bo(t.on,false),day:nm(t.day),eve:nm(t.eve),from:hm(t.from,'20:00'),to:hm(t.to,'07:00')}
+    tod:{on:bo(t.on,false),day:nm(t.day),eve:nm(t.eve),from:hm(t.from,'20:00'),to:hm(t.to,'07:00')},
+    dlg:bo(o.dlg,false),hard:bo(o.hard,false),chEnd:bo(o.chEnd,true),chQ:bo(o.chQ,true),
+    rsvp:(typeof o.rsvp==='number'&&o.rsvp>=100&&o.rsvp<=1000)?Math.round(o.rsvp/50)*50:300,
+    oneh:bo(o.oneh,false),edge:bo(o.edge,true),roles:{on:bo(ob(o.roles).on,false),v:typeof ob(o.roles).v==='string'?ob(o.roles).v.trim().slice(0,80):'',sv:typeof ob(o.roles).sv==='string'?ob(o.roles).sv.slice(0,200):''}
   };
 }
 function rqRm(){return (SET&&SET.rm)||rqRmNorm(null);}

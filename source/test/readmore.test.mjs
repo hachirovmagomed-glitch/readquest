@@ -164,7 +164,7 @@ ok('5 «Ширина строки» 55 on an 800 px tablet: wider fields, a line
 
 // 18/19 settings: cards in «Чтение», rows in «Настройки чтения»; search finds a new row
 r = await p.evaluate(() => { openGeneralSettings(false, 'read'); return [...document.querySelectorAll('#rxCard > .xrow')].map(x => x.querySelector('.xt').textContent); });
-ok('settings: «Сноски и возвращение к книге» and «Наборы по времени суток» cards', r.length === 10 && r.includes('Наборы по времени суток'), r);
+ok('settings: «Сноски и возвращение к книге» and «Наборы по времени суток» cards', r.length === 11 && r.includes('Когда глава прочитана') && r.includes('Наборы по времени суток'), r);
 await p.evaluate(() => openGeneralSettings(false)); await sleep(150); await p.type('#setSearch', 'автолист'); await sleep(200);
 r = await p.evaluate(() => [...document.querySelectorAll('#setSearchRes .gsres b')].map(b => b.textContent));
 ok('settings search «автолист» finds «Автолистание»', r.some(x => /Автолистание/.test(x)), r);

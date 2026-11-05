@@ -276,8 +276,9 @@ RULES = r'''
 @font-face{font-family:"Fira Sans";src:url(../fonts/alisa-firasans-medium.woff2) format("woff2");font-weight:500;font-display:swap}
 @font-face{font-family:"Fira Sans";src:url(../fonts/alisa-firasans-bold.woff2) format("woff2");font-weight:700 800;font-display:swap}
 /* paper with an engraver's hatch and pale falling things on the root; screens transparent over it; the book page stays flat paper */
-html[data-skin="alisa"]{background:var(--al-fall) 0 0/200px 400px repeat fixed,var(--sc-hatch) fixed,var(--rq-bg)}
-html[data-skin="alisa"][data-theme="night"]{background:var(--al-fall-n) 0 0/200px 400px repeat fixed,var(--sc-hatch) fixed,var(--rq-bg)}
+/* 05.11 Джессика: «фон более шахматным, но чтобы всё не терялось» — a soft chessboard under the falling cards (ink 7 %, text stays on cards/surfaces) */
+html[data-skin="alisa"]{--al-board:conic-gradient(rgba(28,26,23,.075) 25%,transparent 0 50%,rgba(28,26,23,.075) 0 75%,transparent 0) 0 0/56px 56px fixed;background:var(--al-fall) 0 0/200px 400px repeat fixed,var(--sc-hatch) fixed,var(--al-board),var(--rq-bg)}
+html[data-skin="alisa"][data-theme="night"]{--al-board:conic-gradient(rgba(169,188,255,.07) 25%,transparent 0 50%,rgba(169,188,255,.07) 0 75%,transparent 0) 0 0/56px 56px fixed;background:var(--al-fall-n) 0 0/200px 400px repeat fixed,var(--sc-hatch) fixed,var(--al-board),var(--rq-bg)}
 html[data-skin="alisa"] body{font-weight:500;background:transparent}
 html[data-skin="alisa"] .screen:not(#reader),html[data-skin="alisa"] #summary{background:transparent}
 html[data-skin="alisa"] #reader{background:var(--r-bg)}

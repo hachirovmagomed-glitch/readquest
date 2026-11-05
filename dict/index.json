@@ -13,6 +13,29 @@
    "file": "ru-wikt.rqd"
   },
   {
+   "id": "ru-dal",
+   "name": "Словарь Даля",
+   "lang": "ru",
+   "lic": "Общественное достояние (1863–1866)",
+   "src": "Толковый словарь живого великорусского языка (stolyarchukav/dal-dictionary)",
+   "about": "Толковый словарь живого великорусского языка: старинные и народные слова, пословицы",
+   "n": 44129,
+   "size": 7900181,
+   "file": "ru-dal.rqd"
+  },
+  {
+   "id": "en-ru",
+   "name": "Англо-русский (Викисловарь)",
+   "lang": "en",
+   "lic": "CC BY-SA 3.0",
+   "src": "en.wiktionary.org, русские слова с переводом (Vuizur/Wiktionary-Dictionaries)",
+   "about": "Перевод английских слов на русский, без интернета",
+   "kind": "tr",
+   "n": 31331,
+   "size": 1856326,
+   "file": "en-ru.rqd"
+  },
+  {
    "id": "en-wordnet",
    "name": "WordNet (Принстон)",
    "lang": "en",
@@ -22,6 +45,17 @@
    "n": 83253,
    "size": 4887607,
    "file": "en-wordnet.rqd"
+  },
+  {
+   "id": "en-wikt",
+   "name": "Английский Викисловарь",
+   "lang": "en",
+   "lic": "CC BY-SA 3.0",
+   "src": "en.wiktionary.org (Vuizur/Wiktionary-Dictionaries)",
+   "about": "Самый полный английский толковый: современные слова, сленг, все формы",
+   "n": 453603,
+   "size": 20047756,
+   "file": "en-wikt.rqd"
   },
   {
    "id": "en-webster1913",

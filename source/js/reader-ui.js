@@ -584,6 +584,10 @@ function smWord(p){const t=p[0].nodeValue;let a=p[1],z=p[1];
   while(a>0&&SM_W.test(t[a-1]))a--;while(z<t.length&&SM_W.test(t[z]))z++;
   if(a===z){if(a>=t.length||/\s/.test(t[a]||''))return a>=t.length&&a>0?[[p[0],a-1],[p[0],a]]:null;z=a+1;}return [[p[0],a],[p[0],z]];} /* 05.11: a finger right of a paragraph's last line (after its «.») — that last character, not an offset past the text (comparePoint threw, the end stopped) */
 function smCmp(a,b){const r=document.createRange();r.setStart(a[0],a[1]);return r.comparePoint(b[0],b[1]);} /* 1: b after a */
+/** 05.11: an end of ours on a node that left the page (a PDF page's text layer freed while scrolling) — take the ends of the live selection */
+function smSync(){if(!SM.on||!SM.lo||!SM.hi)return false;if(SM.lo[0].isConnected&&SM.hi[0].isConnected)return true;
+  const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount){smOff();return false;}const rg=s.getRangeAt(0);
+  SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];return true;}
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
 function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
 function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
@@ -593,7 +597,7 @@ function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rang
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
 /** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
 function smTap(x,y){
-  if(!smCfg().tap)return;
+  if(!smCfg().tap||!smSync())return;
   const p=smPt(x,y);if(!p)return;const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
   if(smCmp(SM.lo,w[0])>=0)SM.hi=w[1];else SM.lo=w[0];
   SM.set=true;smApply();setTimeout(updSelPop,30);
@@ -609,7 +613,7 @@ function smLpStart(e){
 }
 const SM_LP={f:300,n:460,s:700};
 /** a finger put down while selecting: which end it will drag if it moves («За край выделения»: only near an end; «С любого места»: anywhere on the text) */
-function smGrabAt(x,y){const c=smCfg();if(c.drag==='off'||!SM.lo||!SM.hi)return null;
+function smGrabAt(x,y){const c=smCfg();if(c.drag==='off'||!smSync())return null;
   const a=smCharRect(SM.lo[0],SM.lo[1]),b=smCharRect(SM.hi[0],SM.hi[1]-1),R0=c.hand==='b'?56:44;
   const da=a&&smIn(a)?Math.hypot(x-a.left,y-(a.top+a.bottom)/2):1e9,db=b&&smIn(b)?Math.hypot(x-b.right,y-(b.top+b.bottom)/2):1e9;
   if(Math.min(da,db)<=R0)return {x:x,y:y,end:db<=da?'hi':'lo',dy:0};
@@ -672,7 +676,7 @@ function smAuto(){if(SM.as)return;const f=function(){SM.as=0;const c=smScroller(
     smDragTo(SM.fx,SM.fy+SM.fo);SM.as=requestAnimationFrame(f);};
   SM.as=requestAnimationFrame(f);}
 function smDragTo(x,y){
-  let p=smPt(x,y-22);if(!p)return; /* the point just above the finger: the finger does not cover it */
+  if(!smSync())return;let p=smPt(x,y-22);if(!p)return; /* the point just above the finger: the finger does not cover it */
   if(smCfg().unit!=='char'){const w=smWord(p);if(w)p=SM.drag==='hi'?(smCmp(SM.lo,w[1])>0?w[1]:w[0]):(smCmp(w[0],SM.hi)>0?w[0]:w[1]);} /* by whole words */
   if(SM.drag==='hi'){if(smCmp(SM.lo,p)>0)SM.hi=p;else{SM.hi=SM.lo;SM.lo=p;SM.drag='lo';}}
   else{if(smCmp(p,SM.hi)>0)SM.lo=p;else{SM.lo=SM.hi;SM.hi=p;SM.drag='hi';}}

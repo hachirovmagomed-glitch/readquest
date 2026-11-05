@@ -515,7 +515,7 @@ function curI(){return '';} /* currency icon removed (coins are text) */
    vocab[].ex — объяснение ИИ, строка до 600 символов, иначе поле отбрасывается. */
 function aiNorm(a){
   ['key','model','base'].forEach(function(k){if(typeof a[k]!=='string')a[k]='';});
-  if(['deepseek','openrouter','openai','anthropic','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
+  if(['deepseek','openrouter','openai','anthropic','xai','yandex','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
   a.base=a.base.slice(0,300);return a;
 }
 function vocabNorm(v){
@@ -560,6 +560,26 @@ function aiPrefNorm(o){o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};const 
   return {len:en(o.len,['short','long']),tone:en(o.tone,['simple','expert']),lang:en(o.lang,['ru','en','book']),spoil:typeof o.spoil==='boolean'?o.spoil:true,lim:int(o.lim,500),
     use:{m:typeof u.m==='string'&&/^\d{4}-\d\d$/.test(u.m)?u.m:'',n:int(u.n,1e7),ch:int(u.ch,1e10),tch:int(u.tch,1e10),d:typeof u.d==='string'&&/^\d{4}-\d\d-\d\d$/.test(u.d)?u.d:'',dn:int(u.dn,1e5)},
     trTo:en(o.trTo,['','ru','en','de','fr','es','it'])};}
+/* 05.11 Джессика: «сервисы почему-то не принимают ключи». Раньше любое 401/403 было «не принял ключ», а 403 у OpenAI/Google
+   часто значит «страна не поддерживается» или «нет денег/доступа». Теперь причина своя, плюс слова сервиса; ключ чистится от
+   пробелов, переносов, невидимых знаков, кавычек и «Bearer». */
+function nnKeyClean(k){return String(k||'').replace(/[\s​-‍⁠﻿"'«»`]/g,'').replace(/^Bearer(?=\w)/i,'').replace(/^Api-Key(?=\w)/i,'');}
+function nnKeyBad(k){return /[^\x21-\x7e]/.test(String(k||''))?'в ключе есть лишние знаки (русские буквы или «…»), похоже, скопирован не сам ключ, а его сокращённый вид':'';} /* иначе fetch падает на заголовке и пишет «нет связи» */
+function nnSvcMsg(d){try{const e=d&&d.error;const m=(e&&(e.message||(typeof e==='string'?e:'')))||(d&&(d.error_message||d.message))||(d&&d.detail&&(d.detail.message||(typeof d.detail==='string'?d.detail:'')))||'';
+  return typeof m==='string'?m.replace(/\s+/g,' ').trim():'';}catch(x){return '';}}
+function nnHttpErr(status,d,key){ /* → понятная причина по-русски или '' (ответ без ошибки) */
+  const m=nnSvcMsg(d),c=String((d&&d.error&&(d.error.code||d.error.type||d.error.status))||'')+' '+m,tail=m?' («'+m.slice(0,90)+'»)':'';
+  if(/unsupported_country|unsupported.*region|country.*not supported|not available in your (country|region)|location is not supported|territor/i.test(c))return 'сервис не работает в вашей стране — нужен VPN другой страны';
+  if(status===402||/insufficient_quota|billing|balance|exceeded your current quota|credit|payment/i.test(c))return 'на счёте сервиса нет денег или не привязана оплата'+tail;
+  if(status===401||status===403){
+    if(status===403&&/model|permission|scope|not allowed|access|project|folder|role/i.test(c))return 'у ключа нет доступа'+tail;
+    const k=String(key||'');
+    return 'сервис не принял ключ'+(k&&k.length<30?': он слишком короткий ('+k.length+'), похоже, скопирован не целиком':tail);
+  }
+  if(status===429)return 'слишком много запросов, попробуйте позже';
+  if(status>=400)return m?m.slice(0,120):'сервис ответил '+status;
+  return '';
+}
 function ttsNorm(t){
   if(!t||typeof t!=='object')t={};
   ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});

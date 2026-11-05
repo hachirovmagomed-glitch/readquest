@@ -779,6 +779,10 @@ const AI_PROV={
   openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat'},
   openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-4o-mini'},
   anthropic:{name:'Claude (Anthropic)',base:'https://api.anthropic.com/v1',model:'claude-haiku-5-5'},
+  /* 05.11 Джессика: «Добавь грок и яндекс в другие разделы нейросетей». Оба понимают запросы как у OpenAI.
+     YandexGPT просит ещё ID каталога Yandex Cloud: он лежит в S.ai.base (у «Другого» там адрес API), модель = gpt://<каталог>/<модель> */
+  xai:{name:'Грок',base:'https://api.x.ai/v1',model:'grok-4-1-fast-non-reasoning'},
+  yandex:{name:'YandexGPT',base:'https://llm.api.cloud.yandex.net/v1',model:'yandexgpt-lite/latest'},
   custom:{name:'Другой, совместимый с OpenAI',base:'',model:''}
 };
 /* 20.10 Джессика: «инструкцию как этот ключ подключить, если пользователь не знает» — шаги по сервису в «Как получить ключ» (ИИ и озвучка) */
@@ -790,12 +794,14 @@ const KEY_HOW={
   anthropic:{url:'https://console.anthropic.com/settings/keys',steps:['Откройте консоль Anthropic по ссылке ниже и войдите.','«Create Key», скопируйте ключ (sk-ant-…).','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Из России без VPN и зарубежной карты не работает.'},
   custom:{steps:['Возьмите у своего сервиса адрес API (обычно оканчивается на /v1), ключ и название модели.','Сервис должен понимать запросы как у OpenAI и пускать запросы из браузера.','Заполните три поля и нажмите «Проверить».'],note:'Для тех, кто знает, что это.'},
   elevenlabs:{url:'https://elevenlabs.io/app/settings/api-keys',steps:['Откройте ElevenLabs по ссылке ниже и войдите.','«Create API key», скопируйте ключ.','Голос по желанию: «Voices» → выберите голос → скопируйте его Voice ID в поле «Голос».','Вставьте ключ сюда и нажмите «Послушать».'],note:'Очень живые голоса, в том числе русские. На бесплатном тарифе немного знаков в месяц, потом подписка. Из России без VPN и зарубежной карты не работает.'},
-  yandex:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-tts.user.','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Голос по желанию: alena, filipp, ermil, jane, omazh, zahar, madirus.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Работает из России, оплата российской картой. Платите по числу знаков.'},
-  xai:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Голос по желанию: ara, eve, leo, rex, sal.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Тот же Грок, что в приложении X, но озвучка оплачивается отдельно по числу знаков. Из России без VPN и зарубежной карты, скорее всего, не работает.'},
+  yandex_tts:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-tts.user.','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Голос по желанию: alena, filipp, ermil, jane, omazh, zahar, madirus.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Работает из России, оплата российской картой. Платите по числу знаков.'},
+  yandex:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','Скопируйте ID каталога: он под названием каталога на главной странице консоли (20 знаков, обычно начинается с b1g). Вставьте его в поле «ID каталога».','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.languageModels.user (для озвучки ещё ai.speechkit-tts.user).','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Вставьте ключ сюда и нажмите «Проверить».'],note:'Работает из России, оплата российской картой. Модель по умолчанию yandexgpt-lite/latest, умнее и дороже — yandexgpt/latest. Один ключ подходит и для озвучки Яндекса.'},
+  xai:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Вставьте ключ сюда и нажмите «Проверить».'],note:'Тот же Грок, что в приложении X. Модель по умолчанию — быстрая grok-4-1-fast-non-reasoning, другие — кнопкой «Модели списком». Из России без VPN и зарубежной карты, скорее всего, не работает. Один ключ подходит и для озвучки Грока.'},
+  xai_tts:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Голос по желанию: ara, eve, leo, rex, sal.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Тот же Грок, что в приложении X, но озвучка оплачивается отдельно по числу знаков. Из России без VPN и зарубежной карты, скорее всего, не работает.'},
   google:{url:'https://console.cloud.google.com/apis/library/texttospeech.googleapis.com',steps:['Откройте Google Cloud по ссылке ниже, войдите и создайте проект.','Нажмите «Enable» у Cloud Text-to-Speech API (попросит привязать карту).','«APIs & Services» → «Credentials» → «Create credentials» → «API key», скопируйте ключ.','Лучше сразу ограничить ключ: только Text-to-Speech API.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Каждый месяц часть знаков бесплатно. Из России без VPN и зарубежной карты не работает.'}
 };
 function keyHowHtml(k,tts){
-  const h=KEY_HOW[k];if(!h)return '';
+  const h=KEY_HOW[tts&&KEY_HOW[k+'_tts']?k+'_tts':k]; /* 05.11: у Яндекса и Грока свои шаги для озвучки */if(!h)return '';
   const steps=h.steps.map(t=>t.replace('«Проверить»',tts?'«Послушать»':'«Проверить ключ»'));
   return '<ol>'+steps.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>'+
     (h.url?'<a href="'+esc(h.url)+'" target="_blank" rel="noopener noreferrer">'+esc(h.url.replace(/^https:\/\//,''))+'</a>':'')+
@@ -804,7 +810,9 @@ function keyHowHtml(k,tts){
 function aiProv(){const p=S.ai&&S.ai.prov;return AI_PROV[p]?p:'openai';} /* старые данные без prov — это OpenAI (v6) */
 function aiModel(){return (S.ai&&S.ai.model)||AI_PROV[aiProv()].model;}
 function aiBase(){const p=aiProv();return String((p==='custom'?(S.ai&&S.ai.base):AI_PROV[p].base)||'').replace(/\/+$/,'');}
-function aiOwnKey(){return !!(S.ai&&S.ai.key)&&!!aiBase();}
+function aiYaFolder(){const f=String((S.ai&&S.ai.base)||'').trim().toLowerCase();return /^[a-z0-9]{20}$/.test(f)?f:'';} /* ID каталога: 20 букв и цифр, обычно b1g… */
+function aiOwnKey(){return !!(S.ai&&S.ai.key)&&!!aiBase()&&(aiProv()!=='yandex'||!!aiYaFolder());}
+function aiNoBaseMsg(short){return aiProv()==='yandex'?(short?'Нет ID каталога':'Укажите ID каталога'):(short?'Нет адреса API':'Укажите адрес API');}
 function aiOn(){return aiOwnKey();}
 const AI_CACHE={};let aiCur=null,aiSeq=0;
 function selCtx(word){ /* предложение вокруг выделения (как у «В словарь») */
@@ -864,23 +872,21 @@ async function aiFetch(url,opt){
   finally{clearTimeout(tm);}
 }
 async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо с телефона в выбранный сервис. m = {system, user} или {system, messages:[{role,content}]} */
-  const p=aiProv(),key=S.ai.key,model=aiModel();let r;
+  const p=aiProv(),key=nnKeyClean(S.ai.key),model=aiModel();if(nnKeyBad(key))throw new Error(nnKeyBad(key));let r;
   const msgs=m.messages||[{role:'user',content:m.user}];
   if(p==='anthropic'){
     r=await aiFetch(aiBase()+'/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:model,max_tokens:maxTok||500,system:m.system,messages:msgs})});
   }else{
+    const mo=p==='yandex'&&!/^gpt:\/\//.test(model)?'gpt://'+aiYaFolder()+'/'+model:model;
     r=await aiFetch(aiBase()+'/chat/completions',{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({model:model,max_tokens:maxTok||500,messages:[{role:'system',content:m.system}].concat(msgs)})});
+      headers:Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+key},p==='yandex'?{'OpenAI-Project':aiYaFolder()}:{}),
+      body:JSON.stringify({model:mo,max_tokens:maxTok||500,messages:[{role:'system',content:m.system}].concat(msgs)})});
   }
   let d=null;try{d=await r.json();}catch(e){}
-  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
-  if(r.status===402)throw new Error('на счёте сервиса нет денег');
-  if(r.status===429)throw new Error('слишком много запросов, попробуйте позже');
-  const em=d&&d.error&&(d.error.message||(typeof d.error==='string'?d.error:''));
-  if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
+  if(!r.ok)throw new Error(nnHttpErr(r.status,d,key)||('сервис ответил '+r.status));
+  const em=d&&d.error&&(d.error.message||(typeof d.error==='string'?d.error:''));if(em)throw new Error(String(em).slice(0,120));
   const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
     ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
   return String(t).trim().slice(0,m.cap||2000); /* 28.10: «Текст страницы» через ИИ — вся страница (m.cap) */

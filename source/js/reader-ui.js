@@ -1301,14 +1301,14 @@ const TTS_PROV={
   custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
 };
 function nttsCfg(){const t=S.tts||{};const p=TTS_PROV[t.prov]?t.prov:'system';
-  let key=t.key||'';if(!key&&p==='openai'&&S.ai&&S.ai.prov==='openai'&&S.ai.key)key=S.ai.key; /* тот же ключ OpenAI, что у ИИ-помощника */
+  let key=nnKeyClean(t.key);if(!key&&(p==='openai'||p==='yandex'||p==='xai')&&S.ai&&S.ai.prov===p&&S.ai.key)key=S.ai.key; /* тот же ключ, что у ИИ-помощника (OpenAI; 05.11 и Яндекс, Грок) */
   return {prov:p,key:key,voice:t.voice||(TTS_PROV[p].voice||''),base:String(t.base||'').replace(/\/+$/,'')};}
 function nttsOn(){try{const c=nttsCfg();return c.prov!=='system'&&!!c.key&&(c.prov!=='custom'||!!c.base);}catch(e){return false;}}
 let nttsAudio=null,nttsUrl=null,nttsGen=0;const NTTS_CACHE=new Map();
 function nttsHalt(){nttsGen++;if(nttsAudio){try{nttsAudio.pause();nttsAudio.removeAttribute('src');nttsAudio.load();}catch(e){}}
   if(nttsUrl){try{URL.revokeObjectURL(nttsUrl);}catch(e){}nttsUrl=null;}}
 async function nttsFetch(text){ /* → Blob mp3; ошибки понятным русским */
-  const c=nttsCfg();let r;
+  const c=nttsCfg();let r;if(nnKeyBad(c.key))throw new Error(nnKeyBad(c.key));
   const net=async(u,o)=>{try{return await fetch(u,o);}catch(e){throw new Error(navigator.onLine===false?'нет интернета':'нет связи с сервисом');}};
   if(c.prov==='elevenlabs'){
     r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
@@ -1329,11 +1329,7 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
       body:JSON.stringify(Object.assign({model:c.prov==='openai'?'gpt-4o-mini-tts':'tts-1',voice:c.voice,input:text,response_format:'mp3'},
         c.prov==='openai'?{instructions:'Читай по-русски спокойно и выразительно, как аудиокнигу.'}:{}))});
   }
-  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
-  if(r.status===402)throw new Error('на счёте сервиса нет денег');
-  if(r.status===429)throw new Error('слишком много запросов или кончился лимит');
-  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||(d&&(d.error_message||d.message))||'';}catch(e){}
-    throw new Error((typeof m==='string'&&m?m.slice(0,120):'сервис ответил '+r.status));}
+  if(!r.ok){let d=null;try{d=await r.json();}catch(e){}throw new Error(nnHttpErr(r.status,d,c.key)||('сервис ответил '+r.status));}
   if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');
     const bin=atob(d.audioContent),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Blob([u8],{type:'audio/mpeg'});}
   const b=await r.blob();if(!b||!b.size)throw new Error('пустой ответ');return b;

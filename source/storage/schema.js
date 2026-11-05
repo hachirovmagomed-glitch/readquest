@@ -364,6 +364,8 @@ export function normRm(o) {
     rsvp: typeof o.rsvp === 'number' && o.rsvp >= 100 && o.rsvp <= 1000 ? Math.round(o.rsvp / 50) * 50 : 300,
     oneh: bo(o.oneh, false), edge: bo(o.edge, true),
     roles: { on: bo(ob(o.roles).on, false), v: typeof ob(o.roles).v === 'string' ? ob(o.roles).v.trim().slice(0, 80) : '', sv: typeof ob(o.roles).sv === 'string' ? ob(o.roles).sv.slice(0, 200) : '' },
+    // 05.11 словари: dkShort — сначала одно значение, dkLong — долгое нажатие на слово = значение, dkQuiz — вопросы по словам при чтении
+    dkShort: bo(o.dkShort, true), dkLong: bo(o.dkLong, false), dkQuiz: bo(o.dkQuiz, true),
   };
 }
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */

@@ -26,7 +26,7 @@ r = await p.evaluate(async () => { rmFnHide(); RX_EXP.dict = true; openGeneralSe
   const rows = [...document.querySelectorAll('#dkList .dkrow')].map(x => x.querySelector('b').textContent);
   const cat = await dkCatalog(); for (const pk of cat) await dkInstall(pk); await new Promise(r => setTimeout(r, 300));
   return { rows, ms: (await dkMeta()).map(m => m.id), head: el('rxXdict').textContent, del: document.querySelectorAll('#dkList [data-dk="del"]').length }; });
-ok('1 «Чтение → Словари»: Викисловарь, WordNet, Webster 1913; all three downloaded', JSON.stringify(r.rows) === JSON.stringify(['Русский Викисловарь', 'WordNet (Принстон)', 'Webster 1913']) && r.ms.length === 3 && r.del === 3 && /Викисловарь/.test(r.head), r);
+ok('1 «Чтение → Словари»: six packs (05.11 evening: + Даль, англо-русский, английский Викисловарь), all downloaded, in the catalog order', JSON.stringify(r.rows) === JSON.stringify(['Русский Викисловарь', 'Словарь Даля', 'Англо-русский (Викисловарь)', 'WordNet (Принстон)', 'Английский Викисловарь', 'Webster 1913']) && JSON.stringify(r.ms) === JSON.stringify(['ru-wikt', 'ru-dal', 'en-ru', 'en-wordnet', 'en-wikt', 'en-webster1913']) && r.del === 6 && /Викисловарь/.test(r.head), r);
 
 // 2 lookups: a Russian form → its lemma; English plurals / verb forms; Webster
 r = await p.evaluate(async () => { const t0 = performance.now(); const a = await dkLookup('шинели', 'ru'), b = await dkLookup('Городового', 'ru'), c = await dkLookup('runs', 'en'), d = await dkLookup('mosquitoes', 'en'), z = await dkLookup('qwxzv', 'ru');
@@ -53,7 +53,7 @@ r = await p.evaluate(async () => { rmS().hard = true; r2HardApply(); const h = [
 ok('3 a hard word\'s short meaning → «Полная статья» → the dictionary entry', r.full && /Викисловарь/.test(r.t), r);
 
 // 4 English links
-r = await p.evaluate(async () => { await dkShow('running', 100, 200); const l = [...el('rmNote').querySelectorAll('.dklinks a')].map(a => [a.textContent, a.href]); const t = el('rmNote').textContent; rmFnHide(); return { l, t: t.slice(0, 160) }; });
+r = await p.evaluate(async () => { await dkShow('running', 100, 200); const l = [...el('rmNote').querySelectorAll('.dklinks a')].map(a => [a.textContent, a.href]); const t = el('rmNote').textContent; rmFnHide(); return { l, t: t.slice(0, 2000) }; });
 ok('4 an English word: WordNet + Webster, links Cambridge / Oxford / Merriam-Webster', /WordNet/.test(r.t) && r.l.map(x => x[0]).join() === 'Cambridge,Oxford,Merriam-Webster' && /cambridge\.org\/dictionary\/english\/running/.test(r.l[0][1]), r);
 
 // 5 own dictionaries: a StarDict with .dict.dz and .syn; a Lingvo DSL in UTF-16
@@ -74,7 +74,7 @@ ok('5 own Lingvo DSL (UTF-16): «hello» → «привет», markup removed', 
 // 6 delete; the cache does not belong to the app's own caches
 r = await p.evaluate(async () => { const id = (await dkMeta()).find(m => m.name === 'Мой DSL').id; const a0 = rqAsk; rqAsk = async () => true; await dkRemove(id); rqAsk = a0;
   return { left: (await dkMeta()).map(m => m.name), keys: (await caches.keys()).filter(k => /dict/.test(k)) }; });
-ok('6 «Удалить» removes one dictionary; cache «rqdict» (the app\'s cleanup only deletes «rq-…»)', !r.left.includes('Мой DSL') && r.left.length === 4 && JSON.stringify(r.keys) === '["rqdict"]', r);
+ok('6 «Удалить» removes one dictionary; cache «rqdict» (the app\'s cleanup only deletes «rq-…»)', !r.left.includes('Мой DSL') && r.left.length === 7 && JSON.stringify(r.keys) === '["rqdict"]', r);
 ok('no page errors', errs.length === 0, errs);
 console.log('\nSUMMARY dict.test ' + checks.filter(Boolean).length + '/' + checks.length);
 await browser.close();

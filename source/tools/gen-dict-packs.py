@@ -4,6 +4,9 @@ Usage: python3 tools/gen-dict-packs.py OUT [--ru RU_STARDICT_BASE] [--wn WORDNET
   --ru   Русский Викисловарь, StarDict из github.com/Vuizur/ruwiktionary-htmldump-parser (Russian-Russian-dict.tar.gz), CC BY-SA
   --wn   WordNet 3.1 (Princeton), каталог dict/ из npm wordnet-db, лицензия WordNet
   --web  Webster's Unabridged Dictionary 1913 (Project Gutenberg #29765) — dictionary_compact.json из github.com/matthewreagan/WebstersEnglishDictionary
+  --dal  Толковый словарь Даля (общественное достояние) — daldic-dump.sql из github.com/stolyarchukav/dal-dictionary (daldic-utils/src/main/resources)
+  --enwikt  Английский Викисловарь, StarDict «English-English Wiktionary dictionary» из github.com/Vuizur/Wiktionary-Dictionaries, CC BY-SA
+  --enru    Англо-русский: обратный индекс StarDict «Russian-English Wiktionary dictionary» оттуда же (+ формы английских слов из --enwikt)
 Pack file <id>.rqd: one JSON line (header) + gzip chunks. Header: {v, id, name, lang, lic, src, n, nf, d:[[firstKey, off, len], …], f:[…]}
 (offsets from the end of the header line). A D chunk = sorted lines «key\\theadword\\tdefinition» (\\n inside a definition = «\\\\n»),
 an F chunk = sorted lines «form\\tlemma» where lemma = «<common prefix length><rest>», several lemmas joined by «|».
@@ -45,7 +48,7 @@ def write_pack(out, meta, defs, forms):
         for z in blobs: fh.write(z)
     size = os.path.getsize(os.path.join(out, meta['id'] + '.rqd'))
     print(meta['id'], len(defs), 'words', len(forms), 'forms', round(size / 1048576, 1), 'MB')
-    return dict({k: meta[k] for k in ('id', 'name', 'lang', 'lic', 'src', 'about')}, n=len(defs), size=size, file=meta['id'] + '.rqd')
+    return dict({k: meta[k] for k in ('id', 'name', 'lang', 'lic', 'src', 'about', 'kind') if k in meta}, n=len(defs), size=size, file=meta['id'] + '.rqd')
 
 def strip_html(s):
     s = re.sub(r'<li[^>]*>', '\n• ', s); s = re.sub(r'<br\s*/?>', '\n', s)
@@ -134,6 +137,104 @@ def pack_web(path, out):
     return write_pack(out, dict(id='en-webster1913', name='Webster 1913', lang='en', lic='Public domain (Project Gutenberg #29765)',
         src='gutenberg.org/ebooks/29765', about='Большой английский словарь 1913 года, хорош для классики'), defs, {})
 
+def pack_dal(sql, out):
+    import sqlite3
+    c = sqlite3.connect(':memory:'); c.executescript(open(sql, encoding='utf8').read())
+    defs = {}
+    for w, d in c.execute('select word, description from word'):
+        if not w or not d: continue
+        k = norm(w)
+        if not k or ' ' in k: continue
+        d = re.sub(r'\s+', ' ', d).strip()
+        m = re.match(r'^([^\s,.;]+)[\s,.;]+', d)
+        head = w.lower()
+        if m and norm(m.group(1)) == k: head = m.group(1).lower(); d = d[m.end():].strip()
+        d = re.sub(r'\s*\|\s*', '\n• ', d)
+        if '\n• ' in d: d = '• ' + d
+        if k in defs: defs[k] = (defs[k][0], (defs[k][1] + '\n' + d)[:3000])
+        else: defs[k] = (head, d[:3000])
+    return write_pack(out, dict(id='ru-dal', name='Словарь Даля', lang='ru', lic='Общественное достояние (1863–1866)',
+        src='Толковый словарь живого великорусского языка (stolyarchukav/dal-dictionary)', about='Толковый словарь живого великорусского языка: старинные и народные слова, пословицы'), defs, {})
+
+def wikt_text(x, senses=10, cap=1500):
+    x = re.sub(r'<i>([^<]{1,40})</i>\s*<br\s*/?>', lambda m: '\n(' + m.group(1) + ')\n', x)
+    t = strip_html(x)
+    out_l, n = [], 0
+    for l in t.split('\n'):
+        l = l.strip()
+        if not l: continue
+        if l.startswith('•'):
+            n += 1
+            if n > senses: continue
+        out_l.append(l)
+    return '\n'.join(out_l)[:cap]
+
+def pack_enwikt(base, out):
+    words, syn = read_stardict(base)
+    grp, keep = {}, set()
+    for i, (w, x) in enumerate(words):
+        k = norm(w)
+        if not k or ' ' in k or len(k) > 40: continue
+        t = wikt_text(x)
+        if not t: continue
+        grp.setdefault(k, []).append((w != w.lower(), i, w, t)); keep.add(i)
+    defs = {}
+    for k, L in grp.items():
+        L.sort()  # the lower-case word first («cat» before «CAT»)
+        txt = ''
+        for low, i, w, t in L:
+            if len(txt) >= 1400: break
+            txt = (txt + '\n' + (w + ':\n' if txt else '') + t) if txt else t
+        defs[k] = (L[0][2], txt[:1600])
+    forms = {}
+    for w, k in syn:
+        if k not in keep: continue
+        f = norm(w); l = norm(words[k][0])
+        if not f or f == l or ' ' in f or l not in defs: continue
+        forms.setdefault(f, set()).add(l)
+    pack_enwikt.forms = forms
+    return write_pack(out, dict(id='en-wikt', name='Английский Викисловарь', lang='en', lic='CC BY-SA 3.0',
+        src='en.wiktionary.org (Vuizur/Wiktionary-Dictionaries)', about='Самый полный английский толковый: современные слова, сленг, все формы'), defs, forms)
+
+def pack_enru(base, out, en_forms=None):
+    words, syn = read_stardict(base)
+    acc = {}
+    for w, x in words:
+        if not re.search('[а-яё]', w, re.I) or ' ' in w.strip(): continue
+        x = re.sub(r'<i>([^<]{1,40})</i>\s*<br\s*/?>', lambda m: '\n(' + m.group(1) + ')\n', x)
+        pos = ''
+        si = 0
+        for l in strip_html(x).split('\n'):
+            l = l.strip()
+            if l.startswith('(') and l.endswith(')') and len(l) < 40: pos = l[1:-1]; continue
+            if not l.startswith('•'): continue
+            si += 1
+            g = l[1:].strip()
+            if re.match(r'^(inflection|alternative|form|plural|genitive|dative|accusative|instrumental|prepositional|nominative|short|comparative|superlative|feminine|masculine|neuter|diminutive|augmentative|past|present|future|imperative|participle|first|second|third|singular|obsolete spelling|pre-reform)\b', g, re.I): continue
+            core = re.sub(r'\([^)]*\)', '', g)
+            for ci, cand in enumerate(re.split(r'[,;]', core)):
+                cand = cand.strip().lower()
+                cand = re.sub(r'^(to|a|an|the)\s+', '', cand)
+                if not cand or ' ' in cand or not re.match(r"^[a-z][a-z'-]*$", cand): continue
+                acc.setdefault(cand, []).append((si, ci, len(w), w, pos, g))
+    defs = {}
+    BAD = re.compile(r'\((?:[^)]*\b)?(archaic|dated|dialectal|obsolete|rare|derogatory|folklore|relational|poetic|slang|Internet|nautical|historical|vulgar|offensive|colloquial|regional|ironic|humorous|jargon|euphemistic|childish|figuratively|Christianity|Ukraine|Belarus)\b', re.I)
+    for k, L in acc.items():
+        L.sort(key=lambda r: (bool(BAD.search(r[5])) + ('iterative' in r[5]), r[5].strip().lower() not in (k, 'to ' + k, 'a ' + k, 'an ' + k), r[0], r[1], r[2]))
+        seen, lines = set(), []
+        for si, ci, _, w, pos, g in L:
+            if norm(w) in seen: continue
+            seen.add(norm(w))
+            lines.append('• ' + w + (' (' + {'noun': 'сущ.', 'verb': 'гл.', 'adj': 'прил.', 'adv': 'нареч.'}.get(pos, pos) + ')' if pos else '') + ' — ' + g)
+            if len(lines) >= 12: break
+        defs[norm(k)] = (k, '\n'.join(lines)[:1800])
+    forms = {}
+    for f, ls in (en_forms or {}).items():
+        ls = {l for l in ls if l in defs}
+        if ls and f not in defs: forms[f] = ls
+    return write_pack(out, dict(id='en-ru', name='Англо-русский (Викисловарь)', lang='en', kind='tr', lic='CC BY-SA 3.0',
+        src='en.wiktionary.org, русские слова с переводом (Vuizur/Wiktionary-Dictionaries)', about='Перевод английских слов на русский, без интернета'), defs, forms)
+
 if __name__ == '__main__':
     a = sys.argv[1:]; out = a[0]; os.makedirs(out, exist_ok=True)
     opt = {a[i]: a[i + 1] for i in range(1, len(a) - 1, 2)}
@@ -141,4 +242,9 @@ if __name__ == '__main__':
     if '--ru' in opt: cat.append(pack_ru(opt['--ru'], out))
     if '--wn' in opt: cat.append(pack_wn(opt['--wn'], out))
     if '--web' in opt: cat.append(pack_web(opt['--web'], out))
+    if '--dal' in opt: cat.append(pack_dal(opt['--dal'], out))
+    if '--enwikt' in opt: cat.append(pack_enwikt(opt['--enwikt'], out))
+    if '--enru' in opt: cat.append(pack_enru(opt['--enru'], out, getattr(pack_enwikt, 'forms', None)))
+    ORDER = ['ru-wikt', 'ru-dal', 'en-ru', 'en-wordnet', 'en-wikt', 'en-webster1913']  # the order in «Словарях» and in the word window
+    cat.sort(key=lambda p: ORDER.index(p['id']) if p['id'] in ORDER else 99)
     json.dump({'v': 1, 'packs': cat}, open(os.path.join(out, 'index.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)

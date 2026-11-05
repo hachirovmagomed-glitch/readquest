@@ -521,6 +521,7 @@ function aiNorm(a){
 function vocabNorm(v){
   if(!v||typeof v!=='object')return;
   if('ex' in v&&typeof v.ex!=='string')delete v.ex;else if(typeof v.ex==='string')v.ex=v.ex.slice(0,600);
+  if('d' in v&&typeof v.d!=='string')delete v.d;else if(typeof v.d==='string')v.d=v.d.slice(0,600); /* 05.11 значение из скачанного словаря (js/dict.js) */
 }
 function diaryNorm(a){ /* = storage/schema.js diaryList; 25.10 «Дневники» (arch.md): [{id,t,b,bt,ba,cv,cc,pp,fn,fs,ink,rb,so,lh,al,d,u,e:[{id,t,x,tp,ch,pg,r,d,u,pin,cl}]}] ≤ 200, записей ≤ 1000 */
   const out=[],seen={},str=function(v,n){return typeof v==='string'?v.slice(0,n):'';},one=function(v,l,d){return l.indexOf(v)>=0?v:d;},

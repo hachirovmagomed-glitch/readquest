@@ -617,12 +617,6 @@
   "artist": "Miguel Cabrera",
   "url": "https://commons.wikimedia.org/wiki/File%3ASor_Juana_by_Miguel_Cabrera_%28cropped%29.jpg"
  },
- "wheatley": {
-  "file": "File:Phillis_Wheatley_frontispiece.jpg",
-  "license": "Public domain",
-  "artist": "Scipio Moorhead",
-  "url": "https://commons.wikimedia.org/wiki/File%3APhillis_Wheatley_frontispiece.jpg"
- },
  "douglass": {
   "file": "File:Frederick_Douglass_(circa_1879)_(cropped).jpg",
   "license": "Public domain",
@@ -791,18 +785,6 @@
   "artist": "Unknown authorUnknown author",
   "url": "https://commons.wikimedia.org/wiki/File%3ACarlo_Collodi.jpg"
  },
- "ariosto": {
-  "file": "File:Ludovico_Ariosto_1532.jpg",
-  "license": "Public domain",
-  "artist": "Unknown authorUnknown author",
-  "url": "https://commons.wikimedia.org/wiki/File%3ALudovico_Ariosto_1532.jpg"
- },
- "boccaccio": {
-  "file": "File:Andrea_del_Castagno_Giovanni_Boccaccio_c_1450.jpg",
-  "license": "Public domain",
-  "artist": "Andrea del Castagno",
-  "url": "https://commons.wikimedia.org/wiki/File%3AAndrea_del_Castagno_Giovanni_Boccaccio_c_1450.jpg"
- },
  "lopedevega": {
   "file": "File:LopedeVega.jpg",
   "license": "Public domain",
@@ -868,12 +850,6 @@
   "license": "Public domain",
   "artist": "Erwin Raupp / Adam Cuerden",
   "url": "https://commons.wikimedia.org/wiki/File%3APortrett_av_Bj%C3%B8rnstjerne_Bj%C3%B8rnson%2C_1909_-_no-nb_digifoto_20150129_00043_bldsa_BB0791_-_Restoration.jpg"
- },
- "whitman": {
-  "file": "File:Walt_Whitman_-_George_Collins_Cox.jpg",
-  "license": "Public domain",
-  "artist": "George Collins Cox / Adam Cuerden",
-  "url": "https://commons.wikimedia.org/wiki/File%3AWalt_Whitman_-_George_Collins_Cox.jpg"
  },
  "hawthorne": {
   "file": "File:Nathaniel_Hawthorne_by_Brady,_1860-64.jpg",

@@ -113,6 +113,39 @@ await T('touchStart', 150, 260); await sleep(700); const p6 = await st(); for (l
 const q6 = await st();
 ok('page mode: long press + drag selects as before, no lock', p6.on && !p6.lock && q6.len > p6.len && !q6.lock, { p6, q6 });
 
+// 7. 05.11 вечер (Джессика, видео 2: PDF в «Прокрутке» — после прокрутки тап и ручка ничего не двигают): the pages the selection runs over
+//    keep their text layers while scrolled away; a tap pages later moves the end, the start stays; scrolled back, the same selection
+{
+  const PDF = process.env.RQ_PDF || '/workspace/rqtest/pdf/b-nolabels-40.pdf';
+  await p.evaluate(async () => { await closeReader({ quiet: true }); SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); SET.selLook = 'side'; rqSaveSetGated(); });
+  await (await p.$('#fileInp')).uploadFile(PDF); await sleep(2500);
+  await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3500)); });
+  const spanAt = (lo, hi) => p.evaluate((lo, hi) => { const ss = [...document.querySelectorAll('#pdfScroll .textLayer span')].filter(s => s.textContent.trim().length > 3).map(s => { const r = s.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }).filter(a => a[1] > lo && a[1] < hi); return ss[0] || null; }, lo, hi);
+  const ps = () => p.evaluate(() => ({ on: SM.on, len: String(getSelection()).length, start: String(getSelection()).slice(0, 12), top: Math.round(psBox().scrollTop), live: !!(SM.lo && SM.lo[0].isConnected && SM.hi[0].isConnected) }));
+  ok('PDF open in «Прокрутке»', await p.evaluate(() => R.mode === 'pdf' && PS.on));
+  const a7 = await spanAt(100, 300);
+  await T('touchStart', a7[0], a7[1]); await sleep(700); const lk7 = (await st()).lock; await T('touchEnd'); await sleep(400);
+  const s0 = await ps();
+  ok('PDF: long press selects a word, the strip is locked while the finger is down', s0.on && s0.len > 0 && lk7, { s0, lk7 });
+  let last = s0, good = true; const n7 = errs.length;
+  for (let k = 0; k < 5; k++) {
+    await p.evaluate(async () => { psBox().scrollTop += 600; await new Promise(r => setTimeout(r, 1200)); });
+    const c = await spanAt(450, 760); await T('touchStart', c[0], c[1]); await sleep(60); await T('touchEnd'); await sleep(500);
+    const s = await ps(); if (!(s.len > last.len && s.start.startsWith(s0.start) && s.live)) good = false; last = s;
+  }
+  ok('PDF: scrolled five times by 600 px, each tap further down moves the end on, the start stays where it was', good && errs.length === n7, { s0, last, errs: errs.slice(n7) });
+  const h7 = await p.evaluate(() => { const e = el('smHi'); return e && !e.hidden ? { x: parseFloat(e.style.left), y: parseFloat(e.style.top) + 24 } : null; });
+  if (h7) { await T('touchStart', h7.x, h7.y); for (let i = 1; i <= 20; i++) { await T('touchMove', h7.x, Math.min(820, h7.y + i * 8)); await sleep(16); } await T('touchEnd'); await sleep(400); }
+  const s8 = await ps();
+  ok('PDF: after the scrolling the handle still drags the end', !!h7 && s8.len > last.len && s8.start.startsWith(s0.start), { h7, last: last.len, s8 });
+  await p.evaluate(async () => { psBox().scrollTop = 0; await new Promise(r => setTimeout(r, 1500)); });
+  const s9 = await ps();
+  ok('PDF: scrolled back to the start — the same selection, its pages drawn again', s9.len === s8.len && s9.start.startsWith(s0.start) && s9.live && await p.evaluate(() => !!document.querySelector('#pdfScroll .psl[data-n="0"] canvas')), s9);
+  await p.evaluate(async () => { selDone(); psBox().scrollTop = 3000; await new Promise(r => setTimeout(r, 1500)); });
+  const k9 = await p.evaluate(() => ({ keep: PS.keep.size, layers: document.querySelectorAll('#pdfScroll .textLayer').length }));
+  ok('PDF: the selection gone, the kept text layers far away are freed', k9.keep === 0 && k9.layers <= 8, k9);
+}
+
 ok('no page errors', errs.length === 0, errs);
 console.log(checks.filter(Boolean).length + '/' + checks.length);
 await browser.close();

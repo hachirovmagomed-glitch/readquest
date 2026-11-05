@@ -1,0 +1,38 @@
+{
+ "v": 1,
+ "packs": [
+  {
+   "id": "ru-wikt",
+   "name": "Русский Викисловарь",
+   "lang": "ru",
+   "lic": "CC BY-SA 3.0",
+   "src": "ru.wiktionary.org (Vuizur/ruwiktionary-htmldump-parser, дамп 2022)",
+   "about": "Толковый: значения, примеры, все формы слов",
+   "n": 309035,
+   "size": 31995851,
+   "file": "ru-wikt.rqd"
+  },
+  {
+   "id": "en-wordnet",
+   "name": "WordNet (Принстон)",
+   "lang": "en",
+   "lic": "WordNet 3.1 License (Princeton University)",
+   "src": "wordnet.princeton.edu (npm wordnet-db 3.1.14)",
+   "about": "Английский толковый Принстонского университета",
+   "n": 83253,
+   "size": 4887607,
+   "file": "en-wordnet.rqd"
+  },
+  {
+   "id": "en-webster1913",
+   "name": "Webster 1913",
+   "lang": "en",
+   "lic": "Public domain (Project Gutenberg #29765)",
+   "src": "gutenberg.org/ebooks/29765",
+   "about": "Большой английский словарь 1913 года, хорош для классики",
+   "n": 99371,
+   "size": 8232033,
+   "file": "en-webster1913.rqd"
+  }
+ ]
+}

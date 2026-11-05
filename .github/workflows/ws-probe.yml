@@ -1,0 +1,78 @@
+# Temporary (thread up771x, 05.11): how many books each author in «Авторы» finds in every library. Removed after.
+name: ws-probe
+on:
+  push:
+    branches: [claude/project-thread-up771x]
+    paths: [.github/workflows/ws-probe.yml]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: claude/project-thread-up771x }
+      - run: |
+          cat > /tmp/p.py <<'PY'
+          import json,urllib.request,urllib.parse,time,re,unicodedata
+          UA={'User-Agent':'readquest-probe/1.0 (github actions)'}
+          def get(u):
+              for i in range(4):
+                  try: return urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60).read().decode('utf-8','replace')
+                  except Exception as e: print('retry',u[:100],e); time.sleep(10*(i+1))
+              return ''
+          def js(u):
+              t=get(u)
+              try: return json.loads(t)
+              except Exception: return {}
+          WS='https://ru.wikisource.org/w/api.php?'
+          def fold(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
+          FREE='(date:[1000-01-01 TO 1929-12-31] OR year:[1000 TO 1929] OR (licenseurl:*publicdomain* AND NOT date:[1930-01-01 TO 2100-12-31] AND NOT year:[1930 TO 2100]))'
+          NOT='NOT collection:(inlibrary OR printdisabled OR lendinglibrary OR internetarchivebooks) NOT access-restricted-item:true'
+          res=[]
+          for label,key,q,en in json.load(open('probe/faces.json')):
+              r={'label':label,'key':key,'q':q,'en':en}
+              name=' '.join(w for w in q.split() if not w.endswith('.')) or q
+              d=js(WS+urllib.parse.urlencode({'action':'query','format':'json','formatversion':2,'list':'search','srnamespace':102,'srlimit':10,'srsearch':name}))
+              ws=[w.replace('ё','е') for w in q.lower().split()]
+              found=[]
+              for h in d.get('query',{}).get('search',[]):
+                  tw=h['title'].replace('Автор:','').lower().replace('ё','е').split()
+                  if all((any(x[0]==w[0] for x in tw) if w.endswith('.') else w in tw) for w in ws): found.append(h['title'])
+              r['ws_pages']=found
+              if len(found)>=1:
+                  p=js(WS+urllib.parse.urlencode({'action':'parse','format':'json','formatversion':2,'prop':'text','page':found[0]}))
+                  html=p.get('parse',{}).get('text','')
+                  html=re.sub(r'(?s)<(table|div)[^>]*class="[^"]*navbox.*?</\1>','',html)
+                  seen=set();n=0
+                  for m in re.finditer(r'<a ([^>]*)>',html):
+                      a=m.group(1)
+                      if 'class="new"' in a: continue
+                      t=re.search(r'title="([^"]*)"',a)
+                      if not t: continue
+                      t=t.group(1).replace('&quot;','"').replace('&amp;','&');root=t.split('/')[0]
+                      if re.match(r'^[^:]+:\S',t) or '(' not in root or re.search(r'/ДО$|\(ДО\)|в старой орфографии',t) or root in seen: continue
+                      seen.add(root);n+=1
+                  r['ws_books']=n
+              s=js(WS+urllib.parse.urlencode({'action':'query','format':'json','formatversion':2,'list':'search','srnamespace':0,'srlimit':40,'srsearch':q}))
+              sur=q.split()[-1].lower().replace('ё','е')
+              r['ws_search_byname']=sum(1 for h in s.get('query',{}).get('search',[]) if sur in h['title'].lower().replace('ё','е') and '(' in h['title'])
+              lat=fold(en).replace('-',' ');lsur=lat.split()[-1].lower()
+              g=get('https://www.gutenberg.org/ebooks/search.opds/?sort_order=downloads&query='+urllib.parse.quote(lat))
+              ents=re.findall(r'(?s)<entry>(.*?)</entry>',g)
+              r['gut']=sum(1 for e in ents if re.search(r'/ebooks/\d+\.opds',e) and lsur in fold(re.sub('<[^>]+>',' ',(re.search(r'(?s)<content[^>]*>(.*?)</content>',e) or re.search('()',''))[1] if re.search(r'(?s)<content[^>]*>(.*?)</content>',e) else '')).lower())
+              r['gut_all']=len(ents)
+              se=get('https://standardebooks.org/ebooks?view=list&per-page=24&query='+urllib.parse.quote(lat))
+              r['se']=len(re.findall(r'<li[^>]*about="/ebooks/[^"/]+/[^"]+"',se))
+              for tag,nm in (('ia_ru',name),('ia_en',lat)):
+                  w=' AND '.join(re.sub(r'[+\-&|!(){}\[\]^"~*?:\\/]',' ',nm).split())
+                  qq=' AND '.join(['creator:('+w+')','mediatype:texts','format:DjVuTXT',FREE,NOT])
+                  d=js('https://archive.org/advancedsearch.php?'+urllib.parse.urlencode({'q':qq,'fl[]':'identifier','rows':1,'output':'json'}))
+                  r[tag]=d.get('response',{}).get('numFound',-1)
+              print(json.dumps(r,ensure_ascii=False),flush=True);res.append(r);time.sleep(1)
+          json.dump(res,open('probe/out.json','w'),ensure_ascii=False,indent=0)
+          PY
+          python3 /tmp/p.py
+      - run: |
+          git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
+          git add probe/out.json && git commit -m "probe: книги авторов по библиотекам" && git push

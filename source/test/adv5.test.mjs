@@ -4,7 +4,8 @@
 //  3) «Вам может понравиться» по прочитанному, без сети;
 //  4) испытания месяца: прогресс по дочитанным книгам, «Забрать» даёт монеты один раз, значок «Испытатель»;
 //  5) каталог без интернета: последний список и открытая карточка видны без сети, и после перезапуска;
-//  6) оригинал и перевод по абзацам: отдельная книга «· с переводом», перевод под каждым абзацем (движок перевода подменён).
+//  6) оригинал и перевод по абзацам: отдельная книга «· с переводом», перевод под каждым абзацем (движок перевода подменён);
+//  8) 05.11 книги автора из всех библиотек: Викитека, Интернет-архив, Standard Ebooks, Гутенберг; книги о нём, а не его, отсеиваются.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node adv5.test.mjs
 import puppeteer from 'puppeteer-core';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
@@ -39,8 +40,13 @@ p.on('request', r => {
     else if (u.pathname.indexOf('/download/') === 0) r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: ALICE });
     else r.respond({ status: 404, headers: CORS, body: '' });
   } else if (u.host === 'ru.wikisource.org') r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(u.searchParams.get('action') === 'opensearch' ? ['', [], [], []] : { query: { search: [], pages: [] } }) });
-  else if (u.host === 'www.gutenberg.org') r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: '<feed xmlns="http://www.w3.org/2005/Atom"></feed>' });
-  else if (u.host === 'standardebooks.org') r.respond({ status: 200, contentType: 'text/html', headers: CORS, body: '<html><body><ol class="ebooks-list list"></ol></body></html>' });
+  else if (u.host === 'www.gutenberg.org') { const tol = /tolstoy/i.test(u.searchParams.get('query') || '');
+    r.respond({ status: 200, contentType: 'application/atom+xml; charset=UTF-8', headers: CORS, body: '<feed xmlns="http://www.w3.org/2005/Atom">' + (tol ?
+      '<entry><id>https://www.gutenberg.org/ebooks/2600.opds</id><title>War and Peace</title><content type="text">graf Leo Tolstoy</content></entry>' +
+      '<entry><id>https://www.gutenberg.org/ebooks/9999.opds</id><title>Reminiscences of Tolstoy</title><content type="text">Ilya Tolstoy</content></entry>' +
+      '<entry><id>https://www.gutenberg.org/ebooks/8888.opds</id><title>Tolstoy as Man and Artist</title><content type="text">Dmitry Merezhkovsky</content></entry>' : '') + '</feed>' }); }
+  else if (u.host === 'standardebooks.org') { const tol = /tolstoy/i.test(u.searchParams.get('query') || '');
+    r.respond({ status: 200, contentType: 'text/html', headers: CORS, body: '<html><body><ol class="ebooks-list list">' + (tol ? '<li about="/ebooks/leo-tolstoy/anna-karenina/constance-garnett"><span property="schema:name">Anna Karenina</span><p class="author"><a href="/ebooks/leo-tolstoy">Leo Tolstoy</a></p></li>' : '') + '</ol></body></html>' }); }
   else r.continue();
 });
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };
@@ -163,6 +169,19 @@ const s7 = await p.evaluate(async () => { el('bookSheet').classList.add('hidden'
   await advAuthor('Тэффи'); for (let i = 0; i < 30 && ADV.busy; i++) await new Promise(r => setTimeout(r, 100));
   return { n: faces.length, uniq: new Set(srcs).size, bad: srcs.filter((u, i) => !ok[i]), a: o1 === o1b, b: o1 !== o2, women, fallback: { q: ADV.q, set: ADV.set, err: ADV.err } }; });
 ok('7 «Авторы»: больше 80 портретов, есть писательницы, файлы на месте, без повторов; порядок новый при каждом открытии «Приключений» и не скачет при перерисовке; автор без страницы на Викитеке ищется по имени', s7.n >= 80 && s7.women >= 6 && s7.uniq === s7.n && !s7.bad.length && s7.a && s7.b && s7.fallback.q === 'Тэффи' && s7.fallback.set === null, s7);
+
+// 8. 05.11 «у многих писателей не высвечиваются никакие книги»: the author's books from every library
+const s8 = await p.evaluate(async () => {
+  const f = advFaces().find(x => x[1] === 'tolstoy'), lat = ADV_FACE_LAT.tolstoy;
+  await advAuthor(f[2], lat); for (let i = 0; i < 40 && ADV.busy; i++) await new Promise(r => setTimeout(r, 100));
+  const rows = Array.from(document.querySelectorAll('#advList > .advrow[data-i]')).map(b => [b.querySelector('b').textContent, (b.querySelector('.advtags .chip') || {}).textContent || '']);
+  const line = (document.querySelectorAll('#advList .advalt')[0] || {}).textContent || '';
+  const n = Object.keys(ADV_FACE_LAT).length, faces = advFaces().length, noLat = advFaces().filter(x => !ADV_FACE_LAT[x[1]]).map(x => x[1]);
+  return { set: ADV.set, rows, line, lat, n, faces, noLat }; });
+ok('8 портрет автора без страницы на Викитеке: его книги из Интернет-архива, Standard Ebooks и Гутенберга с подписью библиотеки; книги о нём других авторов отсеяны; у всех портретов есть латинское имя',
+  s8.set === 'author' && s8.lat === 'Leo Tolstoy' && s8.noLat.length === 0 && s8.n >= s8.faces &&
+  JSON.stringify(s8.rows) === JSON.stringify([['Война и мир', 'Интернет-архив'], ['Anna Karenina', 'Standard Ebooks'], ['War and Peace', 'Гутенберг'], ['Reminiscences of Tolstoy', 'Гутенберг']]) &&
+  s8.line === '4 в других библиотеках', s8);
 
 ok('нет ошибок страницы и окон', errs.length === 0 && dialogs.length === 0, { errs, dialogs });
 const n = checks.filter(Boolean).length; console.log('SUMMARY adv5.test ' + n + '/' + checks.length);

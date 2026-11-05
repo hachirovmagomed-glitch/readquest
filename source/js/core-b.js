@@ -549,7 +549,7 @@ function aiChatNorm(o){ /* = storage/schema.js aiChatMap */
     if(l.length)out[k]=l;});
   return out;
 }
-/* 20.10 нейросетевая озвучка (arch.md): prov system|openai|elevenlabs|google|custom, остальное строки */
+/* 20.10 нейросетевая озвучка (arch.md): prov system|openai|elevenlabs|google|yandex|xai|custom (yandex, xai — 05.11), остальное строки */
 /** 29.10 S.yearGoal {y, n} (books a year) / S.bookGoals {<book id>: 'YYYY-MM-DD'} (arch.md) — same rules as storage/schema.js */
 function yearGoalNorm(g){return (g&&typeof g==='object'&&Number.isInteger(g.y)&&g.y>=2000&&g.y<=2100&&Number.isInteger(g.n)&&g.n>=1&&g.n<=365)?{y:g.y,n:g.n}:null;}
 function bookGoalsNorm(o){const r={};if(!o||typeof o!=='object'||Array.isArray(o))return r;
@@ -563,6 +563,6 @@ function aiPrefNorm(o){o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};const 
 function ttsNorm(t){
   if(!t||typeof t!=='object')t={};
   ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});
-  if(['system','openai','elevenlabs','google','custom'].indexOf(t.prov)<0)t.prov='system';
+  if(['system','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
   t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
 }

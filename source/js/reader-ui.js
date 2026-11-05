@@ -1318,6 +1318,9 @@ const TTS_PROV={
   openai:{name:'OpenAI',voice:'nova',voices:'alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer'},
   elevenlabs:{name:'ElevenLabs',voice:'JBFqnCBsd6RMkjVDRZzb',voices:'ID голоса из библиотеки ElevenLabs'},
   google:{name:'Google',voice:'ru-RU-Wavenet-D',voices:'ru-RU-Wavenet-A…E, ru-RU-Standard-A…E'},
+  /* 05.11 Джессика: «Можем добавить сюда грок и яндекс?» — Яндекс SpeechKit (API v1) и Грок (xAI /v1/tts), тоже на своём ключе */
+  yandex:{name:'Яндекс',voice:'alena',voices:'alena, filipp, ermil, jane, omazh, zahar, madirus'},
+  xai:{name:'Грок',voice:'eve',voices:'ara, eve, leo, rex, sal'},
   custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
 };
 function nttsCfg(){const t=S.tts||{};const p=TTS_PROV[t.prov]?t.prov:'system';
@@ -1333,6 +1336,13 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
   if(c.prov==='elevenlabs'){
     r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
       headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify({text:text,model_id:'eleven_multilingual_v2'})});
+  }else if(c.prov==='yandex'){ /* SpeechKit v1: параметры формой; ключ сервисного аккаунта (Api-Key) или IAM-токен t1.… (Bearer) */
+    r=await net('https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize',{method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':(/^t1\./.test(c.key)?'Bearer ':'Api-Key ')+c.key},
+      body:new URLSearchParams({text:text,lang:'ru-RU',voice:c.voice,format:'mp3'}).toString()});
+  }else if(c.prov==='xai'){ /* Грок: ответ сразу mp3; язык auto — книга может быть и не на русском */
+    r=await net('https://api.x.ai/v1/tts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify({text:text,voice_id:c.voice,language:'auto'})});
   }else if(c.prov==='google'){
     r=await net('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({input:{text:text},voice:{languageCode:'ru-RU',name:c.voice},audioConfig:{audioEncoding:'MP3'}})});
@@ -1345,7 +1355,7 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
   if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
   if(r.status===402)throw new Error('на счёте сервиса нет денег');
   if(r.status===429)throw new Error('слишком много запросов или кончился лимит');
-  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||'';}catch(e){}
+  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||(d&&(d.error_message||d.message))||'';}catch(e){}
     throw new Error((typeof m==='string'&&m?m.slice(0,120):'сервис ответил '+r.status));}
   if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');
     const bin=atob(d.audioContent),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Blob([u8],{type:'audio/mpeg'});}

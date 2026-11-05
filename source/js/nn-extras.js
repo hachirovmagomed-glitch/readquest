@@ -5,7 +5,7 @@
    8 перевод: место на телефоне и язык по умолчанию · 9 что уходит в сервис и «Стереть все ключи». Keys stay only on the phone (S.ai.key / S.tts.key). */
 const NN_LANG={ru:'Отвечай по-русски.',en:'Answer in English.',book:'Отвечай на языке книги.'};
 /* rough prices, USD: AI per 1M tokens (input and output mixed), neural voice per 1M characters; ~3 characters a token */
-const NN_PRICE_AI={deepseek:0.7,openrouter:0.7,openai:0.4,anthropic:3,custom:0},NN_PRICE_TTS={openai:15,google:16,elevenlabs:0,custom:0};
+const NN_PRICE_AI={deepseek:0.7,openrouter:0.7,openai:0.4,anthropic:3,custom:0},NN_PRICE_TTS={openai:15,google:16,elevenlabs:0,yandex:0,xai:15,custom:0};
 const NN_LIM=[0,10,20,30,50,100,200];
 const NN_CHK={ai:'',tts:'',tr:''};let nnChecking=false;
 function aiPref(){if(!S.aiPref)S.aiPref=aiPrefNorm(null);return S.aiPref;}
@@ -80,7 +80,7 @@ el('ttsVoicesBtn').onclick=async function(){
   const box=el('ttsVoices'),r=el('ttsTestRes'),p=TTS_PROV[S.tts.prov]?S.tts.prov:'system';if(!box.hidden){box.hidden=true;return;}
   let list=[];
   try{
-    if(p==='openai')list=TTS_PROV.openai.voices.split(/,\s*/).map(function(v){return [v,v];});
+    if(p==='openai'||p==='yandex')list=TTS_PROV[p].voices.split(/,\s*/).map(function(v){return [v,v];});
     else{
       if(!nttsOn()){r.textContent=nttsCfg().key?'Укажите адрес API':'Сначала вставьте ключ';return;}
       if(p==='custom'){r.textContent='У этого сервиса голос вписывается руками';return;}
@@ -88,6 +88,13 @@ el('ttsVoicesBtn').onclick=async function(){
       if(p==='google'){const res=await aiFetch('https://texttospeech.googleapis.com/v1/voices?languageCode=ru-RU&key='+encodeURIComponent(S.tts.key));const d=await res.json().catch(function(){return null;});
         if(!res.ok)throw new Error(res.status===403||res.status===401?'сервис не принял ключ':'сервис ответил '+res.status);
         list=((d&&d.voices)||[]).map(function(v){return [v.name,v.name.replace(/^ru-RU-/,'')+(v.ssmlGender==='FEMALE'?' ж':v.ssmlGender==='MALE'?' м':'')];});}
+      else if(p==='xai'){ /* встроенные голоса Грока; если список не пришёл — пять известных */
+        try{const res=await aiFetch('https://api.x.ai/v1/tts/voices',{headers:{'Authorization':'Bearer '+S.tts.key}});
+          if(res.status===401||res.status===403)throw new Error('сервис не принял ключ');const d=await res.json().catch(function(){return null;});
+          const a=Array.isArray(d)?d:((d&&(d.voices||d.data))||[]);
+          list=a.map(function(v){if(typeof v==='string')return [v,v];const id=v&&(v.voice_id||v.id||v.name);return id?[String(id),String(v.name||id)]:null;}).filter(Boolean);}
+        catch(e){if(/не принял/.test(e.message))throw e;}
+        if(!list.length)list=TTS_PROV.xai.voices.split(/,\s*/).map(function(v){return [v,v];});}
       else if(p==='elevenlabs'){const res=await aiFetch('https://api.elevenlabs.io/v1/voices',{headers:{'xi-api-key':S.tts.key}});const d=await res.json().catch(function(){return null;});
         if(!res.ok)throw new Error(res.status===401||res.status===403?'сервис не принял ключ':'сервис ответил '+res.status);
         list=((d&&d.voices)||[]).map(function(v){return [v.voice_id,v.name];});}

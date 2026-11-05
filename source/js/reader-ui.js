@@ -216,10 +216,33 @@ function rqSelWhere(s){
   const c=el('content');return c&&c.contains(n)?'book':'';
 }
 const RQ_LOOK={a:'а',e:'е',o:'о',p:'р',c:'с',x:'х',y:'у',A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',X:'Х'};
-function rqPlainFix(t,ocr){
+/* 05.11 (Джессика выбрала «старая орфография»): a copy of a pre-1918 text in modern spelling when SET.rm.orth is on. Only a text
+   that has old letters (ѣ, і, ѳ, ѵ or ъ ending a word) is touched, so «низко», «благо» and a modern book never change: ѣ→е, і/ѵ→и,
+   ѳ→ф, ъ at a word's end dropped, -аго/-яго → -ого/-его (not in names), -ыя → -ые, ея → её, без/воз/из/раз/чрез before a voiceless
+   consonant → с. */
+const RQ_ORTH_L='а-яёѣіѳѵ',RQ_ORTH_X={благо:1,наго:1,драго:1};
+function rqOrth(t){
+  t=String(t||'');
+  if(!/[ѣѢіІѳѲѵѴ]|[бвгджзклмнпрстфхцчшщБВГДЖЗКЛМНПРСТФХЦЧШЩ][ъЪ](?![а-яёА-ЯЁѣѢіІѳѲѵѴ])/.test(t))return t;
+  const W=new RegExp('[А-ЯЁа-яёѢѣІіѲѳѴѵ]+','g');
+  return t.replace(W,function(w){
+    let x=w.replace(/ѣ/g,'е').replace(/Ѣ/g,'Е').replace(/[іѵ]/g,'и').replace(/[ІѴ]/g,'И').replace(/ѳ/g,'ф').replace(/Ѳ/g,'Ф');
+    x=x.replace(/([бвгджзклмнпрстфхцчшщБВГДЖЗКЛМНПРСТФХЦЧШЩ])[ъЪ]$/,'$1');
+    const lo=x.toLowerCase(),up=x===x.toUpperCase()&&x.length>1,cap=!up&&x.charAt(0)!==lo.charAt(0);
+    let y=lo;
+    if(y.length>=5&&!cap&&!RQ_ORTH_X[y])y=y.replace(/аго$/,'ого').replace(/яго$/,'его');
+    if(y.length>=5)y=y.replace(/ыя$/,'ые');
+    if(y==='ея')y='её';
+    y=y.replace(/^(без|воз|из|раз|чрез)(?=[кпстфхцчшщ])/,function(p){return p.slice(0,-1)+'с';});
+    if(y===lo)return x;
+    return up?y.toUpperCase():cap?y.charAt(0).toUpperCase()+y.slice(1):y;
+  });
+}
+function rqPlainFix(t,ocr,raw){ /* raw (05.11, «Читать текстом»): the book's own text — note marks and the spelling stay */
   t=String(t||'').replace(/\u00AD/g,'').replace(/[\u00A0\u2007\u202F]/g,' ').replace(/[\uFB00-\uFB06]/g,function(c){return c.normalize('NFKC');});
-  t=t.replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
+  if(!raw)t=t.replace(/([^\s⁰¹²³⁴⁵⁶⁷⁸⁹])[⁰¹²³⁴⁵⁶⁷⁸⁹]{1,3}/g,'$1').replace(/(\S)[\[{]\d{1,3}[\]}]/g,'$1').replace(/([а-яё»)!?…])\d{1,3}(?=[\s.,;:!?…»)\u2013\u2014-]|$)/gi,'$1');
   if(ocr)t=t.replace(/[A-Za-zА-Яа-яЁё]+/g,function(w){return /[А-Яа-яЁё]/.test(w)&&/[A-Za-z]/.test(w)&&[...w].every(function(c){return /[А-Яа-яЁё]/.test(c)||RQ_LOOK[c];})?[...w].map(function(c){return RQ_LOOK[c]||c;}).join(''):w;});
+  if(!raw&&typeof rqRm==='function'&&rqRm().orth)t=rqOrth(t);
   return t.replace(/ *\t */g,'\t').replace(/ +/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
 }
 function rqSelPlain(s){
@@ -423,7 +446,7 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
     '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s>'+L('Начало')+'</button>'+b('ssX','x','Снять выделение','Снять')+'<hr>'+
     '<div id="ssCnt" role="button" tabindex="0"></div>'+
     '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>'+
-    '<div id="ssMenu" role="menu" aria-label="Действия" hidden></div><div id="ssColBox" role="group" aria-label="Цвет цитаты" hidden></div>';
+    '<div id="ssMove" aria-hidden="true"><i></i></div><div id="ssMenu" role="menu" aria-label="Действия" hidden></div><div id="ssColBox" role="group" aria-label="Цвет цитаты" hidden></div>';
   el('reader').appendChild(n);
   n.addEventListener('mousedown',function(e){e.preventDefault();}); /* a click here never takes the selection away */
   const tap=function(f){return function(){if(SS.moved){SS.moved=false;return;}f();};};
@@ -442,11 +465,33 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
       const r=n.getBoundingClientRect();n.classList.remove('drag');n.style.left=n.style.right='';
       SET.selSide={s:r.left+r.width/2<innerWidth/2?'L':'R',y:Math.round((r.top+r.height/2)/innerHeight*1000)/1000};saveSet();ssPlace();};
     h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);});
+  ssMoveBind(n);
   return n;}
+/* 05.11 (Джессика: «плашку … с цветами и прочими настройками можно было перемещать пальцем по экрану … намного удобнее, чем если плашка
+   будет скакать то вниз, то вверх»): in the looks «Плашка», «У текста», «Полоса снизу», «С подписями» the menu is dragged by a finger from
+   anywhere on it (a button under the finger is not pressed then) and stays where it was put, for this look (SET.selPin[look] = {x,y}: 0…1 of
+   the free room); it no longer jumps up and down after the selection. A double tap on the strip on its top edge (#ssMove) gives the place back. */
+function ssPin(){const a=SET.selPin,p=a&&a[ssLook()];return p&&typeof p.x==='number'&&typeof p.y==='number'?p:null;}
+function ssMoveBind(n){let d=null;
+  n.addEventListener('pointerdown',function(e){if(ssLook()==='side'||(e.pointerType==='mouse'&&e.button))return;
+    if(e.target.closest&&e.target.closest('#ssMenu'))return; /* the list «Ещё» is for tapping */
+    const r=n.getBoundingClientRect();d={id:e.pointerId,x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,w:r.width,h:r.height,go:false};});
+  n.addEventListener('pointermove',function(e){if(!d||e.pointerId!==d.id)return;
+    if(!d.go){if(Math.hypot(e.clientX-d.x,e.clientY-d.y)<10)return;d.go=true;try{n.setPointerCapture(e.pointerId);}catch(er){}n.classList.add('drag','pinned');n.classList.remove('attop');}
+    const W=innerWidth,H=innerHeight,x=Math.max(0,Math.min(W-d.w,e.clientX-d.dx)),y=Math.max(0,Math.min(H-d.h,e.clientY-d.dy));
+    if(ssLook()!=='dock')n.style.left=Math.round(x)+'px';n.style.top=Math.round(y)+'px';});
+  const up=function(e){if(!d||e.pointerId!==d.id)return;const g=d;d=null;if(!g.go)return;n.classList.remove('drag');
+    SS.moved=true;setTimeout(function(){SS.moved=false;},400);
+    const r=n.getBoundingClientRect(),W=innerWidth,H=innerHeight,q=function(v){return Math.round(Math.max(0,Math.min(1,v))*1000)/1000;};
+    SET.selPin=Object.assign({},SET.selPin||{});SET.selPin[ssLook()]={x:q(W>r.width?r.left/(W-r.width):.5),y:q(H>r.height?r.top/(H-r.height):.5)};saveSet();ssPlace();};
+  n.addEventListener('pointerup',up);n.addEventListener('pointercancel',up);
+  n.addEventListener('click',function(e){if(SS.moved&&ssLook()!=='side'){e.stopPropagation();e.preventDefault();}},true); /* the end of a drag is not a tap on a button */
+  let t0=0;el('ssMove').addEventListener('pointerup',function(){const t=Date.now();if(t-t0<350&&!SS.moved&&ssPin()){t0=0;const a=Object.assign({},SET.selPin);delete a[ssLook()];SET.selPin=a;saveSet();ssPlace();flashMsg('Меню снова на своём месте',{kind:'info',icon:'highlighter'});return;}t0=t;});
+}
 /** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
-function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag)return;const p=ssPos();n.dataset.side=p.s;
+function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag||n.classList.contains('drag'))return;const p=ssPos();n.dataset.side=p.s;
   if(ssLook()!=='side'){ssPlaceLook(n);return;}
-  n.style.left=n.style.right='';n.classList.remove('attop');
+  n.style.left=n.style.right='';n.classList.remove('attop','pinned');
   const ch=rqIcon(p.s==='L'?'chevron-right':'chevron-left',18),cf=rqIcon(p.s==='L'?'chevron-left':'chevron-right',21);
   n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;n.querySelector('#ssGrip .ssChev').innerHTML=rqIcon(p.s==='L'?'chevron-left':'chevron-right',16);
   const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
@@ -457,6 +502,9 @@ function ssSelRects(){const s=window.getSelection();if(!s||s.isCollapsed||!s.ran
    «У текста»: just above the first selected line, or under the last one when there is no room above */
 function ssPlaceLook(n){
   const lk=ssLook(),rs=ssSelRects(),W=innerWidth,H=innerHeight;n.style.right='';
+  const pin=ssPin();n.classList.toggle('pinned',!!pin);
+  if(pin){n.classList.remove('attop');if(lk!=='dock')n.style.left='0px';n.style.top='0px'; /* 05.11: put by a finger — stays there (whole on screen) */
+    const r=n.getBoundingClientRect();if(lk!=='dock')n.style.left=Math.round(Math.max(0,W-r.width)*pin.x)+'px';else n.style.left='';n.style.top=Math.round(Math.max(0,H-r.height)*pin.y)+'px';return;}
   if(lk==='bubble'){n.classList.remove('attop');n.style.left='0px';n.style.top='0px';
     const r=n.getBoundingClientRect(),w=r.width,h=r.height;let x=(W-w)/2,y=H*.4;
     if(rs.length){const a=rs[0],z=rs[rs.length-1],mid=(Math.min(a.left,z.left)+Math.max(a.right,z.right))/2;x=mid-w/2;
@@ -534,13 +582,13 @@ const SM_W=/[\p{L}\p{N}'’́-]/u;
 function smWord(p){const t=p[0].nodeValue;let a=p[1],z=p[1];
   if(!SM_W.test(t[a]||'')&&SM_W.test(t[a-1]||''))a=z=a-1;
   while(a>0&&SM_W.test(t[a-1]))a--;while(z<t.length&&SM_W.test(t[z]))z++;
-  if(a===z){if(/\s/.test(t[a]||''))return null;z=a+1;}return [[p[0],a],[p[0],z]];}
+  if(a===z){if(a>=t.length||/\s/.test(t[a]||''))return a>=t.length&&a>0?[[p[0],a-1],[p[0],a]]:null;z=a+1;}return [[p[0],a],[p[0],z]];} /* 05.11: a finger right of a paragraph's last line (after its «.») — that last character, not an offset past the text (comparePoint threw, the end stopped) */
 function smCmp(a,b){const r=document.createRange();r.setStart(a[0],a[1]);return r.comparePoint(b[0],b[1]);} /* 1: b after a */
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
 function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
 function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
   return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f;}
-function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smDraw();}
+function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smLock(false);smDraw();}
 function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return false;const rg=s.getRangeAt(0);if(!smInText(rg.commonAncestorContainer))return false;
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
 /** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
@@ -556,7 +604,7 @@ function smTapAt(cx,cy){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-S
 function smLpStart(e){
   if(e.target&&e.target.closest&&e.target.closest('button,a,input,#selpop,.smh'))return;
   SM.tapAt=Date.now();SM.lpHeld=false;if(!smOk()||e.touches.length!==1){smLpCancel();return;}
-  const t=e.touches[0];SM.grab=SM.on&&!SM.drag?smGrabAt(t.clientX,t.clientY):null;
+  const t=e.touches[0];SM.grab=SM.on&&!SM.drag?smGrabAt(t.clientX,t.clientY):null;if(SM.grab)smLock(true); /* 05.11: a finger on the end in «Прокрутке» drags it, the text does not scroll away under it */
   smLpCancel();SM.lp={x:t.clientX,y:t.clientY,t:setTimeout(function(){const l=SM.lp;SM.lp=null;if(l)smLongAt(l.x,l.y);},SM_LP[smCfg().lp]||460)};
 }
 const SM_LP={f:300,n:460,s:700};
@@ -569,23 +617,23 @@ function smGrabAt(x,y){const c=smCfg();if(c.drag==='off'||!SM.lo||!SM.hi)return 
   const p=smPt(x,y);if(!p)return null;
   const end=smCmp(SM.hi,p)>0?'hi':smCmp(p,SM.lo)>0?'lo':(db<=da?'hi':'lo');return {x:x,y:y,end:end,dy:22};}
 function smLpCancel(){if(SM.lp){clearTimeout(SM.lp.t);SM.lp=null;}}
-function smLongAt(x,y){const p=smPt(x,y);if(!p)return;const w=smWord(p);if(!w)return;SM.lpAt=Date.now();SM.lpXY=[x,y];SM.lpHeld=true;SM.fdy=null;SM.grab=null;quoteClose();smStart(w[0],w[1]);setTimeout(updSelPop,30);}
+function smLongAt(x,y){const p=smPt(x,y);if(!p)return;const w=smWord(p);if(!w)return;SM.lpAt=Date.now();SM.lpXY=[x,y];SM.lpHeld=true;SM.fdy=null;SM.grab=null;smLock(true);quoteClose();smStart(w[0],w[1]);setTimeout(updSelPop,30);}
 el('viewer').addEventListener('touchstart',smLpStart,{passive:true});
 el('viewer').addEventListener('touchmove',function(e){
   /* 04.11: the finger that made the long press, moved on without lifting, drags the end of the selection (no swipe, no scroll meanwhile);
      a finger put on an end of the selection (or anywhere, by the setting) and moved drags that end. Capture: before the page's swipe sees it. */
   const t=e.touches[0];
   if(SM.on&&e.touches.length===1&&!SM.lpHeld&&SM.grab&&t&&Math.hypot(t.clientX-SM.grab.x,t.clientY-SM.grab.y)>6){SM.lpHeld=true;SM.drag=SM.grab.end;SM.fdy=SM.grab.dy;SM.grab=null;smLpCancel();}
-  if(SM.lpHeld&&SM.on&&e.touches.length===1){if(e.cancelable)e.preventDefault();e.stopPropagation();if(!smCfg().lpd&&SM.fdy==null)return;if(!SM.drag)SM.drag='hi';smDragTo(t.clientX,t.clientY+(SM.fdy!=null?SM.fdy:22));smEdgeAt(t.clientX);return;}
+  if(SM.lpHeld&&SM.on&&e.touches.length===1){if(e.cancelable)e.preventDefault();e.stopPropagation();if(!smCfg().lpd&&SM.fdy==null)return;if(!SM.drag)SM.drag='hi';smLock(true);smFinger(t.clientX,t.clientY,SM.fdy!=null?SM.fdy:22);smEdgeAt(t.clientX);return;}
   const l=SM.lp;if(!l)return;if(!t||Math.abs(t.clientX-l.x)>10||Math.abs(t.clientY-l.y)>10)smLpCancel();},{passive:false,capture:true});
-el('viewer').addEventListener('touchend',function(e){SM.grab=null;if(SM.lpHeld&&!e.touches.length){if(SM.drag)SM.tapAt=0; /* a drag is not a tap: «Снять» right after it clears */SM.drag=null;SM.fdy=null;smEdgeOff();setTimeout(updSelPop,30);}},{passive:true});
+el('viewer').addEventListener('touchend',function(e){SM.grab=null;if(!e.touches.length)smLock(false);if(SM.lpHeld&&!e.touches.length){if(SM.drag)SM.tapAt=0; /* a drag is not a tap: «Снять» right after it clears */SM.drag=null;SM.fdy=null;smEdgeOff();setTimeout(updSelPop,30);}},{passive:true});
 /* «Листать у края»: a dragging finger held at the left / right edge turns the page, the selection goes on there */
 function smEdgeOff(){if(SM.edge){clearTimeout(SM.edge.t);SM.edge=null;}}
 function smEdgeAt(x){const c=smCfg();if(c.edge==='off'){smEdgeOff();return;}const v=el('viewer').getBoundingClientRect(),d=x<v.left+28?-1:x>v.right-28?1:0;
   if(!d||(d<0&&R.mode==='pdf')){smEdgeOff();return;} /* a PDF selection goes on forward only */if(SM.edge&&SM.edge.d===d)return;smEdgeOff();
   SM.edge={d:d,t:setTimeout(function rep(){if(!SM.edge||!SM.on)return;const dr=SM.drag;try{selTurn(d);}catch(e){}SM.drag=dr;SM.edge.t=setTimeout(rep,(c.edge==='f'?600:1000)+400);},c.edge==='f'?600:1000)};}
 el('viewer').addEventListener('touchend',smLpCancel,{passive:true});
-el('viewer').addEventListener('touchcancel',smLpCancel,{passive:true});
+el('viewer').addEventListener('touchcancel',function(){smLpCancel();smLock(false);SM.drag=null;},{passive:true});
 document.addEventListener('pointerdown',function(e){SM.ptr=e.pointerType||'';},true);
 /* Chrome's own selection by touch never starts in the book text (a mouse still selects as usual) */
 document.addEventListener('selectstart',function(e){
@@ -600,14 +648,29 @@ el('viewer').addEventListener('contextmenu',function(e){
 el('viewer').addEventListener('mousedown',function(e){if(SM.on&&SM.ptr!=='mouse')e.preventDefault();},true);
 /* round handles at both ends: dragged, they move that border */
 function smH(id){let h=el(id);if(h)return h;h=document.createElement('div');h.id=id;h.className='smh';h.setAttribute('aria-hidden','true');h.innerHTML='<i></i>';el('reader').appendChild(h);
-  h.addEventListener('touchstart',function(e){e.stopPropagation();if(e.cancelable)e.preventDefault();SM.drag=id==='smLo'?'lo':'hi';h.classList.add('on');},{passive:false});
-  h.addEventListener('touchmove',function(e){if(!SM.drag)return;e.stopPropagation();if(e.cancelable)e.preventDefault();const t=e.touches[0];smDragTo(t.clientX,t.clientY);},{passive:false});
-  const end=function(e){e.stopPropagation();SM.drag=null;h.classList.remove('on');setTimeout(updSelPop,30);};
+  h.addEventListener('touchstart',function(e){e.stopPropagation();if(e.cancelable)e.preventDefault();SM.drag=id==='smLo'?'lo':'hi';smLock(true);h.classList.add('on');},{passive:false});
+  h.addEventListener('touchmove',function(e){if(!SM.drag)return;e.stopPropagation();if(e.cancelable)e.preventDefault();const t=e.touches[0];smFinger(t.clientX,t.clientY,0);},{passive:false});
+  const end=function(e){e.stopPropagation();SM.drag=null;smLock(false);h.classList.remove('on');setTimeout(updSelPop,30);};
   h.addEventListener('touchend',end);h.addEventListener('touchcancel',end);
   h.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();SM.drag=id==='smLo'?'lo':'hi';
-    const mv=function(ev){smDragTo(ev.clientX,ev.clientY);},up=function(){SM.drag=null;document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);setTimeout(updSelPop,30);};
+    const mv=function(ev){smFinger(ev.clientX,ev.clientY,0);},up=function(){SM.drag=null;smAutoOff();document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);setTimeout(updSelPop,30);};
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});
   return h;}
+/* 05.11 (Джессика, видео: «когда я хочу продолжить выделение во время режима прокрутки, оно останавливается»): in «Прокрутке» (text and PDF)
+   a finger dragging an end never scrolls the text under it (a scroll Chrome had already begun — a fling, a few pixels before our touchmove —
+   took the gesture and the end stood still), and held near the top / bottom edge it scrolls the text on, the end following the finger. */
+function smScroller(){if(typeof R==='undefined'||!R||!R.book)return null;if(R.mode==='text')return rqScrollMode()?el('viewer'):null;return R.mode==='pdf'&&typeof PS!=='undefined'&&PS.on?psBox():null;}
+function smLock(on){const rd=el('reader');if(!rd)return;const v=!!on&&!!smScroller();if(rd.classList.contains('smlock')!==v)rd.classList.toggle('smlock',v);if(!v){smAutoOff();SM.fy=null;}}
+/** a dragging finger at x,y; off: how far below the finger the end goes (smDragTo looks 22px above its point) */
+function smFinger(x,y,off){SM.fx=x;SM.fy=y;SM.fo=off||0;smDragTo(x,y+SM.fo);smAuto();}
+function smAutoOff(){if(SM.as){cancelAnimationFrame(SM.as);SM.as=0;}}
+const SM_AZ=72; /* px from the top / bottom edge where the text scrolls by itself */
+function smAuto(){if(SM.as)return;const f=function(){SM.as=0;const c=smScroller();if(!c||!SM.on||!SM.drag||SM.fy==null)return;
+    const b=c.getBoundingClientRect(),y=SM.fy;let d=0;
+    if(y>b.bottom-SM_AZ)d=Math.min(1,(y-(b.bottom-SM_AZ))/SM_AZ);else if(y<b.top+SM_AZ)d=-Math.min(1,(b.top+SM_AZ-y)/SM_AZ);
+    if(!d)return;const t0=c.scrollTop;c.scrollTop=t0+Math.round((d>0?1:-1)*(3+17*Math.abs(d)));if(c.scrollTop===t0)return; /* the start / the end of the book */
+    smDragTo(SM.fx,SM.fy+SM.fo);SM.as=requestAnimationFrame(f);};
+  SM.as=requestAnimationFrame(f);}
 function smDragTo(x,y){
   let p=smPt(x,y-22);if(!p)return; /* the point just above the finger: the finger does not cover it */
   if(smCfg().unit!=='char'){const w=smWord(p);if(w)p=SM.drag==='hi'?(smCmp(SM.lo,w[1])>0?w[1]:w[0]):(smCmp(w[0],SM.hi)>0?w[0]:w[1]);} /* by whole words */
@@ -1295,21 +1358,31 @@ const TTS_PROV={
   openai:{name:'OpenAI',voice:'nova',voices:'alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer'},
   elevenlabs:{name:'ElevenLabs',voice:'JBFqnCBsd6RMkjVDRZzb',voices:'ID голоса из библиотеки ElevenLabs'},
   google:{name:'Google',voice:'ru-RU-Wavenet-D',voices:'ru-RU-Wavenet-A…E, ru-RU-Standard-A…E'},
+  /* 05.11 Джессика: «Можем добавить сюда грок и яндекс?» — Яндекс SpeechKit (API v1) и Грок (xAI /v1/tts), тоже на своём ключе */
+  yandex:{name:'Яндекс',voice:'alena',voices:'alena, filipp, ermil, jane, omazh, zahar, madirus'},
+  xai:{name:'Грок',voice:'eve',voices:'ara, eve, leo, rex, sal'},
   custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
 };
 function nttsCfg(){const t=S.tts||{};const p=TTS_PROV[t.prov]?t.prov:'system';
-  let key=t.key||'';if(!key&&p==='openai'&&S.ai&&S.ai.prov==='openai'&&S.ai.key)key=S.ai.key; /* тот же ключ OpenAI, что у ИИ-помощника */
+  let key=nnKeyClean(t.key);if(!key&&(p==='openai'||p==='yandex'||p==='xai')&&S.ai&&S.ai.prov===p&&S.ai.key)key=S.ai.key; /* тот же ключ, что у ИИ-помощника (OpenAI; 05.11 и Яндекс, Грок) */
   return {prov:p,key:key,voice:t.voice||(TTS_PROV[p].voice||''),base:String(t.base||'').replace(/\/+$/,'')};}
 function nttsOn(){try{const c=nttsCfg();return c.prov!=='system'&&!!c.key&&(c.prov!=='custom'||!!c.base);}catch(e){return false;}}
 let nttsAudio=null,nttsUrl=null,nttsGen=0;const NTTS_CACHE=new Map();
 function nttsHalt(){nttsGen++;if(nttsAudio){try{nttsAudio.pause();nttsAudio.removeAttribute('src');nttsAudio.load();}catch(e){}}
   if(nttsUrl){try{URL.revokeObjectURL(nttsUrl);}catch(e){}nttsUrl=null;}}
 async function nttsFetch(text){ /* → Blob mp3; ошибки понятным русским */
-  const c=nttsCfg();let r;
+  const c=nttsCfg();let r;if(nnKeyBad(c.key))throw new Error(nnKeyBad(c.key));
   const net=async(u,o)=>{try{return await fetch(u,o);}catch(e){throw new Error(navigator.onLine===false?'нет интернета':'нет связи с сервисом');}};
   if(c.prov==='elevenlabs'){
     r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
       headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify({text:text,model_id:'eleven_multilingual_v2'})});
+  }else if(c.prov==='yandex'){ /* SpeechKit v1: параметры формой; ключ сервисного аккаунта (Api-Key) или IAM-токен t1.… (Bearer) */
+    r=await net('https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize',{method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':(/^t1\./.test(c.key)?'Bearer ':'Api-Key ')+c.key},
+      body:new URLSearchParams({text:text,lang:'ru-RU',voice:c.voice,format:'mp3'}).toString()});
+  }else if(c.prov==='xai'){ /* Грок: ответ сразу mp3; язык auto — книга может быть и не на русском */
+    r=await net('https://api.x.ai/v1/tts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify({text:text,voice_id:c.voice,language:'auto'})});
   }else if(c.prov==='google'){
     r=await net('https://texttospeech.googleapis.com/v1/text:synthesize?key='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({input:{text:text},voice:{languageCode:'ru-RU',name:c.voice},audioConfig:{audioEncoding:'MP3'}})});
@@ -1319,11 +1392,7 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
       body:JSON.stringify(Object.assign({model:c.prov==='openai'?'gpt-4o-mini-tts':'tts-1',voice:c.voice,input:text,response_format:'mp3'},
         c.prov==='openai'?{instructions:'Читай по-русски спокойно и выразительно, как аудиокнигу.'}:{}))});
   }
-  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
-  if(r.status===402)throw new Error('на счёте сервиса нет денег');
-  if(r.status===429)throw new Error('слишком много запросов или кончился лимит');
-  if(!r.ok){let m='';try{const d=await r.json();m=(d&&d.error&&(d.error.message||d.error))||(d&&d.detail&&(d.detail.message||d.detail))||'';}catch(e){}
-    throw new Error((typeof m==='string'&&m?m.slice(0,120):'сервис ответил '+r.status));}
+  if(!r.ok){let d=null;try{d=await r.json();}catch(e){}throw new Error(nnHttpErr(r.status,d,c.key)||('сервис ответил '+r.status));}
   if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');
     const bin=atob(d.audioContent),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);return new Blob([u8],{type:'audio/mpeg'});}
   const b=await r.blob();if(!b||!b.size)throw new Error('пустой ответ');return b;

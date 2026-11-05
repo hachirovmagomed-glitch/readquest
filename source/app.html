@@ -758,6 +758,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 .smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .smh i::before{content:'';position:absolute;left:9px;top:-6px;width:2px;height:8px;background:var(--accent)}
 .smh.on i{transform:scale(1.15)}
+#reader.smlock #viewer,#reader.smlock #pdfScroll{overflow-y:hidden!important;touch-action:none!important} /* 05.11: an end of the selection is being dragged in «Прокрутке» — the text stays under the finger (js/reader-ui.js smLock) */
 #reader.smbig .smh{width:56px;height:58px;margin-left:-28px}
 #reader.smbig .smh i{left:14px;top:8px;width:28px;height:28px}
 #reader.smbig .smh i::before{left:13px;top:-8px;height:10px}
@@ -785,6 +786,15 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #selFrom,#selpop.mini{display:none!important}
 #selSide[hidden],#selSide.open #ssTab,#selSide:not(.open) #ssRail,#selSide.pgoff .ssPg,#ssFrom[hidden],#ssRail>button[hidden],#ssN[hidden]{display:none!important}
 #selSide{position:fixed;left:0;top:60%;z-index:62;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* 05.11 the menu (not «Сбоку») is dragged by a finger and stays where it was put (js/reader-ui.js ssMoveBind, SET.selPin); the strip on top shows it moves */
+#ssMove{display:none}
+#selSide:not([data-look="side"]){touch-action:none}
+#selSide:not([data-look="side"]) #ssMove{display:flex;position:absolute;left:50%;top:-11px;transform:translateX(-50%);width:56px;height:22px;align-items:center;justify-content:center;z-index:1;cursor:grab}
+#ssMove i{display:block;width:30px;height:5px;border-radius:3px;background:var(--accent);opacity:.7;box-shadow:0 0 0 2px var(--sheet)}
+#selSide.pinned:not([data-look="side"]){bottom:auto!important;transform:none!important}
+#selSide[data-look="dock"].pinned{left:8px;right:8px}
+#selSide.drag:not([data-look="side"]){opacity:.92;transition:none}
+#selSide.drag #ssMove i{opacity:1}
 #selSide[data-side="R"]{left:auto;right:0}
 #selSide.drag{transition:none;opacity:.9}
 #ssTab,#ssRail{color:var(--txt);background:var(--sheet);background:color-mix(in srgb,var(--sheet) 62%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1.5px solid var(--accent);border-left:0;border-radius:0 20px 20px 0;box-shadow:0 2px 10px rgba(0,0,0,.22)}
@@ -1675,6 +1685,7 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 :is(#aiBody,#trBody,#ocrBody){font-size:0.875rem;line-height:1.6;max-height:55vh;overflow-y:auto}
 :is(#aiBody,#trBody,#ocrBody) .ai-q{color:var(--muted);font-style:italic;margin:6px 0 10px}
 :is(#aiBody,#trBody,#ocrBody) .ai-a{margin-bottom:12px;white-space:pre-wrap}
+#aiBody .ai-else{margin-top:14px}#aiBody .ai-else-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#aiBody .ai-else-row .fchip{min-height:40px;display:inline-flex;align-items:center;gap:4px} /* 05.11 «Спросить в…» без ключа */
 :is(#aiBody,#trBody,#ocrBody) .ai-wait{color:var(--muted)}
 :is(#aiBody,#trBody,#ocrBody) .ghostbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:0 8px 8px 0}
 :is(#aiBody,#trBody,#ocrBody) .ai-note{font-size:0.75rem;color:var(--muted)}
@@ -1846,7 +1857,7 @@ html[data-skin="pencil"] .apptile .chk{background:var(--rq-accent);color:var(--r
 #sheet .rl{flex:1;min-width:0;font-size:0.875rem;color:var(--txt);line-height:1.25;overflow-wrap:break-word}
 #sheet .rl small{display:block;font-size:0.75rem;color:var(--muted);margin-top:2px}
 /* 20.10 SET.pdfFont / SET.pdfTheme: PDF-only rows; text-only rows hidden for PDF; font list and weight only with «Шрифт читалки в PDF» */
-#reader:not(.pdfmode) .pdfonly,#reader.pdfmode .txtonly,#reader.pdfmode:not(.pdffont) .pdffontdep{display:none!important}
+#reader:not(.pdfbook) .pdfbook,#sheet.gsalone .pdfbook,#reader:not(.pdfmode) .pdfonly,#reader.pdfmode .txtonly,#reader.pdfmode:not(.pdffont) .pdffontdep{display:none!important}
 #sheet .rlv{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 #sheet .rlv label{font:inherit;color:inherit;width:auto}
 #sheet .rv{font-size:0.875rem;color:var(--txt);font-variant-numeric:tabular-nums}
@@ -3311,6 +3322,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rrow stack" id="rBookOnlyRow"><span class="rl" id="rBookOnlyL">Оформление текста<small id="rBookOnlyS">шрифт, размер, интервалы и поля</small></span><div class="rseg" id="rBookOnly" role="radiogroup" aria-labelledby="rBookOnlyL"><button type="button" data-v="all" role="radio">Ко всем книгам</button><button type="button" data-v="one" role="radio">Только к этой</button></div></div>
       <div class="rrow pdfonly"><span class="rl" id="pdfFontTglL">Шрифт читалки в PDF<small>текст страницы выбранным шрифтом, как в ReadEra</small></span><button class="rsw" id="pdfFontTgl" role="switch" aria-checked="false" aria-labelledby="pdfFontTglL"></button></div>
       <div class="rrow pdfonly"><span class="rl" id="ocrRowL">Текст страницы<small>распознать скан, скопировать весь текст</small></span><button type="button" class="ghostbtn" id="ocrRowB" aria-describedby="ocrRowL">Открыть</button></div>
+      <div class="rrow pdfbook"><span class="rl" id="ptxtTglL">Читать текстом<small id="ptxtTglS">PDF или распознанный скан как обычная книга: свой шрифт, размер, скины</small></span><button class="rsw" id="ptxtTgl" role="switch" aria-checked="false" aria-labelledby="ptxtTglL"></button></div>
+      <div class="rrow"><span class="rl" id="orthTglL">Современная орфография при копировании<small>для старых книг: ѣ → е, і → и, «миръ» → «мир»</small></span><button class="rsw" id="orthTgl" role="switch" aria-checked="false" aria-labelledby="orthTglL"></button></div>
       <div class="rrow txtonly"><span class="rl" id="szValL">Размер текста</span><div class="rstep" role="group" aria-labelledby="szValL"><button id="szMinus" aria-label="Меньше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="szVal" aria-live="polite"></span><button id="szPlus" aria-label="Больше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="srow pdffontdep"><div class="seg" id="fontSeg"></div></div>
       <div class="rrow txtonly"><span class="rl" id="lhValL">Межстрочный интервал</span><div class="rstep" role="group" aria-labelledby="lhValL"><button id="lhMinus" aria-label="Плотнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="lhVal" aria-live="polite"></span><button id="lhPlus" aria-label="Свободнее"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
@@ -3413,6 +3426,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/sel-tools.js"></script>
 <script src="js/read-more2.js"></script>
 <script src="js/dict.js"></script>
+<script src="js/pdf-more.js"></script>
 <script src="js/alisa.js"></script>
 <script src="js/start.js"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">

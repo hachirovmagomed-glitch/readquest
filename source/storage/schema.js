@@ -354,7 +354,7 @@ export function normRm(o) {
     bion: bo(o.bion, false), cap: bo(o.cap, false), maxw: [0, 55, 65, 75].includes(o.maxw) ? o.maxw : 0,
     ufont: typeof o.ufont === 'string' ? o.ufont.trim().slice(0, 40) : '',
     auto: { sec: typeof a.sec === 'number' && Number.isFinite(a.sec) && a.sec >= 5 && a.sec <= 600 ? Math.round(a.sec) : 0 },
-    fn: bo(o.fn, true),
+    fn: bo(o.fn, true), orth: bo(o.orth, false), // 05.11 orth: pre-1918 spelling → modern in copies (js/reader-ui.js rqOrth)
     zones: Array.isArray(o.zones) && o.zones.length === 9 && o.zones.every((z) => RM_ZONE.includes(z)) ? o.zones.slice() : null,
     sleep: [0, 15, 30, 45, 60, -1].includes(o.sleep) ? o.sleep : 0, ttsHl: bo(o.ttsHl, true), recap: bo(o.recap, true),
     ruler: { on: bo(r.on, false), n: [1, 2, 3].includes(r.n) ? r.n : 1, auto: bo(r.auto, false) },

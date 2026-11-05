@@ -11,6 +11,9 @@ const GS_UISIZE=[['sm','Мелкий'],['md','Обычный'],['lg','Крупн
 /* «Что нового»: the last builds on /test/, newest first (one line each, words of the person who asked for it where possible) */
 const GS_NEWS=[
   ['05.11','Словари: значение слова из меню выделения («Действия → Значение») и двойным тапом; Русский Викисловарь, WordNet (Принстон), Webster 1913 скачиваются в «Чтение → Словари», работают без интернета; свои словари StarDict и Lingvo DSL из файла; ссылки на Oxford, Cambridge, Merriam-Webster, Грамоту'],
+  ['05.11','«Объясни» и «Обсудить книгу» без ключа: кнопки ChatGPT, Грок, Claude, DeepSeek, Алиса открывают нейросеть в вашем аккаунте с готовым вопросом; «Поделиться» — в любое приложение'],
+  ['05.11','ИИ-помощник: новые сервисы Грок (xAI) и YandexGPT для «Объясни», «Обсудить книгу» и перевода «Через ИИ»; один ключ подходит и для озвучки'],
+  ['05.11','Озвучка: новые сервисы Яндекс (SpeechKit) и Грок (xAI), на своём ключе; «Как получить ключ» для обоих'],
   ['05.11','«Кто это?» в меню выделения и «Герои книги» в карточке, без спойлеров; трудные старинные слова со значением по тапу; подсветка диалогов'],
   ['05.11','Когда глава прочитана: итог в дневник и вопрос по главе; «Слово за словом»; «Подобрать за минуту» шрифт, размер и интервалы'],
   ['05.11','«Одной рукой», листание по правому краю, голоса по ролям, «Слушать на ходу»; наборами можно делиться кодом; «как было» у образца в настройках'],
@@ -245,7 +248,7 @@ function gsIndex(){
       const sub=r.querySelector('.sub,.xsub'),box=r.nextElementSibling&&r.nextElementSibling.classList.contains('nnbox')?r.nextElementSibling.textContent:'';
       out.push({t:t,w:GS_SECS[k],k:(t+' '+(sub?sub.textContent:'')+' '+(r.title||'')+' '+box).toLowerCase(),ic:(r.querySelector('use')||{getAttribute:function(){return '';}}).getAttribute('href').replace('#i-',''),go:function(){gsGoRow(k,r);}});});});
   document.querySelectorAll('#sheet .setgrp').forEach(function(g){
-    g.querySelectorAll('.rrow,.srow').forEach(function(r){if(r.classList.contains('pdfonly')||r.id==='rBookOnlyRow')return;
+    g.querySelectorAll('.rrow,.srow').forEach(function(r){if(r.classList.contains('pdfonly')||r.classList.contains('pdfbook')||r.id==='rBookOnlyRow')return;
       const l=r.querySelector('.rl,label,.xl');const t=txt(l);if(!t)return;
       out.push({t:t,w:'Чтение → '+GS_TABS[g.id],k:(t+' '+(l.querySelector('small')?l.querySelector('small').textContent:'')).toLowerCase(),ic:'book-open',go:function(){gsGoSheet(g.id,r);}});});});
   return out;

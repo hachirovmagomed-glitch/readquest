@@ -24,9 +24,9 @@ async function fresh(width, reply) {
   await p.setRequestInterception(true);
   p.on('request', r => {
     const u = r.url();
-    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com)\//.test(u)) {
+    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com|tts\.api\.cloud\.yandex\.net|llm\.api\.cloud\.yandex\.net|api\.x\.ai)\//.test(u)) {
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
-      const q = { url: u, headers: r.headers(), body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
+      const q = { url: u, headers: r.headers(), raw: r.postData() || '', body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
       const a = reply ? reply(q) : { status: 500, json: {} };
       if (a.raw) return r.respond({ status: a.status, headers: CORS, contentType: a.type, body: a.raw });
       return r.respond({ status: a.status, headers: CORS, contentType: 'application/json', body: JSON.stringify(a.json) });
@@ -138,6 +138,56 @@ if (want('custom')) {
   await openAndSelect(p); await p.click('#spAI'); await waitAnswer(p);
   const q = reqs[0] || {};
   ok('custom: поле адреса видно, запрос в <адрес>/chat/completions с моделью человека', vis && q.url === 'https://ai.example.test/v1/chat/completions' && q.body && q.body.model === 'my-model' && /Свой сервис ответил/.test((await sheetText(p)).t), { vis, url: q.url });
+  await ctx.close();
+}
+
+if (want('xaiya')) { /* 05.11: Грок и YandexGPT в ИИ-помощнике */
+  const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { content: 'Ответ сервиса.' } }] } }));
+  await p.evaluate(() => { NN_EXP.ai = true; openGeneralSettings(false,'ai'); [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Грок').click(); });
+  await p.type('#aiKey', 'xai-k1'); await sleep(100);
+  const gx = await p.evaluate(async () => ({ base: !el('aiBase').hidden, on: aiOn(), t: await aiViaKey({ system: 's', user: 'u' }, 20) }));
+  const q = reqs[0] || {};
+  ok('xaiya: Грок — api.x.ai/v1/chat/completions, Bearer, модель по умолчанию; поля адреса нет', !gx.base && gx.on && q.url === 'https://api.x.ai/v1/chat/completions' && q.headers.authorization === 'Bearer xai-k1' && q.body.model === 'grok-4-1-fast-non-reasoning' && /Ответ сервиса/.test(gx.t), { gx, url: q.url, m: q.body && q.body.model });
+  await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'YandexGPT').click(); S.ai.key = 'AQVN-y1'; S.ai.base = ''; save(); renderAiSet(); });
+  const y0 = await p.evaluate(() => ({ vis: !el('aiBase').hidden, ph: el('aiBase').placeholder, on: aiOn(), st: nnStateAi()[1] }));
+  ok('xaiya: YandexGPT — видно поле «ID каталога», без него ключ не включается', y0.vis && /ID каталога/.test(y0.ph) && !y0.on && /Нет ID каталога/.test(y0.st), y0);
+  await p.type('#aiBase', 'b1gabcdefghijklmnopq'); await sleep(100);
+  const y1 = await p.evaluate(async () => ({ on: aiOn(), t: await aiViaKey({ system: 's', user: 'u' }, 20) }));
+  const q2 = reqs[1] || {};
+  ok('xaiya: YandexGPT — llm.api.cloud.yandex.net/v1/chat/completions, модель gpt://<каталог>/yandexgpt-lite/latest, каталог в OpenAI-Project', y1.on && q2.url === 'https://llm.api.cloud.yandex.net/v1/chat/completions' && q2.body.model === 'gpt://b1gabcdefghijklmnopq/yandexgpt-lite/latest' && q2.headers['openai-project'] === 'b1gabcdefghijklmnopq' && q2.headers.authorization === 'Bearer AQVN-y1', { y1, url: q2.url, m: q2.body && q2.body.model });
+  const sh = await p.evaluate(() => { S.tts = { prov: 'yandex', key: '', voice: '', base: '' }; save(); const a = nttsCfg().key; S.ai.prov = 'xai'; S.tts.prov = 'xai'; const b = nttsCfg().key; return { a, b, n: aiNorm({ prov: 'yandex' }).prov }; });
+  ok('xaiya: озвучка Яндекса/Грока без своего ключа берёт ключ ИИ-помощника того же сервиса; aiNorm знает yandex', sh.a === 'AQVN-y1' && sh.b === 'AQVN-y1' && sh.n === 'yandex', sh);
+  await ctx.close();
+}
+
+if (want('errwhy')) { /* 05.11 «сервисы не принимают ключи»: 403 «страна» ≠ «плохой ключ»; ключ чистится */
+  let rep = { status: 403, json: { error: { code: 'unsupported_country_region_territory', message: 'Country, region, or territory not supported' } } };
+  const { ctx, p } = await fresh(390, () => rep);
+  const t = async () => p.evaluate(async () => { try { await nttsFetch('Привет'); return 'ok'; } catch (e) { return e.message; } });
+  await p.evaluate(() => { S.tts = { prov: 'openai', key: ' sk-proj-' + 'a'.repeat(120) + '\n', voice: '', base: '' }; save(); });
+  const a = await t();
+  rep = { status: 429, json: { error: { code: 'insufficient_quota', message: 'You exceeded your current quota' } } }; const b = await t();
+  rep = { status: 401, json: { error: { message: 'Incorrect API key provided' } } }; const c = await t();
+  await p.evaluate(() => { S.tts.key = 'sk-abc…wxyz'; save(); }); const d = await t();
+  const k = await p.evaluate(() => [nnKeyClean(' "sk-1 2\u200B3"\n'), nnKeyClean('Bearer sk-9'), nttsCfg().key]);
+  ok('errwhy: страна → «нужен VPN»; нет денег; плохой ключ со словами сервиса; короткий ключ → «скопирован не целиком»; ключ без пробелов и кавычек',
+    /в вашей стране/.test(a) && /нет денег/.test(b) && /не принял ключ.*Incorrect API key/.test(c) && /не сам ключ/.test(d) && k[0] === 'sk-123' && k[1] === 'sk-9', { a, b, c, d, k });
+  await ctx.close();
+}
+
+if (want('else')) { /* 05.11 «Оба способа»: без ключа — нейросеть в своём аккаунте с готовым вопросом или «Поделиться» */
+  const { ctx, p, reqs } = await fresh(390);
+  await p.evaluate(() => { window.__open = []; window.open = (u) => { window.__open.push(u); return null; }; window.__shared = null; navigator.share = async (o) => { window.__shared = o; };
+    try { navigator.clipboard.writeText = async (t) => { window.__clip = t; }; } catch (e) {} });
+  await openAndSelect(p, 'Хамелеон'); await p.click('#spAI'); await sleep(300);
+  const r = await p.evaluate(async () => { const out = { chips: [...document.querySelectorAll('#aiBody [data-ai-else]')].map(b => b.textContent.trim()) };
+    document.querySelector('#aiBody [data-ai-else="chatgpt"]').click(); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#aiBody [data-ai-else="alice"]').click(); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#aiBody [data-ai-else="share"]').click(); await new Promise(r => setTimeout(r, 100));
+    out.open = window.__open; out.clip = window.__clip || ''; out.shared = window.__shared && window.__shared.text || ''; return out; });
+  ok('else: без ключа — ChatGPT, Грок, Claude, DeepSeek, Алиса, Поделиться; ChatGPT открывается с вопросом в ссылке, Алиса — с вопросом в буфере, «Поделиться» отдаёт вопрос; запросов нет',
+    r.chips.join('|') === 'ChatGPT|Грок|Claude|DeepSeek|Алиса|Поделиться' && /^https:\/\/chatgpt\.com\/\?q=.*%D0%A5%D0%B0%D0%BC%D0%B5%D0%BB%D0%B5%D0%BE%D0%BD/.test(r.open[0]) && r.open[1] === 'https://alice.yandex.ru/' && /Хамелеон/.test(r.clip) && /Хамелеон/.test(r.shared) && /без спойлеров/.test(r.shared) && reqs.length === 0, { chips: r.chips, open: r.open.map(u => u.slice(0, 60)), n: reqs.length });
+  await shot(p, '390-15-bez-klyucha');
   await ctx.close();
 }
 
@@ -303,6 +353,20 @@ if (want('tts')) {
   const g = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size + ':' + b.type; } catch (e) { return e.message; } });
   const q2 = reqs[1] || {};
   ok('tts: Google — ключ в адресе, ru-RU и голос, ответ base64 → звук', /^\d+:audio\/mpeg$/.test(g) && q2.url === 'https://texttospeech.googleapis.com/v1/text:synthesize?key=g-1' && q2.body.voice.languageCode === 'ru-RU' && q2.body.voice.name === 'ru-RU-Wavenet-A', { g, url: q2.url });
+  await p.evaluate(() => { S.tts = { prov: 'yandex', key: 'AQVN-ya-1', voice: '', base: '' }; save(); });
+  const y = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size; } catch (e) { return e.message; } });
+  const q3 = reqs[2] || {}, f3 = new URLSearchParams(q3.raw || '');
+  ok('tts: Яндекс — SpeechKit v1, Api-Key, форма: текст, ru-RU, голос alena, mp3', y > 0 && q3.url === 'https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize' && q3.headers.authorization === 'Api-Key AQVN-ya-1' && f3.get('text') === 'Привет' && f3.get('lang') === 'ru-RU' && f3.get('voice') === 'alena' && f3.get('format') === 'mp3', { y, url: q3.url, raw: q3.raw });
+  await p.evaluate(() => { S.tts = { prov: 'yandex', key: 't1.iam-token', voice: 'filipp', base: '' }; save(); });
+  await p.evaluate(async () => { try { await nttsFetch('Ещё'); } catch (e) {} });
+  const q4 = reqs[3] || {};
+  ok('tts: Яндекс — IAM-токен t1.… уходит как Bearer, свой голос', q4.headers && q4.headers.authorization === 'Bearer t1.iam-token' && new URLSearchParams(q4.raw).get('voice') === 'filipp', { h: q4.headers && q4.headers.authorization });
+  await p.evaluate(() => { S.tts = { prov: 'xai', key: 'xai-1', voice: '', base: '' }; save(); });
+  const x = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size; } catch (e) { return e.message; } });
+  const q5 = reqs[4] || {};
+  ok('tts: Грок — api.x.ai/v1/tts, Bearer, голос eve, язык auto', x > 0 && q5.url === 'https://api.x.ai/v1/tts' && q5.headers.authorization === 'Bearer xai-1' && q5.body.voice_id === 'eve' && q5.body.text === 'Привет' && q5.body.language === 'auto', { x, url: q5.url, body: q5.body });
+  const nn = await p.evaluate(() => [ttsNorm({ prov: 'yandex' }).prov, ttsNorm({ prov: 'xai' }).prov]);
+  ok('tts data: yandex и xai проходят нормализацию', nn[0] === 'yandex' && nn[1] === 'xai', nn);
   await p.evaluate(() => { S.tts = { prov: 'openai', key: '', voice: '', base: '' }; S.ai = { prov: 'openai', key: 'sk-ai', model: '', base: '' }; save(); });
   const sh = await p.evaluate(() => ({ on: nttsOn(), key: nttsCfg().key }));
   ok('tts: OpenAI без своего ключа берёт ключ ИИ-помощника (тоже OpenAI)', sh.on && sh.key === 'sk-ai', sh);
@@ -334,7 +398,7 @@ if (want('compact')) for (const W of [360, 390]) {
   });
   ok('compact ' + W + ': «Нейросети» — три строки (ИИ, озвучка, перевод), всё свёрнуто, карточка не выше 210px', r.r0.ai && r.r0.tts && r.r0.cardH <= 210 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
   ok('compact ' + W + ': строка ИИ раскрывается; список сервисов скрыт за кнопкой «Сервис DeepSeek»', !r.r1.ai && r.r1.list && /Сервис\s*DeepSeek/.test(r.r1.pick) && r.r1.key > 0, r.r1);
-  ok('compact ' + W + ': «Сервис» раскрывает 5 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 5 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
+  ok('compact ' + W + ': «Сервис» раскрывает 7 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 7 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
   await p.evaluate(() => { NN_EXP.ai = false; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
   await shot(p, W + '-13-neyroseti-svernuto');
   await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.aiP = true; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
@@ -349,7 +413,7 @@ if (want('keyhow')) for (const W of [360, 390]) {
     for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
     return out;
   });
-  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com' };
+  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com', 'tts:Яндекс': 'console.yandex.cloud', 'tts:Грок': 'console.x.ai', 'ai:Грок': 'console.x.ai', 'ai:YandexGPT': 'console.yandex.cloud' };
   const bad = Object.keys(want_).filter(k => !r[k] || r[k].a.indexOf('https://' + want_[k]) !== 0 || !/как пароль/.test(r[k].t));
   ok('keyhow ' + W + ': у каждого сервиса шаги, ссылка на страницу ключей и совет про пароль', !bad.length && r['ai:DeepSeek'].tgt === '_blank' && /Проверить ключ/.test(r['ai:DeepSeek'].t) && /Послушать/.test(r['tts:OpenAI'].t) && r['ai:Другой'].a === '' && /адрес API/.test(r['ai:Другой'].t), { bad, deep: r['ai:DeepSeek'] });
   await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')][0].click(); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); });

@@ -562,5 +562,413 @@
   "license": "Public domain",
   "artist": "Unknown authorUnknown author",
   "url": "https://commons.wikimedia.org/wiki/File%3AMadame_de_Lafayette%2C_PA07840.jpg"
+ },
+ "soseki": {
+  "file": "File:Natsume_Soseki_photo.jpg",
+  "license": "Public domain",
+  "artist": "Ogawa Kazumasa",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANatsume_Soseki_photo.jpg"
+ },
+ "akutagawa": {
+  "file": "File:Akutagawa_portrait_Akutagawa_Sakuhinshu_6.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAkutagawa_portrait_Akutagawa_Sakuhinshu_6.jpg"
+ },
+ "ichiyo": {
+  "file": "File:Higuchi_Ichiyou.png",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHiguchi_Ichiyou.png"
+ },
+ "luxun": {
+  "file": "File:LuXun1930.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALuXun1930.jpg"
+ },
+ "hafez": {
+  "file": "File:Anselm_Feuerbach_Hafis_vor_der_Schenke_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Anselm Feuerbach",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAnselm_Feuerbach_Hafis_vor_der_Schenke_%28cropped%29.jpg"
+ },
+ "rumi": {
+  "file": "File:مولانا_اثر_حسین_بهزاد_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Hossein Behzad",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D9%85%D9%88%D9%84%D8%A7%D9%86%D8%A7_%D8%A7%D8%AB%D8%B1_%D8%AD%D8%B3%DB%8C%D9%86_%D8%A8%D9%87%D8%B2%D8%A7%D8%AF_%28cropped%29.jpg"
+ },
+ "dario": {
+  "file": "File:Rubén_Darío.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARub%C3%A9n_Dar%C3%ADo.jpg"
+ },
+ "machado": {
+  "file": "File:Machado_de_Assis_by_Marc_Ferrez.jpg",
+  "license": "Public domain",
+  "artist": "Marc Ferrez / Adam Cuerden",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMachado_de_Assis_by_Marc_Ferrez.jpg"
+ },
+ "sorjuana": {
+  "file": "File:Sor_Juana_by_Miguel_Cabrera_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Miguel Cabrera",
+  "url": "https://commons.wikimedia.org/wiki/File%3ASor_Juana_by_Miguel_Cabrera_%28cropped%29.jpg"
+ },
+ "douglass": {
+  "file": "File:Frederick_Douglass_(circa_1879)_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "George Kendall Warren",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFrederick_Douglass_%28circa_1879%29_%28cropped%29.jpg"
+ },
+ "equiano": {
+  "file": "File:Olaudah_Equiano_-_Project_Gutenberg_eText_15399_(cropped).png",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AOlaudah_Equiano_-_Project_Gutenberg_eText_15399_%28cropped%29.png"
+ },
+ "chernyshevsky": {
+  "file": "File:N_G_Chernyshevsky.jpg",
+  "license": "Public domain",
+  "artist": "Published by Russian Information Bureau, NY, 1918",
+  "url": "https://commons.wikimedia.org/wiki/File%3AN_G_Chernyshevsky.jpg"
+ },
+ "herzen": {
+  "file": "File:Herzen_ge.png",
+  "license": "Public domain",
+  "artist": "Ге Николай Николаевич (1831 -1894)",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHerzen_ge.png"
+ },
+ "korolenko": {
+  "file": "File:Vladimir_Korolenko.jpg",
+  "license": "Public domain",
+  "artist": "Ilya Repin",
+  "url": "https://commons.wikimedia.org/wiki/File%3AVladimir_Korolenko.jpg"
+ },
+ "andreyev": {
+  "file": "File:1912c_Leonid_Andreyev_Autochrome_self-portrait.jpg",
+  "license": "Public domain",
+  "artist": "Leonid Nikolayevich Andreyev (1871 - 1919)",
+  "url": "https://commons.wikimedia.org/wiki/File%3A1912c_Leonid_Andreyev_Autochrome_self-portrait.jpg"
+ },
+ "grin": {
+  "file": "File:Александр_Грин.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%93%D1%80%D0%B8%D0%BD.jpg"
+ },
+ "khlebnikov": {
+  "file": "File:Chlebnikow.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3AChlebnikow.jpg"
+ },
+ "mandelstam": {
+  "file": "File:Mandelshtam17.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMandelshtam17.jpg"
+ },
+ "gumilev": {
+  "file": "File:Ngumil.jpg",
+  "license": "Public domain",
+  "artist": "Karl Bulla",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANgumil.jpg"
+ },
+ "voloshin": {
+  "file": "File:М._Волошин.jpg",
+  "license": "Public domain",
+  "artist": "Pierre Choumoff",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%9C._%D0%92%D0%BE%D0%BB%D0%BE%D1%88%D0%B8%D0%BD.jpg"
+ },
+ "bryusov": {
+  "file": "File:Valery_Bryusov_c._1900.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AValery_Bryusov_c._1900.jpg"
+ },
+ "balmont": {
+  "file": "File:Konstantin_Balmont_by_Valentin_Serov_1905.jpg",
+  "license": "Public domain",
+  "artist": "Valentin Serov",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKonstantin_Balmont_by_Valentin_Serov_1905.jpg"
+ },
+ "bely": {
+  "file": "File:Andrei_Bely_in_Brussels_(1912).jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAndrei_Bely_in_Brussels_%281912%29.jpg"
+ },
+ "sologub": {
+  "file": "File:Fyodor_Sologub.jpg",
+  "license": "Public domain",
+  "artist": "Konstantin Somov",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFyodor_Sologub.jpg"
+ },
+ "garshin": {
+  "file": "File:Илья_Репин_-_Портрет_Всеволод_Михайлович_Гаршин.jpg",
+  "license": "Public domain",
+  "artist": "Ilya Repin",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%98%D0%BB%D1%8C%D1%8F_%D0%A0%D0%B5%D0%BF%D0%B8%D0%BD_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%92%D1%81%D0%B5%D0%B2%D0%BE%D0%BB%D0%BE%D0%B4_%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87_%D0%93%D0%B0%D1%80%D1%88%D0%B8%D0%BD.jpg"
+ },
+ "mamin": {
+  "file": "File:Dmitry_Narkisovich_Mamin-Sibiryak.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ADmitry_Narkisovich_Mamin-Sibiryak.jpg"
+ },
+ "batyushkov": {
+  "file": "File:Konstantin_Batyushkov_portrait.jpg",
+  "license": "CC0",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKonstantin_Batyushkov_portrait.jpg"
+ },
+ "baratynsky": {
+  "file": "File:Evgeny_Boratynsky_by_Francois_Frederic_Chevalier_(1812-1849).jpg",
+  "license": "Public domain",
+  "artist": "François-Frédéric Chevalier",
+  "url": "https://commons.wikimedia.org/wiki/File%3AEvgeny_Boratynsky_by_Francois_Frederic_Chevalier_%281812-1849%29.jpg"
+ },
+ "koltsov": {
+  "file": "File:Koltsov_AV.jpg",
+  "license": "Public domain",
+  "artist": "Kirill Gorbunov",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKoltsov_AV.jpg"
+ },
+ "shevchenko": {
+  "file": "File:Т._Г._Шевченко._Квітень_1859.jpg",
+  "license": "Public domain",
+  "artist": "Andrey Denyer",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%A2._%D0%93._%D0%A8%D0%B5%D0%B2%D1%87%D0%B5%D0%BD%D0%BA%D0%BE._%D0%9A%D0%B2%D1%96%D1%82%D0%B5%D0%BD%D1%8C_1859.jpg"
+ },
+ "ukrainka": {
+  "file": "File:Lesya_Ukrainka_portrait.jpg",
+  "license": "Public domain",
+  "artist": "н.",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALesya_Ukrainka_portrait.jpg"
+ },
+ "mickiewicz": {
+  "file": "File:Adam_Mickiewicz_według_dagerotypu_paryskiego_z_1842_roku.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAdam_Mickiewicz_wed%C5%82ug_dagerotypu_paryskiego_z_1842_roku.jpg"
+ },
+ "sienkiewicz": {
+  "file": "File:Henryk_Sienkiewicz_ca_1885_(45871548)_(cropped).jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHenryk_Sienkiewicz_ca_1885_%2845871548%29_%28cropped%29.jpg"
+ },
+ "konopnicka": {
+  "file": "File:Maria_Konopnicka_fotoportret.jpg",
+  "license": "Public domain",
+  "artist": "Leopold Bude",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMaria_Konopnicka_fotoportret.jpg"
+ },
+ "hasek": {
+  "file": "File:Ярослав_Гашек.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%D0%AF%D1%80%D0%BE%D1%81%D0%BB%D0%B0%D0%B2_%D0%93%D0%B0%D1%88%D0%B5%D0%BA.jpg"
+ },
+ "capek": {
+  "file": "File:Karel-capek.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AKarel-capek.jpg"
+ },
+ "collodi": {
+  "file": "File:Carlo_Collodi.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ACarlo_Collodi.jpg"
+ },
+ "lopedevega": {
+  "file": "File:LopedeVega.jpg",
+  "license": "Public domain",
+  "artist": "Attributed to Eugenio Caxés",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALopedeVega.jpg"
+ },
+ "becquer": {
+  "file": "File:Portrait_of_Gustavo_Adolfo_Bécquer,_by_his_brother_Valeriano_(1862).jpg",
+  "license": "Public domain",
+  "artist": "Valeriano Bécquer",
+  "url": "https://commons.wikimedia.org/wiki/File%3APortrait_of_Gustavo_Adolfo_B%C3%A9cquer%2C_by_his_brother_Valeriano_%281862%29.jpg"
+ },
+ "camoes": {
+  "file": "File:Camões,_por_Fernão_Gomes.jpg",
+  "license": "Public domain",
+  "artist": "Fernão Gomes",
+  "url": "https://commons.wikimedia.org/wiki/File%3ACam%C3%B5es%2C_por_Fern%C3%A3o_Gomes.jpg"
+ },
+ "hoffmann": {
+  "file": "File:E._T._A._Hoffmann,_autorretrato.jpg",
+  "license": "Public domain",
+  "artist": "E. T. A. Hoffmann",
+  "url": "https://commons.wikimedia.org/wiki/File%3AE._T._A._Hoffmann%2C_autorretrato.jpg"
+ },
+ "kafka": {
+  "file": "File:Franz_Kafka,_1923.jpg",
+  "license": "Public domain",
+  "artist": "Unknown photographer",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFranz_Kafka%2C_1923.jpg"
+ },
+ "rilke": {
+  "file": "File:Rainer_Maria_Rilke_1900.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARainer_Maria_Rilke_1900.jpg"
+ },
+ "lessing": {
+  "file": "File:Gotthold_Ephraim_Lessing.PNG",
+  "license": "Public domain",
+  "artist": "Anna Rosina de Gasc",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGotthold_Ephraim_Lessing.PNG"
+ },
+ "suttner": {
+  "file": "File:Bertha_von_Suttner_nobel.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ABertha_von_Suttner_nobel.jpg"
+ },
+ "ibsen": {
+  "file": "File:Ibsen_by_Olrik.jpg",
+  "license": "Public domain",
+  "artist": "Henrik Olrik",
+  "url": "https://commons.wikimedia.org/wiki/File%3AIbsen_by_Olrik.jpg"
+ },
+ "strindberg": {
+  "file": "File:AugustStrindberg.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAugustStrindberg.jpg"
+ },
+ "bjornson": {
+  "file": "File:Portrett_av_Bjørnstjerne_Bjørnson,_1909_-_no-nb_digifoto_20150129_00043_bldsa_BB0791_-_Restoration.jpg",
+  "license": "Public domain",
+  "artist": "Erwin Raupp / Adam Cuerden",
+  "url": "https://commons.wikimedia.org/wiki/File%3APortrett_av_Bj%C3%B8rnstjerne_Bj%C3%B8rnson%2C_1909_-_no-nb_digifoto_20150129_00043_bldsa_BB0791_-_Restoration.jpg"
+ },
+ "hawthorne": {
+  "file": "File:Nathaniel_Hawthorne_by_Brady,_1860-64.jpg",
+  "license": "Public domain",
+  "artist": "Mathew Benjamin Brady",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANathaniel_Hawthorne_by_Brady%2C_1860-64.jpg"
+ },
+ "melville": {
+  "file": "File:Herman_Melville_by_Joseph_O_Eaton.jpg",
+  "license": "Public domain",
+  "artist": "Joseph Oriel Eaton",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHerman_Melville_by_Joseph_O_Eaton.jpg"
+ },
+ "thoreau": {
+  "file": "File:Benjamin_D._Maxham_-_Henry_David_Thoreau_-_Restored.jpg",
+  "license": "Public domain",
+  "artist": "Benjamin D. Maxham active 1848 - 1858",
+  "url": "https://commons.wikimedia.org/wiki/File%3ABenjamin_D._Maxham_-_Henry_David_Thoreau_-_Restored.jpg"
+ },
+ "ohenry": {
+  "file": "File:William_Sydney_Porter_by_doubleday.jpg",
+  "license": "Public domain",
+  "artist": "W.M. Vanderweyde, New York",
+  "url": "https://commons.wikimedia.org/wiki/File%3AWilliam_Sydney_Porter_by_doubleday.jpg"
+ },
+ "irving": {
+  "file": "File:Portrait_of_Washington_Irving_attr._to_Charles_Robert_Leslie.jpg",
+  "license": "Public domain",
+  "artist": "Attributed to Charles Robert Leslie",
+  "url": "https://commons.wikimedia.org/wiki/File%3APortrait_of_Washington_Irving_attr._to_Charles_Robert_Leslie.jpg"
+ },
+ "hardy": {
+  "file": "File:Thomas_Hardy_Restored_Portrait_1910–1915_(3x4_cropped).jpg",
+  "license": "Public domain",
+  "artist": "Bain News Service, publisher",
+  "url": "https://commons.wikimedia.org/wiki/File%3AThomas_Hardy_Restored_Portrait_1910%E2%80%931915_%283x4_cropped%29.jpg"
+ },
+ "conrad": {
+  "file": "File:Joseph_Conrad-remastered_to_black_and_white.png",
+  "license": "Public domain",
+  "artist": "George Charles Beresford",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJoseph_Conrad-remastered_to_black_and_white.png"
+ },
+ "thackeray": {
+  "file": "File:William_Makepeace_Thackeray_by_Jesse_Harrison_Whitehurst-crop.jpg",
+  "license": "Public domain",
+  "artist": "Jesse Harrison Whitehurst",
+  "url": "https://commons.wikimedia.org/wiki/File%3AWilliam_Makepeace_Thackeray_by_Jesse_Harrison_Whitehurst-crop.jpg"
+ },
+ "milton": {
+  "file": "File:John-milton.jpg",
+  "license": "Public domain",
+  "artist": "anonymous",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJohn-milton.jpg"
+ },
+ "rabelais": {
+  "file": "File:Francois_Rabelais_-_Portrait.jpg",
+  "license": "Public domain",
+  "artist": "anonymous / Unidentified painter",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFrancois_Rabelais_-_Portrait.jpg"
+ },
+ "montaigne": {
+  "file": "File:Portrait_of_Michel_de_Montaigne,_circa_unknown.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3APortrait_of_Michel_de_Montaigne%2C_circa_unknown.jpg"
+ },
+ "rousseau": {
+  "file": "File:Maurice_Quentin_de_La_Tour_-_Portrait_of_Jean-Jacques_Rousseau_-_adjusted.jpg",
+  "license": "Public domain",
+  "artist": "Maurice Quentin de La Tour\n\n(Life time: 1788)",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMaurice_Quentin_de_La_Tour_-_Portrait_of_Jean-Jacques_Rousseau_-_adjusted.jpg"
+ },
+ "verlaine": {
+  "file": "File:Netsurf17_-_Paul_Verlaine.png",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANetsurf17_-_Paul_Verlaine.png"
+ },
+ "rimbaud": {
+  "file": "File:Rimbaud.PNG",
+  "license": "Public domain",
+  "artist": "Étienne Carjat",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARimbaud.PNG"
+ },
+ "baudelaire": {
+  "file": "File:Étienne_Carjat,_Portrait_of_Charles_Baudelaire,_circa_1862.jpg",
+  "license": "Public domain",
+  "artist": "Étienne Carjat",
+  "url": "https://commons.wikimedia.org/wiki/File%3A%C3%89tienne_Carjat%2C_Portrait_of_Charles_Baudelaire%2C_circa_1862.jpg"
+ },
+ "zola": {
+  "file": "File:Nadar_(atelier_de)_-_Emile_Zola,_13-556535.jpg",
+  "license": "Public domain",
+  "artist": "Nadar",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANadar_%28atelier_de%29_-_Emile_Zola%2C_13-556535.jpg"
+ },
+ "yeats": {
+  "file": "File:William_Butler_Yeats_by_George_Charles_Beresford.jpg",
+  "license": "Public domain",
+  "artist": "George Charles Beresford",
+  "url": "https://commons.wikimedia.org/wiki/File%3AWilliam_Butler_Yeats_by_George_Charles_Beresford.jpg"
+ },
+ "toru": {
+  "file": "File:Toru_Dutt_portrait.jpg",
+  "license": "Public domain",
+  "artist": "Harihar Das",
+  "url": "https://commons.wikimedia.org/wiki/File%3AToru_Dutt_portrait.jpg"
+ },
+ "naidu": {
+  "file": "File:Sarojini_Naidu_in_1928.jpg",
+  "license": "Public domain",
+  "artist": "Bibliothèque nationale de France",
+  "url": "https://commons.wikimedia.org/wiki/File%3ASarojini_Naidu_in_1928.jpg"
+ },
+ "ramabai": {
+  "file": "File:Pandita_Ramabai_Sarasvati_1858-1922_front-page-portrait.jpg",
+  "license": "Public domain",
+  "artist": "Ramabai Sarasvati, Pandita, 1858-1922",
+  "url": "https://commons.wikimedia.org/wiki/File%3APandita_Ramabai_Sarasvati_1858-1922_front-page-portrait.jpg"
  }
 }

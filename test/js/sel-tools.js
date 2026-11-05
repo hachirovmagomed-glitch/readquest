@@ -156,6 +156,7 @@ function stWiki(){
 async function stAsk(){
   const t=stText();if(!t)return;const b=R.book||{},au=typeof bookAuthor==='function'?bookAuthor(b):'';
   const q='Книга: «'+(b.title||'')+'»'+(au?', '+au:'')+'\nФрагмент: «'+t.slice(0,1500)+'»\n\nОбъясни простым языком, что здесь происходит и что значат непонятные слова. Без спойлеров.';
+  if(typeof aiBackArm==='function'){aiBackCtx({frag:t.slice(0,1500),n:typeof hlSelN==='function'?hlSelN(t):0});aiBackArm({q:q});}
   let ok=false;try{await navigator.clipboard.writeText(q);ok=true;}catch(e){}
   if(!ok&&typeof copyText==='function'){try{copyText(q);ok=true;}catch(e){}}
   if(typeof selDone==='function')selDone();

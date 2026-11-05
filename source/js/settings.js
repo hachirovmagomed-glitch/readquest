@@ -138,7 +138,8 @@ function renderAiSet(){
     b.onclick=()=>{NN_EXP.aiP=false;if(aiProv()!==k){S.ai.prov=k;S.ai.model='';save();el('aiTestRes').textContent='';}renderAiSet();};box.appendChild(b);});
   el('aiHowB').innerHTML=keyHowHtml(p,false);
   el('aiKey').value=(S.ai&&S.ai.key)||'';
-  el('aiBase').hidden=p!=='custom';el('aiBase').value=(S.ai&&S.ai.base)||'';
+  el('aiBase').hidden=p!=='custom'&&p!=='yandex';el('aiBase').value=(S.ai&&S.ai.base)||'';
+  el('aiBase').type=p==='yandex'?'text':'url';el('aiBase').placeholder=p==='yandex'?'ID каталога Yandex Cloud (b1g…)':'Адрес API, например https://api.example.com/v1';el('aiBase').setAttribute('aria-label',p==='yandex'?'ID каталога':'Адрес API');
   el('aiModel').value=(S.ai&&S.ai.model)||'';
   el('aiModel').placeholder='Модель'+(AI_PROV[p].model?' ('+AI_PROV[p].model+')':'');
   renderNn();
@@ -152,13 +153,13 @@ function renderTtsSet(){
   el('ttsFields').hidden=p==='system';
   el('ttsHowB').innerHTML=keyHowHtml(p,true);
   el('ttsKey').value=t.key||'';
-  el('ttsKey').placeholder=p==='openai'&&!t.key&&S.ai&&S.ai.prov==='openai'&&S.ai.key?'Ключ API (сейчас берётся ключ ИИ-помощника)':'Ключ API';
+  el('ttsKey').placeholder=(p==='openai'||p==='yandex'||p==='xai')&&!t.key&&S.ai&&S.ai.prov===p&&S.ai.key?'Ключ API (сейчас берётся ключ ИИ-помощника)':'Ключ API';
   el('ttsBase').hidden=p!=='custom';el('ttsBase').value=t.base||'';
   el('ttsVoice').value=t.voice||'';el('ttsVoice').placeholder='Голос'+(TTS_PROV[p].voice?' ('+TTS_PROV[p].voice+')':'');
   el('ttsVoiceHint').textContent=TTS_PROV[p].voices?'Голоса: '+TTS_PROV[p].voices:'';
   renderNn();
 }
-el('ttsKey').oninput=e=>{S.tts.key=e.target.value.trim();save();el('ttsTestRes').textContent='';renderNn();};
+el('ttsKey').oninput=e=>{S.tts.key=nnKeyClean(e.target.value);save();el('ttsTestRes').textContent='';renderNn();};
 el('ttsVoice').oninput=e=>{S.tts.voice=e.target.value.trim().slice(0,100);save();};
 el('ttsBase').oninput=e=>{S.tts.base=e.target.value.trim().slice(0,300);save();renderNn();};
 let ttsTestAudio=null;
@@ -173,12 +174,12 @@ el('ttsTest').onclick=async()=>{
   catch(e){r.textContent=e&&e.name==='NotAllowedError'?'Звук загружен, нажмите ещё раз':'Не работает: '+(e&&e.message||'ошибка');}
   finally{el('ttsTest').disabled=false;}
 };
-el('aiKey').oninput=e=>{S.ai.key=e.target.value.trim();save();el('aiTestRes').textContent='';renderNn();};
+el('aiKey').oninput=e=>{S.ai.key=nnKeyClean(e.target.value);save();el('aiTestRes').textContent='';renderNn();};
 el('aiModel').oninput=e=>{S.ai.model=e.target.value.trim();save();};
 el('aiBase').oninput=e=>{S.ai.base=e.target.value.trim().slice(0,300);save();renderNn();};
 el('aiTest').onclick=async()=>{
   const r=el('aiTestRes');
-  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?aiNoBaseMsg():'Сначала вставьте ключ';return;}
   if(navigator.onLine===false){r.textContent='Нет интернета';return;}
   r.textContent='Проверяю…';el('aiTest').disabled=true;
   try{const t=await aiViaKey({system:'Отвечай одним словом.',user:'Скажи «готово».'},20);r.textContent=t?'Работает, сервис ответил':'Сервис ответил пустотой';}

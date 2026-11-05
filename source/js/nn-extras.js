@@ -5,7 +5,7 @@
    8 перевод: место на телефоне и язык по умолчанию · 9 что уходит в сервис и «Стереть все ключи». Keys stay only on the phone (S.ai.key / S.tts.key). */
 const NN_LANG={ru:'Отвечай по-русски.',en:'Answer in English.',book:'Отвечай на языке книги.'};
 /* rough prices, USD: AI per 1M tokens (input and output mixed), neural voice per 1M characters; ~3 characters a token */
-const NN_PRICE_AI={deepseek:0.7,openrouter:0.7,openai:0.4,anthropic:3,custom:0},NN_PRICE_TTS={openai:15,google:16,elevenlabs:0,yandex:0,xai:15,custom:0};
+const NN_PRICE_AI={deepseek:0.7,openrouter:0.7,openai:0.4,anthropic:3,xai:0.5,yandex:0,custom:0},NN_PRICE_TTS={openai:15,google:16,elevenlabs:0,yandex:0,xai:15,custom:0};
 const NN_LIM=[0,10,20,30,50,100,200];
 const NN_CHK={ai:'',tts:'',tr:''};let nnChecking=false;
 function aiPref(){if(!S.aiPref)S.aiPref=aiPrefNorm(null);return S.aiPref;}
@@ -41,8 +41,8 @@ function nnCost(ch,per,tok){if(!per)return '';const v=(tok?ch/3:ch)/1e6*per;retu
 /* ---------- 2: connect in a minute ---------- */
 function nnKeyUrl(p){return (KEY_HOW[p]&&KEY_HOW[p].url)||'';}
 async function nnPaste(kind){
-  let t='';try{t=(await navigator.clipboard.readText()||'').trim();}catch(e){flashMsg('Телефон не дал прочитать буфер. Вставьте ключ в поле долгим нажатием');return;}
-  if(!t||/\s/.test(t)||t.length<12){flashMsg('В буфере нет ключа. Скопируйте его на сайте сервиса');return;}
+  let t='';try{t=nnKeyClean(await navigator.clipboard.readText()||'');}catch(e){flashMsg('Телефон не дал прочитать буфер. Вставьте ключ в поле долгим нажатием');return;}
+  if(!t||t.length<12){flashMsg('В буфере нет ключа. Скопируйте его на сайте сервиса');return;}
   if(kind==='ai'){S.ai.key=t;save();renderAiSet();renderNn();el('aiTest').click();}
   else{S.tts.key=t;save();renderTtsSet();renderNn();el('ttsTest').click();}
 }
@@ -59,13 +59,14 @@ function nnChips(box,list,cur,pick){box.innerHTML='';list.forEach(function(o){co
 let nnModels=null;
 el('aiModelsBtn').onclick=async function(){
   const box=el('aiModels'),r=el('aiTestRes');if(!box.hidden){box.hidden=true;return;}
-  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?'Укажите адрес API':'Сначала вставьте ключ';return;}
+  if(!aiOwnKey()){r.textContent=S.ai&&S.ai.key?aiNoBaseMsg():'Сначала вставьте ключ';return;}
+  if(aiProv()==='yandex'){nnModels=['yandexgpt-lite/latest','yandexgpt/latest'];r.textContent='Нажмите нужную модель';nnModelsRender();box.hidden=false;return;} /* у Яндекса списка моделей по ключу нет */
   if(navigator.onLine===false){r.textContent='Нужен интернет';return;}
   r.textContent='Спрашиваю у сервиса…';this.disabled=true;
   try{
     const p=aiProv(),h=p==='anthropic'?{'x-api-key':S.ai.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}:{'Authorization':'Bearer '+S.ai.key};
     const res=await aiFetch(aiBase()+'/models',{headers:h});let d=null;try{d=await res.json();}catch(e){}
-    if(res.status===401||res.status===403)throw new Error('сервис не принял ключ');if(!res.ok)throw new Error('сервис ответил '+res.status);
+    if(!res.ok)throw new Error(nnHttpErr(res.status,d,S.ai.key)||('сервис ответил '+res.status));
     let ids=((d&&d.data)||[]).map(function(x){return x&&(x.id||x.name);}).filter(function(x){return typeof x==='string'&&x;});
     if(p==='openai')ids=ids.filter(function(x){return /^(gpt|o\d|chatgpt)/.test(x)&&!/(audio|realtime|tts|transcribe|search|image|embedding|instruct)/.test(x);});
     ids=ids.sort().slice(0,80);if(!ids.length)throw new Error('сервис не прислал список');
@@ -86,17 +87,17 @@ el('ttsVoicesBtn').onclick=async function(){
       if(p==='custom'){r.textContent='У этого сервиса голос вписывается руками';return;}
       r.textContent='Спрашиваю у сервиса…';this.disabled=true;
       if(p==='google'){const res=await aiFetch('https://texttospeech.googleapis.com/v1/voices?languageCode=ru-RU&key='+encodeURIComponent(S.tts.key));const d=await res.json().catch(function(){return null;});
-        if(!res.ok)throw new Error(res.status===403||res.status===401?'сервис не принял ключ':'сервис ответил '+res.status);
+        if(!res.ok)throw new Error(nnHttpErr(res.status,d,S.tts.key)||('сервис ответил '+res.status));
         list=((d&&d.voices)||[]).map(function(v){return [v.name,v.name.replace(/^ru-RU-/,'')+(v.ssmlGender==='FEMALE'?' ж':v.ssmlGender==='MALE'?' м':'')];});}
       else if(p==='xai'){ /* встроенные голоса Грока; если список не пришёл — пять известных */
         try{const res=await aiFetch('https://api.x.ai/v1/tts/voices',{headers:{'Authorization':'Bearer '+S.tts.key}});
-          if(res.status===401||res.status===403)throw new Error('сервис не принял ключ');const d=await res.json().catch(function(){return null;});
+          const d=await res.json().catch(function(){return null;});if(res.status===401||res.status===403)throw new Error(nnHttpErr(res.status,d,S.tts.key));
           const a=Array.isArray(d)?d:((d&&(d.voices||d.data))||[]);
           list=a.map(function(v){if(typeof v==='string')return [v,v];const id=v&&(v.voice_id||v.id||v.name);return id?[String(id),String(v.name||id)]:null;}).filter(Boolean);}
-        catch(e){if(/не принял/.test(e.message))throw e;}
+        catch(e){if(/не принял|страну|стране|денег|доступа/.test(e.message))throw e;}
         if(!list.length)list=TTS_PROV.xai.voices.split(/,\s*/).map(function(v){return [v,v];});}
       else if(p==='elevenlabs'){const res=await aiFetch('https://api.elevenlabs.io/v1/voices',{headers:{'xi-api-key':S.tts.key}});const d=await res.json().catch(function(){return null;});
-        if(!res.ok)throw new Error(res.status===401||res.status===403?'сервис не принял ключ':'сервис ответил '+res.status);
+        if(!res.ok)throw new Error(nnHttpErr(res.status,d,S.tts.key)||('сервис ответил '+res.status));
         list=((d&&d.voices)||[]).map(function(v){return [v.voice_id,v.name];});}
     }
     if(!list.length)throw new Error('сервис не прислал голоса');
@@ -107,7 +108,7 @@ el('ttsVoicesBtn').onclick=async function(){
 };
 
 /* ---------- 1: summary and «Проверить всё» ---------- */
-function nnStateAi(){if(!aiOwnKey())return ['no',S.ai&&S.ai.key?'Нет адреса API':'Нет ключа'];const n=AI_PROV[aiProv()].name.replace(/ \(.*\)$/,'');
+function nnStateAi(){if(!aiOwnKey())return ['no',S.ai&&S.ai.key?aiNoBaseMsg(true):'Нет ключа'];const n=AI_PROV[aiProv()].name.replace(/ \(.*\)$/,'');
   return NN_CHK.ai==='ok'?['ok',n+' · ключ работает']:NN_CHK.ai?['no',n+' · '+NN_CHK.ai]:['warn',n+' · ключ не проверен'];}
 function nnStateTts(){const p=TTS_PROV[S.tts&&S.tts.prov]?S.tts.prov:'system';
   if(p==='system'){const n=typeof ttsVoices==='function'?ttsVoices().length:0;return n?['ok','Голос телефона']:['warn','Голос телефона · русского голоса нет'];}

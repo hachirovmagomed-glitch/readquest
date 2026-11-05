@@ -112,9 +112,9 @@ await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, d
 await p.evaluate(() => { wear('skin-alisa'); if (appIsNight()) toggleAppNight(); navGo('library'); renderLibrary(); }); await sleep(400);
 const v2 = await p.evaluate(() => { const pb = document.querySelector('#shelf .pbar'), bt = document.querySelector('#botnav .botnav-btn:not(.on)'), add = document.getElementById('btnAdd');
   return { roses: pb && /data:image\/svg/.test(getComputedStyle(pb).backgroundImage) && /data:image\/svg/.test(getComputedStyle(pb.querySelector('i')).backgroundImage),
-    back: bt && /data:image\/svg/.test(getComputedStyle(bt, '::before').backgroundImage), cake: add && /data:image\/svg/.test(getComputedStyle(add).backgroundImage),
+    back: bt && /data:image\/svg/.test(getComputedStyle(bt, '::before').backgroundImage), cake: add && !/data:image\/svg/.test(getComputedStyle(add).backgroundImage) && !!add.querySelector('svg') && getComputedStyle(add.querySelector('svg')).opacity !== '0',
     flip: getComputedStyle(document.querySelector('#botnav .botnav-btn.on')).animationName }; });
-ok('11 roses for progress, face-down card tabs, the active tab flips, «+» is the «Съешь меня» cake', v2.roses && v2.back && v2.cake && v2.flip === 'alFlip', v2);
+ok('11 roses for progress, face-down card tabs, the active tab flips, «+» is a plain «+» (no cake)', v2.roses && v2.back && v2.cake && v2.flip === 'alFlip', v2);
 await sleep(7600);
 const catOn = await p.evaluate(() => !!document.querySelector('#alCat.on'));
 await p.mouse.click(200, 300); await sleep(200);

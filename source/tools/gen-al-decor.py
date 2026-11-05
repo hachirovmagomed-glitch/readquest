@@ -432,7 +432,8 @@ html[data-skin="alisa"] #alFall.on{display:block;position:fixed;inset:0;z-index:
 html[data-skin="alisa"][data-theme="night"] #alFall.on{background-image:var(--al-hole-n)}
 @keyframes alDrop{0%{background-position:0 0;opacity:0}12%{opacity:1}75%{opacity:1}100%{background-position:0 -1280px;opacity:0}}
 /* 4. progress = white roses painted red: the track is a row of white roses, the filled part the same roses in red */
-html[data-skin="alisa"] :is(#shelf,.continuecard) .pbar{height:16px;border-radius:0;box-shadow:none;background:var(--al-rose-w) 0 0/20px 16px repeat-x}
+/* 05.11 Джессика: the last rose was cut in half — the bar is a whole number of 20px roses wide */
+html[data-skin="alisa"] :is(#shelf,.continuecard) .pbar{height:16px;border-radius:0;box-shadow:none;background:var(--al-rose-w) 0 0/20px 16px repeat-x;max-width:100%;width:round(down,100%,20px)}
 html[data-skin="alisa"] :is(#shelf,.continuecard) .pbar i{height:100%;border-radius:0;background:var(--al-rose-r) 0 0/20px 16px repeat-x}
 html[data-skin="alisa"][data-theme="night"] :is(#shelf,.continuecard) .pbar{background-image:var(--al-rose-w-n)}
 html[data-skin="alisa"][data-theme="night"] :is(#shelf,.continuecard) .pbar i{background-image:var(--al-rose-r-n)}
@@ -493,10 +494,7 @@ html[data-skin="alisa"][data-theme="night"] #alCat .al-grin{filter:drop-shadow(0
 #alRabbit{display:none}
 html[data-skin="alisa"] #alRabbit.on{display:block;position:fixed;left:0;bottom:calc(84px + env(safe-area-inset-bottom));width:72px;height:74px;z-index:40;pointer-events:none;background:var(--al-rabbit) center/contain no-repeat;animation:alRun 3s linear forwards}
 @keyframes alRun{0%{transform:translate(-90px,0)}10%{transform:translate(calc(10vw - 90px),-6px)}20%{transform:translate(calc(20vw - 90px),0)}30%{transform:translate(calc(30vw - 90px),-6px)}40%{transform:translate(calc(40vw - 90px),0)}50%{transform:translate(calc(50vw - 90px),-6px)}60%{transform:translate(calc(60vw - 90px),0)}70%{transform:translate(calc(70vw - 90px),-6px)}80%{transform:translate(calc(80vw - 90px),0)}90%{transform:translate(calc(90vw - 90px),-6px)}100%{transform:translate(100vw,0)}}
-/* 7. «Съешь меня»: «+» (add a book) is a little cake; «Выпей меня»: the bottle by «Размер текста» */
-html[data-skin="alisa"] #btnAdd.addicon{background:var(--al-cake) center/40px 40px no-repeat;border:0;box-shadow:none}
-html[data-skin="alisa"][data-theme="night"] #btnAdd.addicon{background-image:var(--al-cake-n)}
-html[data-skin="alisa"] #btnAdd.addicon > svg{opacity:0}
+/* 7. «Выпей меня»: the bottle by «Размер текста» (05.11 Джессика: «убери все эти пирожки» — the cake on «+» is gone, «+» is a plain button again) */
 html[data-skin="alisa"] #szValL::before{content:"";display:inline-block;vertical-align:-5px;width:14px;height:20px;margin-right:6px;background:var(--al-bottle) center/contain no-repeat}
 html[data-skin="alisa"][data-theme="night"] #szValL::before{background-image:var(--al-bottle-n)}
 /* 8. night = Through the Looking-Glass: chess pieces fall instead of cards (--al-fall-n), screen titles appear mirrored for a moment */

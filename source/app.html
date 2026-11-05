@@ -758,6 +758,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 .smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .smh i::before{content:'';position:absolute;left:9px;top:-6px;width:2px;height:8px;background:var(--accent)}
 .smh.on i{transform:scale(1.15)}
+#reader.smlock #viewer,#reader.smlock #pdfScroll{overflow-y:hidden!important;touch-action:none!important} /* 05.11: an end of the selection is being dragged in «Прокрутке» — the text stays under the finger (js/reader-ui.js smLock) */
 #reader.smbig .smh{width:56px;height:58px;margin-left:-28px}
 #reader.smbig .smh i{left:14px;top:8px;width:28px;height:28px}
 #reader.smbig .smh i::before{left:13px;top:-8px;height:10px}
@@ -785,6 +786,15 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #selFrom,#selpop.mini{display:none!important}
 #selSide[hidden],#selSide.open #ssTab,#selSide:not(.open) #ssRail,#selSide.pgoff .ssPg,#ssFrom[hidden],#ssRail>button[hidden],#ssN[hidden]{display:none!important}
 #selSide{position:fixed;left:0;top:60%;z-index:62;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* 05.11 the menu (not «Сбоку») is dragged by a finger and stays where it was put (js/reader-ui.js ssMoveBind, SET.selPin); the strip on top shows it moves */
+#ssMove{display:none}
+#selSide:not([data-look="side"]){touch-action:none}
+#selSide:not([data-look="side"]) #ssMove{display:flex;position:absolute;left:50%;top:-11px;transform:translateX(-50%);width:56px;height:22px;align-items:center;justify-content:center;z-index:1;cursor:grab}
+#ssMove i{display:block;width:30px;height:5px;border-radius:3px;background:var(--accent);opacity:.7;box-shadow:0 0 0 2px var(--sheet)}
+#selSide.pinned:not([data-look="side"]){bottom:auto!important;transform:none!important}
+#selSide[data-look="dock"].pinned{left:8px;right:8px}
+#selSide.drag:not([data-look="side"]){opacity:.92;transition:none}
+#selSide.drag #ssMove i{opacity:1}
 #selSide[data-side="R"]{left:auto;right:0}
 #selSide.drag{transition:none;opacity:.9}
 #ssTab,#ssRail{color:var(--txt);background:var(--sheet);background:color-mix(in srgb,var(--sheet) 62%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1.5px solid var(--accent);border-left:0;border-radius:0 20px 20px 0;box-shadow:0 2px 10px rgba(0,0,0,.22)}

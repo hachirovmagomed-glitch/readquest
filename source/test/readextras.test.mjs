@@ -31,7 +31,7 @@ ok('1 a fresh start has SET.rx with the defaults (nothing changes for anyone)', 
 // 2. the settings: «Чтение → Удобство чтения», ten cards (04.11 + «Выделение текста» + 05.11 «Сноски…», «Наборы по времени суток»), search finds a row inside a closed card
 await p.evaluate(() => openGeneralSettings(false, 'read')); await sleep(200);
 r = await p.evaluate(() => ({ cards: [...document.querySelectorAll('#rxCard > .xrow')].filter(x => x.offsetParent).map(x => x.querySelector('.xt').textContent), open: [...document.querySelectorAll('#rxCard .rxbox')].some(b => !b.hidden) }));
-ok('2 eleven cards, all closed', r.cards.length === 11 && r.cards.includes('Выделение текста') && r.cards[0] === 'Строка внизу страницы' && !r.open, r);
+ok('2 twelve cards, all closed', r.cards.length === 12 && r.cards.includes('Выделение текста') && r.cards[0] === 'Строка внизу страницы' && !r.open, r);
 await p.evaluate(() => openGeneralSettings(false)); await sleep(150);
 await p.type('#setSearch', 'двойной'); await sleep(200);
 await p.evaluate(() => [...document.querySelectorAll('#setSearchRes .gsres')].find(b => /Двойной тап/.test(b.textContent)).click()); await sleep(400);

@@ -2130,6 +2130,19 @@ b.rmbi{font-weight:bolder}
 #sheet.r2diff #r2Cmp{display:flex;width:max-content}
 #gsPrev.r2old{outline:2px dashed var(--rq-accent,#c9a227);outline-offset:-2px}
 .r2pc .ic{opacity:.8}
+#rmNote.dknote .rmnb{max-height:52vh}
+.dkhit{padding:2px 0 8px}.dkhit+.dkhit{border-top:1px solid var(--line,rgba(127,127,127,.25));padding-top:8px}
+.dkh{display:flex;flex-direction:column;gap:1px;margin-bottom:4px}.dkh b{font-size:1rem}.dkh small{color:var(--muted);font-size:0.75rem}
+.dkbox p{margin:3px 0;font-size:0.9rem;line-height:1.45}.dkbox .dksn{padding-left:14px;text-indent:-14px}.dkbox .dksn::before{content:"•";display:inline-block;width:14px;text-indent:0;color:var(--muted)}
+.dkbox .dkex{font-style:italic;color:var(--muted);padding-left:14px;font-size:0.85rem}
+.dklinks{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--line,rgba(127,127,127,.25));font-size:0.8125rem}
+.dklinks a{color:var(--rq-accent-text,var(--rq-accent));min-height:32px;display:inline-flex;align-items:center}
+.dklinks .ghostbtn,.dkfull{min-height:32px;padding:0 10px;font-size:0.8125rem;display:inline-flex;align-items:center;gap:6px}
+.dkfull{margin-top:8px}
+.dklist{display:flex;flex-direction:column;gap:2px;margin:6px 0}
+.dkrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line,rgba(127,127,127,.2))}
+.dkrl{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.dkrl b{font-size:0.9375rem}.dkrl small{font-size:0.75rem;color:var(--muted);line-height:1.3}
+.dkprog{font-size:0.8125rem;color:var(--rq-accent-text,var(--rq-accent));font-variant-numeric:tabular-nums;white-space:nowrap}
 .rmzones button.z-none{opacity:.55}
 .rmzones .rmzreset{grid-column:1/-1;border:0;background:none;color:var(--accent);min-height:40px;aspect-ratio:auto}
 .rmufb{display:flex;gap:6px;flex:none}
@@ -3412,6 +3425,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/diary.js"></script>
 <script src="js/sel-tools.js"></script>
 <script src="js/read-more2.js"></script>
+<script src="js/dict.js"></script>
 <script src="js/pdf-more.js"></script>
 <script src="js/alisa.js"></script>
 <script src="js/start.js"></script>

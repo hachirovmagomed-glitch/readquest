@@ -165,7 +165,7 @@ export const GAME_DEF = {
   ai: null,
   /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
   tts: null,
-  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo}, normAiPref
+  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo,via}, normAiPref
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -224,6 +224,7 @@ export const SET_DEF = {
   wsp: 0,           // 05.11 между словами, px 0…8 (arch.md SET.wsp)
   psp: 0,           // 05.11 между абзацами, em 0…1.5 шаг 0.25 (arch.md SET.psp)
   rm: null,          // 05.11 «ещё для чтения» (arch.md SET.rm, js/read-more.js), normRm
+  half: null,        // 05.11 половина экрана (arch.md SET.half): {on,size,margin}, normHalf
   rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,sm,spd}, normRx
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
@@ -309,7 +310,7 @@ export function normAiPref(o) {
   const en = (v, a) => (a.includes(v) ? v : a[0]), int = (v, hi) => (Number.isInteger(v) && v >= 0 ? Math.min(hi, v) : 0);
   return { len: en(o.len, ['short', 'long']), tone: en(o.tone, ['simple', 'expert']), lang: en(o.lang, ['ru', 'en', 'book']), spoil: typeof o.spoil === 'boolean' ? o.spoil : true, lim: int(o.lim, 500),
     use: { m: typeof u.m === 'string' && /^\d{4}-\d\d$/.test(u.m) ? u.m : '', n: int(u.n, 1e7), ch: int(u.ch, 1e10), tch: int(u.tch, 1e10), d: typeof u.d === 'string' && /^\d{4}-\d\d-\d\d$/.test(u.d) ? u.d : '', dn: int(u.dn, 1e5) },
-    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']) };
+    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']), via: en(o.via, ['', 'chatgpt', 'grok', 'claude', 'deepseek', 'alice']) }; // via 05.11: своя нейросеть без ключа
 }
 /** 29.10 S.yearGoal / S.bookGoals (arch.md) — same rules as js/core-b.js yearGoalNorm / bookGoalsNorm */
 export function normYearGoal(g) {
@@ -320,6 +321,12 @@ export function normBookGoals(o) {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
   Object.keys(o).filter((k) => k && k.length <= 200 && typeof o[k] === 'string' && /^\d{4}-\d\d-\d\d$/.test(o[k])).slice(-200).forEach((k) => { r[k] = o[k]; });
   return r;
+}
+/** 05.11 SET.half — same rules as js/reader.js rqHalfNorm */
+export function normHalf(h) {
+  h = h && typeof h === 'object' && !Array.isArray(h) ? h : {};
+  const n = (v, lo, hi) => (Number.isInteger(v) && v >= lo && v <= hi ? v : null);
+  return { on: typeof h.on === 'boolean' ? h.on : true, size: n(h.size, 14, 30), margin: n(h.margin, 10, 80) };
 }
 /** 29.10 SET.rx (arch.md «раздел Чтение») — same rules as js/reader.js rqRxNorm */
 export const RX_SEL = ['colors', 'note', 'word', 'dict', 'ai', 'grow', 'copy'];
@@ -694,6 +701,7 @@ export function hydrateSettings(s) {
   out.presets = normPresets(out.presets);
   out.bookSet = normBookSet(out.bookSet);
   out.rx = normRx(out.rx);
+  out.half = normHalf(out.half);
   out.wsp = typoPick({ wsp: out.wsp }, ['wsp']).wsp || 0;
   out.psp = typoPick({ psp: out.psp }, ['psp']).psp || 0;
   out.rm = normRm(out.rm);

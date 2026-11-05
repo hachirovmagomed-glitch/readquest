@@ -515,7 +515,7 @@ function curI(){return '';} /* currency icon removed (coins are text) */
    vocab[].ex — объяснение ИИ, строка до 600 символов, иначе поле отбрасывается. */
 function aiNorm(a){
   ['key','model','base'].forEach(function(k){if(typeof a[k]!=='string')a[k]='';});
-  if(['deepseek','openrouter','openai','anthropic','xai','yandex','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
+  if(['deepseek','gemini','openrouter','openai','anthropic','xai','yandex','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
   a.base=a.base.slice(0,300);return a;
 }
 function vocabNorm(v){
@@ -559,7 +559,7 @@ function aiPrefNorm(o){o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};const 
   const en=function(v,a){return a.indexOf(v)>=0?v:a[0];},int=function(v,hi){return Number.isInteger(v)&&v>=0?Math.min(hi,v):0;};
   return {len:en(o.len,['short','long']),tone:en(o.tone,['simple','expert']),lang:en(o.lang,['ru','en','book']),spoil:typeof o.spoil==='boolean'?o.spoil:true,lim:int(o.lim,500),
     use:{m:typeof u.m==='string'&&/^\d{4}-\d\d$/.test(u.m)?u.m:'',n:int(u.n,1e7),ch:int(u.ch,1e10),tch:int(u.tch,1e10),d:typeof u.d==='string'&&/^\d{4}-\d\d-\d\d$/.test(u.d)?u.d:'',dn:int(u.dn,1e5)},
-    trTo:en(o.trTo,['','ru','en','de','fr','es','it'])};}
+    trTo:en(o.trTo,['','ru','en','de','fr','es','it']),via:en(o.via,['','chatgpt','grok','claude','deepseek','alice'])};} /* via 05.11: своя нейросеть без ключа */
 /* 05.11 Джессика: «сервисы почему-то не принимают ключи». Раньше любое 401/403 было «не принял ключ», а 403 у OpenAI/Google
    часто значит «страна не поддерживается» или «нет денег/доступа». Теперь причина своя, плюс слова сервиса; ключ чистится от
    пробелов, переносов, невидимых знаков, кавычек и «Bearer». */

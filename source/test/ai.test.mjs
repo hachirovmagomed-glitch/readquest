@@ -24,9 +24,9 @@ async function fresh(width, reply) {
   await p.setRequestInterception(true);
   p.on('request', r => {
     const u = r.url();
-    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com)\//.test(u)) {
+    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com|tts\.api\.cloud\.yandex\.net|api\.x\.ai)\//.test(u)) {
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
-      const q = { url: u, headers: r.headers(), body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
+      const q = { url: u, headers: r.headers(), raw: r.postData() || '', body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
       const a = reply ? reply(q) : { status: 500, json: {} };
       if (a.raw) return r.respond({ status: a.status, headers: CORS, contentType: a.type, body: a.raw });
       return r.respond({ status: a.status, headers: CORS, contentType: 'application/json', body: JSON.stringify(a.json) });
@@ -303,6 +303,20 @@ if (want('tts')) {
   const g = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size + ':' + b.type; } catch (e) { return e.message; } });
   const q2 = reqs[1] || {};
   ok('tts: Google — ключ в адресе, ru-RU и голос, ответ base64 → звук', /^\d+:audio\/mpeg$/.test(g) && q2.url === 'https://texttospeech.googleapis.com/v1/text:synthesize?key=g-1' && q2.body.voice.languageCode === 'ru-RU' && q2.body.voice.name === 'ru-RU-Wavenet-A', { g, url: q2.url });
+  await p.evaluate(() => { S.tts = { prov: 'yandex', key: 'AQVN-ya-1', voice: '', base: '' }; save(); });
+  const y = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size; } catch (e) { return e.message; } });
+  const q3 = reqs[2] || {}, f3 = new URLSearchParams(q3.raw || '');
+  ok('tts: Яндекс — SpeechKit v1, Api-Key, форма: текст, ru-RU, голос alena, mp3', y > 0 && q3.url === 'https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize' && q3.headers.authorization === 'Api-Key AQVN-ya-1' && f3.get('text') === 'Привет' && f3.get('lang') === 'ru-RU' && f3.get('voice') === 'alena' && f3.get('format') === 'mp3', { y, url: q3.url, raw: q3.raw });
+  await p.evaluate(() => { S.tts = { prov: 'yandex', key: 't1.iam-token', voice: 'filipp', base: '' }; save(); });
+  await p.evaluate(async () => { try { await nttsFetch('Ещё'); } catch (e) {} });
+  const q4 = reqs[3] || {};
+  ok('tts: Яндекс — IAM-токен t1.… уходит как Bearer, свой голос', q4.headers && q4.headers.authorization === 'Bearer t1.iam-token' && new URLSearchParams(q4.raw).get('voice') === 'filipp', { h: q4.headers && q4.headers.authorization });
+  await p.evaluate(() => { S.tts = { prov: 'xai', key: 'xai-1', voice: '', base: '' }; save(); });
+  const x = await p.evaluate(async () => { try { const b = await nttsFetch('Привет'); return b.size; } catch (e) { return e.message; } });
+  const q5 = reqs[4] || {};
+  ok('tts: Грок — api.x.ai/v1/tts, Bearer, голос eve, язык auto', x > 0 && q5.url === 'https://api.x.ai/v1/tts' && q5.headers.authorization === 'Bearer xai-1' && q5.body.voice_id === 'eve' && q5.body.text === 'Привет' && q5.body.language === 'auto', { x, url: q5.url, body: q5.body });
+  const nn = await p.evaluate(() => [ttsNorm({ prov: 'yandex' }).prov, ttsNorm({ prov: 'xai' }).prov]);
+  ok('tts data: yandex и xai проходят нормализацию', nn[0] === 'yandex' && nn[1] === 'xai', nn);
   await p.evaluate(() => { S.tts = { prov: 'openai', key: '', voice: '', base: '' }; S.ai = { prov: 'openai', key: 'sk-ai', model: '', base: '' }; save(); });
   const sh = await p.evaluate(() => ({ on: nttsOn(), key: nttsCfg().key }));
   ok('tts: OpenAI без своего ключа берёт ключ ИИ-помощника (тоже OpenAI)', sh.on && sh.key === 'sk-ai', sh);
@@ -349,7 +363,7 @@ if (want('keyhow')) for (const W of [360, 390]) {
     for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
     return out;
   });
-  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com' };
+  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com', 'tts:Яндекс': 'console.yandex.cloud', 'tts:Грок': 'console.x.ai' };
   const bad = Object.keys(want_).filter(k => !r[k] || r[k].a.indexOf('https://' + want_[k]) !== 0 || !/как пароль/.test(r[k].t));
   ok('keyhow ' + W + ': у каждого сервиса шаги, ссылка на страницу ключей и совет про пароль', !bad.length && r['ai:DeepSeek'].tgt === '_blank' && /Проверить ключ/.test(r['ai:DeepSeek'].t) && /Послушать/.test(r['tts:OpenAI'].t) && r['ai:Другой'].a === '' && /адрес API/.test(r['ai:Другой'].t), { bad, deep: r['ai:DeepSeek'] });
   await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')][0].click(); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); });

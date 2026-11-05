@@ -510,8 +510,8 @@ function advAuthorLat(name){
   const a=ADV_AUTHORS.find(function(x){return x[0]===n||x[2]===n;});if(a)return a[1];
   return /[а-яё]/i.test(n)?advLatin(n):n;}
 function advAuthorIs(it,ru,lat){
-  const a=advFold(it.a),r=advFold(ru).split(/[\s-]+/).filter(function(w){return w.length>2;}).pop()||'',l=advFold(lat).split(/[\s-]+/).filter(function(w){return w.length>2;}).pop()||'';
-  return !!a&&((r&&a.indexOf(r)>=0)||(l&&a.indexOf(l)>=0));}
+  const a=advFold(it.a),r=advFold(ru).split(/[\s-]+/).filter(function(w){return w.length>2;}).pop()||'',l=advFold(lat).split(/[\s-]+/).filter(function(w){return w.length>2;}).pop()||'',noy=function(x){return x.replace(/[yj]/g,'');};
+  return !!a&&((r&&a.indexOf(r)>=0)||(l&&noy(a).indexOf(noy(l))>=0));} /* «Dostoevsky» and Gutenberg's «Dostoyevsky» */
 async function advAuthorElse(ru,lat,more){
   const m=more||{first:true},safe=function(p){return p.catch(function(e){console.warn('[rq] adv author else',e);return {items:[],more:null,err:e};});},none={items:[],more:null};
   const ruN=String(ru||'').replace(/^Автор:/,'').split(/\s+/).filter(function(w){return !/\.$/.test(w);}).join(' ');

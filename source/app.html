@@ -1709,6 +1709,11 @@ html[data-skin="pencil"] .lsortmenu{border:1.5px solid var(--rq-skin-border);box
 .nncard .xpick{background:var(--card);border:1px solid color-mix(in srgb,var(--muted) 45%,var(--card2));margin:0 0 8px}
 .nncard .xpick .xl{color:var(--muted)}
 .nncard .tierseg{margin:0 0 8px}
+:is(#aiProvSeg,#ttsProvSeg) button[data-tag]{display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+:is(#aiProvSeg,#ttsProvSeg) button[data-tag]::after{content:attr(data-tag);font-size:.68rem;font-weight:700;color:var(--rq-ok,#2e9d5b);opacity:.95}
+:is(#aiProvSeg,#ttsProvSeg) button.on[data-tag]::after{color:inherit}
+.nnlegend{margin:-2px 0 8px}#aiProvSeg[hidden]+.nnlegend,#ttsProvSeg[hidden]+.nnlegend{display:none} /* 05.11 доступные сервисы с меткой */
+#nnVia{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .keyhow{margin:0 0 8px;font-size:0.8125rem}
 .keyhow>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--accent);font-weight:600;list-style:none}
 .keyhow>summary::-webkit-details-marker{display:none}
@@ -2902,6 +2907,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="aisub">«Объясни» при выделении текста и чат о книге в шапке читалки. Нужен свой ключ, он хранится только на этом телефоне.</div>
         <button type="button" class="xrow xpick" id="aiProvX" aria-controls="aiProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="aiProvSeg" role="radiogroup" aria-label="Сервис ИИ" hidden></div>
+        <div class="aisub nnlegend" id="aiProvLegend">«бесплатно» — ключ без карты, с лимитом в день; «рубли» — оплата российской картой; «дёшево» — копейки за ответ. Без ключа можно спросить свою нейросеть по подписке: «Объясни» → кнопки ChatGPT, Грок, Алиса…</div>
         <details class="keyhow" id="aiHow"><summary>Как получить ключ</summary><div class="keyhowb" id="aiHowB"></div></details>
         <div class="row nnquick"><button type="button" class="ghostbtn" id="aiGetKey"></button><button type="button" class="ghostbtn" id="aiPaste"></button></div>
         <input class="searchinp" id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Ключ API" aria-label="Ключ API">
@@ -2915,6 +2921,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
         <div class="aisub">Чем читать вслух кнопкой «Озвучка» в книге. «Телефон» бесплатный, нейросетевой голос живее, но нужен свой ключ: платите сервису по числу знаков.</div>
         <button type="button" class="xrow xpick" id="ttsProvX" aria-controls="ttsProvSeg" aria-expanded="false"></button>
         <div class="tierseg" id="ttsProvSeg" role="radiogroup" aria-label="Голос для озвучки" hidden></div>
+        <div class="aisub nnlegend" id="ttsProvLegend">«бесплатно» — голос телефона; «рубли» — оплата российской картой.</div>
         <div id="ttsFields">
           <details class="keyhow" id="ttsHow"><summary>Как получить ключ</summary><div class="keyhowb" id="ttsHowB"></div></details>
           <div class="row nnquick"><button type="button" class="ghostbtn" id="ttsGetKey"></button><button type="button" class="ghostbtn" id="ttsPaste"></button></div>

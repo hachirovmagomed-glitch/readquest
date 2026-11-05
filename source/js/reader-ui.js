@@ -1314,12 +1314,12 @@ function ttsFail(msg){if(!ttsOn)return;const p=R.ttsStartPage;ttsStop();
    приходит mp3 и играет через <audio>; следующий кусок заказывается, пока играет текущий. Ключ только на устройстве, не в экспорте
    (arch.md 20.10). «Слушать» по-прежнему не считается чтением. */
 const TTS_PROV={
-  system:{name:'Телефон'},
+  system:{name:'Телефон',tag:'бесплатно'},
+  yandex:{name:'Яндекс',voice:'alena',voices:'alena, filipp, ermil, jane, omazh, zahar, madirus',tag:'рубли'},
   openai:{name:'OpenAI',voice:'nova',voices:'alloy, ash, coral, echo, fable, nova, onyx, sage, shimmer'},
   elevenlabs:{name:'ElevenLabs',voice:'JBFqnCBsd6RMkjVDRZzb',voices:'ID голоса из библиотеки ElevenLabs'},
   google:{name:'Google',voice:'ru-RU-Wavenet-D',voices:'ru-RU-Wavenet-A…E, ru-RU-Standard-A…E'},
   /* 05.11 Джессика: «Можем добавить сюда грок и яндекс?» — Яндекс SpeechKit (API v1) и Грок (xAI /v1/tts), тоже на своём ключе */
-  yandex:{name:'Яндекс',voice:'alena',voices:'alena, filipp, ermil, jane, omazh, zahar, madirus'},
   xai:{name:'Грок',voice:'eve',voices:'ara, eve, leo, rex, sal'},
   custom:{name:'Другой, как OpenAI',voice:'alloy',voices:'имя голоса сервиса'}
 };

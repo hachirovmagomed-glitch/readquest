@@ -774,22 +774,26 @@ function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);
    Только на своём ключе человека (Джессика 20.10: «делай так, чтобы люди ставили свои ключи»). Настройки → ИИ-помощник:
    сервис, ключ, модель. Запрос идёт с телефона прямо в выбранный сервис; ключ хранится только на устройстве и не уходит
    в экспорт (arch.md 15.10 и 20.10). Ни опыта, ни монет: подсказка, не награда. В словарь — поле vocab[].ex. */
+/* 05.11 Джессика: «выдели в приложении самые доступные нейросети» — они первыми и с меткой (tag) на кнопке:
+   бесплатно = ключ без оплаты и карты, с дневным лимитом; рубли = оплата российской картой; дёшево = копейки за ответ */
 const AI_PROV={
-  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com',model:'deepseek-chat'},
-  openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat'},
+  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com',model:'deepseek-chat',tag:'дёшево'},
+  gemini:{name:'Gemini',base:'https://generativelanguage.googleapis.com/v1beta/openai',model:'gemini-2.5-flash',tag:'бесплатно'},
+  openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat',tag:'бесплатные'},
+  yandex:{name:'YandexGPT',base:'https://llm.api.cloud.yandex.net/v1',model:'yandexgpt-lite/latest',tag:'рубли'},
   openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-4o-mini'},
   anthropic:{name:'Claude (Anthropic)',base:'https://api.anthropic.com/v1',model:'claude-haiku-5-5'},
   /* 05.11 Джессика: «Добавь грок и яндекс в другие разделы нейросетей». Оба понимают запросы как у OpenAI.
      YandexGPT просит ещё ID каталога Yandex Cloud: он лежит в S.ai.base (у «Другого» там адрес API), модель = gpt://<каталог>/<модель> */
   xai:{name:'Грок',base:'https://api.x.ai/v1',model:'grok-4-1-fast-non-reasoning'},
-  yandex:{name:'YandexGPT',base:'https://llm.api.cloud.yandex.net/v1',model:'yandexgpt-lite/latest'},
   custom:{name:'Другой, совместимый с OpenAI',base:'',model:''}
 };
 /* 20.10 Джессика: «инструкцию как этот ключ подключить, если пользователь не знает» — шаги по сервису в «Как получить ключ» (ИИ и озвучка) */
 const KEY_SAFE='Ключ — как пароль: никому его не показывайте. В кабинете сервиса можно поставить лимит трат в месяц.';
 const KEY_HOW={
   deepseek:{url:'https://platform.deepseek.com/api_keys',steps:['Откройте сайт DeepSeek Platform по ссылке ниже и войдите (почта или телефон).','Слева «API keys» → «Create new API key», придумайте имя.','Скопируйте ключ (начинается с sk-): он показывается один раз.','Пополните баланс («Top up»): без денег на счёте ключ не работает. Объяснения стоят копейки.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Сайт открывается из России без VPN. Пополнить можно зарубежной картой или через сервисы-посредники.'},
-  openrouter:{url:'https://openrouter.ai/settings/keys',steps:['Откройте OpenRouter по ссылке ниже и войдите (Google или почта).','«Keys» → «Create Key», скопируйте ключ (sk-or-…).','Пополните «Credits». Модель по умолчанию — DeepSeek, её можно поменять в поле «Модель».','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Один ключ на много разных нейросетей.'},
+  gemini:{url:'https://aistudio.google.com/apikey',steps:['Откройте Google AI Studio по ссылке ниже и войдите своим Google-аккаунтом.','«Create API key» (если спросит проект — выберите любой или создайте), скопируйте ключ (AIza…).','Карта и оплата не нужны: бесплатно, с лимитом запросов в день.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Бесплатный ключ без карты — самый простой способ начать. Из России Google AI Studio открывается только через VPN.'},
+  openrouter:{url:'https://openrouter.ai/settings/keys',steps:['Откройте OpenRouter по ссылке ниже и войдите (Google или почта).','«Keys» → «Create Key», скопируйте ключ (sk-or-…).','Пополните «Credits». Модель по умолчанию — DeepSeek, её можно поменять в поле «Модель».','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Один ключ на много разных нейросетей. Есть бесплатные модели (в названии «:free»): «Модели списком» показывает их первыми, они работают без пополнения, с лимитом в день.'},
   openai:{url:'https://platform.openai.com/api-keys',steps:['Откройте OpenAI Platform по ссылке ниже и войдите.','«Create new secret key», скопируйте ключ (sk-…): он показывается один раз.','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить».'],note:'Из России без VPN и зарубежной карты не работает.'},
   anthropic:{url:'https://console.anthropic.com/settings/keys',steps:['Откройте консоль Anthropic по ссылке ниже и войдите.','«Create Key», скопируйте ключ (sk-ant-…).','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Из России без VPN и зарубежной карты не работает.'},
   custom:{steps:['Возьмите у своего сервиса адрес API (обычно оканчивается на /v1), ключ и название модели.','Сервис должен понимать запросы как у OpenAI и пускать запросы из браузера.','Заполните три поля и нажмите «Проверить».'],note:'Для тех, кто знает, что это.'},
@@ -824,7 +828,7 @@ function selCtx(word){ /* предложение вокруг выделения
 el('spAI').onclick=()=>{
   const t=rqSelPlain()||selText();if(!t)return;
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
-  if(!aiOn()){selDone();aiNoKey(aiMsgs(q).user+'\n\nОбъясни простым языком, 2–4 предложения, без спойлеров.');return;}
+  if(!aiOn()){selDone();const ask=aiMsgs(q).user+'\n\nОбъясни простым языком, 2–4 предложения, без спойлеров.';if(aiVia()){aiElseGo(aiVia(),ask);return;}aiNoKey(ask);return;} /* 05.11 своя нейросеть — сразу, без окна */
   selDone();
   aiExplain(q);
 };
@@ -851,6 +855,8 @@ function aiElseBind(box,txt){
     const u=aiElseUrl(id,txt),cp=await aiElseCopy(txt);window.open(u,'_blank','noopener');
     if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');};});
 }
+function aiElseGo(id,txt){const u=aiElseUrl(id,txt);aiElseCopy(txt).then(function(cp){if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');});window.open(u,'_blank','noopener');}
+function aiVia(){try{const v=aiPref().via;return AI_ELSE.some(function(x){return x[0]===v;})?v:'';}catch(e){return '';}}
 function aiNoKey(ask){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает); ask — готовый вопрос для «без ключа» */
   aiCur=null;aiSeq++;
   el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ отвечал прямо в книге, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
@@ -955,7 +961,7 @@ function chatRender(wait){
 }
 function openAiChat(){
   if(!R.book)return;
-  if(!aiOn()){aiNoKey('Давай обсудим книгу «'+R.book.title+'»'+(bookAuthor(R.book)?' ('+bookAuthor(R.book)+')':'')+'. Я её читаю и сейчас примерно на '+Math.max(1,Math.round(100*(R.page+1)/Math.max(1,R.pageCount)))+'%. Не рассказывай, что будет дальше, без спойлеров. Мой вопрос: ');return;}
+  if(!aiOn()){const ask=('Давай обсудим книгу «'+R.book.title+'»'+(bookAuthor(R.book)?' ('+bookAuthor(R.book)+')':'')+'. Я её читаю и сейчас примерно на '+Math.max(1,Math.round(100*(R.page+1)/Math.max(1,R.pageCount)))+'%. Не рассказывай, что будет дальше, без спойлеров. Мой вопрос: ');if(aiVia()){aiElseGo(aiVia(),ask);return;}aiNoKey(ask);return;}
   chatErr=null;el('aiChat').classList.remove('hidden');chatRender(chatBusy);
 }
 async function chatSend(txt){

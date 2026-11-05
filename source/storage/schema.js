@@ -165,7 +165,7 @@ export const GAME_DEF = {
   ai: null,
   /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
   tts: null,
-  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo}, normAiPref
+  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo,via}, normAiPref
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -309,7 +309,7 @@ export function normAiPref(o) {
   const en = (v, a) => (a.includes(v) ? v : a[0]), int = (v, hi) => (Number.isInteger(v) && v >= 0 ? Math.min(hi, v) : 0);
   return { len: en(o.len, ['short', 'long']), tone: en(o.tone, ['simple', 'expert']), lang: en(o.lang, ['ru', 'en', 'book']), spoil: typeof o.spoil === 'boolean' ? o.spoil : true, lim: int(o.lim, 500),
     use: { m: typeof u.m === 'string' && /^\d{4}-\d\d$/.test(u.m) ? u.m : '', n: int(u.n, 1e7), ch: int(u.ch, 1e10), tch: int(u.tch, 1e10), d: typeof u.d === 'string' && /^\d{4}-\d\d-\d\d$/.test(u.d) ? u.d : '', dn: int(u.dn, 1e5) },
-    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']) };
+    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']), via: en(o.via, ['', 'chatgpt', 'grok', 'claude', 'deepseek', 'alice']) }; // via 05.11: своя нейросеть без ключа
 }
 /** 29.10 S.yearGoal / S.bookGoals (arch.md) — same rules as js/core-b.js yearGoalNorm / bookGoalsNorm */
 export function normYearGoal(g) {

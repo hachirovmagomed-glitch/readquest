@@ -15,17 +15,44 @@ function alFall(){
   const d=alLayer('alFall');d.classList.remove('on');void d.offsetWidth;d.classList.add('on');
   clearTimeout(alFall._t);alFall._t=setTimeout(function(){d.classList.remove('on');},1100);
 }
-/* 2. the Cheshire Cat: after 7 s without a touch on the library the grin shows in the corner, then the head (night: the grin only) */
-const AL_CAT_MS=7000;let alCatT=null;
-function alCatHide(){clearTimeout(alCatT);alCatT=null;const c=document.getElementById('alCat');if(c)c.classList.remove('on');}
+/* 2. the Cheshire Cat (05.11, Джессика: «просто картинка, которая появляется и исчезает… пресно»): the whole cat on a branch, in parts.
+   After 7 s of quiet in the library: the grin comes first, then the eyes, the head, the body and the tail, piece by piece to its tip;
+   while it sits it blinks, swings its tail and the grin sways. A touch: «it vanished quite slowly, beginning with the end of the tail,
+   and ending with the grin, which remained some time after the rest of it had gone». Night: the grin alone. Parts = .p with --on/--off delays. */
+/* 05.11 Джессика: «можешь вообще убрать кота пока что» — off until she asks; the cat stays drawn, true brings it back */
+const AL_CAT_ON=false;
+const AL_CAT_MS=7000,AL_CAT_OFF_MS=4400;let alCatT=null,alCatOffT=null;
+const AL_CAT_SVG='<svg viewBox="0 0 160 150" aria-hidden="true" focusable="false">'+
+ '<g class="p al-branch" style="--on:2.1s;--off:1.2s"><path d="M160 97C120 95 70 99 22 104c-6 .6-10 2-12 4" class="al-wood"/><path d="M96 98c4-8 12-11 20-10-3 7-11 11-20 10zM40 103c-6-5-14-5-19-1 6 4 13 4 19 1z" class="al-leaf"/></g>'+
+ '<g class="al-tailw"><g class="p" style="--on:2.7s;--off:.75s"><path d="M136 90c13 6 16 17 10 26" class="al-tl"/></g>'+
+  '<g class="p" style="--on:3s;--off:.5s"><path d="M146 116c-6 8-4 16 4 18" class="al-tl"/></g>'+
+  '<g class="p" style="--on:3.3s;--off:.25s"><path d="M150 134c6 1 8-4 5-7" class="al-tl"/></g>'+
+  '<g class="p" style="--on:3.6s;--off:0s"><path d="M155 127c-2-2.6-6-1.6-5.4 1.6" class="al-tl al-tip"/></g></g>'+
+ '<g class="p al-body" style="--on:2.1s;--off:1.2s"><path d="M66 70c18-10 52-10 68 2 8 6 8 18 0 22-16 6-50 6-70 2z" class="al-fur"/>'+
+  '<path d="M84 64l3 10M98 62l1 11M112 64l-1 10M124 68l-3 9" class="al-st"/><path d="M70 92c-2 6-1 11 3 13M88 95c-1 6 0 10 4 12" class="al-ln"/></g>'+
+ '<g class="p al-head" style="--on:1.5s;--off:1.7s"><g transform="translate(13 12) scale(.7)">'+
+  '<path d="M18 58C16 36 30 24 60 24S104 36 102 58C100 80 84 92 60 92S20 80 18 58Z" class="al-fur"/>'+
+  '<path d="M26 38L22 8 46 27M94 38l4-30-24 19" class="al-fur"/><path d="M28 30l-2-14 10 9M92 30l2-14-10 9" class="al-ln"/>'+
+  '<path d="M48 25l2 9M60 24v10M72 25l-2 9M22 52l8 2M21 60h8M98 52l-8 2M99 60h-8" class="al-st"/>'+
+  '<path d="M4 58l22 2M6 66l20-2M116 58l-22 2M114 66l-20-2" class="al-wh"/><path d="M57 58l3 3 3-3z" class="al-nose"/></g></g>'+
+ '<g class="p al-eyes" style="--on:.9s;--off:2.1s"><g class="al-blink"><g transform="translate(13 12) scale(.7)">'+
+  '<ellipse cx="44" cy="48" rx="8" ry="5.6" class="al-iris"/><ellipse cx="76" cy="48" rx="8" ry="5.6" class="al-iris"/><path d="M44 43v10M76 43v10" class="al-pupil"/></g></g></g>'+
+ '<g class="p al-grin" style="--on:0s;--off:3.1s"><g class="al-sway"><g transform="translate(13 12) scale(.7)">'+
+  '<path d="M26 62Q60 94 94 62Q60 78 26 62Z" class="al-mouth"/><path d="M34 67.5l1 5M42 71l.8 6M50 73l.5 6.4M60 74v6.6M70 73l-.5 6.4M78 71l-.8 6M86 67.5l-1 5" class="al-teeth"/></g></g></g>'+
+ '</svg>';
+function alCatEl(){const c=alLayer('alCat');if(!c.firstChild)c.innerHTML=AL_CAT_SVG;return c;}
+/** the cat leaves: tail first, the grin last (instantly when the skin is off) */
+function alCatHide(){clearTimeout(alCatT);alCatT=null;const c=document.getElementById('alCat');if(!c||!c.classList.contains('on'))return;
+  c.classList.remove('on');if(!alOn()||alCalm()){c.classList.remove('off');return;}
+  c.classList.add('off');clearTimeout(alCatOffT);alCatOffT=setTimeout(function(){c.classList.remove('off');},AL_CAT_OFF_MS);}
 function alCatArm(){
   alCatHide();
-  if(!alOn())return;const lib=document.getElementById('library');if(!lib||lib.classList.contains('hidden'))return;
+  if(!alOn()||!AL_CAT_ON)return;const lib=document.getElementById('library');if(!lib||lib.classList.contains('hidden'))return;
   alCatT=setTimeout(function(){const l=document.getElementById('library');if(!alOn()||!l||l.classList.contains('hidden')||document.hidden)return;
-    alLayer('alCat').classList.add('on');},AL_CAT_MS);
+    const c=alCatEl();clearTimeout(alCatOffT);c.classList.remove('off');void c.offsetWidth;c.classList.add('on');},AL_CAT_MS);
 }
 ['pointerdown','keydown','wheel'].forEach(function(t){addEventListener(t,function(){if(alOn())alCatArm();},{passive:true,capture:true});});
-document.addEventListener('scroll',function(){if(alOn()&&document.getElementById('alCat')&&document.getElementById('alCat').classList.contains('on'))alCatArm();},{passive:true,capture:true});
+document.addEventListener('scroll',function(){const c=document.getElementById('alCat');if(alOn()&&c&&c.classList.contains('on'))alCatArm();},{passive:true,capture:true});
 /* 3. the White Rabbit runs across the bottom once a day (per app run) when today's goal is met — library or profile, never the reader */
 let alRabbitDay='';
 function alGoalMet(){try{const m=typeof isMvp==='function'&&isMvp()?minTodaySess():S.minToday,g=typeof goalMin==='function'?goalMin():S.goal;return g>0&&m>=g;}catch(e){return false;}}

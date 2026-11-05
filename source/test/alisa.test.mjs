@@ -116,10 +116,9 @@ const v2 = await p.evaluate(() => { const pb = document.querySelector('#shelf .p
     flip: getComputedStyle(document.querySelector('#botnav .botnav-btn.on')).animationName }; });
 ok('11 roses for progress, face-down card tabs, the active tab flips, «+» is the «Съешь меня» cake', v2.roses && v2.back && v2.cake && v2.flip === 'alFlip', v2);
 await sleep(7600);
-const catOn = await p.evaluate(() => { const c = document.getElementById('alCat'); return c && c.classList.contains('on') && getComputedStyle(c).visibility; });
+const catOn = await p.evaluate(() => !!document.querySelector('#alCat.on'));
 await p.mouse.click(200, 300); await sleep(200);
-const cat2 = await p.evaluate(() => document.getElementById('alCat').classList.contains('on'));
-ok('11b the Cheshire Cat shows after 7 s of quiet in the library and goes at a touch', catOn === 'visible' && cat2 === false, { catOn, cat2 });
+ok('11b the Cheshire Cat is off for now (AL_CAT_ON=false): no cat after 7 s of quiet', catOn === false, { catOn });
 const rb = await p.evaluate(() => { const r0 = alRabbit(false), on0 = !!document.querySelector('#alRabbit.on'); const r1 = alRabbit(true); return { r0, on0, r1, on: !!document.querySelector('#alRabbit.on') }; });
 ok('11c the White Rabbit runs only when the goal is met (not met → no run)', rb.r0 === false && !rb.on0 && rb.r1 && rb.on, rb);
 await p.evaluate(() => { const r = document.getElementById('alRabbit'); if (r) r.classList.remove('on'); navGo('rewards'); }); await sleep(400);

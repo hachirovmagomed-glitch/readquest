@@ -177,7 +177,7 @@ function rxBuild(){
     rxRow('','a-large-small','Щипок меняет размер текста','В PDF щипок всегда увеличивает',rxSwHtml('rxGPinch'))+
     rxRow('','circle-plus','Двойной тап','В книгах; в PDF он увеличивает страницу',rxSegHtml('rxGDbl','Двойной тап'),'setstack'))+
   rxCardHtml('sel','highlighter','Меню выделения',
-    rxRow('','layers','Вид меню','Как показывать кнопки, когда выделен текст','<div class="presets rxfull" id="rxSelLook" role="radiogroup" aria-label="Вид меню выделения"></div>','setstack')+
+    rxRow('','layers','Вид меню','Как показывать кнопки, когда выделен текст. Меню, кроме «Сбоку», можно перетащить пальцем — оно останется там; двойной тап по полоске сверху вернёт его на место','<div class="presets rxfull" id="rxSelLook" role="radiogroup" aria-label="Вид меню выделения"></div>','setstack')+
     '<div class="aisub">Какие кнопки показывать и в каком порядке.</div><div id="rxSelList"></div>'+
     rxRow('','pencil','Цвет для «Заметки»','И отмеченный цвет при выделении','<div class="presets rxfull" id="rxSelColor" role="radiogroup" aria-label="Цвет для заметки"></div>','setstack'))+
   rxCardHtml('smx','highlighter','Выделение текста',

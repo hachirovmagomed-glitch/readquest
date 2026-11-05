@@ -162,7 +162,7 @@ ok('13 «Удерживайте: как было» appears after a change; holdi
 // settings: the new rows and cards
 r = await p.evaluate(async () => { openGeneralSettings(true); await new Promise(r => setTimeout(r, 200));
   return { cards: [...document.querySelectorAll('#rxCard .xrow')].length, ch: !!el('rxXrch'), roles: !!el('r2Roles'), walk: /Слушать на ходу/.test(el('rxCard').textContent) }; });
-ok('settings: «Когда глава прочитана» card, «Голоса по ролям», «Слушать на ходу»', r.cards === 11 && r.ch && r.roles && r.walk, r);
+ok('settings: «Когда глава прочитана» card, «Голоса по ролям», «Слушать на ходу»', r.cards === 12 && r.ch && r.roles && r.walk, r);
 ok('no page errors', p.errs.length === 0, p.errs);
 
 console.log('\nSUMMARY readmore2.test ' + checks.filter(Boolean).length + '/' + checks.length);

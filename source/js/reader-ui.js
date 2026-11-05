@@ -441,7 +441,7 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   n.innerHTML='<button type="button" id="ssTab" aria-label="Меню выделения" aria-expanded="false"><span class="ssChev"></span><i aria-hidden="true"></i><b id="ssN" hidden></b></button>'+
     '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Свернуть меню, потянуть — перетащить" title="Свернуть / перетащить"><span class="ssChev"></span></button>'+
     '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i>'+L('Цвета')+'</button>'+
-    b('ssNote','pencil','Заметка')+b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести','Перевод')+b('ssAI','sparkles','Объясни')+
+    b('ssNote','pencil','Заметка')+b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести','Перевод')+b('ssAI','sparkles','Объясни')+b('ssAsk','clipboard','Вопрос для ИИ — скопировать','Вопрос')+
     '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+L('Ещё')+'</button><hr>'+
     '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s>'+L('Начало')+'</button>'+b('ssX','x','Снять выделение','Снять')+'<hr>'+
     '<div id="ssCnt" role="button" tabindex="0"></div>'+

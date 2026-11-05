@@ -1937,6 +1937,14 @@ html[data-skin="pencil"][data-theme="night"] #sheet #warmRange{--sl-w-fill:repea
 #reader.barsoff .rhead{transform:translateY(-100%)}
 #reader.barsoff .rbot{transform:translateY(100%)}
 #reader.barsoff .rhead,#reader.barsoff .rfoot,#reader.barsoff .rbar{display:flex}
+/* 05.11 половина экрана (#reader.half, js/reader.js rqHalfSync): панели тоньше, яркость и подписи кнопок спрятаны — больше места тексту */
+#reader.half .rhead{padding-top:calc(2px + env(safe-area-inset-top));flex-wrap:nowrap}
+#reader.half .rhead button{min-height:38px;min-width:38px}
+#reader.half #rBright{display:none}
+#reader.half .rbar button{min-height:40px;gap:0}
+#reader.half .rbar button>span{display:none}
+#reader.half #pgLine{height:14px;font-size:.7rem}
+#reader:not(.half) #ssAsk{display:none}
 #reader.nobaranim .rhead,#reader.nobaranim .rbot{transition:none}
 @media (prefers-reduced-motion:reduce){#reader .rhead,#reader .rbot{transition:none}}
 /* reading modes (16.10, arch.md SET.flip.mode): vertical scroll for text — the browser scrolls #viewer; pinch stays ours */
@@ -3322,6 +3330,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rrow pdfonly"><span class="rl" id="pdfThemeTglL">Цвета темы для PDF<small>фон и текст страницы как у темы, картинки в два цвета</small></span><button class="rsw" id="pdfThemeTgl" role="switch" aria-checked="false" aria-labelledby="pdfThemeTglL"></button></div>
       <div class="rrow"><span class="rl">Свои цвета</span><div class="rcolors"><label class="rcol"><input type="color" id="cTxt" value="#5b4636"><span>Текст</span></label><label class="rcol"><input type="color" id="cBg" value="#f4ecd8"><span>Фон</span></label><button id="cReset" aria-label="Сбросить свои цвета"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-rotate-cw"/></svg></button></div></div>
       <div class="rrow"><span class="rl" id="mgValL">Поля</span><div class="rstep" role="group" aria-labelledby="mgValL"><button id="mgMinus" aria-label="Уже"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="mgVal" aria-live="polite"></span><button id="mgPlus" aria-label="Шире"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
+      <div class="rrow"><span class="rl" id="halfTglL">Половина экрана<small id="halfTglS">свой размер шрифта и поля, когда читалка открыта рядом с другим приложением</small></span><button class="rsw" id="halfTgl" role="switch" aria-checked="true" aria-labelledby="halfTglL"></button></div>
       <div class="rrow stack"><span class="rl rlv"><label for="brightRange">Яркость</label><span class="rv" id="brightVal">100 %</span></span><input type="range" id="brightRange" min="30" max="100" step="5" value="100"></div>
       <div class="rrow stack"><span class="rl rlv"><label for="warmRange">Тёплый оттенок</label><span class="rv" id="warmVal">0 %</span></span><input type="range" id="warmRange" min="0" max="60" step="5" value="0"></div>
     </div>

@@ -42,6 +42,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.fz=fzNorm(s.fz); /* 25.10 «Фокус» (arch.md SET.fz) */
   s.presets=rqPresetsNorm(s.presets);s.bookSet=rqBookSetNorm(s.bookSet); /* 29.10 arch.md SET.presets / SET.bookSet */
   s.rx=rqRxNorm(s.rx); /* 29.10 arch.md SET.rx (раздел «Чтение») */
+  s.half=rqHalfNorm(s.half); /* 05.11 SET.half: свой шрифт и поля на половине экрана */
   s.wsp=rqTypoPick({wsp:s.wsp},['wsp']).wsp||0;s.psp=rqTypoPick({psp:s.psp},['psp']).psp||0; /* 05.11 arch.md SET.wsp / SET.psp */
   s.rm=rqRmNorm(s.rm); /* 05.11 arch.md SET.rm (js/read-more.js) */
   flipNorm(s);return s;}
@@ -92,6 +93,23 @@ function rqRxNorm(o){
     spd:{cpm:num(sp.cpm,100,6000),spp:num(sp.spp,5,1200),n:(typeof sp.n==='number'&&isFinite(sp.n))?Math.max(0,Math.min(1e6,Math.floor(sp.n))):0}
   };
 }
+/* 05.11 Джессика: «хорошие гибкие настройки под разделённый экран» (читаю и спрашиваю ChatGPT рядом).
+   SET.half {on, size, margin}: когда окно читалки низкое или узкое (половина экрана, всплывающее окно), в SET.size/SET.margin
+   на время лежат значения половины экрана, а полноэкранные — в RQ_HALF.full; «Шрифт ±», щипок и «Поля» меняют то, что видно.
+   В сохранение (rqSetForSave) всегда уходят полноэкранные, а значения половины — в SET.half. Клавиатура (фокус в поле) режим не меняет. */
+function rqHalfNorm(h){h=(h&&typeof h==='object'&&!Array.isArray(h))?h:{};const n=function(v,lo,hi){return Number.isInteger(v)&&v>=lo&&v<=hi?v:null;};
+  return {on:typeof h.on==='boolean'?h.on:true,size:n(h.size,14,30),margin:n(h.margin,10,80)};}
+let RQ_HALF=null;
+function rqHalfWant(){const r=el('reader');if(!r||r.classList.contains('hidden')||!SET.half||!SET.half.on)return false;
+  const ae=document.activeElement;if(ae&&(ae.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)))return !!RQ_HALF; /* клавиатура */
+  const H=innerHeight,W=innerWidth,sh=(screen&&screen.height)||H,sw=(screen&&screen.width)||W,lo=Math.min(sh,sw),hi=Math.max(sh,sw);
+  return (H<560&&H<0.72*(W>H?lo:hi))||(W<480&&W<0.62*(W>H?hi:lo));}
+function rqHalfOff(){if(!RQ_HALF)return false;SET.half=Object.assign({},SET.half,{size:SET.size,margin:SET.margin});Object.assign(SET,RQ_HALF.full);RQ_HALF=null;
+  const r=el('reader');if(r)r.classList.remove('half');return true;}
+function rqHalfSync(){const w=rqHalfWant();if(w===!!RQ_HALF)return false;
+  if(!w)return rqHalfOff();
+  const h=SET.half||{};RQ_HALF={full:{size:SET.size,margin:SET.margin}};
+  SET.size=h.size||Math.max(14,SET.size-2);SET.margin=h.margin!=null?h.margin:Math.min(SET.margin,16);el('reader').classList.add('half');return true;}
 function rqRx(){return (SET&&SET.rx)||rqRxNorm(null);}
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения», js/read-more.js): bion жирное начало слова · cap буквица · maxw ширина строки (знаков, 0 = нет) ·
  *  ufont имя своего шрифта (файл в IDB «ufont», не в экспорте) · auto.sec автолистание (0 = по своей скорости) · fn сноски в окне ·
@@ -120,11 +138,16 @@ function rqRmNorm(o){
 }
 function rqRm(){return (SET&&SET.rm)||rqRmNorm(null);}
 let RQ_OWN=null;
-function rqSetForSave(){if(!RQ_OWN)return SET;const o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);return o;}
-function rqOwnEnter(id){rqOwnLeave();const v=SET.bookSet&&SET.bookSet[id];if(!v||!Object.keys(v).length)return;RQ_OWN={id:id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};Object.assign(SET,v);}
-function rqOwnLeave(){if(!RQ_OWN)return;SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;}
+function rqSetForSave(){const hv=RQ_HALF?{size:SET.size,margin:SET.margin}:null;if(hv)Object.assign(SET,RQ_HALF.full);
+  try{let o;if(!RQ_OWN)o=Object.assign({},SET);else{o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);}
+    if(hv)o.half=Object.assign({},SET.half,hv);return o;}finally{if(hv)Object.assign(SET,hv);}}
+function rqOwnEnter(id){const hh=rqHalfOff();try{rqOwnEnter0(id);}finally{if(hh)rqHalfSync();}}
+function rqOwnEnter0(id){rqOwnLeave();const v=SET.bookSet&&SET.bookSet[id];if(!v||!Object.keys(v).length)return;RQ_OWN={id:id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};Object.assign(SET,v);}
+function rqOwnLeave(){if(!RQ_OWN)return;const hh=rqHalfOff();try{rqOwnLeave0();}finally{if(hh)rqHalfSync();}}
+function rqOwnLeave0(){if(!RQ_OWN)return;SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;}
 /** «Только к этой» on: the book keeps the current look, the common one stays as it is; off: the book follows the common look again */
-function rqOwnSet(on){const b=typeof R!=='undefined'&&R&&R.book;if(!b)return;
+function rqOwnSet(on){const hh=rqHalfOff();try{rqOwnSet0(on);}finally{if(hh)rqHalfSync();}}
+function rqOwnSet0(on){const b=typeof R!=='undefined'&&R&&R.book;if(!b)return;
   if(on){if(RQ_OWN)return;RQ_OWN={id:b.id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[b.id]=rqTypoPick(SET,RQ_BOOK_KEYS);}
   else{if(RQ_OWN)Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;if(SET.bookSet&&SET.bookSet[b.id]){SET.bookSet=Object.assign({},SET.bookSet);delete SET.bookSet[b.id];}}
   saveSet();}
@@ -141,6 +164,7 @@ function saveSet(){rqSaveSetGated();}
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */
 function applySet(){
+  rqHalfSync();
   const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
   const r=el('reader');
@@ -180,6 +204,7 @@ function applySet(){
   el('lhVal').textContent=SET.lh.toFixed(2);
   el('lsVal').textContent=(SET.ls||0);
   if(el('mgVal'))el('mgVal').textContent=SET.margin;
+  rqSw('halfTgl',!SET.half||SET.half.on);if(el('halfTglS'))el('halfTglS').textContent=RQ_HALF?'сейчас включено: размер и поля ниже — для половины экрана':'свой размер шрифта и поля, когда читалка открыта рядом с другим приложением';
   el('alignJ').classList.toggle('on',SET.align!=='l');
   el('alignL').classList.toggle('on',SET.align==='l');
   rqSw('hyphTgl',SET.hyph!==false);
@@ -259,6 +284,7 @@ el('szPlus').onclick=()=>{setFontSizeKeepPos(SET.size+1);};
 el('lhMinus').onclick=()=>{SET.lh=Math.max(1.2,+(SET.lh-0.1).toFixed(2));saveSet();applySet();relayout();};
 el('lhPlus').onclick=()=>{SET.lh=Math.min(2.4,+(SET.lh+0.1).toFixed(2));saveSet();applySet();relayout();};
 el('mgMinus').onclick=()=>{SET.margin=Math.max(10,SET.margin-6);saveSet();applySet();relayout();};
+el('halfTgl').onclick=()=>{const was=!!RQ_HALF;if(was)rqHalfOff();SET.half=Object.assign({},SET.half,{on:!(SET.half&&SET.half.on)});saveSet();applySet();relayout({force:true});};
 el('mgPlus').onclick=()=>{SET.margin=Math.min(80,SET.margin+6);saveSet();applySet();relayout();};
 el('lsMinus').onclick=()=>{SET.ls=Math.max(-1,+(((SET.ls||0)-0.5)).toFixed(1));saveSet();applySet();relayout();};
 el('lsPlus').onclick=()=>{SET.ls=Math.min(3,+(((SET.ls||0)+0.5)).toFixed(1));saveSet();applySet();relayout();};

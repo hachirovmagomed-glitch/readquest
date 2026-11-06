@@ -321,7 +321,7 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},bookLvlRep:{},lvlPaid:{},readSpans:{},quizPaid:{},pomoPaid:{},chalPaid:{}};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},bookLvlRep:{},lvlPaid:{},readSpans:{},quizPaid:{},pomoPaid:{},chalPaid:{},tools:null,ink:{},stk:{}};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
@@ -346,6 +346,7 @@ function hydrateS(raw){
   S=Object.assign({},DEF,raw||{});
   S.stats=Object.assign({},DEF.stats,S.stats||{});
   S.quotes=S.quotes||{};S.hl=S.hl||{};S.owned=S.owned||[];S.claimed=S.claimed||{};S.stickers=S.stickers||{};S.marks=S.marks||{};
+  S.ink=(S.ink&&typeof S.ink==='object'&&!Array.isArray(S.ink))?S.ink:{};S.stk=(S.stk&&typeof S.stk==='object'&&!Array.isArray(S.stk))?S.stk:{};/* 06.11 «Инструменты читателя» = storage/schema.js normInk/normStickers; S.tools приводит к виду js/tools.js TS() */
   S.favs=S.favs||[];S.hidden=S.hidden||[];S.hist=S.hist||{};S.status=S.status||{};S.vocab=S.vocab||[];if(S.lastRead===undefined)S.lastRead=null;S.petXp=S.petXp||0;if(S.dailyClaim===undefined)S.dailyClaim=null;S.boss=S.boss||null;S.hourHist=(S.hourHist&&S.hourHist.length===24)?S.hourHist:new Array(24).fill(0);S.finishDates=S.finishDates||{};S.talents=S.talents||{};
   if(!S.anti)S.anti={minSec:12,maxMin:3,v:2};
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */

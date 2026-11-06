@@ -1690,7 +1690,7 @@ async function closeReaderImpl(opts){
      Daily quest / north-star still require goal minutes (default 10) — not changed here. */
   if((isMvp()?dayMin(sd):(sd===today()?S.minToday:min))>=STREAK_MIN){
     if(!S.lastDay||sd>String(S.lastDay)){
-      S.streak=(S.lastDay===addLocalDays(sd,-1))?S.streak+1:1;
+      S.streak=(S.lastDay===addLocalDays(sd,-1)||(typeof toolsShieldUse==='function'&&toolsShieldUse(sd)))?S.streak+1:1; /* 06.11 «Щит серии» (js/tools.js) */
       S.lastDay=sd;
     }
   }
@@ -1780,6 +1780,7 @@ function renderSummary(r){
   el('sumNote').textContent=notes.join(' · ');
   quizRender(r);
   {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */
+  {const st=el('sumTools');if(st){const h=typeof toolsSummaryHtml==='function'?toolsSummaryHtml(r.row):'';st.innerHTML=h;st.classList.toggle('hidden',!h);}} /* 06.11 инструменты */
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));
   if(r.mult>1)el('luckLbl').textContent='Удача! Все награды ×'+r.mult;

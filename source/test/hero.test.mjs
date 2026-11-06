@@ -21,7 +21,7 @@ await p.evaluate(() => { S.gold = 999999; save(); });
 // Greek items exist only inside the Эллада skin: other skins show no clothes/gear tabs and cannot buy them
 const lock = await p.evaluate(async () => {
   openLook(true); heroShopTab('wear'); await new Promise(q => setTimeout(q, 150));
-  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).filter(t => t !== 'Инструменты' /* 06.11: своя вкладка, tools.test */).join();
   const g0 = S.gold; heroBuyAsk('gr-helm'); const noBuy = el('shopConfirm').hidden && S.gold === g0 && !(S.ownedGear || []).includes('gr-helm');
   const none = !el('heroShop') || el('heroShop').hidden || !el('heroShop').querySelector('.heroitem');
   buy('skin-ellada'); wear('skin-ellada'); renderShopPane(); return { tabs, noBuy, none, all: HERO_GEAR.filter(g => /^(gr|ch)-/.test(g.id)).every(g => g.skin === 'ellada') };
@@ -34,7 +34,7 @@ ok('9 Greek items + 3 characters, avatarSvg() draws the stickman', base.gear ===
 // shop: tabs, try-on (memory only), buy through the confirm dialog, wear / take off
 const shop = await p.evaluate(async () => {
   openLook(true); heroShopTab('wear'); await new Promise(q => setTimeout(q, 200));
-  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent);
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).filter(t => t !== 'Инструменты' /* 06.11: своя вкладка, tools.test */);
   const cards = document.querySelectorAll('#heroShop .heroitem').length, listHidden = el('shopList').hidden;
   const gold0 = S.gold, own0 = (S.ownedGear || []).slice();
   heroTryOn('gr-helm'); const tried = /Коринфский/.test(el('heroShop').querySelector('.heroprevtx').textContent) && (S.ownedGear || []).join() === own0.join() && S.gold === gold0;
@@ -57,7 +57,7 @@ ok('skin purchase still works through the shared confirm dialog', skinBuy.owned 
 const other = await p.evaluate(async () => {
   wear('skin-celestial'); renderShopPane(); heroShopTab('wear'); await new Promise(q => setTimeout(q, 100));
   const hidden = S.equipped.head === 'gr-helm' && !Object.keys(heroOn()).length && heroSvg() === heroSvg({});
-  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), shopHidden = el('heroShop').hidden, greek = !!document.querySelector('#heroShop .heroitem[data-id^="gr-"]');
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).filter(t => t !== 'Инструменты' /* 06.11: своя вкладка, tools.test */).join(), shopHidden = el('heroShop').hidden, greek = !!document.querySelector('#heroShop .heroitem[data-id^="gr-"]');
   heroWear('gr-helm'); const kept = S.equipped.head === 'gr-helm';
   wear('skin-ellada'); renderShopPane(); const back = heroOn().head === 'gr-helm';
   return { hidden, tabs, shopHidden, greek, kept, back };
@@ -80,7 +80,7 @@ ok('«Персонажи»: Читатель free, Пифагор −600 via dia
 // Карандашный: its own hero (Grok's mannequin) and 30 pc-* items, only in this skin
 const pc = await p.evaluate(async () => {
   wear('skin-pencil'); renderShopPane(); heroShopTab('wear'); await new Promise(q => setTimeout(q, 100));
-  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join(), cards = el('heroShop').querySelectorAll('.heroitem').length;
+  const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).filter(t => t !== 'Инструменты' /* 06.11: своя вкладка, tools.test */).join(), cards = el('heroShop').querySelectorAll('.heroitem').length;
   const greek = !el('heroShop').querySelector('.heroitem[data-id^="gr-"]'), art = typeof HERO_PENCIL_ART === 'object' && Object.keys(HERO_PENCIL_ART.items).length;
   const g0 = S.gold; heroBuyAsk('pc-cap'); shopConfirmOk();
   const bought = S.equipped['pencil:head'] === 'pc-cap' && S.gold === g0 - 120, drawn = avatarSvg().includes('heropencil') && avatarSvg().includes(HERO_PENCIL_ART.items['pc-cap'].front.slice(0, 60));
@@ -135,7 +135,7 @@ const doll = await p.evaluate(async () => {
   heroCelBody('am'); const sw = !S.equipped['celestial:cloak'] && avatarSvg().includes('base-am.webp') && heroFits(heroItem('cd-am-cape')) && !heroFits(heroItem('cd-af-cape'));
   heroCelBody('af'); const back = S.equipped['celestial:cloak'] === 'cd-af-cape' && S.equipped['celestial:hand'] === 'cd-af-hand'; heroCelBody('am');
   heroBuyAsk('cp-owl'); shopConfirmOk(); const pet = avatarSvg().includes('dress/cp-owl.webp');
-  heroShopTab('wear'); await new Promise(q => setTimeout(q, 100)); const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).join();
+  heroShopTab('wear'); await new Promise(q => setTimeout(q, 100)); const tabs = [...document.querySelectorAll('#look .shopkinds .fchip')].map(b => b.textContent).filter(t => t !== 'Инструменты' /* 06.11: своя вкладка, tools.test */).join();
   const chips = document.querySelectorAll('#heroShop .herofig .chip').length;
   const files = []; Object.values(HERO_CEL_ART.bodies).forEach(B => Object.values(B.p).forEach(ps => ps.forEach(p => files.push(p[0])))); Object.values(HERO_CEL_ART.meta).forEach(m => { if (m.pet) files.push(m.pet[0]); });
   const loaded = await Promise.all(files.map(f => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth > 0); i.onerror = () => r(false); i.src = 'hero/celestial/dress/' + f + '.webp'; })));

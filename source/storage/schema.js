@@ -71,6 +71,8 @@ export const PROGRESS_DEF = {
   diaries: [],
   /** 25.10: у книги сам заводится дневник при первой цитате или закладке */
   diaryAuto: true,
+  /** 06.11: порядок полки дневников recent|title|entries */
+  diarySort: 'recent',
   /** 28.10 «Цитата дня» на главной: день (YYYY-MM-DD), до конца которого она скрыта (✕); null = показывается */
   qdayOff: null,
   /** 29.10 «Герои книги» (боковое меню выделения, js/sel-tools.js): id → names the reader marked, ≤ 200 per book, a name ≤ 40 */
@@ -427,7 +429,7 @@ function diaryList(a){ /* 25.10 «Дневники» (arch.md): [{id,t,b,bt,ba,c
       es.push({id:n.id,t:t,x:x,tp:key(n.tp),ch:str(n.ch,120),pg:Number.isInteger(n.pg)&&n.pg>=0?n.pg:0,r:typeof n.r==='number'&&n.r>=0&&n.r<=1?n.r:null,d:day(n.d),u:ms(n.u),pin:n.pin===true,cl:one(n.cl,['','red','orange','yellow','green','blue','violet'],'')});});
     out.push({id:y.id,t:str(y.t,80),b:str(y.b,200),bt:str(y.bt,120),ba:str(y.ba,80),cv:key(y.cv)||'school',cc:key(y.cc),
       pp:one(y.pp,['lines','grid','dots','plain','old','papyrus','pearl','stars'],'lines'),fn:one(y.fn,['hand','book','ui'],'hand'),fs:Number.isInteger(y.fs)&&y.fs>=14&&y.fs<=24?y.fs:17,
-      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
+      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),pn:y.pn===true,lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
       d:day(y.d),u:ms(y.u),e:es});});
   return out;
 }
@@ -504,6 +506,7 @@ export function hydrateProgress(p) {
   out.diaries = diaryList(out.diaries);
   out.chars = charsMap(out.chars);
   if (typeof out.diaryAuto !== 'boolean') out.diaryAuto = true;
+  if (['recent', 'title', 'entries'].indexOf(out.diarySort) < 0) out.diarySort = 'recent';
   out.qdayOff = typeof out.qdayOff === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(out.qdayOff) ? out.qdayOff : null;
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};

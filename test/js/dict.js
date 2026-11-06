@@ -239,8 +239,8 @@ function dkHitsHtml(hits,short){
   let more=false;
   const h=hits.map(function(x,i){const hd='<div class="dkh"><b>'+esc(x.head)+'</b><small>'+esc(x.m.kind==='tr'?'Перевод · ':'')+esc(x.m.name)+(x.via?' · форма слова «'+esc(x.via)+'»':'')+'</small></div>';
     if(!short)return '<section class="dkhit">'+hd+dkBody(x.text)+'</section>';
-    if(i===0){const p=dkFirst(x.text);if(p[1].trim())more=true;return '<section class="dkhit">'+hd+dkBody(p[0])+(p[1].trim()?'<div class="dkrest" hidden>'+dkBody(p[1])+'</div>':'')+'</section>';}
-    more=true;return '<section class="dkhit dkrest" hidden>'+hd+dkBody(x.text)+'</section>';}).join('');
+    /* 06.11 (Джессика: «определение из нескольких словарей»): the main sense from EVERY downloaded dictionary, the rest under «Всё значение» */
+    const p=dkFirst(x.text);if(p[1].trim())more=true;return '<section class="dkhit">'+hd+dkBody(p[0])+(p[1].trim()?'<div class="dkrest" hidden>'+dkBody(p[1])+'</div>':'')+'</section>';}).join('');
   return h+(more?'<button type="button" class="ghostbtn dkmore" data-dkmore="1">'+rqIcon('chevron-down',16)+' Всё значение</button>':'');}
 function dkWireHits(root){const b=root&&root.querySelector('[data-dkmore]');if(b)b.onclick=function(e){e.stopPropagation();root.querySelectorAll('.dkrest').forEach(function(x){x.hidden=false;});b.remove();};}
 /** the word aloud: the phone's voice of that language */

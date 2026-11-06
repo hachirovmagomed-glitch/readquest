@@ -23,8 +23,8 @@ import {
   mergeFlat,
   splitLegacyState,
   NS,
-} from './schema.js?v=20261106-1235';
-import * as idb from './idb.js?v=20261106-1235';
+} from './schema.js?v=20261106-1531';
+import * as idb from './idb.js?v=20261106-1531';
 
 let saveWarned = false;
 
@@ -212,8 +212,8 @@ export async function exportBackup(envelope, settings, opts) {
   const e = envelope || loadEnvelope();
   const set = settings || loadSettings();
 
-  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261106-1235');
-  const { listReadingEvents } = await import('./events.js?v=20261106-1235');
+  const { listSessions, ensureSessionIds } = await import('./sessions.js?v=20261106-1531');
+  const { listReadingEvents } = await import('./events.js?v=20261106-1531');
   await ensureSessionIds(); // every exported row carries a string id (UUID or legacy-…)
   const sessions = await listSessions({});
   const events = await listReadingEvents({});
@@ -319,9 +319,9 @@ export async function importBackup(data) {
   saveEnvelope(envelope);
   saveSettings(settings);
 
-  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261106-1235');
+  const { clearSessions, logSession, withLegacyIds } = await import('./sessions.js?v=20261106-1531');
   const { clearReadingEvents, logReadingEvent, logAnalyticsEvent } = await import(
-    './events.js?v=20261106-1235'
+    './events.js?v=20261106-1531'
   );
 
   /* Replace mode: always clear then restore arrays (empty array = wipe) */

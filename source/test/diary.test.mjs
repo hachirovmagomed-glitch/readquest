@@ -76,7 +76,7 @@ ok('3c разметка в дневнике: жирный, курсив, спи�
 const s4 = await p.evaluate(async () => {
   const w = (ms) => new Promise(r => setTimeout(r, ms)), b = BOOKS[0], r = {};
   r.none = !diaryOf(b.id);
-  await openBook(b.id); await w(1200); addBookmark(); r.auto = !!diaryOf(b.id); r.autoCv = diaryOf(b.id).cv;
+  await openBook(b.id); await w(1200); addBookmark(); r.auto = !!diaryOf(b.id); r.autoCv = diaryOf(b.id).cv; addBookmark(); addBookmark(); r.oneMark = (S.marks[b.id] || []).length === 1;
   // reader quick note: chapter + page
   const pr = diaryQuickNote(); await w(100); el('rqAskIn').value = 'Сильное начало'; el('rqAskOk').click(); await pr; await w(100);
   const y = diaryOf(b.id), n = y.e[0]; r.quick = n && { x: n.x, pg: n.pg, r: typeof n.r === 'number' };
@@ -94,7 +94,7 @@ const s4 = await p.evaluate(async () => {
   S.diaryAuto = false; diaryAuto(BOOKS[1].id); r.off = !diaryOf(BOOKS[1].id); S.diaryAuto = true;
   return r; });
 ok('4a закладка в книге без дневника сама заводит дневник книги (школьная тетрадь); «Запись в дневник» из читалки — с главой и страницей',
-  s4.none && s4.auto && s4.autoCv === 'school' && s4.quick && s4.quick.x === 'Сильное начало' && s4.quick.pg >= 1 && s4.quick.r, s4);
+  s4.none && s4.auto && s4.oneMark && s4.autoCv === 'school' && s4.quick && s4.quick.x === 'Сильное начало' && s4.quick.pg >= 1 && s4.quick.r, s4);
 ok('4b в дневнике книги запись, цитата и закладка; цитаты не копируются; заметка к цитате правится в дневнике и пишется в цитату; вкладка «Цитаты»',
   s4.shelfN === 2 && s4.items.e === 1 && s4.items.q === 1 && s4.items.m === 1 && s4.copied && s4.note === 'моя мысль' && s4.noteShown && s4.tabQ.e === 0 && s4.tabQ.q === 1, s4);
 ok('4c «Заводить дневник книги сам» выключено — дневник не заводится', s4.off, s4);
@@ -270,6 +270,14 @@ ok('9c порядок: Недавние → По названию → По за�
   s9.order[0] === 'Альфа' && s9.sort1 === 'title' && s9.orderTitle.join() === 'Альфа,Бета,Гамма,Дельта' && s9.sort2 === 'entries' && s9.orderEntries[0] === 'Дельта' && s9.sort3 === 'recent', s9);
 ok('9d «Закрепить первым» ставит дневник первым и с меткой; pn читается только как true', /^Закрепить первым/.test(s9.pinBtn) && s9.pn === true && s9.first === 'Гамма' && s9.badge && JSON.stringify(s9.norm) === '[false,true]', s9);
 ok('9e вкладка называется «Цитаты» везде', s9.tab, s9);
+// 10. 06.11 (Джессика: «дата закладки дублируется»): одна закладка на страницу; старые повторы в дневнике одной строкой
+const s10 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)), r = {};
+  const b = allBooks()[0]; S.diaries = []; const y = diaryNew({ b: b.id });
+  S.marks[b.id] = [1, 2, 3].map(() => ({ ratio: 0.5, page: 7, date: '2026-11-05' })).concat([{ ratio: 0.6, page: 9, date: '2026-11-05' }]); save();
+  dyOpen(y.id); await w(150); r.rows = el('diary').querySelectorAll('.dymk').length; r.st = dyStats(y);
+  const d = el('diary').querySelector('.dymk .dymd2'); r.oneLine = d && d.getBoundingClientRect().height < 22;
+  return r; });
+ok('10a повторные закладки на одной странице в дневнике одной строкой, дата в одну строку, в счёте одна', s10.rows === 2 && /2 закладки/.test(s10.st) && s10.oneLine, s10);
 const em = await p.evaluate(() => { navGo('diary'); return /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(el('diary').textContent + DIARY_TPL.map(t => t.n + t.x).join('')); });
 ok('нет эмодзи в разделе', !em);
 ok('нет ошибок страницы', errs.length === 0, errs);

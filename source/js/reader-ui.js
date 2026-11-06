@@ -144,6 +144,8 @@ function addBookmark(){
   if(!R.book)return;
   const arr=(S.marks[R.book.id]=S.marks[R.book.id]||[]);
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
+  /* 06.11 (Джессика: «дата закладки дублируется»): второй раз на той же странице закладку не ставим */
+  if(arr.some(function(m){return m&&m.page===R.page+1;})){flashMsg('На стр. '+(R.mode==='pdf'?pdfLabel(R.page):(R.page+1))+' закладка уже есть',{kind:'info',icon:'bookmark'});return;}
   arr.push({ratio:ratio,page:R.page+1,date:today()});
   if(typeof diaryAuto==='function')diaryAuto(R.book.id); /* 25.10 «Дневники» */
   save();

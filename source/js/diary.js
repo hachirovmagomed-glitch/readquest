@@ -52,7 +52,7 @@ function diaryNew(o){
 }
 /* a book gets its diary by itself on the first quote or bookmark (S.diaryAuto); quiet — no toast in the reader */
 function diaryAuto(bid){try{if(S.diaryAuto===false||!bid||diaryOf(bid))return null;return diaryNew({b:bid});}catch(e){console.warn('[rq] diaryAuto',e);return null;}}
-function dyStats(y){const n=y.e.length,q=dyQuotes(y).length,m=dyMarks(y).length;const p=[];
+function dyStats(y){const n=y.e.length,q=dyQuotes(y).length,m=dyMarks(y).filter(function(x,i,A){return x&&A.findIndex(function(z){return z&&z.page===x.page;})===i;}).length;const p=[];
   p.push(n+' '+plural(n,'запись','записи','записей'));if(y.b){p.push(q+' '+plural(q,'цитата','цитаты','цитат'));if(m)p.push(m+' '+plural(m,'закладка','закладки','закладок'));}
   return p.join(' · ');}
 /* --- простая разметка записи: «# »/«## » заголовки, «- », «1. », «- [ ] » списки, «> » цитата, «---» черта,
@@ -93,7 +93,9 @@ function dyItems(y){
   const b=dyBook(y),its=[];
   if(DY.tab==='all'||DY.tab==='notes')y.e.forEach(function(n){its.push({k:'e',o:n,pos:n.r,d:n.d,u:n.u,pin:n.pin});});
   if(DY.tab==='all'||DY.tab==='quotes')dyQuotes(y).forEach(function(q,i){its.push({k:'q',o:q,i:i,pos:dyQPos(b,q),d:q.date||'',u:0});});
-  if(DY.tab==='all'||DY.tab==='marks')dyMarks(y).forEach(function(m,i){its.push({k:'m',o:m,i:i,pos:typeof m.ratio==='number'?m.ratio:null,d:m.date||'',u:0});});
+  /* 06.11: старые повторные закладки на одной странице показываем одной строкой */
+  const mseen={};
+  if(DY.tab==='all'||DY.tab==='marks')dyMarks(y).forEach(function(m,i){if(m&&mseen[m.page])return;if(m)mseen[m.page]=1;its.push({k:'m',o:m,i:i,pos:typeof m.ratio==='number'?m.ratio:null,d:m.date||'',u:0});});
   const q=DY.q.trim().toLowerCase();
   const hit=function(it){if(!q)return true;const o=it.o;return (it.k==='e'?(o.t+' '+o.x+' '+o.ch):it.k==='q'?(o.text+' '+(o.note||'')):'стр. '+o.page).toLowerCase().indexOf(q)>=0;};
   const by=function(a,b){

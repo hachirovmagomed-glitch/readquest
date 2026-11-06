@@ -838,9 +838,11 @@ html[data-skin="babochkovyi"] #pdfScroll .psd{background:url("data:image/svg+xml
 html[data-skin="celestial"] #pdfScroll{--ps-gap:8px}
 html[data-skin="celestial"] #pdfScroll .psd{background:var(--cl-gold);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='8' viewBox='0 0 56 8'%3E%3Crect y='3.6' width='56' height='.8'/%3E%3Cpath d='M28 .3l.95 2.75 2.75.95-2.75.95L28 7.7l-.95-2.75L24.3 4l2.75-.95z'/%3E%3C/svg%3E") center/56px 8px repeat-x;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='8' viewBox='0 0 56 8'%3E%3Crect y='3.6' width='56' height='.8'/%3E%3Cpath d='M28 .3l.95 2.75 2.75.95-2.75.95L28 7.7l-.95-2.75L24.3 4l2.75-.95z'/%3E%3C/svg%3E") center/56px 8px repeat-x}
 /* 25.10 «Дневники» (js/diary.js): полка у каждого скина своя; бумага, шрифт и чернила дневника — его собственные, не скина */
-html[data-skin="pencil"] #diary .dypl{height:10px;background:var(--pc-under) center/100% 100% no-repeat;box-shadow:none;border-radius:0}
+html[data-skin="pencil"] #diary .dypl{height:3px;background:var(--rq-skin-hatch,#5d5a55);box-shadow:0 2px 0 color-mix(in srgb,var(--rq-skin-hatch,#5d5a55) 30%,transparent);border-radius:2px}
+/* 06.11: на полке дневников каракули скина (звёзды, спираль, гусеница) не заходят на обложки */
+html[data-skin="pencil"] body:has(#diary:not(.hidden))::before,html[data-skin="pencil"] body:has(#diary:not(.hidden))::after{content:none}
 html[data-skin="pencil"] #diary .dypaper{box-shadow:0 0 0 1.5px var(--rq-line),2px 3px 0 var(--rq-line)}
-html[data-skin="ellada"] #diary .dypl{height:12px;margin:0 -16px 8px;background:var(--rq-surface-2) var(--el-meander-line) 0 2px/8px 8px repeat-x;box-shadow:0 3px 0 var(--rq-line);border-radius:0}
+html[data-skin="ellada"] #diary .dypl{height:12px;background:var(--rq-surface-2) var(--el-meander-line) 0 2px/8px 8px repeat-x;box-shadow:0 3px 0 var(--rq-line);border-radius:0}
 html[data-skin="ellada"] #diary .dycov{border-radius:3px 6px 6px 3px}
 html[data-skin="ellada"] #diary .dypaper{border-radius:var(--rq-radius-sm);box-shadow:var(--rq-shadow-2)}
 html[data-skin="babochkovyi"] #diary .dypl{height:10px;background:var(--bb-edge) 0 100%/9px 6px repeat-x;box-shadow:inset 0 -2px 0 var(--rq-line);border-radius:0}

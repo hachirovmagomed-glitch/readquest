@@ -29,7 +29,7 @@ await p.evaluate(() => openRewardsSheet('shop')); await sleep(200);
 ok('6b an old «shop» link opens «Внешний вид»', (await cur()) === 'look' && await p.evaluate(() => !el('rewardsSheet').classList.contains('open')));
 await p.evaluate(() => navGo('stats')); await sleep(100);
 const tabs = await p.evaluate(() => [...document.querySelectorAll('#quotes .progtab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.dataset.sub));
-ok('7 an old «Инвентарь» link opens quotes; MVP shows three tabs: Дневники, Цитаты и заметки, Словарь (statistics moved to «Профиль», 18.10)', (await cur()) === 'quotes' && tabs.join() === 'diary,quotes,vocab', tabs);
+ok('7 an old «Инвентарь» link opens quotes; MVP shows three tabs: Дневники, Цитаты, Словарь (statistics moved to «Профиль», 18.10)', (await cur()) === 'quotes' && tabs.join() === 'diary,quotes,vocab', tabs);
 await p.evaluate(() => document.querySelector('#quotes .progtab[data-sub="vocab"]').click()); await sleep(100);
 r = await p.evaluate(() => ({ on: [...document.querySelectorAll('#vocab .progtab.on')].map(b => b.dataset.sub), di: el('dDiary') && el('dDiary').classList.contains('on') }));
 ok('8 the vocab tab works in MVP and is marked', (await cur()) === 'vocab' && r.on.join() === 'vocab' && r.di, r);

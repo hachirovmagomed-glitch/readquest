@@ -142,12 +142,19 @@ function dyShelfHtml(){
   const nb=L.filter(function(y){return y.b;}).length,nf=L.length-nb;
   h+='<div class="chips dychips" role="tablist">'+[['all','Все',L.length],['book','К книгам',nb],['free','Блокноты',nf]].map(function(x){
     return '<button type="button" class="fchip'+(DY.shelf===x[0]?' on':'')+'" role="tab" aria-selected="'+(DY.shelf===x[0])+'" data-act="shelf" data-v="'+x[0]+'">'+x[1]+' '+x[2]+'</button>';}).join('')+'</div>';
-  const show=L.filter(function(y){return DY.shelf==='all'||(DY.shelf==='book'?!!y.b:!y.b);}).slice().sort(function(a,b){return (b.u||0)-(a.u||0);});
+  const so=DIARY_SORTS.find(function(x){return x[0]===S.diarySort;})||DIARY_SORTS[0];
+  const show=L.filter(function(y){return DY.shelf==='all'||(DY.shelf==='book'?!!y.b:!y.b);}).slice().sort(dyShelfCmp);
+  if(L.length)h+=dyContHtml(L);
   if(!L.length)h+='<div class="emptyhint dyempty">'+rqIcon('notebook',40)+'<p>Здесь будут ваши дневники.</p><p>У каждой книги может быть свой дневник: записи по главам, цитаты и закладки в одном месте. А блокнот подойдёт для всего остального.</p>'+
     '<button type="button" class="buy" data-act="new">Завести дневник</button></div>';
   else if(!show.length)h+='<div class="emptyhint dyempty"><p>'+(DY.shelf==='free'?'Блокнотов пока нет.':'Дневников к книгам пока нет.')+'</p><button type="button" class="buy" data-act="new">Завести</button></div>';
-  else{h+='<div class="dyshelf">';
-    show.forEach(function(y){h+='<button type="button" class="dynb" data-act="open" data-id="'+y.id+'">'+dyCoverHtml(y)+'<i class="dypl" aria-hidden="true"></i><span class="dynm">'+esc(dyTitle(y))+'</span><span class="dyst">'+esc(dyStats(y))+'</span></button>';});
+  else{
+    /* 06.11 (Джессика): по 3 в ряд и одна ровная полка на весь ряд; название — на этикетке, под обложкой только счёт */
+    h+='<div class="dyshh"><span>На полке</span><button type="button" class="dyso" data-act="ysort" aria-label="Порядок: '+so[1]+'. Нажмите, чтобы сменить">'+rqIcon(so[2],15)+so[1]+rqIcon('chevron-down',14)+'</button></div>';
+    const n=dyShelfCols();h+='<div class="dyshelf" style="--dyn:'+n+'">';
+    for(let i=0;i<show.length;i+=n){h+='<div class="dyrow">'+show.slice(i,i+n).map(function(y){
+      return '<button type="button" class="dynb" data-act="open" data-id="'+y.id+'" aria-label="'+esc(dyTitle(y)+(y.pn?', закреплён':'')+'. '+dyStats(y))+'" title="'+esc(dyTitle(y))+'">'+dyCoverHtml(y)+
+        (y.pn?'<span class="dypn" aria-hidden="true">'+rqIcon('pin',14)+'</span>':'')+'<span class="dyst" aria-hidden="true">'+dyStats(y).split(' · ').map(function(x){return '<span>'+esc(x)+'</span>';}).join(' ')+'</span></button>';}).join('')+'<i class="dypl" aria-hidden="true"></i></div>';}
     h+='</div>';}
   /* books with quotes or bookmarks but no diary yet (e.g. from before diaries existed) */
   const lone=allBooks().filter(function(b){return !diaryOf(b.id)&&((S.quotes[b.id]||[]).length||(S.marks[b.id]||[]).length);});
@@ -156,10 +163,27 @@ function dyShelfHtml(){
   h+='<div class="dyauto"><span id="dyAutoL">Заводить дневник книги сам<small>при первой цитате или закладке</small></span><button type="button" class="rsw" id="dyAuto" role="switch" aria-labelledby="dyAutoL" aria-checked="'+(S.diaryAuto!==false)+'" data-act="auto"></button></div>';
   return h;
 }
+const DIARY_SORTS=[['recent','Недавние','clock'],['title','По названию','a-large-small'],['entries','По записям','notebook-pen']];
+function dyShelfCols(){try{return innerWidth>=640?4:3;}catch(e){return 3;}}
+/* закреплённые первыми, дальше — выбранный порядок (S.diarySort, arch.md 06.11) */
+function dyShelfCmp(a,b){
+  if(!!a.pn!==!!b.pn)return a.pn?-1:1;
+  if(S.diarySort==='title'){const c=dyTitle(a).localeCompare(dyTitle(b),'ru');if(c)return c;}
+  else if(S.diarySort==='entries'&&a.e.length!==b.e.length)return b.e.length-a.e.length;
+  return (b.u||0)-(a.u||0);
+}
+/* «Продолжить»: дневник с последней правкой — открыть или сразу новая запись */
+function dyContHtml(L){
+  const y=L.slice().sort(function(a,b){return (b.u||0)-(a.u||0);})[0];if(!y)return '';
+  const n=y.e.slice().sort(function(a,b){return (b.u||0)-(a.u||0);})[0];
+  const last=n?(n.t||dyPlain(n.x).replace(/\s+/g,' ').trim()).slice(0,90):(y.b?dyStats(y):'Пока без записей');
+  return '<div class="dycont"><button type="button" class="dycontc" data-act="open" data-id="'+y.id+'">'+dyCoverHtml(y)+'<span class="dycontt"><small>Продолжить</small><b>'+esc(dyTitle(y))+'</b><span>'+esc(last)+'</span></span></button>'+
+    '<button type="button" class="buy dycontn" data-act="contnew" data-id="'+y.id+'">'+rqIcon('notebook-pen',18)+' Новая запись</button></div>';
+}
 /* 26.10 (Джессика: «вкладку "Инвентарь" слить с дневниками»): цитаты и словарь — соседние вкладки раздела; их экраны те же (quotes, vocab) */
 function dyInvTabs(){
   return '<div class="ptabs progtabs dyinv" role="tablist" aria-label="Разделы дневников"><button type="button" class="progtab on" role="tab" aria-selected="true" data-sub="diary">'+rqIcon('notebook',16)+' Дневники</button>'+
-    '<button type="button" class="progtab" role="tab" aria-selected="false" data-sub="quotes" onclick="openProgress(\'quotes\')">'+rqIcon('quote',16)+' Цитаты и заметки</button>'+
+    '<button type="button" class="progtab" role="tab" aria-selected="false" data-sub="quotes" onclick="openProgress(\'quotes\')">'+rqIcon('quote',16)+' Цитаты</button>'+
     '<button type="button" class="progtab" role="tab" aria-selected="false" data-sub="vocab" onclick="openProgress(\'vocab\')">'+rqIcon('book-marked',16)+' Словарь</button></div>';
 }
 function dySearchHtml(q){
@@ -276,6 +300,7 @@ function dySheetHtml(){
     h+='<p class="dyshp">То же самое есть прямо в записи, под кнопкой «Аа».</p>';
   }else{
     if(y.b)h+='<div class="dysh">Порядок записей</div>'+dyPick('so',[['book','По книге'],['date','По датам']],y.so);
+    h+='<div class="dysh">На полке</div><button type="button" class="dyopt" data-act="ypin" aria-pressed="'+!!y.pn+'">'+rqIcon('pin',20)+'<span><b>'+(y.pn?'Открепить':'Закрепить первым')+'</b><small>'+(y.pn?'Дневник стоит первым на полке':'Дневник будет стоять первым на полке')+'</small></span></button>';
     h+='<div class="dysh">Действия</div><button type="button" class="dyopt" data-act="export">'+rqIcon('share-2',20)+'<span><b>Поделиться дневником</b><small>Текстом: записи, цитаты и заметки</small></span></button>'+
       '<button type="button" class="dyopt danger" data-act="dely">'+rqIcon('trash-2',20)+'<span><b>Удалить дневник</b><small>'+(y.b?'Записи пропадут, цитаты и закладки останутся в книге':'Блокнот и все записи пропадут')+'</small></span></button>';
   }
@@ -435,6 +460,8 @@ function dyClick(e){
   if(a==='full')return dyFull(!DY.full);
   if(a==='shx')return dyBack();
   if(a==='shelf'){DY.shelf=t.dataset.v;return dyRender();}
+  if(a==='ysort'){const i=DIARY_SORTS.findIndex(function(x){return x[0]===S.diarySort;});S.diarySort=DIARY_SORTS[(i+1)%DIARY_SORTS.length][0];save();return dyRender();}
+  if(a==='contnew'){const cy=dyGet(t.dataset.id);if(!cy)return;navPush('diary');DY.id=cy.id;DY.view='book';DY.tab='all';const n=dyNewEntry(cy,'');return dyOpenEntry(cy.id,n.id);}
   if(a==='open')return dyOpen(t.dataset.id,t.dataset.tab);
   if(a==='opene'){DY.id=t.dataset.id;DY.view='book';navPush('diary');return dyOpenEntry(t.dataset.id,t.dataset.e);}
   if(a==='auto'){S.diaryAuto=S.diaryAuto===false;save();t.setAttribute('aria-checked',String(S.diaryAuto));return;}
@@ -466,6 +493,7 @@ function dyClick(e){
     return rqAsk({t:'Удалить запись?',p:n.t||dyPlain(n.x).slice(0,80),ok:'Удалить',danger:true}).then(function(ok){if(!ok)return;y.e.splice(y.e.indexOf(n),1);save();n.t='';n.x='';dyBack();});}
   if(['pp','fn','ink','rb','lh','al','so'].indexOf(a)>=0)return dySetLook(y,a,t.dataset.v);
   if(a==='cv'){y.cv=t.dataset.v;y.cc=t.dataset.c;dyTouch(y);return dyRenderKeepSheet();}
+  if(a==='ypin'){y.pn=!y.pn;dyTouch(y);return dyRenderKeepSheet();}
   if(a==='export'){const txt=dyExportText(y);
     if(navigator.share)return navigator.share({title:dyTitle(y),text:txt}).catch(function(){});
     copyText(txt);return;}

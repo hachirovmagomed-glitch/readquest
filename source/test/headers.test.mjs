@@ -21,7 +21,9 @@ for (const w of [390, 360]) {
       await p.evaluate(s => { __navAllow = true; show(s); __navAllow = false; document.querySelectorAll('.scroll').forEach(x => x.scrollTop = 0); }, s); await sleep(250);
       M[(sk || 'default') + '/' + s] = await p.evaluate(s => { const sc = document.getElementById(s), t = sc.getBoundingClientRect().top;
         if (s === 'library') { const h = document.getElementById('libHead').getBoundingClientRect(); return { band: Math.round(h.bottom - t), first: Math.round(document.getElementById('libChips').getBoundingClientRect().top - t) }; }
-        const first = [...sc.querySelectorAll('.wrap > *')].find((e, i) => i > 0 && e.offsetHeight > 0); return { first: Math.round(first.getBoundingClientRect().top - t) }; }, s);
+        const first = [...sc.querySelectorAll('.wrap > *')].find((e, i) => i > 0 && e.offsetHeight > 0), wr = sc.querySelector('.wrap > .row.stwrap');
+        // 06.11: on Stats the «7/30 дней» pair may move under a long title (.stwrap) — only the extra height of that header row (≤ 60 px) is left out of the comparison
+        return { first: Math.round(first.getBoundingClientRect().top - t) - (wr ? Math.min(60, wr.offsetHeight - 44): 0) }; }, s);
     }
   }
   const lib = SK.map(k => M[(k || 'default') + '/library'].first), sub = SK.flatMap(k => ['profile', 'stats'].map(s => M[(k || 'default') + '/' + s].first));

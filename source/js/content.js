@@ -1162,6 +1162,11 @@ function renderStats(){
 }
 el('stP7').onclick=()=>{statPeriod=7;renderStats();};
 el('stP30').onclick=()=>{statPeriod=30;renderStats();};
+// 06.11 (Джессика: «Статистика налезает на количество дней»): the period chips move under the title only when they do not fit beside it;
+// .stwrap lets the header grow just then, so a header that fits keeps its compact height.
+(function(){const pr=document.querySelector('#stats .stper');if(!pr)return;const row=pr.parentElement,h=row.querySelector('h1');
+ const fit=()=>{if(!row.offsetParent)return;row.classList.toggle('stwrap',pr.offsetTop>h.offsetTop+h.offsetHeight/2);};
+ if(window.ResizeObserver){const ro=new ResizeObserver(fit);ro.observe(row);ro.observe(h);}addEventListener('resize',fit);})();
 
 /* ================= FB2 ================= */
 /* 28.10 (ревизия чтения): the encoding is read from the XML header in either quotes (encoding='windows-1251' gave «������»), a UTF-16 BOM is

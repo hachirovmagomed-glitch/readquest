@@ -767,7 +767,8 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #reader:not(.ownsel) #selPaint{display:none}
 #selPaint i{position:absolute;background:var(--rq-sel,color-mix(in srgb,#3d7be0 34%,transparent))}
 #reader[data-page="night"] #selPaint i{background:var(--rq-sel-night,color-mix(in srgb,#5b93f0 40%,transparent))}
-#reader.ownsel #content ::selection,#reader.ownsel #content::selection{background:transparent}
+#reader.ownsel #content ::selection,#reader.ownsel #content::selection,#reader.ownsel .textLayer span::selection{background:transparent}
+#reader.ownsel .textLayer span::-moz-selection{background:transparent}
 .smh{position:fixed;z-index:62;width:44px;height:46px;margin-left:-22px;touch-action:none;cursor:grab}
 .smh[hidden]{display:none}
 .smh i{position:absolute;left:12px;top:6px;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.35)}

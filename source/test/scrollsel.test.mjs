@@ -142,6 +142,10 @@ ok('page mode: long press + drag selects as before, no lock', p6.on && !p6.lock 
   await p.evaluate(async () => { psBox().scrollTop = 0; await new Promise(r => setTimeout(r, 1500)); });
   const s9 = await ps();
   ok('PDF: scrolled back to the start — the same selection, its pages drawn again', s9.len === s8.len && s9.start.startsWith(s0.start) && s9.live && await p.evaluate(() => !!document.querySelector('#pdfScroll .psl[data-n="0"] canvas')), s9);
+  const bp = await p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); const is = [...(el('selPaint') || { children: [] }).children].map(i => i.getBoundingClientRect()); let gaps = 0; const gl = []; for (let k = 0; k + 1 < is.length; k++) { const g = is[k + 1].top - is[k].bottom; if (g > 0.05 && g < 6) { gaps++; gl.push([is[k].top, is[k].bottom, is[k].left, is[k].right, is[k+1].top, is[k+1].bottom, is[k+1].left, is[k+1].right].map(Math.round)); } }
+    const sp = document.querySelector('#pdfScroll .textLayer span'); return { own: el('reader').classList.contains('ownsel'), bands: is.length, gaps, gl, sel: sp ? getComputedStyle(sp, '::selection').backgroundColor : '' }; });
+  ok('PDF: the selection is painted by our solid bands (no white gaps between words), Chrome\'s colour off', bp.own && bp.bands >= 5 && bp.gaps === 0 && /0\)$|transparent/.test(bp.sel), bp);
+  if (process.env.SHOTS) await p.screenshot({ path: process.env.SHOTS + '/pdf-polosy.png' });
   await p.evaluate(async () => { selDone(); psBox().scrollTop = 3000; await new Promise(r => setTimeout(r, 1500)); });
   const k9 = await p.evaluate(() => ({ keep: PS.keep.size, layers: document.querySelectorAll('#pdfScroll .textLayer').length }));
   ok('PDF: the selection gone, the kept text layers far away are freed', k9.keep === 0 && k9.layers <= 8, k9);

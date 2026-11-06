@@ -45,8 +45,8 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261106-0754';
-import { paceLevel } from './game-awards.js?v=20261106-0754';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261106-1223';
+import { paceLevel } from './game-awards.js?v=20261106-1223';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -253,9 +253,11 @@ export function createSessionTracker(api) {
       if (honest.hon < 1) row.hon = honest.hon;
       lastSeen = honest.span ? fresh.reduce(addSpan, seen) : null;
     }
-    lastStats = { rr: reread, ct: Math.round(cutMs / 1000), fl: fast }; /* 25.10: why an empty session was empty (the app says it) */
+    /* 06.11 (Джессика: «полистал книгу меньше 1 минуты, и мне дали 10 опыта»): with the honest rules a session under one counted minute is empty */
+    const short = !!honest && row.minutes < 1 && row.minutes * 60000 >= 5000;
+    lastStats = { rr: reread, ct: Math.round(cutMs / 1000), fl: fast, short: short }; /* 25.10: why an empty session was empty (the app says it) */
     focusInto(row, focus);
-    if (!row.bookId || isEmpty(row.minutes, row.pageTurns)) { reset(); return { row: null, ev: ev }; }
+    if (!row.bookId || isEmpty(row.minutes, row.pageTurns) || (honest && row.minutes < 1)) { if (honest) lastSeen = null; /* nothing counted → no page becomes «read» */ reset(); return { row: null, ev: ev }; }
     /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
     reset(true);
     return { row: row, ev: ev };

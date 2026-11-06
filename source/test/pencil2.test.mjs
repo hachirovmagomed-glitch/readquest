@@ -45,6 +45,17 @@ const og = await p.evaluate(() => { const mk = (wrapCls, id, inner) => { const w
   [rs, sg, ts, pt].forEach(x => x.remove()); return r; });
 ok('3c options: every option circled (no fill), the chosen one in another colour', ['rseg', 'seg', 'tier'].every(k => og[k].on.ring && og[k].off.ring && og[k].on.bg === 'rgba(0, 0, 0, 0)' && og[k].off.bg === 'rgba(0, 0, 0, 0)' && og[k].on.c !== og[k].off.c), og);
 ok('3d tabs: no fill, the open tab circled', og.tab.on.ring && !og.tab.off.ring && og.tab.on.bg === 'rgba(0, 0, 0, 0)', og.tab);
+// 06.11 (Джессика: «Ползунки… тоже сделать рисованными»): switches drawn in pencil (masked outline, ringed knob), sliders with a dashed line, shading to the knob (--pv) and a ringed knob
+const sw = await p.evaluate(async () => { const ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
+  const b = document.createElement('button'); b.className = 'ghostbtn sw'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', 'true'); document.getElementById('libChips').appendChild(b);
+  const r = document.createElement('input'); r.type = 'range'; r.min = 0; r.max = 100; r.value = 30; document.getElementById('libChips').appendChild(r);
+  await new Promise(f => requestAnimationFrame(() => requestAnimationFrame(f)));
+  const bs = getComputedStyle(b), ka = getComputedStyle(b, '::after');
+  const rules = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch (e) { return []; } }).filter(x => x.selectorText && x.selectorText.includes('pencil') && x.selectorText.includes('input[type="range"]'));
+  const tr = rules.find(x => x.selectorText.includes('slider-runnable-track') && /repeating-linear-gradient/.test(x.style.background || x.style.backgroundImage)), th = rules.find(x => x.selectorText.includes('slider-thumb') && /border: 2px solid/.test(x.style.cssText));
+  const out = { swMask: ring(bs), swHatch: (bs.webkitMaskImage.match(/data:image\/svg/g) || []).length, knob: ka.borderTopWidth, pv: r.style.getPropertyValue('--pv'), app: getComputedStyle(r).appearance, track: !!tr, thumb: !!th };
+  b.remove(); r.remove(); return out; });
+ok('3e switches and sliders drawn in pencil', sw.swMask && sw.swHatch === 2 && sw.knob === '2px' && sw.pv === '0.300' && sw.app === 'none' && sw.track && sw.thumb, sw);
 const hb = await p.evaluate(() => { const i = document.createElement('i'), b = document.createElement('div'); b.className = 'pbar'; i.style.width = '50%'; b.appendChild(i); document.getElementById('shelf').prepend(b);
   const r = { bg: getComputedStyle(i).backgroundImage, line: getComputedStyle(b).boxShadow }; b.remove(); return r; });
 ok('4 progress: hatched fill, graphite outline', /repeating-linear-gradient/.test(hb.bg) && /inset/.test(hb.line), hb);

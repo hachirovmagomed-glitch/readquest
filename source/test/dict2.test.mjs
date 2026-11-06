@@ -25,10 +25,10 @@ r = await p.evaluate(async () => { await openBook('b1'); await new Promise(r => 
   await dkShow('шинели', 200, 300, 'Очумелов в новой шинели и с узелком в руке.'); const n = el('rmNote');
   const vis = (q) => [...n.querySelectorAll(q)].filter(x => !x.closest('[hidden]')).length;
   const o = { secs: vis('.dkhit'), more: !!n.querySelector('[data-dkmore]'), say: !!el('dkSay'), save: !!el('dkSave') };
-  n.querySelector('[data-dkmore]').click(); o.after = vis('.dkhit');
+  o.rest0 = [...n.querySelectorAll('.dkrest')].filter(x => x.hidden).length; n.querySelector('[data-dkmore]').click(); o.after = vis('.dkhit'); o.rest1 = [...n.querySelectorAll('.dkrest')].filter(x => x.hidden).length;
   let said = null; const sp = speechSynthesis.speak.bind(speechSynthesis); speechSynthesis.speak = (u) => { said = [u.text, u.lang]; }; el('dkSay').click(); speechSynthesis.speak = sp; o.said = said;
   S.vocab = []; el('dkSave').click(); o.v = S.vocab[0]; rmFnHide(); return o; });
-ok('2 short window: one dictionary visible, «Всё значение» shows all', r.secs === 1 && r.more && r.after >= 2, r);
+ok('2 short window: the main sense from each dictionary (Викисловарь and Даль), «Всё значение» shows the rest', r.secs === 2 && r.more && r.after === 2 && r.rest0 > 0 && r.rest1 === 0, r);
 ok('2 «Произнести»: the word without the stress mark, Russian voice', r.said && r.said[0] === 'шинель' && r.said[1] === 'ru-RU', r);
 ok('2 «В словарь» from the window: «шинель» with the meaning and the sentence of the book', r.v && r.v.w === 'шинель' && /пальто|плащ/.test(r.v.d) && /шинели/.test(r.v.ctx) && r.v.box === 0, r);
 

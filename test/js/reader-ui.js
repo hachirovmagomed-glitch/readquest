@@ -758,22 +758,28 @@ function spLines(rs){const ls=[];rs.forEach(function(r){const cy=(r.top+r.bottom
   ls.sort(function(a,b){return a.t-b.t;});
   for(let i=0;i+1<ls.length;i++){const a=ls[i],b=ls[i+1],gap=b.t-a.b,h=Math.min(a.b-a.t,b.b-b.t);if(gap<h*0.9&&gap>-h*0.5){const m=Math.round((a.b+b.t)/2);a.b=m;b.t=m;}} /* one whole-pixel edge: no hairline gap, no darker overlap */ /* lines of one paragraph: one band, no stripes */
   return ls;}
-function spSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount||typeof R==='undefined'||!R||R.mode!=='text'||el('reader').classList.contains('hidden'))return null;
-  const rg=s.getRangeAt(0),c=el('content');return c&&c.contains(rg.commonAncestorContainer)?rg:null;}
+function spSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount||typeof R==='undefined'||!R||(R.mode!=='text'&&R.mode!=='pdf')||el('reader').classList.contains('hidden'))return null;
+  const rg=s.getRangeAt(0),ca=rg.commonAncestorContainer;
+  if(R.mode==='text'){const c=el('content');return c&&c.contains(ca)?rg:null;}
+  /* 06.11 (Джессика, скрин PDF в «Прокрутке»): the PDF text layer — the same bands; the ends must be in a page's text layer */
+  const tl=function(x){const e=x&&(x.nodeType===3?x.parentNode:x);return !!(e&&e.closest&&e.closest('.textLayer'));};
+  return el('viewer').contains(ca)&&tl(rg.startContainer)&&tl(rg.endContainer)?rg:null;}
 function spPaint(){
   const rg=spSel(),rd=el('reader');
   if(!rg){if(rd.classList.contains('ownsel'))rd.classList.remove('ownsel');const b=el('selPaint');if(b&&b.firstChild)b.textContent='';SP.key='';return false;}
   const v=el('viewer').getBoundingClientRect(),c=el('content');
-  const key=[rg.startOffset,rg.endOffset,rg.toString().length,Math.round(el('viewer').scrollTop),c.style.transform,Math.round(v.left),Math.round(v.top),v.width,v.height].join('|');
+  const pe=rg.startContainer.nodeType===3?rg.startContainer.parentNode:rg.startContainer,pr=pe&&pe.getBoundingClientRect?pe.getBoundingClientRect():{left:0,top:0,width:0}; /* moves with any scroller / zoom (PDF) */
+  const key=[rg.startOffset,rg.endOffset,rg.toString().length,Math.round(el('viewer').scrollTop),c.style.transform,Math.round(pr.left),Math.round(pr.top),Math.round(pr.width),Math.round(v.left),Math.round(v.top),v.width,v.height].join('|');
   if(key===SP.key&&rg.startContainer===SP.a&&rg.endContainer===SP.z)return true;SP.key=key;SP.a=rg.startContainer;SP.z=rg.endContainer;
   /* the text's own boxes only (a range's getClientRects also gives whole paragraphs it crosses) */
   const rs=[],sub=document.createRange(),ca=rg.commonAncestorContainer,w=document.createTreeWalker(ca.nodeType===3?ca.parentNode:ca,NodeFilter.SHOW_TEXT);let n;
-  while((n=w.nextNode())){if(!rg.intersectsNode(n)||!n.nodeValue.trim())continue;
+  while((n=w.nextNode())){if(!rg.intersectsNode(n)||!n.nodeValue.trim())continue;const pn=n.parentNode;if(pn&&pn.classList&&(pn.classList.contains('nc')||pn.closest('.pdfhls')))continue; /* PDF: line / page numbers are not selected */
     sub.setStart(n,n===rg.startContainer?rg.startOffset:0);sub.setEnd(n,n===rg.endContainer?rg.endOffset:n.nodeValue.length);
     const q=sub.getClientRects();for(let i=0;i<q.length;i++){const r=q[i];if(r.width>0.5&&r.height>0&&r.bottom>v.top-40&&r.top<v.bottom+40&&r.right>v.left-40&&r.left<v.right+40)rs.push(r);}
     if(rs.length>4000)break;}
   const b=spBox();b.style.left=v.left+'px';b.style.top=v.top+'px';b.style.width=v.width+'px';b.style.height=v.height+'px';
-  b.innerHTML=spLines(rs).map(function(l){return '<i style="left:'+(l.l-v.left).toFixed(1)+'px;top:'+(l.t-v.top).toFixed(1)+'px;width:'+(l.r-l.l).toFixed(1)+'px;height:'+(l.b-l.t).toFixed(1)+'px"></i>';}).join('');
+  b.innerHTML=spLines(rs).map(function(l){const t=+(l.t-v.top).toFixed(2),bt=+(l.b-v.top).toFixed(2); /* top and bottom rounded alike: the next line's band starts exactly here */
+    return '<i style="left:'+(l.l-v.left).toFixed(1)+'px;top:'+t+'px;width:'+(l.r-l.l).toFixed(1)+'px;height:'+(bt-t).toFixed(2)+'px"></i>';}).join('');
   if(!rd.classList.contains('ownsel'))rd.classList.add('ownsel');return true;}
 function spLoop(){if(SP.raf)return;const f=function(){SP.raf=0;if(spPaint())SP.raf=requestAnimationFrame(f);};SP.raf=requestAnimationFrame(f);}
 document.addEventListener('selectionchange',spLoop);

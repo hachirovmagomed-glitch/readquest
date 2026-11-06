@@ -442,7 +442,8 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
     '<div id="ssRail" role="toolbar" aria-orientation="vertical" aria-label="Выделение"><button type="button" id="ssGrip" aria-label="Свернуть меню, потянуть — перетащить" title="Свернуть / перетащить"><span class="ssChev"></span></button>'+
     '<button type="button" id="ssCol" aria-label="Цвета" title="Цвета" aria-haspopup="true" aria-expanded="false"><i aria-hidden="true"></i>'+L('Цвета')+'</button>'+
     b('ssNote','pencil','Заметка')+b('ssCopy','copy','Копировать')+b('ssDict','languages','Перевести','Перевод')+b('ssAI','sparkles','Объясни')+b('ssAsk','clipboard','Вопрос для ИИ — скопировать','Вопрос')+
-    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+L('Ещё')+'</button><hr>'+
+    '<button type="button" id="ssMore" aria-label="Действия" title="Действия" aria-haspopup="menu" aria-expanded="false">'+rqIcon('ellipsis-vertical',21)+L('Ещё')+'</button>'+
+    '<button type="button" id="ssView" aria-label="Вид меню" title="Вид меню" aria-haspopup="menu" aria-expanded="false">'+rqIcon('menu',21)+L('Вид')+'</button><hr>'+
     '<button type="button" id="ssFrom">'+rqIcon('layers',21)+'<s id="ssFromN" aria-hidden="true"></s>'+L('Начало')+'</button>'+b('ssX','x','Снять выделение','Снять')+'<hr>'+
     '<div id="ssCnt" role="button" tabindex="0"></div>'+
     '<button type="button" id="ssFold" aria-label="Свернуть меню" title="Свернуть"><span class="ssChev"></span></button></div>'+
@@ -454,6 +455,8 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   el('ssFold').onclick=function(){SS.open=false;ssUpd();};
   el('ssGrip').onclick=tap(function(){SS.open=false;ssUpd();}); /* 04.11 (Джессика: «боковое меню … чуть более компактным»): the grip folds it too, no own row for «Свернуть» */
   if(typeof stBind==='function')stBind(); /* 29.10 the tools: js/sel-tools.js */
+  el('ssView').onclick=function(){const open=!!el('ssMenu').querySelector('[data-look]')&&!el('ssMenu').hidden;if(typeof stCol==='function')stCol(false);if(typeof stMenu==='function')stMenu(false);this.setAttribute('aria-expanded','false');if(!open)ssLooksMenu();};
+  el('ssMenu').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button[data-look]');if(!b)return;e.stopPropagation();ssLookSet(b.dataset.look);});
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
   el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
@@ -488,6 +491,13 @@ function ssMoveBind(n){let d=null;
   n.addEventListener('click',function(e){if(SS.moved&&ssLook()!=='side'){e.stopPropagation();e.preventDefault();}},true); /* the end of a drag is not a tap on a button */
   let t0=0;el('ssMove').addEventListener('pointerup',function(){const t=Date.now();if(t-t0<350&&!SS.moved&&ssPin()){t0=0;const a=Object.assign({},SET.selPin);delete a[ssLook()];SET.selPin=a;saveSet();ssPlace();flashMsg('Меню снова на своём месте',{kind:'info',icon:'highlighter'});return;}t0=t;});
 }
+/* 06.11 (Джессика: «чтобы все эти режимы выделения … между ними можно было переключаться в прямом режиме, не заходя постоянно в настройки»):
+   «Вид» in the menu itself lists the five looks; a tap switches at once (the same SET.selLook as «Чтение → Меню выделения»), the selection stays */
+function ssLooksMenu(anchor){const m=el('ssMenu'),b=anchor||el('ssView'),cur=ssLook();if(!m||!b)return;
+  m.innerHTML=SS_LOOKS.map(function(l){const on=l[0]===cur;return '<button type="button" role="menuitemradio" aria-checked="'+on+'" data-look="'+l[0]+'">'+(on?rqIcon('check',18):'<span class="ic" style="display:inline-block;width:18px"></span>')+'<span>'+esc(l[1])+'</span></button>';}).join('');
+  m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
+function ssLookSet(v){if(!SS_LOOKS.some(function(l){return l[0]===v;}))return;const m=el('ssMenu');if(m)m.hidden=true;const b=el('ssView');if(b)b.setAttribute('aria-expanded','false');
+  SET.selLook=v;saveSet();SS.open=true;if(typeof stCol==='function')stCol(false); /* the card's colour row would stay over the new look's buttons */ssUpd();} /* no toast: it would lie over the menu that has just moved there */
 /** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
 function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag||n.classList.contains('drag'))return;const p=ssPos();n.dataset.side=p.s;
   if(ssLook()!=='side'){ssPlaceLook(n);return;}

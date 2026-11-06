@@ -816,7 +816,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #ssRail>hr{width:26px;margin:1px 0;border:0;border-top:1px solid var(--txt);opacity:.22}
 /* 29.10 the tools of the side menu (js/sel-tools.js): the last colour, find, read aloud, «⋯» with a labelled list, the count of words */
 #ssCol i{display:block;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--d) 50%,var(--d2,var(--d)) 50%);box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25)}
-#ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
+#ssCol[aria-expanded="true"],#ssMore[aria-expanded="true"],#ssView[aria-expanded="true"]{background:color-mix(in srgb,var(--txt) 14%,transparent)!important}
 #ssCnt{cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.05;padding:2px 0 2px;color:var(--txt)}
 #ssCnt b{font-size:13px;font-weight:700}#ssCnt span{font-size:9.5px;opacity:.8}
 #ssMenu[hidden],#ssColBox[hidden],#stSheet[hidden]{display:none!important}
@@ -833,6 +833,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 /* 04.11 the looks of the menu (SET.selLook, js/reader-ui.js ssLook/ssPlaceLook): «Плашка», «У текста», «Полоса снизу», «С подписями» */
 .ssL{display:none}
 #selSide:not([data-look="side"]) :is(#ssTab,#ssGrip,#ssFold){display:none!important}
+#selSide[data-look="side"] #ssView{display:none!important} /* 06.11 «Сбоку» stays compact: «Вид меню» is in «⋮» */
 #selSide:is([data-look="side"],[data-look="bubble"]) #ssNote{display:none!important}
 #selSide:not([data-look="side"]) #ssRail{flex-direction:row;flex-wrap:wrap;justify-content:center;width:auto;padding:4px 6px;border:1.5px solid var(--accent);border-radius:24px;background:var(--sheet)}
 #selSide:not([data-look="side"]) #ssRail>hr{width:0;height:24px;margin:0 2px;border:0;border-left:1px solid var(--txt)}

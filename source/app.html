@@ -3144,13 +3144,19 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 
 <div id="stats" class="screen hidden">
   <div class="scroll"><div class="wrap">
-    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuStats" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Статистика</h1><div class="spacer"></div>
-      <button class="fchip on" id="stP7">7 дней</button><button class="fchip" id="stP30">30 дней</button></div>
+    <div class="row" style="margin-bottom:10px"><button class="menubtn" id="menuStats" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><h1>Статистика</h1><div class="spacer"></div></div>
         <div id="statCounters"></div>
     <div class="kpis">
       <div class="kpi"><b id="stkMin">0</b><span>минут всего</span></div>
       <div class="kpi"><b id="stkPages">0</b><span>страниц всего</span></div>
       <div class="kpi"><b id="stkSpeed">0</b><span>стр/час</span></div>
+    </div>
+    <!-- 06.11 (Джессика: «убрать 7/30 дней… более точно настраивать количество дней… эстетичнее»): one period line above the charts -->
+    <div class="stperbar"><span class="stperlbl">Графики</span><button class="fchip stperbtn" id="stPerBtn" aria-expanded="false" aria-controls="stPerPane"><svg class="ic" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg><span id="stPerTxt">за 7 дней</span><svg class="ic stperchev" width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></button></div>
+    <div class="pcard stperpane" id="stPerPane" hidden>
+      <div class="stperq" id="stPerQuick"><button class="fchip" data-d="7">Неделя</button><button class="fchip" data-d="14">2 недели</button><button class="fchip" data-d="30">Месяц</button><button class="fchip" data-d="90">3 месяца</button><button class="fchip" data-d="365">Год</button></div>
+      <div class="stperset"><button class="stperstep" id="stPerMinus" aria-label="На день меньше">−</button><input type="range" id="stPerRange" min="3" max="365" step="1" value="7" aria-label="Сколько дней"><button class="stperstep" id="stPerPlus" aria-label="На день больше">+</button></div>
+      <div class="stpernote" id="stPerNote">7 дней · столбик = день</div>
     </div>
     <div class="pcard"><b style="font-size:13px">Минуты чтения</b><div class="chart" id="chMin"></div></div>
     <div class="pcard"><b style="font-size:13px">Страницы</b><div class="chart" id="chPages"></div></div>

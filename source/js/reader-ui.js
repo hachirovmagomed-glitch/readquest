@@ -754,7 +754,7 @@ function spBox(){let b=el('selPaint');if(b)return b;b=document.createElement('di
 function spLines(rs){const ls=[];rs.forEach(function(r){const cy=(r.top+r.bottom)/2,l=ls.find(function(g){return Math.abs((g.t+g.b)/2-cy)<Math.min(g.b-g.t,r.bottom-r.top)*0.6;});
     if(l){l.l=Math.min(l.l,r.left);l.r=Math.max(l.r,r.right);l.t=Math.min(l.t,r.top);l.b=Math.max(l.b,r.bottom);}else ls.push({l:r.left,r:r.right,t:r.top,b:r.bottom});});
   ls.sort(function(a,b){return a.t-b.t;});
-  for(let i=0;i+1<ls.length;i++){const a=ls[i],b=ls[i+1],gap=b.t-a.b,h=Math.min(a.b-a.t,b.b-b.t);if(gap>0&&gap<h*0.9){const m=(a.b+b.t)/2;a.b=m;b.t=m;}} /* lines of one paragraph: one band, no stripes */
+  for(let i=0;i+1<ls.length;i++){const a=ls[i],b=ls[i+1],gap=b.t-a.b,h=Math.min(a.b-a.t,b.b-b.t);if(gap<h*0.9&&gap>-h*0.5){const m=Math.round((a.b+b.t)/2);a.b=m;b.t=m;}} /* one whole-pixel edge: no hairline gap, no darker overlap */ /* lines of one paragraph: one band, no stripes */
   return ls;}
 function spSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount||typeof R==='undefined'||!R||R.mode!=='text'||el('reader').classList.contains('hidden'))return null;
   const rg=s.getRangeAt(0),c=el('content');return c&&c.contains(rg.commonAncestorContainer)?rg:null;}

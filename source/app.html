@@ -763,7 +763,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #selpop.qmode{touch-action:none}
 #selpop.pinned{transform:none;bottom:auto}
 :is(#selSide,#selpop).foldnear{opacity:.6;outline:2px dashed var(--accent);outline-offset:3px}
-#selPaint{position:fixed;z-index:3;pointer-events:none;overflow:hidden}
+#selPaint{position:absolute;left:0;top:0;width:0;height:0;z-index:3;pointer-events:none;overflow:visible} /* inside the scroller (#viewer / #pdfScroll): scrolls with the text */
 #reader:not(.ownsel) #selPaint{display:none}
 #selPaint i{position:absolute;background:var(--rq-sel,color-mix(in srgb,#3d7be0 34%,transparent))}
 #reader[data-page="night"] #selPaint i{background:var(--rq-sel-night,color-mix(in srgb,#5b93f0 40%,transparent))}

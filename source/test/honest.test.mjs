@@ -61,8 +61,15 @@ const min = r => r ? +r.minutes.toFixed(4) : null;
   const other = [{ bookId: 'x', minutes: 10, pageTurns: 20 }];
   ok('темп: мало по этой книге → по всем книгам (30 с → 12 с)', G.paceFloorSec(other.concat([{ bookId: 'b', minutes: 1, pageTurns: 2 }]), 'b') === 12, G.paceFloorSec(other, 'b'));
   ok('хвост: 60 с на страницу → 60 с; без истории 30 с', G.tailSec(own, 'b') === 60 && G.tailSec([], 'b') === 30); }
-{ const { r } = await sess(Object.assign(H(), { minSecMs: 24 * S }), async (t, adv) => { for (let i = 1; i <= 4; i++) { adv(15 * S); turn(t, i); } adv(30 * S); turn(t, 5); adv(20 * S); });
-  ok('темп 24 с: страницы по 15 с не засчитаны, fl 4', r && r.fl === 4 && r.pageTurns === 1 && min(r) === +(50 / 60).toFixed(4), r); }
+{ const { r } = await sess(Object.assign(H(), { minSecMs: 24 * S }), async (t, adv) => { for (let i = 1; i <= 4; i++) { adv(15 * S); turn(t, i); } adv(60 * S); turn(t, 5); adv(20 * S); });
+  ok('темп 24 с: страницы по 15 с не засчитаны, fl 4', r && r.fl === 4 && r.pageTurns === 1 && min(r) === +(80 / 60).toFixed(4), r); }
+// 06.11 (Джессика: «полистал книгу меньше 1 минуты, и мне дали 10 опыта»): меньше минуты засчитанного — сессии нет
+{ const { r, t } = await sess(H(), async (t, adv) => { for (let i = 1; i <= 3; i++) { adv(15 * S); turn(t, i); } adv(5 * S); });
+  ok('06.11: 3 честные страницы, 50 с → строки нет, страницы не стали «прочитанными», причина short', r === null && t.coverage() === null && t.lastStats().short === true, { r, cov: t.coverage(), st: t.lastStats() }); }
+{ const { r } = await sess(H(), async (t, adv) => { for (let i = 1; i <= 4; i++) { adv(16 * S); turn(t, i); } adv(5 * S); });
+  ok('06.11: 64 с честного чтения + 5 с на последней → строка есть', r && min(r) === +(69 / 60).toFixed(4), r); }
+{ const { r } = await sess(Object.assign(H(), { honest: undefined }), async (t, adv) => { adv(30 * S); turn(t, 1); adv(5 * S); });
+  ok('06.11: без честного режима 35 с с перелистыванием — строка как раньше', r && min(r) === +(35 / 60).toFixed(4), r); }
 
 // 5. Индекс честности
 { const d = '2026-10-25';

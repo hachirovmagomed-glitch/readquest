@@ -1076,7 +1076,7 @@ async function removeBook(id,wipeFile){
 }
 
 /* ================= СТАТИСТИКА ================= */
-let statPeriod=7;
+let statPeriod=7,stPerInit=false;
 function histDays(n){
   const out=[];
   for(let i=n-1;i>=0;i--){
@@ -1085,14 +1085,26 @@ function histDays(n){
   }
   return out;
 }
+const RQ_MON3=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+/* 06.11: a long period is drawn by weeks (32–186 days) or by months (> 186), so the bars stay readable */
+function chartBuckets(days){
+  if(days.length<=31)return days;
+  const byMonth=days.length>186,out=[];let cur=null;
+  days.forEach((x,i)=>{const k=byMonth?x.d.slice(0,7):Math.floor((days.length-1-i)/7);
+    if(!cur||cur.k!==k){cur={k:k,d:x.d,lbl:byMonth?RQ_MON3[+x.d.slice(5,7)-1]:x.d.slice(8)+'.'+x.d.slice(5,7),v:{}};out.push(cur);}
+    Object.keys(x.v||{}).forEach(f=>{cur.v[f]=(cur.v[f]||0)+(+x.v[f]||0);});});
+  return out;
+}
 function renderChart(id,days,key,color){
-  const mx=Math.max(1,...days.map(x=>x.v[key]||0));
+  days=chartBuckets(days);
+  const mx=Math.max(1,...days.map(x=>x.v[key]||0)),n=days.length,every=n<=8?1:n<=16?3:n<=31?5:Math.ceil(n/5);
+  el(id).classList.toggle('dense',n>16);
   el(id).innerHTML=days.map((x,i)=>{
     const val=Math.round(x.v[key]||0);
-    const showLbl=days.length<=7||i%5===0;
+    const showLbl=every===1||(n-1-i)%every===0;
     return '<div class="bar" style="height:'+Math.max(2,Math.round((x.v[key]||0)/mx*100))+'%;background:'+color+'" title="'+x.d+': '+val+'">'+
-      (days.length<=7&&val?'<span>'+val+'</span>':'')+
-      (showLbl?'<i>'+x.d.slice(8)+'</i>':'')+'</div>';
+      (n<=8&&val?'<span>'+val+'</span>':'')+
+      (showLbl?'<i>'+(x.lbl||x.d.slice(8))+'</i>':'')+'</div>';
   }).join('');
 }
 function renderAnaHours(){
@@ -1135,10 +1147,12 @@ function renderYearReview(){
 }
 if(el('btnYearReview'))el('btnYearReview').onclick=renderYearReview;
 function renderStats(){
+  if(!stPerInit){stPerInit=true;const v=Math.round(+((typeof SET!=='undefined'&&SET&&SET.statDays)||0));if(v>=3&&v<=365)statPeriod=v;}
   const days=histDays(statPeriod);
   el('statCounters').innerHTML=statCountersHtml();
-  el('stP7').classList.toggle('on',statPeriod===7);
-  el('stP30').classList.toggle('on',statPeriod===30);
+  if(el('stPerTxt')){el('stPerTxt').textContent=stPerLabel(statPeriod);el('stPerRange').value=statPeriod;
+    el('stPerNote').textContent=statPeriod+' '+plural(statPeriod,'день','дня','дней')+' · '+(statPeriod>186?'столбик = месяц':statPeriod>31?'столбик = неделя':'столбик = день');
+    el('stPerQuick').querySelectorAll('[data-d]').forEach(q=>q.classList.toggle('on',+q.dataset.d===statPeriod));}
   el('stkMin').textContent=Math.round(S.totalMin);
   el('stkPages').textContent=S.totalPages;
   el('stkSpeed').textContent=S.totalMin>0?(S.totalPages/(S.totalMin/60)).toFixed(1):'0';
@@ -1160,8 +1174,16 @@ function renderStats(){
     }).join('')
     :'<div class="pempty">Почитайте — здесь появится разбивка по книгам</div>';
 }
-el('stP7').onclick=()=>{statPeriod=7;renderStats();};
-el('stP30').onclick=()=>{statPeriod=30;renderStats();};
+/* 06.11 (Джессика: «убрать 7/30 дней… более точно настраивать количество дней… эстетичнее»): the period is one line above the charts;
+   tap it → quick picks (неделя … год) and any number of days 3–365 (slider + −/+). Remembered in SET.statDays. */
+function stPerSet(n){n=Math.max(3,Math.min(365,Math.round(+n)||7));statPeriod=n;SET.statDays=n;if(typeof saveSet==='function')saveSet();renderStats();}
+function stPerLabel(n){return n===7?'за неделю':n===14?'за 2 недели':n===30?'за месяц':n===90?'за 3 месяца':n===365?'за год':'за '+n+' '+plural(n,'день','дня','дней');}
+(function(){const b=el('stPerBtn'),pn=el('stPerPane');if(!b||!pn)return;
+  b.onclick=()=>{pn.hidden=!pn.hidden;b.setAttribute('aria-expanded',String(!pn.hidden));};
+  el('stPerQuick').onclick=e=>{const q=e.target.closest('[data-d]');if(q)stPerSet(+q.dataset.d);};
+  el('stPerRange').oninput=e=>stPerSet(e.target.value);
+  el('stPerMinus').onclick=()=>stPerSet(statPeriod-1);el('stPerPlus').onclick=()=>stPerSet(statPeriod+1);
+})();
 
 /* ================= FB2 ================= */
 /* 28.10 (ревизия чтения): the encoding is read from the XML header in either quotes (encoding='windows-1251' gave «������»), a UTF-16 BOM is

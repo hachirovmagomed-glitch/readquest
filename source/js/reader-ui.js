@@ -1399,7 +1399,7 @@ function renderPanel(tab,o){
 let speaking=false,ttsOn=false;
 /* audit 15.10 (Маня): listening is not reading — while read-aloud is on, the tracker counts no minutes (no ring, XP, coins, streak).
    Stop → counting back to the normal rule (MVP always; full UI only with the timer on). */
-function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(on&&!R.paused?(isMvp()||!!R.timerOn):false);} /* 25.10: the pause holds after read-aloud stops */
+function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(on&&!R.paused&&!uiCov?(isMvp()||!!R.timerOn):false);} /* 25.10: the pause (and 06.11 a sheet over the page) holds after read-aloud stops */
 
 /* ===== Пауза (Джессика 25.10: «маленькую полупрозрачную кнопочку в виде круга, которую можно перемещать по всему экрану… в настройках её
    можно спрятать… на паузе опыт и монеты и статистика никак не меняются… если человек очень быстро листает книгу, то пауза сама включается»)
@@ -1408,7 +1408,7 @@ function ttsCount(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.is
 const PAUSE_FAST=5;let pauseIv=null;
 function pauseOn(){return honestOn()&&!!R.book;}
 function pauseApply(){
-  if(__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(!R.paused&&!ttsOn&&(isMvp()||!!R.timerOn));
+  if(__tracker&&__tracker.isRunning&&__tracker.isRunning())__tracker.setCounting(!R.paused&&!ttsOn&&!uiCov&&(isMvp()||!!R.timerOn));
   const b=el('rqPause');if(b){b.classList.toggle('on',!!R.paused);b.setAttribute('aria-pressed',R.paused?'true':'false');
     b.setAttribute('aria-label',R.paused?'Продолжить счёт':'Пауза');b.innerHTML=rqIcon(R.paused?'play':'pause',22);}
   const rd=el('reader');if(rd)rd.classList.toggle('paused',!!R.paused);
@@ -1420,7 +1420,27 @@ function rqPaused(){return (typeof R!=='undefined'&&R&&R.paused)||false;}
 function pauseSet(mode,quiet){R.paused=mode||false;pauseApply();
   if(quiet)return;
   flashMsg(mode==='auto'?'Пауза: листаешь быстро. Задержишься на странице, и счёт пойдёт сам':mode?'Пауза: время, опыт и монеты не идут':'Счёт продолжается','info');}
-function pauseReset(){R.paused=false;clearInterval(pauseIv);pauseIv=null;pauseShow();const b=el('rqPause');if(b)pauseApply();}
+function pauseReset(){R.paused=false;clearInterval(pauseIv);pauseIv=null;pauseShow();uiCov=false;covStart();pauseApply();}
+/* ===== Не чтение (Джессика 06.11: «я просто листал настройки… Если человек копается в настройках, то пусть таймер не засчитывает чтение»)
+   While anything covers the page — a sheet (Aa, contents, AI, translation, dictionary, search…), a dialog, the side menu or another screen —
+   the tracker does not count, exactly like the pause (no minutes, pages, XP, coins, streak). Checked by what is actually on top of the
+   middle of the screen (elementFromPoint), every 0.7 s and right after every tap. The thin top/bottom bars do not stop the clock. Test site only. */
+let uiCov=false,covIv=null;
+const READ_SURF='#viewer,#pdfScroll,#pdfWrap,#navPrev,#navNext,#rqPause,#selpop,#txtBack,#pdfBack,#jumpBack,#pgTip,#pinchHint,#timerHint';
+function readerCovered(){
+  const r=el('reader');if(!r||r.classList.contains('hidden')||!r.getClientRects().length)return true;
+  const x=innerWidth/2;let off=0;
+  [0.4,0.55,0.7].forEach(function(f){const h=document.elementFromPoint(x,innerHeight*f);
+    if(!h||!r.contains(h)||!(h===r||h.closest(READ_SURF)))off++;});
+  return off>=2;
+}
+function covCheck(){
+  if(!pauseOn()||!__tracker||!__tracker.isRunning||!__tracker.isRunning()){uiCov=false;return;}
+  const c=readerCovered();if(c!==uiCov){uiCov=c;pauseApply();}
+}
+function covStart(){clearInterval(covIv);covIv=pauseOn()?setInterval(covCheck,700):null;}
+function covStop(){clearInterval(covIv);covIv=null;uiCov=false;}
+document.addEventListener('click',function(){if(covIv)setTimeout(covCheck,80);},true);
 /** after every page shown and every second of an auto-pause */
 function pauseCheck(){
   if(!pauseOn()||!__tracker||!__tracker.isRunning||!__tracker.isRunning())return;
@@ -1595,6 +1615,7 @@ async function closeReaderImpl(opts){
   try{const sl=window.getSelection&&getSelection();if(sl)sl.removeAllRanges();}catch(e){}el('selpop').classList.add('hidden'); /* audit 19.10 RD-SEL-01: no selection bar over the library */
   if(typeof fzOnClose==='function')fzOnClose(); /* 25.10 «Фокус»: rounds are already in the row (tracker.setFocus), sound off */
   if(window.speechSynthesis){speechSynthesis.cancel();speaking=false;}nttsHalt();speaking=false;ttsOn=false;ttsBtn(false);
+  covStop(); /* 06.11 */
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
@@ -1618,7 +1639,8 @@ async function closeReaderImpl(opts){
     /* 25.10 (Джессика, скрин: 0 страниц, 3 минуты, +30 XP): the book stood open without a single turn or touch */
     const ls=__tracker&&__tracker.lastStats&&__tracker.lastStats();
     if(honestOn()&&ls&&ls.rr>0)flashMsg('Эти страницы ты уже читал: за повтор опыт не начисляется','info');
-    else if(honestOn()&&liveMs>=60000)flashMsg('Не засчитано: без перелистывания и касаний страница считается не дольше минуты','info');}
+    else if(honestOn()&&liveMs>=60000&&(!(ls&&ls.short)||ls.ct>=30))flashMsg('Не засчитано: без перелистывания и касаний страница считается не дольше минуты','info');
+    else if(honestOn()&&ls&&ls.short)flashMsg('Меньше минуты чтения — опыт не начисляется','info');}
     return;} /* empty session (or write failed → draft recovered on next boot) */
   SESS.push(row);
   const sd=String(row.date||today()).slice(0,10); /* session day: 23:50–00:15 belongs entirely to the first day */

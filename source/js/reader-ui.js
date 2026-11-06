@@ -652,11 +652,11 @@ el('viewer').addEventListener('contextmenu',function(e){
 el('viewer').addEventListener('mousedown',function(e){if(SM.on&&SM.ptr!=='mouse')e.preventDefault();},true);
 /* round handles at both ends: dragged, they move that border */
 function smH(id){let h=el(id);if(h)return h;h=document.createElement('div');h.id=id;h.className='smh';h.setAttribute('aria-hidden','true');h.innerHTML='<i></i>';el('reader').appendChild(h);
-  h.addEventListener('touchstart',function(e){e.stopPropagation();if(e.cancelable)e.preventDefault();SM.drag=id==='smLo'?'lo':'hi';smLock(true);h.classList.add('on');},{passive:false});
+  h.addEventListener('touchstart',function(e){e.stopPropagation();if(e.cancelable)e.preventDefault();if(!SM.on&&!quoteReselect())return;SM.drag=id==='smLo'?'lo':'hi';smLock(true);h.classList.add('on');},{passive:false});
   h.addEventListener('touchmove',function(e){if(!SM.drag)return;e.stopPropagation();if(e.cancelable)e.preventDefault();const t=e.touches[0];smFinger(t.clientX,t.clientY,0);},{passive:false});
   const end=function(e){e.stopPropagation();SM.drag=null;smLock(false);h.classList.remove('on');setTimeout(updSelPop,30);};
   h.addEventListener('touchend',end);h.addEventListener('touchcancel',end);
-  h.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();SM.drag=id==='smLo'?'lo':'hi';
+  h.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();if(!SM.on&&!quoteReselect())return;SM.drag=id==='smLo'?'lo':'hi';
     const mv=function(ev){smFinger(ev.clientX,ev.clientY,0);},up=function(){SM.drag=null;smAutoOff();document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);setTimeout(updSelPop,30);};
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});
   return h;}
@@ -684,12 +684,14 @@ function smDragTo(x,y){
 }
 function smDraw(){
   const lo=el('smLo'),hi=el('smHi');
-  if(!SM.on||!SM.lo){if(lo)lo.hidden=true;if(hi)hi.hidden=true;return;}
-  const a=smCharRect(SM.lo[0],SM.lo[1]),b=smCharRect(SM.hi[0],SM.hi[1]-1);
+  /* 06.11: a tapped saved quote shows its handles too (SQ.ends); pulling one turns the quote into a selection (quoteReselect) */
+  const E=SM.on&&SM.lo?[SM.lo,SM.hi]:(!SM.on&&typeof SQ!=='undefined'&&SQ&&SQ.ends&&SQ.ends[0][0].isConnected&&SQ.ends[1][0].isConnected?SQ.ends:null);
+  if(!E){if(lo)lo.hidden=true;if(hi)hi.hidden=true;return;}
+  const a=smCharRect(E[0][0],E[0][1]),b=smCharRect(E[1][0],E[1][1]-1);
   const put=function(h,r,left){if(!r||!smIn(r)){h.hidden=true;return;}h.hidden=false;h.style.left=Math.round(left?r.left:r.right)+'px';h.style.top=Math.round(r.bottom)+'px';};
   put(smH('smLo'),a,true);put(smH('smHi'),b,false);
 }
-function smLoop(){cancelAnimationFrame(SM.raf);const f=function(){if(!SM.on)return;smDraw();SM.raf=requestAnimationFrame(f);};SM.raf=requestAnimationFrame(f);}
+function smLoop(){cancelAnimationFrame(SM.raf);const f=function(){smDraw();if(!SM.on&&!(typeof SQ!=='undefined'&&SQ&&SQ.ends))return;SM.raf=requestAnimationFrame(f);};SM.raf=requestAnimationFrame(f);}
 /* the selection gone (a colour saved it, «Отменить», a tap outside the text): our selection ends too; a tap's own clearing is undone */
 document.addEventListener('selectionchange',function(){
   if(!SM.on||SM.prog||SM.keep)return;const s=window.getSelection(); /* SM.keep: a PDF page is being turned with the selection (selTurn) */
@@ -783,6 +785,7 @@ function quoteMark(on){
 }
 function quoteOpen(h){
   quoteMark(false);SQ=h;quoteMark(true);
+  if(!SM.on){h.ends=sqEnds(h);if(h.ends)smLoop();} /* 06.11 (Джессика: «уже выделил … хочется выделить ещё раз … не появляется ползунок»): its handles */
   renderSpColors(hlKey(h.q.c));el('selpop').classList.add('qmode');el('selpop').classList.remove('hidden','mini');
 }
 function quoteClose(){quoteMark(false);SQ=null;el('selpop').classList.remove('qmode');}
@@ -915,7 +918,7 @@ function pdfParts(q){return q&&q.pdf?[q.pdf].concat(Array.isArray(q.pdf.more)?q.
 function hlRgba(c,a){return 'rgba('+[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)).join(',')+','+a+')';}
 function pdfHlPaint(tl,p){
   if(!tl||!R.book)return;const old=tl.querySelector(':scope > .pdfhls');if(old)old.remove();
-  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&Array.isArray(q.pdf.r)&&pdfParts(q).some(x=>x.p===p)),pend=PQ&&PQ.bid===R.book.id?PQ.parts.filter(x=>x.p===p):[];if(!qs.length&&!pend.length)return;
+  const qs=(S.quotes[R.book.id]||[]).filter(q=>q&&q.pdf&&Array.isArray(q.pdf.r)&&pdfParts(q).some(x=>x.p===p)&&!(typeof QED!=='undefined'&&QED&&QED.q===q)),pend=PQ&&PQ.bid===R.book.id?PQ.parts.filter(x=>x.p===p):[];if(!qs.length&&!pend.length)return;
   const box=document.createElement('div');box.className='pdfhls';box.setAttribute('aria-hidden','true');
   const all=S.quotes[R.book.id];
   qs.forEach(q=>{const c=hlKey(q.c),qi=all.indexOf(q);
@@ -1036,14 +1039,36 @@ el('spFold').onclick=function(){SA.mini=true;selMiniApply();selPlace();};
 /* 26.10 (Джессика): «Изменить границы» of a saved quote (text books) — its marks become a selection with handles; a colour or «Заметка» saves it
    in place of the old one (note, date and place kept), leaving the selection puts the old quote back as it was */
 let QED=null;
+/** 06.11: the two ends of a tapped quote in the text: [[node,offset],[node,offset]] (a PDF: the characters under its boxes on the drawn pages) */
+function sqEnds(sq){
+  if(!sq||!R.book)return null;
+  if(R.mode!=='pdf'){const ms=sq.ms.filter(m=>m.isConnected);if(!ms.length)return null;
+    const tn=function(m,last){const w=document.createTreeWalker(m,NodeFilter.SHOW_TEXT);let n,f=null,l=null;while((n=w.nextNode())){if(!n.nodeValue.length)continue;if(!f)f=n;l=n;}return last?l:f;};
+    const a=tn(ms[0]),z=tn(ms[ms.length-1],true);return a&&z?[[a,0],[z,z.nodeValue.length]]:null;}
+  let a=null,z=null;const rg=document.createRange();
+  pdfParts(sq.q).slice().sort((x,y)=>x.p-y.p).forEach(function(x){
+    const tl=typeof PS!=='undefined'&&PS.on?document.querySelector('#pdfScroll .psl[data-n="'+x.p+'"] > .textLayer'):(x.p===R.page?el('pdfText'):null);if(!tl)return;
+    const b=tl.getBoundingClientRect();if(!b.width||!b.height)return;const bx=hlLines(x.r).map(k=>[k[0],k[1]+(x.v===2?0:k[3]*0.23),k[2],k[3]]);if(!bx.length)return;
+    const w=document.createTreeWalker(tl,NodeFilter.SHOW_TEXT);let n;
+    while((n=w.nextNode())){if(n.parentNode&&n.parentNode.closest('.pdfhls'))continue;const v=n.nodeValue;
+      for(let i=0;i<v.length;i++){if(/\s/.test(v[i]))continue;rg.setStart(n,i);rg.setEnd(n,i+1);const r=rg.getClientRects()[0];if(!r)continue;
+        const cx=(r.left+r.width/2-b.left)/b.width,cy=(r.top+r.height/2-b.top)/b.height;
+        if(bx.some(k=>cx>=k[0]-0.004&&cx<=k[0]+k[2]+0.004&&cy>=k[1]-0.004&&cy<=k[1]+k[3]+0.004)){if(!a)a=[n,i];z=[n,i+1];}}}});
+  return a&&z?[a,z]:null;
+}
 function quoteReselect(){
-  const sq=SQ;if(!sq||R.mode==='pdf')return;const ms=sq.ms.filter(m=>m.isConnected);if(!ms.length)return;
+  const sq=SQ;if(!sq)return false;
+  if(R.mode==='pdf'){ /* 06.11: a PDF quote — its boxes go, its words become the selection with handles; a colour saves it in place of the old one */
+    const e=sq.ends||sqEnds(sq);if(!e)return false;quoteClose();el('selpop').classList.add('hidden');
+    QED={bid:sq.bid,q:sq.q,wait:false,pdf:true};SU.a=null;pdfHlRefresh();
+    const s=window.getSelection();s.removeAllRanges();SM.prog=true;try{s.setBaseAndExtent(e[0][0],e[0][1],e[1][0],e[1][1]);}catch(er){}SM.prog=false;return smFromSel();}
+  const ms=sq.ms.filter(m=>m.isConnected);if(!ms.length)return false;
   quoteClose();let a=null,z=null;
   ms.forEach(m=>{const t=document.createTextNode(m.textContent);m.replaceWith(t);if(!a)a=t;z=t;});
   QED={bid:sq.bid,q:sq.q,wait:false};SU.a=null;
-  const s=window.getSelection();s.removeAllRanges();SM.prog=true;s.setBaseAndExtent(a,0,z,z.nodeValue.length);SM.prog=false;smFromSel(); /* 28.10: our handles move its borders */
+  const s=window.getSelection();s.removeAllRanges();SM.prog=true;s.setBaseAndExtent(a,0,z,z.nodeValue.length);SM.prog=false;return smFromSel(); /* 28.10: our handles move its borders */
 }
-function quoteReselectUndo(){const e=QED;QED=null;if(!e||!R.book||R.book.id!==e.bid||(S.quotes[e.bid]||[]).indexOf(e.q)<0)return;markInContent(e.q.text,hlKey(e.q.c),e.q.n||0);}
+function quoteReselectUndo(){const e=QED;QED=null;if(!e||!R.book||R.book.id!==e.bid)return;if(e.pdf){pdfHlRefresh();return;}if((S.quotes[e.bid]||[]).indexOf(e.q)<0)return;markInContent(e.q.text,hlKey(e.q.c),e.q.n||0);}
 el('spEdit').onclick=quoteReselect;
 el('spAll').onclick=()=>{selDone();renderPanel('qts');el('panel').classList.remove('hidden');el('sheet').classList.add('hidden');};
 

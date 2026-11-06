@@ -704,7 +704,7 @@ html[data-skin="alisa"] :is(#content mark,.pdfhls i)[data-hlnew]{animation:hlChe
 #selpop{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);background:var(--sheet);color:var(--txt);border-radius:var(--rq-radius-md);display:flex;gap:2px;padding:6px;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #selpop button{padding:8px 12px;font-size:0.8125rem;border-radius:var(--rq-radius-sm)}
 #selpop button:active{background:var(--card2)}
-#selpop:not(.qmode) .spq,#selpop.qmode #spWord,#selpop.qmode #spGrow,#selpop.pdf :is(#spGrow,#spEdit){display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
+#selpop:not(.qmode) .spq,#selpop.qmode #spWord,#selpop.qmode #spGrow,#selpop.pdf #spGrow{display:none} /* 22.10: a tapped saved quote: «Удалить» and «Все цитаты» instead of «В словарь» (the «Цитата» marker is gone: Джессика «фломастер убери», a colour saves the quote) */
 #content mark.qon,.textLayer .pdfhls i.qon{outline:2px solid var(--hs);outline-offset:1px}
 /* 25.10 (Джессика, видео: «текст начинает безумствовать и становится похожим на сатанинский»): in a PDF the quote box hugs the letters,
    so the butterfly pollen / the celestial star dust sat on them like accents, and a tapped quote ringed every line. In a PDF: the skin's two-colour

@@ -118,16 +118,17 @@ function rmAutoSec(){const s=rqRm().auto.sec;if(s)return s;
   const v=R.mode==='pdf'?(typeof rxSpp==='function'?rxSpp():90):(typeof rxMinPages==='function'?rxMinPages(1)*60:60);
   return Math.max(10,Math.min(600,Math.round(v||60)));}
 function rmAutoLabel(){const s=rmAutoSec();return (rqRm().auto.sec?'':'≈ ')+(s<60?s+' с':Math.floor(s/60)+' мин'+(s%60?' '+(s%60)+' с':''))+(rqScrollMode()?' на экран':' на страницу');}
+function rmAutoTr(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.setAuto)__tracker.setAuto(on);} /* 06.11: autoscroll pages follow the honest autoscroll rule */
 function rmAutoStart(){
   if(!rmOpen())return;
   if(typeof ttsOn!=='undefined'&&ttsOn){flashMsg('Сначала остановите озвучку');return;}
   const a=RM.auto;a.on=true;a.paused=false;a.t0=performance.now();a.acc=0;a.last=a.t0;a.lastIn=Date.now();
   el('sheet').classList.add('hidden');el('panel').classList.add('hidden');
-  concealChrome('tap');rmAutoUi();cancelAnimationFrame(a.raf);a.raf=requestAnimationFrame(rmAutoLoop);
+  concealChrome('tap');rmAutoUi();cancelAnimationFrame(a.raf);a.raf=requestAnimationFrame(rmAutoLoop);rmAutoTr(true);
   flashMsg('Автолистание: '+rmAutoLabel()+'. Тап в центр — пауза',{kind:'info',icon:'play'});
 }
-function rmAutoStop(msg){const a=RM.auto;if(!a.on)return;a.on=false;a.paused=false;cancelAnimationFrame(a.raf);rmAutoUi();if(msg)flashMsg(msg,{kind:'info',icon:'pause'});}
-function rmAutoPause(p){const a=RM.auto;if(!a.on)return;a.paused=p;if(!p){a.t0=performance.now()-a.acc;a.last=performance.now();a.lastIn=Date.now();concealChrome('tap');}else revealChrome();rmAutoUi();}
+function rmAutoStop(msg){const a=RM.auto;if(!a.on)return;a.on=false;a.paused=false;rmAutoTr(false);cancelAnimationFrame(a.raf);rmAutoUi();if(msg)flashMsg(msg,{kind:'info',icon:'pause'});}
+function rmAutoPause(p){const a=RM.auto;if(!a.on)return;a.paused=p;rmAutoTr(!p);if(!p){a.t0=performance.now()-a.acc;a.last=performance.now();a.lastIn=Date.now();concealChrome('tap');}else revealChrome();rmAutoUi();}
 function rmAutoToggle(){if(RM.auto.on)rmAutoStop('Автолистание выключено');else rmAutoStart();}
 function rmAutoHold(){return document.hidden||!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden')||(typeof SM!=='undefined'&&SM.on)||!!(typeof selText==='function'&&selText())||
   !!document.querySelector('#aiSheet:not(.hidden),#trSheet:not(.hidden),#bookFind:not(.hidden),#rmNote:not([hidden])');}

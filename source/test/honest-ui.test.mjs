@@ -160,6 +160,14 @@ async function quizRun(w, h, shot) {
 await quizRun(390, 844, true);
 await quizRun(360, 740, true);
 
+// 06.11 автолистание без касаний (пункт 6): страницы после 5 мин без касаний не засчитаны, в итоге сессии об этом сказано
+{ const p = await fresh(); await open(p); await p.evaluate(() => rmAutoStart()); await sleep(200);
+  for (let i = 0; i < 8; i++) { await adv(p, 60000); await turn(p); await sleep(40); }
+  await p.evaluate(() => rmAutoStop()); await close(p);
+  const r = await p.evaluate(async () => { const rows = await __rq.listSessions({}); return { au: rows.length ? rows[rows.length - 1].au : null, note: document.getElementById('sumNote').textContent }; });
+  ok('автолистание 8 мин без касаний: au ≥ 3, в итоге «без касаний экрана»', r.au >= 3 && /автолистания без касаний/.test(r.note), r);
+  await p.__ctx.close(); }
+
 // 6. Без ключа: карточка ведёт в настройки
 { const p = await fresh(); await open(p); for (let i = 0; i < 8; i++) { await adv(p, 120000); await turn(p); await sleep(40); } await close(p);
   await p.evaluate(() => { S.ai.key = ''; }); await p.tap('#qzGo'); await sleep(100);

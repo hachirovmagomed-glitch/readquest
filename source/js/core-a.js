@@ -120,7 +120,9 @@ function honestSpan(p){const n=R&&R.pageCount;if(!(n>1)||!(p>=0)||p>=n)return nu
 /** tracker options of the honest rules for book b: own floor (s), tail (s), spans read before, honesty factor */
 function honestOpts(b){
   const G=window.__rqGame,rows=SESS||[],id=b&&b.id,hi=G.honestyIndex(rows,today());
-  return {floorSec:G.paceFloorSec(rows,id),honest:{tailMs:G.tailSec(rows,id)*1000,span:honestSpan,seen:(S.readSpans||{})[id]||[],hon:hi.f}};
+  const avg=G.pageSecAvg(rows,id); /* 06.11 автолистание: a page turned by the app must stay at least 0.7 of the own pace */
+  return {floorSec:G.paceFloorSec(rows,id),honest:{tailMs:G.tailSec(rows,id)*1000,span:honestSpan,seen:(S.readSpans||{})[id]||[],hon:hi.f,
+    autoLiveMs:5*60000,autoFloorMs:avg>0?Math.min(45000,Math.round(avg*700)):0}};
 }
 function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
 /* 25.10 «Фокус» (помодоро, тихий режим, звуки, вызовы недели — js/focus.js): only on the test site for now, like the book level */

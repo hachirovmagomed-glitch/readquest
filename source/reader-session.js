@@ -37,6 +37,9 @@
  *     of pages credited before) credits nothing (row.rr = such pages); a newly credited page joins the spans (coverage());
  *   - honest.hon (0.5…1, the quiet honesty index computed by the app from the last two weeks) goes into the row as `hon` when < 1;
  *     row.fl = forward turns faster than minSec (the personal pace floor the app passes as minSecMs).
+ *   - autoscroll (06.11, Джессика «механизмы для защиты можно включить», пункт 6): setAuto(true) while the app turns or scrolls pages
+ *     by itself. Then a scroll is no sign of life (the machine scrolls), only touched() is; a page closed more than honest.autoLiveMs
+ *     after the last touch credits nothing (row.au = such pages); the floor for a page is max(minSec, honest.autoFloorMs).
  *
  * Day (Product lock 2026-10-06): `date` = the device's LOCAL day on which the session STARTED
  *   (captured in begin()); reading 23:50–00:15 is one row, entirely on the first day.
@@ -111,6 +114,10 @@ export function createSessionTracker(api) {
   let fastRun = 0;        // forward turns faster than minSec in a row (the app's auto-pause), counted while paused too
   let pageAt = 0;         // when the current page appeared (wall clock of now())
   let lastStats = null;   // {rr, ct, fl} of the last closed session, also when it wrote no row
+  let auto = false;       // 06.11: the app's autoscroll is on (setAuto)
+  let autoSeen = false;   // the current page was on screen while the autoscroll ran
+  let touchAt = 0;        // now() of the last touch / key (touched())
+  let au = 0;             // autoscroll pages without a touch for honest.autoLiveMs — nothing credited
   const FLUSH_EVERY_MS = 15000;
 
   function docVisible() {
@@ -142,7 +149,11 @@ export function createSessionTracker(api) {
     dwellPause();
     lastReread = false;
     const raw = dwellAcc;
+    const autoPg = !!honest && (auto || autoSeen) && !last;
+    if (autoPg && floorMs > 0) floorMs = Math.max(floorMs, honest.autoFloorMs);
     let got = floorMs > 0 && raw < floorMs ? 0 : Math.min(raw, pageCapMs);
+    if (autoPg && got > 0 && honest.autoLiveMs > 0 && now() - touchAt > honest.autoLiveMs) { got = 0; au += 1; } /* nobody touched the screen */
+    autoSeen = auto;
     if (honest) {
       const live = Math.min(got, sigMs + (last ? honest.tailMs : capMs)); /* no sign of life → the clock stopped */
       if (last) cutMs += got - live;
@@ -177,6 +188,7 @@ export function createSessionTracker(api) {
       startedAt: startedAt,
       lvl: rowLvl() || undefined,
       fl: honest && fast > 0 ? fast : undefined,
+      au: honest && au > 0 ? au : undefined,
       hon: honest && honest.hon < 1 ? honest.hon : undefined,
       pomo: focus && focus.pomo, pomoRun: focus && focus.pomoRun, fw: focus && focus.fw,
       updatedAt: Date.now(),
@@ -250,12 +262,13 @@ export function createSessionTracker(api) {
       if (fast > 0) row.fl = fast;
       if (cutMs >= 1000) row.ct = Math.round(cutMs / 1000);
       if (reread > 0) row.rr = reread;
+      if (au > 0) row.au = au;
       if (honest.hon < 1) row.hon = honest.hon;
       lastSeen = honest.span ? fresh.reduce(addSpan, seen) : null;
     }
     /* 06.11 (Джессика: «полистал книгу меньше 1 минуты, и мне дали 10 опыта»): with the honest rules a session under one counted minute is empty */
     const short = !!honest && row.minutes < 1 && row.minutes * 60000 >= 5000;
-    lastStats = { rr: reread, ct: Math.round(cutMs / 1000), fl: fast, short: short }; /* 25.10: why an empty session was empty (the app says it) */
+    lastStats = { rr: reread, ct: Math.round(cutMs / 1000), fl: fast, short: short, au: au }; /* 25.10: why an empty session was empty (the app says it) */
     focusInto(row, focus);
     if (!row.bookId || isEmpty(row.minutes, row.pageTurns) || (honest && row.minutes < 1)) { if (honest) lastSeen = null; /* nothing counted → no page becomes «read» */ reset(); return { row: null, ev: ev }; }
     /* keep the draft until the row is durably written (recoverDraft retries on next boot) */
@@ -273,7 +286,7 @@ export function createSessionTracker(api) {
       console.warn('[rq] logSession failed — draft kept for recovery', e);
       const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
         countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, lvl: row.lvl,
-        fl: row.fl, ct: row.ct, rr: row.rr, hon: row.hon, pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, updatedAt: Date.now() });
+        fl: row.fl, ct: row.ct, rr: row.rr, au: row.au, hon: row.hon, pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, updatedAt: Date.now() });
       /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
       if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
       return null;
@@ -287,7 +300,7 @@ export function createSessionTracker(api) {
     running = false; held = false; bookId = null; sessionId = null; startDay = null;
     pageClock = 0; visibleAccum = 0; dwellAcc = 0; dwellClock = 0;
     creditedMs = 0; turns = 0; pagesRead = 0; pendingTurn = 0; level = 0; pageMs = []; focus = null; newPageCap();
-    honest = null; seen = []; cutMs = 0; reread = 0; mine = {}; fresh = []; fast = 0;
+    honest = null; seen = []; cutMs = 0; reread = 0; mine = {}; fresh = []; fast = 0; auto = false; autoSeen = false; au = 0;
     if (!keepDraft) lsDel(DRAFT_KEY);
   }
 
@@ -330,9 +343,12 @@ export function createSessionTracker(api) {
         tailMs: Math.max(0, Number(h.tailMs) || 0),
         span: typeof h.span === 'function' ? h.span : null,
         hon: Number(h.hon) > 0 && Number(h.hon) < 1 ? Math.max(0.5, Math.round(Number(h.hon) * 100) / 100) : 1,
+        autoLiveMs: h.autoLiveMs != null ? Math.max(0, Number(h.autoLiveMs) || 0) : 5 * 60000,
+        autoFloorMs: Math.max(0, Number(h.autoFloorMs) || 0),
       } : null;
       seen = honest && Array.isArray(h.seen) ? normSpans(h.seen) : [];
       cutMs = 0; reread = 0; lastSeen = null; mine = {}; fresh = []; fast = 0; fastRun = 0; pageAt = now();
+      auto = false; autoSeen = false; au = 0; touchAt = now();
       startedAt = Date.now();
       startDay = today();
       running = !!bookId; held = false;
@@ -417,6 +433,7 @@ export function createSessionTracker(api) {
      */
     userActive(kind, info) {
       if (!running) return false;
+      if (auto && honest && kind === 'scroll') return false; /* 06.11: the autoscroll moves the text, not the reader */
       sigMs = dwellLive(); /* 25.10: any work with the page is a sign of life (honest rules) */
       if (!extend) return false;
       const qualifies = kind === 'zoom' ||
@@ -458,6 +475,20 @@ export function createSessionTracker(api) {
     relaid(newPage) {
       if (!running) return;
       page = newPage; /* memory only: the draft has no page field, so nothing is written to storage */
+    },
+
+    /** 06.11: the app's autoscroll started / stopped (paused = stopped). */
+    setAuto(on) {
+      if (!running) return;
+      auto = !!on;
+      if (auto) autoSeen = true;
+    },
+
+    /** 06.11: a finger or a key on the reader — a sign of life, also for the autoscroll rule. */
+    touched() {
+      if (!running) return;
+      touchAt = now();
+      sigMs = dwellLive();
     },
 
     /** Legacy shorthand: pageTurned(fwd) + pageShown(page). */
@@ -540,7 +571,7 @@ async function recoverRaw(api, raw) {
     }
     return await api.logSession({
       id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt, lvl: d.lvl,
-      fl: d.fl, ct: d.ct, rr: d.rr, hon: d.hon,
+      fl: d.fl, ct: d.ct, rr: d.rr, au: d.au, hon: d.hon,
       pomo: d.pomo, pomoRun: d.pomoRun, fw: d.fw,
     });
   } catch (e) {

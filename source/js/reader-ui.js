@@ -1441,6 +1441,8 @@ function covCheck(){
 function covStart(){clearInterval(covIv);covIv=pauseOn()?setInterval(covCheck,700):null;}
 function covStop(){clearInterval(covIv);covIv=null;uiCov=false;}
 document.addEventListener('click',function(){if(covIv)setTimeout(covCheck,80);},true);
+/* 06.11 автолистание: a finger or a key in the open reader is a sign of life (the autoscroll rule needs one every 5 min) */
+['pointerdown','keydown'].forEach(function(t){document.addEventListener(t,function(){if(covIv&&__tracker&&__tracker.touched)__tracker.touched();},true);});
 /** after every page shown and every second of an auto-pause */
 function pauseCheck(){
   if(!pauseOn()||!__tracker||!__tracker.isRunning||!__tracker.isRunning())return;
@@ -1639,6 +1641,7 @@ async function closeReaderImpl(opts){
     /* 25.10 (Джессика, скрин: 0 страниц, 3 минуты, +30 XP): the book stood open without a single turn or touch */
     const ls=__tracker&&__tracker.lastStats&&__tracker.lastStats();
     if(honestOn()&&ls&&ls.rr>0)flashMsg('Эти страницы ты уже читал: за повтор опыт не начисляется','info');
+    else if(honestOn()&&ls&&ls.au>0)flashMsg('Не засчитано: автолистание без касаний экрана дольше 5 минут','info');
     else if(honestOn()&&liveMs>=60000&&(!(ls&&ls.short)||ls.ct>=30))flashMsg('Не засчитано: без перелистывания и касаний страница считается не дольше минуты','info');
     else if(honestOn()&&ls&&ls.short)flashMsg('Меньше минуты чтения — опыт не начисляется','info');}
     return;} /* empty session (or write failed → draft recovered on next boot) */
@@ -1767,6 +1770,7 @@ function renderSummary(r){
   /* 25.10 честное чтение: say why less was counted */
   if(rw.ct>=30)notes.push('Последняя страница: '+fmtSecs(rw.ct)+' без перелистывания и касаний не засчитаны');
   if(rw.rr>0)notes.push(rw.rr+' стр. ты уже читал раньше, за повтор опыт не начисляется');
+  if(rw.au>0)notes.push(rw.au+' стр. автолистания без касаний экрана дольше 5 минут не засчитаны');
   if(rw.hon>0&&rw.hon<1)notes.push('Опыт ×'+String(rw.hon).replace('.',',')+': за две недели '+(honWhy()==='idle'?'много времени книга была открыта без чтения':'много страниц пролистано слишком быстро')+'. Читай как обычно, множитель вернётся сам');
   if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');

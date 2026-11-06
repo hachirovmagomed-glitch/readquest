@@ -115,7 +115,7 @@ ok('проверка: ok строкой → null', G.parseQuizGrade('{"ok":"да
   ok('настройки: pauseXY мусор → null', Sc.hydrateSettings({ pauseXY: 'x' }).pauseXY === null); }
 // 9. Строки сессий: logSession хранит новые поля только в пределах (проверка без IndexedDB — по коду нормализации)
 { const src = (await import('fs')).readFileSync(new URL('../storage/sessions.js', import.meta.url), 'utf8');
-  ok('logSession знает fl/ct/rr/hon', /\['fl', 'ct', 'rr'\]/.test(src) && /rec\.hon/.test(src)); }
+  ok('logSession знает fl/ct/rr/au/hon', /\['fl', 'ct', 'rr', 'au'\]/.test(src) && /rec\.hon/.test(src)); }
 // 10. Автопауза: подряд быстрые перелистывания видны в snapshot().fastRun, медленная страница сбрасывает
 { const t = createSessionTracker(api); T = 1e6; t.begin('b', 0, H());
   for (let i = 1; i <= 5; i++) { T += 2 * S; turn(t, i); }
@@ -125,6 +125,18 @@ ok('проверка: ok строкой → null', G.parseQuizGrade('{"ok":"да
   ok('автопауза: 5 быстрых подряд → fastRun 5, медленная → 0, на паузе счёт быстрых идёт', a === 5 && b === 0 && c.fastRun === 3 && c.counting === false && age === 13 * S, { a, b, c: c.fastRun, age }); }
 { const { r } = await sess(H(), async (t, adv) => { adv(M); turn(t, 1); t.setCounting(false); adv(2 * M); turn(t, 2); adv(M); turn(t, 3); t.setCounting(true); adv(M); turn(t, 4); });
   ok('пауза: страницы на паузе не дают ни минут, ни страниц, ни отрезков', r && min(r) === 2 && r.pageTurns === 2, r); }
+
+// 06.11 автолистание (Джессика выбрала пункт 6): без касаний дольше 5 мин страницы не засчитаны; прокрутка машины — не признак жизни; темп
+{ const { r } = await sess(H(), async (t, adv) => { t.setAuto(true); for (let i = 1; i <= 9; i++) { adv(M); turn(t, i); } adv(20 * S); });
+  ok('автолистание 9 мин без касаний: засчитаны первые 5 стр., au 4', r && r.au === 4 && min(r) === +(320 / 60).toFixed(4), r); }
+{ const { r } = await sess(H(), async (t, adv) => { t.setAuto(true); for (let i = 1; i <= 9; i++) { adv(M); if (i % 4 === 0) t.touched(); turn(t, i); } adv(20 * S); });
+  ok('автолистание с касанием раз в 4 мин: засчитано всё, au нет', r && !r.au && min(r) === +(560 / 60).toFixed(4), r); }
+{ const { r } = await sess(H({ autoFloorMs: 40 * S }), async (t, adv) => { t.setAuto(true); for (let i = 1; i <= 4; i++) { adv(30 * S); turn(t, i); } t.setAuto(false); adv(M); turn(t, 5); adv(M); turn(t, 6); adv(20 * S); });
+  ok('автолистание быстрее 0,7 своего темпа (30 с < 40 с) не засчитано, ручные страницы — да', r && min(r) === +(140 / 60).toFixed(4) && !r.au, r); }
+{ const { r } = await sess(H(), async (t, adv) => { t.setAuto(true); adv(100 * S); t.userActive('scroll'); adv(20 * S); });
+  ok('автолистание: прокрутка машины не продлевает последнюю страницу', r === null, r); }
+{ const { r } = await sess(H(), async (t, adv) => { for (let i = 1; i <= 7; i++) { adv(M); turn(t, i); } adv(20 * S); });
+  ok('без автолистания 7 мин без касаний — как раньше', r && !r.au && min(r) === +(440 / 60).toFixed(4), r); }
 
 console.log('\nИтого: ' + pass + ' PASS, ' + fail + ' FAIL');
 process.exit(fail ? 1 : 0);

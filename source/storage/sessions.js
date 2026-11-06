@@ -136,7 +136,7 @@ export async function logSession(entry) {
   /* optional (19.10, additive): book level of the session, game-awards LEVELS; only 1…2 is kept (0 = no field) */
   if (Number.isInteger(entry.lvl) && entry.lvl >= 1 && entry.lvl <= 4) rec.lvl = entry.lvl; /* 1…LVL_MAX (game-awards.js) */
   /* optional (25.10, additive, arch.md «Честное чтение»): fast flips, seconds cut with no sign of life, re-read pages, XP factor */
-  ['fl', 'ct', 'rr'].forEach(function (k) { if (Number.isInteger(entry[k]) && entry[k] > 0 && entry[k] <= 1e6) rec[k] = entry[k]; });
+  ['fl', 'ct', 'rr', 'au'].forEach(function (k) { if (Number.isInteger(entry[k]) && entry[k] > 0 && entry[k] <= 1e6) rec[k] = entry[k]; });
   const hon = Number(entry.hon);
   if (entry.hon != null && hon >= 0.5 && hon < 1) rec.hon = Math.round(hon * 100) / 100;
   /* optional (25.10 «Фокус», additive): completed rounds (15/25/45), longest run without leaving, focus words */

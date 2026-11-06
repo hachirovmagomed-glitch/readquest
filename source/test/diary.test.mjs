@@ -76,7 +76,7 @@ ok('3c разметка в дневнике: жирный, курсив, спи�
 const s4 = await p.evaluate(async () => {
   const w = (ms) => new Promise(r => setTimeout(r, ms)), b = BOOKS[0], r = {};
   r.none = !diaryOf(b.id);
-  await openBook(b.id); await w(1200); addBookmark(); r.auto = !!diaryOf(b.id); r.autoCv = diaryOf(b.id).cv;
+  await openBook(b.id); await w(1200); addBookmark(); r.auto = !!diaryOf(b.id); r.autoCv = diaryOf(b.id).cv; addBookmark(); addBookmark(); r.oneMark = (S.marks[b.id] || []).length === 1;
   // reader quick note: chapter + page
   const pr = diaryQuickNote(); await w(100); el('rqAskIn').value = 'Сильное начало'; el('rqAskOk').click(); await pr; await w(100);
   const y = diaryOf(b.id), n = y.e[0]; r.quick = n && { x: n.x, pg: n.pg, r: typeof n.r === 'number' };
@@ -94,7 +94,7 @@ const s4 = await p.evaluate(async () => {
   S.diaryAuto = false; diaryAuto(BOOKS[1].id); r.off = !diaryOf(BOOKS[1].id); S.diaryAuto = true;
   return r; });
 ok('4a закладка в книге без дневника сама заводит дневник книги (школьная тетрадь); «Запись в дневник» из читалки — с главой и страницей',
-  s4.none && s4.auto && s4.autoCv === 'school' && s4.quick && s4.quick.x === 'Сильное начало' && s4.quick.pg >= 1 && s4.quick.r, s4);
+  s4.none && s4.auto && s4.oneMark && s4.autoCv === 'school' && s4.quick && s4.quick.x === 'Сильное начало' && s4.quick.pg >= 1 && s4.quick.r, s4);
 ok('4b в дневнике книги запись, цитата и закладка; цитаты не копируются; заметка к цитате правится в дневнике и пишется в цитату; вкладка «Цитаты»',
   s4.shelfN === 2 && s4.items.e === 1 && s4.items.q === 1 && s4.items.m === 1 && s4.copied && s4.note === 'моя мысль' && s4.noteShown && s4.tabQ.e === 0 && s4.tabQ.q === 1, s4);
 ok('4c «Заводить дневник книги сам» выключено — дневник не заводится', s4.off, s4);
@@ -219,7 +219,7 @@ const s8 = await p.evaluate(async () => {
   x.setSelectionRange(2, 10); document.querySelector('#dyBox [data-v="mk"]').click(); await w(30); r.mkOff = x.value;
   x.value = 'а\nб'; x.setSelectionRange(0, 3); document.querySelector('#dyBox [data-v="ol"]').click(); await w(30); r.ol = x.value;
   return r; });
-ok('8a «Инвентарь» во вкладках «Дневников»: Дневники · Цитаты и заметки · Словарь; в меню пункта «Инвентарь» больше нет, старая панель со «stats» читается как «Дневники»',
+ok('8a «Инвентарь» во вкладках «Дневников»: Дневники · Цитаты · Словарь; в меню пункта «Инвентарь» больше нет, старая панель со «stats» читается как «Дневники»',
   JSON.stringify(s8.tabs) === '["diary*","quotes","vocab"]' && s8.quotes === 'Дневники' && s8.backToDiary && s8.drawer.indexOf('stats') < 0 && s8.drawer.indexOf('diary') >= 0 && JSON.stringify(s8.alias.slice(0, 3)) === '["library","diary","path"]', s8);
 ok('8b обложка скина без скина видна с замком и ведёт в магазин; со скином «Эллада» открыта, новый дневник берёт её обложку, папирус и терракоту',
   s8.lockShown && s8.ask && s8.notSet && JSON.stringify(s8.ellada) === '{"cv":"amphora","pp":"papyrus","ink":"terracotta"}' && s8.unlocked && s8.othersLocked && s8.cv === 'amphora/black' && s8.prev, s8);
@@ -241,6 +241,43 @@ ok('8e Enter продолжает список, пустой пункт его �
 const s8f = await p.evaluate(() => { const o = diaryNorm([{ id: 'dyz', lh: 'x', al: 1, pp: 'stars', ink: 'gold', e: [{ id: 'e1', x: 'т', cl: 'pink' }, { id: 'e2', x: 'т', cl: 'blue' }] }])[0];
   return { lh: o.lh, al: o.al, pp: o.pp, ink: o.ink, cl: o.e.map(n => n.cl) }; });
 ok('8f новые поля (интервал, края, метка, бумага и чернила скинов) проверяются при чтении', JSON.stringify(s8f) === '{"lh":"normal","al":"left","pp":"stars","ink":"gold","cl":["","blue"]}', s8f);
+// 9. 06.11 полка (Джессика: «сделай из 2 по 8»): ряды по 3, одна полка на ряд, только счёт под обложкой, «Продолжить», порядок, закрепление
+const s9 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)), r = {};
+  S.diaries = []; ['Бета', 'Альфа', 'Гамма', 'Дельта'].forEach((t, i) => { const y = diaryNew({ t }); for (let k = 0; k < i; k++) dyNewEntry(y, ''); y.u = 1000 + i; });
+  S.diaries.find(y => y.t === 'Альфа').u = 9999; S.diarySort = 'recent'; save(); DY.shelf = 'all'; DY.q = ''; DY.view = 'shelf'; DY.id = null; navGo('diary'); dyRender(); await w(200);
+  const D = el('diary'), rows = [...D.querySelectorAll('.dyshelf .dyrow')];
+  r.rows = rows.map(x => x.querySelectorAll('.dynb').length); r.planks = rows.map(x => x.querySelectorAll('.dypl').length);
+  r.noName = !D.querySelector('.dynm'); r.st = D.querySelector('.dynb .dyst').textContent;
+  const cv = D.querySelector('.dyrow .dynb .dycov').getBoundingClientRect(), pl = D.querySelector('.dyrow .dypl').getBoundingClientRect(), row = rows[0].getBoundingClientRect();
+  r.plankAtBottom = Math.abs(pl.top - cv.bottom) < 6 && pl.width >= row.width - 1;
+  r.cont = D.querySelector('.dycont .dycontc b') && D.querySelector('.dycont .dycontc b').textContent;
+  r.order = [...D.querySelectorAll('.dynb')].map(b => b.title);
+  D.querySelector('[data-act="ysort"]').click(); await w(100); r.sort1 = S.diarySort; r.orderTitle = [...el('diary').querySelectorAll('.dynb')].map(b => b.title);
+  el('diary').querySelector('[data-act="ysort"]').click(); await w(100); r.sort2 = S.diarySort; r.orderEntries = [...el('diary').querySelectorAll('.dynb')].map(b => b.title);
+  el('diary').querySelector('[data-act="ysort"]').click(); await w(100); r.sort3 = S.diarySort;
+  const g = S.diaries.find(y => y.t === 'Гамма'); dyOpen(g.id); await w(150); DY.stab = 'more'; dySheet('cfg'); await w(150);
+  const pb = el('dySheet').querySelector('[data-act="ypin"]'); r.pinBtn = pb && pb.textContent.trim(); pb && pb.click(); await w(100); r.pn = g.pn;
+  dySheetClose(); DY.view = 'shelf'; DY.id = null; navGo('diary'); dyRender(); await w(150);
+  r.first = el('diary').querySelector('.dynb').title; r.badge = !!el('diary').querySelector('.dynb .dypn');
+  const cb = el('diary').querySelector('[data-act="contnew"]'), a = dyGet(cb.dataset.id), n0 = a.e.length; cb.click(); await w(200); r.newEntry = a.e.length === n0 + 1;
+  r.norm = diaryNorm([{ id: 'dyq', t: 'а', pn: 'yes', e: [] }, { id: 'dyq2', t: 'б', pn: true, e: [] }]).map(y => y.pn);
+  r.tab = [...document.querySelectorAll('.progtab[data-sub="quotes"]')].every(b => b.textContent.trim() === 'Цитаты');
+  return r; });
+ok('9a полка: ряды по 3, под каждым рядом одна полка ровно по низу обложек, под обложкой только счёт',
+  JSON.stringify(s9.rows) === '[3,1]' && JSON.stringify(s9.planks) === '[1,1]' && s9.noName && /запис/.test(s9.st) && s9.plankAtBottom, s9);
+ok('9b «Продолжить» показывает последний дневник, «Новая запись» заводит в нём запись', s9.cont === 'Альфа' && s9.newEntry, s9);
+ok('9c порядок: Недавние → По названию → По записям → Недавние',
+  s9.order[0] === 'Альфа' && s9.sort1 === 'title' && s9.orderTitle.join() === 'Альфа,Бета,Гамма,Дельта' && s9.sort2 === 'entries' && s9.orderEntries[0] === 'Дельта' && s9.sort3 === 'recent', s9);
+ok('9d «Закрепить первым» ставит дневник первым и с меткой; pn читается только как true', /^Закрепить первым/.test(s9.pinBtn) && s9.pn === true && s9.first === 'Гамма' && s9.badge && JSON.stringify(s9.norm) === '[false,true]', s9);
+ok('9e вкладка называется «Цитаты» везде', s9.tab, s9);
+// 10. 06.11 (Джессика: «дата закладки дублируется»): одна закладка на страницу; старые повторы в дневнике одной строкой
+const s10 = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)), r = {};
+  const b = allBooks()[0]; S.diaries = []; const y = diaryNew({ b: b.id });
+  S.marks[b.id] = [1, 2, 3].map(() => ({ ratio: 0.5, page: 7, date: '2026-11-05' })).concat([{ ratio: 0.6, page: 9, date: '2026-11-05' }]); save();
+  dyOpen(y.id); await w(150); r.rows = el('diary').querySelectorAll('.dymk').length; r.st = dyStats(y);
+  const d = el('diary').querySelector('.dymk .dymd2'); r.oneLine = d && d.getBoundingClientRect().height < 22;
+  return r; });
+ok('10a повторные закладки на одной странице в дневнике одной строкой, дата в одну строку, в счёте одна', s10.rows === 2 && /2 закладки/.test(s10.st) && s10.oneLine, s10);
 const em = await p.evaluate(() => { navGo('diary'); return /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(el('diary').textContent + DIARY_TPL.map(t => t.n + t.x).join('')); });
 ok('нет эмодзи в разделе', !em);
 ok('нет ошибок страницы', errs.length === 0, errs);

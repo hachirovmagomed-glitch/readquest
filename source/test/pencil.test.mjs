@@ -35,7 +35,7 @@ await p.evaluate(() => { openGeneralSettings(false); document.querySelectorAll('
 n = await nav();
 ok('pencil: nav 4 items + «Читать», each a Lucide icon', n.length === 5 && n.every(x => /^#i-/.test(x.ic)), n);
 
-// 3. switches: 44×24 track, round 20px thumb inside the track, no frame, both states
+// 3. switches: 44×24 track, round 20px thumb inside the track, no frame, both states (06.11: the knob is a hand-drawn circle, pencil2 3e)
 const swi = () => p.evaluate(() => [...document.querySelectorAll('#settings .sw')].filter(b => b.offsetParent).map(b => {
   const cs = getComputedStyle(b), a = getComputedStyle(b, '::after'), f = getComputedStyle(b, '::before'), r = b.getBoundingClientRect();
   const m = new DOMMatrix(a.transform === 'none' ? undefined : a.transform);
@@ -46,7 +46,7 @@ const swi = () => p.evaluate(() => [...document.querySelectorAll('#settings .sw'
 }));
 for (const pass of [0, 1]) {
   const s = await swi();
-  const bad = s.filter(x => x.tw !== 44 || x.th !== 24 || x.w !== 20 || x.h !== 20 || x.rad !== '50%' || !x.inside || x.img !== 'none|none' || (x.before !== 'none' && x.before !== 'normal' && x.bvis)); /* audit 19.10 GL-02: an invisible ::before hit area (44 px) is not a frame */
+  const bad = s.filter(x => x.tw !== 44 || x.th !== 24 || x.w !== 20 || x.h !== 20 || !/^\d+% \d+% \d+% \d+% \/ \d+% \d+% \d+% \d+%$|^50%$/.test(x.rad) || !x.inside || x.img !== 'none|none' || (x.before !== 'none' && x.before !== 'normal' && x.bvis)); /* audit 19.10 GL-02: an invisible ::before hit area (44 px) is not a frame */
   ok(`switches (${pass ? 'toggled' : 'initial'}): 44×24 track, round 20px thumb inside, no frame`, s.length >= 3 && !bad.length, bad.length ? bad : s.map(x => x.id + ':' + x.on));
   if (!pass) await p.evaluate(() => [...document.querySelectorAll('#settings .sw')].filter(b => b.offsetParent).forEach(b => b.click())), await sleep(300);
 }
@@ -65,9 +65,9 @@ const badC = fr.cards.filter(c => !c.img || c.ins.some(v => v < 0) || c.tr !== '
 ok('pencil frame on every settings card, inside (inset ≥0, no transform, same radius, overflow hidden)', fr.cards.length >= 4 && !badC.length, badC.length ? badC : fr.cards.length);
 ok('no hand-drawn frame on rows/buttons/fields/tiles inside cards', !fr.inner.length, fr.inner.slice(0, 8));
 
-// 5. buttons / fields / segmented: 1.5px line, no double outline; theme tiles 1px, selected 2px accent + check
+// 5. buttons / fields: 1.5px line (06.11: segmented options are circled in pencil instead, pencil2 3c), no double outline; theme tiles 1px, selected 2px accent + check
 const bt = await p.evaluate(() => {
-  const els = [...document.querySelectorAll('#settings .ghostbtn:not(.sw), #settings .stepbtn, #settings .seg:not(#appThemeBox) button, #settings input[type=text], #settings input[type=password], #settings select')].filter(e => e.offsetParent);
+  const els = [...document.querySelectorAll('#settings .ghostbtn:not(.sw), #settings .stepbtn, #settings input[type=text], #settings input[type=password], #settings select')].filter(e => e.offsetParent);
   const b = els.map(e => { const cs = getComputedStyle(e); return { e: e.id || e.textContent.trim().slice(0, 12), bw: cs.borderTopWidth, bs: cs.borderTopStyle, bc: cs.borderTopColor, bi: cs.borderImageSource, sh: cs.boxShadow }; });
   const gp = document.createElement('i'); gp.style.color = getComputedStyle(document.documentElement).getPropertyValue('--rq-skin-border').trim(); document.body.appendChild(gp); const graph = getComputedStyle(gp).color; gp.remove();
   /* Chrome snaps a 1.5px border to whole px in getComputedStyle → also check the declared width in the pencil rule that hits each control */

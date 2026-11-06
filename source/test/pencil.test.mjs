@@ -65,9 +65,9 @@ const badC = fr.cards.filter(c => !c.img || c.ins.some(v => v < 0) || c.tr !== '
 ok('pencil frame on every settings card, inside (inset ≥0, no transform, same radius, overflow hidden)', fr.cards.length >= 4 && !badC.length, badC.length ? badC : fr.cards.length);
 ok('no hand-drawn frame on rows/buttons/fields/tiles inside cards', !fr.inner.length, fr.inner.slice(0, 8));
 
-// 5. buttons / fields / segmented: 1.5px line, no double outline; theme tiles 1px, selected 2px accent + check
+// 5. buttons / fields: 1.5px line (06.11: segmented options are circled in pencil instead, pencil2 3c), no double outline; theme tiles 1px, selected 2px accent + check
 const bt = await p.evaluate(() => {
-  const els = [...document.querySelectorAll('#settings .ghostbtn:not(.sw), #settings .stepbtn, #settings .seg:not(#appThemeBox) button, #settings input[type=text], #settings input[type=password], #settings select')].filter(e => e.offsetParent);
+  const els = [...document.querySelectorAll('#settings .ghostbtn:not(.sw), #settings .stepbtn, #settings input[type=text], #settings input[type=password], #settings select')].filter(e => e.offsetParent);
   const b = els.map(e => { const cs = getComputedStyle(e); return { e: e.id || e.textContent.trim().slice(0, 12), bw: cs.borderTopWidth, bs: cs.borderTopStyle, bc: cs.borderTopColor, bi: cs.borderImageSource, sh: cs.boxShadow }; });
   const gp = document.createElement('i'); gp.style.color = getComputedStyle(document.documentElement).getPropertyValue('--rq-skin-border').trim(); document.body.appendChild(gp); const graph = getComputedStyle(gp).color; gp.remove();
   /* Chrome snaps a 1.5px border to whole px in getComputedStyle → also check the declared width in the pencil rule that hits each control */

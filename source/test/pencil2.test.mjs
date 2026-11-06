@@ -34,6 +34,17 @@ const rf = await p.evaluate(() => { const c = document.createElement('button'); 
   const s = getComputedStyle(c), a = getComputedStyle(c, '::after'), da = getComputedStyle(d, '::after'), ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
   const r = { frame: s.borderTopColor, off: getComputedStyle(d).borderTopColor, bw: s.borderTopWidth, inset: [a.top, a.right, a.bottom, a.left].join(' '), on: ring(a), onBg: a.backgroundColor, offRing: ring(da), offBg: da.backgroundColor }; c.remove(); d.remove(); return r; });
 ok('3b chips: every chip circled in pencil (no frame), the selected one in another colour, ring covers the border box', rf.frame === 'rgba(0, 0, 0, 0)' && rf.off === 'rgba(0, 0, 0, 0)' && rf.on && rf.offRing && rf.onBg !== rf.offBg && rf.inset === '-' + rf.bw + ' -' + rf.bw + ' -' + rf.bw + ' -' + rf.bw, rf);
+// 06.11 (Джессика: «со всеми параметрами… Пробегись по другим настройкам»): reading-settings options, settings .seg and price tiers are circled the same way; tabs: the open one circled
+const og = await p.evaluate(() => { const mk = (wrapCls, id, inner) => { const w = document.createElement('div'); w.className = wrapCls; if (id) w.id = id; w.innerHTML = inner; document.body.appendChild(w); return w; };
+  const ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
+  const sheet = document.getElementById('sheet'), rs = document.createElement('div'); rs.className = 'rseg'; rs.innerHTML = '<button class="on">А</button><button>Б</button>'; sheet.appendChild(rs);
+  const sg = mk('seg', 'tLangX', '<button class="on">Р</button><button>E</button>'), ts = mk('tierseg', '', '<button class="on">1</button><button>2</button>'), pt = mk('ptabs', '', '<button class="on">Т</button><button>Д</button>');
+  const st = b => { const s = getComputedStyle(b), a = getComputedStyle(b, '::after'); return { bg: s.backgroundColor, ring: ring(a), c: a.backgroundColor }; };
+  const r = {}; for (const [k, w] of [['rseg', rs], ['seg', sg], ['tier', ts]]) { const [on, off] = w.querySelectorAll('button'); r[k] = { on: st(on), off: st(off) }; }
+  const [ton, toff] = pt.querySelectorAll('button'); r.tab = { on: st(ton), off: st(toff) };
+  [rs, sg, ts, pt].forEach(x => x.remove()); return r; });
+ok('3c options: every option circled (no fill), the chosen one in another colour', ['rseg', 'seg', 'tier'].every(k => og[k].on.ring && og[k].off.ring && og[k].on.bg === 'rgba(0, 0, 0, 0)' && og[k].off.bg === 'rgba(0, 0, 0, 0)' && og[k].on.c !== og[k].off.c), og);
+ok('3d tabs: no fill, the open tab circled', og.tab.on.ring && !og.tab.off.ring && og.tab.on.bg === 'rgba(0, 0, 0, 0)', og.tab);
 const hb = await p.evaluate(() => { const i = document.createElement('i'), b = document.createElement('div'); b.className = 'pbar'; i.style.width = '50%'; b.appendChild(i); document.getElementById('shelf').prepend(b);
   const r = { bg: getComputedStyle(i).backgroundImage, line: getComputedStyle(b).boxShadow }; b.remove(); return r; });
 ok('4 progress: hatched fill, graphite outline', /repeating-linear-gradient/.test(hb.bg) && /inset/.test(hb.line), hb);

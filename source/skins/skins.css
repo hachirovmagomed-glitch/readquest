@@ -587,6 +587,27 @@ html[data-skin="pencil"] .fchip{position:relative;border-color:transparent!impor
 html[data-skin="pencil"] .fchip::after{content:""!important;position:absolute;inset:-2px!important;background:var(--rq-skin-border);pointer-events:none;
   -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
 html[data-skin="pencil"] .fchip.on::after{background:var(--rq-accent)} /* the :is() rule above carries #botnav specificity and paints it too */
+/* 06.11 (Джессика: «Так можно сделать, по сути, со всеми параметрами… Пробегись по другим настройкам»): every option of a choice is circled in graphite,
+   the chosen one in accent — reading settings (#sheet .rseg: «Ко всем книгам», насыщенность, выравнивание, ширина строки, листание, анимация, фокус, звуки),
+   general settings .seg (язык, нейросети: длина, тон, язык ответа) and price tiers (.tierseg). No fills, no frames, no track behind the options.
+   Colour tiles (#themeSeg), the font list (#fontSeg) and the theme/skin pickers keep their own look. */
+html[data-skin="pencil"] #sheet .rseg{background:transparent!important;box-shadow:none!important;gap:6px;padding:2px 0}
+html[data-skin="pencil"] :is(#sheet .rseg > button,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button:not(.swatch),.tierseg > button){
+  position:relative;background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:var(--rq-text)!important}
+html[data-skin="pencil"] :is(#sheet .rseg > button,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button:not(.swatch),.tierseg > button)::after{
+  content:""!important;position:absolute;inset:0!important;background:var(--rq-skin-border)!important;pointer-events:none;border:0;
+  -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] :is(#sheet .rseg > button.on,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button.on:not(.swatch),.tierseg > button.on){color:var(--rq-accent-text)!important;font-weight:700}
+html[data-skin="pencil"] :is(#sheet .rseg > button.on,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button.on:not(.swatch),.tierseg > button.on)::after{background:var(--rq-accent)!important}
+html[data-skin="pencil"] :is(#sheet .rseg > button,.seg > button,.tierseg > button):disabled::after{opacity:.5}
+html[data-skin="pencil"] .seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button:not(.swatch){padding:7px 14px!important} /* room inside the oval */
+html[data-skin="pencil"] #sheet #fzSnd{grid-auto-flow:row;grid-template-columns:1fr 1fr} /* sound names are long: two per line, not cut off inside the oval */
+/* tabs (reading settings sections, «Цитаты/Словарь/…», «Все/Полученные», «Игровое/Награды»): no fill, the open tab circled in accent */
+html[data-skin="pencil"] :is(.ptabs button,#setCats button){position:relative;background:transparent!important;box-shadow:none!important;color:var(--rq-text-2)}
+html[data-skin="pencil"] :is(.ptabs button,#setCats button).on{color:var(--rq-accent-text)!important;font-weight:700}
+html[data-skin="pencil"] :is(.ptabs button,#setCats button).on::after{content:"";position:absolute;inset:2px 0;background:var(--rq-accent);pointer-events:none;
+  -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] #setCats button.on .ic{color:var(--rq-accent-text)}
 /* progress: graphite outline, hatched fill */
 html[data-skin="pencil"] .pbar{height:7px;border-radius:2px;background:var(--rq-surface);box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
 html[data-skin="pencil"] .pbar i{border-radius:2px;background:repeating-linear-gradient(-45deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px)!important;box-shadow:inset 0 0 0 1.2px var(--rq-accent)}

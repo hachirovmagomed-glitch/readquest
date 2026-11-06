@@ -580,6 +580,10 @@ html[data-skin="pencil"] :is(.fchip.on,#botnav .botnav-btn.on,.tierseg button.on
   -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
 html[data-skin="pencil"] #botnav .botnav-btn.on::after{inset:0 8px}
 html[data-skin="pencil"] .fchip.on{box-shadow:none}
+/* 06.11 (Джессика: «обводка уровней сложности какая-то кривая»): a selected chip keeps its 2px graphite frame (app.html pencil rules) and the pencil ring
+   was drawn on top of it, sticking out of the frame. The ring now replaces the frame: the frame turns transparent (no layout shift) and the ring covers the border box */
+html[data-skin="pencil"] .fchip.on{border-color:transparent!important}
+html[data-skin="pencil"] .fchip.on::after{inset:-2px!important} /* the :is() rule above carries #botnav specificity */
 /* progress: graphite outline, hatched fill */
 html[data-skin="pencil"] .pbar{height:7px;border-radius:2px;background:var(--rq-surface);box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
 html[data-skin="pencil"] .pbar i{border-radius:2px;background:repeating-linear-gradient(-45deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px)!important;box-shadow:inset 0 0 0 1.2px var(--rq-accent)}

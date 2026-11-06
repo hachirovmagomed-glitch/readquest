@@ -28,6 +28,10 @@ const ac = await p.evaluate(() => { const c = document.querySelector('#libChips 
   const ring = e => /data:image\/svg/.test(getComputedStyle(e, '::after').webkitMaskImage || ''), t = document.getElementById('libTitle');
   return { chipBg: getComputedStyle(c).backgroundColor, chipRing: ring(c), navBg: getComputedStyle(n).backgroundColor, navRing: ring(n), under: /data:image\/svg/.test(getComputedStyle(t, '::after').webkitMaskImage || '') }; });
 ok('3 active filter and tab circled in pencil (no fill), library title underlined by hand', ac.chipBg === 'rgba(0, 0, 0, 0)' && ac.chipRing && ac.navBg === 'rgba(0, 0, 0, 0)' && ac.navRing && ac.under, ac);
+// 06.11 (Джессика: «обводка уровней сложности какая-то кривая»): the ring replaces the graphite frame of a selected chip and sits on the frame, not over and past it
+const rf = await p.evaluate(() => { const c = document.createElement('button'); c.className = 'fchip on'; c.textContent = 'Этюд ×1,5'; document.getElementById('libChips').appendChild(c);
+  const s = getComputedStyle(c), a = getComputedStyle(c, '::after'), r = { frame: s.borderTopColor, bw: s.borderTopWidth, inset: [a.top, a.right, a.bottom, a.left].join(' ') }; c.remove(); return r; });
+ok('3b selected chip: frame transparent, ring covers the border box', rf.frame === 'rgba(0, 0, 0, 0)' && rf.inset === '-' + rf.bw + ' -' + rf.bw + ' -' + rf.bw + ' -' + rf.bw, rf);
 const hb = await p.evaluate(() => { const i = document.createElement('i'), b = document.createElement('div'); b.className = 'pbar'; i.style.width = '50%'; b.appendChild(i); document.getElementById('shelf').prepend(b);
   const r = { bg: getComputedStyle(i).backgroundImage, line: getComputedStyle(b).boxShadow }; b.remove(); return r; });
 ok('4 progress: hatched fill, graphite outline', /repeating-linear-gradient/.test(hb.bg) && /inset/.test(hb.line), hb);

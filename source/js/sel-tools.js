@@ -77,6 +77,7 @@ function stMenu(on){
     R.mode!=='pdf'&&!stOff('spGrow')&&['parn','plus','+ абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
+    typeof ssLook==='function'&&ssLook()==='side'&&['view','menu','Вид меню'], /* 06.11: the look of this menu, switched right here («Сбоку» has no own button: it stays compact) */
     ['wiki','info','Википедия'],
     R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
     selPagesOn()&&['page','chevron-down','До конца страницы'],
@@ -162,4 +163,4 @@ async function stAsk(){
   if(typeof selDone==='function')selDone();
   flashMsg(ok?'Вопрос скопирован. Вставьте его в нейросеть рядом долгим нажатием':'Телефон не дал скопировать',{kind:'info',icon:'clipboard'});
 }
-const ST_ACT={ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd};
+const ST_ACT={ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,view:function(){if(typeof ssLooksMenu==='function')ssLooksMenu(el('ssMore'));}};

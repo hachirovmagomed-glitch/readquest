@@ -93,7 +93,7 @@ ok('a new selection: the menu is at the same place', !m3.hidden && Math.abs(m3.t
 const sp = await p.evaluate(() => { const r = el('ssMove').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
 await p.touchscreen.tap(sp.x, sp.y); await sleep(120); await p.touchscreen.tap(sp.x, sp.y); await sleep(500);
 const m4 = await p.evaluate(() => { const r = el('selSide').getBoundingClientRect(); return { top: Math.round(r.top), pin: SET.selPin && SET.selPin.dock || null }; });
-ok('a double tap on the strip on top: the menu goes back to its own place', !m4.pin && Math.abs(m4.top - m0.top) <= 2, { m0: m0.top, m4 });
+ok('a double tap on the strip on top: the menu goes back to its own place (bottom, or the top when the selection is under it)', !m4.pin && (Math.abs(m4.top - m0.top) <= 2 || m4.top <= 14), { m0: m0.top, m4 });
 await clear();
 
 // 5. «Плашка»: dragged anywhere (left and up), remembered for this look only
@@ -101,9 +101,10 @@ await p.evaluate(() => { SET.selLook = 'bar'; saveSet(); });
 await T('touchStart', 150, 300); await sleep(700); await T('touchEnd'); await sleep(600);
 const b0 = await p.evaluate(() => { const r = el('selSide').getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), w: Math.round(r.width), look: el('selSide').dataset.look }; });
 const bs = await p.evaluate(() => { const r = el('ssMove').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 + 4 }; });
-await T('touchStart', bs.x, bs.y); for (let i = 1; i <= 12; i++) { await T('touchMove', bs.x - i * 4, bs.y - i * 30); await sleep(16); } await T('touchEnd'); await sleep(500);
+const dir = b0.t < 400 ? 1 : -1; /* 06.11: not into the top edge — let go there it folds (menufold.test) */
+await T('touchStart', bs.x, bs.y); for (let i = 1; i <= 12; i++) { await T('touchMove', bs.x - i * 4, bs.y + dir * i * 30); await sleep(16); } await T('touchEnd'); await sleep(500);
 const b1x = await p.evaluate(() => { const r = el('selSide').getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), pin: SET.selPin }; });
-ok('«Плашка»: moved by the strip, whole on screen, remembered for «Плашка» only', b0.look === 'bar' && b1x.t < b0.t - 300 && b1x.l >= 0 && b1x.r <= 390 && b1x.pin.bar && !b1x.pin.dock, { b0, b1x });
+ok('«Плашка»: moved by the strip, whole on screen, remembered for «Плашка» only', b0.look === 'bar' && Math.abs(b1x.t - b0.t) > 300 && b1x.l >= 0 && b1x.r <= 390 && b1x.pin.bar && !b1x.pin.dock, { b0, b1x });
 if (SHOTS) await p.screenshot({ path: SHOTS + '/3-plashka-peretashchena.png' });
 await clear();
 

@@ -28,10 +28,12 @@ const ac = await p.evaluate(() => { const c = document.querySelector('#libChips 
   const ring = e => /data:image\/svg/.test(getComputedStyle(e, '::after').webkitMaskImage || ''), t = document.getElementById('libTitle');
   return { chipBg: getComputedStyle(c).backgroundColor, chipRing: ring(c), navBg: getComputedStyle(n).backgroundColor, navRing: ring(n), under: /data:image\/svg/.test(getComputedStyle(t, '::after').webkitMaskImage || '') }; });
 ok('3 active filter and tab circled in pencil (no fill), library title underlined by hand', ac.chipBg === 'rgba(0, 0, 0, 0)' && ac.chipRing && ac.navBg === 'rgba(0, 0, 0, 0)' && ac.navRing && ac.under, ac);
-// 06.11 (Джессика: «обводка уровней сложности какая-то кривая»): the ring replaces the graphite frame of a selected chip and sits on the frame, not over and past it
+// 06.11 (Джессика): every chip is circled in pencil instead of a frame; the selected one in accent, the ring sits where the frame was
 const rf = await p.evaluate(() => { const c = document.createElement('button'); c.className = 'fchip on'; c.textContent = 'Этюд ×1,5'; document.getElementById('libChips').appendChild(c);
-  const s = getComputedStyle(c), a = getComputedStyle(c, '::after'), r = { frame: s.borderTopColor, bw: s.borderTopWidth, inset: [a.top, a.right, a.bottom, a.left].join(' ') }; c.remove(); return r; });
-ok('3b selected chip: frame transparent, ring covers the border box', rf.frame === 'rgba(0, 0, 0, 0)' && rf.inset === '-' + rf.bw + ' -' + rf.bw + ' -' + rf.bw + ' -' + rf.bw, rf);
+  const d = c.cloneNode(true); d.classList.remove('on'); document.getElementById('libChips').appendChild(d);
+  const s = getComputedStyle(c), a = getComputedStyle(c, '::after'), da = getComputedStyle(d, '::after'), ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
+  const r = { frame: s.borderTopColor, off: getComputedStyle(d).borderTopColor, bw: s.borderTopWidth, inset: [a.top, a.right, a.bottom, a.left].join(' '), on: ring(a), onBg: a.backgroundColor, offRing: ring(da), offBg: da.backgroundColor }; c.remove(); d.remove(); return r; });
+ok('3b chips: every chip circled in pencil (no frame), the selected one in another colour, ring covers the border box', rf.frame === 'rgba(0, 0, 0, 0)' && rf.off === 'rgba(0, 0, 0, 0)' && rf.on && rf.offRing && rf.onBg !== rf.offBg && rf.inset === '-' + rf.bw + ' -' + rf.bw + ' -' + rf.bw + ' -' + rf.bw, rf);
 const hb = await p.evaluate(() => { const i = document.createElement('i'), b = document.createElement('div'); b.className = 'pbar'; i.style.width = '50%'; b.appendChild(i); document.getElementById('shelf').prepend(b);
   const r = { bg: getComputedStyle(i).backgroundImage, line: getComputedStyle(b).boxShadow }; b.remove(); return r; });
 ok('4 progress: hatched fill, graphite outline', /repeating-linear-gradient/.test(hb.bg) && /inset/.test(hb.line), hb);

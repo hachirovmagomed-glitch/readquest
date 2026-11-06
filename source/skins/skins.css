@@ -1211,13 +1211,18 @@ html[data-skin="alisa"] #quoteBox .al-tail{display:block;width:220px;max-width:1
 @media (prefers-reduced-motion:reduce){html[data-skin="alisa"] :is(#alFall,#alRabbit){display:none!important}html[data-skin="alisa"] :is(#botnav .botnav-btn.on,.screen h1,#libTitle){animation:none!important}}
 @media (max-width:374px){html[data-skin="alisa"] #libTitle{font-size:min(1.625rem,5.9vw)}html[data-skin="alisa"] #libHead{gap:4px}html[data-skin="alisa"] #goldChip{padding:4px 8px 4px 4px;gap:4px}}
 /* ===== AL-END ===== */
-/* 06.11 (Джессика, скрин Карандашного 360: «Статистика налезает на количество дней»): the Stats title is never squeezed or cut;
-   the chips are a bit tighter, and when «7 дней / 30 дней» still do not fit beside the title the pair moves under it as one piece,
-   at the right edge (.stwrap, set in content.js); only then the header grows. Every skin, day and night. */
-html body #stats.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){flex-wrap:wrap;row-gap:6px}
-html body #stats.screen:not(#reader):not(#library) .wrap > .row.stwrap:first-child:has(> h1){height:auto!important;min-height:44px!important;padding-bottom:10px!important}
-html body #stats .wrap > .row:first-child > h1{flex:0 0 auto;min-width:0;max-width:100%;overflow:visible;text-overflow:clip;white-space:nowrap}
-html body #stats .wrap > .row:first-child > .spacer{display:none}
-html body #stats .stper{display:flex;align-items:center;gap:4px;margin-left:auto;flex:none}
-html body #stats .stper .fchip{padding-left:11px;padding-right:11px}
-html[data-skin="babochkovyi"] body #stats.screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::before{bottom:-14px} /* the butterfly at the end of the wavy line sits a bit lower, clear of «30 дней» */
+/* 06.11 (Джессика: «убрать 7/30 дней… эстетичнее»): the Stats period line above the charts (skins colour it through --rq-* / .fchip) */
+#stats .stperbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 2px 8px}
+#stats .stperlbl{font-size:0.9375rem;font-weight:600;color:var(--rq-text,var(--txt))}
+#stats .stperbtn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;color:var(--rq-text,var(--txt));font-size:0.875rem}
+#stats .stperbtn .stperchev{transition:transform .2s;opacity:.7}
+#stats .stperbtn[aria-expanded="true"] .stperchev{transform:rotate(180deg)}
+#stats .stperpane{margin-top:0}
+#stats .stperq{display:flex;flex-wrap:wrap;gap:6px}
+#stats .stperq .fchip{min-height:34px}
+#stats .stperset{display:flex;align-items:center;gap:10px;margin-top:12px}
+#stats .stperset input[type=range]{flex:1;min-width:0}
+#stats .stperstep{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--rq-border,var(--line,rgba(0,0,0,.15)));background:var(--card2);color:var(--rq-text,var(--txt));font-size:1.25rem;line-height:1}
+#stats .stpernote{margin-top:8px;font-size:0.75rem;color:var(--muted)}
+.chart.dense{gap:2px}
+.chart .bar i{white-space:nowrap}

@@ -587,3 +587,15 @@ function ttsNorm(t){
   if(['system','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
   t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
 }
+
+/* 06.11 (Джессика: рисованные ползунки в Карандашном): --pv = slider position 0…1, so a skin can shade the track up to the knob.
+   Set on input and whenever sliders appear (rendered from strings); brightness/warmth/page slider have their own variables. */
+(function(){
+  function pvSync(i){if(!i||i.type!=='range')return;const mn=i.min===''?0:+i.min,mx=i.max===''?100:+i.max;i.style.setProperty('--pv',Math.max(0,Math.min(1,((+i.value)-mn)/((mx-mn)||1))).toFixed(3));}
+  function pvAll(){document.querySelectorAll('input[type=range]:not(#brightRange):not(#warmRange):not(#pgSlider)').forEach(pvSync);}
+  document.addEventListener('input',function(e){pvSync(e.target);},true);
+  document.addEventListener('change',function(e){pvSync(e.target);},true);
+  let q=0;const kick=function(){if(q)return;q=requestAnimationFrame(function(){q=0;pvAll();});};
+  try{new MutationObserver(kick).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-skin','value']});}catch(e){}
+  kick();
+})();

@@ -28,6 +28,34 @@ const ac = await p.evaluate(() => { const c = document.querySelector('#libChips 
   const ring = e => /data:image\/svg/.test(getComputedStyle(e, '::after').webkitMaskImage || ''), t = document.getElementById('libTitle');
   return { chipBg: getComputedStyle(c).backgroundColor, chipRing: ring(c), navBg: getComputedStyle(n).backgroundColor, navRing: ring(n), under: /data:image\/svg/.test(getComputedStyle(t, '::after').webkitMaskImage || '') }; });
 ok('3 active filter and tab circled in pencil (no fill), library title underlined by hand', ac.chipBg === 'rgba(0, 0, 0, 0)' && ac.chipRing && ac.navBg === 'rgba(0, 0, 0, 0)' && ac.navRing && ac.under, ac);
+// 06.11 (Джессика): every chip is circled in pencil instead of a frame; the selected one in accent, the ring sits where the frame was
+const rf = await p.evaluate(() => { const c = document.createElement('button'); c.className = 'fchip on'; c.textContent = 'Этюд ×1,5'; document.getElementById('libChips').appendChild(c);
+  const d = c.cloneNode(true); d.classList.remove('on'); document.getElementById('libChips').appendChild(d);
+  const s = getComputedStyle(c), a = getComputedStyle(c, '::after'), da = getComputedStyle(d, '::after'), ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
+  const r = { frame: s.borderTopColor, off: getComputedStyle(d).borderTopColor, bw: s.borderTopWidth, inset: [a.top, a.right, a.bottom, a.left].join(' '), on: ring(a), onBg: a.backgroundColor, offRing: ring(da), offBg: da.backgroundColor }; c.remove(); d.remove(); return r; });
+ok('3b chips: every chip circled in pencil (no frame), the selected one in another colour, ring covers the border box', rf.frame === 'rgba(0, 0, 0, 0)' && rf.off === 'rgba(0, 0, 0, 0)' && rf.on && rf.offRing && rf.onBg !== rf.offBg && rf.inset === '-' + rf.bw + ' -' + rf.bw + ' -' + rf.bw + ' -' + rf.bw, rf);
+// 06.11 (Джессика: «со всеми параметрами… Пробегись по другим настройкам»): reading-settings options, settings .seg and price tiers are circled the same way; tabs: the open one circled
+const og = await p.evaluate(() => { const mk = (wrapCls, id, inner) => { const w = document.createElement('div'); w.className = wrapCls; if (id) w.id = id; w.innerHTML = inner; document.body.appendChild(w); return w; };
+  const ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
+  const sheet = document.getElementById('sheet'), rs = document.createElement('div'); rs.className = 'rseg'; rs.innerHTML = '<button class="on">А</button><button>Б</button>'; sheet.appendChild(rs);
+  const sg = mk('seg', 'tLangX', '<button class="on">Р</button><button>E</button>'), ts = mk('tierseg', '', '<button class="on">1</button><button>2</button>'), pt = mk('ptabs', '', '<button class="on">Т</button><button>Д</button>');
+  const st = b => { const s = getComputedStyle(b), a = getComputedStyle(b, '::after'); return { bg: s.backgroundColor, ring: ring(a), c: a.backgroundColor }; };
+  const r = {}; for (const [k, w] of [['rseg', rs], ['seg', sg], ['tier', ts]]) { const [on, off] = w.querySelectorAll('button'); r[k] = { on: st(on), off: st(off) }; }
+  const [ton, toff] = pt.querySelectorAll('button'); r.tab = { on: st(ton), off: st(toff) };
+  [rs, sg, ts, pt].forEach(x => x.remove()); return r; });
+ok('3c options: every option circled (no fill), the chosen one in another colour', ['rseg', 'seg', 'tier'].every(k => og[k].on.ring && og[k].off.ring && og[k].on.bg === 'rgba(0, 0, 0, 0)' && og[k].off.bg === 'rgba(0, 0, 0, 0)' && og[k].on.c !== og[k].off.c), og);
+ok('3d tabs: no fill, the open tab circled', og.tab.on.ring && !og.tab.off.ring && og.tab.on.bg === 'rgba(0, 0, 0, 0)', og.tab);
+// 06.11 (Джессика: «Ползунки… тоже сделать рисованными»): switches drawn in pencil (masked outline, ringed knob), sliders with a dashed line, shading to the knob (--pv) and a ringed knob
+const sw = await p.evaluate(async () => { const ring = x => /data:image\/svg/.test(x.webkitMaskImage || x.maskImage || '');
+  const b = document.createElement('button'); b.className = 'ghostbtn sw'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', 'true'); document.getElementById('libChips').appendChild(b);
+  const r = document.createElement('input'); r.type = 'range'; r.min = 0; r.max = 100; r.value = 30; document.getElementById('libChips').appendChild(r);
+  await new Promise(f => requestAnimationFrame(() => requestAnimationFrame(f)));
+  const bs = getComputedStyle(b), ka = getComputedStyle(b, '::after');
+  const rules = [...document.styleSheets].flatMap(sh => { try { return [...sh.cssRules]; } catch (e) { return []; } }).filter(x => x.selectorText && x.selectorText.includes('pencil') && x.selectorText.includes('input[type="range"]'));
+  const tr = rules.find(x => x.selectorText.includes('slider-runnable-track') && /repeating-linear-gradient/.test(x.style.background || x.style.backgroundImage)), th = rules.find(x => x.selectorText.includes('slider-thumb') && /border: 2px solid/.test(x.style.cssText));
+  const out = { swMask: ring(bs), swHatch: (bs.webkitMaskImage.match(/data:image\/svg/g) || []).length, knob: ka.borderTopWidth, pv: r.style.getPropertyValue('--pv'), app: getComputedStyle(r).appearance, track: !!tr, thumb: !!th };
+  b.remove(); r.remove(); return out; });
+ok('3e switches and sliders drawn in pencil', sw.swMask && sw.swHatch === 2 && sw.knob === '2px' && sw.pv === '0.300' && sw.app === 'none' && sw.track && sw.thumb, sw);
 const hb = await p.evaluate(() => { const i = document.createElement('i'), b = document.createElement('div'); b.className = 'pbar'; i.style.width = '50%'; b.appendChild(i); document.getElementById('shelf').prepend(b);
   const r = { bg: getComputedStyle(i).backgroundImage, line: getComputedStyle(b).boxShadow }; b.remove(); return r; });
 ok('4 progress: hatched fill, graphite outline', /repeating-linear-gradient/.test(hb.bg) && /inset/.test(hb.line), hb);

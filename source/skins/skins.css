@@ -580,6 +580,70 @@ html[data-skin="pencil"] :is(.fchip.on,#botnav .botnav-btn.on,.tierseg button.on
   -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
 html[data-skin="pencil"] #botnav .botnav-btn.on::after{inset:0 8px}
 html[data-skin="pencil"] .fchip.on{box-shadow:none}
+/* 06.11 (Джессика: «обводка уровней сложности какая-то кривая»): a selected chip keeps its 2px graphite frame (app.html pencil rules) and the pencil ring
+   was drawn on top of it, sticking out of the frame. The ring now replaces the frame: the frame turns transparent (no layout shift) and the ring covers the border box */
+/* 06.11 (Джессика: «все сделаем такими, чтобы они были обведенные карандашом», выбранная другим цветом): every chip is circled in graphite, the selected one in accent */
+html[data-skin="pencil"] .fchip{position:relative;border-color:transparent!important}
+html[data-skin="pencil"] .fchip::after{content:""!important;position:absolute;inset:-2px!important;background:var(--rq-skin-border);pointer-events:none;
+  -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] .fchip.on::after{background:var(--rq-accent)} /* the :is() rule above carries #botnav specificity and paints it too */
+/* 06.11 (Джессика: «Так можно сделать, по сути, со всеми параметрами… Пробегись по другим настройкам»): every option of a choice is circled in graphite,
+   the chosen one in accent — reading settings (#sheet .rseg: «Ко всем книгам», насыщенность, выравнивание, ширина строки, листание, анимация, фокус, звуки),
+   general settings .seg (язык, нейросети: длина, тон, язык ответа) and price tiers (.tierseg). No fills, no frames, no track behind the options.
+   Colour tiles (#themeSeg), the font list (#fontSeg) and the theme/skin pickers keep their own look. */
+html[data-skin="pencil"] #sheet .rseg{background:transparent!important;box-shadow:none!important;gap:6px;padding:2px 0}
+html[data-skin="pencil"] :is(#sheet .rseg > button,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button:not(.swatch),.tierseg > button){
+  position:relative;background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:var(--rq-text)!important}
+html[data-skin="pencil"] :is(#sheet .rseg > button,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button:not(.swatch),.tierseg > button)::after{
+  content:""!important;position:absolute;inset:0!important;background:var(--rq-skin-border)!important;pointer-events:none;border:0;
+  -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] :is(#sheet .rseg > button.on,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button.on:not(.swatch),.tierseg > button.on){color:var(--rq-accent-text)!important;font-weight:700}
+html[data-skin="pencil"] :is(#sheet .rseg > button.on,.seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button.on:not(.swatch),.tierseg > button.on)::after{background:var(--rq-accent)!important}
+html[data-skin="pencil"] :is(#sheet .rseg > button,.seg > button,.tierseg > button):disabled::after{opacity:.5}
+html[data-skin="pencil"] .seg:not(#themeSeg):not(#fontSeg):not(#appThemeBox):not(#appSkinBox) > button:not(.swatch){padding:7px 14px!important} /* room inside the oval */
+html[data-skin="pencil"] #sheet #fzSnd{grid-auto-flow:row;grid-template-columns:1fr 1fr} /* sound names are long: two per line, not cut off inside the oval */
+/* tabs (reading settings sections, «Цитаты/Словарь/…», «Все/Полученные», «Игровое/Награды»): no fill, the open tab circled in accent */
+html[data-skin="pencil"] :is(.ptabs button,#setCats button){position:relative;background:transparent!important;box-shadow:none!important;color:var(--rq-text-2)}
+html[data-skin="pencil"] :is(.ptabs button,#setCats button).on{color:var(--rq-accent-text)!important;font-weight:700}
+html[data-skin="pencil"] :is(.ptabs button,#setCats button).on::after{content:"";position:absolute;inset:2px 0;background:var(--rq-accent);pointer-events:none;
+  -webkit-mask:var(--pc-ring) 0 0/100% 100% no-repeat;mask:var(--pc-ring) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] #setCats button.on .ic{color:var(--rq-accent-text)}
+/* 06.11 (Джессика: «Ползунки, которые есть в приложении, тоже сделать рисованными»): switches and sliders drawn in pencil.
+   Switch: a hand-drawn pill outline (graphite), the knob a paper circle ringed in pencil; on = the outline and the shading in accent, knob ringed in accent.
+   Settings switches (.ghostbtn.sw) paint the outline on the button itself through a mask (its ::before is the tap area), with a round hole for the knob;
+   reading-settings / diary switches (.rsw) paint it on their ::before track. */
+html[data-skin="pencil"]{--pc-pill:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='30' viewBox='0 0 52 30' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round'%3E%3Cpath d='M9 3.2C20 1.6 35 1.8 44 3.4C50.5 4.8 51.2 24.6 44.3 26.8C33 28.6 19 28.4 8 26.9C1.4 25.2 0.9 5.6 9 3.2' stroke-width='1.9'/%3E%3Cpath d='M6 4.8C14 2.5 30 1.4 41 2.7' stroke-width='1.1' opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  --pc-pill-hatch:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='30' viewBox='0 0 52 30' preserveAspectRatio='none'%3E%3CclipPath id='c'%3E%3Cpath d='M9 3.2C20 1.6 35 1.8 44 3.4C50.5 4.8 51.2 24.6 44.3 26.8C33 28.6 19 28.4 8 26.9C1.4 25.2 0.9 5.6 9 3.2'/%3E%3C/clipPath%3E%3Cpath clip-path='url%28%23c%29' d='M-24 31L0 -1M-20 31L4 -1M-16 31L8 -1M-12 31L12 -1M-8 31L16 -1M-4 31L20 -1M0 31L24 -1M4 31L28 -1M8 31L32 -1M12 31L36 -1M16 31L40 -1M20 31L44 -1M24 31L48 -1M28 31L52 -1M32 31L56 -1M36 31L60 -1M40 31L64 -1M44 31L68 -1M48 31L72 -1M52 31L76 -1' stroke='%23000' stroke-width='1.3' opacity='.6'/%3E%3C/svg%3E")}
+html[data-skin="pencil"] .ghostbtn.sw{background:var(--rq-skin-border)!important;
+  -webkit-mask:var(--pc-pill) 0 0/100% 100% no-repeat,radial-gradient(circle,#000 0 10.5px,transparent 11px) 2px 2px/20px 20px no-repeat;
+  mask:var(--pc-pill) 0 0/100% 100% no-repeat,radial-gradient(circle,#000 0 10.5px,transparent 11px) 2px 2px/20px 20px no-repeat}
+html[data-skin="pencil"] .ghostbtn.sw[aria-checked="true"]{background:var(--rq-accent)!important;
+  -webkit-mask:var(--pc-pill) 0 0/100% 100% no-repeat,radial-gradient(circle,#000 0 10.5px,transparent 11px) 22px 2px/20px 20px no-repeat,var(--pc-pill-hatch) 0 0/100% 100% no-repeat;
+  mask:var(--pc-pill) 0 0/100% 100% no-repeat,radial-gradient(circle,#000 0 10.5px,transparent 11px) 22px 2px/20px 20px no-repeat,var(--pc-pill-hatch) 0 0/100% 100% no-repeat}
+@media (prefers-reduced-motion:no-preference){html[data-skin="pencil"] .ghostbtn.sw{transition:-webkit-mask-position var(--rq-dur-fast,150ms),mask-position var(--rq-dur-fast,150ms)}}
+html[data-skin="pencil"] :is(.ghostbtn.sw,#sheet .rsw,#diary .rsw)::after{box-sizing:border-box;background:var(--rq-surface)!important;border:2px solid var(--rq-skin-border)!important;
+  border-radius:55% 45% 52% 48%/47% 55% 45% 53%!important;box-shadow:none!important}
+html[data-skin="pencil"] :is(.ghostbtn.sw,#sheet .rsw,#diary .rsw)[aria-checked="true"]::after{border-color:var(--rq-accent)!important}
+html[data-skin="pencil"] :is(#sheet .rsw,#diary .rsw)::before{border:0!important;background:var(--rq-skin-border)!important;
+  -webkit-mask:var(--pc-pill) 0 0/100% 100% no-repeat;mask:var(--pc-pill) 0 0/100% 100% no-repeat}
+html[data-skin="pencil"] :is(#sheet .rsw,#diary .rsw)[aria-checked="true"]::before{background:var(--rq-accent)!important;
+  -webkit-mask:var(--pc-pill) 0 0/100% 100% no-repeat,var(--pc-pill-hatch) 0 0/100% 100% no-repeat;mask:var(--pc-pill) 0 0/100% 100% no-repeat,var(--pc-pill-hatch) 0 0/100% 100% no-repeat}
+/* sliders (громкость, сложность и важность в «Настройках книги», размер в дневнике…): a dashed pencil line, shaded in accent up to the knob (--pv from core-b.js),
+   the knob a paper circle ringed in graphite. Brightness/warmth, the page slider and the hue picker keep their own drawings. */
+html[data-skin="pencil"] input[type=range]:not(#brightRange):not(#warmRange):not(#barBright):not(#pgSlider):not(#hlPkHue){-webkit-appearance:none;appearance:none;background:transparent;accent-color:auto;
+  --pc-rx:calc(11px + (100% - 22px) * var(--pv,0))}
+html[data-skin="pencil"] input[type=range]:not(#brightRange):not(#warmRange):not(#barBright):not(#pgSlider):not(#hlPkHue)::-webkit-slider-runnable-track{height:8px;border:0;border-radius:0;
+  background:repeating-linear-gradient(115deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px) 0 0/var(--pc-rx) 100% no-repeat,linear-gradient(var(--rq-accent),var(--rq-accent)) 0 50%/var(--pc-rx) 2px no-repeat,
+    repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 50%,transparent) 0 5px,transparent 5px 9px) 0 50%/100% 2px no-repeat}
+html[data-skin="pencil"] input[type=range]:not(#brightRange):not(#warmRange):not(#barBright):not(#pgSlider):not(#hlPkHue)::-moz-range-track{height:8px;border:0;border-radius:0;
+  background:repeating-linear-gradient(115deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px) 0 0/var(--pc-rx) 100% no-repeat,linear-gradient(var(--rq-accent),var(--rq-accent)) 0 50%/var(--pc-rx) 2px no-repeat,
+    repeating-linear-gradient(90deg,color-mix(in srgb,var(--rq-text) 50%,transparent) 0 5px,transparent 5px 9px) 0 50%/100% 2px no-repeat}
+html[data-skin="pencil"] input[type=range]:not(#brightRange):not(#warmRange):not(#barBright):not(#pgSlider):not(#hlPkHue)::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:22px;height:22px;margin-top:-7px;
+  background:var(--rq-surface);border:2px solid var(--rq-skin-border);border-radius:55% 45% 52% 48%/47% 55% 45% 53%;box-shadow:none}
+html[data-skin="pencil"] input[type=range]:not(#brightRange):not(#warmRange):not(#barBright):not(#pgSlider):not(#hlPkHue)::-moz-range-thumb{box-sizing:border-box;width:22px;height:22px;
+  background:var(--rq-surface);border:2px solid var(--rq-skin-border);border-radius:55% 45% 52% 48%/47% 55% 45% 53%;box-shadow:none}
+html[data-skin="pencil"] input[type=range]:not(#brightRange):not(#warmRange):not(#barBright):not(#pgSlider):not(#hlPkHue):disabled{opacity:.45}
+
 /* progress: graphite outline, hatched fill */
 html[data-skin="pencil"] .pbar{height:7px;border-radius:2px;background:var(--rq-surface);box-shadow:inset 0 0 0 1.2px var(--rq-skin-border)}
 html[data-skin="pencil"] .pbar i{border-radius:2px;background:repeating-linear-gradient(-45deg,var(--rq-accent) 0 1.6px,transparent 1.6px 3.6px)!important;box-shadow:inset 0 0 0 1.2px var(--rq-accent)}
@@ -607,7 +671,7 @@ html[data-skin="pencil"] #shelf .addhint{display:flex;flex-direction:column;alig
 html[data-skin="pencil"] #shelf .addhint .cover{display:flex;align-items:center;justify-content:center;box-shadow:none;border:1.5px dashed var(--rq-skin-border);border-radius:6px;color:var(--rq-accent-text);background:color-mix(in srgb,var(--rq-surface) 60%,transparent)}
 /* the filter row fades at the right edge while more chips hide past it */
 html[data-skin="pencil"] #libChips.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
-html[data-skin="pencil"] .fchip{padding:7px 12px}
+html[data-skin="pencil"] .fchip{padding:7px 14px} /* 06.11: room inside the pencil oval */
 /* bottom nav on paper: a pencil line above instead of a filled bar */
 html[data-skin="pencil"] #botnav{background:var(--rq-bg);border-top:1.5px solid var(--rq-skin-border)}
 /* text on accent fills (night accent is pale blue: the app paints literal #fff there) */

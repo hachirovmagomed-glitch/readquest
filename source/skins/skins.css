@@ -1015,6 +1015,9 @@ html[data-skin="alisa"] .fchip{background:var(--rq-surface);box-shadow:inset 0 0
 html[data-skin="alisa"] .fchip.on{background:var(--rq-text);color:var(--rq-surface);box-shadow:none}
 html[data-skin="alisa"] :is(.lsortbtn,#btnAdd.addicon){background:var(--rq-surface);box-shadow:inset 0 0 0 1.5px var(--rq-border-strong)}
 html[data-skin="alisa"] .cta{font-family:var(--rq-font-display);font-weight:700;letter-spacing:.04em;background:var(--rq-accent);color:var(--rq-on-accent);border:0;border-radius:var(--rq-radius-sm);box-shadow:0 0 0 2px var(--rq-surface),0 0 0 3.5px var(--rq-accent-pressed),0 4px 10px rgba(60,20,10,.18)}
+/* 07.11 карточки «Фокуса» (#fzRes итог круга, #fzHold): обе кнопки одной карточной формы — светлая карта рядом с красной (Джессика: «таблички совершенно разные») */
+html[data-skin="alisa"] .fzcard .fzbtns>button{font-family:var(--rq-font-display);font-weight:700;letter-spacing:.04em;font-size:1rem;line-height:1.15;border-radius:var(--rq-radius-sm);white-space:nowrap;padding:0 10px}
+html[data-skin="alisa"] .fzcard .fzbtns>.ghostbtn{background:var(--rq-surface);color:var(--rq-accent);border:0;box-shadow:0 0 0 2px var(--rq-surface),0 0 0 3.5px var(--rq-accent-pressed),0 4px 10px rgba(60,20,10,.12)}
 /* progress: a red line on a hairline track, the end ticked like a watch face */
 html[data-skin="alisa"] .pbar{background:var(--rq-surface-2);box-shadow:inset 0 0 0 1px var(--rq-line)}
 html[data-skin="alisa"] .pbar i{background:var(--rq-accent)}

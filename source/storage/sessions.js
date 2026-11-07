@@ -143,6 +143,9 @@ export async function logSession(entry) {
   if (Array.isArray(entry.pomo)) { const pm = entry.pomo.filter(function (v) { return v === 15 || v === 25 || v === 45; }).slice(0, 50); if (pm.length) rec.pomo = pm; }
   if (rec.pomo && Number.isInteger(entry.pomoRun) && entry.pomoRun > 0) rec.pomoRun = Math.min(entry.pomoRun, rec.pomo.length);
   if (typeof entry.fw === 'string' && entry.fw.trim()) rec.fw = entry.fw.trim().slice(0, 80);
+  /* optional (07.11 «Ранг круга», additive): one letter S/A/B/C/D per round of pomo, longest combo of pages */
+  if (rec.pomo && typeof entry.pomoRk === 'string') { const rk = entry.pomoRk.replace(/[^SABCD]/g, '').slice(0, rec.pomo.length); if (rk) rec.pomoRk = rk; }
+  if (Number.isInteger(entry.pomoCb) && entry.pomoCb > 0 && entry.pomoCb <= 1e5) rec.pomoCb = entry.pomoCb;
 
   const db = await openDb();
   return new Promise(function (res, rej) {

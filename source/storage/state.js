@@ -350,6 +350,8 @@ export async function importBackup(data) {
         hon: s.hon,
         pomo: s.pomo,
         pomoRun: s.pomoRun,
+        pomoRk: s.pomoRk,
+        pomoCb: s.pomoCb,
         fw: s.fw,
       });
     } catch (e) {

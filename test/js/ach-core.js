@@ -17,6 +17,7 @@
     { id: 'formats', name: 'Форматы и полка', icon: 'file-text' },
     { id: 'quotes', name: 'Цитаты', icon: 'notebook-pen' },
     { id: 'levels', name: 'Уровни', icon: 'star' },
+    { id: 'tools', name: 'Инструменты', icon: 'backpack' },
     { id: 'secret', name: 'Секретные', icon: 'sparkles' },
   ];
   const TIERS = { bronze: 'Бронза', silver: 'Серебро', gold: 'Золото', legend: 'Легенда', secret: 'Секрет', legacy: 'Из прошлой версии' };
@@ -128,6 +129,11 @@
     ['txt60', 'formats', B, 'Простой текст', '60 минут в TXT', 'fmt:txt', 60],
     ['formats3', 'formats', SV, 'Всеядный', 'По 10 минут в 3 разных форматах', 'formats', 3, 'Всеядный'],
     ['own10', 'formats', GD, 'Своя библиотека', '10 своих книг, в каждой от 10 минут', 'ownRead', 10],
+    /* 06.11 «Инструменты читателя» (js/tools.js): собранное и купленное; части чертежей — только за засчитанное чтение */
+    ['tool1', 'tools', B, 'Первый инструмент', 'Положить в сумку первый инструмент', 'toolsOwn', 1],
+    ['tool5', 'tools', SV, 'Мастерская', 'Собрать 5 инструментов', 'toolsOwn', 5],
+    ['tool12', 'tools', GD, 'Полный набор', 'Собрать все 12 инструментов', 'toolsOwn', 12, 'Мастер инструментов'],
+    ['bp5', 'tools', B, 'Чертёжник', 'Найти 5 частей чертежей за чтение', 'toolsParts', 5],
 
     ['q1', 'quotes', B, 'Первая цитата', 'Сохранить цитату', 'quotes', 1],
     ['q10', 'quotes', B, 'Десять цитат', 'Сохранить 10 цитат', 'quotes', 10],
@@ -297,7 +303,7 @@
     return {
       minutes: Math.floor(total + 1e-9), minutesWhole: Math.floor(total + 1e-9), maxSession: Math.floor(maxSession + 1e-9), maxDay: maxDay, sessions5: sessions5,
       goalDays: goalDays, streak: best, goalWeeks: goalWeeks, fullWeek: fullWeek, fullMonth: fullMonth, monthWeekends: monthWeekends,
-      finished: fin.length, libBooks: libBooks, libSrc: Object.keys(libSrcs).length, libSet: +I.libSets || 0, advQuests: +I.advQuests || 0, bigBook: bigBook, fastBook: fastBook, slowBook: slowBook, oneAuthor: oneAuthor, authors: authorsN, weekBooks: weekBooks,
+      finished: fin.length, libBooks: libBooks, libSrc: Object.keys(libSrcs).length, libSet: +I.libSets || 0, advQuests: +I.advQuests || 0, toolsOwn: +I.toolsOwn || 0, toolsParts: +I.toolsParts || 0, bigBook: bigBook, fastBook: fastBook, slowBook: slowBook, oneAuthor: oneAuthor, authors: authorsN, weekBooks: weekBooks,
       lark: tod.lark, lunch: tod.lunch, owl: tod.owl, night3: tod.night3, dawn: tod.dawn, mornings: tod.mornings, nights: tod.nights, s2222: tod.s2222, hours24: Object.keys(tod.hours).length,
       weekend: weekend, dates: dates, mirror: mirror, fri13: fri13, exactDay: exactDay,
       comeback: comeback, rebook: rebook, refinish: refinish, oneDayBook: oneDayBook,

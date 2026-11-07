@@ -84,6 +84,10 @@ export const PROGRESS_DEF = {
   quotes: {},
   hl: {},
   stickers: {},
+  /** 06.11 «Перо для полей» (arch.md): {<book id>: {<page 1…>: [{c, w, p:[x,y,…]}]}} — x, y in 0…1000 of the page view */
+  ink: {},
+  /** 06.11 «Наборы стикеров» (arch.md): {<book id>: [{p: page 1…, s: sticker id, x, y: 0…1000}]} (the old `stickers` field is left as it is) */
+  stk: {},
   favs: [],
   lastBackup: null,
   backupNag: true,     // 29.10 «Напоминать о копии» (arch.md backupNag)
@@ -177,6 +181,8 @@ export const GAME_DEF = {
   char: {},
   vocab: [],
   devMoney: false,
+  /** 06.11 «Инструменты читателя» (arch.md): {own, n, parts, pf, drop, hg, sh, sel, pin, on, rw}, normTools */
+  tools: null,
 };
 
 /**
@@ -480,6 +486,56 @@ function intMap(o, max, keyRe) {
   return out;
 }
 
+/* ===== 06.11 «Инструменты читателя» (arch.md). The same rules as js/tools.js toolsNorm / inkNorm / stickNorm. ===== */
+export const TOOL_IDS = ['lupa', 'pen', 'shield', 'hg', 'compass', 'markers', 'rulers', 'marks', 'stickers', 'qtpl', 'lamp', 'words'];
+export const TOOL_USE = ['shield', 'hg'];
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+function int(v, lo, hi) { return Number.isInteger(v) && v >= lo && v <= hi ? v : null; }
+export function normTools(o) {
+  o = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  const t = { own: {}, n: {}, parts: {}, pf: 0, drop: null, hg: null, sh: [], sel: {}, pin: [], on: {}, rw: {} };
+  if (int(o.pf, 0, 1e6) != null) t.pf = o.pf;
+  const map = function (x) { return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; };
+  Object.keys(map(o.own)).forEach(function (k) { if (TOOL_IDS.indexOf(k) >= 0 && TOOL_USE.indexOf(k) < 0 && o.own[k]) t.own[k] = 1; });
+  Object.keys(map(o.n)).forEach(function (k) { const v = int(o.n[k], 1, 99); if (TOOL_USE.indexOf(k) >= 0 && v) t.n[k] = Math.min(v, k === 'shield' ? 2 : 99); });
+  Object.keys(map(o.parts)).forEach(function (k) { const v = int(o.parts[k], 1, 4); if (TOOL_IDS.indexOf(k) >= 0 && v) t.parts[k] = v; });
+  const d = map(o.drop); if (DAY_RE.test(d.d) && int(d.k, 0, 9) != null && int(d.ms, 0, 864e5) != null) t.drop = { d: d.d, k: d.k, ms: d.ms };
+  const h = map(o.hg); if (DAY_RE.test(h.d) && typeof h.left === 'number' && h.left >= 0 && h.left <= 30 && typeof h.at === 'number' && h.at > 0) t.hg = { d: h.d, at: h.at, left: Math.round(h.left * 1000) / 1000 };
+  t.sh = Array.isArray(o.sh) ? o.sh.filter(function (x) { return DAY_RE.test(x); }).slice(-50) : [];
+  const sel = map(o.sel); ['ruler', 'mark', 'hls', 'qtpl', 'stk', 'pen'].forEach(function (k) { if (typeof sel[k] === 'string' && /^[a-z0-9#-]{1,12}$/.test(sel[k])) t.sel[k] = sel[k]; });
+  t.pin = Array.isArray(o.pin) ? o.pin.filter(function (x, i, a) { return TOOL_IDS.indexOf(x) >= 0 && a.indexOf(x) === i; }).slice(0, 3) : [];
+  ['lamp'].forEach(function (k) { if (map(o.on)[k] === true) t.on[k] = true; });
+  Object.keys(map(o.rw)).slice(0, 100).forEach(function (k) { if (/^[\w:-]{1,40}$/.test(k) && o.rw[k]) t.rw[k] = 1; });
+  return t;
+}
+export function normInk(o) {
+  const out = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+  Object.keys(o).slice(0, 500).forEach(function (b) {
+    const pages = o[b]; if (!pages || typeof pages !== 'object' || Array.isArray(pages)) return;
+    const pg = {};
+    Object.keys(pages).filter(function (k) { return /^[1-9]\d{0,5}$/.test(k); }).slice(0, 2000).forEach(function (k) {
+      const L = Array.isArray(pages[k]) ? pages[k].filter(function (s) {
+        return s && typeof s === 'object' && typeof s.c === 'string' && /^#[0-9a-f]{6}$/i.test(s.c) && int(s.w, 1, 40) != null && Array.isArray(s.p) && s.p.length >= 2 && s.p.length % 2 === 0 && s.p.every(function (v) { return int(v, 0, 1000) != null; });
+      }).slice(0, 80).map(function (s) { return { c: s.c.toLowerCase(), w: s.w, p: s.p.slice(0, 1200) }; }) : [];
+      if (L.length) pg[k] = L;
+    });
+    if (Object.keys(pg).length) out[b] = pg;
+  });
+  return out;
+}
+export function normStickers(o) {
+  const out = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+  Object.keys(o).slice(0, 500).forEach(function (b) {
+    const L = Array.isArray(o[b]) ? o[b].filter(function (x) {
+      return x && typeof x === 'object' && int(x.p, 1, 999999) != null && typeof x.s === 'string' && /^[a-z0-9-]{1,24}$/.test(x.s) && int(x.x, 0, 1000) != null && int(x.y, 0, 1000) != null;
+    }).slice(0, 400).map(function (x) { return { p: x.p, s: x.s, x: x.x, y: x.y }; }) : [];
+    if (L.length) out[b] = L;
+  });
+  return out;
+}
+
 export function hydrateProgress(p) {
   const out = Object.assign({}, PROGRESS_DEF, p || {});
   /* 29.10 (arch.md backupNag / yearGoal / bookGoals; progress domain): same rules as js/core-b.js */
@@ -515,6 +571,8 @@ export function hydrateProgress(p) {
   out.quotes = out.quotes || {};
   out.hl = out.hl || {};
   out.stickers = out.stickers || {};
+  out.stk = normStickers(out.stk);
+  out.ink = normInk(out.ink);
   out.favs = out.favs || [];
   if (out.goal == null || out.goal < 5) out.goal = PROGRESS_DEF.goal;
   return out;
@@ -567,6 +625,7 @@ export function hydrateGame(g) {
   out.lvlPaid = intMap(out.lvlPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.quizPaid = intMap(out.quizPaid, 1000, /^\d{4}-\d{2}-\d{2}$/);
   out.pomoPaid = intMap(out.pomoPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» (arch.md) */
+  out.tools = normTools(out.tools); /* 06.11 «Инструменты читателя» */
   out.chalPaid = intMap(out.chalPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {

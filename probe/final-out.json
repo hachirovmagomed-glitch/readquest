@@ -16,7 +16,7 @@
 "bad": false,
 "dis": false,
 "len": 1128,
-"list": false
+"list": true
 },
 {
 "t": "Герой нашего времени (Лермонтов)",
@@ -34,7 +34,7 @@
 "bad": false,
 "dis": true,
 "len": 1444,
-"list": false
+"list": true
 },
 {
 "t": "Ревизор (Гоголь)",
@@ -70,7 +70,7 @@
 "bad": false,
 "dis": false,
 "len": 408,
-"list": false
+"list": true
 },
 {
 "t": "Бедная Лиза (Карамзин)",
@@ -268,7 +268,7 @@
 "bad": false,
 "dis": false,
 "len": 33685,
-"list": false
+"list": true
 },
 {
 "t": "Смерть поэта (Лермонтов)",
@@ -808,7 +808,7 @@
 "bad": false,
 "dis": false,
 "len": 595,
-"list": false
+"list": true
 },
 {
 "t": "Мать (Горький)",
@@ -862,7 +862,7 @@
 "bad": false,
 "dis": false,
 "len": 1273,
-"list": false
+"list": true
 },
 {
 "t": "Чудесный доктор (Куприн)",
@@ -889,7 +889,7 @@
 "bad": false,
 "dis": false,
 "len": 1590,
-"list": false
+"list": true
 },
 {
 "t": "В дурном обществе (Короленко)",
@@ -898,7 +898,7 @@
 "bad": false,
 "dis": false,
 "len": 1206,
-"list": false
+"list": true
 },
 {
 "t": "Красный цветок (Гаршин)",
@@ -980,6 +980,24 @@
 "dis": true,
 "len": 386,
 "list": true
+},
+{
+"t": "Мастер и Маргарита (Булгаков)",
+"to": "Мастер и Маргарита (Булгаков)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Собачье сердце (Булгаков)",
+"to": "Собачье сердце (Булгаков)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "antiq": [
@@ -1792,6 +1810,618 @@
 "dis": false,
 "len": 1804,
 "list": false
+},
+{
+"t": "Прометей прикованный (Эсхил)",
+"to": "Прометей прикованный (Эсхил)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Орестея (Эсхил)",
+"to": "Орестея (Эсхил)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Алкеста (Еврипид)",
+"to": "Алкеста (Еврипид)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Троянки (Еврипид)",
+"to": "Троянки (Еврипид)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Облака (Аристофан)",
+"to": "Облака (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Лягушки (Аристофан)",
+"to": "Лягушки (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Лисистрата (Аристофан)",
+"to": "Лисистрата (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Птицы (Аристофан)",
+"to": "Птицы (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Всадники (Аристофан)",
+"to": "Всадники (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Мир (Аристофан)",
+"to": "Мир (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Плутос (Аристофан)",
+"to": "Плутос (Аристофан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Никомахова этика (Аристотель)",
+"to": "Никомахова этика (Аристотель)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Анабасис (Ксенофонт)",
+"to": "Анабасис (Ксенофонт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Воспоминания о Сократе (Ксенофонт)",
+"to": "Воспоминания о Сократе (Ксенофонт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Жизнеописания (Плутарх)",
+"to": "Жизнеописания (Плутарх)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Аргонавтика (Аполлоний Родосский)",
+"to": "Аргонавтика (Аполлоний Родосский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Георгики (Вергилий)",
+"to": "Георгики (Вергилий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Буколики (Вергилий)",
+"to": "Буколики (Вергилий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Наука любви (Овидий)",
+"to": "Наука любви (Овидий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Скорбные элегии (Овидий; Артюшков)",
+"to": "Скорбные элегии (Овидий; Артюшков)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Скорбные элегии (Овидий; Фет)",
+"to": "Скорбные элегии (Овидий; Фет)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Скорбные элегии (Овидий; Аралов)",
+"to": "Скорбные элегии (Овидий; Аралов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Скорбные элегии (Овидий; Краснов)",
+"to": "Скорбные элегии (Овидий; Краснов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сатиры (Гораций)",
+"to": "Сатиры (Гораций)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Наука поэзии (Гораций)",
+"to": "Наука поэзии (Гораций)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "О природе вещей (Лукреций)",
+"to": "О природе вещей (Лукреций)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Записки о Галльской войне (Цезарь)",
+"to": "Записки о Галльской войне (Цезарь)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Анналы (Тацит)",
+"to": "Анналы (Тацит)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "История Рима от основания города (Тит Ливий)",
+"to": "История Рима от основания города (Тит Ливий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Золотой осёл (Апулей)",
+"to": "Метаморфозы",
+"missing": false,
+"bad": false,
+"dis": true,
+"len": 1907,
+"list": false
+},
+{
+"t": "Сатирикон (Петроний)",
+"to": "Сатирикон (Петроний)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Энхиридион (Эпиктет)",
+"to": "Энхиридион (Эпиктет)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Размышления (Марк Аврелий)",
+"to": "Размышления (Марк Аврелий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Письма к Луцилию (Сенека)",
+"to": "Письма к Луцилию (Сенека)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Нравственные письма к Луцилию (Сенека)",
+"to": "Нравственные письма к Луцилию (Сенека)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Фиэст (Сенека)",
+"to": "Фиэст (Сенека)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ода к Афродите (Сапфо)",
+"to": "Ода к Афродите (Сапфо)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Стихотворения (Катулл)",
+"to": "Стихотворения (Катулл)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Метаморфозы (Апулей)",
+"to": "Метаморфозы",
+"missing": false,
+"bad": false,
+"dis": true,
+"len": 1907,
+"list": false
+},
+{
+"t": "Дафнис и Хлоя (Лонг)",
+"to": "Дафнис и Хлоя (Лонг)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Эфиопика (Гелиодор)",
+"to": "Эфиопика (Гелиодор)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Правдивая история (Лукиан)",
+"to": "Правдивая история (Лукиан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Разговоры в царстве мёртвых (Лукиан)",
+"to": "Разговоры в царстве мёртвых (Лукиан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Характеры (Феофраст)",
+"to": "Характеры (Феофраст)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Об обязанностях (Цицерон)",
+"to": "Об обязанностях (Цицерон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "О старости (Цицерон)",
+"to": "О старости (Цицерон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "О дружбе (Цицерон)",
+"to": "О дружбе (Цицерон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Против Катилины (Цицерон)",
+"to": "Против Катилины (Цицерон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Жизнь Агриколы (Тацит)",
+"to": "Жизнь Агриколы (Тацит)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сатиры (Ювенал)",
+"to": "Сатиры (Ювенал)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Клад (Плавт)",
+"to": "Клад (Плавт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Хвастливый воин (Плавт)",
+"to": "Хвастливый воин (Плавт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Менехмы (Плавт)",
+"to": "Менехмы (Плавт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ослы (Плавт)",
+"to": "Ослы (Плавт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Братья (Теренций)",
+"to": "Братья (Теренций)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Андриянка (Теренций)",
+"to": "Андриянка (Теренций)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Брюзга (Менандр)",
+"to": "Брюзга (Менандр)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пинакотека",
+"to": "Пинакотека",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Мифы Древней Греции (Грейвс)",
+"to": "Мифы Древней Греции (Грейвс)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Описание Эллады (Павсаний)",
+"to": "Описание Эллады (Павсаний)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Батрахомиомахия",
+"to": "Батрахомиомахия",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Оды (Пиндар)",
+"to": "Оды (Пиндар)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Идиллии (Феокрит)",
+"to": "Идиллии (Феокрит)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "История (Полибий)",
+"to": "История (Полибий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сатурналии (Макробий)",
+"to": "Сатурналии (Макробий)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Об ораторе (Цицерон)",
+"to": "Об ораторе (Цицерон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тускуланские беседы (Цицерон)",
+"to": "Тускуланские беседы (Цицерон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Жизнь Аполлония Тианского (Филострат)",
+"to": "Жизнь Аполлония Тианского (Филострат)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "quest": [
@@ -1811,7 +2441,7 @@
 "bad": false,
 "dis": true,
 "len": 1862,
-"list": false
+"list": true
 },
 {
 "t": "Айвенго (Скотт)",
@@ -1820,7 +2450,7 @@
 "bad": false,
 "dis": true,
 "len": 1919,
-"list": false
+"list": true
 },
 {
 "t": "Последний из могикан (Купер)",
@@ -1838,7 +2468,7 @@
 "bad": false,
 "dis": true,
 "len": 3742,
-"list": false
+"list": true
 },
 {
 "t": "Граф Монте-Кристо (Дюма)",
@@ -1847,7 +2477,7 @@
 "bad": false,
 "dis": true,
 "len": 2109,
-"list": false
+"list": true
 },
 {
 "t": "Дети капитана Гранта (Верн; Бекетова)",
@@ -1865,7 +2495,7 @@
 "bad": false,
 "dis": false,
 "len": 3088,
-"list": false
+"list": true
 },
 {
 "t": "Остров сокровищ (Стивенсон)",
@@ -1874,7 +2504,7 @@
 "bad": false,
 "dis": true,
 "len": 2231,
-"list": false
+"list": true
 },
 {
 "t": "Машина времени (Уэллс)",
@@ -1883,7 +2513,7 @@
 "bad": false,
 "dis": true,
 "len": 1876,
-"list": false
+"list": true
 },
 {
 "t": "Война миров (Уэллс)",
@@ -1892,7 +2522,7 @@
 "bad": false,
 "dis": true,
 "len": 2911,
-"list": false
+"list": true
 },
 {
 "t": "Затерянный мир (Дойль; 1912)",
@@ -1928,7 +2558,7 @@
 "bad": false,
 "dis": false,
 "len": 1600,
-"list": false
+"list": true
 },
 {
 "t": "Пятнадцатилетний капитан (Верн; Петров)",
@@ -1946,7 +2576,7 @@
 "bad": false,
 "dis": false,
 "len": 2199,
-"list": false
+"list": true
 },
 {
 "t": "Михаил Строгов (Верн; Киселев)",
@@ -2045,7 +2675,7 @@
 "bad": false,
 "dis": false,
 "len": 2192,
-"list": false
+"list": true
 },
 {
 "t": "Королева Марго (Дюма; 1903)",
@@ -2243,7 +2873,7 @@
 "bad": false,
 "dis": false,
 "len": 1870,
-"list": false
+"list": true
 },
 {
 "t": "Повесть о двух городах (Диккенс; Каменский)",
@@ -2541,457 +3171,907 @@
 "dis": false,
 "len": 780266,
 "list": false
+},
+{
+"t": "Вокруг света за восемьдесят дней (Верн)",
+"to": "Вокруг света за восемьдесят дней (Верн)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Из пушки на Луну (Верн)",
+"to": "Из пушки на Луну (Верн)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Робур-Завоеватель (Верн)",
+"to": "Робур-Завоеватель (Верн)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Странная история доктора Джекила и мистера Хайда (Стивенсон)",
+"to": "Странная история доктора Джекила и мистера Хайда (Стивенсон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Клуб самоубийц (Стивенсон)",
+"to": "Клуб самоубийц (Стивенсон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Человек, который смеётся (Гюго)",
+"to": "Человек, который смеётся (Гюго)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Труженики моря (Гюго)",
+"to": "Труженики моря (Гюго)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Виконт де Бражелон (Дюма)",
+"to": "Виконт де Бражелон (Дюма)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Роб Рой (Скотт)",
+"to": "Роб Рой (Скотт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Роб Рой (Скотт; 1874)",
+"to": "Роб Рой (Скотт; 1874)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пуритане (Скотт)",
+"to": "Пуритане (Скотт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Зверобой (Купер; Коковцов)",
+"to": "Зверобой (Купер; Коковцов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пионеры (Купер)",
+"to": "Пионеры (Купер)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Всадник без головы (Рид)",
+"to": "Всадник без головы (Рид)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Оцеола, вождь семинолов (Рид)",
+"to": "Оцеола, вождь семинолов (Рид)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дочь Монтесумы (Хаггард)",
+"to": "Дочь Монтесумы (Хаггард)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Приключения Гекльберри Финна (Твен)",
+"to": "Приключения Гекльберри Финна (Твен)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Смок Беллью (Лондон)",
+"to": "Смок Беллью (Лондон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сердца трёх (Лондон)",
+"to": "Сердца трёх (Лондон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Маугли (Киплинг)",
+"to": "Маугли (Киплинг)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Книга джунглей (Киплинг)",
+"to": "Книга джунглей (Киплинг)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Капитаны отважные (Киплинг)",
+"to": "Капитаны отважные (Киплинг)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Борьба за огонь (Рони-старший)",
+"to": "Борьба за огонь (Рони-старший)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тарзан, приёмыш обезьян (Берроуз)",
+"to": "Тарзан, приёмыш обезьян (Берроуз)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Принцесса Марса (Берроуз)",
+"to": "Принцесса Марса (Берроуз)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Плутония (Обручев)",
+"to": "Плутония (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Земля Санникова (Обручев)",
+"to": "Земля Санникова (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Капитан Блад (Сабатини)",
+"to": "Капитан Блад (Сабатини)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Одиссея капитана Блада (Сабатини)",
+"to": "Одиссея капитана Блада (Сабатини)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Овод (Войнич)",
+"to": "Овод (Войнич)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Овод (Войнич; Венгерова)",
+"to": "Овод (Войнич; Венгерова)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Капитан Сорви-голова (Буссенар)",
+"to": "Капитан Сорви-голова (Буссенар)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дракула (Стокер)",
+"to": "Дракула (Стокер)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Франкенштейн (Шелли)",
+"to": "Франкенштейн (Шелли)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дон Кихот (Сервантес)",
+"to": "Дон Кихот (Сервантес)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пармская обитель (Стендаль)",
+"to": "Пармская обитель (Стендаль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Барон Мюнхгаузен (Распе)",
+"to": "Барон Мюнхгаузен (Распе)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Приключения барона Мюнхгаузена (Распе)",
+"to": "Приключения барона Мюнхгаузена (Распе)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Удивительные путешествия на воде и на суше (Распе)",
+"to": "Удивительные путешествия на воде и на суше (Распе)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Приключения Оливера Твиста (Диккенс)",
+"to": "Оливер Твист (Диккенс)",
+"missing": false,
+"bad": false,
+"dis": true,
+"len": 1394,
+"list": true
+},
+{
+"t": "Наследник из Калькутты (Штильмарк)",
+"to": "Наследник из Калькутты (Штильмарк)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Маракотова бездна (Дойль)",
+"to": "Маракотова бездна (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Белый отряд (Дойль)",
+"to": "Белый отряд (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Михаэль Строгов (Верн)",
+"to": "Михаэль Строгов (Верн)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Голубая звезда (Гумилёв)",
+"to": "Голубая звезда (Гумилёв)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Хуторок в степи (Катаев)",
+"to": "Хуторок в степи (Катаев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Два капитана (Каверин)",
+"to": "Два капитана (Каверин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пещера Лейхтвейса (Редер)",
+"to": "Пещера Лейхтвейса (Редер)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Женщина в белом (Коллинз)",
+"to": "Женщина в белом (Коллинз)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Атлантида (Бенуа)",
+"to": "Атлантида (Бенуа)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "tales": [
 {
 "t": "Сказка о царе Салтане (Пушкин)",
 "to": "Сказка о царе Салтане (Пушкин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 45125,
 "list": false
 },
 {
 "t": "Сказка о рыбаке и рыбке (Пушкин)",
 "to": "Сказка о рыбаке и рыбке (Пушкин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 17148,
 "list": false
 },
 {
 "t": "Сказка о мёртвой царевне и о семи богатырях (Пушкин)",
 "to": "Сказка о мёртвой царевне и о семи богатырях (Пушкин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 26999,
 "list": false
 },
 {
 "t": "Конёк-горбунок (Ершов)",
 "to": "Конёк-горбунок (Ершов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 1095,
 "list": false
 },
 {
 "t": "Стрекоза и Муравей (Крылов)",
 "to": "Стрекоза и Муравей (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 10215,
 "list": false
 },
 {
 "t": "Чёрная курица, или Подземные жители (Погорельский)",
 "to": "Чёрная курица, или Подземные жители (Погорельский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 102053,
 "list": false
 },
 {
 "t": "Городок в табакерке (Одоевский)",
 "to": "Городок в табакерке (Одоевский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 26058,
 "list": false
 },
 {
 "t": "Аленький цветочек (Аксаков)",
 "to": "Аленький цветочек (Аксаков)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 80685,
 "list": false
 },
 {
 "t": "Огниво (Андерсен; Ганзен)",
 "to": "Огниво (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 24218,
 "list": false
 },
 {
 "t": "Русалочка (Андерсен; Ганзен)",
 "to": "Русалочка (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 80401,
 "list": false
 },
 {
 "t": "Гадкий утёнок (Андерсен; Ганзен)",
 "to": "Гадкий утёнок (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 31138,
 "list": false
 },
 {
 "t": "Снежная королева (Андерсен; Ганзен)",
 "to": "Снежная королева (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
-"list": false
+"len": 2481,
+"list": true
 },
 {
 "t": "Сказка о попе и о работнике его Балде (Пушкин)",
 "to": "Сказка о попе и о работнике его Балде (Пушкин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 11226,
 "list": false
 },
 {
 "t": "Сказка о золотом петушке (Пушкин)",
 "to": "Сказка о золотом петушке (Пушкин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 12478,
 "list": false
 },
 {
 "t": "Спящая царевна (Жуковский)",
 "to": "Спящая царевна (Жуковский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 16734,
 "list": false
 },
 {
 "t": "Сказка о царе Берендее (Жуковский)",
 "to": "Сказка о царе Берендее (Жуковский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 41417,
 "list": false
 },
 {
 "t": "Кот в сапогах (Жуковский)",
 "to": "Кот в сапогах (Жуковский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 16445,
 "list": false
 },
 {
 "t": "Мороз Иванович (Одоевский)",
 "to": "Мороз Иванович (Одоевский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 26402,
 "list": false
 },
 {
 "t": "Сказка о жабе и розе (Гаршин)",
 "to": "Сказка о жабе и розе (Гаршин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 24244,
 "list": false
 },
 {
 "t": "Лягушка-путешественница (Гаршин)",
 "to": "Лягушка-путешественница (Гаршин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 15971,
 "list": false
 },
 {
 "t": "Серая шейка (Мамин-Сибиряк)",
 "to": "Серая шейка (Мамин-Сибиряк)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 29575,
 "list": false
 },
 {
 "t": "Алёнушкины сказки (Мамин-Сибиряк)",
 "to": "Алёнушкины сказки (Мамин-Сибиряк)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 3951,
 "list": false
 },
 {
 "t": "Сказка про храброго Зайца — длинные уши, косые глаза, короткий хвост (Мамин-Сибиряк)",
 "to": "Сказка про храброго Зайца — длинные уши, косые глаза, короткий хвост (Мамин-Сибиряк)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 8375,
 "list": false
 },
 {
 "t": "Сказки об Италии (Горький)",
 "to": "Сказки об Италии (Горький)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 491347,
 "list": false
 },
 {
 "t": "Воробьишко (Горький)",
 "to": "Воробьишко (Горький)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 8218,
 "list": false
 },
 {
 "t": "Дикий помещик (Салтыков-Щедрин)",
 "to": "Дикий помещик (Салтыков-Щедрин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 27153,
 "list": false
 },
 {
 "t": "Самоотверженный заяц (Салтыков-Щедрин)",
 "to": "Самоотверженный заяц (Салтыков-Щедрин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 20260,
 "list": false
 },
 {
 "t": "Карась-идеалист (Салтыков-Щедрин)",
 "to": "Карась-идеалист (Салтыков-Щедрин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 39097,
 "list": false
 },
 {
 "t": "Три медведя (Толстой)",
 "to": "Три медведя (Толстой)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 7067,
 "list": false
 },
 {
 "t": "Волк и Ягнёнок (Крылов)",
 "to": "Волк и Ягнёнок (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4223,
 "list": false
 },
 {
 "t": "Ворона и Лисица (Крылов)",
 "to": "Ворона и Лисица (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4036,
 "list": false
 },
 {
 "t": "Квартет (Крылов)",
 "to": "Квартет (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4231,
 "list": false
 },
 {
 "t": "Мартышка и очки (Крылов)",
 "to": "Мартышка и очки (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 2835,
 "list": false
 },
 {
 "t": "Слон и Моська (Крылов)",
 "to": "Слон и Моська (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 3061,
 "list": false
 },
 {
 "t": "Кот и Повар (Крылов)",
 "to": "Кот и Повар (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4691,
 "list": false
 },
 {
 "t": "Демьянова уха (Крылов)",
 "to": "Демьянова уха (Крылов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 6466,
 "list": false
 },
 {
 "t": "Дюймовочка (Андерсен; Ганзен)",
 "to": "Дюймовочка (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 37456,
 "list": false
 },
 {
 "t": "Стойкий оловянный солдатик (Андерсен; Ганзен)",
 "to": "Стойкий оловянный солдатик (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 15342,
 "list": false
 },
 {
 "t": "Новый наряд короля (Андерсен; Ганзен)",
 "to": "Новый наряд короля (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 2590,
 "list": false
 },
 {
 "t": "Принцесса на горошине (Андерсен; Ганзен)",
 "to": "Принцесса на горошине (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4945,
 "list": false
 },
 {
 "t": "Соловей (Андерсен; Ганзен)",
 "to": "Соловей (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 33631,
 "list": false
 },
 {
 "t": "Дикие лебеди (Андерсен; Ганзен)",
 "to": "Дикие лебеди (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 57976,
 "list": false
 },
 {
 "t": "Свинопас (Андерсен; Ганзен)",
 "to": "Свинопас (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 15674,
 "list": false
 },
 {
 "t": "Оле-Лукойе (Андерсен)",
 "to": "Оле-Лукойе (Андерсен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 1773,
 "list": false
 },
 {
 "t": "Девочка со спичками (Андерсен; Ганзен)",
 "to": "Девочка со спичками (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 10626,
 "list": false
 },
 {
 "t": "Ель (Андерсен; Ганзен)",
 "to": "Ель (Андерсен; Ганзен)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 28975,
 "list": false
 },
 {
 "t": "Белоснежка (Гримм; Снессорева)",
 "to": "Белоснежка (Гримм; Снессорева)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 35110,
 "list": false
 },
 {
 "t": "Бременские музыканты (Гримм)",
 "to": "Бременские музыканты (Гримм)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 14220,
 "list": false
 },
 {
 "t": "Гензель и Гретель (Гримм; Полевой)",
 "to": "Гензель и Гретель (Гримм; Полевой)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 28117,
 "list": false
 },
 {
 "t": "Красная Шапочка (Гримм; Полевой)",
 "to": "Красная Шапочка (Гримм; Полевой)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 11643,
 "list": false
 },
 {
@@ -3263,6 +4343,357 @@
 "dis": false,
 "len": 3057,
 "list": false
+},
+{
+"t": "У лукоморья дуб зелёный (Пушкин)",
+"to": "У лукоморья дуб зелёный (Пушкин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Серебряное копытце (Бажов)",
+"to": "Серебряное копытце (Бажов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Каменный цветок (Бажов)",
+"to": "Каменный цветок (Бажов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Малахитовая шкатулка (Бажов)",
+"to": "Малахитовая шкатулка (Бажов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Двенадцать месяцев (Маршак)",
+"to": "Двенадцать месяцев (Маршак)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Девочка на шаре (Драгунский)",
+"to": "Девочка на шаре (Драгунский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Липунюшка (Толстой)",
+"to": "Липунюшка (Толстой)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Лебедь, Рак и Щука (Крылов)",
+"to": "Лебедь, Рак и Щука (Крылов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Белоснежка и семь гномов (Гримм)",
+"to": "Белоснежка и семь гномов (Гримм)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Золушка (Гримм)",
+"to": "Золушка (Гримм)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Рапунцель (Гримм)",
+"to": "Рапунцель (Гримм)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Король-лягушонок (Гримм)",
+"to": "Король-лягушонок (Гримм)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Румпельштильцхен (Гримм)",
+"to": "Румпельштильцхен (Гримм)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Золушка (Перро)",
+"to": "Золушка",
+"missing": false,
+"bad": false,
+"dis": true,
+"len": 2978,
+"list": true
+},
+{
+"t": "Мальчик с пальчик (Перро)",
+"to": "Мальчик с пальчик (Перро)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ослиная шкура (Перро)",
+"to": "Ослиная шкура (Перро)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Подарки феи (Перро)",
+"to": "Подарки феи (Перро)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Калиф-аист (Гауф)",
+"to": "Калиф-аист (Гауф)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Крошка Цахес по прозванью Циннобер (Гофман)",
+"to": "Крошка Цахес по прозванью Циннобер (Гофман)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Алиса в Зазеркалье (Кэрролл)",
+"to": "Алиса в Зазеркалье (Кэрролл)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Питер Пэн (Барри)",
+"to": "Питер Пэн (Барри)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Удивительный волшебник из страны Оз (Баум)",
+"to": "Удивительный волшебник из страны Оз (Баум)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Чудесное путешествие Нильса с дикими гусями (Лагерлёф)",
+"to": "Чудесное путешествие Нильса с дикими гусями (Лагерлёф)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Али-Баба и сорок разбойников",
+"to": "Али-Баба и сорок разбойников",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Аладдин и волшебная лампа",
+"to": "Аладдин и волшебная лампа",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Синдбад-мореход",
+"to": "Синдбад-мореход",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказки народов мира",
+"to": "Сказки народов мира",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Морозко (Афанасьев)",
+"to": "Морозко (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Царевна-лягушка (Афанасьев)",
+"to": "Царевна-лягушка (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сивка-бурка (Афанасьев)",
+"to": "Сивка-бурка (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Гуси-лебеди (Афанасьев)",
+"to": "Гуси-лебеди (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Иван-царевич и серый волк (Афанасьев)",
+"to": "Иван-царевич и серый волк (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Кощей Бессмертный (Афанасьев)",
+"to": "Кощей Бессмертный (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Баба-яга (Афанасьев)",
+"to": "Баба-яга (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Маша и медведь",
+"to": "Маша и медведь",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Василиса Прекрасная (Афанасьев)",
+"to": "Василиса Прекрасная (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сестрица Алёнушка и братец Иванушка (Афанасьев)",
+"to": "Сестрица Алёнушка и братец Иванушка (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Хаврошечка (Афанасьев)",
+"to": "Хаврошечка (Афанасьев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказки (Андерсен)",
+"to": "Сказки (Андерсен)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "short": [
@@ -3291,7 +4722,7 @@
 "bad": false,
 "dis": true,
 "len": 361,
-"list": false
+"list": true
 },
 {
 "t": "Нос (Гоголь)",
@@ -3381,7 +4812,7 @@
 "bad": false,
 "dis": true,
 "len": 1753,
-"list": false
+"list": true
 },
 {
 "t": "Человек в футляре (Чехов)",
@@ -4138,6 +5569,141 @@
 "dis": true,
 "len": 3251,
 "list": true
+},
+{
+"t": "Княжна Мери (Лермонтов)",
+"to": "Княжна Мери (Лермонтов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Попрыгунья-стрекоза (Куприн)",
+"to": "Попрыгунья-стрекоза (Куприн)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказка о маленькой фее и молодом чабане (Горький)",
+"to": "Сказка о маленькой фее и молодом чабане (Горький)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Человек, который был четвергом (Честертон)",
+"to": "Человек, который был четвергом (Честертон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дары волхвов (О. Генри)",
+"to": "Дары волхвов (О. Генри)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Последний лист (О. Генри)",
+"to": "Последний лист (О. Генри)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ожерелье (Мопассан)",
+"to": "Ожерелье (Мопассан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пышка (Мопассан)",
+"to": "Пышка (Мопассан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Орля (Мопассан)",
+"to": "Орля (Мопассан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Маттео Фальконе (Мериме)",
+"to": "Маттео Фальконе (Мериме)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Венера Илльская (Мериме)",
+"to": "Венера Илльская (Мериме)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Бедный Генрих (Гауптман)",
+"to": "Бедный Генрих (Гауптман)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Превращение (Кафка)",
+"to": "Превращение (Кафка)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Легенда о Сонной Лощине (Ирвинг)",
+"to": "Легенда о Сонной Лощине (Ирвинг)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Знаменитая скачущая лягушка из Калавераса (Твен)",
+"to": "Знаменитая скачущая лягушка из Калавераса (Твен)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "silver": [
@@ -4193,7 +5759,7 @@
 "bad": false,
 "dis": false,
 "len": 7822,
-"list": false
+"list": true
 },
 {
 "t": "Мне нравится, что Вы больны не мной (Цветаева)",
@@ -4860,6 +6426,213 @@
 "dis": true,
 "len": 1270,
 "list": true
+},
+{
+"t": "Стихи о Прекрасной Даме (Блок)",
+"to": "Стихи о Прекрасной Даме (Блок)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Нате! (Маяковский)",
+"to": "Нате! (Маяковский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Лебединый стан (Цветаева)",
+"to": "Лебединый стан (Цветаева)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Письмо к матери (Есенин)",
+"to": "Письмо к матери (Есенин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Персидские мотивы (Есенин)",
+"to": "Персидские мотивы (Есенин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Москва кабацкая (Есенин)",
+"to": "Москва кабацкая (Есенин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Шаганэ ты моя, Шаганэ (Есенин)",
+"to": "Шаганэ ты моя, Шаганэ (Есенин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Tristia (Мандельштам)",
+"to": "Tristia (Мандельштам)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Я вернулся в мой город, знакомый до слёз (Мандельштам)",
+"to": "Я вернулся в мой город, знакомый до слёз (Мандельштам)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ламарк (Мандельштам)",
+"to": "Ламарк (Мандельштам)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Будь как солнце (Бальмонт)",
+"to": "Будь как солнце (Бальмонт)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ладомир (Хлебников)",
+"to": "Ладомир (Хлебников)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Смычок и струна (Анненский)",
+"to": "Смычок и струна (Анненский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Александрийские песни (Кузмин)",
+"to": "Александрийские песни (Кузмин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сети (Кузмин)",
+"to": "Сети (Кузмин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Громокипящий кубок (Северянин)",
+"to": "Громокипящий кубок (Северянин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Предвечерняя (Гиппиус)",
+"to": "Предвечерняя (Гиппиус)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сатирикон (Аверченко)",
+"to": "Сатирикон (Аверченко)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Христос и Антихрист (Мережковский)",
+"to": "Христос и Антихрист (Мережковский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Юлиан Отступник (Мережковский)",
+"to": "Юлиан Отступник (Мережковский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Cor ardens (Иванов)",
+"to": "Cor ardens (Иванов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Песнь о Великой Матери (Клюев)",
+"to": "Песнь о Великой Матери (Клюев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Шарманка (Гуро)",
+"to": "Шарманка (Гуро)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "myths": [
@@ -4942,7 +6715,7 @@
 "bad": false,
 "dis": true,
 "len": 6058,
-"list": false
+"list": true
 },
 {
 "t": "Калевала (Лённрот; Бельский)",
@@ -5248,7 +7021,7 @@
 "bad": false,
 "dis": false,
 "len": 2222,
-"list": false
+"list": true
 },
 {
 "t": "Сон в летнюю ночь (Шекспир, Лэм)",
@@ -5654,187 +7427,673 @@
 "dis": false,
 "len": 10038,
 "list": false
+},
+{
+"t": "Песнь о нибелунгах",
+"to": "Песнь о нибелунгах",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Младшая Эдда (Снорри Стурлусон)",
+"to": "Младшая Эдда (Снорри Стурлусон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сага об Эгиле",
+"to": "Сага об Эгиле",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сага о Ньяле",
+"to": "Сага о Ньяле",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сага о Вёльсунгах",
+"to": "Сага о Вёльсунгах",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Махабхарата",
+"to": "Махабхарата",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Рамаяна",
+"to": "Рамаяна",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Бхагавад-гита",
+"to": "Бхагавадгита",
+"missing": false,
+"bad": false,
+"dis": true,
+"len": 1768,
+"list": false
+},
+{
+"t": "Шахнаме (Фирдоуси)",
+"to": "Шахнаме (Фирдоуси)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Давид Сасунский",
+"to": "Давид Сасунский",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Манас",
+"to": "Манас",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Песнь о Сиде",
+"to": "Песнь о Сиде",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Повесть временных лет",
+"to": "Повесть временных лет (Нестор)",
+"missing": false,
+"bad": false,
+"dis": true,
+"len": 5473,
+"list": true
+},
+{
+"t": "Добрыня и Змей",
+"to": "Добрыня и Змей",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Илья Муромец и Калин-царь",
+"to": "Илья Муромец и Калин-царь",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Вольга и Микула",
+"to": "Вольга и Микула",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Алёша Попович и Тугарин Змеевич",
+"to": "Алёша Попович и Тугарин Змеевич",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Святогор-богатырь",
+"to": "Святогор-богатырь",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ставр Годинович",
+"to": "Ставр Годинович",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Житие Александра Невского",
+"to": "Житие Александра Невского",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Повесть о разорении Рязани Батыем",
+"to": "Повесть о разорении Рязани Батыем",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Хождение за три моря (Афанасий Никитин)",
+"to": "Хождение за три моря (Афанасий Никитин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказание о Китеже",
+"to": "Сказание о Китеже",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Легенды о короле Артуре",
+"to": "Легенды о короле Артуре",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Смерть Артура (Мэлори)",
+"to": "Смерть Артура (Мэлори)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сэр Гавейн и Зелёный рыцарь",
+"to": "Сэр Гавейн и Зелёный рыцарь",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Мабиногион",
+"to": "Мабиногион",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Похищение быка из Куальнге",
+"to": "Похищение быка из Куальнге",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Энума элиш",
+"to": "Энума элиш",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Эпос о Гильгамеше",
+"to": "Эпос о Гильгамеше",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Книга мёртвых",
+"to": "Книга мёртвых",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказание о Тристане и Изольде",
+"to": "Сказание о Тристане и Изольде",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Кузнец Вейланд",
+"to": "Кузнец Вейланд",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказание о Кудруне",
+"to": "Сказание о Кудруне",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Легенда о Святом Юлиане Странноприимце (Флобер)",
+"to": "Легенда о Святом Юлиане Странноприимце (Флобер)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Мифы Древней Греции",
+"to": "Мифы Древней Греции",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Двенадцать подвигов Геракла",
+"to": "Двенадцать подвигов Геракла",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Подвиги Геракла",
+"to": "Подвиги Геракла",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тесей",
+"to": "Тесей",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ясон и аргонавты",
+"to": "Ясон и аргонавты",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Орфей и Эвридика",
+"to": "Орфей и Эвридика",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пигмалион",
+"to": "Пигмалион",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Деметра и Персефона",
+"to": "Деметра и Персефона",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Троянская война",
+"to": "Троянская война",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Легенда о Фаусте",
+"to": "Легенда о Фаусте",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Бова королевич",
+"to": "Бова королевич",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Повесть о Горе-Злосчастии",
+"to": "Повесть о Горе-Злосчастии",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказание о Борисе и Глебе",
+"to": "Сказание о Борисе и Глебе",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сказания о Нартах",
+"to": "Сказания о Нартах",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Джангар",
+"to": "Джангар",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Кобзарь (Шевченко)",
+"to": "Кобзарь (Шевченко)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пан Твардовский",
+"to": "Пан Твардовский",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Легенда о Великом инквизиторе (Достоевский)",
+"to": "Легенда о Великом инквизиторе (Достоевский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Олесь",
+"to": "Олесь",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "detect": [
 {
 "t": "Пёстрая лента (Дойль; 1896)",
 "to": "Пёстрая лента (Дойль; 1896)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 93800,
 "list": false
 },
 {
 "t": "Этюд в багровых тонах (Дойль)",
 "to": "Этюд в багровых тонах (Дойль)",
-"missing": true,
+"missing": false,
 "bad": false,
-"dis": false,
-"len": 0,
-"list": false
+"dis": true,
+"len": 2380,
+"list": true
 },
 {
 "t": "Убийство на улице Морг (По; Бальмонт)",
 "to": "Убийство на улице Морг (По; Бальмонт)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 150691,
 "list": false
 },
 {
 "t": "Золотой жук (По; Бальмонт)",
 "to": "Золотой жук (По; Бальмонт)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 143892,
 "list": false
 },
 {
 "t": "Похищенное письмо (По)",
 "to": "Похищенное письмо (По)",
-"missing": true,
+"missing": false,
 "bad": false,
-"dis": false,
-"len": 0,
-"list": false
+"dis": true,
+"len": 1220,
+"list": true
 },
 {
 "t": "Шведская спичка (Чехов)",
 "to": "Шведская спичка (Чехов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 65416,
 "list": false
 },
 {
 "t": "Драма на охоте (Чехов)",
 "to": "Драма на охоте (Чехов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 624379,
 "list": false
 },
 {
 "t": "Собака Баскервилей (Дойль; Ломиковская)",
 "to": "Собака Баскервилей (Дойль; Ломиковская)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 595733,
 "list": false
 },
 {
 "t": "Жёлтое лицо (Дойль; д'Андре)",
 "to": "Жёлтое лицо (Дойль; д'Андре)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 70072,
 "list": false
 },
 {
 "t": "Последнее дело Холмса (Дойль; Туфанов)",
 "to": "Последнее дело Холмса (Дойль; Туфанов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 63951,
 "list": false
 },
 {
 "t": "Шесть Наполеонов (Дойль; 1925)",
 "to": "Шесть Наполеонов (Дойль; 1925)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 65870,
 "list": false
 },
 {
 "t": "Преступление и наказание (Достоевский)",
 "to": "Преступление и наказание (Достоевский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 6546,
 "list": false
 },
 {
 "t": "Братья Карамазовы (Достоевский)",
 "to": "Братья Карамазовы (Достоевский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 11190,
 "list": false
 },
 {
 "t": "Человек, который знал слишком много (Честертон)",
 "to": "Человек, который знал слишком много (Честертон)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 3004,
 "list": false
 },
 {
 "t": "Одинокая велосипедистка (Дойль; 1904)",
 "to": "Одинокая велосипедистка (Дойль; 1904)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 75956,
 "list": false
 },
 {
 "t": "Золотой жук (По)",
 "to": "Золотой жук (По)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 3414,
 "list": false
 },
 {
 "t": "Лето Господне (Шмелёв)",
 "to": "Лето Господне (Шмелёв)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 1367562,
 "list": false
 },
 {
 "t": "Что побудило к убийству? (Шкляревский)",
 "to": "Что побудило к убийству? (Шкляревский)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 241361,
 "list": false
 },
 {
 "t": "Чёрный человек (Есенин)",
 "to": "Чёрный человек (Есенин)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 7118,
 "list": false
 },
 {
 "t": "Портрет Дориана Грея (Уайльд; Ликиардопуло)",
 "to": "Портрет Дориана Грея (Уайльд; Ликиардопуло)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 774986,
 "list": false
 },
 {
@@ -5876,10 +8135,10 @@
 {
 "t": "История голубого алмаза (Дойль; Латернер)",
 "to": "История голубого алмаза (Дойль; Латернер)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 47639,
 "list": false
 },
 {
@@ -5912,10 +8171,10 @@
 {
 "t": "Сильвер Блэз (Дойль; Туфанов)",
 "to": "Сильвер Блэз (Дойль; Туфанов)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 89438,
 "list": false
 },
 {
@@ -5939,19 +8198,19 @@
 {
 "t": "В пустом доме (Дойль; 1903)",
 "to": "В пустом доме (Дойль; 1903)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 84322,
 "list": false
 },
 {
 "t": "Норвудский архитектор (Дойль; 1904)",
 "to": "Норвудский архитектор (Дойль; 1904)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 93049,
 "list": false
 },
 {
@@ -6029,82 +8288,82 @@
 {
 "t": "Вампир из Суссекса (Дойль; 1927)",
 "to": "Вампир из Суссекса (Дойль; 1927)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 50307,
 "list": false
 },
 {
 "t": "Загадка Торского моста (Дойль; 1928)",
 "to": "Загадка Торского моста (Дойль; 1928)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 65784,
 "list": false
 },
 {
 "t": "Жилица под вуалью (Дойль; 1927)",
 "to": "Жилица под вуалью (Дойль; 1927)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 47991,
 "list": false
 },
 {
 "t": "Приключение в усадьбе Шоском (Дойль; 1927)",
 "to": "Приключение в усадьбе Шоском (Дойль; 1927)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 67833,
 "list": false
 },
 {
 "t": "Неведение отца Брауна (Честертон)",
 "to": "Неведение отца Брауна (Честертон)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4500,
 "list": false
 },
 {
 "t": "Мудрость отца Брауна (Честертон)",
 "to": "Мудрость отца Брауна (Честертон)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 4548,
 "list": false
 },
 {
 "t": "Недоверчивость отца Брауна (Честертон)",
 "to": "Недоверчивость отца Брауна (Честертон)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 2917,
 "list": false
 },
 {
 "t": "Тайна отца Брауна (сборник — Честертон)",
 "to": "Тайна отца Брауна (сборник — Честертон)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 3232,
 "list": false
 },
 {
 "t": "Скандальное происшествие с отцом Брауном (сборник — Честертон)",
 "to": "Скандальное происшествие с отцом Брауном (сборник — Честертон)",
-"missing": true,
+"missing": false,
 "bad": false,
 "dis": false,
-"len": 0,
+"len": 3022,
 "list": false
 },
 {
@@ -6340,6 +8599,744 @@
 "dis": false,
 "len": 1789003,
 "list": false
+},
+{
+"t": "Знак четырёх (Дойль)",
+"to": "Знак четырёх (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Приключения Шерлока Холмса (Дойль)",
+"to": "Приключения Шерлока Холмса (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Записки о Шерлоке Холмсе (Дойль)",
+"to": "Записки о Шерлоке Холмсе (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Возвращение Шерлока Холмса (Дойль)",
+"to": "Возвращение Шерлока Холмса (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Долина страха (Дойль)",
+"to": "Долина страха (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Скандал в Богемии (Дойль)",
+"to": "Скандал в Богемии (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Союз рыжих (Дойль)",
+"to": "Союз рыжих (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Установление личности (Дойль)",
+"to": "Установление личности (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тайна Боскомской долины (Дойль)",
+"to": "Тайна Боскомской долины (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пять апельсиновых зёрнышек (Дойль)",
+"to": "Пять апельсиновых зёрнышек (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Человек с рассечённой губой (Дойль)",
+"to": "Человек с рассечённой губой (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Голубой карбункул (Дойль)",
+"to": "Голубой карбункул (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Палец инженера (Дойль)",
+"to": "Палец инженера (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Знатный холостяк (Дойль)",
+"to": "Знатный холостяк (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Берилловая диадема (Дойль)",
+"to": "Берилловая диадема (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Медные буки (Дойль)",
+"to": "Медные буки (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Серебряный (Дойль)",
+"to": "Серебряный (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Обряд дома Месгрейвов (Дойль)",
+"to": "Обряд дома Месгрейвов (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пустой дом (Дойль)",
+"to": "Пустой дом (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пляшущие человечки (Дойль)",
+"to": "Пляшущие человечки (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Обряд дома Месгрейв (Дойль)",
+"to": "Обряд дома Месгрейв (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Морской договор (Дойль)",
+"to": "Морской договор (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Глория Скотт (Дойль)",
+"to": "Глория Скотт (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Чертежи Брюса-Партингтона (Дойль)",
+"to": "Чертежи Брюса-Партингтона (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Убийство в Эбби-Грейндж (Дойль)",
+"to": "Убийство в Эбби-Грейндж (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тайна Марии Роже (По)",
+"to": "Тайна Марии Роже (По)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ты еси муж, сотворивый сие (По)",
+"to": "Ты еси муж, сотворивый сие (По)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Женщина в белом (Коллинз)",
+"to": "Женщина в белом (Коллинз)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тайна Эдвина Друда (Диккенс; Молоствов)",
+"to": "Тайна Эдвина Друда (Диккенс; Молоствов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тайна жёлтой комнаты (Леру)",
+"to": "Тайна жёлтой комнаты (Леру)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Аромат дамы в чёрном (Леру)",
+"to": "Аромат дамы в чёрном (Леру)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Призрак Оперы (Леру)",
+"to": "Призрак Оперы (Леру)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Арсен Люпен — джентльмен-грабитель (Леблан)",
+"to": "Арсен Люпен — джентльмен-грабитель (Леблан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Полая игла (Леблан)",
+"to": "Полая игла (Леблан)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дело Леруж (Габорио)",
+"to": "Дело Леруж (Габорио)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Месье Лекок (Габорио)",
+"to": "Месье Лекок (Габорио)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Преступление в Орсивале (Габорио)",
+"to": "Преступление в Орсивале (Габорио)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Простодушие отца Брауна (Честертон)",
+"to": "Простодушие отца Брауна (Честертон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сапфировый крест (Честертон)",
+"to": "Сапфировый крест (Честертон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сломанная шпага (Честертон)",
+"to": "Сломанная шпага (Честертон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Странные шаги (Честертон)",
+"to": "Странные шаги (Честертон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Таинственное происшествие в Стайлзе (Кристи)",
+"to": "Таинственное происшествие в Стайлзе (Кристи)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Загадочное убийство (Грин)",
+"to": "Загадочное убийство (Грин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дело Ливенворта (Грин)",
+"to": "Дело Ливенворта (Грин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Убийство Роджера Экройда (Кристи)",
+"to": "Убийство Роджера Экройда (Кристи)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Секрет Энн Бойлан",
+"to": "Секрет Энн Бойлан",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Кровавая надпись (Дойль)",
+"to": "Кровавая надпись (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Записки Шерлока Холмса (Дойль)",
+"to": "Записки Шерлока Холмса (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Камень Мазарини (Дойль)",
+"to": "Камень Мазарини (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Человек на четвереньках (Дойль)",
+"to": "Человек на четвереньках (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Львиная грива (Дойль)",
+"to": "Львиная грива (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Три Гарридеба (Дойль)",
+"to": "Три Гарридеба (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Чарльз Огастес Милвертон (Дойль)",
+"to": "Чарльз Огастес Милвертон (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Случай в интернате (Дойль)",
+"to": "Случай в интернате (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Чёрный Питер (Дойль)",
+"to": "Чёрный Питер (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Подрядчик из Норвуда (Дойль)",
+"to": "Подрядчик из Норвуда (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Второе пятно (Дойль)",
+"to": "Второе пятно (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дьяволова нога (Дойль)",
+"to": "Дьяволова нога (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Красный круг (Дойль)",
+"to": "Красный круг (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Его прощальный поклон (Дойль)",
+"to": "Его прощальный поклон (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Шерлок Холмс при смерти (Дойль)",
+"to": "Шерлок Холмс при смерти (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Исчезновение леди Френсис Карфекс (Дойль)",
+"to": "Исчезновение леди Френсис Карфекс (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Картонная коробка (Дойль)",
+"to": "Картонная коробка (Дойль)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Убийство в Медонском лесу (Габорио)",
+"to": "Убийство в Медонском лесу (Габорио)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Петербургские трущобы (Крестовский)",
+"to": "Петербургские трущобы (Крестовский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Агент сыскной полиции (Путилин)",
+"to": "Агент сыскной полиции (Путилин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сорок лет среди грабителей и убийц (Путилин)",
+"to": "Сорок лет среди грабителей и убийц (Путилин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Записки следователя (Шкляревский)",
+"to": "Записки следователя (Шкляревский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Сыщик (Шкляревский)",
+"to": "Сыщик (Шкляревский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Убийство в Ингерманландском переулке",
+"to": "Убийство в Ингерманландском переулке",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Записки Ивана Дмитриевича Путилина (Путилин)",
+"to": "Записки Ивана Дмитриевича Путилина (Путилин)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Мещанская драма (Чехов)",
+"to": "Мещанская драма (Чехов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Апрель (Шкляревский)",
+"to": "Апрель (Шкляревский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Гостиница Красного Дуба",
+"to": "Гостиница Красного Дуба",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дом на Неве",
+"to": "Дом на Неве",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Бочка (Шкляревский)",
+"to": "Бочка (Шкляревский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Тайна дома №7",
+"to": "Тайна дома №7",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Дело Корнелия Ткачёва",
+"to": "Дело Корнелия Ткачёва",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Лицо и маска",
+"to": "Лицо и маска",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Странная история доктора Джекила и мистера Хайда (Стивенсон)",
+"to": "Странная история доктора Джекила и мистера Хайда (Стивенсон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Клуб самоубийц (Стивенсон)",
+"to": "Клуб самоубийц (Стивенсон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Алмаз раджи (Стивенсон)",
+"to": "Алмаз раджи (Стивенсон)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
 }
 ],
 "scifi": [
@@ -6386,7 +9383,7 @@
 "bad": false,
 "dis": true,
 "len": 1544,
-"list": false
+"list": true
 },
 {
 "t": "Красная звезда (Богданов)",
@@ -6602,7 +9599,7 @@
 "bad": false,
 "dis": false,
 "len": 970,
-"list": false
+"list": true
 },
 {
 "t": "Человек, который не спит (Александр Беляев)",
@@ -7079,6 +10076,294 @@
 "bad": false,
 "dis": false,
 "len": 686754,
+"list": false
+},
+{
+"t": "Город будущего (Беляев)",
+"to": "Город будущего (Беляев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Путь к звёздам (Циолковский)",
+"to": "Путь к звёздам (Циолковский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Земля Санникова (Обручев)",
+"to": "Земля Санникова (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Плутония (Обручев)",
+"to": "Плутония (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Рудник убогий (Обручев)",
+"to": "Рудник убогий (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Страна гипербореев (Обручев)",
+"to": "Страна гипербореев (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Бессмертие (Обручев)",
+"to": "Бессмертие (Обручев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ибикус (Толстой)",
+"to": "Ибикус (Толстой)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Путешествие на Луну (Одоевский)",
+"to": "Путешествие на Луну (Одоевский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Новый Гулливер",
+"to": "Новый Гулливер",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Земля будущего (Брюсов)",
+"to": "Земля будущего (Брюсов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Первая междупланетная (Брюсов)",
+"to": "Первая междупланетная (Брюсов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Через пятьдесят лет (Чехов)",
+"to": "Через пятьдесят лет (Чехов)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Царство будущего",
+"to": "Царство будущего",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Конец света (Куприн)",
+"to": "Конец света (Куприн)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Каменный век (Толстой)",
+"to": "Каменный век (Толстой)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ночь на Чёрной речке",
+"to": "Ночь на Чёрной речке",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Год 4338 (Одоевский)",
+"to": "Год 4338 (Одоевский)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Город Солнца (Кампанелла)",
+"to": "Город Солнца (Кампанелла)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Собачье сердце (Булгаков)",
+"to": "Собачье сердце (Булгаков)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Иван Васильевич (Булгаков)",
+"to": "Иван Васильевич (Булгаков)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Блаженство (Булгаков)",
+"to": "Блаженство (Булгаков)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Эпидемия (Беляев)",
+"to": "Эпидемия (Беляев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Ученики Эпикура",
+"to": "Ученики Эпикура",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Генерал Мадонна",
+"to": "Генерал Мадонна",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Страна счастливых (Ларри)",
+"to": "Страна счастливых (Ларри)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Повелитель железа (Катаев)",
+"to": "Повелитель железа (Катаев)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Гибель Британии",
+"to": "Гибель Британии",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Шёлковая фабрика",
+"to": "Шёлковая фабрика",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Месс-Менд (Шагинян)",
+"to": "Месс-Менд (Шагинян)",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Пятое солнце",
+"to": "Пятое солнце",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
+"list": false
+},
+{
+"t": "Электрический человек",
+"to": "Электрический человек",
+"missing": true,
+"bad": false,
+"dis": false,
+"len": 0,
 "list": false
 }
 ]

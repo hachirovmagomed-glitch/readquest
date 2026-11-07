@@ -1295,24 +1295,6 @@
   "artist": "Unknown authorUnknown author",
   "url": "https://commons.wikimedia.org/wiki/File%3AIlia_Tchavtchavadze.jpg"
  },
- "nizami": {
-  "file": "File:Nezami_(detail)_Addressing_his_Son_Mohammad._Attributed_to_Behzad,_Leyli_and_Majnun_(Nizami_Ganjavi)_1482.jpg",
-  "license": "Public domain",
-  "artist": "Attributed to Behzad, 1482",
-  "url": "https://commons.wikimedia.org/wiki/File%3ANezami_%28detail%29_Addressing_his_Son_Mohammad._Attributed_to_Behzad%2C_Leyli_and_Majnun_%28Nizami_Ganjavi%29_1482.jpg"
- },
- "navoi": {
-  "file": "File:Mystics_in_a_garden.jpg",
-  "license": "Public domain",
-  "artist": "Qasim Ali",
-  "url": "https://commons.wikimedia.org/wiki/File%3AMystics_in_a_garden.jpg"
- },
- "jami": {
-  "file": "File:Jami,_holding_an_astrolabe_(portrait)._By_Behzâd,_from_the_Romance_of_Alexander_by_Nezâmî._Manuscript_of_the_Khamseh_of_the_emir_'Alî_Fârsî_Barlas,_Herat_1494-1495;_British_Library,_Or._6810,_f_225_v.jpg",
-  "license": "Public domain",
-  "artist": "Herat artist, 1494-1495",
-  "url": "https://commons.wikimedia.org/wiki/File%3AJami%2C_holding_an_astrolabe_%28portrait%29._By_Behz%C3%A2d%2C_from_the_Romance_of_Alexander_by_Nez%C3%A2m%C3%AE._Manuscript_of_the_Khamseh_of_the_emir_%27Al%C3%AE_F%C3%A2rs%C3%AE_Barlas%2C_Herat_1494-1495%3B_British_Library%2C_Or._6810%2C_f_225_v.jpg"
- },
  "basho": {
   "file": "File:Basho_by_Morikawa_Kyoriku_(1656-1715).jpg",
   "license": "Public domain",
@@ -1325,12 +1307,6 @@
   "artist": "Unknown authorUnknown author",
   "url": "https://commons.wikimedia.org/wiki/File%3A%E6%A3%AE_%E9%B7%97%E5%A4%96.jpg"
  },
- "lipo": {
-  "file": "File:LiBai.jpg",
-  "license": "Public domain",
-  "artist": "Liang Kai",
-  "url": "https://commons.wikimedia.org/wiki/File%3ALiBai.jpg"
- },
  "dufu": {
   "file": "File:Dufu.jpg",
   "license": "Public domain",
@@ -1342,12 +1318,6 @@
   "license": "Public domain",
   "artist": "Anonymous Chinese painter of the Western Han period",
   "url": "https://commons.wikimedia.org/wiki/File%3AConfucius%2C_fresco_from_a_Western_Han_tomb_of_Dongping_County%2C_Shandong_province%2C_China_%28cropped%29.jpg"
- },
- "laozi": {
-  "file": "File:Laozi_(Chinese_characters).svg",
-  "license": "Public domain",
-  "artist": "White whirlwind",
-  "url": "https://commons.wikimedia.org/wiki/File%3ALaozi_%28Chinese_characters%29.svg"
  },
  "qiujin": {
   "file": "File:Qiu_Jin2.jpg",
@@ -1367,12 +1337,6 @@
   "artist": "Sastri, Sibnath, 1847-1919",
   "url": "https://commons.wikimedia.org/wiki/File%3ABankim_Chattapadhyay.jpg"
  },
- "kalidasa": {
-  "file": "File:Kalidasa_inditing_the_cloud_Messenger,_A.D._375.jpg",
-  "license": "Public domain",
-  "artist": "William Douglas Almond",
-  "url": "https://commons.wikimedia.org/wiki/File%3AKalidasa_inditing_the_cloud_Messenger%2C_A.D._375.jpg"
- },
  "iqbal": {
   "file": "File:Allama_Iqbal.jpg",
   "license": "Public domain",
@@ -1384,12 +1348,6 @@
   "license": "Public domain",
   "artist": "Unknown authorUnknown author",
   "url": "https://commons.wikimedia.org/wiki/File%3AKahlil_Gibran_1913.jpg"
- },
- "ibnbattuta": {
-  "file": "File:Handmade_oil_painting_reproduction_of_Ibn_Battuta_in_Egypt,_a_painting_by_Hippolyte_Leon_Benett..jpg",
-  "license": "Public domain",
-  "artist": "Léon Benett",
-  "url": "https://commons.wikimedia.org/wiki/File%3AHandmade_oil_painting_reproduction_of_Ibn_Battuta_in_Egypt%2C_a_painting_by_Hippolyte_Leon_Benett..jpg"
  },
  "marti": {
   "file": "File:José_Martí_retrato_hecho_en_México_1875.jpg",
@@ -1414,18 +1372,6 @@
   "license": "Public domain",
   "artist": "Manuel Moral y Vega",
   "url": "https://commons.wikimedia.org/wiki/File%3APalma1.jpg"
- },
- "nervo": {
-  "file": "File:Amado_Nervo.jpg",
-  "license": "Public domain",
-  "artist": "taringa",
-  "url": "https://commons.wikimedia.org/wiki/File%3AAmado_Nervo.jpg"
- },
- "agustini": {
-  "file": "File:Delmira_Agustini.jpg",
-  "license": "Public domain",
-  "artist": "",
-  "url": "https://commons.wikimedia.org/wiki/File%3ADelmira_Agustini.jpg"
  },
  "avellaneda": {
   "file": "File:FEDERICO_DE_MADRAZO_-Gertrudis_Gómez_de_Avellaneda_(Museo_Lázaro_Galdiano,_1857).jpg",
@@ -1535,12 +1481,6 @@
   "artist": "Santi di Tito",
   "url": "https://commons.wikimedia.org/wiki/File%3APortrait_of_Niccol%C3%B2_Machiavelli_by_Santi_di_Tito.jpg"
  },
- "racine": {
-  "file": "File:Portrait_de_Jean_Racine_d'après_Jean-Baptiste_Santerre.jpg",
-  "license": "Public domain",
-  "artist": "After Jean-Baptiste Santerre",
-  "url": "https://commons.wikimedia.org/wiki/File%3APortrait_de_Jean_Racine_d%27apr%C3%A8s_Jean-Baptiste_Santerre.jpg"
- },
  "corneille": {
   "file": "File:Pierre_Corneille_2.jpg",
   "license": "Public domain",
@@ -1643,12 +1583,6 @@
   "artist": "Paul Nadar",
   "url": "https://commons.wikimedia.org/wiki/File%3AMallarm%C3%A9_Nadar.jpg"
  },
- "apollinaire": {
-  "file": "File:Guillaume_Apollinaire_foto.jpg",
-  "license": "Public domain",
-  "artist": "UnknownUnknown",
-  "url": "https://commons.wikimedia.org/wiki/File%3AGuillaume_Apollinaire_foto.jpg"
- },
  "proust": {
   "file": "File:Otto_Wegener_Proust_vers_1895_bis.jpg",
   "license": "Public domain",
@@ -1666,12 +1600,6 @@
   "license": "Public domain",
   "artist": "Unidentified photographer",
   "url": "https://commons.wikimedia.org/wiki/File%3AG._LEROUX.jpg"
- },
- "gaboriau": {
-  "file": "File:Emile_Gaboriau_BNF_Gallica.jpg",
-  "license": "Public domain",
-  "artist": "UnknownUnknown . Upload, stitch, restoration by Jebulon",
-  "url": "https://commons.wikimedia.org/wiki/File%3AEmile_Gaboriau_BNF_Gallica.jpg"
  },
  "hmalot": {
   "file": "File:Hector_Malot.jpg",
@@ -1955,12 +1883,6 @@
   "artist": "Thomas Phillips",
   "url": "https://commons.wikimedia.org/wiki/File%3AWilliam_Blake_by_Thomas_Phillips.jpg"
  },
- "wordsworth": {
-  "file": "File:Wordsworth_on_Helvellyn_by_Benjamin_Robert_Haydon.jpg",
-  "license": "Public domain",
-  "artist": "Benjamin Haydon",
-  "url": "https://commons.wikimedia.org/wiki/File%3AWordsworth_on_Helvellyn_by_Benjamin_Robert_Haydon.jpg"
- },
  "coleridge": {
   "file": "File:Samuel_Taylor_Coleridge_at_age_42.jpg",
   "license": "Public domain",
@@ -2062,12 +1984,6 @@
   "license": "Public domain",
   "artist": "John Downman (1750-1824)",
   "url": "https://commons.wikimedia.org/wiki/File%3AMaria_Edgeworth_by_John_Downman_1807.jpg"
- },
- "burney": {
-  "file": "File:Frances_d'Arblay_('Fanny_Burney')_by_Edward_Francisco_Burney.jpg",
-  "license": "Public domain",
-  "artist": "Edward Francis Burney",
-  "url": "https://commons.wikimedia.org/wiki/File%3AFrances_d%27Arblay_%28%27Fanny_Burney%27%29_by_Edward_Francisco_Burney.jpg"
  },
  "mansfield": {
   "file": "File:Katherine_Mansfield_(no_signature).jpg",

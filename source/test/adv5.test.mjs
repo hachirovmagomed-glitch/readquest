@@ -78,8 +78,8 @@ const s2 = await p.evaluate(async () => { navGo('adv'); await new Promise(r => s
   const pages = ADV_SETS.filter(x => x.pages).flatMap(x => x.pages), dup = pages.filter((x, i) => pages.indexOf(x) !== i);
   const bad = ['silver', 'myths', 'detect', 'scifi'].flatMap(id => ADV_SETS.find(x => x.id === id).pages).filter(pg => /[,\d]/.test(advWsName(pg).a));
   return { sets, rows, dup, bad, icons: ['silver', 'myths', 'detect', 'scifi'].map(id => !!document.getElementById('i-' + ADV_SETS.find(x => x.id === id).ic)) }; });
-ok('2 четыре новые подборки со значками; «Детективы» открываются списком (Дойль, По, Чехов); книги в подборках не повторяются, автор в названии страницы без лишнего', ['silver|Серебряный век', 'myths|Мифы и легенды', 'detect|Детективы', 'scifi|Русская фантастика'].every(x => s2.sets.includes(x)) &&
-  s2.rows[0] === 'Пёстрая лента|Дойль' && s2.rows.some(x => x === 'Убийство на улице Морг|По · пер. Бальмонт') && s2.rows.length === 7 && !s2.dup.length && !s2.bad.length && s2.icons.every(Boolean), s2);
+ok('2 четыре новые подборки со значками; «Детективы» открываются списком (Дойль, По, Чехов; 07.11 не меньше 70 книг); книги в подборках не повторяются, автор в названии страницы без лишнего', ['silver|Серебряный век', 'myths|Мифы и легенды', 'detect|Детективы', 'scifi|Русская фантастика'].every(x => s2.sets.includes(x)) &&
+  s2.rows[0] === 'Пёстрая лента|Дойль' && s2.rows.some(x => x === 'Убийство на улице Морг|По · пер. Бальмонт') && s2.rows.length >= 70 && !s2.dup.length && !s2.bad.length && s2.icons.every(Boolean), s2);
 
 // 3. recommendations
 const s3 = await p.evaluate(async () => {
@@ -167,8 +167,8 @@ const s7 = await p.evaluate(async () => { el('bookSheet').classList.add('hidden'
   openAdv(); await new Promise(r => setTimeout(r, 100)); const o2 = advFaces().map(x => x[1]).join();
   const women = ['ebronte', 'woolf', 'dickinson', 'teffi', 'gippius', 'sand', 'austen', 'tsvetaeva'].filter(k => srcs.some(u => u.indexOf('/' + k + '.webp') >= 0)).length;
   await advAuthor('Тэффи'); for (let i = 0; i < 30 && ADV.busy; i++) await new Promise(r => setTimeout(r, 100));
-  return { n: faces.length, uniq: new Set(srcs).size, bad: srcs.filter((u, i) => !ok[i]), a: o1 === o1b, b: o1 !== o2, women, fallback: { q: ADV.q, set: ADV.set, err: ADV.err } }; });
-ok('7 «Авторы»: больше 80 портретов, есть писательницы, файлы на месте, без повторов; порядок новый при каждом открытии «Приключений» и не скачет при перерисовке; автор без страницы на Викитеке ищется по имени', s7.n >= 80 && s7.women >= 6 && s7.uniq === s7.n && !s7.bad.length && s7.a && s7.b && s7.fallback.q === 'Тэффи' && s7.fallback.set === null, s7);
+  return { sets70: ADV_SETS.filter(x => x.pages).every(x => x.pages.length >= 70), n: faces.length, uniq: new Set(srcs).size, bad: srcs.filter((u, i) => !ok[i]), a: o1 === o1b, b: o1 !== o2, women, fallback: { q: ADV.q, set: ADV.set, err: ADV.err } }; });
+ok('7 «Авторы»: больше 300 портретов (07.11), в каждой подборке не меньше 70 книг, есть писательницы, файлы на месте, без повторов; порядок новый при каждом открытии «Приключений» и не скачет при перерисовке; автор без страницы на Викитеке ищется по имени', s7.n >= 300 && s7.sets70 && s7.women >= 6 && s7.uniq === s7.n && !s7.bad.length && s7.a && s7.b && s7.fallback.q === 'Тэффи' && s7.fallback.set === null, s7);
 
 // 8. 05.11 «у многих писателей не высвечиваются никакие книги»: the author's books from every library
 const s8 = await p.evaluate(async () => {

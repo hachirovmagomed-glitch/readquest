@@ -1,0 +1,282 @@
+fonvizin|Denis Fonvizin|Фонвизин|Денис Иванович Фонвизин
+radishchev|Alexander Radishchev|Радищев|Александр Николаевич Радищев
+ershov|Pyotr Yershov|Ершов|Пётр Павлович Ершов
+odoevsky|Vladimir Odoyevsky|Одоевский|Владимир Фёдорович Одоевский
+aksakov|Sergey Aksakov|Аксаков|Сергей Тимофеевич Аксаков
+pogorelsky|Antony Pogorelsky|Погорельский|Антоний Погорельский
+delvig|Anton Delvig|Дельвиг|Антон Антонович Дельвиг
+vyazemsky|Pyotr Vyazemsky|Вяземский|Пётр Андреевич Вяземский
+polezhaev|Alexander Polezhayev|Полежаев|Александр Иванович Полежаев
+benediktov|Vladimir Benediktov|Бенедиктов|Владимир Григорьевич Бенедиктов
+pleshcheyev|Aleksey Pleshcheyev|Плещеев|Алексей Николаевич Плещеев
+maykov|Apollon Maykov|Майков|Аполлон Николаевич Майков
+polonsky|Yakov Polonsky|Полонский|Яков Петрович Полонский
+aktolstoy|Aleksey Konstantinovich Tolstoy|Алексей К. Толстой|Алексей Константинович Толстой
+nikitin|Ivan Nikitin (poet)|Никитин|Иван Саввич Никитин
+surikov|Ivan Surikov|Суриков|Иван Захарович Суриков
+apukhtin|Aleksey Apukhtin|Апухтин|Алексей Николаевич Апухтин
+nadson|Semyon Nadson|Надсон|Семён Яковлевич Надсон
+fofanov|Konstantin Fofanov|Фофанов|Константин Михайлович Фофанов
+pisemsky|Aleksey Pisemsky|Писемский|Алексей Феофилактович Писемский
+melnikov|Pavel Melnikov|Мельников-Печерский|Павел Иванович Мельников
+pomyalovsky|Nikolai Pomyalovsky|Помяловский|Николай Герасимович Помяловский
+uspensky|Gleb Uspensky|Глеб Успенский|Глеб Иванович Успенский
+reshetnikov|Fyodor Reshetnikov|Решетников|Фёдор Михайлович Решетников
+garin|Nikolai Garin-Mikhailovsky|Гарин-Михайловский|Николай Георгиевич Гарин-Михайловский
+stanyukovich|Konstantin Stanyukovich|Станюкович|Константин Михайлович Станюкович
+danilevsky|Grigory Danilevsky|Данилевский|Григорий Петрович Данилевский
+lazhechnikov|Ivan Lazhechnikov|Лажечников|Иван Иванович Лажечников
+zagoskin|Mikhail Zagoskin|Загоскин|Михаил Николаевич Загоскин
+marlinsky|Alexander Bestuzhev|Бестужев-Марлинский|Александр Александрович Бестужев
+ryleyev|Kondraty Ryleyev|Рылеев|Кондратий Фёдорович Рылеев
+kuchelbecker|Wilhelm Küchelbecker|Кюхельбекер|Вильгельм Карлович Кюхельбекер
+ogarev|Nikolay Ogarev|Огарёв|Николай Платонович Огарёв
+belinsky|Vissarion Belinsky|Белинский|Виссарион Григорьевич Белинский
+dobrolyubov|Nikolay Dobrolyubov|Добролюбов|Николай Александрович Добролюбов
+pisarev|Dmitry Pisarev|Писарев|Дмитрий Иванович Писарев
+leontiev|Konstantin Leontiev|Леонтьев|Константин Николаевич Леонтьев
+merezhkovsky|Dmitry Merezhkovsky|Мережковский|Дмитрий Сергеевич Мережковский
+annensky|Innokenty Annensky|Анненский|Иннокентий Фёдорович Анненский
+vivanov|Vyacheslav Ivanov (poet)|Вячеслав Иванов|Вячеслав Иванович Иванов
+kuzmin|Mikhail Kuzmin|Кузмин|Михаил Алексеевич Кузмин
+severyanin|Igor Severyanin|Северянин|Игорь Северянин
+guro|Elena Guro|Елена Гуро|Елена Генриховна Гуро
+kklyuev|Nikolai Klyuev|Клюев|Николай Алексеевич Клюев
+chorny|Sasha Chorny|Саша Чёрный|Саша Чёрный
+averchenko|Arkady Averchenko|Аверченко|Аркадий Тимофеевич Аверченко
+zamyatin|Yevgeny Zamyatin|Замятин|Евгений Иванович Замятин
+bulgakov|Mikhail Bulgakov|Булгаков|Михаил Афанасьевич Булгаков
+platonov|Andrei Platonov|Платонов|Андрей Платонович Платонов
+babel|Isaac Babel|Бабель|Исаак Эммануилович Бабель
+ilf|Ilya Ilf|Ильф|Илья Ильф
+petrov|Yevgeny Petrov|Петров|Евгений Петров
+bagritsky|Eduard Bagritsky|Багрицкий|Эдуард Георгиевич Багрицкий
+kharms|Daniil Kharms|Хармс|Даниил Хармс
+vvedensky|Alexander Vvedensky|Введенский|Александр Иванович Введенский
+bogdanov|Alexander Bogdanov|Богданов|Александр Александрович Богданов
+tsiolkovsky|Konstantin Tsiolkovsky|Циолковский|Константин Эдуардович Циолковский
+atolstoy|Aleksey Nikolayevich Tolstoy|Алексей Н. Толстой|Алексей Николаевич Толстой
+gaidar|Arkady Gaidar|Гайдар|Аркадий Петрович Гайдар
+furmanov|Dmitry Furmanov|Фурманов|Дмитрий Андреевич Фурманов
+ostrovskyn|Nikolai Ostrovsky|Николай Островский|Николай Алексеевич Островский
+serafimovich|Alexander Serafimovich|Серафимович|Александр Серафимович
+veresaev|Vikenty Veresaev|Вересаев|Викентий Викентьевич Вересаев
+prishvin|Mikhail Prishvin|Пришвин|Михаил Михайлович Пришвин
+shmelyov|Ivan Shmelyov|Шмелёв|Иван Сергеевич Шмелёв
+chirikov|Yevgeny Chirikov|Чириков|Евгений Николаевич Чириков
+artsybashev|Mikhail Artsybashev|Арцыбашев|Михаил Петрович Арцыбашев
+zinovieva|Lydia Zinovieva-Annibal|Зиновьева-Аннибал|Лидия Дмитриевна Зиновьева-Аннибал
+verbitskaya|Anastasia Verbitskaya|Вербицкая|Анастасия Алексеевна Вербицкая
+khvoshchinskaya|Nadezhda Khvoshchinskaya|Хвощинская|Надежда Дмитриевна Хвощинская
+zhadovskaya|Yuliya Zhadovskaya|Жадовская|Юлия Валериановна Жадовская
+shchepkina|Tatiana Shchepkina-Kupernik|Щепкина-Куперник|Татьяна Львовна Щепкина-Куперник
+adelaida|Adelaida Gertsyk|Аделаида Герцык|Аделаида Казимировна Герцык
+parnok|Sophia Parnok|Парнок|София Яковлевна Парнок
+cherubina|Cherubina de Gabriak|Черубина де Габриак|Черубина де Габриак
+sheller|Alexander Sheller-Mikhailov|Шеллер-Михайлов|Александр Константинович Шеллер-Михайлов
+zhitkov|Boris Zhitkov|Житков|Борис Степанович Житков
+franko|Ivan Franko|Иван Франко|Иван Яковлевич Франко
+kotsyubynsky|Mykhailo Kotsiubynsky|Коцюбинский|Михаил Михайлович Коцюбинский
+kotlyarevsky|Ivan Kotliarevsky|Котляревский|Иван Петрович Котляревский
+vovchok|Marko Vovchok|Марко Вовчок|Марко Вовчок
+kobylyanska|Olha Kobylianska|Кобылянская|Ольга Юлиановна Кобылянская
+kupala|Yanka Kupala|Янка Купала|Янка Купала
+bogdanovich|Maksim Bahdanovič|Максим Богданович|Максим Адамович Богданович
+abay|Abai Qunanbaiuly|Абай|Абай Кунанбаев
+tukay|Ghabdulla Tuqay|Тукай|Габдулла Тукай
+rustaveli|Shota Rustaveli|Руставели|Шота Руставели
+chavchavadze|Ilia Chavchavadze|Чавчавадзе|Илья Григорьевич Чавчавадзе
+tumanyan|Hovhannes Tumanyan|Туманян|Ованес Туманян
+nizami|Nizami Ganjavi|Низами|Низами Гянджеви
+navoi|Ali-Shir Nava'i|Навои|Алишер Навои
+ferdowsi|Ferdowsi|Фирдоуси|Фирдоуси
+saadi|Saadi Shirazi|Саади|Саади
+jami|Jami|Джами|Абдуррахман Джами
+basho|Matsuo Bashō|Басё|Мацуо Басё
+issa|Kobayashi Issa|Исса|Кобаяси Исса
+ogai|Mori Ōgai|Мори Огай|Мори Огай
+yosano|Yosano Akiko|Ёсано Акико|Ёсано Акико
+lipo|Li Bai|Ли Бо|Ли Бо
+dufu|Du Fu|Ду Фу|Ду Фу
+confucius|Confucius|Конфуций|Конфуций
+laozi|Laozi|Лао-цзы|Лао-цзы
+pusongling|Pu Songling|Пу Сунлин|Пу Сунлин
+qiujin|Qiu Jin|Цю Цзинь|Цю Цзинь
+premchand|Premchand|Премчанд|Премчанд
+bankim|Bankim Chandra Chatterjee|Банкимчандра|Банкимчандра Чаттерджи
+kalidasa|Kalidasa|Калидаса|Калидаса
+iqbal|Muhammad Iqbal|Икбал|Мухаммад Икбал
+gibran|Kahlil Gibran|Джебран|Джебран Халиль Джебран
+shawqi|Ahmed Shawqi|Шауки|Ахмед Шауки
+ibnbattuta|Ibn Battuta|Ибн Баттута|Ибн Баттута
+marti|José Martí|Хосе Марти|Хосе Марти
+quiroga|Horacio Quiroga|Орасио Кирога|Орасио Кирога
+hernandez|José Hernández (writer)|Хосе Эрнандес|Хосе Эрнандес
+sarmiento|Domingo Faustino Sarmiento|Сармьенто|Доминго Фаустино Сармьенто
+isaacs|Jorge Isaacs|Хорхе Исаакс|Хорхе Исаакс
+palma|Ricardo Palma|Рикардо Пальма|Рикардо Пальма
+nervo|Amado Nervo|Амадо Нерво|Амадо Нерво
+storni|Alfonsina Storni|Альфонсина Сторни|Альфонсина Сторни
+agustini|Delmira Agustini|Дельмира Агустини|Дельмира Агустини
+avellaneda|Gertrudis Gómez de Avellaneda|Гомес де Авельянеда|Гертрудис Гомес де Авельянеда
+castro|Rosalía de Castro|Росалия де Кастро|Росалия де Кастро
+pardobazan|Emilia Pardo Bazán|Пардо Басан|Эмилия Пардо Басан
+galdos|Benito Pérez Galdós|Перес Гальдос|Бенито Перес Гальдос
+unamuno|Miguel de Unamuno|Унамуно|Мигель де Унамуно
+blasco|Vicente Blasco Ibáñez|Бласко Ибаньес|Висенте Бласко Ибаньес
+calderon|Pedro Calderón de la Barca|Кальдерон|Педро Кальдерон
+quevedo|Francisco de Quevedo|Кеведо|Франсиско де Кеведо
+gongora|Luis de Góngora|Гонгора|Луис де Гонгора
+teresa|Teresa of Ávila|Тереза Авильская|Тереза Авильская
+pessoa|Fernando Pessoa|Пессоа|Фернандо Пессоа
+queiros|José Maria de Eça de Queirós|Эса де Кейрош|Жозе Мария Эса де Кейрош
+leopardi|Giacomo Leopardi|Леопарди|Джакомо Леопарди
+manzoni|Alessandro Manzoni|Мандзони|Алессандро Мандзони
+goldoni|Carlo Goldoni|Гольдони|Карло Гольдони
+deledda|Grazia Deledda|Грация Деледда|Грация Деледда
+verga|Giovanni Verga|Верга|Джованни Верга
+pirandello|Luigi Pirandello|Пиранделло|Луиджи Пиранделло
+dannunzio|Gabriele D'Annunzio|Д’Аннунцио|Габриеле д’Аннунцио
+salgari|Emilio Salgari|Сальгари|Эмилио Сальгари
+deamicis|Edmondo De Amicis|Де Амичис|Эдмондо Де Амичис
+tasso|Torquato Tasso|Тассо|Торквато Тассо
+machiavelli|Niccolò Machiavelli|Макиавелли|Никколо Макиавелли
+racine|Jean Racine|Расин|Жан Расин
+corneille|Pierre Corneille|Корнель|Пьер Корнель
+lafontaine|Jean de La Fontaine|Лафонтен|Жан де Лафонтен
+perrault|Charles Perrault|Шарль Перро|Шарль Перро
+diderot|Denis Diderot|Дидро|Дени Дидро
+montesquieu|Montesquieu|Монтескье|Шарль Монтескье
+beaumarchais|Pierre Beaumarchais|Бомарше|Пьер Бомарше
+chateaubriand|François-René de Chateaubriand|Шатобриан|Франсуа Рене де Шатобриан
+merimee|Prosper Mérimée|Мериме|Проспер Мериме
+musset|Alfred de Musset|Мюссе|Альфред де Мюссе
+lamartine|Alphonse de Lamartine|Ламартин|Альфонс де Ламартин
+vigny|Alfred de Vigny|Виньи|Альфред де Виньи
+gautier|Théophile Gautier|Готье|Теофиль Готье
+nerval|Gérard de Nerval|Нерваль|Жерар де Нерваль
+daudet|Alphonse Daudet|Доде|Альфонс Доде
+anatole|Anatole France|Анатоль Франс|Анатоль Франс
+rostand|Edmond Rostand|Ростан|Эдмон Ростан
+mallarme|Stéphane Mallarmé|Малларме|Стефан Малларме
+apollinaire|Guillaume Apollinaire|Аполлинер|Гийом Аполлинер
+proust|Marcel Proust|Пруст|Марсель Пруст
+colette|Colette|Колетт|Сидони-Габриэль Колетт
+leblanc|Maurice Leblanc|Морис Леблан|Морис Леблан
+leroux|Gaston Leroux|Гастон Леру|Гастон Леру
+gaboriau|Émile Gaboriau|Габорио|Эмиль Габорио
+hmalot|Hector Malot|Гектор Мало|Гектор Мало
+segur|Sophie Rostopchine, Comtesse de Ségur|Графиня де Сегюр|Софья Ростопчина (де Сегюр)
+desbordes|Marceline Desbordes-Valmore|Деборд-Вальмор|Марселина Деборд-Вальмор
+gouges|Olympe de Gouges|Олимпия де Гуж|Олимпия де Гуж
+verhaeren|Emile Verhaeren|Верхарн|Эмиль Верхарн
+maeterlinck|Maurice Maeterlinck|Метерлинк|Морис Метерлинк
+decoster|Charles De Coster|Шарль де Костер|Шарль де Костер
+multatuli|Multatuli|Мультатули|Мультатули
+kleist|Heinrich von Kleist|Клейст|Генрих фон Клейст
+holderlin|Friedrich Hölderlin|Гёльдерлин|Фридрих Гёльдерлин
+novalis|Novalis|Новалис|Новалис
+chamisso|Adelbert von Chamisso|Шамиссо|Адельберт фон Шамиссо
+hauff|Wilhelm Hauff|Гауф|Вильгельм Гауф
+storm|Theodor Storm|Шторм|Теодор Шторм
+fontane|Theodor Fontane|Фонтане|Теодор Фонтане
+raspe|Rudolf Erich Raspe|Распе|Рудольф Эрих Распе
+nietzsche|Friedrich Nietzsche|Ницше|Фридрих Ницше
+hauptmann|Gerhart Hauptmann|Гауптман|Герхарт Гауптман
+tmann|Thomas Mann|Томас Манн|Томас Манн
+zweig|Stefan Zweig|Цвейг|Стефан Цвейг
+droste|Annette von Droste-Hülshoff|Дросте-Хюльсхофф|Аннетте фон Дросте-Хюльсхофф
+spyri|Johanna Spyri|Иоханна Спири|Иоханна Спири
+may|Karl May|Карл Май|Карл Май
+grillparzer|Franz Grillparzer|Грильпарцер|Франц Грильпарцер
+schnitzler|Arthur Schnitzler|Шницлер|Артур Шницлер
+rmusil|Robert Musil|Музиль|Роберт Музиль
+neruda_j|Jan Neruda|Ян Неруда|Ян Неруда
+nemcova|Božena Němcová|Божена Немцова|Божена Немцова
+macha|Karel Hynek Mácha|Маха|Карел Гинек Маха
+prus|Bolesław Prus|Болеслав Прус|Болеслав Прус
+slowacki|Juliusz Słowacki|Словацкий|Юлиуш Словацкий
+reymont|Władysław Reymont|Реймонт|Владислав Реймонт
+petofi|Sándor Petőfi|Петёфи|Шандор Петёфи
+jokai|Mór Jókai|Йокаи|Мор Йокаи
+eminescu|Mihai Eminescu|Эминеску|Михай Эминеску
+creanga|Ion Creangă|Крянгэ|Ион Крянгэ
+vazov|Ivan Vazov|Вазов|Иван Вазов
+botev|Hristo Botev|Ботев|Христо Ботев
+njegos|Petar II Petrović-Njegoš|Негош|Петар Петрович Негош
+kivi|Aleksis Kivi|Алексис Киви|Алексис Киви
+lonnrot|Elias Lönnrot|Лённрот|Элиас Лённрот
+runeberg|Johan Ludvig Runeberg|Рунеберг|Юхан Людвиг Рунеберг
+topelius|Zachris Topelius|Топелиус|Сакариас Топелиус
+hamsun|Knut Hamsun|Гамсун|Кнут Гамсун
+undset|Sigrid Undset|Сигрид Унсет|Сигрид Унсет
+kierkegaard|Søren Kierkegaard|Кьеркегор|Сёрен Кьеркегор
+jacobsen|Jens Peter Jacobsen|Енс Петер Якобсен|Енс Петер Якобсен
+bremer|Fredrika Bremer|Фредрика Бремер|Фредрика Бремер
+almqvist|Carl Jonas Love Almqvist|Альмквист|Карл Юнас Лове Альмквист
+chaucer|Geoffrey Chaucer|Чосер|Джеффри Чосер
+marlowe|Christopher Marlowe|Марло|Кристофер Марло
+bunyan|John Bunyan|Беньян|Джон Беньян
+fielding|Henry Fielding|Филдинг|Генри Филдинг
+sterne|Laurence Sterne|Стерн|Лоренс Стерн
+richardson|Samuel Richardson|Ричардсон|Сэмюэл Ричардсон
+goldsmith|Oliver Goldsmith|Голдсмит|Оливер Голдсмит
+blake|William Blake|Блейк|Уильям Блейк
+wordsworth|William Wordsworth|Вордсворт|Уильям Вордсворт
+coleridge|Samuel Taylor Coleridge|Кольридж|Сэмюэл Тейлор Кольридж
+shelley|Percy Bysshe Shelley|Перси Шелли|Перси Биши Шелли
+keats|John Keats|Китс|Джон Китс
+tennyson|Alfred, Lord Tennyson|Теннисон|Альфред Теннисон
+browning|Robert Browning|Роберт Браунинг|Роберт Браунинг
+collins|Wilkie Collins|Уилки Коллинз|Уилки Коллинз
+trollope|Anthony Trollope|Троллоп|Энтони Троллоп
+haggard|H. Rider Haggard|Хаггард|Генри Райдер Хаггард
+jerome|Jerome K. Jerome|Джером К. Джером|Джером Клапка Джером
+chesterton|G. K. Chesterton|Честертон|Гилберт Кит Честертон
+barrie|J. M. Barrie|Джеймс Барри|Джеймс Мэтью Барри
+kgrahame|Kenneth Grahame|Кеннет Грэм|Кеннет Грэм
+mayne|Mayne Reid|Майн Рид|Томас Майн Рид
+marryat|Frederick Marryat|Марриет|Фредерик Марриет
+stoker|Bram Stoker|Брэм Стокер|Брэм Стокер
+shaw|George Bernard Shaw|Бернард Шоу|Джордж Бернард Шоу
+joyce|James Joyce|Джойс|Джеймс Джойс
+synge|John Millington Synge|Синг|Джон Миллингтон Синг
+lgregory|Augusta, Lady Gregory|Леди Грегори|Августа Грегори
+edgeworth|Maria Edgeworth|Мария Эджуорт|Мария Эджуорт
+radcliffe|Ann Radcliffe|Анна Радклиф|Анна Радклиф
+burney|Frances Burney|Фанни Бёрни|Фрэнсис Бёрни
+mansfield|Katherine Mansfield|Кэтрин Мэнсфилд|Кэтрин Мэнсфилд
+potter|Beatrix Potter|Беатрис Поттер|Беатрис Поттер
+sewell|Anna Sewell|Анна Сьюэлл|Анна Сьюэлл
+ouida|Ouida|Уида|Уида
+emerson|Ralph Waldo Emerson|Эмерсон|Ральф Уолдо Эмерсон
+longfellow|Henry Wadsworth Longfellow|Лонгфелло|Генри Уодсворт Лонгфелло
+bierce|Ambrose Bierce|Бирс|Амброз Бирс
+bharte|Bret Harte|Брет Гарт|Брет Гарт
+hjames|Henry James|Генри Джеймс|Генри Джеймс
+crane|Stephen Crane|Стивен Крейн|Стивен Крейн
+dreiser|Theodore Dreiser|Драйзер|Теодор Драйзер
+lbaum|L. Frank Baum|Фрэнк Баум|Лаймен Фрэнк Баум
+burroughs|Edgar Rice Burroughs|Берроуз|Эдгар Райс Берроуз
+seton|Ernest Thompson Seton|Сетон-Томпсон|Эрнест Сетон-Томпсон
+curwood|James Oliver Curwood|Кервуд|Джеймс Оливер Кервуд
+fitzgerald|F. Scott Fitzgerald|Фицджеральд|Фрэнсис Скотт Фицджеральд
+chopin|Kate Chopin|Кейт Шопен|Кейт Шопен
+cather|Willa Cather|Уилла Кэсер|Уилла Кэсер
+jewett|Sarah Orne Jewett|Сара Орн Джуэтт|Сара Орн Джуэтт
+gilman|Charlotte Perkins Gilman|Шарлотта Гилман|Шарлотта Перкинс Гилман
+fuller|Margaret Fuller|Маргарет Фуллер|Маргарет Фуллер
+truth|Sojourner Truth|Соджорнер Трут|Соджорнер Трут
+jacobs|Harriet Jacobs|Гарриет Джейкобс|Гарриет Джейкобс
+dunbar|Paul Laurence Dunbar|Пол Данбар|Пол Лоренс Данбар
+washington|Booker T. Washington|Букер Вашингтон|Букер Вашингтон
+harper|Frances Harper|Фрэнсис Харпер|Фрэнсис Харпер
+porter|Eleanor H. Porter|Элинор Портер|Элинор Портер
+webster|Jean Webster|Джин Уэбстер|Джин Уэбстер
+wiggin|Kate Douglas Wiggin|Кейт Уиггин|Кейт Дуглас Уиггин
+coolidge|Susan Coolidge|Сьюзан Кулидж|Сьюзан Кулидж
+lazarus|Emma Lazarus|Эмма Лазарус|Эмма Лазарус
+schreiner|Olive Schreiner|Оливия Шрейнер|Олив Шрейнер
+plaatje|Sol Plaatje|Сол Плааки|Сол Плааки
+blyden|Edward Wilmot Blyden|Блайден|Эдвард Блайден
+dumasfils|Alexandre Dumas fils|Дюма-сын|Александр Дюма-сын

@@ -23,7 +23,8 @@ const FZ_SOUNDS={
 const FZ_ASK_WORDS=false;
 const FZ_WORDS=['Дочитать главу','Понять главную мысль','Отдохнуть с книгой','Найти цитаты'];
 /* round state of the running session (reset when the session changes) */
-const FZ={sid:null,phase:'idle',len:25,base:0,prog:0,done:[],run:0,best:0,clean:true,rescued:false,hiddenAt:0,restUntil:0,hold:false,fw:'',asked:false};
+const FZ={sid:null,phase:'idle',len:25,base:0,prog:0,done:[],run:0,best:0,clean:true,rescued:false,hiddenAt:0,restUntil:0,hold:false,fw:'',asked:false,
+  rk:null,seen:null,ranks:[],cb:0}; /* 07.11: meter of the running round, last seen counters, ranks of done rounds, best combo */
 let fzTimer=null;
 
 function fzOn(){return typeof focusOn==='function'&&focusOn();}
@@ -40,18 +41,19 @@ function fzClock(ms){const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/
 function fzSync(){
   const sid=fzSid();
   if(sid===FZ.sid)return;
-  Object.assign(FZ,{sid:sid,phase:'idle',base:0,prog:0,done:[],run:0,best:0,clean:true,rescued:false,hiddenAt:0,restUntil:0,hold:false,fw:'',asked:false});
-  fzHideHold();
+  Object.assign(FZ,{sid:sid,phase:'idle',base:0,prog:0,done:[],run:0,best:0,clean:true,rescued:false,hiddenAt:0,restUntil:0,hold:false,fw:'',asked:false,rk:null,seen:null,ranks:[],cb:0});
+  fzHideHold();fzHideRes();
 }
-function fzPush(){if(__tracker&&__tracker.setFocus)__tracker.setFocus({pomo:FZ.done.slice(),pomoRun:FZ.best,fw:FZ.fw});}
+function fzPush(){if(__tracker&&__tracker.setFocus)__tracker.setFocus({pomo:FZ.done.slice(),pomoRun:FZ.best,fw:FZ.fw,pomoRk:FZ.ranks.join(''),pomoCb:FZ.cb});}
 
 function fzStartRound(){
   fzSync();const sn=fzSnap();if(!sn||!FZ.sid)return;
   FZ.phase='run';FZ.len=fzSet().len;FZ.base=sn.sureMs||0;FZ.prog=0;FZ.clean=document.visibilityState!=='hidden';FZ.rescued=false;FZ.hold=false;
+  fzRkReset(sn);fzHideRes();
   if(fzSet().quiet&&typeof setFocus==='function')setFocus(true);
   fzSound(true);fzArm();fzPaint();
 }
-function fzStop(){FZ.phase='idle';FZ.hold=false;fzHideHold();clearInterval(fzTimer);fzTimer=null;fzPaint();}
+function fzStop(){FZ.phase='idle';FZ.hold=false;fzHideHold();fzHideRes();clearInterval(fzTimer);fzTimer=null;fzPaint();}
 function fzSkipRest(){if(FZ.phase==='rest')fzStartRound();}
 function fzArm(){clearInterval(fzTimer);fzTimer=setInterval(fzTick,FZ_TICK_MS);}
 
@@ -62,11 +64,14 @@ function fzTick(){
   if(FZ.phase==='run'&&!FZ.hold){
     const sn=fzSnap();if(!sn)return;
     FZ.prog=Math.max(0,(sn.sureMs||0)-FZ.base);
+    fzRkFeed(sn);
     if(FZ.prog>=FZ.len*60000){
       FZ.done.push(FZ.len);
+      const rk=FZ.rk?window.__rqGame.rankLetter(FZ.rk.sc):'D';FZ.ranks.push(rk);
       FZ.run=FZ.clean?FZ.run+1:0;FZ.best=Math.max(FZ.best,FZ.run);
       fzPush();fzChime();
       FZ.phase='rest';FZ.restUntil=Date.now()+fzSet().rest*60000;
+      fzShowRes(rk);
     }
   }else if(FZ.phase==='rest'&&Date.now()>=FZ.restUntil){fzStartRound();return;}
   fzPaint();
@@ -77,6 +82,7 @@ document.addEventListener('visibilitychange',function(){
   if(!fzOn()||FZ.phase!=='run')return;
   if(document.visibilityState==='hidden'){
     FZ.hiddenAt=Date.now();FZ.clean=false;fzSound(false);
+    if(FZ.rk)window.__rqGame.rankStep(FZ.rk,{leave:true}); /* 07.11: leaving the app breaks the combo */
     if(fzSet().warn)fzNotify('Круг фокуса идёт','Вернись в течение минуты, и круг продолжится. Звонок или что-то срочное круг не сжигают: его можно будет продолжить.');
     return;
   }
@@ -92,7 +98,7 @@ function fzNotify(title,body){
     else new Notification(title,{body:body,tag:'rq-focus'});
   }catch(e){}
 }
-function fzRestartRound(msg){const sn=fzSnap();FZ.base=sn?(sn.sureMs||0):0;FZ.prog=0;FZ.clean=true;FZ.rescued=false;FZ.hold=false;fzHideHold();fzPaint();if(msg)fzChipNote(msg);}
+function fzRestartRound(msg){const sn=fzSnap();FZ.base=sn?(sn.sureMs||0):0;FZ.prog=0;FZ.clean=true;FZ.rescued=false;FZ.hold=false;fzHideHold();if(sn)fzRkReset(sn);fzPaint();if(msg)fzChipNote(msg);}
 function fzShowHold(gone){
   const h=el('fzHold');if(!h)return;
   el('fzHoldT').textContent='Круг остановлен: приложение было свёрнуто '+Math.max(1,Math.round(gone/60000))+' мин.';
@@ -132,12 +138,76 @@ function fzPaint(){
   if(!on){c.textContent='';ln.style.width='0';if(el('sheet')&&!el('sheet').classList.contains('hidden'))fzRenderTab(true);return;}
   const n=FZ.done.length+(FZ.phase==='run'?1:0);let t,p;
   if(FZ.phase==='rest'){t='Отдых '+fzClock(FZ.restUntil-Date.now());p=1;}
-  else{t='Круг '+n+' · '+fzMin(FZ.prog)+' / '+FZ.len+' мин'+(FZ.hold?' · стоп':fzPaused()?' · пауза':'');p=Math.min(1,FZ.prog/(FZ.len*60000));}
+  else{t='Круг '+n+' · '+fzMin(FZ.prog)+' / '+FZ.len+' мин'+(FZ.hold?' · стоп':fzPaused()?' · пауза':'')+fzRkChip();p=Math.min(1,FZ.prog/(FZ.len*60000));}
   if(fzNote)t=fzNote;
   c.textContent=t;c.setAttribute('aria-label',t);
   ln.style.width=(p*100).toFixed(1)+'%';ln.classList.toggle('rest',FZ.phase==='rest');
   if(el('sheet')&&!el('sheet').classList.contains('hidden'))fzRenderTab(true);
 }
+
+/* ===== 07.11 «Ранг круга», «Комбо», «Итог круга» (Джессика: «1 2 3»; механики слэшеров, встроенные в «Фокус»).
+   The meter itself is game-awards.js rankStep (pure, tested in node); here it is fed once a second from the tracker:
+   counted ms (sureMs), counted page turns, fast flips, time on a page past its cap (nobody reads), and text actions
+   seen as growth of the book's quotes / notes and of the word list. Pause: nothing is fed. ===== */
+const FZ_RK_WORD={S:'Блестяще',A:'Отлично',B:'Хорошо',C:'Неплохо',D:'Разогрев'};
+function fzRkSeen(sn){
+  const b=typeof R!=='undefined'&&R.book?R.book.id:null,qs=(b&&S.quotes&&S.quotes[b])||[];
+  return {sure:sn.sureMs||0,pt:sn.pageTurns||0,fast:sn.fast||0,q:qs.length,n:qs.filter(function(q){return q&&q.note&&String(q.note).trim();}).length,v:(S.vocab||[]).length};
+}
+function fzRkReset(sn){FZ.rk=window.__rqGame.rankNew(FZ.len);FZ.seen=fzRkSeen(sn);}
+function fzRkFeed(sn){
+  if(!FZ.rk||!FZ.seen)return;
+  const G=window.__rqGame,now=fzRkSeen(sn),was=FZ.seen;FZ.seen=now;
+  if(fzPaused()||document.visibilityState==='hidden')return;
+  const t=Date.now(),ev={t:t};
+  ev.min=Math.max(0,now.sure-was.sure)/60000;
+  ev.page=Math.max(0,now.pt-was.pt);
+  ev.fast=Math.max(0,now.fast-was.fast);
+  if(sn.counting!==false&&sn.pageCapMs>0&&sn.pageDwellMs>sn.pageCapMs)ev.idleMin=FZ_TICK_MS/60000;
+  G.rankStep(FZ.rk,ev);
+  if(now.q>was.q)G.rankStep(FZ.rk,{act:now.n>was.n?'note':'hl',t:t});
+  else if(now.n>was.n)G.rankStep(FZ.rk,{act:'note',t:t});
+  if(now.v>was.v)G.rankStep(FZ.rk,{act:'word',t:t});
+  if(FZ.rk.best>FZ.cb){FZ.cb=FZ.rk.best;if(FZ.cb%5===0)fzPush();}
+}
+function fzRkNow(){return FZ.rk?window.__rqGame.rankLetter(FZ.rk.sc):'';}
+function fzRkChip(){if(!FZ.rk||FZ.phase!=='run')return '';return ' · '+fzRkNow()+(FZ.rk.combo>=3?' · комбо '+FZ.rk.combo:'');}
+function fzRkStatus(){
+  const rs=FZ.ranks.length?'Ранги кругов: '+FZ.ranks.join(' · '):'';
+  const now=FZ.phase==='run'&&FZ.rk?'Ранг сейчас: '+fzRkNow()+' · комбо '+FZ.rk.combo+' стр.':'';
+  const cb=FZ.cb>1?'лучшее комбо '+FZ.cb+' стр.':'';
+  const parts=[now,rs,cb].filter(Boolean);
+  return parts.length?'<span class="fzrkst">'+esc(parts.join(' · '))+'</span>':'';
+}
+function fzStatusKey(){return FZ.phase+FZ.done.length+fzMin(FZ.prog)+FZ.hold+Math.ceil((FZ.restUntil-Date.now())/1000)+fzRkNow()+(FZ.rk?FZ.rk.combo:'');}
+/** coins this round adds today: growth of the day's round coins (cap included) — named, paid later in the session summary */
+function fzRoundCoins(){
+  const G=window.__rqGame,t=today(),rows=fzRows().filter(function(r){return String(r.date).slice(0,10)===t;});
+  const mine=function(n){return {id:'fz-now',date:t,minutes:1e4,pomo:FZ.done.slice(0,n),pomoRk:FZ.ranks.slice(0,n).join('')};};
+  const n=FZ.done.length;
+  return G.pomoCoinsForDay(rows.concat([mine(n)]),t)-G.pomoCoinsForDay(rows.concat([mine(n-1)]),t);
+}
+function fzShowRes(rk){
+  const box=el('fzRes');if(!box)return;
+  const G=window.__rqGame,st=FZ.rk||G.rankNew(FZ.len),len=FZ.done[FZ.done.length-1]||FZ.len;
+  const base=G.POMO[len]?G.POMO[len].coins:0,bonus=G.RANK_COINS[rk]||0,got=fzRoundCoins();
+  let coin='+'+base+' '+plural(base,'монета','монеты','монет')+' за круг'+(bonus?', +'+bonus+' за ранг '+rk:'');
+  if(got<base+bonus)coin=got>0?'+'+got+' '+plural(got,'монета','монеты','монет')+': дневной лимит '+G.POMO_DAY_CAP+' почти собран':'Дневной лимит '+G.POMO_DAY_CAP+' монет за круги уже собран';
+  const hint=rk==='S'?'':st.fast?'Быстрое листание роняет ранг и сбрасывает комбо.':!st.acts?'Выделения, заметки и слова в словарь поднимают ранг.':st.best<10?'С 10-й страницы подряд комбо поднимает ранг быстрее.':'Ранг падает, когда страница долго стоит без чтения.';
+  const n=FZ.done.length,lines=[
+    'Лучшее комбо: '+st.best+' '+plural(st.best,'страница','страницы','страниц')+' подряд',
+    'Страниц за круг: '+st.pages+' · действий с текстом: '+st.acts,
+    coin];
+  box.innerHTML='<div class="fzrkrow"><div class="fzrk" data-r="'+rk+'"><b>'+rk+'</b></div><div><b id="fzResT">Круг '+n+' готов</b><p class="fzsub">Ранг '+rk+': '+esc(FZ_RK_WORD[rk]||'')+'</p></div></div>'+
+    '<ul class="fzresl">'+lines.map(function(x,i){return '<li>'+rqIcon(i===2?'coins':i?'timer':'target',14)+'<span>'+esc(x)+'</span></li>';}).join('')+'</ul>'+
+    '<p class="fzsub">'+(got>0?'Монеты придут в итоге сессии. ':'')+esc(hint)+'</p>'+
+    '<div class="fzbtns"><button type="button" class="cta" id="fzResOk">Отдых '+fzSet().rest+' мин</button><button type="button" class="ghostbtn" id="fzResNext">Без отдыха</button></div>';
+  el('fzResOk').onclick=fzHideRes;
+  el('fzResNext').onclick=function(){fzHideRes();fzSkipRest();};
+  box.classList.remove('hidden');
+  const r=box.querySelector('.fzrk');if(r){r.classList.remove('in');void r.offsetWidth;r.classList.add('in');}
+}
+function fzHideRes(){const b=el('fzRes');if(b)b.classList.add('hidden');}
 
 /* ===== background sounds (WebAudio, synthesised: nothing to download, works offline) ===== */
 let fzAC=null,fzBus=null,fzVoice=null,fzLoop=null;
@@ -266,14 +336,14 @@ function fzStatusHtml(){
   if(FZ.phase==='idle')return '<button type="button" class="cta" id="fzGo">'+rqIcon('timer',18)+'<span>Начать круг '+fzSet().len+' мин</span></button>';
   const n=FZ.done.length;
   const st=FZ.phase==='rest'?('Круг '+n+' готов. Отдых '+fzClock(FZ.restUntil-Date.now())):('Круг '+(n+1)+': '+fzMin(FZ.prog)+' из '+FZ.len+' мин чтения'+(FZ.hold?' (остановлен)':fzPaused()?' (пауза)':''));
-  return '<div class="fzstat"><b>'+esc(st)+'</b><span>Сегодня в этой книге: '+n+' '+plural(n,'круг','круга','кругов')+(FZ.best>1?' · подряд без выхода: '+FZ.best:'')+'</span></div>'+
+  return '<div class="fzstat"><b>'+esc(st)+'</b><span>Сегодня в этой книге: '+n+' '+plural(n,'круг','круга','кругов')+(FZ.best>1?' · подряд без выхода: '+FZ.best:'')+'</span>'+fzRkStatus()+'</div>'+
     '<div class="fzbtns">'+(FZ.phase==='rest'?'<button type="button" class="ghostbtn" id="fzSkip">Пропустить отдых</button>':'')+'<button type="button" class="ghostbtn" id="fzEnd">Остановить круги</button></div>';
 }
 function fzRenderTab(statusOnly){
   const box=el('fzBox');if(!box)return;
   if(!fzOn()){box.innerHTML='';box.hidden=true;return;}
   box.hidden=false;
-  if(statusOnly){const s=el('fzStatus');if(s&&s.dataset.k!==FZ.phase+FZ.done.length+fzMin(FZ.prog)+FZ.hold+Math.ceil((FZ.restUntil-Date.now())/1000)){s.innerHTML=fzStatusHtml();fzWireStatus();}return;}
+  if(statusOnly){const s=el('fzStatus');if(s&&s.dataset.k!==fzStatusKey()){s.innerHTML=fzStatusHtml();fzWireStatus();}return;}
   const f=fzSet(),G=window.__rqGame,rows=fzRows(),t=today();
   const streak=G.focusStreak(rows,t),todayR=rows.filter(function(r){return String(r.date).slice(0,10)===t;}).reduce(function(a,r){return a+G.rowPomo(r).length;},0)+FZ.done.length;
   const ch=G.focusChallenges(rows,G.weekStartOf(t)),snd=fzSoundList();
@@ -281,7 +351,8 @@ function fzRenderTab(statusOnly){
     '<div class="fzhead"><div><b>'+streak+'</b><span>'+plural(streak,'день','дня','дней')+' серии фокуса</span></div><div><b>'+todayR+'</b><span>'+plural(todayR,'круг','круга','кругов')+' сегодня</span></div></div>'+
     fzSw('fzPomo',f.pomo,'Помодоро','круги чтения с отдыхом; за полный круг +20% опыта и монеты (до '+G.POMO_DAY_CAP+' в день)')+
     (f.pomo?'<div class="rrow stack"><span class="rl">Круг чтения</span>'+fzSeg('fzLen',[15,25,45],f.len,['15 мин','25 мин','45 мин'])+
-      '<div class="rnote">За полный круг: +'+G.POMO[15].coins+' / +'+G.POMO[25].coins+' / +'+G.POMO[45].coins+' монет. Считаются только засчитанные минуты: пауза и быстрое листание круг не двигают.</div></div>'+
+      '<div class="rnote">За полный круг: +'+G.POMO[15].coins+' / +'+G.POMO[25].coins+' / +'+G.POMO[45].coins+' монет. Считаются только засчитанные минуты: пауза и быстрое листание круг не двигают.</div>'+
+      '<div class="rnote">Ранг круга от D до S: растёт от спокойного чтения, страниц подряд (комбо) и разных действий с текстом: выделений, заметок, слов в словарь. Быстрое листание и простой его роняют. За S +'+G.RANK_COINS.S+' монеты, за A +'+G.RANK_COINS.A+', в том же дневном лимите.</div></div>'+
       '<div class="rrow stack"><span class="rl">Отдых между кругами</span>'+fzSeg('fzRest',[3,5,10],f.rest,['3 мин','5 мин','10 мин'])+'</div>'+
       '<div class="rrow stack" id="fzStatus">'+fzStatusHtml()+'</div>':'')+
     fzSw('fzQuiet',f.quiet,'Тихий режим','с началом круга остаются только текст и тонкая линия круга')+
@@ -300,7 +371,7 @@ function fzRenderTab(statusOnly){
   fzWireStatus();
 }
 function fzWireStatus(){
-  const s=el('fzStatus');if(s)s.dataset.k=FZ.phase+FZ.done.length+fzMin(FZ.prog)+FZ.hold+Math.ceil((FZ.restUntil-Date.now())/1000);
+  const s=el('fzStatus');if(s)s.dataset.k=fzStatusKey();
   if(el('fzGo'))el('fzGo').onclick=function(){fzAskWords(function(){fzStartRound();el('sheet').classList.add('hidden');});};
   if(el('fzSkip'))el('fzSkip').onclick=fzSkipRest;
   if(el('fzEnd'))el('fzEnd').onclick=function(){fzStop();fzRenderTab();};
@@ -317,9 +388,11 @@ function fzSummaryHtml(row,qp){
   if(prev&&pace>0){const pp=(Number(prev.minutes)||0)/prev.pageTurns,d=Math.round((pp-pace)/pp*100);cmp=Math.abs(d)<5?'темп как в прошлый раз':d>0?'на '+d+'% быстрее прошлого фокуса':'на '+(-d)+'% спокойнее прошлого фокуса';}
   const lines=[];
   if(p.length)lines.push(p.length+' '+plural(p.length,'круг','круга','кругов')+' · '+min+' мин чистого чтения'+(G.rowPomoRun(row)>1?' · '+G.rowPomoRun(row)+' подряд без выхода':''));
+  const rks=G.rowPomoRk?G.rowPomoRk(row).filter(Boolean):[],cbs=G.rowPomoCb?G.rowPomoCb(row):0;
+  if(rks.length||cbs>1)lines.push((rks.length?'Ранги кругов: '+rks.join(' · '):'')+(rks.length&&cbs>1?' · ':'')+(cbs>1?'лучшее комбо '+cbs+' стр.':''));
   if(pages)lines.push(pages+' стр. · '+(pace?pace.toFixed(1).replace('.',',')+' мин на страницу':'')+(cmp?' · '+cmp:''));
   const gold=[];
-  if(qp&&qp.pomoGold>0)gold.push('+'+coinsP(qp.pomoGold)+' — круги фокуса');
+  if(qp&&qp.pomoGold>0)gold.push('+'+coinsP(qp.pomoGold)+' — круги фокуса'+(rks.some(function(x){return x==='S'||x==='A';})?' и ранги':''));
   if(qp&&qp.chal&&qp.chal.length){const all=G.focusChallenges(fzRows(),G.weekStartOf(String(row.date).slice(0,10)));qp.chal.forEach(function(id){const c=all.filter(function(x){return x.id===id;})[0];gold.push('+'+coinsP(G.CHAL_COINS)+' — вызов недели «'+(c?c.t:id)+'»');});}
   return '<div class="fzsum">'+(fw?'<div class="fzfw">'+rqIcon('target',14)+'<span>Цель сессии: «'+esc(fw)+'»</span></div>':'')+
     lines.map(function(t){return '<div>'+rqIcon('timer',14)+'<span>'+esc(t)+'</span></div>';}).join('')+
@@ -329,6 +402,8 @@ function fzSummaryHtml(row,qp){
 /* ===== wiring ===== */
 el('fzHoldGo')&&(el('fzHoldGo').onclick=function(){FZ.rescued=true;FZ.hold=false;fzHideHold();fzPaint();});
 el('fzHoldNew')&&(el('fzHoldNew').onclick=function(){fzRestartRound('');});
+el('fzResOk')&&(el('fzResOk').onclick=fzHideRes);
+el('fzResNext')&&(el('fzResNext').onclick=function(){fzHideRes();fzSkipRest();});
 /** reader opened / closed (reader.js openBook, reader-ui.js closeReaderImpl) */
 function fzOnOpen(){fzSync();fzPaint();if(fzOn())fzSound(true);}
 function fzOnClose(){fzStop();fzSound(false);FZ.sid=null;}

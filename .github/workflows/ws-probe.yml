@@ -22,40 +22,25 @@ jobs:
                   try: return json.loads(urllib.request.urlopen(urllib.request.Request(WS+urllib.parse.urlencode(dict(p,format='json',formatversion=2)),headers=UA),timeout=60).read())
                   except Exception as e: print('retry',e); time.sleep(10*(i+1))
               return {}
-          res={'miss':[],'authors':{},'cats':{}}
-          for st,t,s in json.load(open('probe/miss.json')):
-              roots=[]
-              for q in ['intitle:"'+t+'"', t+(' '+s if s else '')]:
-                  d=js({'action':'query','list':'search','srnamespace':0,'srlimit':15,'srsearch':q})
-                  for h in d.get('query',{}).get('search',[]):
-                      r=h['title'].split('/')[0]
-                      if r not in roots: roots.append(r)
-                  time.sleep(0.4)
-              res['miss'].append([st,t,s,roots[:15]])
-          H=json.load(open('probe/harvest.json'))
-          for st,names in H['authors'].items():
-              for n in names:
-                  d=js({'action':'query','list':'search','srnamespace':102,'srlimit':3,'srsearch':n})
-                  hs=[h['title'] for h in d.get('query',{}).get('search',[])]
-                  if not hs: res['authors'][n]=None;continue
-                  p=js({'action':'parse','page':hs[0],'prop':'text'})
-                  html=p.get('parse',{}).get('text','');html=re.sub(r'(?s)<(table|div)[^>]*class="[^"]*navbox.*?</\1>','',html)
-                  seen=[];
-                  for m in re.finditer(r'<a ([^>]*)>',html):
-                      a=m.group(1)
-                      if 'class="new"' in a: continue
-                      tt=re.search(r'title="([^"]*)"',a)
-                      if not tt: continue
-                      tt=tt.group(1).replace('&quot;','"').replace('&amp;','&');root=tt.split('/')[0]
-                      if re.match(r'^[^:]+:\S',tt) or '(' not in root or re.search(r'ДО\)|\(ДО|старой орфографии',tt) or root in seen: continue
-                      seen.append(root)
-                  res['authors'][n]={'page':hs[0],'set':st,'items':seen[:400]};time.sleep(1)
-          for st,cs in H['cats'].items():
-              for c in cs:
-                  d=js({'action':'query','list':'categorymembers','cmtitle':'Категория:'+c,'cmlimit':500,'cmnamespace':0})
-                  res['cats'][c]={'set':st,'items':[x['title'] for x in d.get('query',{}).get('categorymembers',[])]};time.sleep(1)
-          json.dump(res,open('probe/harvest-out.json','w'),ensure_ascii=False,indent=0)
+          bad=re.compile(r'(?i)нарушени|копивио|copyvio|к удалению|удаляем|несвобод|не свобод|авторск')
+          F=json.load(open('probe/final.json'));out={}
+          for st,L in F.items():
+              res=[]
+              for i in range(0,len(L),50):
+                  d=js({'action':'query','titles':'|'.join(L[i:i+50]),'redirects':1,'prop':'categories|info|pageprops','cllimit':'max','ppprop':'disambiguation'})
+                  q=d.get('query',{});rd={}
+                  for r in q.get('normalized',[])+q.get('redirects',[]): rd[r['from']]=r['to']
+                  pg={p['title']:p for p in q.get('pages',[])}
+                  for t in L[i:i+50]:
+                      tt=t
+                      for _ in range(3): tt=rd.get(tt,tt)
+                      p=pg.get(tt,{'missing':True})
+                      cats=[c['title'].replace('Категория:','') for c in p.get('categories',[])]
+                      res.append({'t':t,'to':tt,'missing':bool(p.get('missing')),'bad':bool(bad.search(' '.join(cats))),'dis':'disambiguation' in p.get('pageprops',{}),'len':p.get('length',0),'list':any(c.startswith('Списки ') for c in cats)})
+                  time.sleep(1)
+              out[st]=res
+          json.dump(out,open('probe/final-out.json','w'),ensure_ascii=False,indent=0)
           PY
           python3 /tmp/s.py
           git config user.name "github-actions[bot]"; git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
-          git add probe/harvest-out.json && git commit -qm "probe: ещё книги для подборок" && for i in 1 2 3 4 5; do git pull -q --rebase origin claude/project-thread-up771x && git push -q origin HEAD:claude/project-thread-up771x && break; sleep 15; done
+          git add probe/final-out.json && git commit -qm "probe: проверка подборок" && for i in 1 2 3 4 5; do git pull -q --rebase origin claude/project-thread-up771x && git push -q origin HEAD:claude/project-thread-up771x && break; sleep 15; done

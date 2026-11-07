@@ -321,7 +321,7 @@ const DEF={xp:0,gold:0,streak:0,lastDay:null,goal:10,dayKey:null,minToday:0,sess
  quotes:{},hl:{},owned:[],claimed:{},rewards:null,stickers:{},cur:null,marks:{},favs:[],hidden:[],anti:null,
  hist:{},status:{},skills:null,avatar:null,ux:null,appTheme:'teal',bookStats:{},
  bookDiff:{},bookStat:{},covers:{},autoDiff:true,ai:null,
- planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},bookLvlRep:{},lvlPaid:{},readSpans:{},quizPaid:{},pomoPaid:{},chalPaid:{}};
+ planned:{},customQuests:[],customStats:[],bookImp:{},notif:null,awardedSessionIds:[],dailyPaidDays:[],weeklyPaidWeeks:[],paidMigrated:false,bookLvl:{},bookLvlAi:{},bookLvlRep:{},lvlPaid:{},readSpans:{},quizPaid:{},pomoPaid:{},chalPaid:{},tools:null,ink:{},stk:{}};
 /* Single-writer: state lives in rq_v1 + IDB after bootStorage(). Never write legacy `readquest`. */
 let S=Object.assign({},DEF);
 let __rq=null;          // storage API from module boot
@@ -346,6 +346,7 @@ function hydrateS(raw){
   S=Object.assign({},DEF,raw||{});
   S.stats=Object.assign({},DEF.stats,S.stats||{});
   S.quotes=S.quotes||{};S.hl=S.hl||{};S.owned=S.owned||[];S.claimed=S.claimed||{};S.stickers=S.stickers||{};S.marks=S.marks||{};
+  S.ink=(S.ink&&typeof S.ink==='object'&&!Array.isArray(S.ink))?S.ink:{};S.stk=(S.stk&&typeof S.stk==='object'&&!Array.isArray(S.stk))?S.stk:{};/* 06.11 «Инструменты читателя» = storage/schema.js normInk/normStickers; S.tools приводит к виду js/tools.js TS() */
   S.favs=S.favs||[];S.hidden=S.hidden||[];S.hist=S.hist||{};S.status=S.status||{};S.vocab=S.vocab||[];if(S.lastRead===undefined)S.lastRead=null;S.petXp=S.petXp||0;if(S.dailyClaim===undefined)S.dailyClaim=null;S.boss=S.boss||null;S.hourHist=(S.hourHist&&S.hourHist.length===24)?S.hourHist:new Array(24).fill(0);S.finishDates=S.finishDates||{};S.talents=S.talents||{};
   if(!S.anti)S.anti={minSec:12,maxMin:3,v:2};
   else if(!S.anti.v){S.anti.v=2;if(S.anti.maxMin===4)S.anti.maxMin=3;} /* Product: 3 min/page cap by default */
@@ -359,7 +360,7 @@ function hydrateS(raw){
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
   if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
-  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.diaries=diaryNorm(S.diaries);if(typeof S.diaryAuto!=='boolean')S.diaryAuto=true;S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
+  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.diaries=diaryNorm(S.diaries);if(typeof S.diaryAuto!=='boolean')S.diaryAuto=true;if(['recent','title','entries'].indexOf(S.diarySort)<0)S.diarySort='recent';S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
   /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
@@ -515,12 +516,13 @@ function curI(){return '';} /* currency icon removed (coins are text) */
    vocab[].ex — объяснение ИИ, строка до 600 символов, иначе поле отбрасывается. */
 function aiNorm(a){
   ['key','model','base'].forEach(function(k){if(typeof a[k]!=='string')a[k]='';});
-  if(['deepseek','openrouter','openai','anthropic','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
+  if(['deepseek','gemini','openrouter','openai','anthropic','xai','yandex','custom'].indexOf(a.prov)<0){if(a.key)a.prov='openai';else{a.prov='deepseek';a.model='';}}
   a.base=a.base.slice(0,300);return a;
 }
 function vocabNorm(v){
   if(!v||typeof v!=='object')return;
   if('ex' in v&&typeof v.ex!=='string')delete v.ex;else if(typeof v.ex==='string')v.ex=v.ex.slice(0,600);
+  if('d' in v&&typeof v.d!=='string')delete v.d;else if(typeof v.d==='string')v.d=v.d.slice(0,600); /* 05.11 значение из скачанного словаря (js/dict.js) */
 }
 function diaryNorm(a){ /* = storage/schema.js diaryList; 25.10 «Дневники» (arch.md): [{id,t,b,bt,ba,cv,cc,pp,fn,fs,ink,rb,so,lh,al,d,u,e:[{id,t,x,tp,ch,pg,r,d,u,pin,cl}]}] ≤ 200, записей ≤ 1000 */
   const out=[],seen={},str=function(v,n){return typeof v==='string'?v.slice(0,n):'';},one=function(v,l,d){return l.indexOf(v)>=0?v:d;},
@@ -536,7 +538,7 @@ function diaryNorm(a){ /* = storage/schema.js diaryList; 25.10 «Дневник�
       es.push({id:n.id,t:t,x:x,tp:key(n.tp),ch:str(n.ch,120),pg:Number.isInteger(n.pg)&&n.pg>=0?n.pg:0,r:typeof n.r==='number'&&n.r>=0&&n.r<=1?n.r:null,d:day(n.d),u:ms(n.u),pin:n.pin===true,cl:one(n.cl,['','red','orange','yellow','green','blue','violet'],'')});});
     out.push({id:y.id,t:str(y.t,80),b:str(y.b,200),bt:str(y.bt,120),ba:str(y.ba,80),cv:key(y.cv)||'school',cc:key(y.cc),
       pp:one(y.pp,['lines','grid','dots','plain','old','papyrus','pearl','stars'],'lines'),fn:one(y.fn,['hand','book','ui'],'hand'),fs:Number.isInteger(y.fs)&&y.fs>=14&&y.fs<=24?y.fs:17,
-      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
+      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),pn:y.pn===true,lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
       d:day(y.d),u:ms(y.u),e:es});});
   return out;
 }
@@ -559,10 +561,42 @@ function aiPrefNorm(o){o=(o&&typeof o==='object'&&!Array.isArray(o))?o:{};const 
   const en=function(v,a){return a.indexOf(v)>=0?v:a[0];},int=function(v,hi){return Number.isInteger(v)&&v>=0?Math.min(hi,v):0;};
   return {len:en(o.len,['short','long']),tone:en(o.tone,['simple','expert']),lang:en(o.lang,['ru','en','book']),spoil:typeof o.spoil==='boolean'?o.spoil:true,lim:int(o.lim,500),
     use:{m:typeof u.m==='string'&&/^\d{4}-\d\d$/.test(u.m)?u.m:'',n:int(u.n,1e7),ch:int(u.ch,1e10),tch:int(u.tch,1e10),d:typeof u.d==='string'&&/^\d{4}-\d\d-\d\d$/.test(u.d)?u.d:'',dn:int(u.dn,1e5)},
-    trTo:en(o.trTo,['','ru','en','de','fr','es','it'])};}
+    trTo:en(o.trTo,['','ru','en','de','fr','es','it']),via:en(o.via,['','chatgpt','grok','claude','deepseek','alice'])};} /* via 05.11: своя нейросеть без ключа */
+/* 05.11 Джессика: «сервисы почему-то не принимают ключи». Раньше любое 401/403 было «не принял ключ», а 403 у OpenAI/Google
+   часто значит «страна не поддерживается» или «нет денег/доступа». Теперь причина своя, плюс слова сервиса; ключ чистится от
+   пробелов, переносов, невидимых знаков, кавычек и «Bearer». */
+function nnKeyClean(k){return String(k||'').replace(/[\s​-‍⁠﻿"'«»`]/g,'').replace(/^Bearer(?=\w)/i,'').replace(/^Api-Key(?=\w)/i,'');}
+function nnKeyBad(k){return /[^\x21-\x7e]/.test(String(k||''))?'в ключе есть лишние знаки (русские буквы или «…»), похоже, скопирован не сам ключ, а его сокращённый вид':'';} /* иначе fetch падает на заголовке и пишет «нет связи» */
+function nnSvcMsg(d){try{const e=d&&d.error;const m=(e&&(e.message||(typeof e==='string'?e:'')))||(d&&(d.error_message||d.message))||(d&&d.detail&&(d.detail.message||(typeof d.detail==='string'?d.detail:'')))||'';
+  return typeof m==='string'?m.replace(/\s+/g,' ').trim():'';}catch(x){return '';}}
+function nnHttpErr(status,d,key){ /* → понятная причина по-русски или '' (ответ без ошибки) */
+  const m=nnSvcMsg(d),c=String((d&&d.error&&(d.error.code||d.error.type||d.error.status))||'')+' '+m,tail=m?' («'+m.slice(0,90)+'»)':'';
+  if(/unsupported_country|unsupported.*region|country.*not supported|not available in your (country|region)|location is not supported|territor/i.test(c))return 'сервис не работает в вашей стране — нужен VPN другой страны';
+  if(status===402||/insufficient_quota|billing|balance|exceeded your current quota|credit|payment/i.test(c))return 'на счёте сервиса нет денег или не привязана оплата'+tail;
+  if(status===401||status===403){
+    if(status===403&&/model|permission|scope|not allowed|access|project|folder|role/i.test(c))return 'у ключа нет доступа'+tail;
+    const k=String(key||'');
+    return 'сервис не принял ключ'+(k&&k.length<30?': он слишком короткий ('+k.length+'), похоже, скопирован не целиком':tail);
+  }
+  if(status===429)return 'слишком много запросов, попробуйте позже';
+  if(status>=400)return m?m.slice(0,120):'сервис ответил '+status;
+  return '';
+}
 function ttsNorm(t){
   if(!t||typeof t!=='object')t={};
   ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});
-  if(['system','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
+  if(['system','piper','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
   t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
 }
+
+/* 06.11 (Джессика: рисованные ползунки в Карандашном): --pv = slider position 0…1, so a skin can shade the track up to the knob.
+   Set on input and whenever sliders appear (rendered from strings); brightness/warmth/page slider have their own variables. */
+(function(){
+  function pvSync(i){if(!i||i.type!=='range')return;const mn=i.min===''?0:+i.min,mx=i.max===''?100:+i.max;i.style.setProperty('--pv',Math.max(0,Math.min(1,((+i.value)-mn)/((mx-mn)||1))).toFixed(3));}
+  function pvAll(){document.querySelectorAll('input[type=range]:not(#brightRange):not(#warmRange):not(#pgSlider)').forEach(pvSync);}
+  document.addEventListener('input',function(e){pvSync(e.target);},true);
+  document.addEventListener('change',function(e){pvSync(e.target);},true);
+  let q=0;const kick=function(){if(q)return;q=requestAnimationFrame(function(){q=0;pvAll();});};
+  try{new MutationObserver(kick).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-skin','value']});}catch(e){}
+  kick();
+})();

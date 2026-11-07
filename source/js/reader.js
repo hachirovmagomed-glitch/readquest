@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null,tp:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -42,8 +42,10 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.fz=fzNorm(s.fz); /* 25.10 «Фокус» (arch.md SET.fz) */
   s.presets=rqPresetsNorm(s.presets);s.bookSet=rqBookSetNorm(s.bookSet); /* 29.10 arch.md SET.presets / SET.bookSet */
   s.rx=rqRxNorm(s.rx); /* 29.10 arch.md SET.rx (раздел «Чтение») */
+  s.half=rqHalfNorm(s.half); /* 05.11 SET.half: свой шрифт и поля на половине экрана */
   s.wsp=rqTypoPick({wsp:s.wsp},['wsp']).wsp||0;s.psp=rqTypoPick({psp:s.psp},['psp']).psp||0; /* 05.11 arch.md SET.wsp / SET.psp */
   s.rm=rqRmNorm(s.rm); /* 05.11 arch.md SET.rm (js/read-more.js) */
+  s.tp=rqTpNorm(s.tp); /* 07.11 SET.tp: озвучка+ (js/tts-plus.js) */
   flipNorm(s);return s;}
 /** 25.10 SET.fz (arch.md) = storage/schema.js normFz: pomo on/off, round 15/25/45, rest 3/5/10, quiet, sound slot 0…3 (0 = off; the
  *  slot is the skin's own sound №N), volume 0.05…1, focus words, warning on leaving. Junk → default, unknown keys dropped. */
@@ -82,9 +84,9 @@ function rqRxNorm(o){
   o=ob(o);const f=ob(o.foot),t=ob(o.tts),n=ob(o.night),g=ob(o.gest),s=ob(o.sel),sc=ob(o.screen),fr=ob(o.fresh),sp=ob(o.spd);
   return {
     foot:{page:bo(f.page,true),pct:bo(f.pct,false),clock:bo(f.clock,false),chap:bo(f.chap,false)},
-    tts:{rate:(typeof t.rate==='number'&&isFinite(t.rate))?Math.round(Math.max(0.5,Math.min(2,t.rate))*20)/20:1,voice:typeof t.voice==='string'?t.voice.slice(0,200):'',follow:bo(t.follow,true)},
+    tts:{rate:(typeof t.rate==='number'&&isFinite(t.rate))?Math.round(Math.max(0.5,Math.min(3,t.rate))*20)/20:1,voice:typeof t.voice==='string'?t.voice.slice(0,200):'',follow:bo(t.follow,true)},
     night:{on:bo(n.on,false),from:hm(n.from,'22:00'),to:hm(n.to,'07:00'),day:(typeof n.day==='string'&&n.day.length<=32)?n.day:''},
-    gest:{bright:bo(g.bright,true),pinch:bo(g.pinch,true),dbl:en(g.dbl,['off','night','mark','bars','auto'])}, /* 05.11: + 'auto' = автолистание */
+    gest:{bright:bo(g.bright,true),pinch:bo(g.pinch,true),dbl:en(g.dbl,['off','night','mark','bars','auto','dict'])}, /* 05.11: + 'auto' = автолистание, 'dict' = значение слова (js/dict.js) */
     sel:{off:ids(s.off),order:ids(s.order),color:['y','g','b','p','o'].indexOf(s.color)>=0?s.color:''},
     screen:{orient:en(sc.orient,['auto','portrait','landscape']),spread:en(sc.spread,['auto','land','off'])},
     fresh:{set:nm(fr.set),pdf:nm(fr.pdf),toc:bo(fr.toc,false)},
@@ -92,6 +94,23 @@ function rqRxNorm(o){
     spd:{cpm:num(sp.cpm,100,6000),spp:num(sp.spp,5,1200),n:(typeof sp.n==='number'&&isFinite(sp.n))?Math.max(0,Math.min(1e6,Math.floor(sp.n))):0}
   };
 }
+/* 05.11 Джессика: «хорошие гибкие настройки под разделённый экран» (читаю и спрашиваю ChatGPT рядом).
+   SET.half {on, size, margin}: когда окно читалки низкое или узкое (половина экрана, всплывающее окно), в SET.size/SET.margin
+   на время лежат значения половины экрана, а полноэкранные — в RQ_HALF.full; «Шрифт ±», щипок и «Поля» меняют то, что видно.
+   В сохранение (rqSetForSave) всегда уходят полноэкранные, а значения половины — в SET.half. Клавиатура (фокус в поле) режим не меняет. */
+function rqHalfNorm(h){h=(h&&typeof h==='object'&&!Array.isArray(h))?h:{};const n=function(v,lo,hi){return Number.isInteger(v)&&v>=lo&&v<=hi?v:null;};
+  return {on:typeof h.on==='boolean'?h.on:true,size:n(h.size,14,30),margin:n(h.margin,10,80)};}
+let RQ_HALF=null;
+function rqHalfWant(){const r=el('reader');if(!r||r.classList.contains('hidden')||!SET.half||!SET.half.on)return false;
+  const ae=document.activeElement;if(ae&&(ae.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)))return !!RQ_HALF; /* клавиатура */
+  const H=innerHeight,W=innerWidth,sh=(screen&&screen.height)||H,sw=(screen&&screen.width)||W,lo=Math.min(sh,sw),hi=Math.max(sh,sw);
+  return (H<560&&H<0.72*(W>H?lo:hi))||(W<480&&W<0.62*(W>H?hi:lo));}
+function rqHalfOff(){if(!RQ_HALF)return false;SET.half=Object.assign({},SET.half,{size:SET.size,margin:SET.margin});Object.assign(SET,RQ_HALF.full);RQ_HALF=null;
+  const r=el('reader');if(r)r.classList.remove('half');return true;}
+function rqHalfSync(){const w=rqHalfWant();if(w===!!RQ_HALF)return false;
+  if(!w)return rqHalfOff();
+  const h=SET.half||{};RQ_HALF={full:{size:SET.size,margin:SET.margin}};
+  SET.size=h.size||Math.max(14,SET.size-2);SET.margin=h.margin!=null?h.margin:Math.min(SET.margin,16);el('reader').classList.add('half');return true;}
 function rqRx(){return (SET&&SET.rx)||rqRxNorm(null);}
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения», js/read-more.js): bion жирное начало слова · cap буквица · maxw ширина строки (знаков, 0 = нет) ·
  *  ufont имя своего шрифта (файл в IDB «ufont», не в экспорте) · auto.sec автолистание (0 = по своей скорости) · fn сноски в окне ·
@@ -107,7 +126,7 @@ function rqRmNorm(o){
     bion:bo(o.bion,false),cap:bo(o.cap,false),maxw:[0,55,65,75].indexOf(o.maxw)>=0?o.maxw:0,
     ufont:typeof o.ufont==='string'?o.ufont.trim().slice(0,40):'',
     auto:{sec:(typeof a.sec==='number'&&isFinite(a.sec)&&a.sec>=5&&a.sec<=600)?Math.round(a.sec):0},
-    fn:bo(o.fn,true),
+    fn:bo(o.fn,true),orth:bo(o.orth,false),
     zones:(Array.isArray(o.zones)&&o.zones.length===9&&o.zones.every(function(z){return RM_ZONE.indexOf(z)>=0;}))?o.zones.slice():null,
     sleep:[0,15,30,45,60,-1].indexOf(o.sleep)>=0?o.sleep:0,ttsHl:bo(o.ttsHl,true),recap:bo(o.recap,true),
     ruler:{on:bo(r.on,false),n:[1,2,3].indexOf(r.n)>=0?r.n:1,auto:bo(r.auto,false)},
@@ -115,16 +134,35 @@ function rqRmNorm(o){
     tod:{on:bo(t.on,false),day:nm(t.day),eve:nm(t.eve),from:hm(t.from,'20:00'),to:hm(t.to,'07:00')},
     dlg:bo(o.dlg,false),hard:bo(o.hard,false),chEnd:bo(o.chEnd,true),chQ:bo(o.chQ,true),
     rsvp:(typeof o.rsvp==='number'&&o.rsvp>=100&&o.rsvp<=1000)?Math.round(o.rsvp/50)*50:300,
-    oneh:bo(o.oneh,false),edge:bo(o.edge,true),roles:{on:bo(ob(o.roles).on,false),v:typeof ob(o.roles).v==='string'?ob(o.roles).v.trim().slice(0,80):'',sv:typeof ob(o.roles).sv==='string'?ob(o.roles).sv.slice(0,200):''}
+    oneh:bo(o.oneh,false),edge:bo(o.edge,true),roles:{on:bo(ob(o.roles).on,false),v:typeof ob(o.roles).v==='string'?ob(o.roles).v.trim().slice(0,80):'',sv:typeof ob(o.roles).sv==='string'?ob(o.roles).sv.slice(0,200):''},
+    dkShort:bo(o.dkShort,true),dkLong:bo(o.dkLong,false),dkQuiz:bo(o.dkQuiz,true)
   };
 }
 function rqRm(){return (SET&&SET.rm)||rqRmNorm(null);}
+/** 07.11 SET.tp (js/tts-plus.js, Джессика: «Давай всё» про озвучку): yo буква ё · dict свои слова [[написано, читать]] (≤300) ·
+ *  pause паузы между абзацами и главами off/s/m/l · clean без номеров сносок и страниц, сокращения полностью · lang иностранные фразы своим голосом ·
+ *  pre глава заранее для нейроголоса · bar кнопки назад/вперёд при чтении · pitch высота 0.5…1.5 · vol громкость 0.2…1 ·
+ *  expr выразительность calm/norm/live · style своя манера чтения для нейроголоса (≤200). Same rules as storage/schema.js normTp. */
+function rqTpNorm(o){
+  const ob=function(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};},bo=function(v,d){return typeof v==='boolean'?v:d;};
+  o=ob(o);const d=[];
+  if(Array.isArray(o.dict))o.dict.forEach(function(x){if(d.length>=300||!Array.isArray(x))return;const a=typeof x[0]==='string'?x[0].trim().slice(0,60):'',b=typeof x[1]==='string'?x[1].trim().slice(0,80):'';if(a&&b)d.push([a,b]);});
+  return {yo:bo(o.yo,true),dict:d,pause:['off','s','m','l'].indexOf(o.pause)>=0?o.pause:'m',clean:bo(o.clean,true),lang:bo(o.lang,true),pre:bo(o.pre,true),bar:bo(o.bar,true),
+    pitch:(typeof o.pitch==='number'&&isFinite(o.pitch))?Math.round(Math.max(0.5,Math.min(1.5,o.pitch))*20)/20:1,vol:(typeof o.vol==='number'&&isFinite(o.vol))?Math.round(Math.max(0.2,Math.min(1,o.vol))*20)/20:1,
+    expr:['calm','norm','live'].indexOf(o.expr)>=0?o.expr:'norm',style:typeof o.style==='string'?o.style.trim().slice(0,200):''};
+}
+function rqTp(){return (SET&&SET.tp)||rqTpNorm(null);}
 let RQ_OWN=null;
-function rqSetForSave(){if(!RQ_OWN)return SET;const o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);return o;}
-function rqOwnEnter(id){rqOwnLeave();const v=SET.bookSet&&SET.bookSet[id];if(!v||!Object.keys(v).length)return;RQ_OWN={id:id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};Object.assign(SET,v);}
-function rqOwnLeave(){if(!RQ_OWN)return;SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;}
+function rqSetForSave(){const hv=RQ_HALF?{size:SET.size,margin:SET.margin}:null;if(hv)Object.assign(SET,RQ_HALF.full);
+  try{let o;if(!RQ_OWN)o=Object.assign({},SET);else{o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);}
+    if(hv)o.half=Object.assign({},SET.half,hv);return o;}finally{if(hv)Object.assign(SET,hv);}}
+function rqOwnEnter(id){const hh=rqHalfOff();try{rqOwnEnter0(id);}finally{if(hh)rqHalfSync();}}
+function rqOwnEnter0(id){rqOwnLeave();const v=SET.bookSet&&SET.bookSet[id];if(!v||!Object.keys(v).length)return;RQ_OWN={id:id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};Object.assign(SET,v);}
+function rqOwnLeave(){if(!RQ_OWN)return;const hh=rqHalfOff();try{rqOwnLeave0();}finally{if(hh)rqHalfSync();}}
+function rqOwnLeave0(){if(!RQ_OWN)return;SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;}
 /** «Только к этой» on: the book keeps the current look, the common one stays as it is; off: the book follows the common look again */
-function rqOwnSet(on){const b=typeof R!=='undefined'&&R&&R.book;if(!b)return;
+function rqOwnSet(on){const hh=rqHalfOff();try{rqOwnSet0(on);}finally{if(hh)rqHalfSync();}}
+function rqOwnSet0(on){const b=typeof R!=='undefined'&&R&&R.book;if(!b)return;
   if(on){if(RQ_OWN)return;RQ_OWN={id:b.id,glob:rqTypoPick(SET,RQ_BOOK_KEYS)};SET.bookSet=Object.assign({},SET.bookSet);SET.bookSet[b.id]=rqTypoPick(SET,RQ_BOOK_KEYS);}
   else{if(RQ_OWN)Object.assign(SET,RQ_OWN.glob);RQ_OWN=null;if(SET.bookSet&&SET.bookSet[b.id]){SET.bookSet=Object.assign({},SET.bookSet);delete SET.bookSet[b.id];}}
   saveSet();}
@@ -141,6 +179,7 @@ function saveSet(){rqSaveSetGated();}
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */
 function applySet(){
+  rqHalfSync();
   const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
   const r=el('reader');
@@ -180,6 +219,7 @@ function applySet(){
   el('lhVal').textContent=SET.lh.toFixed(2);
   el('lsVal').textContent=(SET.ls||0);
   if(el('mgVal'))el('mgVal').textContent=SET.margin;
+  rqSw('halfTgl',!SET.half||SET.half.on);if(el('halfTglS'))el('halfTglS').textContent=RQ_HALF?'сейчас включено: размер и поля ниже — для половины экрана':'свой размер шрифта и поля, когда читалка открыта рядом с другим приложением';
   el('alignJ').classList.toggle('on',SET.align!=='l');
   el('alignL').classList.toggle('on',SET.align==='l');
   rqSw('hyphTgl',SET.hyph!==false);
@@ -259,6 +299,7 @@ el('szPlus').onclick=()=>{setFontSizeKeepPos(SET.size+1);};
 el('lhMinus').onclick=()=>{SET.lh=Math.max(1.2,+(SET.lh-0.1).toFixed(2));saveSet();applySet();relayout();};
 el('lhPlus').onclick=()=>{SET.lh=Math.min(2.4,+(SET.lh+0.1).toFixed(2));saveSet();applySet();relayout();};
 el('mgMinus').onclick=()=>{SET.margin=Math.max(10,SET.margin-6);saveSet();applySet();relayout();};
+el('halfTgl').onclick=()=>{const was=!!RQ_HALF;if(was)rqHalfOff();SET.half=Object.assign({},SET.half,{on:!(SET.half&&SET.half.on)});saveSet();applySet();relayout({force:true});};
 el('mgPlus').onclick=()=>{SET.margin=Math.min(80,SET.margin+6);saveSet();applySet();relayout();};
 el('lsMinus').onclick=()=>{SET.ls=Math.max(-1,+(((SET.ls||0)-0.5)).toFixed(1));saveSet();applySet();relayout();};
 el('lsPlus').onclick=()=>{SET.ls=Math.min(3,+(((SET.ls||0)+0.5)).toFixed(1));saveSet();applySet();relayout();};
@@ -354,6 +395,7 @@ async function openBook(id){
   if(b.type!=='pdf'&&!b.text&&__rq&&__rq.idb){
     try{const t=await __rq.idb.getText(b.id);if(typeof t==='string'){b.text=t;b0.text=t;}}catch(e){console.warn(e);}
   }
+  if(b.type==='pdf'&&b.asText&&typeof ptxtLoad==='function'){const x=await ptxtLoad(b0);if(x)b=x;} /* 05.11 «Читать текстом» (js/pdf-more.js) */
   if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
   if(b.type!=='pdf'&&!b.text){rqAlert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —

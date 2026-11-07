@@ -774,28 +774,38 @@ function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);
    Только на своём ключе человека (Джессика 20.10: «делай так, чтобы люди ставили свои ключи»). Настройки → ИИ-помощник:
    сервис, ключ, модель. Запрос идёт с телефона прямо в выбранный сервис; ключ хранится только на устройстве и не уходит
    в экспорт (arch.md 15.10 и 20.10). Ни опыта, ни монет: подсказка, не награда. В словарь — поле vocab[].ex. */
+/* 05.11 Джессика: «выдели в приложении самые доступные нейросети» — они первыми и с меткой (tag) на кнопке:
+   бесплатно = ключ без оплаты и карты, с дневным лимитом; рубли = оплата российской картой; дёшево = копейки за ответ */
 const AI_PROV={
-  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com',model:'deepseek-chat'},
-  openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat'},
+  deepseek:{name:'DeepSeek',base:'https://api.deepseek.com',model:'deepseek-chat',tag:'дёшево'},
+  gemini:{name:'Gemini',base:'https://generativelanguage.googleapis.com/v1beta/openai',model:'gemini-2.5-flash',tag:'бесплатно'},
+  openrouter:{name:'OpenRouter',base:'https://openrouter.ai/api/v1',model:'deepseek/deepseek-chat',tag:'бесплатные'},
+  yandex:{name:'YandexGPT',base:'https://llm.api.cloud.yandex.net/v1',model:'yandexgpt-lite/latest',tag:'рубли'},
   openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-4o-mini'},
   anthropic:{name:'Claude (Anthropic)',base:'https://api.anthropic.com/v1',model:'claude-haiku-5-5'},
+  /* 05.11 Джессика: «Добавь грок и яндекс в другие разделы нейросетей». Оба понимают запросы как у OpenAI.
+     YandexGPT просит ещё ID каталога Yandex Cloud: он лежит в S.ai.base (у «Другого» там адрес API), модель = gpt://<каталог>/<модель> */
+  xai:{name:'Грок',base:'https://api.x.ai/v1',model:'grok-4-1-fast-non-reasoning'},
   custom:{name:'Другой, совместимый с OpenAI',base:'',model:''}
 };
 /* 20.10 Джессика: «инструкцию как этот ключ подключить, если пользователь не знает» — шаги по сервису в «Как получить ключ» (ИИ и озвучка) */
 const KEY_SAFE='Ключ — как пароль: никому его не показывайте. В кабинете сервиса можно поставить лимит трат в месяц.';
 const KEY_HOW={
   deepseek:{url:'https://platform.deepseek.com/api_keys',steps:['Откройте сайт DeepSeek Platform по ссылке ниже и войдите (почта или телефон).','Слева «API keys» → «Create new API key», придумайте имя.','Скопируйте ключ (начинается с sk-): он показывается один раз.','Пополните баланс («Top up»): без денег на счёте ключ не работает. Объяснения стоят копейки.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Сайт открывается из России без VPN. Пополнить можно зарубежной картой или через сервисы-посредники.'},
-  openrouter:{url:'https://openrouter.ai/settings/keys',steps:['Откройте OpenRouter по ссылке ниже и войдите (Google или почта).','«Keys» → «Create Key», скопируйте ключ (sk-or-…).','Пополните «Credits». Модель по умолчанию — DeepSeek, её можно поменять в поле «Модель».','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Один ключ на много разных нейросетей.'},
+  gemini:{url:'https://aistudio.google.com/apikey',steps:['Откройте Google AI Studio по ссылке ниже и войдите своим Google-аккаунтом.','«Create API key» (если спросит проект — выберите любой или создайте), скопируйте ключ (AIza…).','Карта и оплата не нужны: бесплатно, с лимитом запросов в день.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Бесплатный ключ без карты — самый простой способ начать. Из России Google AI Studio открывается только через VPN.'},
+  openrouter:{url:'https://openrouter.ai/settings/keys',steps:['Откройте OpenRouter по ссылке ниже и войдите (Google или почта).','«Keys» → «Create Key», скопируйте ключ (sk-or-…).','Пополните «Credits». Модель по умолчанию — DeepSeek, её можно поменять в поле «Модель».','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Один ключ на много разных нейросетей. Есть бесплатные модели (в названии «:free»): «Модели списком» показывает их первыми, они работают без пополнения, с лимитом в день.'},
   openai:{url:'https://platform.openai.com/api-keys',steps:['Откройте OpenAI Platform по ссылке ниже и войдите.','«Create new secret key», скопируйте ключ (sk-…): он показывается один раз.','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить».'],note:'Из России без VPN и зарубежной карты не работает.'},
   anthropic:{url:'https://console.anthropic.com/settings/keys',steps:['Откройте консоль Anthropic по ссылке ниже и войдите.','«Create Key», скопируйте ключ (sk-ant-…).','В «Billing» пополните баланс.','Вставьте ключ сюда и нажмите «Проверить ключ».'],note:'Из России без VPN и зарубежной карты не работает.'},
   custom:{steps:['Возьмите у своего сервиса адрес API (обычно оканчивается на /v1), ключ и название модели.','Сервис должен понимать запросы как у OpenAI и пускать запросы из браузера.','Заполните три поля и нажмите «Проверить».'],note:'Для тех, кто знает, что это.'},
   elevenlabs:{url:'https://elevenlabs.io/app/settings/api-keys',steps:['Откройте ElevenLabs по ссылке ниже и войдите.','«Create API key», скопируйте ключ.','Голос по желанию: «Voices» → выберите голос → скопируйте его Voice ID в поле «Голос».','Вставьте ключ сюда и нажмите «Послушать».'],note:'Очень живые голоса, в том числе русские. На бесплатном тарифе немного знаков в месяц, потом подписка. Из России без VPN и зарубежной карты не работает.'},
-  yandex:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-tts.user.','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Голос по желанию: alena, filipp, ermil, jane, omazh, zahar, madirus.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Работает из России, оплата российской картой. Платите по числу знаков.'},
-  xai:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Голос по желанию: ara, eve, leo, rex, sal.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Тот же Грок, что в приложении X, но озвучка оплачивается отдельно по числу знаков. Из России без VPN и зарубежной карты, скорее всего, не работает.'},
+  yandex_tts:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-tts.user.','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Голос по желанию: alena, filipp, ermil, jane, omazh, zahar, madirus.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Работает из России, оплата российской картой. Платите по числу знаков.'},
+  yandex:{url:'https://console.yandex.cloud/',steps:['Откройте Yandex Cloud по ссылке ниже, войдите через Яндекс ID и создайте платёжный аккаунт (новым дают стартовый грант).','Скопируйте ID каталога: он под названием каталога на главной странице консоли (20 знаков, обычно начинается с b1g). Вставьте его в поле «ID каталога».','В каталоге: «Сервисные аккаунты» → «Создать», роль ai.languageModels.user (для озвучки ещё ai.speechkit-tts.user).','Откройте этот аккаунт → «Создать новый ключ» → «Создать API-ключ», скопируйте секрет: он показывается один раз.','Вставьте ключ сюда и нажмите «Проверить».'],note:'Работает из России, оплата российской картой. Модель по умолчанию yandexgpt-lite/latest, умнее и дороже — yandexgpt/latest. Один ключ подходит и для озвучки Яндекса.'},
+  xai:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Вставьте ключ сюда и нажмите «Проверить».'],note:'Тот же Грок, что в приложении X. Модель по умолчанию — быстрая grok-4-1-fast-non-reasoning, другие — кнопкой «Модели списком». Из России без VPN и зарубежной карты, скорее всего, не работает. Один ключ подходит и для озвучки Грока.'},
+  xai_tts:{url:'https://console.x.ai/',steps:['Откройте консоль xAI по ссылке ниже и войдите.','«API Keys» → «Create API Key», скопируйте ключ (xai-…).','Пополните баланс («Billing» → «Credits»).','Голос по желанию: ara, eve, leo, rex, sal.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Тот же Грок, что в приложении X, но озвучка оплачивается отдельно по числу знаков. Из России без VPN и зарубежной карты, скорее всего, не работает.'},
   google:{url:'https://console.cloud.google.com/apis/library/texttospeech.googleapis.com',steps:['Откройте Google Cloud по ссылке ниже, войдите и создайте проект.','Нажмите «Enable» у Cloud Text-to-Speech API (попросит привязать карту).','«APIs & Services» → «Credentials» → «Create credentials» → «API key», скопируйте ключ.','Лучше сразу ограничить ключ: только Text-to-Speech API.','Вставьте ключ сюда и нажмите «Послушать».'],note:'Каждый месяц часть знаков бесплатно. Из России без VPN и зарубежной карты не работает.'}
 };
 function keyHowHtml(k,tts){
-  const h=KEY_HOW[k];if(!h)return '';
+  const h=KEY_HOW[tts&&KEY_HOW[k+'_tts']?k+'_tts':k]; /* 05.11: у Яндекса и Грока свои шаги для озвучки */if(!h)return '';
   const steps=h.steps.map(t=>t.replace('«Проверить»',tts?'«Послушать»':'«Проверить ключ»'));
   return '<ol>'+steps.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol>'+
     (h.url?'<a href="'+esc(h.url)+'" target="_blank" rel="noopener noreferrer">'+esc(h.url.replace(/^https:\/\//,''))+'</a>':'')+
@@ -804,7 +814,9 @@ function keyHowHtml(k,tts){
 function aiProv(){const p=S.ai&&S.ai.prov;return AI_PROV[p]?p:'openai';} /* старые данные без prov — это OpenAI (v6) */
 function aiModel(){return (S.ai&&S.ai.model)||AI_PROV[aiProv()].model;}
 function aiBase(){const p=aiProv();return String((p==='custom'?(S.ai&&S.ai.base):AI_PROV[p].base)||'').replace(/\/+$/,'');}
-function aiOwnKey(){return !!(S.ai&&S.ai.key)&&!!aiBase();}
+function aiYaFolder(){const f=String((S.ai&&S.ai.base)||'').trim().toLowerCase();return /^[a-z0-9]{20}$/.test(f)?f:'';} /* ID каталога: 20 букв и цифр, обычно b1g… */
+function aiOwnKey(){return !!(S.ai&&S.ai.key)&&!!aiBase()&&(aiProv()!=='yandex'||!!aiYaFolder());}
+function aiNoBaseMsg(short){return aiProv()==='yandex'?(short?'Нет ID каталога':'Укажите ID каталога'):(short?'Нет адреса API':'Укажите адрес API');}
 function aiOn(){return aiOwnKey();}
 const AI_CACHE={};let aiCur=null,aiSeq=0;
 function selCtx(word){ /* предложение вокруг выделения (как у «В словарь») */
@@ -815,15 +827,42 @@ function selCtx(word){ /* предложение вокруг выделения
 }
 el('spAI').onclick=()=>{
   const t=rqSelPlain()||selText();if(!t)return;
-  if(!aiOn()){selDone();aiNoKey();return;}
   const q={text:t.replace(/\s+/g,' ').slice(0,600),ctx:selCtx(t.trim()),title:((R.book||{}).title||'').slice(0,200),author:(bookAuthor(R.book||{})||'').slice(0,120)};
+  aiBackCtx({frag:q.text,n:typeof hlSelN==='function'?hlSelN(t.trim()):0});
+  if(!aiOn()){selDone();const ask=aiMsgs(q).user+'\n\nОбъясни простым языком, 2–4 предложения, без спойлеров.';if(aiVia()){aiElseGo(aiVia(),ask);return;}aiNoKey(ask);return;} /* 05.11 своя нейросеть — сразу, без окна */
   selDone();
   aiExplain(q);
 };
-function aiNoKey(){ /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает) */
+/* 05.11 Джессика: «подсоединить экран нейросети из другого приложения», выбрала «Оба способа». Показать чужой чат внутри читалки
+   нельзя (сайты запрещают открывать себя в чужом окне), поэтому без ключа: открыть ChatGPT/Грок/Claude/DeepSeek/Алису в своём
+   аккаунте человека с готовым вопросом, или «Поделиться» в любое приложение. Вопрос всегда копируется: где сайт не берёт его
+   из ссылки, его вставляют сами. Ничего не уходит, пока человек сам не нажмёт. */
+const AI_ELSE=[
+  ['chatgpt','ChatGPT','https://chatgpt.com/?q='],
+  ['grok','Грок','https://grok.com/?q='],
+  ['claude','Claude','https://claude.ai/new?q='],
+  ['deepseek','DeepSeek','https://chat.deepseek.com/'],
+  ['alice','Алиса','https://alice.yandex.ru/']
+];
+function aiElseUrl(id,txt){const s=AI_ELSE.find(function(x){return x[0]===id;});if(!s)return '';return /=$/.test(s[2])?s[2]+encodeURIComponent(String(txt).slice(0,1800)):s[2];}
+async function aiElseCopy(txt){try{await navigator.clipboard.writeText(txt);return true;}catch(e){return false;}}
+function aiElseHtml(){return '<div class="ai-else"><div class="ai-note">Без ключа — в своём аккаунте нейросети, вопрос уже готов:</div><div class="ai-else-row">'+
+  AI_ELSE.map(function(s){return '<button type="button" class="fchip" data-ai-else="'+s[0]+'">'+esc(s[1])+'</button>';}).join('')+
+  '<button type="button" class="fchip" data-ai-else="share">'+rqIcon('share-2',14)+' Поделиться</button></div></div>';}
+function aiElseBind(box,txt){
+  box.querySelectorAll('[data-ai-else]').forEach(function(b){b.onclick=async function(){const id=b.getAttribute('data-ai-else');aiBackArm({q:txt});
+    if(id==='share'){if(navigator.share){try{await navigator.share({text:txt});}catch(e){}return;}
+      flashMsg(await aiElseCopy(txt)?'Вопрос скопирован, вставьте его в приложение нейросети':'Телефон не дал поделиться');return;}
+    const u=aiElseUrl(id,txt),cp=await aiElseCopy(txt);window.open(u,'_blank','noopener');
+    if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');};});
+}
+function aiElseGo(id,txt){aiBackArm({q:txt});const u=aiElseUrl(id,txt);aiElseCopy(txt).then(function(cp){if(!/[?]q=/.test(u))flashMsg(cp?'Вопрос скопирован: вставьте его в чат долгим нажатием':'Скопируйте вопрос вручную');});window.open(u,'_blank','noopener');}
+function aiVia(){try{const v=aiPref().via;return AI_ELSE.some(function(x){return x[0]===v;})?v:'';}catch(e){return '';}}
+function aiNoKey(ask){aiTitle('Объясни'); /* ключа нет: объясняем, где его вставить (кнопка видна всем — иначе про функцию никто не узнает); ask — готовый вопрос для «без ключа» */
   aiCur=null;aiSeq++;
-  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ объяснял слова и фразы из книги, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
-    '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>';
+  el('aiBody').innerHTML='<div class="ai-a">Чтобы ИИ отвечал прямо в книге, вставьте свой ключ от сервиса ИИ (например, DeepSeek) в Настройках, раздел «ИИ-помощник». Там же написано, как его получить.</div>'+
+    '<button class="ghostbtn" id="aiOpenSet">'+rqIcon('settings',16)+' Открыть настройки</button>'+(ask?aiElseHtml():'');
+  if(ask)aiElseBind(el('aiBody'),ask);
   el('aiSheet').classList.remove('hidden');
   el('aiOpenSet').onclick=()=>{el('aiSheet').classList.add('hidden');NN_EXP.ai=true;openGeneralSettings(true);el('aiHow').open=true;settingsScrollTo('aiHead');};
 }
@@ -835,11 +874,13 @@ function aiRender(state,txt){
      :state==='err'?'<div class="ai-a" role="alert">'+esc(txt)+'</div><button class="ghostbtn" id="aiRetry">'+rqIcon('rotate-cw',16)+' Ещё раз</button>'
      :'<div class="ai-a">'+esc(txt)+'</div>'+
       (word&&R.book?'<button class="ghostbtn" id="aiToVocab">'+rqIcon('book-open',16)+' В словарь с объяснением</button>':'')+
-      '<div class="ai-note">Ответ ИИ, может ошибаться</div>');
+      '<div class="ai-note">Ответ ИИ, может ошибаться</div>')+(state==='err'?aiElseHtml():''); /* ключ не сработал — можно спросить в своём аккаунте */
+  if(state==='err'){aiBackCtx({frag:q.text});}
+  if(state==='err')aiElseBind(el('aiBody'),aiMsgs(q).user+'\n\nОбъясни простым языком, без спойлеров.');
   if(el('aiRetry'))el('aiRetry').onclick=()=>aiExplain(q,true);
   if(el('aiToVocab'))el('aiToVocab').onclick=()=>aiToVocab(q,txt);
 }
-async function aiExplain(q,again){
+async function aiExplain(q,again){aiTitle('Объясни');
   aiCur=q;const my=++aiSeq;const k=q.title+'\n'+q.text;
   el('aiSheet').classList.remove('hidden');
   if(AI_CACHE[k]&&!again){aiRender('ok',AI_CACHE[k]);return;}
@@ -864,27 +905,75 @@ async function aiFetch(url,opt){
   finally{clearTimeout(tm);}
 }
 async function aiViaKey(m,maxTok){ /* свой ключ: запрос прямо с телефона в выбранный сервис. m = {system, user} или {system, messages:[{role,content}]} */
-  const p=aiProv(),key=S.ai.key,model=aiModel();let r;
+  const p=aiProv(),key=nnKeyClean(S.ai.key),model=aiModel();if(nnKeyBad(key))throw new Error(nnKeyBad(key));let r;
   const msgs=m.messages||[{role:'user',content:m.user}];
   if(p==='anthropic'){
     r=await aiFetch(aiBase()+'/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:model,max_tokens:maxTok||500,system:m.system,messages:msgs})});
   }else{
+    const mo=p==='yandex'&&!/^gpt:\/\//.test(model)?'gpt://'+aiYaFolder()+'/'+model:model;
     r=await aiFetch(aiBase()+'/chat/completions',{method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({model:model,max_tokens:maxTok||500,messages:[{role:'system',content:m.system}].concat(msgs)})});
+      headers:Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+key},p==='yandex'?{'OpenAI-Project':aiYaFolder()}:{}),
+      body:JSON.stringify({model:mo,max_tokens:maxTok||500,messages:[{role:'system',content:m.system}].concat(msgs)})});
   }
   let d=null;try{d=await r.json();}catch(e){}
-  if(r.status===401||r.status===403)throw new Error('сервис не принял ключ');
-  if(r.status===402)throw new Error('на счёте сервиса нет денег');
-  if(r.status===429)throw new Error('слишком много запросов, попробуйте позже');
-  const em=d&&d.error&&(d.error.message||(typeof d.error==='string'?d.error:''));
-  if(!r.ok||em)throw new Error(em||('сервис ответил '+r.status));
+  if(!r.ok)throw new Error(nnHttpErr(r.status,d,key)||('сервис ответил '+r.status));
+  const em=d&&d.error&&(d.error.message||(typeof d.error==='string'?d.error:''));if(em)throw new Error(String(em).slice(0,120));
   const t=p==='anthropic'?((d&&d.content||[]).filter(c=>c&&c.type==='text').map(c=>c.text).join('')):
     ((d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'');
   return String(t).trim().slice(0,m.cap||2000); /* 28.10: «Текст страницы» через ИИ — вся страница (m.cap) */
 }
+/* --- 05.11 «обратная дорога» (Джессика: «посредник… направлять запрос из читалки в нейросеть и обратно» → «Делай обратную дорогу»).
+   Вопрос ушёл в ChatGPT/Грок/… (кнопки «Спросить в…», «Поделиться», «Вопрос» на половине экрана) — читалка помнит, откуда (AI_BACK:
+   книга, фрагмент, номер его вхождения n, страница; sessionStorage, 45 минут). Внизу читалки плашка «Ответ нейросети — вставить»:
+   тап читает буфер (или поле, куда вставить руками), ответ можно положить заметкой к цитате на этом месте, в словарь (к слову) или в дневник.
+   Ничего не уходит в сеть; ни опыта, ни монет — как у остального ИИ. */
+let AI_BACK=null,AI_BACK_CTX=null;const AI_BACK_TTL=45*60*1000;
+function aiTitle(t){const h=el('aiSheet')&&el('aiSheet').querySelector('h3');if(h)h.innerHTML=rqIcon('sparkles',18)+' '+esc(t);}
+function aiBackCtx(o){AI_BACK_CTX=Object.assign({},o||{});}
+function aiBackArm(extra){if(!R.book)return;const p=R.page||0;
+  AI_BACK=Object.assign({bid:R.book.id,title:R.book.title||'',pdf:R.mode==='pdf',page:p,ratio:R.pageCount>1?p/(R.pageCount-1):0,at:Date.now()},AI_BACK_CTX||{},extra||{});
+  try{sessionStorage.setItem('rqAiBack',JSON.stringify(AI_BACK));}catch(e){}
+  setTimeout(aiBackShow,1200);}
+function aiBackGet(){if(!AI_BACK){try{AI_BACK=JSON.parse(sessionStorage.getItem('rqAiBack')||'null');}catch(e){}}
+  if(AI_BACK&&(!AI_BACK.at||Date.now()-AI_BACK.at>AI_BACK_TTL)){aiBackDrop();return null;}return AI_BACK;}
+function aiBackDrop(){AI_BACK=null;try{sessionStorage.removeItem('rqAiBack');}catch(e){}const c=el('aiBackChip');if(c)c.hidden=true;}
+function aiBackShow(){const b=aiBackGet(),r=el('reader');let c=el('aiBackChip');
+  const on=!!b&&r&&!r.classList.contains('hidden')&&R.book&&R.book.id===b.bid;
+  if(!c){if(!on)return;c=document.createElement('div');c.id='aiBackChip';c.setAttribute('role','group');c.setAttribute('aria-label','Ответ нейросети');
+    c.innerHTML='<button type="button" id="aiBackGo">'+rqIcon('clipboard',18)+'<span>Ответ нейросети — вставить</span></button><button type="button" id="aiBackX" aria-label="Не нужно">'+rqIcon('x',18)+'</button>';
+    r.appendChild(c);el('aiBackGo').onclick=aiBackPaste;el('aiBackX').onclick=aiBackDrop;}
+  c.hidden=!on;}
+async function aiBackPaste(){const b=aiBackGet();if(!b)return;let t='';
+  try{t=String(await navigator.clipboard.readText()||'').trim();}catch(e){}
+  if(t&&b.q&&t===b.q.trim())t=''; /* в буфере ещё наш же вопрос */
+  aiBackSheet(t);}
+function aiBackSheet(t){const b=aiBackGet();if(!b)return;aiCur=null;aiSeq++;aiTitle('Ответ нейросети');
+  const here=R.book&&R.book.id===b.bid,canQ=here&&!b.pdf&&!!b.frag,canW=!!b.frag&&b.frag.length<=60,canD=typeof qDiaryOn==='function'&&qDiaryOn();
+  el('aiBody').innerHTML=(b.frag?'<div class="ai-q">«'+esc(b.frag.length>160?b.frag.slice(0,160)+'…':b.frag)+'»</div>':'')+
+    '<textarea id="aiBackTx" class="searchinp" rows="6" placeholder="Скопируйте ответ в нейросети и вставьте сюда долгим нажатием" aria-label="Ответ нейросети"></textarea>'+
+    (t?'':'<div class="ai-note">'+(b.q?'В буфере пока нет ответа. ':'')+'Скопируйте ответ в нейросети и вставьте его сюда.</div>')+
+    '<div class="ai-back-row">'+(canQ?'<button class="ghostbtn" id="aiBackQ">'+rqIcon('quote',16)+' Заметкой к цитате</button>':'')+
+    (canW?'<button class="ghostbtn" id="aiBackW">'+rqIcon('book-open',16)+' В словарь</button>':'')+
+    (canD?'<button class="ghostbtn" id="aiBackD">'+rqIcon('notebook-pen',16)+' В дневник</button>':'')+'</div>';
+  el('aiBackTx').value=t.slice(0,8000);el('aiSheet').classList.remove('hidden');
+  const get=function(){const v=el('aiBackTx').value.trim();if(!v){flashMsg('Сначала вставьте ответ');el('aiBackTx').focus();}return v;};
+  if(el('aiBackQ'))el('aiBackQ').onclick=function(){const v=get();if(v)aiBackToQuote(b,v);};
+  if(el('aiBackW'))el('aiBackW').onclick=function(){const v=get();if(!v)return;aiToVocab({text:b.frag,ctx:'',title:b.title},v);aiBackDone();};
+  if(el('aiBackD'))el('aiBackD').onclick=function(){const v=get();if(v)aiBackToDiary(b,v);};
+}
+function aiBackDone(){aiBackDrop();el('aiSheet').classList.add('hidden');}
+function aiBackToQuote(b,v){const bid=b.bid,qs=(S.quotes[bid]=S.quotes[bid]||[]),n=b.n||0,note=v.slice(0,4000);
+  const old=qs.find(function(x){return x.text===b.frag&&!x.pdf&&(x.n||0)===n;});
+  if(old){old.note=old.note?old.note+'\n\n'+note:note;save();}
+  else{const c=hlKey(SET.hlc),q={text:b.frag,note:note,date:today(),c:c};if(n>0)q.n=n;qs.push(q);(S.hl[bid]=S.hl[bid]||[]).push(b.frag);
+    if(typeof diaryAuto==='function')diaryAuto(bid);save();if(R.book&&R.book.id===bid&&typeof markInContent==='function')try{markInContent(b.frag,c,n);}catch(e){}}
+  flashMsg('Ответ сохранён заметкой к цитате',{kind:'info',icon:'quote'});aiBackDone();}
+function aiBackToDiary(b,v){const y=diaryOf(b.bid)||diaryNew({b:b.bid});const e=dyNewEntry(y,'',{pg:(b.page||0)+1,r:b.ratio||0});
+  e.x=((b.frag?'> '+b.frag+'\n\n':'')+v).slice(0,20000);dyTouch(y);flashMsg('Записано в дневник',{kind:'info',icon:'notebook-pen'});aiBackDone();}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')aiBackShow();});
+window.addEventListener('focus',aiBackShow);
 function aiToVocab(q,ex){
   const word=q.text.trim().slice(0,60);if(!word)return;
   S.vocab=S.vocab||[];
@@ -924,7 +1013,8 @@ function chatRender(wait){
 }
 function openAiChat(){
   if(!R.book)return;
-  if(!aiOn()){aiNoKey();return;}
+  aiBackCtx({});
+  if(!aiOn()){const ask=('Давай обсудим книгу «'+R.book.title+'»'+(bookAuthor(R.book)?' ('+bookAuthor(R.book)+')':'')+'. Я её читаю и сейчас примерно на '+Math.max(1,Math.round(100*(R.page+1)/Math.max(1,R.pageCount)))+'%. Не рассказывай, что будет дальше, без спойлеров. Мой вопрос: ');if(aiVia()){aiElseGo(aiVia(),ask);return;}aiNoKey(ask);return;}
   chatErr=null;el('aiChat').classList.remove('hidden');chatRender(chatBusy);
 }
 async function chatSend(txt){
@@ -976,7 +1066,7 @@ async function removeBook(id,wipeFile){
     :{t:'Убрать «'+b.title+'»?',p:'Прогресс и цитаты по этой книге удалятся. Файл на устройстве останется.',ok:'Убрать',danger:true}))return;
   if(builtin){if(!S.hidden.includes(id))S.hidden.push(id);}
   else{S.userBooks=S.userBooks.filter(x=>x.id!==id);}
-  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];if(S.chars)delete S.chars[id];
+  delete S.progress[id];delete S.quotes[id];if(S.aiChat)delete S.aiChat[id];delete S.hl[id];delete S.stickers[id];delete S.marks[id];if(S.chars)delete S.chars[id];if(S.ink)delete S.ink[id];if(S.stk)delete S.stk[id];
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */
@@ -986,7 +1076,7 @@ async function removeBook(id,wipeFile){
 }
 
 /* ================= СТАТИСТИКА ================= */
-let statPeriod=7;
+let statPeriod=7,stPerInit=false;
 function histDays(n){
   const out=[];
   for(let i=n-1;i>=0;i--){
@@ -995,14 +1085,26 @@ function histDays(n){
   }
   return out;
 }
+const RQ_MON3=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+/* 06.11: a long period is drawn by weeks (32–186 days) or by months (> 186), so the bars stay readable */
+function chartBuckets(days){
+  if(days.length<=31)return days;
+  const byMonth=days.length>186,out=[];let cur=null;
+  days.forEach((x,i)=>{const k=byMonth?x.d.slice(0,7):Math.floor((days.length-1-i)/7);
+    if(!cur||cur.k!==k){cur={k:k,d:x.d,lbl:byMonth?RQ_MON3[+x.d.slice(5,7)-1]:x.d.slice(8)+'.'+x.d.slice(5,7),v:{}};out.push(cur);}
+    Object.keys(x.v||{}).forEach(f=>{cur.v[f]=(cur.v[f]||0)+(+x.v[f]||0);});});
+  return out;
+}
 function renderChart(id,days,key,color){
-  const mx=Math.max(1,...days.map(x=>x.v[key]||0));
+  days=chartBuckets(days);
+  const mx=Math.max(1,...days.map(x=>x.v[key]||0)),n=days.length,every=n<=8?1:n<=16?3:n<=31?5:Math.ceil(n/5);
+  el(id).classList.toggle('dense',n>16);
   el(id).innerHTML=days.map((x,i)=>{
     const val=Math.round(x.v[key]||0);
-    const showLbl=days.length<=7||i%5===0;
+    const showLbl=every===1||(n-1-i)%every===0;
     return '<div class="bar" style="height:'+Math.max(2,Math.round((x.v[key]||0)/mx*100))+'%;background:'+color+'" title="'+x.d+': '+val+'">'+
-      (days.length<=7&&val?'<span>'+val+'</span>':'')+
-      (showLbl?'<i>'+x.d.slice(8)+'</i>':'')+'</div>';
+      (n<=8&&val?'<span>'+val+'</span>':'')+
+      (showLbl?'<i>'+(x.lbl||x.d.slice(8))+'</i>':'')+'</div>';
   }).join('');
 }
 function renderAnaHours(){
@@ -1045,10 +1147,12 @@ function renderYearReview(){
 }
 if(el('btnYearReview'))el('btnYearReview').onclick=renderYearReview;
 function renderStats(){
+  if(!stPerInit){stPerInit=true;const v=Math.round(+((typeof SET!=='undefined'&&SET&&SET.statDays)||0));if(v>=3&&v<=365)statPeriod=v;}
   const days=histDays(statPeriod);
   el('statCounters').innerHTML=statCountersHtml();
-  el('stP7').classList.toggle('on',statPeriod===7);
-  el('stP30').classList.toggle('on',statPeriod===30);
+  if(el('stPerTxt')){el('stPerTxt').textContent=stPerLabel(statPeriod);el('stPerRange').value=statPeriod;
+    el('stPerNote').textContent=statPeriod+' '+plural(statPeriod,'день','дня','дней')+' · '+(statPeriod>186?'столбик = месяц':statPeriod>31?'столбик = неделя':'столбик = день');
+    el('stPerQuick').querySelectorAll('[data-d]').forEach(q=>q.classList.toggle('on',+q.dataset.d===statPeriod));}
   el('stkMin').textContent=Math.round(S.totalMin);
   el('stkPages').textContent=S.totalPages;
   el('stkSpeed').textContent=S.totalMin>0?(S.totalPages/(S.totalMin/60)).toFixed(1):'0';
@@ -1070,8 +1174,16 @@ function renderStats(){
     }).join('')
     :'<div class="pempty">Почитайте — здесь появится разбивка по книгам</div>';
 }
-el('stP7').onclick=()=>{statPeriod=7;renderStats();};
-el('stP30').onclick=()=>{statPeriod=30;renderStats();};
+/* 06.11 (Джессика: «убрать 7/30 дней… более точно настраивать количество дней… эстетичнее»): the period is one line above the charts;
+   tap it → quick picks (неделя … год) and any number of days 3–365 (slider + −/+). Remembered in SET.statDays. */
+function stPerSet(n){n=Math.max(3,Math.min(365,Math.round(+n)||7));statPeriod=n;SET.statDays=n;if(typeof saveSet==='function')saveSet();renderStats();}
+function stPerLabel(n){return n===7?'за неделю':n===14?'за 2 недели':n===30?'за месяц':n===90?'за 3 месяца':n===365?'за год':'за '+n+' '+plural(n,'день','дня','дней');}
+(function(){const b=el('stPerBtn'),pn=el('stPerPane');if(!b||!pn)return;
+  b.onclick=()=>{pn.hidden=!pn.hidden;b.setAttribute('aria-expanded',String(!pn.hidden));};
+  el('stPerQuick').onclick=e=>{const q=e.target.closest('[data-d]');if(q)stPerSet(+q.dataset.d);};
+  el('stPerRange').oninput=e=>stPerSet(e.target.value);
+  el('stPerMinus').onclick=()=>stPerSet(statPeriod-1);el('stPerPlus').onclick=()=>stPerSet(statPeriod+1);
+})();
 
 /* ================= FB2 ================= */
 /* 28.10 (ревизия чтения): the encoding is read from the XML header in either quotes (encoding='windows-1251' gave «������»), a UTF-16 BOM is

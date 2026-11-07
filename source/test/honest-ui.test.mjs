@@ -99,6 +99,35 @@ ok('флаг включён на тестовом сайте', await (await fres
   ok('«Кнопка паузы» выключена → кнопки нет', await p.evaluate(() => document.getElementById('rqPause').hidden));
   await close(p); await p.__ctx.close(); }
 
+// 4б. 06.11 (Джессика: «я просто листал настройки… пусть таймер не засчитывает чтение»; «меньше 1 минуты, и мне дали 10 опыта»)
+{ const p = await fresh(); await open(p);
+  const cnt = () => p.evaluate(() => ({ c: __tracker.snapshot().counting, ms: Math.round(__tracker.snapshot().countedMs / 1000) }));
+  await adv(p, 30000); await turn(p); await sleep(900);
+  const a0 = await cnt();
+  await p.evaluate(() => openReaderSettings(null)); await sleep(1200);
+  const a1 = await cnt(); await adv(p, 180000); await sleep(100); const a2 = await cnt();
+  if (SHOTS) await p.screenshot({ path: SHOTS + '/7-nastroyki-chteniya-390.png' });
+  await p.evaluate(() => document.getElementById('sheet').classList.add('hidden')); await sleep(1200);
+  const a3 = await cnt();
+  ok('06.11: открыты настройки чтения → счёт стоит, 3 мин в настройках не засчитаны; закрыла → счёт идёт', a0.c && !a1.c && a2.ms === a1.ms && a3.c, { a0, a1, a2, a3 });
+  await p.evaluate(() => openGeneralSettings(true)); await sleep(1200);
+  const g1 = await cnt(); await adv(p, 120000); await sleep(100); const g2 = await cnt();
+  await p.evaluate(() => { document.getElementById('settings').classList.add('hidden'); }); await sleep(1200);
+  const g3 = await cnt();
+  ok('06.11: общие настройки поверх книги → счёт стоит, закрыла → идёт', !g1.c && g2.ms === g1.ms && g3.c, { g1, g2, g3 });
+  await p.evaluate(() => { const pc = document.getElementById('panel'); renderPanel('toc'); pc.classList.remove('hidden'); }); await sleep(1200);
+  const t1 = await cnt(); await p.evaluate(() => document.getElementById('panel').classList.add('hidden')); await sleep(1200); const t2 = await cnt();
+  ok('06.11: оглавление открыто → счёт стоит', !t1.c && t2.c, { t1, t2 });
+  await p.evaluate(() => { if (typeof showChrome === 'function') showChrome(); }); await sleep(1200);
+  ok('06.11: верхняя и нижняя полоски сами по себе счёт не останавливают', (await cnt()).c);
+  await close(p); await done(p); await p.__ctx.close(); }
+{ const p = await fresh(); await open(p);
+  let fl = ''; await p.exposeFunction('__fl3', t => { fl = t; }); await p.evaluate(() => { const f = flashMsg; window.flashMsg = function (t, o) { window.__fl3(String(t)); return f(t, o); }; });
+  for (let i = 0; i < 3; i++) { await adv(p, 15000); await turn(p); await sleep(40); } await adv(p, 5000);
+  await close(p); const s = await state(p);
+  ok('06.11: 3 страницы за 50 с → ни строки, ни опыта, «Меньше минуты чтения»', s.rows === 0 && s.xp === 0 && /Меньше минуты/.test(fl), { s, fl });
+  await p.__ctx.close(); }
+
 // 5. Мини-проверка: 16 мин и 8 страниц → карточка; вопрос и проверка через свой ключ (fetch подменён) → +20 XP раз в день
 async function quizRun(w, h, shot) {
   const p = await fresh(w, h);
@@ -130,6 +159,14 @@ async function quizRun(w, h, shot) {
 }
 await quizRun(390, 844, true);
 await quizRun(360, 740, true);
+
+// 06.11 автолистание без касаний (пункт 6): страницы после 5 мин без касаний не засчитаны, в итоге сессии об этом сказано
+{ const p = await fresh(); await open(p); await p.evaluate(() => rmAutoStart()); await sleep(200);
+  for (let i = 0; i < 8; i++) { await adv(p, 60000); await turn(p); await sleep(40); }
+  await p.evaluate(() => rmAutoStop()); await close(p);
+  const r = await p.evaluate(async () => { const rows = await __rq.listSessions({}); return { au: rows.length ? rows[rows.length - 1].au : null, note: document.getElementById('sumNote').textContent }; });
+  ok('автолистание 8 мин без касаний: au ≥ 3, в итоге «без касаний экрана»', r.au >= 3 && /автолистания без касаний/.test(r.note), r);
+  await p.__ctx.close(); }
 
 // 6. Без ключа: карточка ведёт в настройки
 { const p = await fresh(); await open(p); for (let i = 0; i < 8; i++) { await adv(p, 120000); await turn(p); await sleep(40); } await close(p);

@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 HOST="${RQ_HOST:-http://127.0.0.1:8767}"
 BUILD="${RQ_BUILD:-$(date +%Y%m%d-%H%M)}"
 (cd .. && RQ_BUILD=$BUILD ./build-dist.sh >/dev/null && RQ_NS=rqt RQ_BUILD=$BUILD ./build-dist.sh >/dev/null) || { echo "build failed"; exit 1; }
-ALL="menu modes export honest honest-ui export-test reset-timeout names savetext scriptv cap awards lvl golden back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 ellada babochkovyi celestial alisa pencil2 headers nightbtn profbits skinsplit remindrow themecolors drawer uifix nav mvpflag extra achgate ach ach2 setentry expand qhint bookcard lvlcard sysback rowfix gatepick libhead blackcanvas importskin import-many path mvp-check audit1 audit2 pdf pdf-test pwa noemoji adv adv2 adv3 adv4 adv5 hero ai selpop hlcolor sliders pdfhl quotetap bookfind translate focus focusui selpage readfix copy ocr panelfade quotelist quotemore diary overview settingshub readextras goalextras nnextras readmore readmore2"
+ALL="menu modes export honest honest-ui export-test reset-timeout names savetext scriptv cap awards lvl golden back resume hyph begin summary streak-reset android stage1b tts dayring themes pencil small-batch shop shop-storage shop2 ellada babochkovyi celestial alisa pencil2 headers statshead nightbtn profbits skinsplit remindrow themecolors drawer uifix nav mvpflag extra achgate ach ach2 setentry expand qhint bookcard lvlcard sysback rowfix gatepick libhead blackcanvas importskin import-many path mvp-check audit1 audit2 pdf pdf-test pwa noemoji adv adv2 adv3 adv4 adv5 hero ai selpop hlcolor sliders pdfhl quotetap bookfind translate focus focusui selpage readfix copy ocr panelfade quotelist quotemore diary overview settingshub readextras goalextras nnextras readmore readmore2 pdfmore dict dict2 tools autoscroll ttsplus piper rank rankui"
 SEL="${*:-$ALL}"
 LOG="/tmp/rq-runall/$BUILD"; mkdir -p "$LOG"; rc=0  # per-run log dir: a rerun never overwrites the logs of a failed run
 for t in $SEL; do
@@ -69,6 +69,7 @@ for t in $SEL; do
     alisa)        cmd="env RQ_URL=$HOST/readquest/test/ node alisa.test.mjs";;
     pencil2)      cmd="env RQ_URL=$HOST/readquest/test/ node pencil2.test.mjs";;
     headers)      cmd="env RQ_URL=$HOST/readquest/test/ node headers.test.mjs";;
+    statshead)    cmd="env RQ_URL=$HOST/readquest/test/ node statshead.test.mjs";;
     nightbtn)     cmd="env RQ_URL=$HOST/readquest/test/ node nightbtn.test.mjs";;
     profbits)     cmd="env RQ_URL=$HOST/readquest/test/ node profbits.test.mjs";;
     skinsplit)    cmd="env RQ_URL=$HOST/readquest/test/ node skinsplit.test.mjs";;
@@ -79,12 +80,15 @@ for t in $SEL; do
     quotemore)    cmd="env RQ_URL=$HOST/readquest/test/ node quotemore.test.mjs";;
     copy)         cmd="env RQ_URL=$HOST/readquest/test/ node copy.test.mjs";;
     ocr)          cmd="env RQ_URL=$HOST/readquest/test/ node ocr.test.mjs";;
+    pdfmore)      cmd="env RQ_URL=$HOST/readquest/test/ node pdfmore.test.mjs";;
     panelfade)    cmd="env RQ_URL=$HOST/readquest/test/ node panelfade.test.mjs";;
     overview)     cmd="env RQ_URL=$HOST/readquest/test/ node overview.test.mjs";;
     settingshub)  cmd="env RQ_URL=$HOST/readquest/test/ node settingshub.test.mjs";;
     readextras)   cmd="env RQ_URL=$HOST/readquest/test/ node readextras.test.mjs";;
     readmore)     cmd="env RQ_URL=$HOST/readquest/test/ node readmore.test.mjs";;
     readmore2)    cmd="env RQ_URL=$HOST/readquest/test/ node readmore2.test.mjs";;
+    dict)         cmd="env RQ_URL=$HOST/readquest/test/ node dict.test.mjs";;
+    dict2)        cmd="env RQ_URL=$HOST/readquest/test/ node dict2.test.mjs";;
     goalextras)   cmd="env RQ_URL=$HOST/readquest/test/ node goalextras.test.mjs";;
     nnextras)     cmd="env RQ_URL=$HOST/readquest/test/ node nnextras.test.mjs";;
     hlcolor)      cmd="env RQ_URL=$HOST/readquest/test/ node hlcolor.test.mjs";;
@@ -98,6 +102,12 @@ for t in $SEL; do
     blackcanvas)  cmd="node blackcanvas.test.mjs";;
     focus)        cmd="node focus.test.mjs";;
     focusui)      cmd="env RQ_URL=$HOST/readquest/test/ RQ_MAIN_URL=$HOST/readquest/ node focusui.test.mjs";;
+    tools)        cmd="env RQ_URL=$HOST/readquest/test/ node tools.test.mjs";;
+    rank)         cmd="node rank.test.mjs";;
+    rankui)       cmd="env RQ_URL=$HOST/readquest/test/ node rankui.test.mjs";;
+    autoscroll)   cmd="env RQ_URL=$HOST/readquest/test/ node autoscroll.test.mjs";;
+    ttsplus)      cmd="env RQ_URL=$HOST/readquest/test/ node ttsplus.test.mjs";;
+    piper)        cmd="env RQ_URL=$HOST/readquest/test/ node piper.test.mjs";; # без RQ_PIPER_DIR (npm onnxruntime-web, piper-wasm, маленькая модель) — SKIP
     bookfind)     cmd="env RQ_URL=$HOST/readquest/test/ node bookfind.test.mjs";;
     hero)         cmd="env RQ_URL=$HOST/readquest/test/ node hero.test.mjs";;
     ai)           cmd="env RQ_URL=$HOST/readquest/test/ node ai.test.mjs";;

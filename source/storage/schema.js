@@ -71,6 +71,8 @@ export const PROGRESS_DEF = {
   diaries: [],
   /** 25.10: у книги сам заводится дневник при первой цитате или закладке */
   diaryAuto: true,
+  /** 06.11: порядок полки дневников recent|title|entries */
+  diarySort: 'recent',
   /** 28.10 «Цитата дня» на главной: день (YYYY-MM-DD), до конца которого она скрыта (✕); null = показывается */
   qdayOff: null,
   /** 29.10 «Герои книги» (боковое меню выделения, js/sel-tools.js): id → names the reader marked, ≤ 200 per book, a name ≤ 40 */
@@ -82,6 +84,10 @@ export const PROGRESS_DEF = {
   quotes: {},
   hl: {},
   stickers: {},
+  /** 06.11 «Перо для полей» (arch.md): {<book id>: {<page 1…>: [{c, w, p:[x,y,…]}]}} — x, y in 0…1000 of the page view */
+  ink: {},
+  /** 06.11 «Наборы стикеров» (arch.md): {<book id>: [{p: page 1…, s: sticker id, x, y: 0…1000}]} (the old `stickers` field is left as it is) */
+  stk: {},
   favs: [],
   lastBackup: null,
   backupNag: true,     // 29.10 «Напоминать о копии» (arch.md backupNag)
@@ -165,7 +171,7 @@ export const GAME_DEF = {
   ai: null,
   /** arch.md 20.10: нейросетевая озвучка {prov, key, voice, base} */
   tts: null,
-  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo}, normAiPref
+  aiPref: null, // 29.10 «Нейросети» (arch.md aiPref): {len,tone,lang,spoil,lim,use,trTo,via}, normAiPref
   ux: null,
   appTheme: 'teal',
   pixelOwned: false,
@@ -175,6 +181,8 @@ export const GAME_DEF = {
   char: {},
   vocab: [],
   devMoney: false,
+  /** 06.11 «Инструменты читателя» (arch.md): {own, n, parts, pf, drop, hg, sh, sel, pin, on, rw}, normTools */
+  tools: null,
 };
 
 /**
@@ -223,7 +231,9 @@ export const SET_DEF = {
   bookSet: {},       // 29.10 «Только к этой книге» (arch.md SET.bookSet): {<book id>: {...}} ≤ 200, normBookSet
   wsp: 0,           // 05.11 между словами, px 0…8 (arch.md SET.wsp)
   psp: 0,           // 05.11 между абзацами, em 0…1.5 шаг 0.25 (arch.md SET.psp)
+  tp: null,          // 07.11 озвучка+ (js/tts-plus.js), normTp
   rm: null,          // 05.11 «ещё для чтения» (arch.md SET.rm, js/read-more.js), normRm
+  half: null,        // 05.11 половина экрана (arch.md SET.half): {on,size,margin}, normHalf
   rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,sm,spd}, normRx
   flip: null,        // 15.10 (Архитектор): page-turn settings {btns,tap,invert,swipe} + 16.10 {mode,anim}; null = default FLIP_DEF
 };
@@ -309,7 +319,7 @@ export function normAiPref(o) {
   const en = (v, a) => (a.includes(v) ? v : a[0]), int = (v, hi) => (Number.isInteger(v) && v >= 0 ? Math.min(hi, v) : 0);
   return { len: en(o.len, ['short', 'long']), tone: en(o.tone, ['simple', 'expert']), lang: en(o.lang, ['ru', 'en', 'book']), spoil: typeof o.spoil === 'boolean' ? o.spoil : true, lim: int(o.lim, 500),
     use: { m: typeof u.m === 'string' && /^\d{4}-\d\d$/.test(u.m) ? u.m : '', n: int(u.n, 1e7), ch: int(u.ch, 1e10), tch: int(u.tch, 1e10), d: typeof u.d === 'string' && /^\d{4}-\d\d-\d\d$/.test(u.d) ? u.d : '', dn: int(u.dn, 1e5) },
-    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']) };
+    trTo: en(o.trTo, ['', 'ru', 'en', 'de', 'fr', 'es', 'it']), via: en(o.via, ['', 'chatgpt', 'grok', 'claude', 'deepseek', 'alice']) }; // via 05.11: своя нейросеть без ключа
 }
 /** 29.10 S.yearGoal / S.bookGoals (arch.md) — same rules as js/core-b.js yearGoalNorm / bookGoalsNorm */
 export function normYearGoal(g) {
@@ -320,6 +330,12 @@ export function normBookGoals(o) {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return r;
   Object.keys(o).filter((k) => k && k.length <= 200 && typeof o[k] === 'string' && /^\d{4}-\d\d-\d\d$/.test(o[k])).slice(-200).forEach((k) => { r[k] = o[k]; });
   return r;
+}
+/** 05.11 SET.half — same rules as js/reader.js rqHalfNorm */
+export function normHalf(h) {
+  h = h && typeof h === 'object' && !Array.isArray(h) ? h : {};
+  const n = (v, lo, hi) => (Number.isInteger(v) && v >= lo && v <= hi ? v : null);
+  return { on: typeof h.on === 'boolean' ? h.on : true, size: n(h.size, 14, 30), margin: n(h.margin, 10, 80) };
 }
 /** 29.10 SET.rx (arch.md «раздел Чтение») — same rules as js/reader.js rqRxNorm */
 export const RX_SEL = ['colors', 'note', 'word', 'dict', 'ai', 'grow', 'copy'];
@@ -333,15 +349,25 @@ export function normRx(o) {
   const f = ob(o.foot), t = ob(o.tts), n = ob(o.night), g = ob(o.gest), s = ob(o.sel), sc = ob(o.screen), fr = ob(o.fresh), sp = ob(o.spd);
   return {
     foot: { page: bo(f.page, true), pct: bo(f.pct, false), clock: bo(f.clock, false), chap: bo(f.chap, false) },
-    tts: { rate: typeof t.rate === 'number' && Number.isFinite(t.rate) ? Math.round(Math.max(0.5, Math.min(2, t.rate)) * 20) / 20 : 1, voice: typeof t.voice === 'string' ? t.voice.slice(0, 200) : '', follow: bo(t.follow, true) },
+    tts: { rate: typeof t.rate === 'number' && Number.isFinite(t.rate) ? Math.round(Math.max(0.5, Math.min(3, t.rate)) * 20) / 20 : 1, voice: typeof t.voice === 'string' ? t.voice.slice(0, 200) : '', follow: bo(t.follow, true) },
     night: { on: bo(n.on, false), from: hm(n.from, '22:00'), to: hm(n.to, '07:00'), day: typeof n.day === 'string' && n.day.length <= 32 ? n.day : '' },
-    gest: { bright: bo(g.bright, true), pinch: bo(g.pinch, true), dbl: en(g.dbl, ['off', 'night', 'mark', 'bars', 'auto']) },
+    gest: { bright: bo(g.bright, true), pinch: bo(g.pinch, true), dbl: en(g.dbl, ['off', 'night', 'mark', 'bars', 'auto', 'dict']) },
     sel: { off: ids(s.off), order: ids(s.order), color: ['y', 'g', 'b', 'p', 'o'].includes(s.color) ? s.color : '' },
     screen: { orient: en(sc.orient, ['auto', 'portrait', 'landscape']), spread: en(sc.spread, ['auto', 'land', 'off']) },
     fresh: { set: nm(fr.set), pdf: nm(fr.pdf), toc: bo(fr.toc, false) },
     sm: ((m) => ({ lp: en(m.lp, ['n', 'f', 's']), tap: bo(m.tap, true), drag: en(m.drag, ['edge', 'any', 'off']), lpd: bo(m.lpd, true), unit: en(m.unit, ['word', 'char']), edge: en(m.edge, ['off', 'f', 's']), hand: en(m.hand, ['n', 'b']), vib: bo(m.vib, true), hint: bo(m.hint, true) }))(ob(o.sm)),
     spd: { cpm: num(sp.cpm, 100, 6000), spp: num(sp.spp, 5, 1200), n: typeof sp.n === 'number' && Number.isFinite(sp.n) ? Math.max(0, Math.min(1e6, Math.floor(sp.n))) : 0 },
   };
+}
+/** 07.11 SET.tp (озвучка+, js/tts-plus.js) — same rules as js/reader.js rqTpNorm */
+export function normTp(o) {
+  const ob = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), bo = (v, d) => (typeof v === 'boolean' ? v : d);
+  o = ob(o);
+  const d = [];
+  if (Array.isArray(o.dict)) o.dict.forEach((x) => { if (d.length >= 300 || !Array.isArray(x)) return; const a = typeof x[0] === 'string' ? x[0].trim().slice(0, 60) : '', b = typeof x[1] === 'string' ? x[1].trim().slice(0, 80) : ''; if (a && b) d.push([a, b]); });
+  return { yo: bo(o.yo, true), dict: d, pause: ['off', 's', 'm', 'l'].includes(o.pause) ? o.pause : 'm', clean: bo(o.clean, true), lang: bo(o.lang, true), pre: bo(o.pre, true), bar: bo(o.bar, true),
+    pitch: typeof o.pitch === 'number' && Number.isFinite(o.pitch) ? Math.round(Math.max(0.5, Math.min(1.5, o.pitch)) * 20) / 20 : 1, vol: typeof o.vol === 'number' && Number.isFinite(o.vol) ? Math.round(Math.max(0.2, Math.min(1, o.vol)) * 20) / 20 : 1,
+    expr: ['calm', 'norm', 'live'].includes(o.expr) ? o.expr : 'norm', style: typeof o.style === 'string' ? o.style.trim().slice(0, 200) : '' };
 }
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения») — same rules as js/reader.js rqRmNorm */
 export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts', 'rsvp'];
@@ -354,7 +380,7 @@ export function normRm(o) {
     bion: bo(o.bion, false), cap: bo(o.cap, false), maxw: [0, 55, 65, 75].includes(o.maxw) ? o.maxw : 0,
     ufont: typeof o.ufont === 'string' ? o.ufont.trim().slice(0, 40) : '',
     auto: { sec: typeof a.sec === 'number' && Number.isFinite(a.sec) && a.sec >= 5 && a.sec <= 600 ? Math.round(a.sec) : 0 },
-    fn: bo(o.fn, true),
+    fn: bo(o.fn, true), orth: bo(o.orth, false), // 05.11 orth: pre-1918 spelling → modern in copies (js/reader-ui.js rqOrth)
     zones: Array.isArray(o.zones) && o.zones.length === 9 && o.zones.every((z) => RM_ZONE.includes(z)) ? o.zones.slice() : null,
     sleep: [0, 15, 30, 45, 60, -1].includes(o.sleep) ? o.sleep : 0, ttsHl: bo(o.ttsHl, true), recap: bo(o.recap, true),
     ruler: { on: bo(r.on, false), n: [1, 2, 3].includes(r.n) ? r.n : 1, auto: bo(r.auto, false) },
@@ -364,6 +390,8 @@ export function normRm(o) {
     rsvp: typeof o.rsvp === 'number' && o.rsvp >= 100 && o.rsvp <= 1000 ? Math.round(o.rsvp / 50) * 50 : 300,
     oneh: bo(o.oneh, false), edge: bo(o.edge, true),
     roles: { on: bo(ob(o.roles).on, false), v: typeof ob(o.roles).v === 'string' ? ob(o.roles).v.trim().slice(0, 80) : '', sv: typeof ob(o.roles).sv === 'string' ? ob(o.roles).sv.slice(0, 200) : '' },
+    // 05.11 словари: dkShort — сначала одно значение, dkLong — долгое нажатие на слово = значение, dkQuiz — вопросы по словам при чтении
+    dkShort: bo(o.dkShort, true), dkLong: bo(o.dkLong, false), dkQuiz: bo(o.dkQuiz, true),
   };
 }
 /** 1б import/boot contract (arch.md «Настройки 1б»): clamp, no migration from focusMode. */
@@ -418,7 +446,7 @@ function diaryList(a){ /* 25.10 «Дневники» (arch.md): [{id,t,b,bt,ba,c
       es.push({id:n.id,t:t,x:x,tp:key(n.tp),ch:str(n.ch,120),pg:Number.isInteger(n.pg)&&n.pg>=0?n.pg:0,r:typeof n.r==='number'&&n.r>=0&&n.r<=1?n.r:null,d:day(n.d),u:ms(n.u),pin:n.pin===true,cl:one(n.cl,['','red','orange','yellow','green','blue','violet'],'')});});
     out.push({id:y.id,t:str(y.t,80),b:str(y.b,200),bt:str(y.bt,120),ba:str(y.ba,80),cv:key(y.cv)||'school',cc:key(y.cc),
       pp:one(y.pp,['lines','grid','dots','plain','old','papyrus','pearl','stars'],'lines'),fn:one(y.fn,['hand','book','ui'],'hand'),fs:Number.isInteger(y.fs)&&y.fs>=14&&y.fs<=24?y.fs:17,
-      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
+      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),pn:y.pn===true,lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
       d:day(y.d),u:ms(y.u),e:es});});
   return out;
 }
@@ -469,6 +497,56 @@ function intMap(o, max, keyRe) {
   return out;
 }
 
+/* ===== 06.11 «Инструменты читателя» (arch.md). The same rules as js/tools.js toolsNorm / inkNorm / stickNorm. ===== */
+export const TOOL_IDS = ['lupa', 'pen', 'shield', 'hg', 'compass', 'markers', 'rulers', 'marks', 'stickers', 'qtpl', 'lamp', 'words'];
+export const TOOL_USE = ['shield', 'hg'];
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+function int(v, lo, hi) { return Number.isInteger(v) && v >= lo && v <= hi ? v : null; }
+export function normTools(o) {
+  o = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  const t = { own: {}, n: {}, parts: {}, pf: 0, drop: null, hg: null, sh: [], sel: {}, pin: [], on: {}, rw: {} };
+  if (int(o.pf, 0, 1e6) != null) t.pf = o.pf;
+  const map = function (x) { return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; };
+  Object.keys(map(o.own)).forEach(function (k) { if (TOOL_IDS.indexOf(k) >= 0 && TOOL_USE.indexOf(k) < 0 && o.own[k]) t.own[k] = 1; });
+  Object.keys(map(o.n)).forEach(function (k) { const v = int(o.n[k], 1, 99); if (TOOL_USE.indexOf(k) >= 0 && v) t.n[k] = Math.min(v, k === 'shield' ? 2 : 99); });
+  Object.keys(map(o.parts)).forEach(function (k) { const v = int(o.parts[k], 1, 4); if (TOOL_IDS.indexOf(k) >= 0 && v) t.parts[k] = v; });
+  const d = map(o.drop); if (DAY_RE.test(d.d) && int(d.k, 0, 9) != null && int(d.ms, 0, 864e5) != null) t.drop = { d: d.d, k: d.k, ms: d.ms };
+  const h = map(o.hg); if (DAY_RE.test(h.d) && typeof h.left === 'number' && h.left >= 0 && h.left <= 30 && typeof h.at === 'number' && h.at > 0) t.hg = { d: h.d, at: h.at, left: Math.round(h.left * 1000) / 1000 };
+  t.sh = Array.isArray(o.sh) ? o.sh.filter(function (x) { return DAY_RE.test(x); }).slice(-50) : [];
+  const sel = map(o.sel); ['ruler', 'mark', 'hls', 'qtpl', 'stk', 'pen'].forEach(function (k) { if (typeof sel[k] === 'string' && /^[a-z0-9#-]{1,12}$/.test(sel[k])) t.sel[k] = sel[k]; });
+  t.pin = Array.isArray(o.pin) ? o.pin.filter(function (x, i, a) { return TOOL_IDS.indexOf(x) >= 0 && a.indexOf(x) === i; }).slice(0, 3) : [];
+  ['lamp'].forEach(function (k) { if (map(o.on)[k] === true) t.on[k] = true; });
+  Object.keys(map(o.rw)).slice(0, 100).forEach(function (k) { if (/^[\w:-]{1,40}$/.test(k) && o.rw[k]) t.rw[k] = 1; });
+  return t;
+}
+export function normInk(o) {
+  const out = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+  Object.keys(o).slice(0, 500).forEach(function (b) {
+    const pages = o[b]; if (!pages || typeof pages !== 'object' || Array.isArray(pages)) return;
+    const pg = {};
+    Object.keys(pages).filter(function (k) { return /^[1-9]\d{0,5}$/.test(k); }).slice(0, 2000).forEach(function (k) {
+      const L = Array.isArray(pages[k]) ? pages[k].filter(function (s) {
+        return s && typeof s === 'object' && typeof s.c === 'string' && /^#[0-9a-f]{6}$/i.test(s.c) && int(s.w, 1, 40) != null && Array.isArray(s.p) && s.p.length >= 2 && s.p.length % 2 === 0 && s.p.every(function (v) { return int(v, 0, 1000) != null; });
+      }).slice(0, 80).map(function (s) { return { c: s.c.toLowerCase(), w: s.w, p: s.p.slice(0, 1200) }; }) : [];
+      if (L.length) pg[k] = L;
+    });
+    if (Object.keys(pg).length) out[b] = pg;
+  });
+  return out;
+}
+export function normStickers(o) {
+  const out = {};
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
+  Object.keys(o).slice(0, 500).forEach(function (b) {
+    const L = Array.isArray(o[b]) ? o[b].filter(function (x) {
+      return x && typeof x === 'object' && int(x.p, 1, 999999) != null && typeof x.s === 'string' && /^[a-z0-9-]{1,24}$/.test(x.s) && int(x.x, 0, 1000) != null && int(x.y, 0, 1000) != null;
+    }).slice(0, 400).map(function (x) { return { p: x.p, s: x.s, x: x.x, y: x.y }; }) : [];
+    if (L.length) out[b] = L;
+  });
+  return out;
+}
+
 export function hydrateProgress(p) {
   const out = Object.assign({}, PROGRESS_DEF, p || {});
   /* 29.10 (arch.md backupNag / yearGoal / bookGoals; progress domain): same rules as js/core-b.js */
@@ -495,6 +573,7 @@ export function hydrateProgress(p) {
   out.diaries = diaryList(out.diaries);
   out.chars = charsMap(out.chars);
   if (typeof out.diaryAuto !== 'boolean') out.diaryAuto = true;
+  if (['recent', 'title', 'entries'].indexOf(out.diarySort) < 0) out.diarySort = 'recent';
   out.qdayOff = typeof out.qdayOff === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(out.qdayOff) ? out.qdayOff : null;
   out.bookStat = out.bookStat || {};
   out.bookImp = out.bookImp || {};
@@ -503,6 +582,8 @@ export function hydrateProgress(p) {
   out.quotes = out.quotes || {};
   out.hl = out.hl || {};
   out.stickers = out.stickers || {};
+  out.stk = normStickers(out.stk);
+  out.ink = normInk(out.ink);
   out.favs = out.favs || [];
   if (out.goal == null || out.goal < 5) out.goal = PROGRESS_DEF.goal;
   return out;
@@ -555,6 +636,7 @@ export function hydrateGame(g) {
   out.lvlPaid = intMap(out.lvlPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.quizPaid = intMap(out.quizPaid, 1000, /^\d{4}-\d{2}-\d{2}$/);
   out.pomoPaid = intMap(out.pomoPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» (arch.md) */
+  out.tools = normTools(out.tools); /* 06.11 «Инструменты читателя» */
   out.chalPaid = intMap(out.chalPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {
@@ -694,9 +776,11 @@ export function hydrateSettings(s) {
   out.presets = normPresets(out.presets);
   out.bookSet = normBookSet(out.bookSet);
   out.rx = normRx(out.rx);
+  out.half = normHalf(out.half);
   out.wsp = typoPick({ wsp: out.wsp }, ['wsp']).wsp || 0;
   out.psp = typoPick({ psp: out.psp }, ['psp']).psp || 0;
   out.rm = normRm(out.rm);
+  out.tp = normTp(out.tp);
   /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
   if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
   delete out.dim;

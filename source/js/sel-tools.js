@@ -30,6 +30,7 @@ function stBind(){
   el('ssCnt').onclick=function(){if(typeof selView==='function')selView();};
   el('ssDict').onclick=stBar('spDict');
   el('ssAI').onclick=stBar('spAI');
+  if(el('ssAsk'))el('ssAsk').onclick=stAsk;
   el('ssMore').onclick=function(){const on=el('ssMenu').hidden;stCol(false);stMenu(on);};
   el('ssMenu').onclick=function(e){const b=e.target.closest&&e.target.closest('button[data-a]');if(!b)return;const f=ST_ACT[b.dataset.a];stMenu(false);if(f)f();};
 }
@@ -76,6 +77,7 @@ function stMenu(on){
     R.mode!=='pdf'&&!stOff('spGrow')&&['parn','plus','+ абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
+    typeof ssLook==='function'&&ssLook()==='side'&&['view','menu','Вид меню'], /* 06.11: the look of this menu, switched right here («Сбоку» has no own button: it stays compact) */
     ['wiki','info','Википедия'],
     R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
     selPagesOn()&&['page','chevron-down','До конца страницы'],
@@ -150,4 +152,15 @@ function stWiki(){
   },function(){if(ST.wiki!==me)return;stSheet('Википедия','<p class="stmuted">Нет связи с Википедией. Проверьте интернет и попробуйте ещё раз</p>');});
 }
 
-const ST_ACT={note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd};
+/* 05.11 Джессика: читаю на половине экрана и спрашиваю ChatGPT рядом — выделенное вместе с вопросом в буфер, дальше только вставить.
+   Это отдельная кнопка в меню (#ssAsk), видна только на половине экрана (#reader.half); на полном — «Объясни» → «Спросить в…». */
+async function stAsk(){
+  const t=stText();if(!t)return;const b=R.book||{},au=typeof bookAuthor==='function'?bookAuthor(b):'';
+  const q='Книга: «'+(b.title||'')+'»'+(au?', '+au:'')+'\nФрагмент: «'+t.slice(0,1500)+'»\n\nОбъясни простым языком, что здесь происходит и что значат непонятные слова. Без спойлеров.';
+  if(typeof aiBackArm==='function'){aiBackCtx({frag:t.slice(0,1500),n:typeof hlSelN==='function'?hlSelN(t):0});aiBackArm({q:q});}
+  let ok=false;try{await navigator.clipboard.writeText(q);ok=true;}catch(e){}
+  if(!ok&&typeof copyText==='function'){try{copyText(q);ok=true;}catch(e){}}
+  if(typeof selDone==='function')selDone();
+  flashMsg(ok?'Вопрос скопирован. Вставьте его в нейросеть рядом долгим нажатием':'Телефон не дал скопировать',{kind:'info',icon:'clipboard'});
+}
+const ST_ACT={ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,view:function(){if(typeof ssLooksMenu==='function')ssLooksMenu(el('ssMore'));}};

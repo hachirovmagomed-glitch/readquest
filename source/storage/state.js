@@ -346,9 +346,12 @@ export async function importBackup(data) {
         fl: s.fl,
         ct: s.ct,
         rr: s.rr,
+        au: s.au,
         hon: s.hon,
         pomo: s.pomo,
         pomoRun: s.pomoRun,
+        pomoRk: s.pomoRk,
+        pomoCb: s.pomoCb,
         fw: s.fw,
       });
     } catch (e) {

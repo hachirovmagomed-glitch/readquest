@@ -6,7 +6,7 @@
    18 образец текста в «Настройках чтения» · 19 наборы по времени суток.
    Loaded BEFORE js/read-extras.js: its double tap wraps our viewerTap. No coins, no XP: the autoscroll turns pages like a finger, the honest-reading
    rules (min / max time on a page) still decide what counts; it stops by itself after RM_AUTO_IDLE without a touch. */
-const RM={uf:false,auto:{on:false,paused:false,t0:0,raf:0,acc:0,last:0,lastIn:0,line:null},sleep:{until:0,chap:-1,chapPg:-1,iv:0,fade:false},
+const RM={uf:false,auto:{on:false,paused:false,t0:0,raf:0,acc:0,last:0,lastIn:0,line:null,touch:false,userAt:0,mine:-1},sleep:{until:0,chap:-1,chapPg:-1,iv:0,fade:false},
   hl:{key:'',range:null},jb:{back:[],fwd:[]},todLast:'',ruler:{y:0,ivAt:0},eink:0,recapOffer:null};
 const RM_AUTO_STEPS=[5,8,10,12,15,20,25,30,40,50,60,75,90,120,150,180,240,300,420,600];
 const RM_AUTO_IDLE=30*60000; /* 30 min without a touch → the autoscroll stops (a dozing reader is not reading) */
@@ -117,45 +117,62 @@ async function rmUfDel(){
 function rmAutoSec(){const s=rqRm().auto.sec;if(s)return s;
   const v=R.mode==='pdf'?(typeof rxSpp==='function'?rxSpp():90):(typeof rxMinPages==='function'?rxMinPages(1)*60:60);
   return Math.max(10,Math.min(600,Math.round(v||60)));}
+/* 07.11 (Джессика: «чтобы страница автоматически листалась при прокрутке вниз»): in «Прокрутка» the autoscroll is «Автопрокрутка» —
+   the text (and a PDF, js/pdf-scroll.js) glides up by itself, no page jumps; a finger on the screen holds it, after the finger (and the fling)
+   it goes on from there. The honest rule is the same (__tracker.setAuto). */
+function rmPdfScroll(){return typeof psOn==='function'&&psOn();}
+function rmGlide(){return rqScrollMode()||rmPdfScroll();}
+function rmAutoName(){return rmGlide()?'Автопрокрутка':'Автолистание';}
 function rmAutoLabel(){const s=rmAutoSec();return (rqRm().auto.sec?'':'≈ ')+(s<60?s+' с':Math.floor(s/60)+' мин'+(s%60?' '+(s%60)+' с':''))+(rqScrollMode()?' на экран':' на страницу');}
+function rmAutoTr(on){if(typeof __tracker!=='undefined'&&__tracker&&__tracker.setAuto)__tracker.setAuto(on);} /* 06.11: autoscroll pages follow the honest autoscroll rule */
 function rmAutoStart(){
   if(!rmOpen())return;
   if(typeof ttsOn!=='undefined'&&ttsOn){flashMsg('Сначала остановите озвучку');return;}
-  const a=RM.auto;a.on=true;a.paused=false;a.t0=performance.now();a.acc=0;a.last=a.t0;a.lastIn=Date.now();
+  const a=RM.auto;a.on=true;a.paused=false;a.t0=performance.now();a.acc=0;a.last=a.t0;a.lastIn=Date.now();a.userAt=0;a.mine=-1;
   el('sheet').classList.add('hidden');el('panel').classList.add('hidden');
-  concealChrome('tap');rmAutoUi();cancelAnimationFrame(a.raf);a.raf=requestAnimationFrame(rmAutoLoop);
-  flashMsg('Автолистание: '+rmAutoLabel()+'. Тап в центр — пауза',{kind:'info',icon:'play'});
+  concealChrome('tap');rmAutoUi();cancelAnimationFrame(a.raf);a.raf=requestAnimationFrame(rmAutoLoop);rmAutoTr(true);
+  flashMsg(rmAutoName()+': '+rmAutoLabel()+'. Тап в центр — пауза',{kind:'info',icon:'play'});
 }
-function rmAutoStop(msg){const a=RM.auto;if(!a.on)return;a.on=false;a.paused=false;cancelAnimationFrame(a.raf);rmAutoUi();if(msg)flashMsg(msg,{kind:'info',icon:'pause'});}
-function rmAutoPause(p){const a=RM.auto;if(!a.on)return;a.paused=p;if(!p){a.t0=performance.now()-a.acc;a.last=performance.now();a.lastIn=Date.now();concealChrome('tap');}else revealChrome();rmAutoUi();}
-function rmAutoToggle(){if(RM.auto.on)rmAutoStop('Автолистание выключено');else rmAutoStart();}
+function rmAutoStop(msg){const a=RM.auto;if(!a.on)return;a.on=false;a.paused=false;rmAutoTr(false);cancelAnimationFrame(a.raf);rmAutoUi();if(msg)flashMsg(msg,{kind:'info',icon:'pause'});}
+function rmAutoPause(p){const a=RM.auto;if(!a.on)return;a.paused=p;rmAutoTr(!p);if(!p){a.t0=performance.now()-a.acc;a.last=performance.now();a.lastIn=Date.now();concealChrome('tap');}else revealChrome();rmAutoUi();}
+function rmAutoToggle(){if(RM.auto.on)rmAutoStop(rmAutoName()+(rmGlide()?' выключена':' выключено'));else rmAutoStart();}
 function rmAutoHold(){return document.hidden||!el('sheet').classList.contains('hidden')||!el('panel').classList.contains('hidden')||(typeof SM!=='undefined'&&SM.on)||!!(typeof selText==='function'&&selText())||
   !!document.querySelector('#aiSheet:not(.hidden),#trSheet:not(.hidden),#bookFind:not(.hidden),#rmNote:not([hidden])');}
 function rmAutoLoop(now){
   const a=RM.auto;if(!a.on)return;a.raf=requestAnimationFrame(rmAutoLoop);
   const dt=Math.min(250,now-a.last);a.last=now;
   if(!rmOpen()){rmAutoStop();return;}
-  if(Date.now()-a.lastIn>RM_AUTO_IDLE){rmAutoStop('Автолистание остановлено: полчаса без касаний');return;}
+  if(Date.now()-a.lastIn>RM_AUTO_IDLE){rmAutoStop(rmAutoName()+(rmGlide()?' остановлена':' остановлено')+': полчаса без касаний');return;}
   if(a.paused||rmAutoHold()){a.t0+=dt;rmAutoLine();return;}
   const sec=rmAutoSec();
-  if(rqScrollMode()){const v=el('viewer');a.acc+=dt*R.step/(sec*1000);const d=Math.floor(a.acc);
-    if(d>=1){a.acc-=d;if(v.scrollTop>=(R.scrollMax||0)-1){rmAutoStop('Конец книги');return;}v.scrollTop+=d;rqScrollSoon();}return;}
+  if(rmGlide()){const pdf=rmPdfScroll(),v=pdf?el('pdfScroll'):el('viewer');if(!v)return;
+    /* a finger on the text, or the text still moving after it (a fling, a wheel): the reader scrolls, we wait */
+    if(a.mine>=0&&Math.abs(v.scrollTop-a.mine)>1.5)a.userAt=now;
+    if(a.touch||now-a.userAt<350){a.acc=0;a.mine=v.scrollTop;return;}
+    let px=R.step;if(pdf){const p=psPageAt();px=(PS.tops[p+1]-PS.tops[p])||v.clientHeight;}
+    a.acc+=dt*px/(sec*1000);const d=Math.floor(a.acc);
+    if(d>=1){a.acc-=d;const max=pdf?v.scrollHeight-v.clientHeight:(R.scrollMax||0);
+      if(v.scrollTop>=max-1){rmAutoStop('Конец книги');return;}
+      if(pdf)PS.progTop=null;v.scrollTop+=d;a.mine=v.scrollTop;if(pdf)psSoon();else rqScrollSoon();}
+    return;}
   a.acc=now-a.t0;rmAutoLine();
   if(a.acc>=sec*1000){const p=rmPage();
     if(p>=R.pageCount-1){rmAutoStop('Конец книги');return;}
     a.t0=now;a.acc=0;goPage(p+1,true);}
 }
-function rmAutoLine(){const l=el('rmAutoLine');if(!l)return;const a=RM.auto;l.hidden=!a.on||rqScrollMode();if(a.on)l.style.transform='scaleX('+Math.min(1,a.acc/(rmAutoSec()*1000)).toFixed(4)+')';}
+function rmAutoLine(){const l=el('rmAutoLine');if(!l)return;const a=RM.auto;l.hidden=!a.on||rmGlide();if(a.on)l.style.transform='scaleX('+Math.min(1,a.acc/(rmAutoSec()*1000)).toFixed(4)+')';}
 function rmAutoUi(){
   const a=RM.auto,b=el('rmAuto');if(!b)return;b.hidden=!a.on;el('reader').classList.toggle('rmauto',a.on);
   el('rmAutoPP').innerHTML=rqIcon(a.paused?'play':'pause',20);el('rmAutoPP').setAttribute('aria-label',a.paused?'Продолжить':'Пауза');
-  el('rmAutoV').textContent=rmAutoLabel();rmAutoLine();
+  el('rmAutoV').textContent=rmAutoLabel();rmAutoLine();b.setAttribute('aria-label',rmAutoName());el('rmAutoX').setAttribute('aria-label','Выключить '+rmAutoName().toLowerCase());
   const s=el('rmAutoGo');if(s)s.textContent=a.on?'Остановить':'Начать';
 }
 function rmAutoStep(d){const cur=rmAutoSec();let i=RM_AUTO_STEPS.findIndex(function(x){return x>=cur;});if(i<0)i=RM_AUTO_STEPS.length-1;
   if(RM_AUTO_STEPS[i]!==cur&&d<0)i++; /* «быстрее» = fewer seconds */
   i=Math.max(0,Math.min(RM_AUTO_STEPS.length-1,i-d));rmS().auto.sec=RM_AUTO_STEPS[i];saveSet();rmAutoUi();rmRenderSheet();}
 ['pointerdown','keydown'].forEach(function(t){document.addEventListener(t,function(){RM.auto.lastIn=Date.now();},true);});
+document.addEventListener('touchstart',function(){RM.auto.touch=true;},{capture:true,passive:true});
+['touchend','touchcancel'].forEach(function(t){document.addEventListener(t,function(e){RM.auto.touch=!!(e.touches&&e.touches.length);RM.auto.userAt=performance.now();},{capture:true,passive:true});});
 /* a manual turn while the autoscroll runs starts the page's time again */
 new MutationObserver(function(){if(RM.auto.on){RM.auto.t0=performance.now();RM.auto.acc=0;}rmRulerTop();rmEinkTurn();}).observe(el('pgNum'),{childList:true,characterData:true,subtree:true});
 
@@ -445,7 +462,7 @@ setInterval(function(){rmTodTick(false);},30000);
     '<button type="button" id="rmAutoX" aria-label="Выключить автолистание">'+rqIcon('x',20)+'</button></div>');
   el('rmAutoPP').onclick=function(e){e.stopPropagation();rmAutoPause(!RM.auto.paused);};
   el('rmAutoSlow').onclick=function(e){e.stopPropagation();rmAutoStep(-1);};el('rmAutoFast').onclick=function(e){e.stopPropagation();rmAutoStep(1);};
-  el('rmAutoX').onclick=function(e){e.stopPropagation();rmAutoStop('Автолистание выключено');};
+  el('rmAutoX').onclick=function(e){e.stopPropagation();rmAutoStop(rmAutoName()+(rmGlide()?' выключена':' выключено'));};
   const pl=el('pgLine'),ri=el('rxInfo');if(pl)pl.insertBefore(Object.assign(document.createElement('span'),{id:'rmSleep'}),ri||pl.firstChild);
   const tts=el('btnTts');if(tts){tts.insertAdjacentHTML('afterend','<button id="btnSleep" type="button" hidden title="Таймер сна" aria-label="Таймер сна">'+rqIcon('moon',22)+'</button>');el('btnSleep').onclick=function(e){e.stopPropagation();rmSleepCycle();};}
 })();
@@ -463,10 +480,13 @@ function rmSegRow(id,lab,sub,cls){return '<div class="rrow stack'+(cls?' '+cls:'
     rmSegRow('rmRulerN','Сколько строк','','txtonly')+rmSwRow('rmRulerAuto','Линейка идёт сама','по вашей скорости чтения','txtonly')+
     rmSwRow('rmEink','Режим для e-ink','для читалок с электронными чернилами: чёрное на белом, без анимаций, полная перерисовка раз в 8 страниц'));
   const nv=el('grpNav'),note=nv&&nv.querySelector(':scope > .rnote:last-child');
-  const navHtml='<div class="rrow stack" id="rmAutoRow"><span class="rl" id="rmAutoL">Автолистание<small>страница листается сама; тап в центр — пауза. Полчаса без касаний — выключится</small></span>'+
-    '<div class="rmautoset"><button type="button" class="ghostbtn" id="rmAutoGo">Начать</button><span class="stepgrp"><button type="button" class="stepbtn" id="rmAutoSlow2" aria-label="Медленнее">'+rqIcon('minus',18)+'</button><b id="rmAutoV2"></b><button type="button" class="stepbtn" id="rmAutoFast2" aria-label="Быстрее">'+rqIcon('plus',18)+'</button></span><button type="button" class="ghostbtn" id="rmAutoOwn" hidden>По моей скорости</button></div></div>'+
-    rmSwRow('rmZones','Свои зоны тапа','экран делится на 9 частей, у каждой своё действие')+'<div class="rmzones" id="rmZoneGrid" role="group" aria-label="Зоны тапа" hidden></div>';
+  const autoHtml='<div class="rrow stack" id="rmAutoRow"><span class="rl" id="rmAutoL"><span id="rmAutoT">Автолистание</span><small id="rmAutoS">страница листается сама; тап в центр — пауза. Полчаса без касаний — выключится</small></span>'+
+    '<div class="rmautoset"><button type="button" class="ghostbtn" id="rmAutoGo">Начать</button><span class="stepgrp"><button type="button" class="stepbtn" id="rmAutoSlow2" aria-label="Медленнее">'+rqIcon('minus',18)+'</button><b id="rmAutoV2"></b><button type="button" class="stepbtn" id="rmAutoFast2" aria-label="Быстрее">'+rqIcon('plus',18)+'</button></span><button type="button" class="ghostbtn" id="rmAutoOwn" hidden>По моей скорости</button></div></div>';
+  const navHtml=rmSwRow('rmZones','Свои зоны тапа','экран делится на 9 частей, у каждой своё действие')+'<div class="rmzones" id="rmZoneGrid" role="group" aria-label="Зоны тапа" hidden></div>';
   if(note)note.insertAdjacentHTML('beforebegin',navHtml);else if(nv)nv.insertAdjacentHTML('beforeend',navHtml);
+  /* 07.11: right under «Как листать», so «Прокрутка» shows its «Автопрокрутка» at once */
+  {const fm=el('flipModeSeg'),r=fm&&fm.closest('.rrow');if(r)r.insertAdjacentHTML('afterend',autoHtml);else if(nv)nv.insertAdjacentHTML('beforeend',autoHtml);
+   if(fm)fm.addEventListener('click',function(){setTimeout(function(){rmRenderSheet();rmAutoUi();},0);});}
   const st=function(id,fn){el(id).onclick=fn;};
   const typo=function(k,d,lo,hi,st0){const a=readingAnchor&&rmText()?readingAnchor():null;SET[k]=Math.round(Math.max(lo,Math.min(hi,(SET[k]||0)+d))/st0)*st0;saveSet();applySet();if(rmText())relayout({force:true,anchor:a});};
   st('rmWspMinus',function(){typo('wsp',-1,0,8,1);});st('rmWspPlus',function(){typo('wsp',1,0,8,1);});
@@ -495,6 +515,8 @@ function rmRenderSheet(){
   seg('rmRulerN',[[1,'Одна'],[2,'Две'],[3,'Три']],m.ruler.n,function(v){rmS().ruler.n=v;saveSet();rmRenderSheet();rmRulerDraw();});
   el('rmAutoV2').textContent=rmOpen()?rmAutoLabel():(m.auto.sec?m.auto.sec+' с на страницу':'по вашей скорости');el('rmAutoOwn').hidden=!m.auto.sec;
   el('rmAutoGo').textContent=RM.auto.on?'Остановить':'Начать';el('rmAutoGo').disabled=!rmOpen();
+  {const sc=rmOpen()?rmGlide():flipGet().mode==='scroll';el('rmAutoT').textContent=sc?'Автопрокрутка':'Автолистание';
+   el('rmAutoS').textContent=sc?'текст плавно едет вверх сам; палец на экране — ждёт, тап в центр — пауза. Полчаса без касаний — выключится':'страница листается сама; тап в центр — пауза. Полчаса без касаний — выключится';}
   const g=el('rmZoneGrid');g.hidden=!m.zones;
   if(m.zones){g.innerHTML='';m.zones.forEach(function(a,i){const b=document.createElement('button');b.type='button';b.textContent=RM_ZONE_N[a];b.className='z-'+a;
     b.setAttribute('aria-label','Зона '+(i+1)+': '+RM_ZONE_N[a]+'. Нажмите, чтобы сменить');

@@ -24,7 +24,7 @@ async function fresh(width, reply) {
   await p.setRequestInterception(true);
   p.on('request', r => {
     const u = r.url();
-    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|api\.elevenlabs\.io|texttospeech\.googleapis\.com|tts\.api\.cloud\.yandex\.net|api\.x\.ai)\//.test(u)) {
+    if (/^https:\/\/(api\.deepseek\.com|openrouter\.ai|api\.openai\.com|api\.anthropic\.com|ai\.example\.test|generativelanguage\.googleapis\.com|api\.elevenlabs\.io|texttospeech\.googleapis\.com|tts\.api\.cloud\.yandex\.net|llm\.api\.cloud\.yandex\.net|api\.x\.ai)\//.test(u)) {
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
       const q = { url: u, headers: r.headers(), raw: r.postData() || '', body: (() => { try { return JSON.parse(r.postData() || 'null'); } catch (e) { return null; } })() }; reqs.push(q);
       const a = reply ? reply(q) : { status: 500, json: {} };
@@ -138,6 +138,76 @@ if (want('custom')) {
   await openAndSelect(p); await p.click('#spAI'); await waitAnswer(p);
   const q = reqs[0] || {};
   ok('custom: поле адреса видно, запрос в <адрес>/chat/completions с моделью человека', vis && q.url === 'https://ai.example.test/v1/chat/completions' && q.body && q.body.model === 'my-model' && /Свой сервис ответил/.test((await sheetText(p)).t), { vis, url: q.url });
+  await ctx.close();
+}
+
+if (want('xaiya')) { /* 05.11: Грок и YandexGPT в ИИ-помощнике */
+  const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { content: 'Ответ сервиса.' } }] } }));
+  await p.evaluate(() => { NN_EXP.ai = true; openGeneralSettings(false,'ai'); [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Грок').click(); });
+  await p.type('#aiKey', 'xai-k1'); await sleep(100);
+  const gx = await p.evaluate(async () => ({ base: !el('aiBase').hidden, on: aiOn(), t: await aiViaKey({ system: 's', user: 'u' }, 20) }));
+  const q = reqs[0] || {};
+  ok('xaiya: Грок — api.x.ai/v1/chat/completions, Bearer, модель по умолчанию; поля адреса нет', !gx.base && gx.on && q.url === 'https://api.x.ai/v1/chat/completions' && q.headers.authorization === 'Bearer xai-k1' && q.body.model === 'grok-4-1-fast-non-reasoning' && /Ответ сервиса/.test(gx.t), { gx, url: q.url, m: q.body && q.body.model });
+  await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'YandexGPT').click(); S.ai.key = 'AQVN-y1'; S.ai.base = ''; save(); renderAiSet(); });
+  const y0 = await p.evaluate(() => ({ vis: !el('aiBase').hidden, ph: el('aiBase').placeholder, on: aiOn(), st: nnStateAi()[1] }));
+  ok('xaiya: YandexGPT — видно поле «ID каталога», без него ключ не включается', y0.vis && /ID каталога/.test(y0.ph) && !y0.on && /Нет ID каталога/.test(y0.st), y0);
+  await p.type('#aiBase', 'b1gabcdefghijklmnopq'); await sleep(100);
+  const y1 = await p.evaluate(async () => ({ on: aiOn(), t: await aiViaKey({ system: 's', user: 'u' }, 20) }));
+  const q2 = reqs[1] || {};
+  ok('xaiya: YandexGPT — llm.api.cloud.yandex.net/v1/chat/completions, модель gpt://<каталог>/yandexgpt-lite/latest, каталог в OpenAI-Project', y1.on && q2.url === 'https://llm.api.cloud.yandex.net/v1/chat/completions' && q2.body.model === 'gpt://b1gabcdefghijklmnopq/yandexgpt-lite/latest' && q2.headers['openai-project'] === 'b1gabcdefghijklmnopq' && q2.headers.authorization === 'Bearer AQVN-y1', { y1, url: q2.url, m: q2.body && q2.body.model });
+  const sh = await p.evaluate(() => { S.tts = { prov: 'yandex', key: '', voice: '', base: '' }; save(); const a = nttsCfg().key; S.ai.prov = 'xai'; S.tts.prov = 'xai'; const b = nttsCfg().key; return { a, b, n: aiNorm({ prov: 'yandex' }).prov }; });
+  ok('xaiya: озвучка Яндекса/Грока без своего ключа берёт ключ ИИ-помощника того же сервиса; aiNorm знает yandex', sh.a === 'AQVN-y1' && sh.b === 'AQVN-y1' && sh.n === 'yandex', sh);
+  await ctx.close();
+}
+
+if (want('errwhy')) { /* 05.11 «сервисы не принимают ключи»: 403 «страна» ≠ «плохой ключ»; ключ чистится */
+  let rep = { status: 403, json: { error: { code: 'unsupported_country_region_territory', message: 'Country, region, or territory not supported' } } };
+  const { ctx, p } = await fresh(390, () => rep);
+  const t = async () => p.evaluate(async () => { try { await nttsFetch('Привет'); return 'ok'; } catch (e) { return e.message; } });
+  await p.evaluate(() => { S.tts = { prov: 'openai', key: ' sk-proj-' + 'a'.repeat(120) + '\n', voice: '', base: '' }; save(); });
+  const a = await t();
+  rep = { status: 429, json: { error: { code: 'insufficient_quota', message: 'You exceeded your current quota' } } }; const b = await t();
+  rep = { status: 401, json: { error: { message: 'Incorrect API key provided' } } }; const c = await t();
+  await p.evaluate(() => { S.tts.key = 'sk-abc…wxyz'; save(); }); const d = await t();
+  const k = await p.evaluate(() => [nnKeyClean(' "sk-1 2\u200B3"\n'), nnKeyClean('Bearer sk-9'), nttsCfg().key]);
+  ok('errwhy: страна → «нужен VPN»; нет денег; плохой ключ со словами сервиса; короткий ключ → «скопирован не целиком»; ключ без пробелов и кавычек',
+    /в вашей стране/.test(a) && /нет денег/.test(b) && /не принял ключ.*Incorrect API key/.test(c) && /не сам ключ/.test(d) && k[0] === 'sk-123' && k[1] === 'sk-9', { a, b, c, d, k });
+  await ctx.close();
+}
+
+if (want('else')) { /* 05.11 «Оба способа»: без ключа — нейросеть в своём аккаунте с готовым вопросом или «Поделиться» */
+  const { ctx, p, reqs } = await fresh(390);
+  await p.evaluate(() => { window.__open = []; window.open = (u) => { window.__open.push(u); return null; }; window.__shared = null; navigator.share = async (o) => { window.__shared = o; };
+    try { navigator.clipboard.writeText = async (t) => { window.__clip = t; }; } catch (e) {} });
+  await openAndSelect(p, 'Хамелеон'); await p.click('#spAI'); await sleep(300);
+  const r = await p.evaluate(async () => { const out = { chips: [...document.querySelectorAll('#aiBody [data-ai-else]')].map(b => b.textContent.trim()) };
+    document.querySelector('#aiBody [data-ai-else="chatgpt"]').click(); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#aiBody [data-ai-else="alice"]').click(); await new Promise(r => setTimeout(r, 100));
+    document.querySelector('#aiBody [data-ai-else="share"]').click(); await new Promise(r => setTimeout(r, 100));
+    out.open = window.__open; out.clip = window.__clip || ''; out.shared = window.__shared && window.__shared.text || ''; return out; });
+  ok('else: без ключа — ChatGPT, Грок, Claude, DeepSeek, Алиса, Поделиться; ChatGPT открывается с вопросом в ссылке, Алиса — с вопросом в буфере, «Поделиться» отдаёт вопрос; запросов нет',
+    r.chips.join('|') === 'ChatGPT|Грок|Claude|DeepSeek|Алиса|Поделиться' && /^https:\/\/chatgpt\.com\/\?q=.*%D0%A5%D0%B0%D0%BC%D0%B5%D0%BB%D0%B5%D0%BE%D0%BD/.test(r.open[0]) && r.open[1] === 'https://alice.yandex.ru/' && /Хамелеон/.test(r.clip) && /Хамелеон/.test(r.shared) && /без спойлеров/.test(r.shared) && reqs.length === 0, { chips: r.chips, open: r.open.map(u => u.slice(0, 60)), n: reqs.length });
+  await shot(p, '390-15-bez-klyucha');
+  await ctx.close();
+}
+
+if (want('cheap')) { /* 05.11 «выдели самые доступные нейросети», Gemini, своя нейросеть без ключа */
+  const { ctx, p, reqs } = await fresh(390, () => ({ status: 200, json: { choices: [{ message: { content: 'Gemini ответил.' } }] } }));
+  const r = await p.evaluate(async () => { NN_EXP.ai = NN_EXP.aiP = NN_EXP.tts = NN_EXP.ttsP = true; openGeneralSettings(false, 'ai'); renderAiSet(); renderTtsSet(); renderNn();
+    const tags = (id) => [...el(id).querySelectorAll('button')].map(b => b.textContent + (b.dataset.tag ? ':' + b.dataset.tag : ''));
+    const out = { ai: tags('aiProvSeg'), tts: tags('ttsProvSeg'), leg: !!el('aiProvLegend').offsetHeight, after: getComputedStyle([...el('aiProvSeg').querySelectorAll('button')][1], '::after').content };
+    [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Gemini').click(); S.ai.key = 'AIza-1'; save();
+    out.t = await aiViaKey({ system: 's', user: 'u' }, 20); return out; });
+  const q = reqs[0] || {};
+  ok('cheap: доступные первыми и с меткой (DeepSeek дёшево, Gemini/Телефон бесплатно, OpenRouter бесплатные, Яндекс рубли), подпись видна', r.ai.slice(0, 4).join('|') === 'DeepSeek:дёшево|Gemini:бесплатно|OpenRouter:бесплатные|YandexGPT:рубли' && r.tts.slice(0, 3).join('|') === 'Телефон:бесплатно|Нейроголос:бесплатно|Яндекс:рубли' && r.leg && /бесплатно/.test(r.after), r);
+  ok('cheap: Gemini — generativelanguage …/v1beta/openai/chat/completions, Bearer, gemini-2.5-flash', q.url === 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' && q.headers.authorization === 'Bearer AIza-1' && q.body.model === 'gemini-2.5-flash' && /Gemini ответил/.test(r.t), { url: q.url, m: q.body && q.body.model });
+  await shot(p, '390-16-dostupnye');
+  const v = await p.evaluate(async () => { window.__open = []; window.open = (u) => { window.__open.push(u); return null; }; try { navigator.clipboard.writeText = async () => {}; } catch (e) {}
+    S.ai.key = ''; save(); NN_EXP.ai = false; renderNn(); nnStyleRender(); const chips = [...el('nnVia').querySelectorAll('button')].map(b => b.textContent);
+    [...el('nnVia').querySelectorAll('button')].find(b => b.textContent === 'Грок').click(); return { chips, via: S.aiPref.via, n: aiPrefNorm({ via: 'zzz' }).via }; });
+  await openAndSelect(p, 'Хамелеон'); await p.click('#spAI'); await sleep(300);
+  const g = await p.evaluate(() => ({ open: window.__open, sheet: !el('aiSheet').classList.contains('hidden') }));
+  ok('cheap: «Своя нейросеть» = Грок → «Объясни» без ключа сразу открывает grok.com с вопросом, без окна; мусор → «Спрашивать»', v.chips.join('|') === 'Спрашивать|ChatGPT|Грок|Claude|DeepSeek|Алиса' && v.via === 'grok' && v.n === '' && /^https:\/\/grok\.com\/\?q=/.test(g.open[0] || '') && !g.sheet, { v, g });
   await ctx.close();
 }
 
@@ -274,19 +344,22 @@ if (want('tts')) for (const W of [360, 390]) {
   await p.evaluate(async () => { closeGeneralSettings(); openBook(BOOKS[0].id); await new Promise(r => setTimeout(r, 2500)); });
   const p0 = await p.evaluate(() => R.page);
   await p.evaluate(() => el('btnTts').click());
-  await sleep(2500);
+  await sleep(2500); await p.waitForFunction(() => R.ttsPos > 0, { timeout: 15000 }).catch(() => {}); /* 07.11: куски по абзацам, между ними паузы */
   const st = await p.evaluate(() => ({ on: ttsOn, pressed: el('btnTts').getAttribute('aria-pressed'), page: R.page, pos: R.ttsPos, len: R.book.text.length }));
   const speech = reqs.slice(n0).filter(q => /audio\/speech/.test(q.url));
   ok('tts ' + W + ': «Озвучка» играет нейроголос (короткая книга — до конца); ушло ≥ 3 запросов кусками ≤ 1720 знаков, по порядку текста', st.on && st.pressed === 'true' && speech.length >= 3 && speech.every(q => q.body.input.length <= 1720) && st.pos > 0, { st, n: speech.length, lens: speech.map(q => q.body.input.length) });
   const b0 = await p.evaluate(() => R.book.text);
-  ok('tts ' + W + ': куски идут подряд без пропусков', speech.length >= 2 && b0.indexOf(speech[0].body.input) >= 0 && b0.indexOf(speech[1].body.input) === b0.indexOf(speech[0].body.input) + speech[0].body.input.length, speech.slice(0, 2).map(q => q.body.input.slice(0, 40)));
+  /* 07.11 озвучка+: куски — абзацы (после «ё» и сокращений), следующие заказываются заранее и не по одному — проверяем, что вместе они идут подряд без пропусков и без повторов */
+  const gap = await p.evaluate((ins) => { const s = tpPrep(R.book.text).s; let k = 0; const at = ins.map(x => { const i = s.indexOf(x, Math.max(0, k - 2000)); return [i, x.length]; }).sort((a, b) => a[0] - b[0]);
+    const bad = at.filter((x, i) => x[0] < 0 || (i && !/^\s*$/.test(s.slice(at[i - 1][0] + at[i - 1][1], x[0])))); return { bad: bad.length, n: at.length, dup: ins.length - new Set(ins).size }; }, speech.map(q => q.body.input));
+  ok('tts ' + W + ': куски идут подряд без пропусков', speech.length >= 2 && gap.bad === 0 && gap.dup === 0, { gap, first: speech.slice(0, 2).map(q => q.body.input.slice(0, 40)) });
   ok('tts ' + W + ': страницы перелистываются вслед за голосом', st.page > p0, { p0, page: st.page });
   await p.evaluate(() => el('btnTts').click()); await sleep(300);
   const s2 = await p.evaluate(() => ({ on: ttsOn, paused: !nttsAudio || nttsAudio.paused, pressed: el('btnTts').getAttribute('aria-pressed') }));
   ok('tts ' + W + ': повторное нажатие останавливает звук', !s2.on && s2.paused && s2.pressed === 'false', s2);
   /* ошибка ключа — понятный текст, озвучка выключена, страница вернулась */
   fail = 1;
-  await p.evaluate(async () => { NTTS_CACHE.clear(); goPage(1, false); await new Promise(r => setTimeout(r, 600)); }); /* книга короткая и дочитана голосом до конца */
+  await p.evaluate(async () => { NTTS_CACHE.clear(); try { await caches.delete(TPC_CACHE); } catch (e) {} TP.stop = null; goPage(1, false); /* 07.11: и сохранённая озвучка, иначе куски берутся из неё без сети */ await new Promise(r => setTimeout(r, 600)); }); /* книга короткая и дочитана голосом до конца */
   const pg1 = await p.evaluate(() => R.page);
   await p.evaluate(() => el('btnTts').click()); await sleep(1200);
   const s3 = await p.evaluate(() => ({ on: ttsOn, page: R.page, toast: [...document.querySelectorAll('.toast,#toast,.flash,[class*=toast]')].map(e => e.textContent).join('|') }));
@@ -348,7 +421,7 @@ if (want('compact')) for (const W of [360, 390]) {
   });
   ok('compact ' + W + ': «Нейросети» — три строки (ИИ, озвучка, перевод), всё свёрнуто, карточка не выше 210px', r.r0.ai && r.r0.tts && r.r0.cardH <= 210 && /ИИ-помощник.*Нет ключа/.test(r.r0.aiRow) && /Озвучка.*Телефон/.test(r.r0.ttsRow), r.r0);
   ok('compact ' + W + ': строка ИИ раскрывается; список сервисов скрыт за кнопкой «Сервис DeepSeek»', !r.r1.ai && r.r1.list && /Сервис\s*DeepSeek/.test(r.r1.pick) && r.r1.key > 0, r.r1);
-  ok('compact ' + W + ': «Сервис» раскрывает 5 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 5 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
+  ok('compact ' + W + ': «Сервис» раскрывает 8 сервисов, выбор сворачивает список и меняет сервис', !r.r2.list && r.r2.n === 8 && r.r3.list && /Claude/.test(r.r3.pick) && r.r3.prov === 'anthropic' && r.r3.open, { r2: r.r2, r3: r.r3 });
   await p.evaluate(() => { NN_EXP.ai = false; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
   await shot(p, W + '-13-neyroseti-svernuto');
   await p.evaluate(() => { NN_EXP.ai = true; NN_EXP.aiP = true; renderNn(); el('aiHead').scrollIntoView({ block: 'start' }); }); await sleep(150);
@@ -363,7 +436,7 @@ if (want('keyhow')) for (const W of [360, 390]) {
     for (const b of [...el('ttsProvSeg').querySelectorAll('button')]) { b.click(); out['tts:' + b.textContent] = { t: el('ttsHowB').textContent, a: (el('ttsHowB').querySelector('a') || {}).href || '' }; }
     return out;
   });
-  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com', 'tts:Яндекс': 'console.yandex.cloud', 'tts:Грок': 'console.x.ai' };
+  const want_ = { 'ai:DeepSeek': 'platform.deepseek.com', 'ai:OpenRouter': 'openrouter.ai', 'ai:OpenAI': 'platform.openai.com', 'ai:Claude': 'console.anthropic.com', 'tts:OpenAI': 'platform.openai.com', 'tts:ElevenLabs': 'elevenlabs.io', 'tts:Google': 'console.cloud.google.com', 'tts:Яндекс': 'console.yandex.cloud', 'tts:Грок': 'console.x.ai', 'ai:Грок': 'console.x.ai', 'ai:YandexGPT': 'console.yandex.cloud', 'ai:Gemini': 'aistudio.google.com' };
   const bad = Object.keys(want_).filter(k => !r[k] || r[k].a.indexOf('https://' + want_[k]) !== 0 || !/как пароль/.test(r[k].t));
   ok('keyhow ' + W + ': у каждого сервиса шаги, ссылка на страницу ключей и совет про пароль', !bad.length && r['ai:DeepSeek'].tgt === '_blank' && /Проверить ключ/.test(r['ai:DeepSeek'].t) && /Послушать/.test(r['tts:OpenAI'].t) && r['ai:Другой'].a === '' && /адрес API/.test(r['ai:Другой'].t), { bad, deep: r['ai:DeepSeek'] });
   await p.evaluate(() => { [...el('aiProvSeg').querySelectorAll('button')][0].click(); el('aiHow').open = true; el('aiHead').scrollIntoView({ block: 'start' }); });

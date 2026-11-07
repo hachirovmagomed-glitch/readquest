@@ -767,7 +767,10 @@ function spSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCou
 function spPaint(){
   const rg=spSel(),rd=el('reader');
   if(!rg){if(rd.classList.contains('ownsel'))rd.classList.remove('ownsel');const b=el('selPaint');if(b&&b.firstChild)b.textContent='';SP.key='';return false;}
-  const v=el('viewer').getBoundingClientRect(),c=el('content');
+  /* 06.11 (видео: «текст, который я выделил, смещается в разные стороны, когда я прокручиваю»): the bands live INSIDE the scroller and
+     scroll with the text natively; a fixed layer redrawn every frame lagged behind a fast finger scroll */
+  const ps=R.mode==='pdf'&&typeof psBox==='function'?psBox():null,host=ps&&ps.contains(rg.commonAncestorContainer)?ps:el('viewer');
+  const v=host.getBoundingClientRect(),c=el('content'),ox=v.left+host.clientLeft-host.scrollLeft,oy=v.top+host.clientTop-host.scrollTop;
   const pe=rg.startContainer.nodeType===3?rg.startContainer.parentNode:rg.startContainer,pr=pe&&pe.getBoundingClientRect?pe.getBoundingClientRect():{left:0,top:0,width:0}; /* moves with any scroller / zoom (PDF) */
   const key=[rg.startOffset,rg.endOffset,rg.toString().length,Math.round(el('viewer').scrollTop),c.style.transform,Math.round(pr.left),Math.round(pr.top),Math.round(pr.width),Math.round(v.left),Math.round(v.top),v.width,v.height].join('|');
   if(key===SP.key&&rg.startContainer===SP.a&&rg.endContainer===SP.z)return true;SP.key=key;SP.a=rg.startContainer;SP.z=rg.endContainer;
@@ -775,11 +778,11 @@ function spPaint(){
   const rs=[],sub=document.createRange(),ca=rg.commonAncestorContainer,w=document.createTreeWalker(ca.nodeType===3?ca.parentNode:ca,NodeFilter.SHOW_TEXT);let n;
   while((n=w.nextNode())){if(!rg.intersectsNode(n)||!n.nodeValue.trim())continue;const pn=n.parentNode;if(pn&&pn.classList&&(pn.classList.contains('nc')||pn.closest('.pdfhls')))continue; /* PDF: line / page numbers are not selected */
     sub.setStart(n,n===rg.startContainer?rg.startOffset:0);sub.setEnd(n,n===rg.endContainer?rg.endOffset:n.nodeValue.length);
-    const q=sub.getClientRects();for(let i=0;i<q.length;i++){const r=q[i];if(r.width>0.5&&r.height>0&&r.bottom>v.top-40&&r.top<v.bottom+40&&r.right>v.left-40&&r.left<v.right+40)rs.push(r);}
+    const q=sub.getClientRects();for(let i=0;i<q.length;i++){const r=q[i];if(r.width>0.5&&r.height>0&&r.bottom>v.top-v.height&&r.top<v.bottom+v.height&&r.right>v.left-40&&r.left<v.right+40)rs.push(r);}
     if(rs.length>4000)break;}
-  const b=spBox();b.style.left=v.left+'px';b.style.top=v.top+'px';b.style.width=v.width+'px';b.style.height=v.height+'px';
-  b.innerHTML=spLines(rs).map(function(l){const t=+(l.t-v.top).toFixed(2),bt=+(l.b-v.top).toFixed(2); /* top and bottom rounded alike: the next line's band starts exactly here */
-    return '<i style="left:'+(l.l-v.left).toFixed(1)+'px;top:'+t+'px;width:'+(l.r-l.l).toFixed(1)+'px;height:'+(bt-t).toFixed(2)+'px"></i>';}).join('');
+  const b=spBox();if(b.parentNode!==host)host.appendChild(b);
+  b.innerHTML=spLines(rs).map(function(l){const t=+(l.t-oy).toFixed(2),bt=+(l.b-oy).toFixed(2); /* top and bottom rounded alike: the next line's band starts exactly here */
+    return '<i style="left:'+(l.l-ox).toFixed(1)+'px;top:'+t+'px;width:'+(l.r-l.l).toFixed(1)+'px;height:'+(bt-t).toFixed(2)+'px"></i>';}).join('');
   if(!rd.classList.contains('ownsel'))rd.classList.add('ownsel');return true;}
 function spLoop(){if(SP.raf)return;const f=function(){SP.raf=0;if(spPaint())SP.raf=requestAnimationFrame(f);};SP.raf=requestAnimationFrame(f);}
 document.addEventListener('selectionchange',spLoop);

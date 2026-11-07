@@ -455,6 +455,36 @@ body.rq-nolocks #rqNoXp{display:block}
 @media (prefers-reduced-motion:no-preference){#fzLine{transition:width 1s linear}}
 .fzcard{position:fixed;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:160;max-width:420px;margin:0 auto;padding:16px;border-radius:var(--rq-radius-md,14px);background:var(--card);color:var(--txt);box-shadow:0 8px 30px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px}
 .fzcard.hidden{display:none}
+/* 07.11 «Ранг круга» / «Итог круга» (js/focus.js fzShowRes): the letter flies in, shaped by the skin */
+.fzrkrow{display:flex;align-items:center;gap:14px}
+.fzrkrow>div:last-child{min-width:0}
+.fzrk{position:relative;flex:0 0 auto;width:84px;height:84px;display:grid;place-items:center}
+.fzrk::before{content:'';position:absolute;inset:0;background:var(--rq-accent,var(--accent));border-radius:50%}
+.fzcard .fzrk b{position:relative;font:700 40px/1 Georgia,'Times New Roman',serif;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.25)}
+.fzrk[data-r="S"]::before{box-shadow:0 0 0 4px rgba(255,200,60,.55),0 0 22px rgba(255,190,40,.55)}
+.fzrk[data-r="C"]::before,.fzrk[data-r="D"]::before{opacity:.6}
+html[data-skin="ellada"] .fzrk::before{border-radius:0;clip-path:polygon(50% 0,100% 12%,100% 56%,50% 100%,0 56%,0 12%)}
+html[data-skin="ellada"] .fzrk[data-r="S"]::before{box-shadow:none;filter:drop-shadow(0 0 8px rgba(255,190,40,.8))}
+html[data-skin="celestial"] .fzrk::before{border-radius:0;clip-path:polygon(50% 0,63% 37%,100% 50%,63% 63%,50% 100%,37% 63%,0 50%,37% 37%)}
+html[data-skin="celestial"] .fzcard .fzrk b{font-size:30px}
+html[data-skin="babochkovyi"] .fzrk::before{border-radius:0;clip-path:path('M42 30C35 6 4 2 4 24C4 40 20 44 34 44C18 48 9 62 18 76C27 86 38 72 42 57C46 72 57 86 66 76C75 62 66 48 50 44C64 44 80 40 80 24C80 2 49 6 42 30Z')}
+html[data-skin="babochkovyi"] .fzcard .fzrk b{font-size:30px}
+html[data-skin="alisa"] .fzrk{width:62px;height:84px}
+html[data-skin="alisa"] .fzrk::before{border-radius:8px;background:#fff;border:2px solid #b3202c}
+html[data-skin="alisa"] .fzrk::after{content:'\2665';position:absolute;left:6px;top:4px;font-size:14px;line-height:1;color:#b3202c}
+html[data-skin="alisa"] .fzcard .fzrk b{color:#b3202c;text-shadow:none}
+html[data-skin="pencil"] .fzrk::before{background:transparent;border:3px dashed var(--txt)}
+html[data-skin="pencil"] .fzcard .fzrk b{color:var(--txt);text-shadow:none}
+.fzres ul.fzresl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fzres ul.fzresl li{display:flex;gap:8px;align-items:center;font-size:0.875rem;line-height:1.3}
+.fzres ul.fzresl li .ic{flex:0 0 auto;color:var(--rq-accent,var(--accent))}
+.fzrkst{display:block;margin-top:2px}
+@media (prefers-reduced-motion:no-preference){
+  .fzrk.in{animation:fzRkIn .7s cubic-bezier(.2,1.4,.4,1) both}
+  .fzcard .fzrk.in b{animation:fzRkB .9s ease-out both}
+}
+@keyframes fzRkIn{0%{transform:scale(2.6) rotate(-18deg);opacity:0}60%{transform:scale(.92) rotate(3deg);opacity:1}100%{transform:none}}
+@keyframes fzRkB{0%,40%{opacity:0;transform:translateY(-10px)}100%{opacity:1;transform:none}}
 .fzcard p{margin:0;font-size:0.9375rem;line-height:1.35}
 .fzcard .fzsub{font-size:0.8125rem;color:var(--muted)}
 .fzcard b{font-size:1rem}
@@ -3439,6 +3469,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   <div id="pgLine"><span id="rqPausedTag">Пауза</span><span id="hgChip" hidden></span><span id="fzChip" role="status"></span><span id="rxClock" aria-hidden="true"></span><span id="rxInfo" aria-hidden="true"></span><span id="pgNum" aria-hidden="true"></span><span id="focusCount" role="img"></span></div>
   <i id="fzLine" aria-hidden="true"></i><!-- 25.10 «Фокус»: thin line of the round (js/focus.js) -->
   <div id="fzHold" class="fzcard hidden" role="alertdialog" aria-labelledby="fzHoldT"><p id="fzHoldT"></p><p class="fzsub">Если это был звонок или что-то срочное, круг можно продолжить один раз. Минуты за время выхода не идут.</p><div class="fzbtns"><button type="button" class="cta" id="fzHoldGo">Продолжить круг</button><button type="button" class="ghostbtn" id="fzHoldNew">Начать заново</button></div></div>
+  <div id="fzRes" class="fzcard fzres hidden" role="dialog" aria-labelledby="fzResT"></div><!-- 07.11 «Итог круга»: ранг, комбо, монеты (js/focus.js fzShowRes) -->
   <div id="fzWords" class="fzcard hidden" role="dialog" aria-labelledby="fzWordsH"><b id="fzWordsH">Зачем читаешь сейчас?</b><input id="fzWordsIn" type="text" maxlength="80" placeholder="Например: дочитать главу" autocomplete="off"><div id="fzWordsChips" class="fzchips"></div><div class="fzbtns"><button type="button" class="cta" id="fzWordsGo">Начать</button><button type="button" class="ghostbtn" id="fzWordsSkip">Без слов</button></div></div>
   <div id="dayBar" aria-hidden="true"><i></i></div>
   <div id="rqNoXp">В этом браузере опыт не начисляется. Чтение и страница сохраняются</div>

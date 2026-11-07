@@ -592,6 +592,57 @@ export function rowPomoRun(r) {
   const n = rowPomo(r).length, v = r && r.pomoRun;
   return Number.isInteger(v) && v > 0 ? Math.min(v, n) : 0;
 }
+/* ===== 07.11 «Ранг круга», «Комбо», «Итог круга» (Джессика: «1 2 3» из механик слэшеров, встроить в «Фокус») =====
+ * A meter 0…100 lives through one round (js/focus.js feeds it from the tracker snapshot every second):
+ *   counted minute +1.8k, counted page +1.2k (×1.5 from the 10th page of a combo), text action (highlight / note / word)
+ *   +6k when that kind was not used in the last 5 min, else +1k, all actions together at most +30k per round;
+ *   fast flip −12 and the combo breaks; minutes on a page past its cap (nobody reads) −6 per minute; leaving the app breaks
+ *   the combo. k = 25 / round length, so a 15- and a 45-minute round reach the same letters. Pause: nothing moves.
+ * The letter at the end of the round is the round's rank: row.pomoRk = 'SA…' (one letter per round of row.pomo),
+ * row.pomoCb = longest combo of the session (pages in a row without leaving, fast flipping or idling).
+ * Coins: S +2, A +1 per trusted round, inside the same POMO_DAY_CAP (no new currency, no XP multiplier). */
+export const RANK_LET = ['D', 'C', 'B', 'A', 'S'];
+export const RANK_AT = [0, 20, 45, 70, 90];
+export const RANK_COINS = { S: 2, A: 1 };
+export const RANK_ACT_GAP = 5 * 60000;
+export const COMBO_BOOST_AT = 10;
+export function rankLetter(sc) { let i = 0; for (let j = 0; j < RANK_AT.length; j++) if (sc + 1e-6 >= RANK_AT[j]) i = j; return RANK_LET[i]; }
+/** a fresh meter for a round of `len` minutes */
+export function rankNew(len) { return { sc: 0, k: 25 / (POMO_LENS.indexOf(len) >= 0 ? len : 25), combo: 0, best: 0, pages: 0, acts: 0, actSc: 0, last: {}, fast: 0 }; }
+/**
+ * One step of the meter. ev: {min, page, fast, idleMin, act:'hl'|'note'|'word', leave, t}
+ * Returns the same state (mutated).
+ */
+export function rankStep(st, ev) {
+  if (!st || !ev) return st;
+  const k = st.k || 1, add = function (v) { st.sc = Math.max(0, Math.min(100, st.sc + v)); };
+  if (ev.min > 0) add(1.8 * k * Math.min(ev.min, 1));
+  for (let i = 0; i < Math.min(ev.page | 0, 20); i++) { st.combo++; st.pages++; st.best = Math.max(st.best, st.combo); add(1.2 * k * (st.combo >= COMBO_BOOST_AT ? 1.5 : 1)); }
+  if ((ev.fast | 0) > 0) { st.combo = 0; st.fast += ev.fast | 0; add(-12 * Math.min(ev.fast | 0, 5)); }
+  if (ev.idleMin > 0) add(-6 * Math.min(ev.idleMin, 1));
+  if (ev.leave) st.combo = 0;
+  if (ev.act) {
+    const t = Number(ev.t) || 0, prev = st.last[ev.act], fresh = prev == null || t - prev >= RANK_ACT_GAP;
+    const v = Math.min((fresh ? 6 : 1) * k, Math.max(0, 30 * k - st.actSc));
+    st.last[ev.act] = t; st.acts++; st.actSc += v; add(v);
+  }
+  return st;
+}
+/** ranks of the trusted rounds of a row (same order as rowPomo), '' where a round has no letter */
+export function rowPomoRk(r) {
+  const a = r && Array.isArray(r.pomo) ? r.pomo : [], rk = r && typeof r.pomoRk === 'string' ? r.pomoRk : '';
+  const out = [];
+  let left = (Number(r && r.minutes) || 0) + DAY_MIN_EPS;
+  for (let i = 0; i < a.length && i < 50; i++) {
+    const v = a[i];
+    if (POMO_LENS.indexOf(v) < 0 || v > left) continue;
+    left -= v; const l = rk.charAt(i); out.push(RANK_LET.indexOf(l) >= 0 ? l : '');
+  }
+  return out;
+}
+export function rowPomoCb(r) { const v = r && r.pomoCb; return Number.isInteger(v) && v > 0 ? Math.min(v, Number(r.pageTurns) || 0) : 0; }
+/** coins of one round: its length + its rank */
+export function roundCoins(len, rk) { return ((POMO[len] && POMO[len].coins) || 0) + (RANK_COINS[rk] || 0); }
 /** XP bonus of one row for its rounds */
 export function pomoXp(r) { return Math.round(pomoMinutes(r) * XP_PER_MIN * POMO_XP * pomoHon(r)); }
 /** coins the round bonus is worth for local day `day` (the target; what is paid is game.pomoPaid[day]) */
@@ -599,8 +650,8 @@ export function pomoCoinsForDay(rows, day) {
   let c = 0;
   (rows || []).forEach(function (r) {
     if (rowDay(r) !== day) return;
-    const h = pomoHon(r);
-    rowPomo(r).forEach(function (v) { c += POMO[v].coins * h; });
+    const h = pomoHon(r), rk = rowPomoRk(r);
+    rowPomo(r).forEach(function (v, i) { c += roundCoins(v, rk[i]) * h; });
   });
   return Math.min(POMO_DAY_CAP, Math.floor(c + 1e-9));
 }

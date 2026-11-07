@@ -63,6 +63,8 @@ function focusInto(row, f) {
   if (!f) return row;
   if (Array.isArray(f.pomo) && f.pomo.length) row.pomo = f.pomo.slice(0, 50);
   if (f.pomoRun > 0 && row.pomo) row.pomoRun = f.pomoRun;
+  if (f.pomoRk && row.pomo) row.pomoRk = String(f.pomoRk).replace(/[^SABCD]/g, '').slice(0, 50); /* 07.11 ranks of the rounds */
+  if (f.pomoCb > 0) row.pomoCb = f.pomoCb | 0; /* 07.11 longest combo */
   if (f.fw) row.fw = String(f.fw).slice(0, 80);
   return row;
 }
@@ -190,7 +192,7 @@ export function createSessionTracker(api) {
       fl: honest && fast > 0 ? fast : undefined,
       au: honest && au > 0 ? au : undefined,
       hon: honest && honest.hon < 1 ? honest.hon : undefined,
-      pomo: focus && focus.pomo, pomoRun: focus && focus.pomoRun, fw: focus && focus.fw,
+      pomo: focus && focus.pomo, pomoRun: focus && focus.pomoRun, fw: focus && focus.fw, pomoRk: focus && focus.pomoRk, pomoCb: focus && focus.pomoCb,
       updatedAt: Date.now(),
     }));
   }
@@ -286,7 +288,7 @@ export function createSessionTracker(api) {
       console.warn('[rq] logSession failed — draft kept for recovery', e);
       const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
         countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, lvl: row.lvl,
-        fl: row.fl, ct: row.ct, rr: row.rr, au: row.au, hon: row.hon, pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, updatedAt: Date.now() });
+        fl: row.fl, ct: row.ct, rr: row.rr, au: row.au, hon: row.hon, pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, pomoRk: row.pomoRk, pomoCb: row.pomoCb, updatedAt: Date.now() });
       /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
       if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
       return null;
@@ -372,7 +374,7 @@ export function createSessionTracker(api) {
     /** 25.10 «Фокус»: completed rounds / run / focus words of THIS session (js/focus.js); replaces the previous value */
     setFocus(info) {
       if (!running) return;
-      focus = info && typeof info === 'object' ? { pomo: Array.isArray(info.pomo) ? info.pomo.slice(0, 50) : [], pomoRun: info.pomoRun | 0, fw: info.fw ? String(info.fw).slice(0, 80) : '' } : null;
+      focus = info && typeof info === 'object' ? { pomo: Array.isArray(info.pomo) ? info.pomo.slice(0, 50) : [], pomoRun: info.pomoRun | 0, fw: info.fw ? String(info.fw).slice(0, 80) : '', pomoRk: info.pomoRk ? String(info.pomoRk).slice(0, 50) : '', pomoCb: info.pomoCb | 0 } : null;
       persistDraft();
     },
     /** id of the running session (focus.js keeps its round state per session) */
@@ -501,7 +503,7 @@ export function createSessionTracker(api) {
     /** Live counted state (for the day-progress bar). */
     snapshot() {
       return { countedMs: countedMsLive(), minutes: countedMsLive() / 60000, pageTurns: pagesRead, turns: turns,
-        page: page, pageCapMs: pageCapMs, pageDwellMs: dwellLive(), extensions: extCount, fastRun: fastRun, counting: counting, pageAgeMs: running ? now() - pageAt : 0, minSecMs: minSecMs,
+        page: page, pageCapMs: pageCapMs, pageDwellMs: dwellLive(), extensions: extCount, fastRun: fastRun, counting: counting, pageAgeMs: running ? now() - pageAt : 0, minSecMs: minSecMs, fast: fast, /* 07.11 «Ранг круга»: fast flips of the session (only grows) */
         /* 25.10 «Фокус»: counted ms that can no longer be taken back (the open page only once it passed minSec) — never decreases */
         sureMs: creditedMs + (dwellLive() >= minSecMs ? Math.min(dwellLive(), pageCapMs) : 0) };
     },
@@ -572,7 +574,7 @@ async function recoverRaw(api, raw) {
     return await api.logSession({
       id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt, lvl: d.lvl,
       fl: d.fl, ct: d.ct, rr: d.rr, au: d.au, hon: d.hon,
-      pomo: d.pomo, pomoRun: d.pomoRun, fw: d.fw,
+      pomo: d.pomo, pomoRun: d.pomoRun, fw: d.fw, pomoRk: d.pomoRk, pomoCb: d.pomoCb,
     });
   } catch (e) {
     console.warn('[rq] recoverDraft failed', e);

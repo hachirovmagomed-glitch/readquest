@@ -1513,11 +1513,11 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
   const net=async(u,o)=>{try{return await fetch(u,o);}catch(e){throw new Error(navigator.onLine===false?'нет интернета':'нет связи с сервисом');}};
   if(c.prov==='elevenlabs'){
     r=await net('https://api.elevenlabs.io/v1/text-to-speech/'+encodeURIComponent(c.voice)+'?output_format=mp3_44100_64',{method:'POST',
-      headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify({text:text,model_id:'eleven_multilingual_v2'})});
+      headers:{'Content-Type':'application/json','xi-api-key':c.key},body:JSON.stringify(Object.assign({text:text,model_id:'eleven_multilingual_v2'},typeof tpVoiceOpts==='function'?tpVoiceOpts('elevenlabs'):{}))});
   }else if(c.prov==='yandex'){ /* SpeechKit v1: параметры формой; ключ сервисного аккаунта (Api-Key) или IAM-токен t1.… (Bearer) */
     r=await net('https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize',{method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded','Authorization':(/^t1\./.test(c.key)?'Bearer ':'Api-Key ')+c.key},
-      body:new URLSearchParams({text:text,lang:'ru-RU',voice:c.voice,format:'mp3'}).toString()});
+      body:new URLSearchParams(Object.assign({text:text,lang:'ru-RU',voice:c.voice,format:'mp3'},typeof tpVoiceOpts==='function'?tpVoiceOpts('yandex'):{})).toString()});
   }else if(c.prov==='xai'){ /* Грок: ответ сразу mp3; язык auto — книга может быть и не на русском */
     r=await net('https://api.x.ai/v1/tts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
       body:JSON.stringify({text:text,voice_id:c.voice,language:'auto'})});
@@ -1528,7 +1528,7 @@ async function nttsFetch(text){ /* → Blob mp3; ошибки понятным �
     const base=c.prov==='custom'?c.base:'https://api.openai.com/v1';
     r=await net(base+'/audio/speech',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
       body:JSON.stringify(Object.assign({model:c.prov==='openai'?'gpt-4o-mini-tts':'tts-1',voice:c.voice,input:text,response_format:'mp3'},
-        c.prov==='openai'?{instructions:'Читай по-русски спокойно и выразительно, как аудиокнигу.'}:{}))});
+        c.prov==='openai'?{instructions:typeof tpVoiceOpts==='function'?tpVoiceOpts('openai').instructions:'Читай по-русски спокойно и выразительно, как аудиокнигу.'}:{}))});
   }
   if(!r.ok){let d=null;try{d=await r.json();}catch(e){}throw new Error(nnHttpErr(r.status,d,c.key)||('сервис ответил '+r.status));}
   if(c.prov==='google'){const d=await r.json();if(!d||!d.audioContent)throw new Error('пустой ответ');

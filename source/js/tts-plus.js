@@ -221,11 +221,11 @@ async function pipDownload(v,prog){
 async function pipRemove(){try{await caches.delete(PIP_CACHE);}catch(e){}PIP.have={};PIP.eng=false;if(PIP.w){try{PIP.w.terminate();}catch(e){}}PIP.w=null;PIP.wv='';PIP.init=null;}
 async function pipSize(){try{const c=await caches.open(PIP_CACHE);let n=0;for(const r of await c.keys()){const m=await c.match(r);n+=+(m.headers.get('Content-Length')||0);}return n;}catch(e){return 0;}}
 /* поток синтеза: phonemize (espeak-ng) → onnx → PCM 16 бит */
-const PIP_WORKER="let _o=null,_s=null,_c=null,_m=null,_out='',_ph=null;"+
+const PIP_WORKER="let _o=null,_s=null,_c=null,_m=null,_out='',_ph=null,_k=1;"+
 "self.onmessage=async function(e){const d=e.data;try{"+
 " if(d.t==='init'){if(!self.ort)importScripts(d.ortJs);_o=self.ort;_o.env.wasm.numThreads=1;_o.env.wasm.proxy=false;_o.env.wasm.wasmPaths={'ort-wasm-simd.wasm':d.ortWasm,'ort-wasm.wasm':d.ortWasm};"+
 "  if(!self.createPiperPhonemize)importScripts(d.phJs);_ph={wasm:d.phWasm,data:d.phData};_c=d.cfg;_s=await _o.InferenceSession.create(d.model,{executionProviders:['wasm']});postMessage({t:'ok',id:d.id});return;}"+
-" if(d.t==='say'){const pcm=await say(d.text);postMessage({t:'pcm',id:d.id,pcm:pcm,sr:_c.audio.sample_rate},[pcm.buffer]);}"+
+" if(d.t==='say'){_k=d.k||1;const pcm=await say(d.text);postMessage({t:'pcm',id:d.id,pcm:pcm,sr:_c.audio.sample_rate},[pcm.buffer]);}"+
 "}catch(err){postMessage({t:'err',id:d.id,msg:String(err&&err.message||err)});}};"+
 "async function mk(){return createPiperPhonemize({print:function(s){_out=s;},printErr:function(){},locateFile:function(u){return /\\.wasm$/.test(u)?_ph.wasm:/\\.data$/.test(u)?_ph.data:u;}});}"+
 "async function ids(text,again){if(!_m)_m=await mk();_out='';let bad=false;try{_m.callMain(['-l',_c.espeak.voice,'--input',JSON.stringify([{text:text}]),'--espeak_data','/espeak-ng-data']);}catch(e){bad=true;}"+
@@ -233,7 +233,7 @@ const PIP_WORKER="let _o=null,_s=null,_c=null,_m=null,_out='',_ph=null;"+
 "function split(t){t=t.trim();if(t.length<=400)return t?[t]:[];const s=t.match(/[^.!?…\\n]+[.!?…]*\\s*/g)||[t],r=[];let c='';s.forEach(function(x){if((c+x).length>400&&c){r.push(c);c='';}c+=x;if(c.length>400){r.push(c);c='';}});if(c.trim())r.push(c);return r;}"+
 "async function say(text){const sr=_c.audio.sample_rate,pc=[];let n=0;for(const p of split(text)){const id=await ids(p);if(!id.length)continue;"+
 " const f={input:new _o.Tensor('int64',BigInt64Array.from(id.map(BigInt)),[1,id.length]),input_lengths:new _o.Tensor('int64',BigInt64Array.from([BigInt(id.length)]),[1]),"+
-" scales:new _o.Tensor('float32',Float32Array.from([_c.inference.noise_scale,_c.inference.length_scale,_c.inference.noise_w]),[3])};"+
+" scales:new _o.Tensor('float32',Float32Array.from([_c.inference.noise_scale*_k,_c.inference.length_scale,_c.inference.noise_w*_k]),[3])};"+
 " if(_c.speaker_id_map&&Object.keys(_c.speaker_id_map).length)f.sid=new _o.Tensor('int64',BigInt64Array.from([0n]),[1]);"+
 " const r=await _s.run(f),a=r.output.data;pc.push(a);n+=a.length;const g=new Float32Array(Math.round(sr*0.06));pc.push(g);n+=g.length;}"+
 " const o=new Int16Array(n);let k=0;pc.forEach(function(a){for(let i=0;i<a.length;i++){const v=a[i];o[k++]=v>=1?32767:v<=-1?-32768:(v*32767)|0;}});return o;}";
@@ -260,7 +260,7 @@ async function pipStart(v){
   return PIP.init;
 }
 /** text → wav Blob голосом Piper */
-async function pipSay(text,v){await pipStart(v);const d=await pipCall({t:'say',text:String(text)});if(!d.pcm||!d.pcm.length)throw new Error('пустой звук');return pipWav(d.pcm,d.sr);}
+async function pipSay(text,v){await pipStart(v);const d=await pipCall({t:'say',text:String(text),k:({calm:0.55,norm:1,live:1.35})[tpS().expr]||1});if(!d.pcm||!d.pcm.length)throw new Error('пустой звук');return pipWav(d.pcm,d.sr);}
 
 /* Piper — ещё один сервис озвучки, вторым после «Телефона» */
 (function(){const all=Object.assign({},TTS_PROV);Object.keys(TTS_PROV).forEach(function(k){delete TTS_PROV[k];});
@@ -271,7 +271,7 @@ async function pipSay(text,v){await pipStart(v);const d=await pipCall({t:'say',t
 /* ---------- 7: что уже озвучено нейроголосом — хранится; глава вперёд ---------- */
 const TPC_CACHE=TP_NS+'_ttsc',TPC_MAX=240;
 function tpHash(s){let h1=0x811c9dc5,h2=0x01000193;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,16777619);h2=Math.imul(h2^c,2246822519)+i;}return (h1>>>0).toString(16)+(h2>>>0).toString(16);}
-function tpCKey(c,t){return './__tts/'+tpHash(c.prov+'|'+c.voice+'|'+c.base+'|'+t)+'.a';}
+function tpCKey(c,t){const o=tpS();return './__tts/'+tpHash(c.prov+'|'+c.voice+'|'+c.base+'|'+(c.prov==='openai'||c.prov==='elevenlabs'||c.prov==='yandex'?o.expr+'|'+o.style+'|':'')+t)+'.a';}
 async function tpCGet(k){try{const c=await caches.open(TPC_CACHE),m=await c.match(k);return m?await m.blob():null;}catch(e){return null;}}
 async function tpCPut(k,b){try{const c=await caches.open(TPC_CACHE);await c.put(k,new Response(b,{headers:{'Content-Type':b.type||'audio/mpeg','Content-Length':String(b.size)}}));
   const ks=await c.keys();for(let i=0;i<ks.length-TPC_MAX;i++)await c.delete(ks[i]);}catch(e){}}
@@ -379,10 +379,10 @@ function tpReadFrom(pos){
 /* the bar over the text while a book is read aloud */
 function tpBarSync(){
   const b=el('tpBar');if(!b)return;const on=typeof ttsOn!=='undefined'&&ttsOn&&tpS().bar&&!!R.book&&!el('reader').classList.contains('hidden');
-  b.hidden=!on;if(!on)return;b.classList.toggle('pdf',R.mode==='pdf');
+  b.hidden=!on;if(!on){tpRatePop(false);return;}b.classList.toggle('pdf',R.mode==='pdf');
   const rb=document.querySelector('#reader .rbot'),off=el('reader').classList.contains('barsoff')||!rb?0:rb.getBoundingClientRect().height;
   b.style.bottom='calc('+Math.round(off+10)+'px + '+(off?'0px':'env(safe-area-inset-bottom,0px)')+')';
-  el('tpPP').innerHTML=rqIcon(speaking||ttsOn?'pause':'play',24);
+  el('tpPP').innerHTML=rqIcon(speaking||ttsOn?'pause':'play',24);el('tpRate').textContent=tpRateTxt(rqRx().tts.rate);if(!on)tpRatePop(false);
 }
 (function(){
   const rd=el('reader');if(!rd)return;
@@ -390,12 +390,15 @@ function tpBarSync(){
     '<button type="button" id="tpPB" aria-label="Назад на абзац" title="Назад на абзац">'+rqIcon('chevrons-left',22)+'</button>'+
     '<button type="button" id="tpSB" aria-label="Назад на предложение" title="Назад на предложение">'+rqIcon('chevron-left',24)+'</button>'+
     '<button type="button" id="tpPP" aria-label="Остановить озвучку" title="Остановить озвучку"></button>'+
+    '<button type="button" id="tpRate" aria-label="Скорость голоса" aria-haspopup="true" title="Скорость голоса"></button>'+
     '<button type="button" id="tpSF" aria-label="Вперёд на предложение" title="Вперёд на предложение">'+rqIcon('chevron-right',24)+'</button>'+
     '<button type="button" id="tpPF" aria-label="Вперёд на абзац" title="Вперёд на абзац">'+rqIcon('chevrons-right',22)+'</button></div>'+
+    '<div id="tpRatePop" role="dialog" aria-label="Скорость голоса" hidden></div>'+
     '<button type="button" id="tpHere" hidden>'+rqIcon('play',16)+'<span>Читать отсюда</span></button>');
-  const b=el('tpBar');['pointerdown','click','touchstart','touchend'].forEach(function(t){b.addEventListener(t,function(e){e.stopPropagation();});el('tpHere').addEventListener(t,function(e){e.stopPropagation();});});
+  const b=el('tpBar');['pointerdown','click','touchstart','touchend'].forEach(function(t){b.addEventListener(t,function(e){e.stopPropagation();});el('tpRatePop').addEventListener(t,function(e){e.stopPropagation();});el('tpHere').addEventListener(t,function(e){e.stopPropagation();});});
   el('tpPB').onclick=function(){tpBack('p');};el('tpSB').onclick=function(){tpBack('s');};el('tpSF').onclick=function(){tpFwd('s');};el('tpPF').onclick=function(){tpFwd('p');};
   el('tpPP').onclick=function(){if(ttsOn)ttsStop();};
+  el('tpRate').onclick=function(){tpRatePop(el('tpRatePop').hidden);};
   el('tpHere').onclick=function(){const p=TP.chip;tpChip(null);if(p!=null&&p>=0)tpReadFrom(p);};
   new MutationObserver(tpBarSync).observe(rd,{attributes:true,attributeFilter:['class']});
   addEventListener('resize',tpBarSync);
@@ -544,6 +547,72 @@ function tpDictRender(){
   el('tpDAdd').onclick=function(){const a=el('tpDA').value.trim().slice(0,60),b=el('tpDB').value.trim().slice(0,80);if(!a||!b){flashMsg('Заполните оба поля');return;}
     const c=tpS();if(c.dict.length>=300){flashMsg('Уже 300 слов');return;}c.dict=c.dict.filter(function(x){return x[0].toLowerCase()!==a.toLowerCase();}).concat([[a,b]]);saveSet();rxRender();tpSpeak(a,'ru');};
 }
+/* ===== 07.11 (Джессика: «Добавь возможность выбирать скорость и более тонкие настройки для кастомизации голоса под себя»; «голоса … без нейросети,
+   но очень качественно … скачать») =====
+   Скорость 0,5…3× шагом 0,05 — в «Чтение вслух» и кнопкой на плашке озвучки (меняется сразу, и у звучащего куска нейроголоса);
+   высота и громкость (голос телефона: pitch/volume; нейроголос: громкость); выразительность (Piper: живость синтеза; OpenAI: манера,
+   ElevenLabs: стабильность, Яндекс: эмоция); своя манера чтения словами (OpenAI); наборы «Аудиокнига», «Перед сном», «Быстро»;
+   «Хорошие голоса для телефона»: RHVoice (Android, без нейросети) и улучшенные голоса Google / Apple. */
+function tpRateTxt(v){return String(Math.round(v*100)/100).replace('.',',')+'×';}
+function tpRateSet(v){const t=rxS().tts;t.rate=Math.round(Math.max(0.5,Math.min(3,v))*20)/20;saveSet();
+  try{if(nttsAudio&&!nttsAudio.paused)nttsAudio.playbackRate=t.rate;}catch(e){}tpBarSync();try{rxRender();}catch(e){}if(!el('tpRatePop').hidden)tpRatePop(true);}
+function tpRatePop(on){
+  const box=el('tpRatePop');if(!box)return;if(!on){box.hidden=true;return;}
+  const r=rqRx().tts.rate;
+  box.innerHTML='<div class="tprp"><button type="button" class="stepbtn" data-d="-0.05" aria-label="Медленнее">'+rqIcon('minus',18)+'</button><b>'+tpRateTxt(r)+'</b><button type="button" class="stepbtn" data-d="0.05" aria-label="Быстрее">'+rqIcon('plus',18)+'</button></div>'+
+    '<div class="tprc">'+[0.75,1,1.25,1.5,2,2.5].map(function(v){return '<button type="button" class="fchip'+(Math.abs(v-r)<0.01?' on':'')+'" data-v="'+v+'">'+tpRateTxt(v)+'</button>';}).join('')+'</div>';
+  box.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){tpRateSet(rqRx().tts.rate+(+b.dataset.d));};});
+  box.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){tpRateSet(+b.dataset.v);};});
+  box.hidden=false;const bar=el('tpBar').getBoundingClientRect();box.style.bottom=Math.round(innerHeight-bar.top+8)+'px';
+}
+/** extra request fields of a voice service: how lively, how to read */
+function tpVoiceOpts(p){const o=tpS(),e=o.expr;
+  if(p==='openai'){const base={calm:'Читай по-русски спокойно, ровно и негромко, без нажима.',norm:'Читай по-русски спокойно и выразительно, как аудиокнигу.',live:'Читай по-русски живо и артистично, с интонациями героев, как актёр аудиокниги.'}[e];
+    return {instructions:base+(o.style?' '+o.style:'')};}
+  if(p==='elevenlabs')return {voice_settings:{stability:{calm:0.8,norm:0.5,live:0.28}[e],similarity_boost:0.75,style:{calm:0,norm:0.15,live:0.45}[e]}};
+  if(p==='yandex')return e==='live'?{emotion:'good'}:{};
+  return {};}
+/* голос телефона: высота и громкость каждой фразы; звук нейроголоса: громкость */
+if(window.speechSynthesis){try{const sp=speechSynthesis.speak.bind(speechSynthesis);speechSynthesis.speak=function(u){try{const o=tpS();if(u&&u.pitch===1)u.pitch=o.pitch;if(u&&u.volume===1)u.volume=o.vol;}catch(e){}return sp(u);};}catch(e){}}
+document.addEventListener('play',function(e){const a=e.target;if(a&&a!==TP.sil&&a.tagName==='AUDIO'&&(a===nttsAudio||a===TP_SAY||(typeof ttsTestAudio!=='undefined'&&a===ttsTestAudio)))try{a.volume=tpS().vol;}catch(er){}},true);
+const TP_PRESETS=[['book','Аудиокнига',{rate:1,pitch:1,expr:'live',pause:'l'}],['sleep','Перед сном',{rate:0.85,pitch:0.95,expr:'calm',pause:'l'}],['fast','Быстро',{rate:1.6,pitch:1,expr:'norm',pause:'s'}],['def','Как было',{rate:1,pitch:1,expr:'norm',pause:'m'}]];
+function tpPresetOn(x){const c=tpS(),r=rqRx().tts.rate;return Math.abs(r-x.rate)<0.01&&c.pitch===x.pitch&&c.expr===x.expr&&c.pause===x.pause;}
+function tpPhoneHelp(){const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod|Macintosh/.test(ua)&&!/Android/.test(ua);
+  return ios?'<div class="aisub">На iPhone: «Настройки → Универсальный доступ → Устный контент → Голоса → Русский» — скачайте «Милена (улучшенный)» или «Юрий (улучшенный)». Голос появится здесь в «Голос телефона».</div>':
+    '<div class="aisub"><b>RHVoice</b> — бесплатные голоса без нейросети и без интернета: Александр, Анна, Елена, Ирина и другие. Установите приложение, откройте его и скачайте русские голоса, затем в Android: «Настройки → Специальные возможности → Синтез речи» выберите RHVoice. Голос появится здесь в «Голос телефона».</div>'+
+    '<div class="row nnquick"><button type="button" class="ghostbtn" data-rhv="gp">'+rqIcon('download',18)+'<span>RHVoice в Google Play</span></button><button type="button" class="ghostbtn" data-rhv="fd">'+rqIcon('download',18)+'<span>RHVoice в F-Droid</span></button></div>'+
+    '<div class="aisub"><b>Голоса Google</b> лучшего качества: «Настройки → Специальные возможности → Синтез речи → Google → ⚙ → Установить голосовые данные → Русский», там выберите голос и скачайте его.</div>';}
+function tpPhoneWire(box){if(!box)return;box.querySelectorAll('[data-rhv]').forEach(function(b){b.onclick=function(){window.open(b.dataset.rhv==='gp'?'https://play.google.com/store/apps/details?id=com.github.olga_yakovleva.rhvoice.android':'https://f-droid.org/packages/com.github.olga_yakovleva.rhvoice.android/','_blank','noopener');};});}
+function tpRows2(){return rxRow('','sparkles','Наборы голоса','Скорость, высота, выразительность и паузы разом','<div class="presets rxfull" id="tpPre2" role="radiogroup" aria-label="Наборы голоса"></div>','setstack')+
+  rxRow('','timer','Скорость точнее','0,5…3×; на плашке озвучки — кнопка со скоростью','<span class="tprv"><input type="range" id="tpRateR" min="0.5" max="3" step="0.05" aria-label="Скорость голоса"><b id="tpRateV"></b></span>','setstack')+
+  rxRow('tpPitchRow','move-vertical','Высота голоса','Для голоса телефона','<span class="tprv"><input type="range" id="tpPitchR" min="0.5" max="1.5" step="0.05" aria-label="Высота голоса"><b id="tpPitchV"></b></span>','setstack')+
+  rxRow('','volume-2','Громкость голоса','Тише остальных звуков телефона, если нужно','<span class="tprv"><input type="range" id="tpVolR" min="0.2" max="1" step="0.05" aria-label="Громкость голоса"><b id="tpVolV"></b></span>','setstack')+
+  rxRow('tpExprRow','flame','Выразительность','',rxSegHtml('tpExpr','Выразительность'),'setstack')+
+  rxRow('tpStyleRow','pencil','Своя манера чтения','Для OpenAI: опишите словами, например «как сказочник, медленно и тепло»','<input class="searchinp" id="tpStyle" maxlength="200" placeholder="Как читать" aria-label="Своя манера чтения">','setstack')+
+  rxRow('','download','Хорошие голоса для телефона','Скачать один раз, читают без интернета',' <button type="button" class="ghostbtn" id="tpPhoneBtn">Как скачать</button>')+
+  '<div id="tpPhoneBox" class="nnbox" hidden></div>';}
+{const r0=rmRxTtsRows;rmRxTtsRows=function(){return tpRows2()+r0.apply(this,arguments);};}
+{const w0=rmRxWire;rmRxWire=function(){w0.apply(this,arguments);if(!el('tpRateR'))return;
+  el('tpRateR').oninput=function(){el('tpRateV').textContent=tpRateTxt(+this.value);};el('tpRateR').onchange=function(){tpRateSet(+this.value);};
+  el('tpPitchR').oninput=function(){el('tpPitchV').textContent=tpRateTxt(+this.value).replace('×','');};el('tpPitchR').onchange=function(){tpS().pitch=Math.round(+this.value*20)/20;saveSet();rxRender();};
+  el('tpVolR').oninput=function(){el('tpVolV').textContent=Math.round(+this.value*100)+'%';};el('tpVolR').onchange=function(){tpS().vol=Math.round(+this.value*20)/20;saveSet();try{if(nttsAudio)nttsAudio.volume=tpS().vol;}catch(e){}rxRender();};
+  el('tpStyle').onchange=function(){tpS().style=this.value.trim().slice(0,200);saveSet();};
+  el('tpPhoneBtn').onclick=function(){const b=el('tpPhoneBox');b.hidden=!b.hidden;if(!b.hidden){b.innerHTML=tpPhoneHelp();tpPhoneWire(b);}};
+  /* the old ± of «Скорость голоса»: 0,05 and up to 3× */
+  const st=function(d){tpRateSet(rqRx().tts.rate+d);};el('rxRateMinus').onclick=function(){st(-0.05);};el('rxRatePlus').onclick=function(){st(0.05);};};}
+{const x0=rmRxRender;rmRxRender=function(){x0.apply(this,arguments);if(!el('tpRateR'))return;const c=tpS(),t=rqRx().tts,pr=(S.tts&&S.tts.prov)||'system',sys=!nttsOn();
+  el('tpRateR').value=t.rate;el('tpRateV').textContent=tpRateTxt(t.rate);el('rxRatePlus').disabled=t.rate>=3;
+  el('tpPitchR').value=c.pitch;el('tpPitchV').textContent=tpRateTxt(c.pitch).replace('×','');el('tpPitchR').disabled=!sys;
+  el('tpPitchRowS').textContent=sys?'Для голоса телефона':'Только у голоса телефона; сейчас читает «'+(TTS_PROV[pr]?TTS_PROV[pr].name:'')+'»';
+  el('tpVolR').value=c.vol;el('tpVolV').textContent=Math.round(c.vol*100)+'%';
+  rxSeg('tpExpr',[['calm','Спокойно'],['norm','Обычно'],['live','Живо']],c.expr,function(v){tpS().expr=v;saveSet();rxRender();});
+  el('tpExprRowS').textContent=sys?'Для нейроголоса; голос телефона читает как умеет':pr==='piper'?'Нейроголос в телефоне: ровнее или живее':pr==='openai'?'OpenAI: манера чтения':pr==='elevenlabs'?'ElevenLabs: стабильность и стиль':pr==='yandex'?'Яндекс: «Живо» — доброжелательная интонация':'У этого сервиса не меняется';
+  el('tpStyleRow').hidden=pr!=='openai';if(document.activeElement!==el('tpStyle'))el('tpStyle').value=c.style;
+  rxChips('tpPre2',TP_PRESETS.map(function(x){return [x[0],x[1]];}),(TP_PRESETS.find(function(x){return x[0]!=='def'&&tpPresetOn(x[2]);})||[''])[0],function(k){const x=TP_PRESETS.find(function(q){return q[0]===k;})[2];
+    const o=tpS();o.pitch=x.pitch;o.expr=x.expr;o.pause=x.pause;tpRateSet(x.rate);flashMsg('Голос: «'+TP_PRESETS.find(function(q){return q[0]===k;})[1]+'»',{kind:'info',icon:'volume-2'});});};}
+/* «Нейросети → Озвучка», выбран «Телефон»: та же подсказка про хорошие голоса */
+(function(){const lg=el('tpPip');if(!lg)return;lg.insertAdjacentHTML('afterend','<div id="tpPhoneNn" class="nnbox" hidden><div class="aisub"><b>Хорошие голоса для телефона</b></div><div id="tpPhoneNnB"></div></div>');})();
+{const r0=renderTtsSet;renderTtsSet=function(){r0.apply(this,arguments);try{const b=el('tpPhoneNn');if(!b)return;const on=!S.tts||S.tts.prov==='system'||!TTS_PROV[S.tts.prov];b.hidden=!on;if(on&&!el('tpPhoneNnB').childNodes.length){el('tpPhoneNnB').innerHTML=tpPhoneHelp();tpPhoneWire(el('tpPhoneNnB'));}}catch(e){}};}
 /* the «Чтение» card may already be built (js/dict.js rebuilds it after its hooks) — build again with ours */
 (function(){const c=el('rxCard');if(c&&c.childNodes.length){c.innerHTML='';try{rxRender();}catch(e){console.warn('[rq] rx rebuild',e);}}})();
 pipScan();

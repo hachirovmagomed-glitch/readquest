@@ -23,7 +23,7 @@ const JUNK = { foot: { pct: 1, clock: true }, tts: { rate: 7, voice: 5, follow: 
   fresh: { set: '  Ночь  ', toc: true }, spd: { cpm: 99999, spp: 30, n: -3 }, extra: 1 };
 let r = await p.evaluate((j) => ({ a: rqRxNorm(j), d: rqRxNorm(null), set: SET.rx }), JUNK);
 const nd = normRx(JUNK);
-ok('1 rqRxNorm = schema normRx; junk → defaults, unknown keys dropped', JSON.stringify(r.a) === JSON.stringify(nd) && r.a.tts.rate === 2 && r.a.tts.voice === '' && r.a.tts.follow === true &&
+ok('1 rqRxNorm = schema normRx; junk → defaults, unknown keys dropped', JSON.stringify(r.a) === JSON.stringify(nd) && r.a.tts.rate === 3 && r.a.tts.voice === '' && r.a.tts.follow === true &&
   r.a.night.from === '22:00' && r.a.night.to === '06:30' && r.a.gest.dbl === 'off' && r.a.gest.pinch === false && r.a.sel.off.join() === 'ai' && r.a.sel.color === '' &&
   r.a.screen.orient === 'auto' && r.a.screen.spread === 'land' && r.a.fresh.set === 'Ночь' && r.a.spd.cpm === null && r.a.spd.spp === 30 && r.a.spd.n === 0 && !('extra' in r.a), { page: r.a, node: nd });
 ok('1 a fresh start has SET.rx with the defaults (nothing changes for anyone)', JSON.stringify(r.set) === JSON.stringify(r.d) && r.d.foot.page && !r.d.foot.pct && r.d.gest.bright && r.d.gest.dbl === 'off' && r.d.screen.spread === 'auto', r.set);

@@ -349,7 +349,7 @@ export function normRx(o) {
   const f = ob(o.foot), t = ob(o.tts), n = ob(o.night), g = ob(o.gest), s = ob(o.sel), sc = ob(o.screen), fr = ob(o.fresh), sp = ob(o.spd);
   return {
     foot: { page: bo(f.page, true), pct: bo(f.pct, false), clock: bo(f.clock, false), chap: bo(f.chap, false) },
-    tts: { rate: typeof t.rate === 'number' && Number.isFinite(t.rate) ? Math.round(Math.max(0.5, Math.min(2, t.rate)) * 20) / 20 : 1, voice: typeof t.voice === 'string' ? t.voice.slice(0, 200) : '', follow: bo(t.follow, true) },
+    tts: { rate: typeof t.rate === 'number' && Number.isFinite(t.rate) ? Math.round(Math.max(0.5, Math.min(3, t.rate)) * 20) / 20 : 1, voice: typeof t.voice === 'string' ? t.voice.slice(0, 200) : '', follow: bo(t.follow, true) },
     night: { on: bo(n.on, false), from: hm(n.from, '22:00'), to: hm(n.to, '07:00'), day: typeof n.day === 'string' && n.day.length <= 32 ? n.day : '' },
     gest: { bright: bo(g.bright, true), pinch: bo(g.pinch, true), dbl: en(g.dbl, ['off', 'night', 'mark', 'bars', 'auto', 'dict']) },
     sel: { off: ids(s.off), order: ids(s.order), color: ['y', 'g', 'b', 'p', 'o'].includes(s.color) ? s.color : '' },
@@ -365,7 +365,9 @@ export function normTp(o) {
   o = ob(o);
   const d = [];
   if (Array.isArray(o.dict)) o.dict.forEach((x) => { if (d.length >= 300 || !Array.isArray(x)) return; const a = typeof x[0] === 'string' ? x[0].trim().slice(0, 60) : '', b = typeof x[1] === 'string' ? x[1].trim().slice(0, 80) : ''; if (a && b) d.push([a, b]); });
-  return { yo: bo(o.yo, true), dict: d, pause: ['off', 's', 'm', 'l'].includes(o.pause) ? o.pause : 'm', clean: bo(o.clean, true), lang: bo(o.lang, true), pre: bo(o.pre, true), bar: bo(o.bar, true) };
+  return { yo: bo(o.yo, true), dict: d, pause: ['off', 's', 'm', 'l'].includes(o.pause) ? o.pause : 'm', clean: bo(o.clean, true), lang: bo(o.lang, true), pre: bo(o.pre, true), bar: bo(o.bar, true),
+    pitch: typeof o.pitch === 'number' && Number.isFinite(o.pitch) ? Math.round(Math.max(0.5, Math.min(1.5, o.pitch)) * 20) / 20 : 1, vol: typeof o.vol === 'number' && Number.isFinite(o.vol) ? Math.round(Math.max(0.2, Math.min(1, o.vol)) * 20) / 20 : 1,
+    expr: ['calm', 'norm', 'live'].includes(o.expr) ? o.expr : 'norm', style: typeof o.style === 'string' ? o.style.trim().slice(0, 200) : '' };
 }
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения») — same rules as js/reader.js rqRmNorm */
 export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts', 'rsvp'];

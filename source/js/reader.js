@@ -84,7 +84,7 @@ function rqRxNorm(o){
   o=ob(o);const f=ob(o.foot),t=ob(o.tts),n=ob(o.night),g=ob(o.gest),s=ob(o.sel),sc=ob(o.screen),fr=ob(o.fresh),sp=ob(o.spd);
   return {
     foot:{page:bo(f.page,true),pct:bo(f.pct,false),clock:bo(f.clock,false),chap:bo(f.chap,false)},
-    tts:{rate:(typeof t.rate==='number'&&isFinite(t.rate))?Math.round(Math.max(0.5,Math.min(2,t.rate))*20)/20:1,voice:typeof t.voice==='string'?t.voice.slice(0,200):'',follow:bo(t.follow,true)},
+    tts:{rate:(typeof t.rate==='number'&&isFinite(t.rate))?Math.round(Math.max(0.5,Math.min(3,t.rate))*20)/20:1,voice:typeof t.voice==='string'?t.voice.slice(0,200):'',follow:bo(t.follow,true)},
     night:{on:bo(n.on,false),from:hm(n.from,'22:00'),to:hm(n.to,'07:00'),day:(typeof n.day==='string'&&n.day.length<=32)?n.day:''},
     gest:{bright:bo(g.bright,true),pinch:bo(g.pinch,true),dbl:en(g.dbl,['off','night','mark','bars','auto','dict'])}, /* 05.11: + 'auto' = автолистание, 'dict' = значение слова (js/dict.js) */
     sel:{off:ids(s.off),order:ids(s.order),color:['y','g','b','p','o'].indexOf(s.color)>=0?s.color:''},
@@ -141,12 +141,15 @@ function rqRmNorm(o){
 function rqRm(){return (SET&&SET.rm)||rqRmNorm(null);}
 /** 07.11 SET.tp (js/tts-plus.js, Джессика: «Давай всё» про озвучку): yo буква ё · dict свои слова [[написано, читать]] (≤300) ·
  *  pause паузы между абзацами и главами off/s/m/l · clean без номеров сносок и страниц, сокращения полностью · lang иностранные фразы своим голосом ·
- *  pre глава заранее для нейроголоса · bar кнопки назад/вперёд при чтении. Same rules as storage/schema.js normTp. */
+ *  pre глава заранее для нейроголоса · bar кнопки назад/вперёд при чтении · pitch высота 0.5…1.5 · vol громкость 0.2…1 ·
+ *  expr выразительность calm/norm/live · style своя манера чтения для нейроголоса (≤200). Same rules as storage/schema.js normTp. */
 function rqTpNorm(o){
   const ob=function(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};},bo=function(v,d){return typeof v==='boolean'?v:d;};
   o=ob(o);const d=[];
   if(Array.isArray(o.dict))o.dict.forEach(function(x){if(d.length>=300||!Array.isArray(x))return;const a=typeof x[0]==='string'?x[0].trim().slice(0,60):'',b=typeof x[1]==='string'?x[1].trim().slice(0,80):'';if(a&&b)d.push([a,b]);});
-  return {yo:bo(o.yo,true),dict:d,pause:['off','s','m','l'].indexOf(o.pause)>=0?o.pause:'m',clean:bo(o.clean,true),lang:bo(o.lang,true),pre:bo(o.pre,true),bar:bo(o.bar,true)};
+  return {yo:bo(o.yo,true),dict:d,pause:['off','s','m','l'].indexOf(o.pause)>=0?o.pause:'m',clean:bo(o.clean,true),lang:bo(o.lang,true),pre:bo(o.pre,true),bar:bo(o.bar,true),
+    pitch:(typeof o.pitch==='number'&&isFinite(o.pitch))?Math.round(Math.max(0.5,Math.min(1.5,o.pitch))*20)/20:1,vol:(typeof o.vol==='number'&&isFinite(o.vol))?Math.round(Math.max(0.2,Math.min(1,o.vol))*20)/20:1,
+    expr:['calm','norm','live'].indexOf(o.expr)>=0?o.expr:'norm',style:typeof o.style==='string'?o.style.trim().slice(0,200):''};
 }
 function rqTp(){return (SET&&SET.tp)||rqTpNorm(null);}
 let RQ_OWN=null;

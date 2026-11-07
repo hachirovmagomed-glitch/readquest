@@ -13,7 +13,7 @@ await p.evaluateOnNewDocument(() => {
   window.__said = []; window.__dur = 40; let cur = null;
   const ss = window.speechSynthesis;
   ss.getVoices = () => voices;
-  ss.speak = function (u) { __said.push({ t: u.text, lang: u.lang, at: performance.now() }); cur = u;
+  ss.speak = function (u) { __said.push({ t: u.text, lang: u.lang, at: performance.now(), rate: u.rate, pitch: u.pitch, vol: u.volume }); cur = u;
     setTimeout(() => { if (cur !== u) return; u.onstart && u.onstart({}); setTimeout(() => { if (cur !== u) return; cur = null; u.onend && u.onend({}); }, window.__dur); }, 5); };
   ss.cancel = function () { const u = cur; cur = null; if (u && u.onerror) setTimeout(() => u.onerror({ error: 'interrupted' }), 0); };
   window.__ms = {}; try { const o = navigator.mediaSession.setActionHandler.bind(navigator.mediaSession); navigator.mediaSession.setActionHandler = function (a, f) { __ms[a] = !!f; try { o(a, f); } catch (e) {} }; } catch (e) {}
@@ -42,7 +42,7 @@ ok('номера сносок и строка с номером страницы
 ok('«5 см.» остаётся сантиметрами, «см. выше» → «смотри выше»', /5 см\./.test(prep.cm) && /смотри выше/.test(prep.cm), prep.cm);
 ok('место в исходном тексте сохраняется (листать за голосом)', prep.map.s === 'то есть он' && prep.map.at === 6, prep.map);
 ok('порядковые: третьем, двадцать первый, вторая, девятнадцатого', JSON.stringify(prep.ord) === JSON.stringify(['третьем', 'двадцать первый', 'вторая', 'девятнадцатого']), prep.ord);
-ok('«Нейроголос» второй в списке озвучки; настройки по умолчанию', JSON.stringify(prep.prov) === JSON.stringify(['system', 'piper', 'yandex']) && prep.def === JSON.stringify({ yo: true, dict: [], pause: 'm', clean: true, lang: true, pre: true, bar: true }), prep);
+ok('«Нейроголос» второй в списке озвучки; настройки по умолчанию', JSON.stringify(prep.prov) === JSON.stringify(['system', 'piper', 'yandex']) && prep.def === JSON.stringify({ yo: true, dict: [], pause: 'm', clean: true, lang: true, pre: true, bar: true, pitch: 1, vol: 1, expr: 'norm', style: '' }), prep);
 
 /* 2: свой словарь; 5: абзацы и паузы; 6: иностранные фразы */
 const plan = await p.evaluate(() => {
@@ -80,7 +80,7 @@ ok('«назад на абзац»: с начала абзаца', b1.on && (b1.
 const h1 = await p.evaluate(async () => {
   const c = el('content'), w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), vw = el('viewer').getBoundingClientRect(); let n, pt = null;
   while ((n = w.nextNode())) { const m = n.textContent.search(/[А-Яа-яЁё]{5,}/); if (m < 0) continue; const rg = document.createRange(); rg.setStart(n, m); rg.setEnd(n, m + 2); const b = rg.getBoundingClientRect();
-    if (b.width && b.left > vw.left + vw.width * 0.35 && b.right < vw.left + vw.width * 0.65 && b.top > vw.top + vw.height * 0.5 && b.bottom < vw.bottom - 60) { pt = [b.left + 2, b.top + b.height / 2, n.textContent.slice(m, m + 30)]; break; } }
+    if (b.width && b.left > vw.left + vw.width * 0.32 && b.right < vw.left + vw.width * 0.68 && b.top > vw.top + vw.height * 0.2 && b.bottom < vw.bottom - 90) { pt = [b.left + 2, b.top + b.height / 2, n.textContent.slice(m, m + 30)]; break; } }
   if (!pt) return { none: true };
   viewerTap(pt[0], pt[1]); await new Promise(r => setTimeout(r, 300)); const vis = !el('tpHere').hidden, at = TP.chip;
   el('tpHere').click(); await new Promise(r => setTimeout(r, 400));
@@ -121,6 +121,35 @@ const pip = await p.evaluate(async () => { S.tts.prov = 'piper'; S.tts.voice = '
   return { box: !el('tpPip').hidden, key: getComputedStyle(el('ttsKey')).display, btn: el('tpPipGet').textContent, on: nttsOn(), t: el('tpPipT').textContent, voices: el('tpPipV').children.length, head: el('ttsHead').textContent }; });
 ok('«Нейроголос»: без ключа, кнопка «Скачать «Ирина»», 4 голоса; пока не скачан — читает голос телефона', pip.box && pip.key === 'none' && /Скачать «Ирина»/.test(pip.btn) && !pip.on && pip.voices === 4 && /93 МБ/.test(pip.t) && /не скачан/.test(pip.head), pip);
 if (SHOTS) { await p.evaluate(() => { openGeneralSettings(false, 'ai'); NN_EXP.tts = true; renderTtsSet(); renderNn(); el('ttsHead').scrollIntoView({ block: 'start' }); }); await sleep(500); await p.screenshot({ path: SHOTS + '/ttsplus-5-neirogolos.png' }); await p.evaluate(() => { if (typeof closeGeneralSettings === 'function') closeGeneralSettings(); }); }
+
+/* скорость и тонкие настройки голоса */
+const fine = await p.evaluate(async () => {
+  if (el('reader').classList.contains('hidden')) { openBook(BOOKS[0].id); await new Promise(r => setTimeout(r, 2500)); }
+  goPage(2, false); window.__dur = 2000; __said.length = 0; const got = []; const sp = speechSynthesis.speak; speechSynthesis.speak = function (u) { const r = sp.call(this, u); got.push([u.rate, u.pitch, u.volume]); return r; };
+  el('btnTts').click(); await new Promise(r => setTimeout(r, 500));
+  const r = { rateBtn: el('tpRate').textContent };
+  el('tpRate').click(); await new Promise(r => setTimeout(r, 100)); r.pop = !el('tpRatePop').hidden; r.chips = [...el('tpRatePop').querySelectorAll('[data-v]')].map(b => b.textContent);
+  el('tpRatePop').querySelector('[data-v="2.5"]').click(); r.rate = SET.rx.tts.rate; el('tpRatePop').querySelector('[data-d="0.05"]').click(); r.rate2 = SET.rx.tts.rate; r.btn2 = el('tpRate').textContent;
+  for (let i = 0; i < 12; i++) el('tpRatePop').querySelector('[data-d="0.05"]').click(); r.max = SET.rx.tts.rate;
+  ttsStop(); speechSynthesis.speak = sp; window.__dur = 40;
+  RX_EXP.tts = true; rxRender(); el('tpPre2').querySelector('button').click(); r.book = { rate: SET.rx.tts.rate, expr: SET.tp.expr, pause: SET.tp.pause, on: el('tpPre2').querySelector('.on') && el('tpPre2').querySelector('.on').textContent };
+  [...el('tpPre2').querySelectorAll('button')].find(b => b.textContent === 'Перед сном').click(); r.sleep = { rate: SET.rx.tts.rate, pitch: SET.tp.pitch, expr: SET.tp.expr };
+  const pr = el('tpPitchR'); pr.value = '1.3'; pr.dispatchEvent(new Event('change')); const vr = el('tpVolR'); vr.value = '0.6'; vr.dispatchEvent(new Event('change'));
+  { const sp2 = speechSynthesis.speak; let u0 = null; const f = window.__fakeSpeak; tpSysSay('Проба', 'en', () => {}, () => {}, () => {}); const last = __said[__said.length - 1]; r.utt = last && [last.rate, last.pitch, last.vol]; }
+  r.oa = tpVoiceOpts('openai').instructions; SET.tp.style = 'как сказочник'; r.oa2 = tpVoiceOpts('openai').instructions; r.el = tpVoiceOpts('elevenlabs').voice_settings.stability;
+  el('tpPhoneBtn').click(); r.help = el('tpPhoneBox').textContent.slice(0, 80); r.rhv = el('tpPhoneBox').querySelectorAll('[data-rhv]').length;
+  [...el('tpPre2').querySelectorAll('button')].find(b => b.textContent === 'Как было').click(); SET.tp.pitch = 1; SET.tp.vol = 1; SET.tp.style = ''; saveSet();
+  let raw = {}; try { raw = JSON.parse(localStorage.getItem(RQ_K.set) || '{}'); } catch (e) {} r.saved = raw.tp && [raw.tp.pitch, raw.tp.expr, raw.rx.tts.rate];
+  return r; });
+ok('плашка: кнопка скорости «1×» → окошко с −/+ и 0,75…2,5×; 2,5 → 2,55; не больше 3×', fine.rateBtn === '1×' && fine.pop && fine.chips.length === 6 && fine.rate === 2.5 && fine.rate2 === 2.55 && fine.btn2 === '2,55×' && fine.max === 3, fine);
+ok('наборы: «Аудиокнига» (живо, длинные паузы), «Перед сном» (0,85×, ниже, спокойно)', fine.book.expr === 'live' && fine.book.pause === 'l' && fine.book.on === 'Аудиокнига' && fine.sleep.rate === 0.85 && fine.sleep.pitch === 0.95 && fine.sleep.expr === 'calm', fine);
+ok('высота 1,3 и громкость 60 % доходят до голоса телефона', fine.utt && [0.85, 1.3, 0.6].every((v, i) => Math.abs(fine.utt[i] - v) < 0.001), fine.utt);
+ok('выразительность: OpenAI получает манеру (+ своя), ElevenLabs — стабильность', /спокойно, ровно/.test(fine.oa) && /как сказочник$/.test(fine.oa2) && fine.el === 0.8, fine);
+ok('«Хорошие голоса для телефона»: RHVoice (без нейросети) и голоса Google, кнопки скачать', /RHVoice/.test(fine.help) && fine.rhv === 2, fine);
+ok('сохраняется', JSON.stringify(fine.saved) === JSON.stringify([1, 'norm', 1]), fine.saved);
+if (SHOTS) { await p.evaluate(async () => { goPage(2, false); window.__dur = 3000; el('btnTts').click(); await new Promise(r => setTimeout(r, 400)); el('tpRate').click(); }); await sleep(300); await p.screenshot({ path: SHOTS + '/ttsplus-6-skorost.png' }); await p.evaluate(() => { ttsStop(); window.__dur = 40; });
+  await p.evaluate(() => { closeReader && closeReader(); }); await sleep(800); await p.evaluate(() => { openGeneralSettings(false, 'read'); RX_EXP.tts = true; rxRender(); el('tpPre2').scrollIntoView({ block: 'start' }); }); await sleep(400); await p.screenshot({ path: SHOTS + '/ttsplus-7-tonkie.png' });
+  await p.evaluate(() => { el('tpPhoneBtn').click(); el('tpPhoneBtn').click(); el('tpPhoneBtn').scrollIntoView({ block: 'start' }); }); await sleep(300); await p.screenshot({ path: SHOTS + '/ttsplus-8-golosa.png' }); }
 
 /* 7: нейроголос на ключе — глава заранее, тот же кусок не оплачивается дважды */
 const neu = await p.evaluate(async () => {

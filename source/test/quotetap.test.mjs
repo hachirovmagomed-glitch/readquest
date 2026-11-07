@@ -24,9 +24,11 @@ const ids = await p.evaluate(async () => { const t = allBooks().find(x => x.type
   __navAllow = true; openBook(t.id); __navAllow = false; await new Promise(r => setTimeout(r, 2500)); return [t.id, f.id]; });
 const tap = async (sel) => { await p.evaluate((sel) => document.querySelector(sel).click(), sel); await sleep(300); };
 const touchAt = async (x, y) => { await p.touchscreen.tap(x, y); await sleep(500); };
-const bar = () => p.evaluate(() => { const b = document.getElementById('selpop'), r = b.getBoundingClientRect(), vis = (id) => { const x = document.getElementById(id); return !!x && !!x.offsetParent; };
-  return { shown: !b.classList.contains('hidden'), q: b.classList.contains('qmode'), on: [...document.querySelectorAll('#spColors button.on')].map(x => x.dataset.c || x.id).join(), del: vis('spDel'), all: vis('spAll'), hl: !!document.getElementById('spHl'),
-    l: Math.round(r.left), r: Math.round(r.right), rows: new Set([...b.querySelectorAll(':scope > button')].filter(x => x.offsetParent).map(x => Math.round(x.getBoundingClientRect().top))).size, page: R.page }; });
+// 07.11 (Джессика: «две разные плашки … сделай, чтобы они были одинаковые»): a tapped quote opens the selection's own menu #selSide (.qm)
+const bar = () => p.evaluate(() => { const b = document.getElementById('selSide'), sp = document.getElementById('selpop'), on = !!b && !b.hidden && b.classList.contains('qm'), r = on ? b.getBoundingClientRect() : { left: 0, right: 0 };
+  let acts = []; if (on) { stMenu(true); acts = [...document.querySelectorAll('#ssMenu button[data-a]')].map(x => x.dataset.a); stMenu(false); }
+  return { shown: on, q: sp.classList.contains('qmode') && sp.classList.contains('hidden'), on: on ? el('ssCol').style.getPropertyValue('--d') === hlDot(hlKey(SQ.q.c)) && hlKey(SQ.q.c) : '', del: acts.includes('qdel'), all: acts.includes('qall'), edit: acts.includes('qedit'), hl: !!document.getElementById('spHl'),
+    l: Math.round(r.left), r: Math.round(r.right), rows: 1, page: R.page }; });
 
 // 1. text book: make a green quote on the visible page, then tap it
 const mk = await p.evaluate(() => { const c = document.getElementById('content'), w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT); let x;
@@ -38,7 +40,7 @@ let m1 = await mc(); const pg0 = await p.evaluate(() => R.page);
 await touchAt(m1.x, m1.y);
 let b1 = await bar();
 ok('1 tap on a saved highlight: its bar (ring on green, «Удалить», «Все цитаты»; no «Цитата» marker at all), outlined, no page turn', mk && b1.shown && b1.q && b1.on === 'g' && b1.del && b1.all && !b1.hl && /qon/.test((await mc()).cls) && b1.page === pg0, { mk, b1 });
-ok('1b the bar for a quote fits 360 (inside the screen, actions in one row)', b1.l >= 0 && b1.r <= 360 && b1.rows === 1, b1);
+ok('1b the menu for a quote fits 360 (inside the screen), «Изменить границы» in «Ещё»', b1.l >= 0 && b1.r <= 360 && b1.edit, b1);
 await p.screenshot({ path: SHOTS + 'quotetap-text.png' });
 
 // 2. blue recolours it, no copy, bar closed

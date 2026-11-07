@@ -479,9 +479,11 @@ if(typeof dkSay==='function'){dkSay=function(w,lang){tpSpeak(typeof dkPlain==='f
 function tpSelSay(){
   const t=typeof stText==='function'?stText():'';if(!t)return;
   if(stWords(t)<=4||R.mode!=='text'){tpSpeak(t,/[А-Яа-яЁё]/.test(t)?'ru':tpGuess(t));return;}
-  const s=window.getSelection();if(!s||!s.rangeCount)return;const rg=s.getRangeAt(0),p=tpOffAt(rg.startContainer,rg.startOffset);
+  const s=window.getSelection(),sq=typeof SQ!=='undefined'&&SQ&&(!s||s.isCollapsed)?SQ:null; /* 07.11: a tapped saved quote — from its first mark */
+  let at=null;if(sq){const m=(sq.ms||[]).find(x=>x.isConnected);if(m)at=[m.firstChild||m,0];}else if(s&&s.rangeCount){const rg=s.getRangeAt(0);at=[rg.startContainer,rg.startOffset];}
+  if(!at)return;const p=tpOffAt(at[0],at[1]);
   if(p<0){flashMsg('Не нашёл это место в тексте');return;}
-  try{s.removeAllRanges();if(typeof selUi==='function')selUi();}catch(e){}
+  try{if(sq){quoteClose();el('selpop').classList.add('hidden');}else{s.removeAllRanges();if(typeof selUi==='function')selUi();}}catch(e){}
   tpReadFrom(p);
 }
 if(typeof ST_ACT!=='undefined'){ST_ACT.say=tpSelSay;

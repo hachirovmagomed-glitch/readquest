@@ -274,7 +274,7 @@ document.addEventListener('copy',function(e){
   e.clipboardData.setData('text/plain',t);e.preventDefault();
 });
 function updSelPop(){
-  const off=!selText()||el('reader').classList.contains('hidden');
+  const off=!selText()||el('reader').classList.contains('hidden')||(!!SQ&&!SA.bar); /* 07.11: a tapped quote has the selection's own menu (#selSide), not this bar */
   if(!off&&el('selpop').classList.contains('hidden'))renderSpColors(); /* ring on the last colour */
   el('selpop').classList.toggle('hidden',off);
   el('selpop').classList.toggle('pdf',R&&R.mode==='pdf');
@@ -460,7 +460,7 @@ function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div'
   el('ssView').onclick=function(){const open=!!el('ssMenu').querySelector('[data-look]')&&!el('ssMenu').hidden;if(typeof stCol==='function')stCol(false);if(typeof stMenu==='function')stMenu(false);this.setAttribute('aria-expanded','false');if(!open)ssLooksMenu();};
   el('ssMenu').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button[data-look]');if(!b)return;e.stopPropagation();ssLookSet(b.dataset.look);});
   el('ssFrom').onclick=function(){if(el('selFromGo'))el('selFromGo').click();};
-  el('ssX').onclick=function(){if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
+  el('ssX').onclick=function(){if(SQ&&window.getSelection().isCollapsed){quoteClose();el('selpop').classList.add('hidden');return;}if(PQ){PQ=null;pdfHlRefresh();}window.getSelection().removeAllRanges();selUi();};
   ['ssTab','ssGrip'].forEach(function(id){const h=el(id);
     h.addEventListener('pointerdown',function(e){if(ssLook()!=='side')return;const r=n.getBoundingClientRect();SS.drag={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};SS.moved=false;try{h.setPointerCapture(e.pointerId);}catch(er){}});
     h.addEventListener('pointermove',function(e){const d=SS.drag;if(!d)return;
@@ -542,7 +542,11 @@ function ssPlace(){const n=el('selSide');if(!n||n.hidden||SS.drag||n.classList.c
   n.querySelector('#ssTab .ssChev').innerHTML=ch;n.querySelector('#ssFold .ssChev').innerHTML=cf;n.querySelector('#ssGrip .ssChev').innerHTML=rqIcon(p.s==='L'?'chevron-left':'chevron-right',16);
   const h=n.getBoundingClientRect().height||64,H=innerHeight,top=Math.max(8,Math.min(H-h-84,p.y*H-h/2)); /* above ‹ › in the bottom corners */n.style.top=Math.round(top)+'px';}
 /** the selected words on screen (the moving end last) */
-function ssSelRects(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return [];const W=innerWidth,H=innerHeight;
+function ssSelRects(){const s=window.getSelection(),W=innerWidth,H=innerHeight;
+  if((!s||s.isCollapsed||!s.rangeCount)&&SQ){const v=function(r){return r.width&&r.right>0&&r.left<W&&r.bottom>0&&r.top<H;}; /* 07.11: a tapped quote — its marks */
+    const ms=SQ.ms&&SQ.ms.length?SQ.ms.filter(function(m){return m.isConnected;}):[...document.querySelectorAll('.pdfhls i.qon')];
+    return ms.reduce(function(a,m){return a.concat([...m.getClientRects()].filter(v));},[]);}
+  if(!s||s.isCollapsed||!s.rangeCount)return [];
   return [...s.getRangeAt(0).getClientRects()].filter(function(r){return r.width&&r.right>0&&r.left<W&&r.bottom>0&&r.top<H;});}
 /* the card and the row live at the bottom, above ‹ ›; they go to the top of the screen when the selection's end is under them.
    «У текста»: just above the first selected line, or under the last one when there is no room above */
@@ -562,15 +566,17 @@ function ssPlaceLook(n){
   if(z.bottom>b.top-8&&z.top>b.height+40)n.classList.add('attop');
 }
 function ssUpd(){
-  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!SQ&&!window.__rqFindOpen&&(!!selBook()||pg);
-  if(!on){SS.on=false;SS.open=false;const n=el('selSide');if(n)n.hidden=true;if(typeof stCol==='function')stCol(false);return;}
+  const rd=el('reader'),nav=el('selNav'),pg=!!nav&&!nav.hidden,on=!!rd&&!rd.classList.contains('hidden')&&!window.__rqFindOpen&&(!!SQ||!!selBook()||pg);
+  if(!on){SS.on=false;SS.open=false;SS.q=null;const n=el('selSide');if(n)n.hidden=true;if(typeof stCol==='function')stCol(false);return;}
   const n=ssEl(),lk=ssLook();if(!SS.on){SS.on=true;SS.open=false;} /* a new selection: only the tab */
+  if(SQ!==SS.q){SS.q=SQ;if(SQ)SS.open=true;if(typeof stMenu==='function'){stMenu(false);stCol(false);}} /* 07.11: a tapped quote — the menu open at once, a fresh branch */
+  n.classList.toggle('qm',!!SQ);const x=el('ssX');if(x){const l=SQ?'Закрыть':'Снять выделение';x.setAttribute('aria-label',l);x.title=l;const c=x.querySelector('.ssL');if(c)c.textContent=SQ?'Закрыть':'Снять';}
   n.dataset.look=lk;if(lk!=='side')SS.open=true; /* 04.11: the other looks have no tab, they are open at once */
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
   if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
   if((lk==='bar'||lk==='big')&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card */
-  const f=el('selFrom'),from=pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
+  const f=el('selFrom'),from=!SQ&&pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
     el('ssFromN').textContent=lab;el('ssFrom').setAttribute('aria-label','Выделено со стр. '+lab+' — показать');el('ssFrom').title='Начало: стр. '+lab;
@@ -873,9 +879,13 @@ function quoteMark(on){
 function quoteOpen(h){
   quoteMark(false);SQ=h;quoteMark(true);
   if(!SM.on){h.ends=sqEnds(h);if(h.ends)smLoop();} /* 06.11 (Джессика: «уже выделил … хочется выделить ещё раз … не появляется ползунок»): its handles */
-  renderSpColors(hlKey(h.q.c));el('selpop').classList.add('qmode');el('selpop').classList.remove('hidden','mini');qbPlace();
+  /* 07.11 (Джессика, видео: «две разные плашки выделения цветов … Сделай так, чтобы они были одинаковые»): a tapped saved quote opens the
+     same menu as a new selection (#selSide in the chosen look, the same place, moving and folding); its colour button shows the quote's
+     colour, «Ещё» has «Изменить границы», «Удалить цитату», «Все цитаты», × closes it. #selpop stays the hidden state (.qmode) behind it. */
+  renderSpColors(hlKey(h.q.c));const sp=el('selpop');sp.classList.add('qmode');sp.classList.remove('mini');sp.classList.toggle('hidden',!SA.bar);if(SA.bar)qbPlace();
+  ssUpd();
 }
-function quoteClose(){quoteMark(false);SQ=null;const n=el('selpop');n.classList.remove('qmode','pinned','folded');n.style.left=n.style.top=n.style.bottom=n.style.right='';}
+function quoteClose(){const was=!!SQ;quoteMark(false);SQ=null;const n=el('selpop');n.classList.remove('qmode','pinned','folded');n.style.left=n.style.top=n.style.bottom=n.style.right='';if(was)ssUpd();}
 /** colour / note on a tapped quote */
 function quoteEdit(sq,withNote,color){
   const q=sq.q,qs=S.quotes[sq.bid]||[];if(qs.indexOf(q)<0){quoteClose();return;}

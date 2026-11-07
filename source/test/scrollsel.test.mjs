@@ -43,6 +43,8 @@ ok('held near the bottom edge: the text scrolls on by itself and the selection g
 await T('touchEnd'); await sleep(300);
 const d1 = await st(); await sleep(400); const d1b = await st();
 ok('lifted: the selection stays, the text stops and scrolls by a finger again', d1.on && d1.len >= c1.len && !d1.lock && d1b.top === d1.top && d1b.len === d1.len, { d1, d1b });
+const SCR = (sel) => p.evaluate((sel) => { const h = document.querySelector(sel), b = el('selPaint'), i = b && b.firstElementChild; if (!i) return { none: true }; const y0 = i.getBoundingClientRect().top, t0 = h.scrollTop; h.scrollTop = t0 + 120; const dy = h.scrollTop - t0, y1 = i.getBoundingClientRect().top; h.scrollTop = t0; return { inHost: b.parentNode === h, dy, moved: Math.round(y0 - y1) }; }, sel);
+const sc1 = await SCR('#viewer'); ok('text: the bands are inside the scroller and move with the text at once (no lag behind a fast scroll)', sc1.inHost && sc1.dy > 0 && sc1.moved === sc1.dy, sc1);
 
 // 2. a tap further down moves the end; a tap right of a paragraph's last line too (no error)
 const e2 = await p.evaluate(() => { const v = el('viewer').getBoundingClientRect(); const ps = [...el('content').querySelectorAll('p')].filter(x => { const r = x.getBoundingClientRect(); return r.top > v.top + 300 && r.bottom < el('selSide').getBoundingClientRect().top - 12 && x.textContent.trim().length > 60; });
@@ -142,6 +144,11 @@ ok('page mode: long press + drag selects as before, no lock', p6.on && !p6.lock 
   await p.evaluate(async () => { psBox().scrollTop = 0; await new Promise(r => setTimeout(r, 1500)); });
   const s9 = await ps();
   ok('PDF: scrolled back to the start — the same selection, its pages drawn again', s9.len === s8.len && s9.start.startsWith(s0.start) && s9.live && await p.evaluate(() => !!document.querySelector('#pdfScroll .psl[data-n="0"] canvas')), s9);
+  const bp = await p.evaluate(async () => { await new Promise(r => setTimeout(r, 300)); const is = [...(el('selPaint') || { children: [] }).children].map(i => i.getBoundingClientRect()); let gaps = 0; const gl = []; for (let k = 0; k + 1 < is.length; k++) { const g = is[k + 1].top - is[k].bottom; if (g > 0.05 && g < 6) { gaps++; gl.push([is[k].top, is[k].bottom, is[k].left, is[k].right, is[k+1].top, is[k+1].bottom, is[k+1].left, is[k+1].right].map(Math.round)); } }
+    const sp = document.querySelector('#pdfScroll .textLayer span'); return { own: el('reader').classList.contains('ownsel'), bands: is.length, gaps, gl, sel: sp ? getComputedStyle(sp, '::selection').backgroundColor : '' }; });
+  ok('PDF: the selection is painted by our solid bands (no white gaps between words), Chrome\'s colour off', bp.own && bp.bands >= 5 && bp.gaps === 0 && /0\)$|transparent/.test(bp.sel), bp);
+  const sc7 = await SCR('#pdfScroll'); ok('PDF: the bands are inside the scroller and move with the text at once', sc7.inHost && sc7.dy > 0 && sc7.moved === sc7.dy, sc7);
+  if (process.env.SHOTS) await p.screenshot({ path: process.env.SHOTS + '/pdf-polosy.png' });
   await p.evaluate(async () => { selDone(); psBox().scrollTop = 3000; await new Promise(r => setTimeout(r, 1500)); });
   const k9 = await p.evaluate(() => ({ keep: PS.keep.size, layers: document.querySelectorAll('#pdfScroll .textLayer').length }));
   ok('PDF: the selection gone, the kept text layers far away are freed', k9.keep === 0 && k9.layers <= 8, k9);

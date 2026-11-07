@@ -33,7 +33,7 @@ for (const sk of SKINS) for (const night of [false, true]) {
   const tag = sk + (night ? '-night' : '-day');
   await p.evaluate(() => navGo('diary')); await sleep(400);
   await p.screenshot({ path: `${OUT}/${tag}-1shelf.png` });
-  await p.evaluate(() => { document.querySelector('#diary .dynb:last-of-type').click(); }); await sleep(400);
+  await p.evaluate(() => { document.querySelector('#diary .dyrow:last-child .dynb:last-of-type').click(); }); await sleep(400);
   await p.evaluate(() => { const b = [...document.querySelectorAll('#diary .dynb')].find(x => /Анна|Каренина/.test(x.textContent)) || document.querySelector('#diary .dynb'); b && b.click(); });
   await p.evaluate(() => { const y = S.diaries.find(x => x.b && x.cc === 'blue'); dyOpen(y.id); }); await sleep(400);
   await p.screenshot({ path: `${OUT}/${tag}-2diary.png` });

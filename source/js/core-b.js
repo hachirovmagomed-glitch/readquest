@@ -359,7 +359,7 @@ function hydrateS(raw){
   S.bookDiff=S.bookDiff||{};S.bookStat=S.bookStat||{};S.covers=S.covers||{};
   if(S.autoDiff===undefined)S.autoDiff=true;
   if(!S.ai||typeof S.ai!=='object')S.ai={key:'',model:'',prov:'deepseek',base:''};
-  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.diaries=diaryNorm(S.diaries);if(typeof S.diaryAuto!=='boolean')S.diaryAuto=true;S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
+  aiNorm(S.ai);if(Array.isArray(S.vocab))S.vocab.forEach(vocabNorm);S.aiChat=aiChatNorm(S.aiChat);S.diaries=diaryNorm(S.diaries);if(typeof S.diaryAuto!=='boolean')S.diaryAuto=true;if(['recent','title','entries'].indexOf(S.diarySort)<0)S.diarySort='recent';S.tts=ttsNorm(S.tts); /* 20.10 ИИ: arch.md */
   if(!S.appTheme)S.appTheme='teal';
   S.bookStats=S.bookStats||{};
   /* S.cur (old currency picker) is kept as stored and unused — old fields are never deleted (audit 15.10) */
@@ -537,7 +537,7 @@ function diaryNorm(a){ /* = storage/schema.js diaryList; 25.10 «Дневник�
       es.push({id:n.id,t:t,x:x,tp:key(n.tp),ch:str(n.ch,120),pg:Number.isInteger(n.pg)&&n.pg>=0?n.pg:0,r:typeof n.r==='number'&&n.r>=0&&n.r<=1?n.r:null,d:day(n.d),u:ms(n.u),pin:n.pin===true,cl:one(n.cl,['','red','orange','yellow','green','blue','violet'],'')});});
     out.push({id:y.id,t:str(y.t,80),b:str(y.b,200),bt:str(y.bt,120),ba:str(y.ba,80),cv:key(y.cv)||'school',cc:key(y.cc),
       pp:one(y.pp,['lines','grid','dots','plain','old','papyrus','pearl','stars'],'lines'),fn:one(y.fn,['hand','book','ui'],'hand'),fs:Number.isInteger(y.fs)&&y.fs>=14&&y.fs<=24?y.fs:17,
-      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
+      ink:one(y.ink,['ink','blue','brown','green','violet','terracotta','gold'],'ink'),rb:one(y.rb,['red','blue','green','gold','black'],'red'),so:one(y.so,['book','date'],'book'),pn:y.pn===true,lh:one(y.lh,['tight','normal','wide'],'normal'),al:one(y.al,['left','justify'],'left'),
       d:day(y.d),u:ms(y.u),e:es});});
   return out;
 }
@@ -587,3 +587,15 @@ function ttsNorm(t){
   if(['system','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
   t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
 }
+
+/* 06.11 (Джессика: рисованные ползунки в Карандашном): --pv = slider position 0…1, so a skin can shade the track up to the knob.
+   Set on input and whenever sliders appear (rendered from strings); brightness/warmth/page slider have their own variables. */
+(function(){
+  function pvSync(i){if(!i||i.type!=='range')return;const mn=i.min===''?0:+i.min,mx=i.max===''?100:+i.max;i.style.setProperty('--pv',Math.max(0,Math.min(1,((+i.value)-mn)/((mx-mn)||1))).toFixed(3));}
+  function pvAll(){document.querySelectorAll('input[type=range]:not(#brightRange):not(#warmRange):not(#pgSlider)').forEach(pvSync);}
+  document.addEventListener('input',function(e){pvSync(e.target);},true);
+  document.addEventListener('change',function(e){pvSync(e.target);},true);
+  let q=0;const kick=function(){if(q)return;q=requestAnimationFrame(function(){q=0;pvAll();});};
+  try{new MutationObserver(kick).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-skin','value']});}catch(e){}
+  kick();
+})();

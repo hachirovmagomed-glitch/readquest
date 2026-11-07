@@ -367,7 +367,8 @@ export function normTp(o) {
   if (Array.isArray(o.dict)) o.dict.forEach((x) => { if (d.length >= 300 || !Array.isArray(x)) return; const a = typeof x[0] === 'string' ? x[0].trim().slice(0, 60) : '', b = typeof x[1] === 'string' ? x[1].trim().slice(0, 80) : ''; if (a && b) d.push([a, b]); });
   return { yo: bo(o.yo, true), dict: d, pause: ['off', 's', 'm', 'l'].includes(o.pause) ? o.pause : 'm', clean: bo(o.clean, true), lang: bo(o.lang, true), pre: bo(o.pre, true), bar: bo(o.bar, true),
     pitch: typeof o.pitch === 'number' && Number.isFinite(o.pitch) ? Math.round(Math.max(0.5, Math.min(1.5, o.pitch)) * 20) / 20 : 1, vol: typeof o.vol === 'number' && Number.isFinite(o.vol) ? Math.round(Math.max(0.2, Math.min(1, o.vol)) * 20) / 20 : 1,
-    expr: ['calm', 'norm', 'live'].includes(o.expr) ? o.expr : 'norm', style: typeof o.style === 'string' ? o.style.trim().slice(0, 200) : '' };
+    expr: ['calm', 'norm', 'live'].includes(o.expr) ? o.expr : 'norm', style: typeof o.style === 'string' ? o.style.trim().slice(0, 200) : '',
+    pos: ((q) => ({ s: ['B', 'L', 'R'].includes(q.s) ? q.s : 'B', y: typeof q.y === 'number' && Number.isFinite(q.y) ? Math.round(Math.max(0.05, Math.min(0.95, q.y)) * 100) / 100 : 0.55 }))(ob(o.pos)) };
 }
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения») — same rules as js/reader.js rqRmNorm */
 export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts', 'rsvp'];

@@ -231,6 +231,7 @@ export const SET_DEF = {
   bookSet: {},       // 29.10 «Только к этой книге» (arch.md SET.bookSet): {<book id>: {...}} ≤ 200, normBookSet
   wsp: 0,           // 05.11 между словами, px 0…8 (arch.md SET.wsp)
   psp: 0,           // 05.11 между абзацами, em 0…1.5 шаг 0.25 (arch.md SET.psp)
+  tp: null,          // 07.11 озвучка+ (js/tts-plus.js), normTp
   rm: null,          // 05.11 «ещё для чтения» (arch.md SET.rm, js/read-more.js), normRm
   half: null,        // 05.11 половина экрана (arch.md SET.half): {on,size,margin}, normHalf
   rx: null,          // 29.10 раздел «Чтение» (arch.md SET.rx): {foot,tts,night,gest,sel,screen,fresh,sm,spd}, normRx
@@ -357,6 +358,14 @@ export function normRx(o) {
     sm: ((m) => ({ lp: en(m.lp, ['n', 'f', 's']), tap: bo(m.tap, true), drag: en(m.drag, ['edge', 'any', 'off']), lpd: bo(m.lpd, true), unit: en(m.unit, ['word', 'char']), edge: en(m.edge, ['off', 'f', 's']), hand: en(m.hand, ['n', 'b']), vib: bo(m.vib, true), hint: bo(m.hint, true) }))(ob(o.sm)),
     spd: { cpm: num(sp.cpm, 100, 6000), spp: num(sp.spp, 5, 1200), n: typeof sp.n === 'number' && Number.isFinite(sp.n) ? Math.max(0, Math.min(1e6, Math.floor(sp.n))) : 0 },
   };
+}
+/** 07.11 SET.tp (озвучка+, js/tts-plus.js) — same rules as js/reader.js rqTpNorm */
+export function normTp(o) {
+  const ob = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), bo = (v, d) => (typeof v === 'boolean' ? v : d);
+  o = ob(o);
+  const d = [];
+  if (Array.isArray(o.dict)) o.dict.forEach((x) => { if (d.length >= 300 || !Array.isArray(x)) return; const a = typeof x[0] === 'string' ? x[0].trim().slice(0, 60) : '', b = typeof x[1] === 'string' ? x[1].trim().slice(0, 80) : ''; if (a && b) d.push([a, b]); });
+  return { yo: bo(o.yo, true), dict: d, pause: ['off', 's', 'm', 'l'].includes(o.pause) ? o.pause : 'm', clean: bo(o.clean, true), lang: bo(o.lang, true), pre: bo(o.pre, true), bar: bo(o.bar, true) };
 }
 /** 05.11 SET.rm (arch.md «SET.rm — ещё для чтения») — same rules as js/reader.js rqRmNorm */
 export const RM_ZONE = ['none', 'prev', 'next', 'bars', 'night', 'mark', 'auto', 'tts', 'rsvp'];
@@ -769,6 +778,7 @@ export function hydrateSettings(s) {
   out.wsp = typoPick({ wsp: out.wsp }, ['wsp']).wsp || 0;
   out.psp = typoPick({ psp: out.psp }, ['psp']).psp || 0;
   out.rm = normRm(out.rm);
+  out.tp = normTp(out.tp);
   /* 20.10: «Затемнение» and «Тёплый только ночью» removed — same rules as js/reader.js normSet: old dim folded into bright once */
   if (typeof out.dim === 'number' && isFinite(out.dim) && out.dim > 0) out.bright = normStep((1 - Math.min(0.7, out.dim)) * out.bright, 0.3, 1, 1);
   delete out.dim;

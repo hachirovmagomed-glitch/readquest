@@ -585,7 +585,7 @@ function nnHttpErr(status,d,key){ /* → понятная причина по-р
 function ttsNorm(t){
   if(!t||typeof t!=='object')t={};
   ['key','voice','base'].forEach(function(k){if(typeof t[k]!=='string')t[k]='';});
-  if(['system','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
+  if(['system','piper','openai','elevenlabs','google','yandex','xai','custom'].indexOf(t.prov)<0)t.prov='system';
   t.base=t.base.slice(0,300);t.voice=t.voice.slice(0,100);return t;
 }
 

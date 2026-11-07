@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null,tp:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -45,6 +45,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.half=rqHalfNorm(s.half); /* 05.11 SET.half: свой шрифт и поля на половине экрана */
   s.wsp=rqTypoPick({wsp:s.wsp},['wsp']).wsp||0;s.psp=rqTypoPick({psp:s.psp},['psp']).psp||0; /* 05.11 arch.md SET.wsp / SET.psp */
   s.rm=rqRmNorm(s.rm); /* 05.11 arch.md SET.rm (js/read-more.js) */
+  s.tp=rqTpNorm(s.tp); /* 07.11 SET.tp: озвучка+ (js/tts-plus.js) */
   flipNorm(s);return s;}
 /** 25.10 SET.fz (arch.md) = storage/schema.js normFz: pomo on/off, round 15/25/45, rest 3/5/10, quiet, sound slot 0…3 (0 = off; the
  *  slot is the skin's own sound №N), volume 0.05…1, focus words, warning on leaving. Junk → default, unknown keys dropped. */
@@ -138,6 +139,16 @@ function rqRmNorm(o){
   };
 }
 function rqRm(){return (SET&&SET.rm)||rqRmNorm(null);}
+/** 07.11 SET.tp (js/tts-plus.js, Джессика: «Давай всё» про озвучку): yo буква ё · dict свои слова [[написано, читать]] (≤300) ·
+ *  pause паузы между абзацами и главами off/s/m/l · clean без номеров сносок и страниц, сокращения полностью · lang иностранные фразы своим голосом ·
+ *  pre глава заранее для нейроголоса · bar кнопки назад/вперёд при чтении. Same rules as storage/schema.js normTp. */
+function rqTpNorm(o){
+  const ob=function(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};},bo=function(v,d){return typeof v==='boolean'?v:d;};
+  o=ob(o);const d=[];
+  if(Array.isArray(o.dict))o.dict.forEach(function(x){if(d.length>=300||!Array.isArray(x))return;const a=typeof x[0]==='string'?x[0].trim().slice(0,60):'',b=typeof x[1]==='string'?x[1].trim().slice(0,80):'';if(a&&b)d.push([a,b]);});
+  return {yo:bo(o.yo,true),dict:d,pause:['off','s','m','l'].indexOf(o.pause)>=0?o.pause:'m',clean:bo(o.clean,true),lang:bo(o.lang,true),pre:bo(o.pre,true),bar:bo(o.bar,true)};
+}
+function rqTp(){return (SET&&SET.tp)||rqTpNorm(null);}
 let RQ_OWN=null;
 function rqSetForSave(){const hv=RQ_HALF?{size:SET.size,margin:SET.margin}:null;if(hv)Object.assign(SET,RQ_HALF.full);
   try{let o;if(!RQ_OWN)o=Object.assign({},SET);else{o=Object.assign({},SET,RQ_OWN.glob);o.bookSet=Object.assign({},SET.bookSet);o.bookSet[RQ_OWN.id]=rqTypoPick(SET,RQ_BOOK_KEYS);}

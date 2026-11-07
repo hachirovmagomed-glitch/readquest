@@ -125,7 +125,7 @@ r = await p.evaluate(async () => {
   const V = [{ voiceURI: 'v-a', name: 'A', lang: 'ru-RU' }, { voiceURI: 'v-b', name: 'B', lang: 'ru-RU' }]; const g0 = ttsVoices; ttsVoices = () => V;
   SET.rx.tts.voice = 'v-a'; SET.rm.roles = { on: true, v: '', sv: 'v-b' }; ttsOn = true; let done = false;
   ttsSay('Он сказал:\n— Пошёл вон! — крикнул он. — Ну!\nТишина.', () => { done = true; }, null, null, '');
-  await new Promise(r => setTimeout(r, 200)); ttsOn = false; ttsVoices = g0; sp.speak = s0; SET.rm.roles = { on: false, v: '', sv: '' };
+  await new Promise(r => setTimeout(r, 2500)); /* 07.11 озвучка+: абзацы с паузами */ ttsOn = false; ttsVoices = g0; sp.speak = s0; SET.rm.roles = { on: false, v: '', sv: '' };
   return { done, said };
 });
 ok('10 «Голоса по ролям»: replies with the heroes\' voice, the author with his own, in order', r.done && r.said.length >= 4 && r.said.some(x => /Пошёл вон/.test(x[0]) && x[1] === 'v-b') && r.said.some(x => /крикнул он/.test(x[0]) && x[1] === 'v-a'), r);

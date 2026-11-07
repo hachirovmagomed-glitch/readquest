@@ -199,7 +199,7 @@ if (want('cheap')) { /* 05.11 «выдели самые доступные не�
     [...el('aiProvSeg').querySelectorAll('button')].find(b => b.textContent === 'Gemini').click(); S.ai.key = 'AIza-1'; save();
     out.t = await aiViaKey({ system: 's', user: 'u' }, 20); return out; });
   const q = reqs[0] || {};
-  ok('cheap: доступные первыми и с меткой (DeepSeek дёшево, Gemini/Телефон бесплатно, OpenRouter бесплатные, Яндекс рубли), подпись видна', r.ai.slice(0, 4).join('|') === 'DeepSeek:дёшево|Gemini:бесплатно|OpenRouter:бесплатные|YandexGPT:рубли' && r.tts.slice(0, 2).join('|') === 'Телефон:бесплатно|Яндекс:рубли' && r.leg && /бесплатно/.test(r.after), r);
+  ok('cheap: доступные первыми и с меткой (DeepSeek дёшево, Gemini/Телефон бесплатно, OpenRouter бесплатные, Яндекс рубли), подпись видна', r.ai.slice(0, 4).join('|') === 'DeepSeek:дёшево|Gemini:бесплатно|OpenRouter:бесплатные|YandexGPT:рубли' && r.tts.slice(0, 3).join('|') === 'Телефон:бесплатно|Нейроголос:бесплатно|Яндекс:рубли' && r.leg && /бесплатно/.test(r.after), r);
   ok('cheap: Gemini — generativelanguage …/v1beta/openai/chat/completions, Bearer, gemini-2.5-flash', q.url === 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' && q.headers.authorization === 'Bearer AIza-1' && q.body.model === 'gemini-2.5-flash' && /Gemini ответил/.test(r.t), { url: q.url, m: q.body && q.body.model });
   await shot(p, '390-16-dostupnye');
   const v = await p.evaluate(async () => { window.__open = []; window.open = (u) => { window.__open.push(u); return null; }; try { navigator.clipboard.writeText = async () => {}; } catch (e) {}
@@ -344,19 +344,22 @@ if (want('tts')) for (const W of [360, 390]) {
   await p.evaluate(async () => { closeGeneralSettings(); openBook(BOOKS[0].id); await new Promise(r => setTimeout(r, 2500)); });
   const p0 = await p.evaluate(() => R.page);
   await p.evaluate(() => el('btnTts').click());
-  await sleep(2500);
+  await sleep(2500); await p.waitForFunction(() => R.ttsPos > 0, { timeout: 15000 }).catch(() => {}); /* 07.11: куски по абзацам, между ними паузы */
   const st = await p.evaluate(() => ({ on: ttsOn, pressed: el('btnTts').getAttribute('aria-pressed'), page: R.page, pos: R.ttsPos, len: R.book.text.length }));
   const speech = reqs.slice(n0).filter(q => /audio\/speech/.test(q.url));
   ok('tts ' + W + ': «Озвучка» играет нейроголос (короткая книга — до конца); ушло ≥ 3 запросов кусками ≤ 1720 знаков, по порядку текста', st.on && st.pressed === 'true' && speech.length >= 3 && speech.every(q => q.body.input.length <= 1720) && st.pos > 0, { st, n: speech.length, lens: speech.map(q => q.body.input.length) });
   const b0 = await p.evaluate(() => R.book.text);
-  ok('tts ' + W + ': куски идут подряд без пропусков', speech.length >= 2 && b0.indexOf(speech[0].body.input) >= 0 && b0.indexOf(speech[1].body.input) === b0.indexOf(speech[0].body.input) + speech[0].body.input.length, speech.slice(0, 2).map(q => q.body.input.slice(0, 40)));
+  /* 07.11 озвучка+: куски — абзацы (после «ё» и сокращений), следующие заказываются заранее и не по одному — проверяем, что вместе они идут подряд без пропусков и без повторов */
+  const gap = await p.evaluate((ins) => { const s = tpPrep(R.book.text).s; let k = 0; const at = ins.map(x => { const i = s.indexOf(x, Math.max(0, k - 2000)); return [i, x.length]; }).sort((a, b) => a[0] - b[0]);
+    const bad = at.filter((x, i) => x[0] < 0 || (i && !/^\s*$/.test(s.slice(at[i - 1][0] + at[i - 1][1], x[0])))); return { bad: bad.length, n: at.length, dup: ins.length - new Set(ins).size }; }, speech.map(q => q.body.input));
+  ok('tts ' + W + ': куски идут подряд без пропусков', speech.length >= 2 && gap.bad === 0 && gap.dup === 0, { gap, first: speech.slice(0, 2).map(q => q.body.input.slice(0, 40)) });
   ok('tts ' + W + ': страницы перелистываются вслед за голосом', st.page > p0, { p0, page: st.page });
   await p.evaluate(() => el('btnTts').click()); await sleep(300);
   const s2 = await p.evaluate(() => ({ on: ttsOn, paused: !nttsAudio || nttsAudio.paused, pressed: el('btnTts').getAttribute('aria-pressed') }));
   ok('tts ' + W + ': повторное нажатие останавливает звук', !s2.on && s2.paused && s2.pressed === 'false', s2);
   /* ошибка ключа — понятный текст, озвучка выключена, страница вернулась */
   fail = 1;
-  await p.evaluate(async () => { NTTS_CACHE.clear(); goPage(1, false); await new Promise(r => setTimeout(r, 600)); }); /* книга короткая и дочитана голосом до конца */
+  await p.evaluate(async () => { NTTS_CACHE.clear(); try { await caches.delete(TPC_CACHE); } catch (e) {} TP.stop = null; goPage(1, false); /* 07.11: и сохранённая озвучка, иначе куски берутся из неё без сети */ await new Promise(r => setTimeout(r, 600)); }); /* книга короткая и дочитана голосом до конца */
   const pg1 = await p.evaluate(() => R.page);
   await p.evaluate(() => el('btnTts').click()); await sleep(1200);
   const s3 = await p.evaluate(() => ({ on: ttsOn, page: R.page, toast: [...document.querySelectorAll('.toast,#toast,.flash,[class*=toast]')].map(e => e.textContent).join('|') }));

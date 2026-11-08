@@ -36,7 +36,7 @@
   'use strict';
   var KEY=window.RQ_NS+'diag', MAX=5;
   var sw=false;try{sw=!!(navigator.serviceWorker&&navigator.serviceWorker.controller);}catch(e){}
-  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261108-1335',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
+  var run={id:Math.random().toString(36).slice(2,10),t0:Date.now(),build:'20261108-1405',url:location.pathname,ua:navigator.userAgent,onLine:navigator.onLine,sw:sw,
     locks:!!(navigator.locks&&navigator.locks.request),vis:document.visibilityState,ls:window.__rqLs0||null,steps:[]};
   var FLUSH_AT={'acquire-out':1,'storage-out':1,'watchdog':1,'library':1,'late-recover':1,'error':1,'rejection':1,'other-window':1,'demote':1};
   /* merge on every flush: two windows (writer + passive) must not overwrite each other's runs */
@@ -106,7 +106,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="tokens.css?v=20261108-1335"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
+<link rel="stylesheet" href="tokens.css?v=20261108-1405"><!-- 1в: handoff/stage1-final/tokens.css, copied by build-dist.sh; BEFORE the app styles so the app :root keeps its own --bg/--card/... -->
 <style>
 :root{
   --bg:#0c2127; --card:#143039; --card2:#1d4250; --txt:#e8f1f2; --muted:#8fb0b5;
@@ -410,6 +410,9 @@ html[data-skin] #library #shelf:is(.v-short,.v-full) .bookcard{background:var(--
 .rhead button{font-size:1.1875rem;padding:4px 8px}
 .rtitle{flex:1;text-align:left;font-size:0.875rem;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #viewer{flex:1;position:relative;overflow:hidden;margin:0 var(--r-margin,24px)}
+/* 08.11 (тестер: «фронталка загораживает строчки»): текст начинается ниже выреза камеры — env(safe-area-inset-top) в полноэкранном режиме
+   + «Поле сверху» (SET.mtop, по умолчанию 12 px). Отступ у #reader, а не у #viewer: поля #viewer задаёт JS (rqTextMargin). PDF не трогаем */
+#reader:not(.pdfmode){padding-top:calc(env(safe-area-inset-top,0px) + var(--r-mtop,12px))}
 /* Android fix 2026-10-06: NO transition / will-change on the multi-column strip.
    A transform transition promoted the whole N-page strip to one huge GPU layer and the
    compositor animated it to tiles that were never rasterized (blank page mid-flip).
@@ -2858,7 +2861,7 @@ html[data-rs="candle"] .rmrul{background:#0b0805;opacity:.82}html[data-rs="candl
 #rmNote.tlwb .rmnh b{font-family:Georgia,serif;font-size:1rem;color:var(--txt)}
 @media (max-width:380px){.tlcard{gap:10px;padding:10px}.tlic{width:38px;height:38px}#tlBar .tlcol{width:30px;height:30px}}
 </style>
-<link rel="stylesheet" href="skins/skins.css?v=20261108-1335"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
+<link rel="stylesheet" href="skins/skins.css?v=20261108-1405"><!-- shop skins: generic bridge + per-skin decor; AFTER the app styles (same specificity wins by order) -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="rqPencil" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="0.9"/></filter><filter id="rqPdfTone" color-interpolation-filters="sRGB"><feColorMatrix id="rqPdfToneM" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter></svg>
@@ -3576,6 +3579,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
       <div class="rrow pdfonly"><span class="rl" id="pdfThemeTglL">Цвета темы для PDF<small>фон и текст страницы как у темы, картинки в два цвета</small></span><button class="rsw" id="pdfThemeTgl" role="switch" aria-checked="false" aria-labelledby="pdfThemeTglL"></button></div>
       <div class="rrow"><span class="rl">Свои цвета</span><div class="rcolors"><label class="rcol"><input type="color" id="cTxt" value="#5b4636"><span>Текст</span></label><label class="rcol"><input type="color" id="cBg" value="#f4ecd8"><span>Фон</span></label><button id="cReset" aria-label="Сбросить свои цвета"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-rotate-cw"/></svg></button></div></div>
       <div class="rrow"><span class="rl" id="mgValL">Поля</span><div class="rstep" role="group" aria-labelledby="mgValL"><button id="mgMinus" aria-label="Уже"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="mgVal" aria-live="polite"></span><button id="mgPlus" aria-label="Шире"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
+      <div class="rrow txtonly"><span class="rl" id="mtValL">Поле сверху<small>чтобы камера и вырез экрана не закрывали первую строку</small></span><div class="rstep" role="group" aria-labelledby="mtValL"><button id="mtMinus" aria-label="Меньше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-minus"/></svg></button><span class="rv" id="mtVal" aria-live="polite"></span><button id="mtPlus" aria-label="Больше"><svg class="ic" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></button></div></div>
       <div class="rrow"><span class="rl" id="halfTglL">Половина экрана<small id="halfTglS">свой размер шрифта и поля, когда читалка открыта рядом с другим приложением</small></span><button class="rsw" id="halfTgl" role="switch" aria-checked="true" aria-labelledby="halfTglL"></button></div>
       <div class="rrow stack"><span class="rl rlv"><label for="brightRange">Яркость</label><span class="rv" id="brightVal">100 %</span></span><input type="range" id="brightRange" min="30" max="100" step="5" value="100"></div>
       <div class="rrow stack"><span class="rl rlv"><label for="warmRange">Тёплый оттенок</label><span class="rv" id="warmVal">0 %</span></span><input type="range" id="warmRange" min="0" max="60" step="5" value="0"></div>
@@ -3631,53 +3635,53 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
   </div>
 </div>
 
-<script src="js/core-a.js?v=20261108-1335"></script>
-<script src="js/books-builtin.js?v=20261108-1335"></script>
-<script src="js/core-b.js?v=20261108-1335"></script>
-<script src="js/library.js?v=20261108-1335"></script>
-<script src="js/reader.js?v=20261108-1335"></script>
-<script src="js/pdf.js?v=20261108-1335"></script>
-<script src="js/pdf-scroll.js?v=20261108-1335"></script>
-<script src="js/page-curl.js?v=20261108-1335"></script>
-<script src="js/page-grid.js?v=20261108-1335"></script>
-<script src="js/reader-ui.js?v=20261108-1335"></script>
-<script src="js/book-find.js?v=20261108-1335"></script>
-<script src="js/focus.js?v=20261108-1335"></script>
-<script src="js/rpg.js?v=20261108-1335"></script>
-<script src="js/content.js?v=20261108-1335"></script>
-<script src="js/quotes.js?v=20261108-1335"></script>
-<script src="js/translate.js?v=20261108-1335"></script>
-<script src="js/ocr.js?v=20261108-1335"></script>
-<script src="js/hero-pencil.js?v=20261108-1335"></script>
-<script src="js/hero-celestial.js?v=20261108-1335"></script>
-<script src="js/hero.js?v=20261108-1335"></script>
-<script src="js/settings.js?v=20261108-1335"></script>
-<script src="js/v6-extras.js?v=20261108-1335"></script>
-<script src="js/settings-hub.js?v=20261108-1335"></script>
-<script src="js/read-more.js?v=20261108-1335"></script>
-<script src="js/read-extras.js?v=20261108-1335"></script>
-<script src="js/goal-extras.js?v=20261108-1335"></script>
-<script src="js/nn-extras.js?v=20261108-1335"></script>
-<script src="js/ach-core.js?v=20261108-1335"></script>
-<script src="js/achievements.js?v=20261108-1335"></script>
-<script src="js/path.js?v=20261108-1335"></script>
-<script src="js/adv.js?v=20261108-1335"></script>
-<script src="js/diary.js?v=20261108-1335"></script>
-<script src="js/sel-tools.js?v=20261108-1335"></script>
-<script src="js/read-more2.js?v=20261108-1335"></script>
-<script src="js/dict.js?v=20261108-1335"></script>
-<script src="js/tts-plus.js?v=20261108-1335"></script><!-- 07.11 озвучка+: Piper, ё и свой словарь, шторка, назад/вперёд, паузы, иностранные фразы, глава заранее, «Произнести» -->
-<script src="js/pdf-more.js?v=20261108-1335"></script>
-<script src="js/alisa.js?v=20261108-1335"></script>
-<script src="js/tools.js?v=20261108-1335"></script>
-<script src="js/start.js?v=20261108-1335"></script>
+<script src="js/core-a.js?v=20261108-1405"></script>
+<script src="js/books-builtin.js?v=20261108-1405"></script>
+<script src="js/core-b.js?v=20261108-1405"></script>
+<script src="js/library.js?v=20261108-1405"></script>
+<script src="js/reader.js?v=20261108-1405"></script>
+<script src="js/pdf.js?v=20261108-1405"></script>
+<script src="js/pdf-scroll.js?v=20261108-1405"></script>
+<script src="js/page-curl.js?v=20261108-1405"></script>
+<script src="js/page-grid.js?v=20261108-1405"></script>
+<script src="js/reader-ui.js?v=20261108-1405"></script>
+<script src="js/book-find.js?v=20261108-1405"></script>
+<script src="js/focus.js?v=20261108-1405"></script>
+<script src="js/rpg.js?v=20261108-1405"></script>
+<script src="js/content.js?v=20261108-1405"></script>
+<script src="js/quotes.js?v=20261108-1405"></script>
+<script src="js/translate.js?v=20261108-1405"></script>
+<script src="js/ocr.js?v=20261108-1405"></script>
+<script src="js/hero-pencil.js?v=20261108-1405"></script>
+<script src="js/hero-celestial.js?v=20261108-1405"></script>
+<script src="js/hero.js?v=20261108-1405"></script>
+<script src="js/settings.js?v=20261108-1405"></script>
+<script src="js/v6-extras.js?v=20261108-1405"></script>
+<script src="js/settings-hub.js?v=20261108-1405"></script>
+<script src="js/read-more.js?v=20261108-1405"></script>
+<script src="js/read-extras.js?v=20261108-1405"></script>
+<script src="js/goal-extras.js?v=20261108-1405"></script>
+<script src="js/nn-extras.js?v=20261108-1405"></script>
+<script src="js/ach-core.js?v=20261108-1405"></script>
+<script src="js/achievements.js?v=20261108-1405"></script>
+<script src="js/path.js?v=20261108-1405"></script>
+<script src="js/adv.js?v=20261108-1405"></script>
+<script src="js/diary.js?v=20261108-1405"></script>
+<script src="js/sel-tools.js?v=20261108-1405"></script>
+<script src="js/read-more2.js?v=20261108-1405"></script>
+<script src="js/dict.js?v=20261108-1405"></script>
+<script src="js/tts-plus.js?v=20261108-1405"></script><!-- 07.11 озвучка+: Piper, ё и свой словарь, шторка, назад/вперёд, паузы, иностранные фразы, глава заранее, «Произнести» -->
+<script src="js/pdf-more.js?v=20261108-1405"></script>
+<script src="js/alisa.js?v=20261108-1405"></script>
+<script src="js/tools.js?v=20261108-1405"></script>
+<script src="js/start.js?v=20261108-1405"></script>
 <div id="rqOther" class="hidden" role="dialog" aria-modal="true" aria-labelledby="rqOtherH" style="position:fixed;inset:0;z-index:2147483000;background:var(--bg,#0c2127);color:var(--txt,#e8f1f2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:system-ui,sans-serif">
   <h2 id="rqOtherH" style="font-size:20px;line-height:1.3;margin:0 0 12px;text-transform:none;letter-spacing:0;font-weight:700;text-wrap:balance;color:var(--txt,#e8f1f2)">ReadQuest открыт в другом окне</h2>
   <p id="rqOtherP" style="font-size:14px;color:var(--muted,#8fb0b5);margin:0 0 28px;max-width:300px;line-height:1.4">Чтобы прогресс не задвоился, читать можно только в одном окне</p>
   <button id="rqOtherBtn" type="button" style="min-width:200px;min-height:48px;border:0;border-radius:12px;background:#2bb3c0;color:#0c2127;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span class="rq-spin hidden" style="width:16px;height:16px;border:2px solid #0c2127;border-right-color:transparent;border-radius:50%;animation:rqspin .8s linear infinite"></span><span id="rqOtherL">Открыть здесь</span></button>
   <style>@keyframes rqspin{to{transform:rotate(360deg)}}</style>
 </div>
-<script src="js/pwa-lock.js?v=20261108-1335"></script>
+<script src="js/pwa-lock.js?v=20261108-1405"></script>
 <script>window.__rqDiag&&__rqDiag.mark('scripts-end'); /* last classic script parsed + run; the module runs after DOM parsed + module graph loaded */</script>
 <script type="module">
 import {
@@ -3685,9 +3689,9 @@ import {
   listSessions, listReadingEvents, idb, importBackup, exportBackup, clearAllLocal,
   loadSettings, saveSettings, ensureSessionIds, localDay, addLocalDays,
   loadEnvelope, saveEnvelope, upsertUserBook, setSessionXp
-} from './storage/index.js?v=20261108-1335';
-import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261108-1335';
-import * as game from './game-awards.js?v=20261108-1335';
+} from './storage/index.js?v=20261108-1405';
+import { createSessionTracker, recoverDraft } from './reader-session.js?v=20261108-1405';
+import * as game from './game-awards.js?v=20261108-1405';
 
 window.__rqGame = game;
 const DG = window.__rqDiag || { mark() {} };

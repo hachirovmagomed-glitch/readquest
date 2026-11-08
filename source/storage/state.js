@@ -347,6 +347,7 @@ export async function importBackup(data) {
         ct: s.ct,
         rr: s.rr,
         au: s.au,
+        ck: s.ck,
         hon: s.hon,
         pomo: s.pomo,
         pomoRun: s.pomoRun,

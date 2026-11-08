@@ -71,6 +71,7 @@ ok('1 «Все герои до этого места» → a list; closing gives
 const ch = (i) => '<section><title><p>Глава ' + i + '</p></title>' + Array.from({ length: 30 }, (_, k) => '<p>Глава ' + i + ', абзац ' + k + '. Он долго шёл по улице и думал о своём, а ветер гнал листья по мостовой, и было тихо и пусто.</p>').join('') + '</section>';
 const fb2 = '<?xml version="1.0" encoding="utf-8"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><description><title-info><book-title>Главы</book-title><author><last-name>Тестов</last-name></author><lang>ru</lang></title-info></description><body>' + ch(1) + ch(2) + ch(3) + '</body></FictionBook>';
 const cid = await imp(p, Buffer.from(fb2, 'utf8'), 'chapters.fb2'); await open(p, cid);
+await p.evaluate(() => { r2ChapCov = () => -1; }); /* без «Честного чтения»: по порядку + время (честное правило — anticheat2.test.mjs) */
 r = await p.evaluate(async () => {
   const b = R.book, toc = r2Toc(b); R2.cps = 1e9; goPage(0, false); await new Promise(r => setTimeout(r, 50));
   let pg = 0; while (pg < R.pageCount - 1 && r2ChapAt(b, r2Off(b)) < 1) { goPage(++pg, true); await new Promise(r => setTimeout(r, 30)); if (!el('r2Offer').hidden) break; }

@@ -376,7 +376,16 @@ function r2ChapWorth(b,i){const t=r2Toc(b),x=t[i];if(!x)return false;
 /** 08.11 (Джессика: «выходит, даже когда я просто листаю книгу»): глава считается прочитанной, только если её листали по порядку
  *  (без прыжков) и на неё ушло не меньше времени, чем на чтение очень быстрым читателем: R2.cps знаков в секунду (50 ≈ 3000 в минуту) */
 function r2ChapEnter(b,ci,ok){const t=r2Toc(b);R2.cs={i:ci,t:Date.now(),off:t[ci]?t[ci].off:0,ok:ok};}
-function r2ChapRead(b,i){const c=R2.cs,t=r2Toc(b);if(!c||c.i!==i||!c.ok||!t[i])return false;
+/** 08.11 (Джессика «делай все»): с «Честным чтением» — то же правило, что у опыта: доля главы, честно засчитанная трекером
+ *  (свой темп, живой экран, пауза, без повторов; страницы прошлых сессий тоже). −1 = правил нет, тогда по порядку + время. */
+function r2ChapCov(b,i){
+  if(typeof honestOn!=='function'||!honestOn()||typeof __tracker==='undefined'||!__tracker||!__tracker.liveCoverage)return -1;
+  const sp=__tracker.liveCoverage(),t=r2Toc(b),L=(b.text||'').length||1;if(!sp||!t[i])return -1;
+  const a=t[i].off/L,z=(t[i+1]?t[i+1].off:L)/L;if(!(z>a))return -1;
+  let c=0;sp.forEach(function(x){c+=Math.max(0,Math.min(z,x[1])-Math.max(a,x[0]));});return c/(z-a);}
+const R2_CH_SHARE=0.8;
+function r2ChapRead(b,i){const cv=r2ChapCov(b,i);if(cv>=0)return cv>=R2_CH_SHARE;
+  const c=R2.cs,t=r2Toc(b);if(!c||c.i!==i||!c.ok||!t[i])return false;
   const z=t[i+1]?t[i+1].off:(b.text||'').length,n=z-c.off;return n>=R2_CH_MIN&&Date.now()-c.t>=n/R2.cps*1000;}
 function r2ChapWatch(){
   if(!rmText()||!R.book||!R.book.text)return;const b=R.book;
@@ -659,7 +668,7 @@ new MutationObserver(function(){try{r2ChapWatch();r2EdgeSync();}catch(e){}}).obs
   rxRow('r2RolesVRow','user-round','Голос героев','','<select id="r2RolesSel" class="rxsel" aria-label="Голос для реплик героев" hidden></select><input id="r2RolesIn" class="rxsel" type="text" maxlength="80" aria-label="Голос для реплик героев" hidden>','setstack')+
   rxRow('','footprints','Слушать на ходу','Во время озвучки рядом с «Слушать» кнопка со следами: крупный текст на тёмном экране, пауза с экрана блокировки',null);};}
 {const c0=rmRxCards;rmRxCards=function(){return c0.apply(this,arguments)+rxCardHtml('rch','check','Когда глава прочитана',
-  '<div class="aisub">Небольшая строка сверху страницы. Пропадает сама через несколько секунд или при перелистывании, закрывается тапом или смахиванием вверх. Только если главу читали по порядку, а не пролистали. Не чаще раза в 10 минут; оглавление, примечания и совсем короткие главы пропускаются.</div>'+
+  '<div class="aisub">Небольшая строка сверху страницы. Пропадает сама через несколько секунд или при перелистывании, закрывается тапом или смахиванием вверх. Только если главу правда прочитали: по тем же правилам, что и опыт (свой темп, без пролистывания и простоя). Не чаще раза в 10 минут; оглавление, примечания и совсем короткие главы пропускаются.</div>'+
   rxRow('','notebook-pen','Предлагать итог главы','Три строки от ИИ или свои слова, запись в дневник книги',rxSwHtml('r2ChEnd'))+
   rxRow('r2ChQRow','circle-help','Вопрос по главе','Два вопроса, чтобы лучше запомнить. Без баллов и штрафов, нужен ключ ИИ',rxSwHtml('r2ChQ')));};}
 {const w0=rmRxWire;rmRxWire=function(){w0.apply(this,arguments);

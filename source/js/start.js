@@ -69,6 +69,7 @@ window.__rqStart=async function(api, tracker){
   console.info('[rq] booted schema', flat.schemaVersion||1, 'goal', S.goal);
   try{renderNav();}catch(e){console.warn('[rq] nav',e);}
   window.__rqReady=true;
+  try{rqClockTick();setInterval(rqClockTick,60000);}catch(e){} /* 08.11 анти-чит: часы назад (js/core-a.js) */
   try{rqFlushSetPending();}catch(e){console.warn('[rq] pending set',e);} /* picks made before ready: exactly one gated write */
   try{importSharedBooks();}catch(e){console.warn('[rq] share',e);} /* «Поделиться → ReadQuest»: files the SW kept, once */
   {const bt=el('rqBoot');if(bt)bt.classList.add('hidden');const fl=el('rqFail');

@@ -1674,7 +1674,11 @@ async function closeReaderImpl(opts){
   const bs=(S.bookStats[b.id]=S.bookStats[b.id]||{min:0,pages:0});
   bs.min+=min;bs.pages+=pages;
   // честный финиш: бонус только если прочитано ≈70% страниц по анти-чит таймеру
-  const fullRead=bs.pages>=Math.ceil(Math.max(1,R.pageCount-1)*0.7)&&bs.min*60>=Math.max(a.minSec,(R.pageCount-1)*a.minSec*0.5);
+  /* 08.11 (Джессика «делай все», анти-чит): с честными правилами книга «прочитана» только если честно засчитано ≥ 80 % её страниц
+     (отрезки readSpans: свой темп, живой экран, без повторов). Прыжок в конец по оглавлению, поиску или закладке финиша не даёт. */
+  const honFin=honestOn()&&!!(S.readSpans||{})[b.id];
+  const fullRead=honFin?rqSpansLen((S.readSpans||{})[b.id])>=RQ_FIN_SHARE:
+    bs.pages>=Math.ceil(Math.max(1,R.pageCount-1)*0.7)&&bs.min*60>=Math.max(a.minSec,(R.pageCount-1)*a.minSec*0.5);
   const justFinished=R.maxRatio>=0.999&&fullRead&&!S.finished.includes(b.id);
   const cheatFinish=R.maxRatio>=0.999&&!fullRead&&!S.finished.includes(b.id);
   if(justFinished){S.finished.push(b.id);S.shelfOrder=S.shelfOrder||[];if(S.shelfOrder.indexOf(b.id)<0)S.shelfOrder.push(b.id);shelfJustAdded=b.id;S.finishDates=S.finishDates||{};S.finishDates[b.id]=today();}
@@ -1738,7 +1742,7 @@ async function closeReaderImpl(opts){
   /* 25.10: what the mini-check may ask about (text: the book text before the current place; PDF: the last pages read) */
   const quiz=honestOn()&&isMvp()&&min>=window.__rqGame.QUIZ_MIN&&pages>=window.__rqGame.QUIZ_PAGES&&!(S.quizPaid||{})[sd]?
     {book:b,pos:typeof R.pos==='number'?R.pos:R.maxRatio,page:R.page|0,pages:R.pageCount|0,day:sd}:null;
-  const _sumArgs={xp,gold,pages,min,stat:stN,row:row,floorSec:R.floorSec||0,quiz:quiz,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
+  const _sumArgs={bookId:b.id,xp,gold,pages,min,stat:stN,row:row,floorSec:R.floorSec||0,quiz:quiz,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);
     /* audit 19.10 SUM-03: a short session no longer closes silently (a blink-open, under 5 s, stays quiet) */
@@ -1793,7 +1797,8 @@ function renderSummary(r){
   if(rw.rr>0)notes.push(rw.rr+' стр. ты уже читал раньше, за повтор опыт не начисляется');
   if(rw.au>0)notes.push(rw.au+' стр. автолистания без касаний экрана дольше 5 минут не засчитаны');
   if(rw.hon>0&&rw.hon<1)notes.push('Опыт ×'+String(rw.hon).replace('.',',')+': за две недели '+(honWhy()==='idle'?'много времени книга была открыта без чтения':'много страниц пролистано слишком быстро')+'. Читай как обычно, множитель вернётся сам');
-  if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
+  if(rw.ck===1)notes.push('Часы телефона переведены назад: эта сессия не идёт в серию дней и монеты дня, опыт начислен');
+  if(r.cheatFinish)notes.push(honestOn()?'Книга не отмечена прочитанной: честно прочитано '+Math.round(rqSpansLen((S.readSpans||{})[r.bookId])*100)+'%, нужно от '+Math.round(RQ_FIN_SHARE*100)+'%':'Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');
   quizRender(r);
   {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */

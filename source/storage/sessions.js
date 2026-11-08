@@ -137,6 +137,7 @@ export async function logSession(entry) {
   if (Number.isInteger(entry.lvl) && entry.lvl >= 1 && entry.lvl <= 4) rec.lvl = entry.lvl; /* 1…LVL_MAX (game-awards.js) */
   /* optional (25.10, additive, arch.md «Честное чтение»): fast flips, seconds cut with no sign of life, re-read pages, XP factor */
   ['fl', 'ct', 'rr', 'au'].forEach(function (k) { if (Number.isInteger(entry[k]) && entry[k] > 0 && entry[k] <= 1e6) rec[k] = entry[k]; });
+  if (entry.ck === 1) rec.ck = 1; /* 08.11 (arch.md): the session ran while the phone clock was set back */
   const hon = Number(entry.hon);
   if (entry.hon != null && hon >= 0.5 && hon < 1) rec.hon = Math.round(hon * 100) / 100;
   /* optional (25.10 «Фокус», additive): completed rounds (15/25/45), longest run without leaving, focus words */

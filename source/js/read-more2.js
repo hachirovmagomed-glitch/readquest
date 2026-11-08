@@ -205,7 +205,7 @@ const R2_WORDS=`аршин*|мера длины, около 71 см
 схимник*|монах строгого обета
 юродив*|человек, нарочно живший как безумный ради веры`;
 
-const R2={cb:'',ci:-1,cp:-1,vo:null,pos:-1,offT:0,cmp:null};
+const R2={cb:'',ci:-1,cp:-1,vo:null,pos:-1,offT:0,offP:-1,offAt:0,cmp:null};
 const R2_AI={};
 const R2_ONEH=['night','bars','mark','prev','next','next','prev','next','next']; /* 8: one hand — the whole lower part turns pages */
 
@@ -240,13 +240,24 @@ function r2Note(icon,title,html,x,y){
   d.hidden=false;const H=innerHeight,h=d.offsetHeight;d.style.top=(y>H*0.55?Math.max(8,y-h-18):Math.min(H-h-8,y+22))+'px';
   el('rmNoteX').onclick=function(e){e.stopPropagation();rmFnHide();};
 }
-/** a small card on top of the page (chapter end); goes away by itself */
+/** a small card on top of the page (chapter end); goes away by itself.
+ *  08.11 (Джессика: подруге «вылезает и мешает, крестик не нажимается»): закрывается и по pointerup (не только click),
+ *  тапом по самой карточке и смахиванием вверх; уходит при следующем перелистывании; по умолчанию 7 с. */
 function r2Offer(html,ms){
   const d=el('r2Offer');if(!d)return null;clearTimeout(R2.offT);d.innerHTML=html;
   const hd=el('reader').querySelector('.rhead'),bo=el('reader').classList.contains('barsoff');
-  d.style.top=((!bo&&hd&&!r2Rm().oneh?hd.getBoundingClientRect().bottom:8)+8)+'px';d.hidden=false;
-  R2.offT=setTimeout(function(){d.hidden=true;},ms||20000);return d;}
-function r2OfferHide(){const d=el('r2Offer');if(d)d.hidden=true;clearTimeout(R2.offT);}
+  d.style.top=((!bo&&hd&&!r2Rm().oneh?hd.getBoundingClientRect().bottom:8)+8)+'px';d.style.transform='';d.hidden=false;R2.offP=R.page;
+  R2.offT=setTimeout(r2OfferHide,ms||7000);
+  if(!d.dataset.w){d.dataset.w='1';let y0=null;
+    d.addEventListener('pointerdown',function(e){y0=e.clientY;clearTimeout(R2.offT);},{passive:true});
+    d.addEventListener('pointermove',function(e){if(y0!==null&&e.clientY<y0)d.style.transform='translateY('+(e.clientY-y0)+'px)';},{passive:true});
+    d.addEventListener('pointerup',function(e){const dy=y0===null?0:e.clientY-y0;y0=null;d.style.transform='';
+      const b=e.target&&e.target.closest&&e.target.closest('button');
+      if(dy<-24||!b||b.classList.contains('closes')){e.stopPropagation();r2OfferHide();return;}
+      R2.offT=setTimeout(r2OfferHide,7000);});
+    d.addEventListener('pointercancel',function(){y0=null;d.style.transform='';R2.offT=setTimeout(r2OfferHide,7000);},{passive:true});}
+  return d;}
+function r2OfferHide(){const d=el('r2Offer');if(d){d.hidden=true;d.style.transform='';}clearTimeout(R2.offT);}
 
 /* ---------- 5: dialogues ---------- */
 /** the spoken parts of one paragraph: [[from, to], …]. «— Реплика, — сказал он. — Ещё реплика»; «…» after a colon or at the start; “…” and "…" */
@@ -355,19 +366,29 @@ function r2Toc(b){return (tocOf(b)||[]).filter(function(x){return typeof x.off==
 function r2ChapAt(b,off){const t=r2Toc(b);let i=-1;t.forEach(function(x,k){if(x.off<=off)i=k;});return i;}
 function r2ChapText(b,i){const t=r2Toc(b),a=t[i]?t[i].off:0,z=t[i+1]?t[i+1].off:(b.text||'').length,s=(b.text||'').slice(a,z).replace(/￼img:\d+/g,'');
   return s.length>16000?s.slice(0,8000)+'\n…\n'+s.slice(-8000):s;}
+/** 08.11: служебные главы (оглавление, обложка, примечания…) — без карточки */
+const R2_CH_SKIP=/^\s*(?:\d+[.)]?\s*)?(?:contents|table of contents|toc|cover|title page|title|copyright|dedication|epigraph|annotation|abstract|about the author|about this (?:book|e-?book)|also by|acknowledg|notes|endnotes|footnotes|index|imprint|colophon|front ?matter|back ?matter|оглавление|содержание|обложка|титул|аннотация|посвящение|эпиграф|об авторе|от автора|от издательства|благодарности|примечания|сноски|комментарии|указатель|выходные данные)\b/i;
+const R2_CH_MIN=3000; /* chars: shorter chapters (≈1–2 phone pages) get no card */
+const R2_CH_GAP=10*60000; /* not more often than once in 10 minutes */
+function r2ChapWorth(b,i){const t=r2Toc(b),x=t[i];if(!x)return false;
+  if(R2_CH_SKIP.test(String(x.t||'')))return false;
+  const z=t[i+1]?t[i+1].off:(b.text||'').length;return z-x.off>=R2_CH_MIN;}
 function r2ChapWatch(){
   if(!rmText()||!R.book||!R.book.text)return;const b=R.book;
   if(typeof ttsOn!=='undefined'&&ttsOn){R2.cb='';return;}
   const ci=r2ChapAt(b,r2Off(b)),p=R.page;
   if(R2.cb!==b.id){R2.cb=b.id;R2.ci=ci;R2.cp=p;return;}
   const fin=R2.ci;R2.ci=ci;const step=p-R2.cp;R2.cp=p;
-  if(ci===fin+1&&fin>=0&&step===1&&r2Rm().chEnd)r2ChapOffer(b,fin);
+  const d=el('r2Offer');if(d&&!d.hidden&&p!==R2.offP)r2OfferHide(); /* the next page turn takes the card away */
+  if(ci===fin+1&&fin>=0&&step===1&&r2Rm().chEnd&&Date.now()-(R2.offAt||0)>=R2_CH_GAP&&r2ChapWorth(b,fin))r2ChapOffer(b,fin);
 }
 function r2ChapOffer(b,i){
-  const t=r2Toc(b)[i];if(!t)return;const ai=aiOn(),q=ai&&r2Rm().chQ;
-  r2Offer('<span>'+rqIcon('check',18)+' Глава «'+esc(String(t.t||'').slice(0,40))+'» прочитана</span>'+
-    '<span class="r2ob"><button type="button" class="ghostbtn" id="r2ChSum">'+rqIcon('notebook-pen',16)+' Итог в дневник</button>'+(q?'<button type="button" class="ghostbtn" id="r2ChQ">'+rqIcon('circle-help',16)+' Вопрос</button>':'')+'</span>'+
-    '<button type="button" class="closes" id="r2OffX" aria-label="Не надо">'+rqIcon('x',18)+'</button>');
+  const t=r2Toc(b)[i];if(!t)return;const ai=aiOn(),q=ai&&r2Rm().chQ;R2.offAt=Date.now();
+  r2Offer('<span class="r2ot">'+rqIcon('check',18)+'<span><b>Глава прочитана</b><small>«'+esc(String(t.t||'').slice(0,60))+'»</small></span></span>'+
+    '<button type="button" class="ghostbtn" id="r2ChSum" aria-label="Итог главы в дневник">'+rqIcon('notebook-pen',16)+' Итог</button>'+
+    (q?'<button type="button" class="ghostbtn r2oi" id="r2ChQ" aria-label="Вопрос по главе">'+rqIcon('circle-help',18)+'</button>':'')+
+    '<button type="button" class="closes" id="r2OffX" aria-label="Закрыть">'+rqIcon('x',20)+'</button>');
+  el('r2Offer').classList.add('r2och');
   el('r2ChSum').onclick=function(e){e.stopPropagation();r2OfferHide();r2ChapSum(b,i);};
   if(q)el('r2ChQ').onclick=function(e){e.stopPropagation();r2OfferHide();r2ChapQuiz(b,i);};
   el('r2OffX').onclick=function(e){e.stopPropagation();r2OfferHide();};
@@ -631,7 +652,7 @@ new MutationObserver(function(){try{r2ChapWatch();r2EdgeSync();}catch(e){}}).obs
   rxRow('r2RolesVRow','user-round','Голос героев','','<select id="r2RolesSel" class="rxsel" aria-label="Голос для реплик героев" hidden></select><input id="r2RolesIn" class="rxsel" type="text" maxlength="80" aria-label="Голос для реплик героев" hidden>','setstack')+
   rxRow('','footprints','Слушать на ходу','Во время озвучки рядом с «Слушать» кнопка со следами: крупный текст на тёмном экране, пауза с экрана блокировки',null);};}
 {const c0=rmRxCards;rmRxCards=function(){return c0.apply(this,arguments)+rxCardHtml('rch','check','Когда глава прочитана',
-  '<div class="aisub">Маленькая карточка сверху страницы, пропадёт сама.</div>'+
+  '<div class="aisub">Небольшая строка сверху страницы. Пропадает сама через несколько секунд или при перелистывании, закрывается тапом или смахиванием вверх. Не чаще раза в 10 минут; оглавление, примечания и совсем короткие главы пропускаются.</div>'+
   rxRow('','notebook-pen','Предлагать итог главы','Три строки от ИИ или свои слова, запись в дневник книги',rxSwHtml('r2ChEnd'))+
   rxRow('r2ChQRow','circle-help','Вопрос по главе','Два вопроса, чтобы лучше запомнить. Без баллов и штрафов, нужен ключ ИИ',rxSwHtml('r2ChQ')));};}
 {const w0=rmRxWire;rmRxWire=function(){w0.apply(this,arguments);

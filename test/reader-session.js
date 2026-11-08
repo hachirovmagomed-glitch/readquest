@@ -48,8 +48,8 @@
  * page change / visibility change / 15 s, and `recoverDraft()` turns a leftover draft into
  * the sessions[] row on next boot (app killed from the task switcher, etc.).
  */
-import { localDay, newSessionId } from './storage/sessions.js?v=20261108-1405';
-import { paceLevel } from './game-awards.js?v=20261108-1405';
+import { localDay, newSessionId } from './storage/sessions.js?v=20261109-0152';
+import { paceLevel } from './game-awards.js?v=20261109-0152';
 export { newSessionId };
 
 export const DRAFT_KEY = ((typeof globalThis !== 'undefined' && globalThis.RQ_NS) || 'rq') + '_session_draft';
@@ -191,6 +191,7 @@ export function createSessionTracker(api) {
       lvl: rowLvl() || undefined,
       fl: honest && fast > 0 ? fast : undefined,
       au: honest && au > 0 ? au : undefined,
+      ck: honest && honest.clock && honest.clock() ? 1 : undefined,
       hon: honest && honest.hon < 1 ? honest.hon : undefined,
       pomo: focus && focus.pomo, pomoRun: focus && focus.pomoRun, fw: focus && focus.fw, pomoRk: focus && focus.pomoRk, pomoCb: focus && focus.pomoCb,
       updatedAt: Date.now(),
@@ -266,6 +267,7 @@ export function createSessionTracker(api) {
       if (reread > 0) row.rr = reread;
       if (au > 0) row.au = au;
       if (honest.hon < 1) row.hon = honest.hon;
+      if (honest.clock && honest.clock()) row.ck = 1; /* 08.11: the phone clock was set back — no streak / day coins for this row */
       lastSeen = honest.span ? fresh.reduce(addSpan, seen) : null;
     }
     /* 06.11 (Джессика: «полистал книгу меньше 1 минуты, и мне дали 10 опыта»): with the honest rules a session under one counted minute is empty */
@@ -288,7 +290,7 @@ export function createSessionTracker(api) {
       console.warn('[rq] logSession failed — draft kept for recovery', e);
       const d = JSON.stringify({ id: row.id, bookId: row.bookId, date: row.date,
         countedMs: Math.round(row.minutes * 60000), pageTurns: row.pageTurns, startedAt: row.startedAt, lvl: row.lvl,
-        fl: row.fl, ct: row.ct, rr: row.rr, au: row.au, hon: row.hon, pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, pomoRk: row.pomoRk, pomoCb: row.pomoCb, updatedAt: Date.now() });
+        fl: row.fl, ct: row.ct, rr: row.rr, au: row.au, ck: row.ck, hon: row.hon, pomo: row.pomo, pomoRun: row.pomoRun, fw: row.fw, pomoRk: row.pomoRk, pomoCb: row.pomoCb, updatedAt: Date.now() });
       /* a newer session owns the main draft slot → keep this one in the spare slot (recoverDraft reads both) */
       if (running && sessionId !== row.id) lsSet(DRAFT_KEY + '_prev', d); else lsSet(DRAFT_KEY, d);
       return null;
@@ -347,6 +349,7 @@ export function createSessionTracker(api) {
         hon: Number(h.hon) > 0 && Number(h.hon) < 1 ? Math.max(0.5, Math.round(Number(h.hon) * 100) / 100) : 1,
         autoLiveMs: h.autoLiveMs != null ? Math.max(0, Number(h.autoLiveMs) || 0) : 5 * 60000,
         autoFloorMs: Math.max(0, Number(h.autoFloorMs) || 0),
+        clock: typeof h.clock === 'function' ? h.clock : null, /* 08.11: true = the phone clock was set back (row.ck) */
       } : null;
       seen = honest && Array.isArray(h.seen) ? normSpans(h.seen) : [];
       cutMs = 0; reread = 0; lastSeen = null; mine = {}; fresh = []; fast = 0; fastRun = 0; pageAt = now();
@@ -510,6 +513,8 @@ export function createSessionTracker(api) {
     getPageTurns() { return pagesRead; },
     /** 25.10: merged [from, to] spans of the book after the last end() (honest.span given), else null */
     coverage() { return lastSeen; },
+    /** 08.11: merged spans read so far INCLUDING the running session (earlier sessions + pages credited now); null without honest.span */
+    liveCoverage() { return honest && honest.span ? fresh.reduce(addSpan, seen) : null; },
     /** 25.10: {rr, ct, fl} of the last end(), also for an empty session (no row) */
     lastStats() { return lastStats; },
     getBookId() { return bookId; },
@@ -573,7 +578,7 @@ async function recoverRaw(api, raw) {
     }
     return await api.logSession({
       id: d.id, date: d.date, bookId: d.bookId, minutes: minutes, pageTurns: turns, startedAt: d.startedAt, lvl: d.lvl,
-      fl: d.fl, ct: d.ct, rr: d.rr, au: d.au, hon: d.hon,
+      fl: d.fl, ct: d.ct, rr: d.rr, au: d.au, ck: d.ck, hon: d.hon,
       pomo: d.pomo, pomoRun: d.pomoRun, fw: d.fw, pomoRk: d.pomoRk, pomoCb: d.pomoCb,
     });
   } catch (e) {

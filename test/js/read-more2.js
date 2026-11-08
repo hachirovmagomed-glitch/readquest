@@ -205,7 +205,7 @@ const R2_WORDS=`аршин*|мера длины, около 71 см
 схимник*|монах строгого обета
 юродив*|человек, нарочно живший как безумный ради веры`;
 
-const R2={cb:'',ci:-1,cp:-1,vo:null,pos:-1,offT:0,offP:-1,offAt:0,cmp:null};
+const R2={cb:'',ci:-1,cp:-1,vo:null,pos:-1,offT:0,offP:-1,offAt:0,cs:null,cps:50,cmp:null};
 const R2_AI={};
 const R2_ONEH=['night','bars','mark','prev','next','next','prev','next','next']; /* 8: one hand — the whole lower part turns pages */
 
@@ -373,14 +373,30 @@ const R2_CH_GAP=10*60000; /* not more often than once in 10 minutes */
 function r2ChapWorth(b,i){const t=r2Toc(b),x=t[i];if(!x)return false;
   if(R2_CH_SKIP.test(String(x.t||'')))return false;
   const z=t[i+1]?t[i+1].off:(b.text||'').length;return z-x.off>=R2_CH_MIN;}
+/** 08.11 (Джессика: «выходит, даже когда я просто листаю книгу»): глава считается прочитанной, только если её листали по порядку
+ *  (без прыжков) и на неё ушло не меньше времени, чем на чтение очень быстрым читателем: R2.cps знаков в секунду (50 ≈ 3000 в минуту) */
+function r2ChapEnter(b,ci,ok){const t=r2Toc(b);R2.cs={i:ci,t:Date.now(),off:t[ci]?t[ci].off:0,ok:ok};}
+/** 08.11 (Джессика «делай все»): с «Честным чтением» — то же правило, что у опыта: доля главы, честно засчитанная трекером
+ *  (свой темп, живой экран, пауза, без повторов; страницы прошлых сессий тоже). −1 = правил нет, тогда по порядку + время. */
+function r2ChapCov(b,i){
+  if(typeof honestOn!=='function'||!honestOn()||typeof __tracker==='undefined'||!__tracker||!__tracker.liveCoverage)return -1;
+  const sp=__tracker.liveCoverage(),t=r2Toc(b),L=(b.text||'').length||1;if(!sp||!t[i])return -1;
+  const a=t[i].off/L,z=(t[i+1]?t[i+1].off:L)/L;if(!(z>a))return -1;
+  let c=0;sp.forEach(function(x){c+=Math.max(0,Math.min(z,x[1])-Math.max(a,x[0]));});return c/(z-a);}
+const R2_CH_SHARE=0.8;
+function r2ChapRead(b,i){const cv=r2ChapCov(b,i);if(cv>=0)return cv>=R2_CH_SHARE;
+  const c=R2.cs,t=r2Toc(b);if(!c||c.i!==i||!c.ok||!t[i])return false;
+  const z=t[i+1]?t[i+1].off:(b.text||'').length,n=z-c.off;return n>=R2_CH_MIN&&Date.now()-c.t>=n/R2.cps*1000;}
 function r2ChapWatch(){
   if(!rmText()||!R.book||!R.book.text)return;const b=R.book;
   if(typeof ttsOn!=='undefined'&&ttsOn){R2.cb='';return;}
   const ci=r2ChapAt(b,r2Off(b)),p=R.page;
-  if(R2.cb!==b.id){R2.cb=b.id;R2.ci=ci;R2.cp=p;return;}
+  if(R2.cb!==b.id){R2.cb=b.id;R2.ci=ci;R2.cp=p;r2ChapEnter(b,ci,true);R2.cs.off=r2Off(b);return;} /* opened in the middle: only the rest counts */
   const fin=R2.ci;R2.ci=ci;const step=p-R2.cp;R2.cp=p;
   const d=el('r2Offer');if(d&&!d.hidden&&p!==R2.offP)r2OfferHide(); /* the next page turn takes the card away */
-  if(ci===fin+1&&fin>=0&&step===1&&r2Rm().chEnd&&Date.now()-(R2.offAt||0)>=R2_CH_GAP&&r2ChapWorth(b,fin))r2ChapOffer(b,fin);
+  if(ci!==fin){const read=ci===fin+1&&fin>=0&&step===1&&r2ChapRead(b,fin);r2ChapEnter(b,ci,step===1&&ci===fin+1);
+    if(read&&r2Rm().chEnd&&Date.now()-(R2.offAt||0)>=R2_CH_GAP&&r2ChapWorth(b,fin))r2ChapOffer(b,fin);return;}
+  if(R2.cs&&step!==0&&Math.abs(step)!==1)R2.cs.ok=false; /* a jump inside the chapter: not read through */
 }
 function r2ChapOffer(b,i){
   const t=r2Toc(b)[i];if(!t)return;const ai=aiOn(),q=ai&&r2Rm().chQ;R2.offAt=Date.now();
@@ -652,7 +668,7 @@ new MutationObserver(function(){try{r2ChapWatch();r2EdgeSync();}catch(e){}}).obs
   rxRow('r2RolesVRow','user-round','Голос героев','','<select id="r2RolesSel" class="rxsel" aria-label="Голос для реплик героев" hidden></select><input id="r2RolesIn" class="rxsel" type="text" maxlength="80" aria-label="Голос для реплик героев" hidden>','setstack')+
   rxRow('','footprints','Слушать на ходу','Во время озвучки рядом с «Слушать» кнопка со следами: крупный текст на тёмном экране, пауза с экрана блокировки',null);};}
 {const c0=rmRxCards;rmRxCards=function(){return c0.apply(this,arguments)+rxCardHtml('rch','check','Когда глава прочитана',
-  '<div class="aisub">Небольшая строка сверху страницы. Пропадает сама через несколько секунд или при перелистывании, закрывается тапом или смахиванием вверх. Не чаще раза в 10 минут; оглавление, примечания и совсем короткие главы пропускаются.</div>'+
+  '<div class="aisub">Небольшая строка сверху страницы. Пропадает сама через несколько секунд или при перелистывании, закрывается тапом или смахиванием вверх. Только если главу правда прочитали: по тем же правилам, что и опыт (свой темп, без пролистывания и простоя). Не чаще раза в 10 минут; оглавление, примечания и совсем короткие главы пропускаются.</div>'+
   rxRow('','notebook-pen','Предлагать итог главы','Три строки от ИИ или свои слова, запись в дневник книги',rxSwHtml('r2ChEnd'))+
   rxRow('r2ChQRow','circle-help','Вопрос по главе','Два вопроса, чтобы лучше запомнить. Без баллов и штрафов, нужен ключ ИИ',rxSwHtml('r2ChQ')));};}
 {const w0=rmRxWire;rmRxWire=function(){w0.apply(this,arguments);

@@ -14,7 +14,7 @@
  * Days are LOCAL device days (row.date = local day the session started, see reader-session.js);
  * weeks are Mon–Sun of local days. No UTC (toISOString) anywhere.
  */
-import { localDay, addLocalDays } from './storage/sessions.js?v=20261108-1405';
+import { localDay, addLocalDays } from './storage/sessions.js?v=20261109-0152';
 export { localDay, addLocalDays };
 
 export const XP_PER_MIN = 10;
@@ -59,6 +59,8 @@ export function xpForSession(rows, row) {
   });
   /* ×LEVELS[row.lvl].xp — only rows that carry a level (19.10); 10 × 1.5 and 10 × 2 stay whole numbers */
   /* ×row.hon (25.10, the quiet honesty index, 0.5…1) — only rows that carry it */
+  /* 08.11: a row read with the clock set back (ck) is in no day — its XP = its own whole minutes */
+  if (row.ck === 1) return Math.round(Math.floor((Number(row.minutes) || 0) + DAY_MIN_EPS) * XP_PER_MIN * LEVELS[rowLevel(row)].xp * rowHon(row)) + pomoXp(row);
   return Math.round((dayMinutes(before.concat([row]), day) - dayMinutes(before, day)) * XP_PER_MIN * LEVELS[rowLevel(row)].xp * rowHon(row)) + pomoXp(row);
 }
 
@@ -102,7 +104,7 @@ export function markAwarded(game, ids) {
 export function minutesByDay(rows) {
   const m = {};
   (rows || []).forEach(function (r) {
-    if (!r || !r.date) return;
+    if (!r || !r.date || r.ck === 1) return; /* 08.11: a row read with the clock set back counts for no day */
     const k = String(r.date).slice(0, 10);
     m[k] = (m[k] || 0) + (Number(r.minutes) || 0);
   });
@@ -123,7 +125,7 @@ export function dayMinutes(rows, day) {
   const k = String(day || '').slice(0, 10);
   let m = 0;
   (rows || []).forEach(function (r) {
-    if (r && r.date && String(r.date).slice(0, 10) === k) m += Number(r.minutes) || 0;
+    if (r && r.date && r.ck !== 1 && String(r.date).slice(0, 10) === k) m += Number(r.minutes) || 0; /* 08.11: clock set back → no day */
   });
   return Math.floor(m + DAY_MIN_EPS);
 }

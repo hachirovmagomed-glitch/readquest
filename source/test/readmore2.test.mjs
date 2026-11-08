@@ -68,7 +68,7 @@ ok('1 the AI gets pieces with the name from the read part only (no spoilers)', r
 ok('1 «Все герои до этого места» → a list; closing gives the sheet back its «Объясни» title', r.li.length === 2 && /Хрюкин/.test(r.li[1]) && /Объясни/.test(r.h3), r);
 
 // 3 + 4: the end of a chapter → a card «Итог в дневник» / «Вопрос»
-const ch = (i) => '<section><title><p>Глава ' + i + '</p></title>' + Array.from({ length: 14 }, (_, k) => '<p>Глава ' + i + ', абзац ' + k + '. Он долго шёл по улице и думал о своём, а ветер гнал листья по мостовой, и было тихо и пусто.</p>').join('') + '</section>';
+const ch = (i) => '<section><title><p>Глава ' + i + '</p></title>' + Array.from({ length: 30 }, (_, k) => '<p>Глава ' + i + ', абзац ' + k + '. Он долго шёл по улице и думал о своём, а ветер гнал листья по мостовой, и было тихо и пусто.</p>').join('') + '</section>';
 const fb2 = '<?xml version="1.0" encoding="utf-8"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><description><title-info><book-title>Главы</book-title><author><last-name>Тестов</last-name></author><lang>ru</lang></title-info></description><body>' + ch(1) + ch(2) + ch(3) + '</body></FictionBook>';
 const cid = await imp(p, Buffer.from(fb2, 'utf8'), 'chapters.fb2'); await open(p, cid);
 r = await p.evaluate(async () => {
@@ -81,14 +81,38 @@ r = await p.evaluate(async () => {
   aiViaKey = async () => '[{"q":"Куда он шёл?","a":"По улице"},{"q":"Что гнал ветер?","a":"Листья"}]'; delete R2_AI['quiz|' + b.id + '|0'];
   r2ChapQuiz(b, 0); await new Promise(r => setTimeout(r, 200)); const qs = [...el('aiBody').querySelectorAll('.r2q b')].map(x => x.textContent), ans = el('aiBody').querySelector('.r2q details:not([open])') != null;
   el('aiSheet').classList.add('hidden'); aiViaKey = v0;
-  return { toc: toc.length, card, txt, q, sent: m && m.user.indexOf('Глава 1, абзац 13') > 0 && m.user.indexOf('Глава 2, абзац 1.') < 0, e: e && [e.t, e.ch, e.x], qs, ans };
+  return { toc: toc.length, card, txt, q, sent: m && m.user.indexOf('Глава 1, абзац 29') > 0 && m.user.indexOf('Глава 2, абзац 1.') < 0, e: e && [e.t, e.ch, e.x], qs, ans };
 });
-ok('3 the chapter read to the end → a card «Глава … прочитана» with «Итог в дневник» and «Вопрос»', r.toc === 3 && r.card && /Глава 1.*прочитана/.test(r.txt) && r.q, r);
+ok('3 the chapter read to the end → a card «Глава … прочитана» with «Итог в дневник» and «Вопрос»', r.toc === 3 && r.card && /Глава прочитана.*Глава 1/.test(r.txt) && r.q, r);
 ok('3 «Итог в дневник»: the AI reads only this chapter; «Записать» puts it into the book diary', r.sent && r.e && r.e[0] === 'Итог главы' && r.e[1] === 'Глава 1' && /шёл по улице/.test(r.e[2]), r);
 ok('4 «Вопрос по главе»: two questions, the answers hidden until a tap', r.qs.length === 2 && /Куда он шёл/.test(r.qs[0]) && r.ans, r);
 r = await p.evaluate(async () => { SET.rm.chEnd = false; R2.cb = ''; el('r2Offer').hidden = true; goPage(0, false); r2ChapWatch(); let pg = 0;
   while (pg < R.pageCount - 1 && r2ChapAt(R.book, r2Off(R.book)) < 1) { goPage(++pg, true); await new Promise(r => setTimeout(r, 30)); } SET.rm.chEnd = true; return el('r2Offer').hidden; });
 ok('3 «Предлагать итог главы» off → no card', r === true, r);
+
+// 3 (08.11, подруга Джессики: «вылезает и мешает, крестик не нажимается»): one compact row; the cross / a tap on the card / a swipe up / the next page close it;
+// no card after «Contents» and short chapters; not more often than once in 10 minutes
+const walk = (toc) => p.evaluate(async (toc) => { const t0 = r2Toc; if (toc) r2Toc = () => toc; R2.offAt = 0; R2.cb = ''; r2OfferHide(); goPage(0, false); r2ChapWatch(); let pg = 0, seen = false;
+  while (pg < R.pageCount - 1 && r2ChapAt(R.book, r2Off(R.book)) < 1) { goPage(++pg, true); await new Promise(r => setTimeout(r, 30)); if (!el('r2Offer').hidden) { seen = true; break; } }
+  const a = { seen, pg, txt: el('r2Offer').textContent, h: el('r2Offer').getBoundingClientRect().height }; if (toc) r2Toc = t0; return a; }, toc);
+r = await walk(null);
+const card = await p.evaluate(() => { const x = el('r2OffX').getBoundingClientRect(); return { x: x.left + x.width / 2, y: x.top + x.height / 2, top: (document.elementFromPoint(x.left + x.width / 2, x.top + x.height / 2) || {}).closest?.('#r2OffX') != null }; });
+await p.touchscreen.tap(card.x, card.y); await sleep(150);
+const xClosed = await p.evaluate(() => el('r2Offer').hidden);
+ok('3 the card is one short row; the cross is on top and a finger on it closes the card', r.seen && r.h <= 64 && /Глава прочитана/.test(r.txt) && card.top && xClosed, { r, card, xClosed });
+r = await p.evaluate(async () => { const toc = r2Toc(R.book), a = {};
+  const show = () => { r2OfferHide(); r2ChapOffer(R.book, 0); }, rc = () => el('r2Offer').getBoundingClientRect(), pe = (t, y) => el('r2Offer').querySelector('.r2ot').dispatchEvent(new PointerEvent(t, { pointerId: 3, clientX: rc().left + 30, clientY: y, bubbles: true }));
+  show(); const y = rc().top + 20; pe('pointerdown', y); pe('pointerup', y); a.tap = el('r2Offer').hidden;
+  show(); pe('pointerdown', y); pe('pointermove', y - 40); pe('pointerup', y - 40); a.swipe = el('r2Offer').hidden;
+  show(); R2.cp = R.page; R2.offP = R.page; goPage(R.page + 1, true); await new Promise(r => setTimeout(r, 50)); a.turn = el('r2Offer').hidden;
+  return a; });
+ok('3 a tap on the card, a swipe up or the next page take it away', r.tap && r.swipe && r.turn, r);
+r = await p.evaluate(async () => { R2.offAt = 0; R2.cb = ''; goPage(0, false); r2ChapWatch(); let pg = 0, n = 0;
+  while (pg < R.pageCount - 1) { goPage(++pg, true); await new Promise(r => setTimeout(r, 20)); if (!el('r2Offer').hidden) { n++; r2OfferHide(); } } return n; });
+ok('3 not more often than once in 10 minutes (three chapters → one card)', r === 1, r);
+r = await walk([{ t: 'Contents', off: 0 }, { t: 'Глава 2', off: 4000 }, { t: 'Глава 3', off: 8000 }]);
+const r1 = await walk([{ t: 'Глава 1', off: 0 }, { t: 'Глава 1а', off: 1200 }, { t: 'Глава 3', off: 8000 }]);
+ok('3 no card after «Contents» and after a chapter shorter than 3000 characters', !r.seen && !r1.seen, { r, r1 });
 
 // 6 word after word
 await open(p, 'b1');

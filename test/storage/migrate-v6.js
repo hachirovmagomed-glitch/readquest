@@ -11,9 +11,9 @@ import {
   splitLegacyState,
   hydrateSettings,
   emptyEnvelope,
-} from './schema.js?v=20261107-1936';
-import { saveEnvelope, saveSettings, loadEnvelope, loadSettings } from './state.js?v=20261107-1936';
-import * as idb from './idb.js?v=20261107-1936';
+} from './schema.js?v=20261108-0314';
+import { saveEnvelope, saveSettings, loadEnvelope, loadSettings } from './state.js?v=20261108-0314';
+import * as idb from './idb.js?v=20261108-0314';
 
 function lsGet(key) {
   try {

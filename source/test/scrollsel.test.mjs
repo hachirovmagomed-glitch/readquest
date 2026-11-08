@@ -18,7 +18,7 @@ p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.messag
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
 await p.evaluate(async () => {
   const bk = allBooks().slice().sort((a, b) => ((b.text || '').length) - ((a.text || '').length))[0];
-  SET.flip = Object.assign({}, SET.flip || {}, { mode: 'scroll', anim: 'none' }); SET.selLook = 'dock'; saveSet(); applySet && applySet();
+  SET.mtop = 0; /* 08.11: geometry as before «Поле сверху» (step 2 looks for a short last line in a fixed band) */ SET.flip = Object.assign({}, SET.flip || {}, { mode: 'scroll', anim: 'none' }); SET.selLook = 'dock'; saveSet(); applySet && applySet();
   __navAllow = true; openBook(bk.id); __navAllow = false; await new Promise(r => setTimeout(r, 2500));
   goPage(2, false); await new Promise(r => setTimeout(r, 400));
 });

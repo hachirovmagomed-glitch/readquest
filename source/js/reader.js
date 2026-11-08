@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null,tp:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,mtop:12,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null,tp:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -34,6 +34,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.pauseXY=pauseXYNorm(s.pauseXY);
   const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
   s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);
+  s.mtop=(typeof s.mtop==='number'&&isFinite(s.mtop))?Math.round(Math.max(0,Math.min(60,s.mtop))):12; /* 08.11 «Поле сверху» (arch.md SET.mtop): px над текстом сверх выреза камеры */
   /* 20.10 (Джессика): «Затемнение» and «Тёплый только ночью» removed. An old SET.dim is folded into «Яркость» once (same screen:
      1 − (1 − dim)·bright), the warm tint now follows «Тёплый оттенок» on every page; both old keys are dropped */
   if(typeof s.dim==='number'&&isFinite(s.dim)&&s.dim>0)s.bright=st((1-Math.min(0.7,s.dim))*s.bright,0.3,1,1);
@@ -189,6 +190,7 @@ function applySet(){
   r.style.background=bg;r.style.color=tx;
   {const hx=function(v){return /^#[0-9a-f]{6}$/i.test(v||'')?v.toLowerCase():null;},ct=el('cTxt'),cb=el('cBg'); /* 28.10: «Свои цвета» show the colours on the page (day/night drops own colours) */
    if(ct&&hx(tx)&&ct.value!==hx(tx))ct.value=hx(tx);if(cb&&hx(bg)&&cb.value!==hx(bg))cb.value=hx(bg);}
+  r.style.setProperty('--r-mtop',(SET.mtop==null?12:SET.mtop)+'px'); /* 08.11: поле сверху + вырез камеры (app.html #reader:not(.pdfmode)) */
   r.style.setProperty('--r-margin',SET.margin+'px');r.classList.toggle('narrowm',SET.margin<44||R.mode==='pdf');
   if(R.mode==='pdf')el('viewer').style.margin='0';else{el('viewer')._mw=null;rqTextMargin();} /* PDF: full width, no side fields; text: SET.margin, wider on a portrait tablet (audit 19.10 RD-TAB-01) */
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
@@ -220,6 +222,7 @@ function applySet(){
   el('lhVal').textContent=SET.lh.toFixed(2);
   el('lsVal').textContent=(SET.ls||0);
   if(el('mgVal'))el('mgVal').textContent=SET.margin;
+  if(el('mtVal'))el('mtVal').textContent=SET.mtop==null?12:SET.mtop;
   rqSw('halfTgl',!SET.half||SET.half.on);if(el('halfTglS'))el('halfTglS').textContent=RQ_HALF?'сейчас включено: размер и поля ниже — для половины экрана':'свой размер шрифта и поля, когда читалка открыта рядом с другим приложением';
   el('alignJ').classList.toggle('on',SET.align!=='l');
   el('alignL').classList.toggle('on',SET.align==='l');
@@ -302,6 +305,8 @@ el('lhPlus').onclick=()=>{SET.lh=Math.min(2.4,+(SET.lh+0.1).toFixed(2));saveSet(
 el('mgMinus').onclick=()=>{SET.margin=Math.max(10,SET.margin-6);saveSet();applySet();relayout();};
 el('halfTgl').onclick=()=>{const was=!!RQ_HALF;if(was)rqHalfOff();SET.half=Object.assign({},SET.half,{on:!(SET.half&&SET.half.on)});saveSet();applySet();relayout({force:true});};
 el('mgPlus').onclick=()=>{SET.margin=Math.min(80,SET.margin+6);saveSet();applySet();relayout();};
+el('mtMinus').onclick=()=>{SET.mtop=Math.max(0,(SET.mtop==null?12:SET.mtop)-6);saveSet();applySet();relayout();};
+el('mtPlus').onclick=()=>{SET.mtop=Math.min(60,(SET.mtop==null?12:SET.mtop)+6);saveSet();applySet();relayout();};
 el('lsMinus').onclick=()=>{SET.ls=Math.max(-1,+(((SET.ls||0)-0.5)).toFixed(1));saveSet();applySet();relayout();};
 el('lsPlus').onclick=()=>{SET.ls=Math.min(3,+(((SET.ls||0)+0.5)).toFixed(1));saveSet();applySet();relayout();};
 el('alignJ').onclick=()=>{SET.align='j';saveSet();applySet();};

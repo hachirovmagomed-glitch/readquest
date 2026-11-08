@@ -476,3 +476,7 @@
 - Строка сессии (`reader-session.js` focusInto, черновик, `storage/sessions.js`, `storage/state.js`): `pomoRk` — строка букв S/A/B/C/D, по одной на круг из `pomo`; `pomoCb` — лучшее комбо сессии (страниц подряд). Необязательные, schemaVersion не меняется.
 - Монеты: `pomoCoinsForDay` += `RANK_COINS` (S +2, A +1) за доверенный круг (`rowPomoRk` по тем же правилам, что `rowPomo`), × честность, в том же `POMO_DAY_CAP` = 20. XP не меняется.
 - Интерфейс: фишка круга «… · A · комбо 8»; во вкладке «Фокус» строка «Ранг сейчас … · лучшее комбо …»; по концу круга карточка `#fzRes` (буква влетает, форма по скину: щит, звезда, бабочка, карта, пунктирный круг) с комбо, страницами, действиями и монетами; в итоге сессии «Ранги кругов». Тесты: `rank.test.mjs` (node), `rankui.test.mjs` (браузер, скриншоты RQ_SHOTS).
+
+## SET.mtop «Поле сверху» (08.11)
+
+Тестер: в EPUB/TXT фронтальная камера закрывала первую строку. В полноэкранном чтении текст начинается на `env(safe-area-inset-top)` (вырез камеры) + `SET.mtop` px ниже верха. `SET.mtop` 0…60, шаг 6 в «Настройки чтения → Страница → Поле сверху», по умолчанию 12; мусор → 12 (js/reader.js normSet, storage/schema.js hydrateSettings). Отступ — `padding-top` у `#reader:not(.pdfmode)` через `--r-mtop`, а не margin у `#viewer` (его поля пишет JS rqTextMargin). PDF не трогается. Панели лежат поверх (position:absolute), их не сдвигает. Тест: test/mtop.test.mjs (эмуляция выреза через CDP Emulation.setSafeAreaInsetsOverride).

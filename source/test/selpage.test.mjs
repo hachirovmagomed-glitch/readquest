@@ -18,7 +18,7 @@ await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.
 await p.evaluate(async () => {
   const bk = allBooks().slice().sort((a, b) => ((b.text || '').length) - ((a.text || '').length))[0];
   window.__selBook = bk.title;
-  SET.flip = Object.assign({}, SET.flip || {}, { mode: 'page', anim: 'none' }); saveSet(); applySet && applySet();
+  SET.mtop = 0; /* 08.11: page geometry as before «Поле сверху» — the steps below count up to the 700th letter of page 3 */ SET.flip = Object.assign({}, SET.flip || {}, { mode: 'page', anim: 'none' }); saveSet(); applySet && applySet();
   __navAllow = true; openBook(bk.id); __navAllow = false; await new Promise(r => setTimeout(r, 2500));
   goPage(3, true); await new Promise(r => setTimeout(r, 300));
 });

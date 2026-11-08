@@ -207,6 +207,7 @@ export const SET_DEF = {
   lh: 1.65,
   theme: 'sepia',
   margin: 24,
+  mtop: 12,          // 08.11 «Поле сверху»: px над текстом сверх выреза камеры 0…60 (arch.md SET.mtop)
   cTxt: null,
   cBg: null,
   align: 'j',
@@ -771,6 +772,7 @@ export function hydrateSettings(s) {
   }
   out.bright = normStep(out.bright, 0.3, 1, 1);
   out.warm = normStep(out.warm, 0, 0.6, 0);
+  out.mtop = typeof out.mtop === 'number' && isFinite(out.mtop) ? Math.round(Math.max(0, Math.min(60, out.mtop))) : 12;
   if (typeof out.pdfFont !== 'boolean') out.pdfFont = false;
   if (typeof out.pdfTheme !== 'boolean') out.pdfTheme = false;
   out.fz = normFz(out.fz);

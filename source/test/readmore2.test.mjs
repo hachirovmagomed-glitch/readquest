@@ -72,7 +72,7 @@ const ch = (i) => '<section><title><p>Глава ' + i + '</p></title>' + Array.
 const fb2 = '<?xml version="1.0" encoding="utf-8"?><FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0"><description><title-info><book-title>Главы</book-title><author><last-name>Тестов</last-name></author><lang>ru</lang></title-info></description><body>' + ch(1) + ch(2) + ch(3) + '</body></FictionBook>';
 const cid = await imp(p, Buffer.from(fb2, 'utf8'), 'chapters.fb2'); await open(p, cid);
 r = await p.evaluate(async () => {
-  const b = R.book, toc = r2Toc(b); goPage(0, false); await new Promise(r => setTimeout(r, 50));
+  const b = R.book, toc = r2Toc(b); R2.cps = 1e9; goPage(0, false); await new Promise(r => setTimeout(r, 50));
   let pg = 0; while (pg < R.pageCount - 1 && r2ChapAt(b, r2Off(b)) < 1) { goPage(++pg, true); await new Promise(r => setTimeout(r, 30)); if (!el('r2Offer').hidden) break; }
   const card = !el('r2Offer').hidden, txt = el('r2Offer').textContent, q = !!el('r2ChQ');
   let m = null; const v0 = aiViaKey; aiViaKey = async (x) => { m = x; return 'Он шёл по улице.\nБыло тихо.\nЛистья.'; };
@@ -113,6 +113,15 @@ ok('3 not more often than once in 10 minutes (three chapters → one card)', r =
 r = await walk([{ t: 'Contents', off: 0 }, { t: 'Глава 2', off: 4000 }, { t: 'Глава 3', off: 8000 }]);
 const r1 = await walk([{ t: 'Глава 1', off: 0 }, { t: 'Глава 1а', off: 1200 }, { t: 'Глава 3', off: 8000 }]);
 ok('3 no card after «Contents» and after a chapter shorter than 3000 characters', !r.seen && !r1.seen, { r, r1 });
+// 3 (08.11, Джессика: «выходит, даже когда я просто листаю книгу»): flipping through fast or jumping → no card; read at a human pace → card
+await p.evaluate(() => { R2.cps = 50; });
+r = await walk(null);
+const slow = await p.evaluate(async () => { R2.offAt = 0; R2.cb = ''; r2OfferHide(); goPage(0, false); r2ChapWatch(); let pg = 0, seen = false;
+  while (pg < R.pageCount - 1 && r2ChapAt(R.book, r2Off(R.book)) < 1) { R2.cs.t -= 60000; goPage(++pg, true); await new Promise(r => setTimeout(r, 30)); if (!el('r2Offer').hidden) { seen = true; break; } } return seen; });
+const jump = await p.evaluate(async () => { R2.offAt = 0; R2.cb = ''; r2OfferHide(); goPage(0, false); r2ChapWatch(); R2.cs.t -= 600000; let pg = 0, seen = false;
+  goPage(2, true); await new Promise(r => setTimeout(r, 30)); pg = 2;
+  while (pg < R.pageCount - 1 && r2ChapAt(R.book, r2Off(R.book)) < 1) { goPage(++pg, true); await new Promise(r => setTimeout(r, 30)); if (!el('r2Offer').hidden) { seen = true; break; } } return { seen, pg }; });
+ok('3 flipping through a chapter fast or jumping over pages → no card; read at a human pace → the card', !r.seen && slow && !jump.seen, { fast: r, slow, jump });
 
 // 6 word after word
 await open(p, 'b1');

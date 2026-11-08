@@ -2668,5 +2668,197 @@
   "license": "Public domain",
   "artist": "Johann Umlauf",
   "url": "https://commons.wikimedia.org/wiki/File%3ANikolaus_Lenau.jpg"
+ },
+ "morike": {
+  "file": "File:Eduard_Mörike.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3AEduard_M%C3%B6rike.jpg"
+ },
+ "buchner": {
+  "file": "File:Georg_Büchner_-_Franzos-Werkausgabe_!04.jpg",
+  "license": "Public domain",
+  "artist": "Georg Büchner",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGeorg_B%C3%BCchner_-_Franzos-Werkausgabe_%2104.jpg"
+ },
+ "keller": {
+  "file": "File:Johannes_Ganz_Gottfried_Keller_1885.jpg",
+  "license": "Public domain",
+  "artist": "Johannes Ganz (1821-1886)",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJohannes_Ganz_Gottfried_Keller_1885.jpg"
+ },
+ "raabe": {
+  "file": "File:Wilhelm_Raabe.jpg",
+  "license": "Public domain",
+  "artist": "Wilhelm Immenkamp (1870–1931)",
+  "url": "https://commons.wikimedia.org/wiki/File%3AWilhelm_Raabe.jpg"
+ },
+ "wedekind": {
+  "file": "File:Frank_Wedekind.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFrank_Wedekind.jpg"
+ },
+ "morgenstern": {
+  "file": "File:Morgenstern-h420.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3AMorgenstern-h420.jpg"
+ },
+ "trakl": {
+  "file": "File:Georg_Trakl.jpg",
+  "license": "Public domain",
+  "artist": "",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGeorg_Trakl.jpg"
+ },
+ "hofmannsthal": {
+  "file": "File:Nicola_Perscheid_-_Hugo_von_Hofmannsthal_1910.jpg",
+  "license": "Public domain",
+  "artist": "Nicola Perscheid",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANicola_Perscheid_-_Hugo_von_Hofmannsthal_1910.jpg"
+ },
+ "roth": {
+  "file": "File:Joseph_Roth_(1926).jpg",
+  "license": "Public domain",
+  "artist": "s/a",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJoseph_Roth_%281926%29.jpg"
+ },
+ "huch": {
+  "file": "File:Ricarda-Huch.jpg",
+  "license": "Public domain",
+  "artist": "Fotograf/Zeichner: Wanda von Debschitz-Kunowski",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARicarda-Huch.jpg"
+ },
+ "marlitt": {
+  "file": "File:Die_Gartenlaube_(1887)_b_473.jpg",
+  "license": "Public domain",
+  "artist": "various",
+  "url": "https://commons.wikimedia.org/wiki/File%3ADie_Gartenlaube_%281887%29_b_473.jpg"
+ },
+ "karlfeldt": {
+  "file": "File:Erik_Axel_Karlfeldt_1931.jpg",
+  "license": "Public domain",
+  "artist": "Nobel Foundation",
+  "url": "https://commons.wikimedia.org/wiki/File%3AErik_Axel_Karlfeldt_1931.jpg"
+ },
+ "sully": {
+  "file": "File:Sully_Prudhomme,_René-François-Armand,_BNF_Gallica.jpg",
+  "license": "Public domain",
+  "artist": "UnknownUnknown , uploaded, stitched and restored by Jebulon",
+  "url": "https://commons.wikimedia.org/wiki/File%3ASully_Prudhomme%2C_Ren%C3%A9-Fran%C3%A7ois-Armand%2C_BNF_Gallica.jpg"
+ },
+ "heredia": {
+  "file": "File:José-Maria_de_Heredia_(French_poet)_by_Adolphe_Lalauze.jpg",
+  "license": "Public domain",
+  "artist": "Adolphe Lalauze",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJos%C3%A9-Maria_de_Heredia_%28French_poet%29_by_Adolphe_Lalauze.jpg"
+ },
+ "lautreamont": {
+  "file": "File:Lautreamont1.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALautreamont1.jpg"
+ },
+ "huysmans": {
+  "file": "File:Huysmans_-_photo_Taponier.jpg",
+  "license": "Public domain",
+  "artist": "Frédéric Boissonnas / André Taponier",
+  "url": "https://commons.wikimedia.org/wiki/File%3AHuysmans_-_photo_Taponier.jpg"
+ },
+ "loti": {
+  "file": "File:Pierre_Loti_en_académicien.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3APierre_Loti_en_acad%C3%A9micien.jpg"
+ },
+ "bourget": {
+  "file": "File:Paul_Bourget_7.jpg",
+  "license": "Public domain",
+  "artist": "Published by Crowell, NY, 1899",
+  "url": "https://commons.wikimedia.org/wiki/File%3APaul_Bourget_7.jpg"
+ },
+ "renard": {
+  "file": "File:Jules_Renard_circa_1900.jpg",
+  "license": "Public domain",
+  "artist": "Henri Manuel",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJules_Renard_circa_1900.jpg"
+ },
+ "rolland": {
+  "file": "File:Romain_Rolland_de_face_au_balcon,_Meurisse,_1914_retouche.jpg",
+  "license": "Public domain",
+  "artist": "Agence de presse Meurisse",
+  "url": "https://commons.wikimedia.org/wiki/File%3ARomain_Rolland_de_face_au_balcon%2C_Meurisse%2C_1914_retouche.jpg"
+ },
+ "noailles": {
+  "file": "File:Noailles_b_Meurisse_1922.jpg",
+  "license": "Public domain",
+  "artist": "Agence de presse Meurisse",
+  "url": "https://commons.wikimedia.org/wiki/File%3ANoailles_b_Meurisse_1922.jpg"
+ },
+ "prevost": {
+  "file": "File:Schmidt_Prevost.jpg",
+  "license": "Public domain",
+  "artist": "Georg Friedrich Schmidt",
+  "url": "https://commons.wikimedia.org/wiki/File%3ASchmidt_Prevost.jpg"
+ },
+ "marivaux": {
+  "file": "File:Pierre_de_Marivaux.jpeg",
+  "license": "Public domain",
+  "artist": "Louis-Michel van Loo",
+  "url": "https://commons.wikimedia.org/wiki/File%3APierre_de_Marivaux.jpeg"
+ },
+ "scarron": {
+  "file": "File:Paul_Scarron_2.jpg",
+  "license": "Public domain",
+  "artist": "anonymous",
+  "url": "https://commons.wikimedia.org/wiki/File%3APaul_Scarron_2.jpg"
+ },
+ "pascal": {
+  "file": "File:Blaise_Pascal_Versailles,_circa_1690.JPG",
+  "license": "Public domain",
+  "artist": "unknown; a copy of the painting of François II Quesnel, which was made for Gérard Edelinck en 1691[réf. nécessaire].",
+  "url": "https://commons.wikimedia.org/wiki/File%3ABlaise_Pascal_Versailles%2C_circa_1690.JPG"
+ },
+ "rochefoucauld": {
+  "file": "File:François_de_La_Rochefoucauld.jpg",
+  "license": "Public domain",
+  "artist": "Théodore Chassériau",
+  "url": "https://commons.wikimedia.org/wiki/File%3AFran%C3%A7ois_de_La_Rochefoucauld.jpg"
+ },
+ "labruyere": {
+  "file": "File:Jean_de_la_Bruyère_-_Versailles_MV_2940.png",
+  "license": "Public domain",
+  "artist": "Élisabeth Louise Vigée Le Brun / After Pierre Drevet / After Jean Dieu de Saint-Jean",
+  "url": "https://commons.wikimedia.org/wiki/File%3AJean_de_la_Bruy%C3%A8re_-_Versailles_MV_2940.png"
+ },
+ "beranger": {
+  "file": "File:Pierre-Jean_Béranger.jpg",
+  "license": "Public domain",
+  "artist": "Ary Scheffer",
+  "url": "https://commons.wikimedia.org/wiki/File%3APierre-Jean_B%C3%A9ranger.jpg"
+ },
+ "sue": {
+  "file": "File:GabrielLepaulleEugeneSue.JPG",
+  "license": "Public domain",
+  "artist": "François Gabriel Guillaume Lépaulle",
+  "url": "https://commons.wikimedia.org/wiki/File%3AGabrielLepaulleEugeneSue.JPG"
+ },
+ "feval": {
+  "file": "File:Paul_Féval.jpg",
+  "license": "Public domain",
+  "artist": "Pierre Petit",
+  "url": "https://commons.wikimedia.org/wiki/File%3APaul_F%C3%A9val.jpg"
+ },
+ "aimard": {
+  "file": "File:Aimard.jpg",
+  "license": "Public domain",
+  "artist": "The original uploader was Nikos at Bulgarian Wikipedia.",
+  "url": "https://commons.wikimedia.org/wiki/File%3AAimard.jpg"
+ },
+ "boussenard": {
+  "file": "File:Louis-Henri_Boussenard.jpg",
+  "license": "Public domain",
+  "artist": "Unknown authorUnknown author",
+  "url": "https://commons.wikimedia.org/wiki/File%3ALouis-Henri_Boussenard.jpg"
  }
 }

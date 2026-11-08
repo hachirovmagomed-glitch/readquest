@@ -47,8 +47,8 @@ function stUpd(){
 function stBranch(m,b){
   const sd=el('selSide').getBoundingClientRect(),br=b.getBoundingClientRect(),h=m.getBoundingClientRect().height;
   if(ssLook()!=='side'){ /* 04.11 the row looks: the branch above the row (under it when the row is at the top), at its button, whole on screen */
-    const w=m.getBoundingClientRect().width,x=Math.max(8,Math.min(innerWidth-8-w,br.left+br.width/2-w/2));
-    m.style.left=Math.round(x-sd.left)+'px';m.style.top=Math.round(sd.top-h-6>=8?-h-6:sd.height+6)+'px';return;}
+    m.style.left='0px';const mr=m.getBoundingClientRect(),w=mr.width,mh=mr.height,x=Math.max(8,Math.min(innerWidth-8-w,br.left+br.width/2-w/2)); /* 08.11: measured from one start, not from where it stood last time */
+    m.style.left=Math.round(x-sd.left)+'px';m.style.top=Math.round(sd.top-mh-6>=8?-mh-6:sd.height+6)+'px';return;}
   m.style.left='';
   const top=Math.max(8-sd.top,Math.min(innerHeight-8-h-sd.top,br.top-sd.top-h/2+br.height/2));m.style.top=Math.round(top)+'px';
 }

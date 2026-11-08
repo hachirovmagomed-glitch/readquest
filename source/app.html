@@ -888,6 +888,10 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #selSide:not([data-look="side"]) #ssMenu{left:0;top:auto}
 #selSide:not([data-look="side"]) #ssColBox #spColors{flex-direction:row}
 #selSide:not([data-look="side"]) #ssColBox{left:0}
+/* 08.11 (Джессика, скрин: цвета «как-то странно появляются» — висят над текстом без фона, рамка плашки сжата в узкую полоску): the colour box never shrinks narrower than its colours */
+#selSide:not([data-look="side"]):not([data-look="bar"]):not([data-look="big"]) #ssColBox{width:max-content;max-width:calc(100vw - 16px);box-sizing:border-box}
+#ssColBox #spColors{flex-wrap:nowrap}
+#ssColBox #spColors>button{flex:0 0 auto}
 /* «У текста»: a small row next to the words; no count, no «Начало» */
 #selSide[data-look="bubble"]{left:0;top:0;right:auto}
 #selSide[data-look="bubble"] #ssRail{flex-wrap:nowrap;border-radius:22px;padding:2px 4px;box-shadow:0 4px 16px rgba(0,0,0,.3)}

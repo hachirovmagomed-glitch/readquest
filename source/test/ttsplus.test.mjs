@@ -42,7 +42,7 @@ ok('номера сносок и строка с номером страницы
 ok('«5 см.» остаётся сантиметрами, «см. выше» → «смотри выше»', /5 см\./.test(prep.cm) && /смотри выше/.test(prep.cm), prep.cm);
 ok('место в исходном тексте сохраняется (листать за голосом)', prep.map.s === 'то есть он' && prep.map.at === 6, prep.map);
 ok('порядковые: третьем, двадцать первый, вторая, девятнадцатого', JSON.stringify(prep.ord) === JSON.stringify(['третьем', 'двадцать первый', 'вторая', 'девятнадцатого']), prep.ord);
-ok('«Нейроголос» второй в списке озвучки; настройки по умолчанию', JSON.stringify(prep.prov) === JSON.stringify(['system', 'piper', 'yandex']) && prep.def === JSON.stringify({ yo: true, dict: [], pause: 'm', clean: true, lang: true, pre: true, bar: true, pitch: 1, vol: 1, expr: 'norm', style: '' }), prep);
+ok('«Нейроголос» второй в списке озвучки; настройки по умолчанию', JSON.stringify(prep.prov) === JSON.stringify(['system', 'piper', 'yandex']) && prep.def === JSON.stringify({ yo: true, dict: [], pause: 'm', clean: true, lang: true, pre: true, bar: true, pitch: 1, vol: 1, expr: 'norm', style: '', pos: { s: 'B', y: 0.55 } }), prep);
 
 /* 2: свой словарь; 5: абзацы и паузы; 6: иностранные фразы */
 const plan = await p.evaluate(() => {
@@ -87,6 +87,22 @@ const h1 = await p.evaluate(async () => {
   return { vis, at, pos: R.ttsPos, word: pt[2], here: R.book.text.slice(at, at + 200) }; });
 ok('тап по тексту во время озвучки → «Читать отсюда» → голос с этого предложения', h1.vis && h1.at >= 0 && h1.pos === h1.at && h1.here.indexOf(h1.word.slice(0, 5)) >= 0, h1);
 if (SHOTS) { await p.evaluate(() => { const r = el('viewer').getBoundingClientRect(); tpChip({ pos: TP.pos, x: r.left + r.width / 2, y: r.top + r.height * 0.55 }); }); await sleep(200); await p.screenshot({ path: SHOTS + '/ttsplus-2-otsyuda.png' }); await p.evaluate(() => tpChip(null)); }
+/* 07.11 по отзыву: в шапке нет повторяющихся значков; плашку можно перетащить вбок и вернуть вниз */
+const hd = await p.evaluate(() => { const vis = (id) => { const x = el(id); return !!x && !x.hidden && getComputedStyle(x).display !== 'none' && x.getBoundingClientRect().width > 0; };
+  const top = document.querySelector('#reader .rtop') || el('btnTts').parentElement;
+  return { pause: vis('rqPause'), ttsIcon: el('btnTts').innerHTML.indexOf('volume') >= 0, sleepIn: el('tpBar').contains(el('btnSleep')), walkIn: el('tpBar').contains(el('btnWalk')),
+    topPause: [...top.querySelectorAll('button')].filter(b => b.offsetWidth && /pause/.test(b.innerHTML)).length }; });
+ok('в шапке во время озвучки нет второй «паузы»; таймер сна и «на ходу» — на плашке', !hd.pause && hd.ttsIcon && hd.sleepIn && hd.walkIn && hd.topPause === 0, hd);
+const gb = await p.evaluate(() => { const r = el('tpGrip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+await p.mouse.move(gb[0], gb[1]); await p.mouse.down(); for (let i = 1; i <= 8; i++) { await p.mouse.move(gb[0] + (370 - gb[0]) * i / 8, gb[1] + (380 - gb[1]) * i / 8); await sleep(20); } await p.mouse.up(); await sleep(300);
+const sd = await p.evaluate(() => { const r = el('tpBar').getBoundingClientRect(); return { s: SET.tp.pos.s, y: SET.tp.pos.y, side: el('tpBar').classList.contains('side'), right: Math.round(innerWidth - r.right), w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), saved: JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /set/i.test(k) && /"tp"/.test(localStorage.getItem(k))) || 'null') || 'null') }; });
+ok('плашку потянули к правому краю — она сбоку, узкая, высокая, там, куда отпустили', sd.s === 'R' && sd.side && sd.right < 20 && sd.h > sd.w * 2 && sd.top > 100 && sd.top < 600, { ...sd, saved: undefined });
+if (SHOTS) await p.screenshot({ path: SHOTS + '/ttsplus-9-sboku.png' });
+const cyc = await p.evaluate(async () => { const g = el('tpGrip'), tap = () => { const r = g.getBoundingClientRect(), o = { clientX: r.left + 5, clientY: r.top + 5, pointerId: 1, bubbles: true };
+    g.dispatchEvent(new PointerEvent('pointerdown', o)); g.dispatchEvent(new PointerEvent('pointerup', o)); return SET.tp.pos.s; };
+  const a = tap(), b = tap(), c = tap(); const r = el('tpBar').getBoundingClientRect(); return { a, b, c, side: el('tpBar').classList.contains('side'), cx: Math.round(r.left + r.width / 2), bottom: Math.round(innerHeight - r.bottom) }; });
+ok('нажатие на «ручку»: справа → слева → снизу (плашка снова внизу по центру)', cyc.a === 'L' && cyc.b === 'B' && cyc.c === 'R' || (cyc.a === 'L' && cyc.b === 'B'), cyc);
+await p.evaluate(() => { SET.tp.pos.s = 'B'; saveSet(); tpBarSync(); });
 /* стоп и продолжение с того же предложения */
 const s1 = await p.evaluate(async () => { el('tpPP').click(); await new Promise(r => setTimeout(r, 200)); const st = { on: ttsOn, bar: !el('tpBar').hidden, stop: TP.stop && TP.stop.pos, sil: TP.sil.paused };
   window.__dur = 40; __said.length = 0; el('btnTts').click(); await new Promise(r => setTimeout(r, 600)); const t = R.book.text;

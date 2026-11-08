@@ -47,7 +47,7 @@ ok('let go at the top: a tab at the top edge', f.folded && f.t <= 12 && Math.abs
 await tap(f.cx, f.cy);
 await p.evaluate(() => { selDone(); }); await sleep(400);
 
-// 3. a saved quote in every skin: its bar moves by a finger, and folds at the bottom / right
+// 3. a saved quote in every skin: its menu (07.11: the same #selSide as a selection, the same place SET.selPin.bar) moves by a finger, and folds at the bottom / right
 const skins = await p.evaluate(() => ['', 'pencil', 'ellada', 'babochkovyi', 'celestial', 'alisa'].filter(k => !k || (typeof SKINS === 'undefined' || true)));
 for (const sk of skins) {
   await p.evaluate(async (sk) => { if (sk) document.documentElement.dataset.skin = sk; else delete document.documentElement.dataset.skin; SET.selPin = {}; SET.selFold = {}; saveSet();
@@ -55,21 +55,21 @@ for (const sk of skins) {
     const v = el('viewer').getBoundingClientRect(); let a = null; for (let y = v.top + 150; !a && y < v.bottom - 100; y += 7) a = smPt(v.left + v.width / 2, y); const w = smWord(a); getSelection().setBaseAndExtent(w[0][0], w[0][1], w[1][0], w[1][1]); await new Promise(r => setTimeout(r, 200)); addQuote(false, 'g'); await new Promise(r => setTimeout(r, 600)); }, sk);
   const mk = await p.evaluate(() => { const r = document.querySelector('#content mark').getClientRects()[0]; return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   await tap(mk.x, mk.y);
-  const q0 = await box('#selpop');
+  const q0 = await box('#selSide');
   await drag(q0.cx, q0.t + 8, q0.cx - 20, q0.t + 8 + (q0.t > 400 ? -250 : 250));
-  const q1 = await box('#selpop');
-  const pin = await p.evaluate(() => SET.selPin.quote);
-  ok('skin ' + (sk || 'default') + ': the bar of a tapped quote moves by a finger and stays there', !q1.hidden && Math.abs(Math.abs(q1.t - q0.t) - 250) < 20 && !!pin && await p.evaluate(() => el('selpop').classList.contains('qmode')), { q0, q1, pin });
+  const q1 = await box('#selSide');
+  const pin = await p.evaluate(() => SET.selPin.bar);
+  ok('skin ' + (sk || 'default') + ': the bar of a tapped quote moves by a finger and stays there', !q1.hidden && Math.abs(Math.abs(q1.t - q0.t) - 250) < 20 && !!pin && await p.evaluate(() => el('selSide').classList.contains('qm')), { q0, q1, pin });
   if (SHOTS && sk === 'pencil') await p.screenshot({ path: SHOTS + '/3-citata-peretashchena.png' });
   const pg0 = await p.evaluate(() => R.page);
   await drag(q1.cx, q1.t + 8, 385, q1.t + 8);
   ok('skin ' + (sk || 'default') + ': dragging the bar to the edge does not turn the page', await p.evaluate(() => R.page) === pg0, pg0);
-  const q2 = await box('#selpop');
+  const q2 = await box('#selSide');
   ok('skin ' + (sk || 'default') + ': let go at the right edge — a tab at the right', q2.folded && q2.r >= 380 && q2.w <= 50, q2);
   if (SHOTS && sk === 'pencil') await p.screenshot({ path: SHOTS + '/4-citata-svernuta.png' });
   await tap(q2.cx, q2.cy);
-  const q3 = await box('#selpop');
-  const tabVis = await p.evaluate(() => getComputedStyle(el('selpop').querySelector('.foldTab')).display);
+  const q3 = await box('#selSide');
+  const tabVis = await p.evaluate(() => getComputedStyle(el('selSide').querySelector('.foldTab')).display);
   ok('skin ' + (sk || 'default') + ': the open bar shows no fold-tab icon', tabVis === 'none', tabVis);
   ok('skin ' + (sk || 'default') + ': tap on the tab — the bar again, by the right edge, colours work', !q3.folded && q3.r >= 386 && q3.w > 200, q3);
   await p.evaluate(() => { quoteClose(); el('selpop').classList.add('hidden'); });

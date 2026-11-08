@@ -35,7 +35,7 @@ function stBind(){
   el('ssMenu').onclick=function(e){const b=e.target.closest&&e.target.closest('button[data-a]');if(!b)return;const f=ST_ACT[b.dataset.a];stMenu(false);if(f)f();};
 }
 function stUpd(){
-  const q=el('ssCol');if(!q)return;const k=hlKey(SET.hlc);
+  const q=el('ssCol');if(!q)return;const k=hlKey(typeof SQ!=='undefined'&&SQ?SQ.q.c:SET.hlc); /* 07.11: a tapped quote — its own colour */
   q.style.setProperty('--d',hlDot(k));q.style.setProperty('--d2',hlDot2(k));
   q.hidden=stOff('spColors');el('ssNote').hidden=stOff('spNote');el('ssCopy').hidden=stOff('spCopy');el('ssDict').hidden=stOff('spDict');el('ssAI').hidden=stOff('spAI');
   const n=stWords(stText()),c=el('ssCnt'),pg=typeof selStats==='function'?selStats().pages:1;
@@ -58,7 +58,7 @@ function stCol(on){
   const m=el('ssColBox'),b=el('ssCol'),c=el('spColors');if(!m||!c)return;
   const lk0=ssLook();if(!on&&SS.open&&(lk0==='bar'||lk0==='big')&&!el('selSide').hidden)return; /* the card keeps its colours while it is shown */
   if(!on){if(c.parentNode!==el('selpop'))el('selpop').insertBefore(c,el('spNote'));m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
-  if(typeof renderSpColors==='function')renderSpColors();
+  if(typeof renderSpColors==='function')renderSpColors(typeof SQ!=='undefined'&&SQ?hlKey(SQ.q.c):undefined);
   m.appendChild(c);m.hidden=false;b.setAttribute('aria-expanded','true');
   const lk=ssLook();if(lk==='bar'||lk==='big'){m.style.left=m.style.top='';return;} /* on the card the colours are its top row */
   stBranch(m,b);
@@ -69,7 +69,16 @@ function stMenu(on){
   const m=el('ssMenu'),b=el('ssMore');if(!m)return;
   if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
   const nb=el('ssNote'),own=nb&&getComputedStyle(nb).display!=='none'; /* «Заметка» has its own button in the row looks */
-  const it=[
+  const sq=typeof SQ!=='undefined'&&!!SQ&&window.getSelection().isCollapsed;
+  const it=(sq?[ /* 07.11: a tapped saved quote — what its old bar had */
+    !own&&!stOff('spNote')&&['note','pencil','Заметка'],
+    !stOff('spEdit')&&['qedit','highlighter','Изменить границы'],
+    !stOff('spDel')&&['qdel','trash-2','Удалить цитату'],
+    !stOff('spAll')&&['qall','quote','Все цитаты'],
+    !stOff('spWord')&&['word','book-open','В словарь'],
+    ssLook()==='side'&&['view','menu','Вид меню'],
+    ['wiki','info','Википедия'],
+  ]:[
     !own&&!stOff('spNote')&&['note','pencil','Заметка'],
     !stOff('spWord')&&['word','book-open','В словарь'],
     R.mode!=='pdf'&&!stOff('spGrow')&&['grow','align-justify','Предложение, потом абзац'],
@@ -81,7 +90,7 @@ function stMenu(on){
     ['wiki','info','Википедия'],
     R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
     selPagesOn()&&['page','chevron-down','До конца страницы'],
-  ].filter(Boolean);
+  ]).filter(Boolean);
   m.innerHTML=it.map(x=>'<button type="button" role="menuitem" data-a="'+x[0]+'">'+rqIcon(x[1],18)+'<span>'+esc(x[2])+'</span></button>').join('');
   m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
 }
@@ -163,4 +172,4 @@ async function stAsk(){
   if(typeof selDone==='function')selDone();
   flashMsg(ok?'Вопрос скопирован. Вставьте его в нейросеть рядом долгим нажатием':'Телефон не дал скопировать',{kind:'info',icon:'clipboard'});
 }
-const ST_ACT={ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,view:function(){if(typeof ssLooksMenu==='function')ssLooksMenu(el('ssMore'));}};
+const ST_ACT={qedit:stBar('spEdit'),qdel:stBar('spDel'),qall:stBar('spAll'),ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,view:function(){if(typeof ssLooksMenu==='function')ssLooksMenu(el('ssMore'));}};

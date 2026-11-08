@@ -11,7 +11,7 @@
      а тот же кусок второй раз не оплачивается.
    8 «Произнести» в окне словаря и в меню выделения тем же голосом, что читает книгу.
    Всё оборачивает уже готовые ttsSay / ttsTextNext / ttsStop / ttsBtn / nttsFetch (js/reader-ui.js); прослушивание по-прежнему не чтение. */
-const TP={gen:0,pos:-1,fresh:false,startAt:-1,stop:null,prep:new Map(),pre:{bid:'',upTo:0,run:false,q:[],seen:new Set()},sil:null,chip:null,chipT:0,fly:new Map()};
+const TP={pmem:new Map(),gen:0,pos:-1,fresh:false,startAt:-1,stop:null,prep:new Map(),pre:{bid:'',upTo:0,run:false,q:[],seen:new Set()},sil:null,chip:null,chipT:0,fly:new Map()};
 function tpS(){if(!SET.tp)SET.tp=rqTpNorm(null);return SET.tp;}
 const TP_NS=(window.RQ_NS||'rq');
 
@@ -155,7 +155,7 @@ function tpSysSay(t,lang,onend,onstart,onpos){
 const TP_GAP={off:[0,0],s:[200,700],m:[450,1200],l:[800,2000]};
 const TP_HEAD=/^\s*(глава|часть|книга|том|chapter|part|пролог|эпилог|prologue|epilogue|[IVXLC]{1,7}\.?|\d{1,3}\.?)(?![\p{L}])/iu;
 function tpPlan(s){
-  const c=tpS(),g=TP_GAP[c.pause]||TP_GAP.m,rate=Math.max(0.5,rqRx().tts.rate),paras=[];
+  const c=tpS(),g0=TP_GAP[c.pause]||TP_GAP.m,g=nttsOn()?[0,g0[1]]:g0,rate=Math.max(0.5,rqRx().tts.rate),paras=[]; /* 07.11 нейроголос сам делает паузу в конце куска: добавочная между абзацами звучала как «пропадает» */
   if(c.pause==='off')paras.push({a:0,z:s.length,gap:0});
   else{let a=0;const re=/\n+/g;let x;while((x=re.exec(s))){const z=x.index+x[0].length;paras.push({a:a,z:z,gap:x[0].length>2||TP_HEAD.test(s.slice(z,z+40))?g[1]:g[0]});a=z;}
     if(a<s.length)paras.push({a:a,z:s.length,gap:0});}
@@ -278,7 +278,8 @@ async function tpCPut(k,b){try{const c=await caches.open(TPC_CACHE);await c.put(
 async function tpCSize(){try{const c=await caches.open(TPC_CACHE);let n=0,k=0;for(const r of await c.keys()){const m=await c.match(r);n+=+(m.headers.get('Content-Length')||0);k++;}return [n,k];}catch(e){return [0,0];}}
 {const f0=nttsFetch;nttsFetch=function(text){
   const c=nttsCfg();
-  if(c.prov==='piper')return pipSay(text,c.voice);
+  if(c.prov==='piper'){const k=c.voice+'|'+tpS().expr+'|'+text;if(TP.pmem.has(k))return Promise.resolve(TP.pmem.get(k));if(TP.fly.has(k))return TP.fly.get(k);
+    const p=pipSay(text,c.voice);TP.fly.set(k,p);p.then(function(b){TP.fly.delete(k);TP.pmem.set(k,b);while(TP.pmem.size>40)TP.pmem.delete(TP.pmem.keys().next().value);},function(){TP.fly.delete(k);});return p;}
   if(!tpS().pre)return f0.apply(this,arguments);
   const k=tpCKey(c,String(text));if(TP.fly.has(k))return TP.fly.get(k);
   const self=this,args=arguments;
@@ -295,13 +296,15 @@ function tpTexts(chunk,cb){
     if(ro&&ro.on&&ro.v&&/[—–"“«]/.test(t)&&typeof r2Segs==='function'){const segs=r2Segs(t);if(segs.some(function(x){return x.d;})){segs.forEach(function(x){cb(t.slice(x.a,x.z),x.d?ro.v:null);});return;}}
     cb(t,null);});
 }
-function tpPreWant(){return tpS().pre&&typeof ttsOn!=='undefined'&&ttsOn&&nttsOn()&&nttsCfg().prov!=='piper'&&R.book&&R.mode==='text'&&navigator.onLine!==false;}
+function tpPreWant(){if(typeof ttsOn==='undefined'||!ttsOn||!nttsOn()||!R.book||R.mode!=='text')return false;
+  if(nttsCfg().prov==='piper')return true; /* голос в телефоне: готовим вперёд всегда, бесплатно, в памяти */
+  return tpS().pre&&navigator.onLine!==false;}
 const TP_AHEAD=12000;
 function tpPreFill(){
   if(!tpPreWant())return;const b=R.book,t=b.text||'',pos=R.ttsPos||0;
   if(TP.pre.bid!==b.id||TP.pre.upTo<pos||TP.pre.upTo>pos+TP_AHEAD*2){TP.pre.bid=b.id;TP.pre.upTo=pos;TP.pre.q=[];}
   const nx=(typeof tocOf==='function'?tocOf(b)||[]:[]).filter(function(x){return typeof x.off==='number'&&x.off>pos+40;}).sort(function(a,c){return a.off-c.off;})[0];
-  const lim=Math.min(t.length,pos+TP_AHEAD,nx?nx.off:t.length);
+  const lim=Math.min(t.length,pos+(nttsCfg().prov==='piper'?4000:TP_AHEAD),nx&&nttsCfg().prov!=='piper'?nx.off:t.length);
   let st=TP.pre.upTo;if(st===pos&&st<t.length)st=ttsChunkEnd(t,st); /* the chunk now playing is fetched by the reader itself */
   const noImg=function(x){return x.replace(/￼img:\d+/g,function(m){return ' '.repeat(m.length);});};
   while(st<lim){const e=ttsChunkEnd(t,st);tpTexts(noImg(t.slice(st,e)),function(x,v){TP.pre.q.push([x,v]);});st=e;}
@@ -380,8 +383,13 @@ function tpReadFrom(pos){
 function tpBarSync(){
   const b=el('tpBar');if(!b)return;const on=typeof ttsOn!=='undefined'&&ttsOn&&tpS().bar&&!!R.book&&!el('reader').classList.contains('hidden');
   b.hidden=!on;if(!on){tpRatePop(false);return;}b.classList.toggle('pdf',R.mode==='pdf');
-  const rb=document.querySelector('#reader .rbot'),off=el('reader').classList.contains('barsoff')||!rb?0:rb.getBoundingClientRect().height;
-  b.style.bottom='calc('+Math.round(off+10)+'px + '+(off?'0px':'env(safe-area-inset-bottom,0px)')+')';
+  const ps=tpS().pos,side=ps.s!=='B';b.classList.toggle('side',side);b.classList.toggle('sl',ps.s==='L');b.classList.toggle('sr',ps.s==='R');
+  if(!b.classList.contains('drag')){
+    if(side){const h=b.offsetHeight||400,top=Math.round(Math.max(56,Math.min(innerHeight-h-16,ps.y*innerHeight-h/2)));
+      b.style.bottom='auto';b.style.top=top+'px';b.style.left=ps.s==='L'?'6px':'auto';b.style.right=ps.s==='R'?'6px':'auto';b.style.transform='none';}
+    else{const rb=document.querySelector('#reader .rbot'),off=el('reader').classList.contains('barsoff')||!rb?0:rb.getBoundingClientRect().height;
+      b.style.top='auto';b.style.right='auto';b.style.left='50%';b.style.transform='';
+      b.style.bottom='calc('+Math.round(off+10)+'px + '+(off?'0px':'env(safe-area-inset-bottom,0px)')+')';}}
   el('tpPP').innerHTML=rqIcon(speaking||ttsOn?'pause':'play',24);el('tpRate').textContent=tpRateTxt(rqRx().tts.rate);if(!on)tpRatePop(false);
 }
 (function(){
@@ -392,7 +400,8 @@ function tpBarSync(){
     '<button type="button" id="tpPP" aria-label="Остановить озвучку" title="Остановить озвучку"></button>'+
     '<button type="button" id="tpRate" aria-label="Скорость голоса" aria-haspopup="true" title="Скорость голоса"></button>'+
     '<button type="button" id="tpSF" aria-label="Вперёд на предложение" title="Вперёд на предложение">'+rqIcon('chevron-right',24)+'</button>'+
-    '<button type="button" id="tpPF" aria-label="Вперёд на абзац" title="Вперёд на абзац">'+rqIcon('chevrons-right',22)+'</button></div>'+
+    '<button type="button" id="tpPF" aria-label="Вперёд на абзац" title="Вперёд на абзац">'+rqIcon('chevrons-right',22)+'</button>'+
+    '<button type="button" id="tpGrip" aria-label="Переместить плашку: потяните или нажмите — снизу, справа, слева" title="Потяните, чтобы переместить; нажмите — сбоку / снизу">'+rqIcon('grip-vertical',20)+'</button></div>'+
     '<div id="tpRatePop" role="dialog" aria-label="Скорость голоса" hidden></div>'+
     '<button type="button" id="tpHere" hidden>'+rqIcon('play',16)+'<span>Читать отсюда</span></button>');
   const b=el('tpBar');['pointerdown','click','touchstart','touchend'].forEach(function(t){b.addEventListener(t,function(e){e.stopPropagation();});el('tpRatePop').addEventListener(t,function(e){e.stopPropagation();});el('tpHere').addEventListener(t,function(e){e.stopPropagation();});});
@@ -402,6 +411,19 @@ function tpBarSync(){
   el('tpHere').onclick=function(){const p=TP.chip;tpChip(null);if(p!=null&&p>=0)tpReadFrom(p);};
   new MutationObserver(tpBarSync).observe(rd,{attributes:true,attributeFilter:['class']});
   addEventListener('resize',tpBarSync);
+  /* таймер сна и «Слушать на ходу» — на плашку, чтобы в шапке не было двойных значков (Джессика 07.11: «несколько повторяющихся значков») */
+  ['btnSleep','btnWalk'].forEach(function(id){const x=el(id);if(x)b.insertBefore(x,el('tpGrip'));});
+  /* перетащить: к левому или правому краю — плашка сбоку, в середину — снизу; просто нажать — снизу → справа → слева → снизу */
+  const g=el('tpGrip');let d=null;
+  g.addEventListener('pointerdown',function(e){const r=b.getBoundingClientRect();d={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,go:false};try{g.setPointerCapture(e.pointerId);}catch(er){}e.preventDefault();});
+  g.addEventListener('pointermove',function(e){if(!d)return;if(!d.go&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;d.go=true;b.classList.add('drag');tpRatePop(false);
+    b.style.transform='none';b.style.bottom='auto';b.style.right='auto';b.style.left=Math.round(e.clientX-d.dx)+'px';b.style.top=Math.round(e.clientY-d.dy)+'px';});
+  const up=function(e){if(!d)return;const was=d;d=null;b.classList.remove('drag');const ps=tpS().pos;
+    if(was.go){const x=e.clientX/innerWidth;ps.s=x<0.3?'L':x>0.7?'R':'B';ps.y=Math.round(Math.max(0.05,Math.min(0.95,e.clientY/innerHeight))*100)/100;}
+    else ps.s=ps.s==='B'?'R':ps.s==='R'?'L':'B';
+    saveSet();tpBarSync();requestAnimationFrame(tpBarSync);};
+  g.addEventListener('pointerup',up);g.addEventListener('pointercancel',function(){if(d){d=null;b.classList.remove('drag');tpBarSync();}});
+  g.onclick=function(e){e.stopPropagation();};
 })();
 function tpChip(at){
   const c=el('tpHere');if(!c)return;clearTimeout(TP.chipT);
@@ -433,7 +455,10 @@ function tpSilent(){ /* 2 s of near-silence: keeps the page «playing» so the p
   try{if('mediaSession' in navigator){const ms=navigator.mediaSession,h=function(a,f){try{ms.setActionHandler(a,on?f:null);}catch(e){}};
     h('previoustrack',function(){tpBack('s');});h('nexttrack',function(){tpFwd('s');});
     h('seekbackward',function(){tpBack('p');});h('seekforward',function(){tpFwd('p');});}}catch(e){}
+  try{const t=el('btnTts');if(t&&on)t.innerHTML=rqIcon('volume-2'); /* в шапке остаётся динамик (подсвечен): пауза — на плашке */
+    const rp=el('rqPause');if(rp){if(on)rp.hidden=true;else if(typeof pauseShow==='function')pauseShow();}}catch(e){}
   if(!on)tpChip(null);tpBarSync();};}
+{const p0=pauseShow;pauseShow=function(){p0.apply(this,arguments);const b=el('rqPause');if(b&&typeof ttsOn!=='undefined'&&ttsOn)b.hidden=true;};}
 
 /* ---------- 8: «Произнести» тем же голосом ---------- */
 let TP_SAY=null;
@@ -454,9 +479,11 @@ if(typeof dkSay==='function'){dkSay=function(w,lang){tpSpeak(typeof dkPlain==='f
 function tpSelSay(){
   const t=typeof stText==='function'?stText():'';if(!t)return;
   if(stWords(t)<=4||R.mode!=='text'){tpSpeak(t,/[А-Яа-яЁё]/.test(t)?'ru':tpGuess(t));return;}
-  const s=window.getSelection();if(!s||!s.rangeCount)return;const rg=s.getRangeAt(0),p=tpOffAt(rg.startContainer,rg.startOffset);
+  const s=window.getSelection(),sq=typeof SQ!=='undefined'&&SQ&&(!s||s.isCollapsed)?SQ:null; /* 07.11: a tapped saved quote — from its first mark */
+  let at=null;if(sq){const m=(sq.ms||[]).find(x=>x.isConnected);if(m)at=[m.firstChild||m,0];}else if(s&&s.rangeCount){const rg=s.getRangeAt(0);at=[rg.startContainer,rg.startOffset];}
+  if(!at)return;const p=tpOffAt(at[0],at[1]);
   if(p<0){flashMsg('Не нашёл это место в тексте');return;}
-  try{s.removeAllRanges();if(typeof selUi==='function')selUi();}catch(e){}
+  try{if(sq){quoteClose();el('selpop').classList.add('hidden');}else{s.removeAllRanges();if(typeof selUi==='function')selUi();}}catch(e){}
   tpReadFrom(p);
 }
 if(typeof ST_ACT!=='undefined'){ST_ACT.say=tpSelSay;
@@ -563,7 +590,10 @@ function tpRatePop(on){
     '<div class="tprc">'+[0.75,1,1.25,1.5,2,2.5].map(function(v){return '<button type="button" class="fchip'+(Math.abs(v-r)<0.01?' on':'')+'" data-v="'+v+'">'+tpRateTxt(v)+'</button>';}).join('')+'</div>';
   box.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){tpRateSet(rqRx().tts.rate+(+b.dataset.d));};});
   box.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){tpRateSet(+b.dataset.v);};});
-  box.hidden=false;const bar=el('tpBar').getBoundingClientRect();box.style.bottom=Math.round(innerHeight-bar.top+8)+'px';
+  box.hidden=false;const bar=el('tpBar').getBoundingClientRect(),ps=tpS().pos;
+  if(ps.s==='B'){box.style.top='auto';box.style.right='auto';box.style.left='50%';box.style.transform='';box.style.bottom=Math.round(innerHeight-bar.top+8)+'px';}
+  else{box.style.transform='none';box.style.bottom='auto';box.style.top=Math.round(Math.max(56,Math.min(innerHeight-box.offsetHeight-16,bar.top+bar.height/2-box.offsetHeight/2)))+'px';
+    box.style.left=ps.s==='L'?Math.round(bar.right+8)+'px':'auto';box.style.right=ps.s==='R'?Math.round(innerWidth-bar.left+8)+'px':'auto';}
 }
 /** extra request fields of a voice service: how lively, how to read */
 function tpVoiceOpts(p){const o=tpS(),e=o.expr;

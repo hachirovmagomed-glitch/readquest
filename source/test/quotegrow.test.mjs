@@ -19,7 +19,7 @@ const cdp = await p.target().createCDPSession();
 const T = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
 const tap = async (x, y) => { await T('touchStart', x, y); await sleep(60); await T('touchEnd'); await sleep(500); };
 const qs = () => p.evaluate(() => (S.quotes[R.book.id] || []).map(q => ({ t: q.text, note: q.note || '', c: q.c, pdf: !!q.pdf })));
-const handles = () => p.evaluate(() => { const g = (id) => { const e = el(id); return e && !e.hidden ? { x: parseFloat(e.style.left), y: parseFloat(e.style.top) } : null; }; return { lo: g('smLo'), hi: g('smHi'), bar: !el('selpop').classList.contains('hidden') && el('selpop').classList.contains('qmode') }; });
+const handles = () => p.evaluate(() => { const g = (id) => { const e = el(id); return e && !e.hidden ? { x: parseFloat(e.style.left), y: parseFloat(e.style.top) } : null; }; return { lo: g('smLo'), hi: g('smHi'), bar: !!el('selSide') && !el('selSide').hidden && el('selSide').classList.contains('qm') /* 07.11: the selection's own menu */ }; });
 
 async function round(name, open, sel, where) {
   await open();

@@ -489,7 +489,7 @@ function tpSelSay(){
 if(typeof ST_ACT!=='undefined'){ST_ACT.say=tpSelSay;
   const m0=stMenu;stMenu=function(on){m0.apply(this,arguments);if(!on)return;const m=el('ssMenu');if(!m||m.hidden||m.querySelector('[data-a="say"]'))return;
     const t=typeof stText==='function'?stText():'';if(!t)return;const short=stWords(t)<=4||R.mode!=='text';
-    const b=document.createElement('button');b.type='button';b.setAttribute('role','menuitem');b.dataset.a='say';b.innerHTML=rqIcon(short?'volume-2':'play',18)+'<span>'+(short?'Произнести':'Слушать отсюда')+'</span>';
+    const b=document.createElement('button');b.type='button';b.setAttribute('role','menuitem');b.dataset.a='say';const tl=m.classList.contains('tiles');b.innerHTML=rqIcon(short?'volume-2':'play',tl?22:18)+'<span>'+(short?'Произнести':tl?'Слушать':'Слушать отсюда')+'</span>';
     const after=m.querySelector('[data-a="word"]');if(after&&after.nextSibling)m.insertBefore(b,after.nextSibling);else m.insertBefore(b,m.firstChild);
     if(typeof stBranch==='function'){stBranch(m,el('ssMore'));const r=m.getBoundingClientRect();if(r.top<0||r.bottom>innerHeight){b.remove();stBranch(m,el('ssMore'));}}};} /* doesn't fit (big look, small screen) — the list stays as it was */
 

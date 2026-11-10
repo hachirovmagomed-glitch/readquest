@@ -330,7 +330,8 @@ function libMenuRender(){const m=el('libSortMenu');if(!m)return;const k=libSortG
   const nav=function(p,t,val){return '<button type="button" class="lso lsonav" role="menuitem" data-pane="'+p+'"><span>'+t+'</span><span class="lsov">'+esc(val)+'</span>'+rqIcon('chevron-right',18)+'</button>';};
   const back=function(t){return '<button type="button" class="lso lsoback" data-pane="root">'+rqIcon('chevron-left',18)+'<span>'+t+'</span></button>';};
   const fl=LIB.author||LIB.f!=='all'?libFilterLabel():'Все книги';
-  m.innerHTML='<div class="lsopane" data-p="root"'+(__libPane==='root'?'':' hidden')+'>'+nav('f','Фильтр',fl)+nav('s','Сортировка',libSortLabel(k))+nav('v','Вид',(LIB_VIEWS.find(function(o){return o.k===v;})||LIB_VIEWS[0]).t)+'</div>'+
+  m.innerHTML='<div class="lsopane" data-p="root"'+(__libPane==='root'?'':' hidden')+'>'+nav('f','Фильтр',fl)+nav('s','Сортировка',libSortLabel(k))+nav('v','Вид',(LIB_VIEWS.find(function(o){return o.k===v;})||LIB_VIEWS[0]).t)+
+    '<button type="button" class="lso" role="menuitem" id="libCovAll"><span>Подобрать обложки</span>'+rqIcon('image',20)+'</button></div>'+
     '<div class="lsopane" data-p="f"'+(__libPane==='f'?'':' hidden')+'>'+back('Фильтр')+libFilterItems()+'</div>'+
     '<div class="lsopane" data-p="s"'+(__libPane==='s'?'':' hidden')+'>'+back('Сортировка')+LIB_SORTS.map(function(o){return it('k',o,o.k===k);}).join('')+'</div>'+
     '<div class="lsopane" data-p="v"'+(__libPane==='v'?'':' hidden')+'>'+back('Вид')+LIB_VIEWS.map(function(o){return it('v',o,o.k===v);}).join('')+'</div>';}
@@ -341,6 +342,7 @@ function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!
   m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();
     if(o.dataset.pane){__libPane=o.dataset.pane;libMenuRender();m.scrollTop=0;return;}
     if(o.id==='libShelfAdd'){libSortMenu(false);shelfNew();return;}
+    if(o.id==='libCovAll'){libSortMenu(false);covAll();return;} /* 10.11 js/covers.js */
     if(o.dataset.a!==undefined)libFilterPick('all',o.dataset.a);else if(o.dataset.f)libFilterPick(o.dataset.f);else if(o.dataset.v)libViewPick(o.dataset.v);else if(o.dataset.k)libSortPick(o.dataset.k);});
   b.onclick=function(e){e.stopPropagation();libSortMenu(m.hidden);};
   document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&!b.contains(e.target))libSortMenu(false);});

@@ -33,10 +33,11 @@ const NAV_CATALOG=[
   {id:'path',t:'Путь читателя',s:'Путь',ic:'map'},
   {id:'adv',t:'Приключения',ic:'compass'}, /* Джессика 18.10: free books from open libraries (js/adv.js) */
   {id:'diary',t:'Дневники',ic:'notebook'}, /* Джессика 25.10: дневники и блокноты (js/diary.js); «Только в меню» — не в NAV_DEF */
+  {id:'home',t:'Домик',ic:'paw-print'}, /* Джессика 10.11: питомец и домик (js/home.js) — в боковом меню, не в профиле */
   {id:'quests',t:'Квесты',ic:'target'},
   {id:'look',t:'Внешний вид',s:'Вид',ic:'palette'}]; /* Джессика 17.10: тема, скин, анимации — own item (was a block in «Общие настройки») */
 /* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
-const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path','diary']},{t:'Герой',ids:['profile','quests']},{t:'Магазины',ids:['rewards','look']}];
+const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path','diary']},{t:'Герой',ids:['profile','home','quests']},{t:'Магазины',ids:['rewards','look']}];
 const NAV_ALIAS={notes:'diary',vocab:'diary',stats:'diary'}; /* stored NS_set.nav from before 17.10; 26.10 (Джессика): «Инвентарь» слит с «Дневниками» */
 /* 20.10 (Джессика: «5 вкладок базой, количество менять нельзя, только что в них»): the bar always has NAV_N tabs around «Читать»
    (2 + 2, as in Habitica); stored lists that are short get the defaults / catalog appended, long ones are cut — in memory, never written back */
@@ -48,8 +49,8 @@ function navAvail(id){
   return !isMvp()||RQ_MVP_DRAWER_EXTRAS||['library','rewards','profile'].indexOf(id)>=0||id==='settings';}
 function navFill(out,ok){NAV_DEF.concat(NAV_CATALOG.map(function(it){return it.id;})).forEach(function(x){if(out.length<NAV_N&&out.indexOf(x)<0&&ok(x))out.push(x);});return out;}
 function navShown(){return navFill(navGet().filter(navAvail),navAvail);} /* view only: what the bar shows now (a hidden section's slot is filled from the shown ones) */
-const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',diary:'bnDiary',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
-const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
+const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',diary:'bnDiary',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook',home:'bnHome'};
+const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook',home:'dHome'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
   const out=[];if(Array.isArray(v))v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
@@ -66,6 +67,7 @@ function navGo(id){
   closeDrawer();if(!navAvail(id))id='library';
   if(id==='rewards'){openRewardsSheet();return;}
   try{closeRewardsSheet();}catch(e){}
+  if(id==='home'){if(typeof openHome==='function')openHome();return;} /* 10.11 «Домик» открывается поверх текущего экрана */
   __navAllow=true;
   try{
     if(id==='library'){renderLibrary();show('library');}

@@ -434,8 +434,10 @@ const SS={open:false,on:false,drag:null,moved:false};
    side = the column at an edge (as before), bar = a card at the bottom, colours on top and icons under them (as on her picture),
    bubble = a small row right next to the selected words, dock = one row across the screen above ‹ ›, big = the card with captions.
    The same buttons and branches in all of them, only the CSS (#selSide[data-look]) and the place (ssPlace) differ. */
-const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста'],['dock','Полоса снизу'],['big','С подписями']];
-function ssLook(){const v=SET.selLook;return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
+/* 10.11 (Джессика: «убери полосу снизу и с подписями … по сути, бесполезная»): three looks left; a saved «Полоса снизу» / «С подписями»
+   shows as «Плашка» (also one row at the bottom). Their CSS stays unused. */
+const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста']];
+function ssLook(){const v=SET.selLook;if(v==='dock'||v==='big')return 'bar';return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
 function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
 function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
   const L=function(t){return '<span class="ssL" aria-hidden="true">'+t+'</span>';}; /* a caption: only in the look «С подписями» */
@@ -531,7 +533,7 @@ function qbPlace(){const n=el('selpop');if(!n)return;if(rqPinPlace(n,'quote',qbP
    «Вид» in the menu itself lists the five looks; a tap switches at once (the same SET.selLook as «Чтение → Меню выделения»), the selection stays */
 function ssLooksMenu(anchor){const m=el('ssMenu'),b=anchor||el('ssView'),cur=ssLook();if(!m||!b)return;
   m.innerHTML=SS_LOOKS.map(function(l){const on=l[0]===cur;return '<button type="button" role="menuitemradio" aria-checked="'+on+'" data-look="'+l[0]+'">'+(on?rqIcon('check',18):'<span class="ic" style="display:inline-block;width:18px"></span>')+'<span>'+esc(l[1])+'</span></button>';}).join('');
-  m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
+  m.classList.remove('tiles'); m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
 function ssLookSet(v){if(!SS_LOOKS.some(function(l){return l[0]===v;}))return;const m=el('ssMenu');if(m)m.hidden=true;const b=el('ssView');if(b)b.setAttribute('aria-expanded','false');
   SET.selLook=v;saveSet();SS.open=true;if(typeof stCol==='function')stCol(false); /* the card's colour row would stay over the new look's buttons */ssUpd();} /* no toast: it would lie over the menu that has just moved there */
 /** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
@@ -575,7 +577,7 @@ function ssUpd(){
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
   if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
-  if((lk==='bar'||lk==='big')&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card */
+  if(lk==='big'&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card (10.11: «Плашка» folds them into a button) */
   const f=el('selFrom'),from=!SQ&&pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
@@ -1809,6 +1811,7 @@ function renderSummary(r){
   el('sumNote').textContent=notes.join(' · ');
   quizRender(r);
   {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */
+  {const sh=el('sumHome');if(sh){let h='';try{h=typeof homeSummaryHtml==='function'?homeSummaryHtml(r.row):'';}catch(e){}sh.innerHTML=h;sh.classList.toggle('hidden',!h);}} /* 10.11 «В домике» */
   {const st=el('sumTools');if(st){const h=typeof toolsSummaryHtml==='function'?toolsSummaryHtml(r.row):'';st.innerHTML=h;st.classList.toggle('hidden',!h);}} /* 06.11 инструменты */
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));

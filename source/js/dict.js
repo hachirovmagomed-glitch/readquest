@@ -176,10 +176,15 @@ async function dkImport(files){
 
 /* ---------- where it opens ---------- */
 {const m0=stMenu;stMenu=function(on){m0.apply(this,arguments);const m=el('ssMenu');if(!on||!m||m.hidden||!R.book)return;
-  const t=stText();if(!t||t.length>60||stWords(t)>3)return;
+  const t=stText();if(!t||!stWords(t))return; /* 10.11 (Джессика: «ты не добавил сюда значение слов»): always, also for a long selection and a tapped quote */
   const who=m.querySelector('[data-a="who"]'),h='<button type="button" role="menuitem" data-a="dict">'+rqIcon('book-marked',18)+'<span>Значение</span></button>';
   if(who)who.insertAdjacentHTML('afterend',h);else m.insertAdjacentHTML('afterbegin',h);stBranch(m,el('ssMore'));};}
-ST_ACT.dict=function(){const t=stText(),s=window.getSelection(),rg=s&&s.rangeCount?s.getRangeAt(0):null,r=rg?rg.getBoundingClientRect():null,cx=rg?dkSentence(rg.startContainer,t):'';selDone();dkShow(t,r?r.left+r.width/2:null,r?r.bottom:null,cx);};
+/* 10.11: a long selection (more than 3 words) — first the words of it as buttons, a tap opens the entry of that word */
+function dkPick(t,x,y,cx){const seen=new Set(),ws=[];(String(t).match(/[\p{L}]+(?:[-'’][\p{L}]+)*/gu)||[]).forEach(function(w){const k=w.toLowerCase();if(w.length<3||seen.has(k))return;seen.add(k);ws.push(w);});
+  if(!ws.length)return;
+  r2Note('book-marked','Значение какого слова?','<div class="dkpick">'+ws.slice(0,60).map(function(w){return '<button type="button" data-w="'+esc(w)+'">'+esc(w)+'</button>';}).join('')+'</div>',x==null?innerWidth/2:x,y==null?innerHeight*0.3:y);
+  el('rmNote').querySelector('.dkpick').onclick=function(e){const b=e.target.closest&&e.target.closest('button[data-w]');if(!b)return;e.stopPropagation();dkShow(b.dataset.w,x,y,cx);};}
+ST_ACT.dict=function(){const t=stText(),s=window.getSelection(),rg=s&&s.rangeCount?s.getRangeAt(0):null,r=rg?rg.getBoundingClientRect():null,cx=rg?dkSentence(rg.startContainer,t):'';selDone();if(stWords(t)>3){dkPick(t,r?r.left+r.width/2:null,r?r.bottom:null,cx);return;}dkShow(t,r?r.left+r.width/2:null,r?r.bottom:null,cx);};
 RX_DBL.push(['dict','Значение слова']);
 {const v0=viewerTap;viewerTap=function(cx,cy){DK.xy=[cx,cy];return v0.apply(this,arguments);};}
 {const d0=rxDbl;rxDbl=function(a){if(a!=='dict')return d0.apply(this,arguments);const p=DK.xy;if(!p||R.mode!=='text')return;const w=r2WordAt(p[0],p[1]);if(w&&w.w)dkShow(w.w,p[0],p[1],dkSentenceAt(p[0],p[1],w.w));};}

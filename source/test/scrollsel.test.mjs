@@ -19,7 +19,7 @@ await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.
 await p.evaluate(() => { if (typeof rxS === 'function') { rxS().sm.tap = true; saveSet(); } }); /* 10.11: «Нажатие ставит конец» is off by default now; these checks are about it on */
 await p.evaluate(async () => {
   const bk = allBooks().slice().sort((a, b) => ((b.text || '').length) - ((a.text || '').length))[0];
-  SET.mtop = 0; /* 08.11: geometry as before «Поле сверху» (step 2 looks for a short last line in a fixed band) */ SET.flip = Object.assign({}, SET.flip || {}, { mode: 'scroll', anim: 'none' }); SET.selLook = 'dock'; saveSet(); applySet && applySet();
+  SET.mtop = 0; /* 08.11: geometry as before «Поле сверху» (step 2 looks for a short last line in a fixed band) */ SET.flip = Object.assign({}, SET.flip || {}, { mode: 'scroll', anim: 'none' }); SET.selLook = 'bar'; /* 10.11: «Полоса снизу» is gone, «Плашка» */ saveSet(); applySet && applySet();
   __navAllow = true; openBook(bk.id); __navAllow = false; await new Promise(r => setTimeout(r, 2500));
   goPage(2, false); await new Promise(r => setTimeout(r, 400));
 });
@@ -73,13 +73,13 @@ ok('the handle: the text is locked while it is held, the end goes on below the s
 // 4. the menu «Полоса снизу» is dragged by a finger to the middle and stays there
 await sleep(300);
 const m0 = await p.evaluate(() => { const n = el('selSide'); const r = n.getBoundingClientRect(); return { hidden: n.hidden, look: n.dataset.look, top: Math.round(r.top), bot: Math.round(r.bottom) }; });
-ok('the menu «Полоса снизу» is shown while selecting', !m0.hidden && m0.look === 'dock', m0);
+ok('the menu «Полоса снизу» is shown while selecting', !m0.hidden && m0.look === 'bar', m0);
 if (SHOTS) await p.screenshot({ path: SHOTS + '/1-polosa-do.png' });
 const btn = await p.evaluate(() => { const r = el('ssCopy').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
 const copied0 = await p.evaluate(() => (window.__rqCopied = 0, 0));
 await p.evaluate(() => { const c = el('ssCopy'); c.addEventListener('click', () => { window.__rqCopied++; }, true); });
 await T('touchStart', btn.x, btn.y); for (let i = 1; i <= 15; i++) { await T('touchMove', btn.x + i, btn.y - i * 25); await sleep(16); } await T('touchEnd'); await sleep(500);
-const m1 = await p.evaluate(() => { const n = el('selSide'); const r = n.getBoundingClientRect(); return { top: Math.round(r.top), pin: SET.selPin && SET.selPin.dock, pinned: n.classList.contains('pinned'), copied: window.__rqCopied, sel: String(getSelection()).length }; });
+const m1 = await p.evaluate(() => { const n = el('selSide'); const r = n.getBoundingClientRect(); return { top: Math.round(r.top), pin: SET.selPin && SET.selPin.bar, pinned: n.classList.contains('pinned'), copied: window.__rqCopied, sel: String(getSelection()).length }; });
 ok('dragged by a finger from a button: the menu moved up with the finger, its place is remembered, the button is not pressed', Math.abs(m1.top - (m0.top - 375)) < 30 && m1.pin && m1.pinned && m1.copied === 0 && m1.sel > 0, m1);
 // the selection changes (a tap) — the menu does not jump
 const tp = await p.evaluate(() => { const v = el('viewer').getBoundingClientRect(); return { x: v.left + 120, y: Math.max(v.top + 40, el('selSide').getBoundingClientRect().top - 60) }; });

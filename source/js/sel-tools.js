@@ -56,11 +56,11 @@ function stBranch(m,b){
    and go back to the bar when the branch closes (a tapped saved quote still recolours in the bar) */
 function stCol(on){
   const m=el('ssColBox'),b=el('ssCol'),c=el('spColors');if(!m||!c)return;
-  const lk0=ssLook();if(!on&&SS.open&&(lk0==='bar'||lk0==='big')&&!el('selSide').hidden)return; /* the card keeps its colours while it is shown */
+  const lk0=ssLook();if(!on&&SS.open&&lk0==='big'&&!el('selSide').hidden)return; /* the card keeps its colours while it is shown */
   if(!on){if(c.parentNode!==el('selpop'))el('selpop').insertBefore(c,el('spNote'));m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
   if(typeof renderSpColors==='function')renderSpColors(typeof SQ!=='undefined'&&SQ?hlKey(SQ.q.c):undefined);
   m.appendChild(c);m.hidden=false;b.setAttribute('aria-expanded','true');
-  const lk=ssLook();if(lk==='bar'||lk==='big'){m.style.left=m.style.top='';return;} /* on the card the colours are its top row */
+  const lk=ssLook();if(lk==='big'){m.style.left=m.style.top='';return;} /* on the card the colours are its top row */
   stBranch(m,b);
 }
 
@@ -70,28 +70,27 @@ function stMenu(on){
   if(!on){m.hidden=true;if(b)b.setAttribute('aria-expanded','false');return;}
   const nb=el('ssNote'),own=nb&&getComputedStyle(nb).display!=='none'; /* «Заметка» has its own button in the row looks */
   const sq=typeof SQ!=='undefined'&&!!SQ&&window.getSelection().isCollapsed;
+  const lk=ssLook(),tl=lk==='bar',sv=lk==='side'||lk==='bar'; /* 10.11 «Плашка»: «Ещё» as tiles with short captions, «Вид меню» in it */
   const it=(sq?[ /* 07.11: a tapped saved quote — what its old bar had */
     !own&&!stOff('spNote')&&['note','pencil','Заметка'],
     !stOff('spEdit')&&['qedit','highlighter','Изменить границы'],
     !stOff('spDel')&&['qdel','trash-2','Удалить цитату'],
     !stOff('spAll')&&['qall','quote','Все цитаты'],
     !stOff('spWord')&&['word','book-open','В словарь'],
-    ssLook()==='side'&&['view','menu','Вид меню'],
-    ['wiki','info','Википедия'],
+    sv&&['view','menu','Вид меню'],
+    /* 10.11 (Джессика: «Давай уберем Википедию вообще»): no «Википедия» in «Ещё» (stWiki stays) */
   ]:[
     !own&&!stOff('spNote')&&['note','pencil','Заметка'],
     !stOff('spWord')&&['word','book-open','В словарь'],
-    R.mode!=='pdf'&&!stOff('spGrow')&&['grow','align-justify','Предложение, потом абзац'],
-    R.mode!=='pdf'&&!stOff('spGrow')&&['sent','plus','+ предложение'], /* 28.10 (Джессика: «кнопки быстрого выделения»): the next one, also onto the next page */
-    R.mode!=='pdf'&&!stOff('spGrow')&&['parn','plus','+ абзац'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
-    typeof ssLook==='function'&&ssLook()==='side'&&['view','menu','Вид меню'], /* 06.11: the look of this menu, switched right here («Сбоку» has no own button: it stays compact) */
-    ['wiki','info','Википедия'],
-    R.mode!=='pdf'&&['para','align-left','До конца абзаца'],
-    selPagesOn()&&['page','chevron-down','До конца страницы'],
+    sv&&['view','menu','Вид меню'], /* 06.11: the look of this menu, switched right here («Сбоку» has no own button: it stays compact; 10.11 «Плашка» neither) */
+    /* 10.11 (Джессика про «Выделить больше»: «можно удалить эти функции … они просто перегружают интерфейс»): «Предложение, потом абзац»,
+       «+ предложение», «+ абзац», «До конца абзаца», «До конца страницы» are no longer in this list (ST_ACT keeps their code) */
   ]).filter(Boolean);
-  m.innerHTML=it.map(x=>'<button type="button" role="menuitem" data-a="'+x[0]+'">'+rqIcon(x[1],18)+'<span>'+esc(x[2])+'</span></button>').join('');
+  m.classList.toggle('tiles',tl);
+  const n=tl&&!sq?stWords(stText()):0,head=n?'<div class="stHead"><b>'+n+'</b><span>'+plural(n,'слово','слова','слов')+'</span><button type="button" data-a="seltext">показать текст</button></div>':'';
+  m.innerHTML=head+it.map(x=>'<button type="button" role="menuitem" data-a="'+x[0]+'">'+rqIcon(x[1],tl?22:18)+'<span>'+esc(tl&&ST_SHORT[x[0]]||x[2])+'</span></button>').join('');
   m.hidden=false;b.setAttribute('aria-expanded','true');stBranch(m,b);
 }
 
@@ -172,4 +171,5 @@ async function stAsk(){
   if(typeof selDone==='function')selDone();
   flashMsg(ok?'Вопрос скопирован. Вставьте его в нейросеть рядом долгим нажатием':'Телефон не дал скопировать',{kind:'info',icon:'clipboard'});
 }
-const ST_ACT={qedit:stBar('spEdit'),qdel:stBar('spDel'),qall:stBar('spAll'),ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,view:function(){if(typeof ssLooksMenu==='function')ssLooksMenu(el('ssMore'));}};
+const ST_SHORT={word:'Словарь',diary:'Дневник',mark:'Закладка',qedit:'Границы',qdel:'Удалить',say:'Слушать'}; /* 10.11 the tiles of «Плашка» */
+const ST_ACT={qedit:stBar('spEdit'),qdel:stBar('spDel'),qall:stBar('spAll'),ask:stAsk,note:stBar('spNote'),word:stBar('spWord'),grow:stBar('spGrow'),sent:function(){smQuick('s+');},parn:function(){smQuick('p+');},diary:stDiary,mark:stMark,wiki:stWiki,para:stPara,page:stPageEnd,view:function(){if(typeof ssLooksMenu==='function')ssLooksMenu(el('ssMore'));},seltext:function(){if(typeof selView==='function')selView();}};

@@ -15,6 +15,7 @@ const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.dismiss());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+await p.evaluate(() => { if (typeof rxS === 'function') { rxS().sm.tap = true; saveSet(); } }); /* 10.11: «Нажатие ставит конец» is off by default now; these checks are about it on */
 await p.evaluate(() => { SET.flip = Object.assign({}, flipGet(), { mode: 'scroll' }); rqSaveSetGated(); });
 await (await p.$('#fileInp')).uploadFile(PDF); await sleep(2500);
 const bid = await p.evaluate(async () => { const b = allBooks().find(x => x.type === 'pdf'); S.quotes[b.id] = []; S.hl[b.id] = []; S.progress[b.id] = { ratio: 0, pos: 0 }; save(); openBook(b.id); await new Promise(r => setTimeout(r, 3500)); return b.id; });

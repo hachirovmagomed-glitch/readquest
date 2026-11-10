@@ -28,9 +28,17 @@ await p.evaluate(async () => {
 const lp = async (k) => { const [x, y] = await p.evaluate((k) => __pc(k), k); await p.touchscreen.touchStart(x, y); await sleep(700); await p.touchscreen.touchEnd(); await sleep(350); };
 const tap = async (x, y) => { await p.touchscreen.tap(x, y); await sleep(400); };
 
-// 1. long press, a tap on a later word: the end moves there (as before)
+// 0. 10.11 (Джессика выбрала «Снимает выделение»): by default a tap on a word clears the selection; old saved settings get it once (t2)
+const d0 = await p.evaluate(() => ({ fresh: rqRxNorm(null).sm.tap, old: rqRxNorm({ sm: { tap: true } }).sm.tap, kept: rqRxNorm({ sm: { tap: true, t2: true } }).sm.tap, cfg: smCfg().tap }));
+ok('default: «Нажатие ставит конец» off (fresh and old saved settings), turned on after 10.11 stays on', d0.fresh === false && d0.old === false && d0.kept === true && d0.cfg === false, d0);
+await lp(30); const a0 = await p.evaluate(() => __st());
+let [x, y] = await p.evaluate(() => __pc(200)); await tap(x, y); const b0 = await p.evaluate(() => __st());
+ok('default: a tap on a word clears the selection, no page turn', a0.on && a0.len > 0 && !b0.on && b0.len === 0 && b0.page === 3, { a0, b0 });
+await p.evaluate(() => { rqRx().sm.tap = true; saveSet(); });
+
+// 1. «Нажатие ставит конец» on: long press, a tap on a later word: the end moves there
 await lp(40); const a1 = await p.evaluate(() => __st());
-let [x, y] = await p.evaluate(() => __pc(200)); await tap(x, y); const b1 = await p.evaluate(() => __st());
+[x, y] = await p.evaluate(() => __pc(200)); await tap(x, y); const b1 = await p.evaluate(() => __st());
 ok('long press selects a word, a tap on a later word moves the end', a1.on && a1.len > 0 && a1.len < 25 && b1.on && b1.len > 150, { a1, b1 });
 
 // 2. a tap on an empty place of the page: the selection and its menu are gone, the page stays

@@ -16,6 +16,7 @@ const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: SHOTS ? 2 : 1 });
 p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+await p.evaluate(() => { if (typeof rxS === 'function') { rxS().sm.tap = true; saveSet(); } }); /* 10.11: «Нажатие ставит конец» is off by default now; these checks are about it on */
 await p.evaluate(async () => {
   const bk = allBooks().slice().sort((a, b) => ((b.text || '').length) - ((a.text || '').length))[0];
   SET.mtop = 0; /* 08.11: geometry as before «Поле сверху» (step 2 looks for a short last line in a fixed band) */ SET.flip = Object.assign({}, SET.flip || {}, { mode: 'scroll', anim: 'none' }); SET.selLook = 'dock'; saveSet(); applySet && applySet();

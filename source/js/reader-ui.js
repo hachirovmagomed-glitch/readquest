@@ -619,7 +619,7 @@ function selPdfShown(n){
    page's real Selection (set by code), so the bar, colours, notes, copy and «Объясни» work on it as before. Pages turn by swipe only meanwhile. */
 const SM={on:false,lo:null,hi:null,set:false,ptr:'',lp:null,tapAt:0,drag:null,raf:0,prog:false};
 /** 04.11 (Джессика: «чтобы можно было тянуть выделение и тапать … тонкие настройки этого процесса»): «Чтение → Выделение текста», SET.rx.sm */
-function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
+function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:false,t2:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
 function smOk(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'||R.mode==='pdf')&&!el('reader').classList.contains('hidden');} /* 04.11 (Джессика: «в тхт и Epub с Fb2 … выделять нужный участок … С PDF так делать нельзя, нужно тянуть»): PDF too */
 /** a book's text: the column of a text book or a PDF page's text layer (not the painted quote boxes on it) */
 function smInText(n){const e=n&&(n.nodeType===3?n.parentNode:n);if(!e||!e.closest||e.closest('.pdfhls'))return false;return el('content').contains(e)||!!e.closest('#viewer .textLayer');}
@@ -644,7 +644,7 @@ function smSync(){if(!SM.on||!SM.lo||!SM.hi)return false;if(SM.lo[0].isConnected
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
 function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
 function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
-  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f;}
+  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f+(c.tap?'':'. Нажатие снимает выделение');} /* 10.11 */
 function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smLock(false);smDraw();}
 function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return false;const rg=s.getRangeAt(0);if(!smInText(rg.commonAncestorContainer))return false;
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}

@@ -78,14 +78,13 @@ function stMenu(on){
     !stOff('spAll')&&['qall','quote','Все цитаты'],
     !stOff('spWord')&&['word','book-open','В словарь'],
     sv&&['view','menu','Вид меню'],
-    ['wiki','info','Википедия'],
+    /* 10.11 (Джессика: «Давай уберем Википедию вообще»): no «Википедия» in «Ещё» (stWiki stays) */
   ]:[
     !own&&!stOff('spNote')&&['note','pencil','Заметка'],
     !stOff('spWord')&&['word','book-open','В словарь'],
     typeof qDiaryOn==='function'&&qDiaryOn()&&['diary','notebook-pen','В дневник'],
     ['mark','bookmark','Закладка здесь'],
     sv&&['view','menu','Вид меню'], /* 06.11: the look of this menu, switched right here («Сбоку» has no own button: it stays compact; 10.11 «Плашка» neither) */
-    ['wiki','info','Википедия'],
     /* 10.11 (Джессика про «Выделить больше»: «можно удалить эти функции … они просто перегружают интерфейс»): «Предложение, потом абзац»,
        «+ предложение», «+ абзац», «До конца абзаца», «До конца страницы» are no longer in this list (ST_ACT keeps their code) */
   ]).filter(Boolean);

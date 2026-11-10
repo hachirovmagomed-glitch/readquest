@@ -531,7 +531,7 @@ function qbPlace(){const n=el('selpop');if(!n)return;if(rqPinPlace(n,'quote',qbP
    «Вид» in the menu itself lists the five looks; a tap switches at once (the same SET.selLook as «Чтение → Меню выделения»), the selection stays */
 function ssLooksMenu(anchor){const m=el('ssMenu'),b=anchor||el('ssView'),cur=ssLook();if(!m||!b)return;
   m.innerHTML=SS_LOOKS.map(function(l){const on=l[0]===cur;return '<button type="button" role="menuitemradio" aria-checked="'+on+'" data-look="'+l[0]+'">'+(on?rqIcon('check',18):'<span class="ic" style="display:inline-block;width:18px"></span>')+'<span>'+esc(l[1])+'</span></button>';}).join('');
-  m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
+  m.classList.remove('tiles'); m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
 function ssLookSet(v){if(!SS_LOOKS.some(function(l){return l[0]===v;}))return;const m=el('ssMenu');if(m)m.hidden=true;const b=el('ssView');if(b)b.setAttribute('aria-expanded','false');
   SET.selLook=v;saveSet();SS.open=true;if(typeof stCol==='function')stCol(false); /* the card's colour row would stay over the new look's buttons */ssUpd();} /* no toast: it would lie over the menu that has just moved there */
 /** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
@@ -575,7 +575,7 @@ function ssUpd(){
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
   if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
-  if((lk==='bar'||lk==='big')&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card */
+  if(lk==='big'&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card (10.11: «Плашка» folds them into a button) */
   const f=el('selFrom'),from=!SQ&&pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);

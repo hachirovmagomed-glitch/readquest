@@ -67,7 +67,7 @@ await p.evaluate(async () => { __word('Через базарную площад�
 // «⋯»: a labelled list next to the column, on the side of the text
 const m = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 150)); const mm = el('ssMenu'), r = mm.getBoundingClientRect(), rr = el('ssRail').getBoundingClientRect();
   return { shown: !mm.hidden, items: [...mm.querySelectorAll('button')].map(b => b.textContent.trim()), right: r.left >= rr.right, inside: r.top >= 0 && r.bottom <= innerHeight && r.right <= innerWidth }; });
-ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'В словарь', 'Предложение, потом абзац', 'Закладка здесь', 'Википедия', 'До конца абзаца', 'До конца страницы'].every(x => m.items.includes(x)), m);
+ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'В словарь', 'Закладка здесь', 'Википедия'].every(x => m.items.includes(x)) && !['Предложение, потом абзац', '+ предложение', '+ абзац', 'До конца абзаца', 'До конца страницы'].some(x => m.items.includes(x)), m);
 const m2 = await p.evaluate(async () => { el('ssFold').click(); await new Promise(r => setTimeout(r, 50)); return el('ssMenu').hidden; });
 ok('«Действия» list closes with the menu', m2, m2);
 const act = (a) => p.evaluate(async (a) => { await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="' + a + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, a);
@@ -89,10 +89,10 @@ ok('8. «Закладка здесь»: on the page of the selection (3), with i
 
 // 10. «До конца абзаца» / «До конца страницы»: the start stays, the end moves
 const p10 = await p.evaluate(async () => { getSelection().removeAllRanges(); goPage(0, true); await new Promise(r => setTimeout(r, 300)); __word('Через базарную'); return String(getSelection()); });
-await act('para');
+await p.evaluate(() => ST_ACT.para()); // 10.11: no longer in «⋮» (Джессика: «перегружают интерфейс»), the code stays
 const p10b = await p.evaluate(() => { const s = String(getSelection()).trim(), par = [...document.querySelectorAll('#content p')].find(x => x.textContent.includes('Через базарную')); return { s: s.slice(0, 40), end: par && s === par.textContent.trim().slice(par.textContent.trim().indexOf('Через')) }; });
 ok('10. «До конца абзаца»: from «Через базарную» to the end of its paragraph', /^Через базарную/.test(p10b.s) && p10b.end, { p10, p10b });
-await act('page');
+await p.evaluate(() => ST_ACT.page());
 const pg10 = await p.evaluate(() => { const s = getSelection(), v = el('viewer').getBoundingClientRect(), cr = document.createRange(); cr.setStart(s.focusNode, s.focusOffset - 1); cr.setEnd(s.focusNode, s.focusOffset); const last = cr.getClientRects()[0]; /* the last selected character (a <p> cut by the column gives a box over both pages) */
   let next = null; selWalk(s.focusNode, s.focusOffset, 1, function (x, k, r) { next = selPageAt(r); return true; });
   return { start: String(s).trim().slice(0, 14), inPage: last.right <= v.right + 2 && last.left >= v.left - 2, next, page: R.page }; });
@@ -119,10 +119,10 @@ for (const lk of ['bar', 'bubble', 'dock', 'big']) {
     return { look: n.dataset.look, open: n.classList.contains('open'), tab: vis('ssTab'), inside: b.left >= 0 && b.right <= innerWidth + 0.5 && b.top >= 0 && b.bottom <= innerHeight, covers: s.bottom > b.top && s.top < b.bottom && s.right > b.left && s.left < b.right,
       colsIn: el('spColors').parentNode.id, note: vis('ssNote'), copy: vis('ssCopy'), dict: vis('ssDict'), ai: vis('ssAI'), more: vis('ssMore'), cap: vis('ssL') || [...n.querySelectorAll('.ssL')].some(x => getComputedStyle(x).display !== 'none'),
       bar: getComputedStyle(el('selpop')).display, w: Math.round(b.width), h: Math.round(b.height), top: Math.round(b.top), selTop: Math.round(s.top) }; }, lk);
-  const card = lk === 'bar' || lk === 'big';
+  const card = lk === 'big'; /* 10.11 «Плашка» is one row: its colours are behind the round button, as in the other rows */
   ok(lk + ': open at once (no tab), on screen, not over the words; colours ' + (card ? 'on the card' : 'behind «Цвета»') + '; copy, translate, explain, more; no bottom bar',
     r.look === lk && r.open && !r.tab && r.inside && !r.covers && (card ? r.colsIn === 'ssColBox' : r.colsIn === 'selpop') && r.copy && r.dict && r.ai && r.more && r.note === (lk !== 'bubble') && r.cap === (lk === 'big') && r.bar === 'none'
-    && (lk !== 'bubble' || (r.top < r.selTop && r.h < 60)), r);
+    && (lk !== 'bubble' || (r.top < r.selTop && r.h < 60)) && (lk !== 'bar' || r.h < 60), r);
   const m = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 150)); const b = el('ssMenu').getBoundingClientRect(), items = [...el('ssMenu').querySelectorAll('button')].map(x => x.textContent.trim()); el('ssMore').click();
     return { inside: b.left >= 0 && b.right <= innerWidth + 0.5 && b.top >= 0 && b.bottom <= innerHeight, h: Math.round(b.height), note: items.includes('Заметка'), n: items.length }; });
   ok(lk + ': «Ещё» opens whole on screen; «Заметка» is in the row, not in the list' + (lk === 'bubble' ? ' (here in the list)' : ''), m.inside && m.h > 100 && m.note === (lk === 'bubble'), m);

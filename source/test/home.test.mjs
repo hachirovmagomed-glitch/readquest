@@ -45,15 +45,16 @@ ok('0 js/home.js не начисляет монеты и опыт (нет S.gold
 const s1 = await p.evaluate(async () => {
   const w = (ms) => new Promise(r => setTimeout(r, ms));
   __navAllow = true; show('profile'); __navAllow = false; await w(300);
-  const r = { card: !!el('homeCard'), sub: el('homeCardSub').textContent, tools: !!el('toolCard') && el('toolCard').offsetWidth > 0, cardW: el('homeCard').offsetWidth };
-  el('homeCard').click(); await w(300);
+  const r = { card: !el('homeCard'), tools: !!el('toolCard') && el('toolCard').offsetWidth > 200 };
+  openDrawer(); await w(300); const di = el('dHome'); r.item = !!di && di.textContent.trim().indexOf('Домик') === 0; r.sec = di && di.previousElementSibling && di.previousElementSibling.id; r.cardW = di ? di.offsetWidth : 0;
+  di.click(); await w(400); r.drawer = !el('drawer').classList.contains('open');
   r.open = !el('homePage').hidden; r.scene = !!document.querySelector('#hmBody svg.hmscene'); r.rooms = [...document.querySelectorAll('.hmrooms .fchip')].map(b => b.textContent + (b.classList.contains('lock') ? '!' : ''));
   r.tabs = [...document.querySelectorAll('.hmtabs button')].map(b => b.textContent); r.mood = document.querySelector('.hmstage').dataset.mood; r.feedOff = el('hmFeed').disabled;
   r.pet = !!document.querySelector('.hmscene .hmpet'); r.hero = !document.querySelector('.hmstage .hmhero'); /* 10.11 «персонажа пока убери» */ r.nav = history.state && history.state.rq;
   homeRoom('attic'); await w(100); r.locked = HV.room === 'main';
   return r; });
-ok('1 карточка «Домик» в профиле рядом с «Инструментами», экран: комната + две закрытые уровнем, 4 вкладки, питомец спит, «Угостить» выключено, героя в комнате нет',
-  s1.card && s1.tools && s1.cardW > 100 && s1.open && s1.scene && s1.rooms.join() === 'Комната,Чердак · ур. 5!,Сад · ур. 10!' && s1.tabs.join() === 'Домик,Обставить,Питомец,Память' && s1.mood === 'sleep' && s1.feedOff && s1.pet && s1.hero && s1.nav === 'home' && s1.locked, s1);
+ok('1 «Домик» в боковом меню сразу после «Профиля» (в профиле карточки нет, «Инструменты» на всю ширину), экран: комната + две закрытые уровнем, 4 вкладки, питомец спит, «Угостить» выключено, героя в комнате нет',
+  s1.card && s1.tools && s1.item && s1.sec === 'dProf' && s1.cardW > 100 && s1.open && s1.scene && s1.rooms.join() === 'Комната,Чердак · ур. 5!,Сад · ур. 10!' && s1.tabs.join() === 'Домик,Обставить,Питомец,Память' && s1.mood === 'sleep' && s1.feedOff && s1.pet && s1.hero && s1.nav === 'home' && s1.locked, s1);
 await shot('390-1-domik-spit');
 await p.evaluate(() => homeBack()); await sleep(300);
 ok('1b «назад» закрывает домик', await p.evaluate(() => el('homePage').hidden));

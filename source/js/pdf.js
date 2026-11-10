@@ -690,11 +690,11 @@ function rqCols(w){const sp=rqRx().screen.spread;if(sp==='off')return 1;if(w>=86
 function rqTextMargin(){const v=el('viewer');if(!v||R.mode==='pdf')return;const W=window.innerWidth,m=SET.margin;
   const mw=(W>=600&&W<860&&!(rqRx().screen.spread==='land'&&W>window.innerHeight))?Math.max(m,Math.floor((W-SET.size*36)/2)):m; /* 29.10: two pages in landscape keep the plain margins */
   if(v._mw!==mw){v._mw=mw;v.style.margin='0 '+mw+'px';el('reader').style.setProperty('--r-margin',mw+'px');}}
-function layout(){
+function layout(sz){
   if(R.mode==='pdf'){pdfOnResize();return;}
   rqTextMargin();
   const v=el('viewer'),c=el('content');
-  const w=v.clientWidth,h=v.clientHeight,gap=48;
+  const w=sz?sz.w:v.clientWidth,h=sz?sz.h:v.clientHeight,gap=48; /* 10.11 sz: measured by rqBgSnapRestore while the book was still put away (no extra full re-layout) */
   if(rqScrollMode()){ /* 16.10: one vertical strip; «page» = one screen, the last page = the end of the text */
     c.style.columnWidth='auto';c.style.columnGap='normal';c.style.height='auto';c.style.width=w+'px';c.style.transform='none';
     R.step=h;const max=Math.max(0,v.scrollHeight-h);R.scrollMax=max;
@@ -749,11 +749,12 @@ function relayout(opts){
   if(rqHalfSync())applySet(); /* 05.11 половина экрана: свой шрифт и поля */
   if(window.__rqFindOpen&&!o.force){R.relayDue=true;return;} /* 22.10: the keyboard of the search screen shrinks the viewport — no re-pagination of the whole book under it (black screen); done once on close */
   if(R.mode==='pdf'){pdfOnResize();return;} /* CSS-scale now, one re-render when the size is stable */
+  if(window.__rqBgSnap&&__rqBgSnap.on){__rqBgSnap.due=true;return;} /* 10.11: the book is put away while the app is in the background (js/page-curl.js rqBgSnapTake) — measured once on return */
   const v=el('viewer');
   if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */
   const anchor=o.anchor||readingAnchor();
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
-  layout();
+  layout(o.size);
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
   R.relay=true;try{goPage(p,false);}finally{R.relay=false;} /* 1в: a re-layout keeps the text in view; it never grows «reached» (e.g. after read-aloud) */
@@ -862,6 +863,7 @@ function rqScrollSettle(){
 el('viewer').addEventListener('scroll',function(){if(rqScrollMode()){rqScrollSoon();if(__tracker&&__tracker.userActive)__tracker.userActive('scroll');}},{passive:true}); /* 25.10: scrolling = a sign of life */
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
+  if(window.__rqBgSnap&&__rqBgSnap.on&&!R.relay)rqBgSnapRestore(); /* 10.11: a turn while the book is put away (back from the background) — the book comes back first */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
     if(turn&&Math.abs(p-R.page)===1)pdfFlip(p-R.page);else pdfGo(p,turn?'flip':'nav');
     return;

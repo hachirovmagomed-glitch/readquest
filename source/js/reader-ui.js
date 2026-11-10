@@ -1632,6 +1632,7 @@ function closeReader(opts){
 }
 async function closeReaderImpl(opts){
   const o=opts||{};
+  if(typeof rqBgSnapRestore==='function')rqBgSnapRestore(true); /* 10.11: closed while put away in the background (handover) — the strip back, no re-layout */
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo&&!fo.hidden)bfHide();} /* 20.10: the search lives with the open book only */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');el('ocrSheet').classList.add('hidden');relWake();

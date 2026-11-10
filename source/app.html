@@ -1284,6 +1284,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 .rqCurl{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
 .rqCurlSheet{position:absolute;inset:0;background:var(--r-bg,#f4ecd8);color:var(--r-txt,#5b4636)}
 .rqCurlClip{position:absolute;top:0;left:0;overflow:hidden}
+.rqCurlSheet.rqBgSnap{background:transparent} /* 10.11: the page copy while the app is in the background (js/page-curl.js rqBgSnapTake) — over the page's own background, the strip itself is out */
 .rqCurlStage{position:absolute;left:0;top:0;transform-origin:0 0}
 .rqCurlPg{position:relative}
 .rqCurlCv{position:absolute;left:0;top:0;width:100%;height:100%;display:block}

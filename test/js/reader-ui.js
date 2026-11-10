@@ -434,8 +434,10 @@ const SS={open:false,on:false,drag:null,moved:false};
    side = the column at an edge (as before), bar = a card at the bottom, colours on top and icons under them (as on her picture),
    bubble = a small row right next to the selected words, dock = one row across the screen above ‹ ›, big = the card with captions.
    The same buttons and branches in all of them, only the CSS (#selSide[data-look]) and the place (ssPlace) differ. */
-const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста'],['dock','Полоса снизу'],['big','С подписями']];
-function ssLook(){const v=SET.selLook;return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
+/* 10.11 (Джессика: «убери полосу снизу и с подписями … по сути, бесполезная»): three looks left; a saved «Полоса снизу» / «С подписями»
+   shows as «Плашка» (also one row at the bottom). Their CSS stays unused. */
+const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста']];
+function ssLook(){const v=SET.selLook;if(v==='dock'||v==='big')return 'bar';return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
 function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
 function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
   const L=function(t){return '<span class="ssL" aria-hidden="true">'+t+'</span>';}; /* a caption: only in the look «С подписями» */

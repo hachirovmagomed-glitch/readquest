@@ -619,7 +619,7 @@ function selPdfShown(n){
    page's real Selection (set by code), so the bar, colours, notes, copy and «Объясни» work on it as before. Pages turn by swipe only meanwhile. */
 const SM={on:false,lo:null,hi:null,set:false,ptr:'',lp:null,tapAt:0,drag:null,raf:0,prog:false};
 /** 04.11 (Джессика: «чтобы можно было тянуть выделение и тапать … тонкие настройки этого процесса»): «Чтение → Выделение текста», SET.rx.sm */
-function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
+function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:false,t2:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
 function smOk(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'||R.mode==='pdf')&&!el('reader').classList.contains('hidden');} /* 04.11 (Джессика: «в тхт и Epub с Fb2 … выделять нужный участок … С PDF так делать нельзя, нужно тянуть»): PDF too */
 /** a book's text: the column of a text book or a PDF page's text layer (not the painted quote boxes on it) */
 function smInText(n){const e=n&&(n.nodeType===3?n.parentNode:n);if(!e||!e.closest||e.closest('.pdfhls'))return false;return el('content').contains(e)||!!e.closest('#viewer .textLayer');}
@@ -644,18 +644,24 @@ function smSync(){if(!SM.on||!SM.lo||!SM.hi)return false;if(SM.lo[0].isConnected
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
 function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
 function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
-  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f;}
+  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f+(c.tap?'':'. Нажатие снимает выделение');} /* 10.11 */
 function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smLock(false);smDraw();}
 function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return false;const rg=s.getRangeAt(0);if(!smInText(rg.commonAncestorContainer))return false;
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
 /** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
 function smTap(x,y){
-  if(!smCfg().tap||!smSync())return;
-  const p=smPt(x,y);if(!p)return;const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
+  /* 10.11 (тестер: «если случайно выделить текст, режим выделения не сбрасывается просто нажатием в любую область экрана»): a tap off the text
+     (an empty line, under the last line, the margins) clears the selection; with «Нажатие ставит конец» off any tap clears it */
+  if(!smSync()){selDone();return;}
+  const p=smPt(x,y);if(!p||!smCfg().tap||!smNear(p,x,y)){selDone();return;}const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
   if(smCmp(SM.lo,w[0])>=0)SM.hi=w[1];else SM.lo=w[0];
   SM.set=true;smApply();setTimeout(updSelPop,30);
 }
 /** a tap from the reader's tap handlers while selecting — not the click Chrome may send after the long press itself */
+/** the tap on a line of the text (Chrome's caret test snaps a tap on an empty place — under the last line, between paragraphs — to the nearest
+    text); right of a paragraph's short last line is still that line (05.11: the end goes to the paragraph's end) */
+function smNear(p,x,y){const q=smCharRect(p[0],p[1])||smCharRect(p[0],p[1]-1);if(!q)return false;const h=Math.max(12,q.bottom-q.top);
+  return y>=q.top-h*0.6&&y<=q.bottom+h*0.6;}
 function smTapAt(cx,cy){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-SM.lpXY[0])<16&&Math.abs(cy-SM.lpXY[1])<16))smTap(cx,cy);}
 /* long press: our timer (Chrome's own long press is cancelled below) */
 function smLpStart(e){
@@ -1267,7 +1273,7 @@ el('viewer').addEventListener('touchend',e=>{
 /* 28.10 (ревизия чтения, баг 5): поля слева и справа от колонки текста — тоже страница: тап листает, свайп листает */
 let mg0=null;
 function rqMarginHit(e,t){if(R.mode==='pdf'||e.target!==el('reader'))return false;const r=el('viewer').getBoundingClientRect();return t.clientY>=r.top&&t.clientY<=r.bottom&&(t.clientX<r.left||t.clientX>r.right);}
-function rqMarginTap(x,y){if(SM.on)return;const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
+function rqMarginTap(x,y){if(SM.on||selText()){selDone();return;} /* 10.11: a tap on a margin while selecting clears the selection */const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
 el('reader').addEventListener('touchstart',e=>{mg0=null;if(e.touches.length===1&&rqMarginHit(e,e.touches[0]))mg0={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
 el('reader').addEventListener('touchend',e=>{
   const m=mg0;mg0=null;if(!m||e.touches.length)return;

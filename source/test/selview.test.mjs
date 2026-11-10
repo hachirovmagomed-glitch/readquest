@@ -23,19 +23,21 @@ const tapEl = async (id) => { const r = await p.evaluate((id) => { const b = el(
 const v0 = await p.evaluate(() => ({ look: el('selSide').dataset.look, btn: !!el('ssView') && el('ssView').getBoundingClientRect().width > 0 }));
 ok('the menu «Плашка» (10.11 one row) has no own «≡ Вид»: it is in «Ещё», as in «Сбоку»', v0.look === 'bar' && !v0.btn && len0 > 0, { v0, len0 });
 await sleep(3300); /* the hint toast «Нажми на слово…» is gone */
-const order = ['dock', 'bubble', 'big', 'side', 'bar'];
+const order = ['bubble', 'side', 'bar']; /* 10.11: three looks left */
 for (const lk of order) {
   const cur = await p.evaluate(() => SET.selLook);
   if (cur === 'side' || cur === 'bar') { await tapEl('ssMore'); const vb = await p.evaluate(() => { const r = el('ssMenu').querySelector('[data-a="view"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }); await p.touchscreen.tap(vb.x, vb.y); await sleep(400); } /* «Сбоку», «Плашка»: «⋮ → Вид меню» */
   else await tapEl('ssView');
   const m = await p.evaluate(() => ({ items: [...el('ssMenu').querySelectorAll('[data-look]')].map(b => [b.dataset.look, b.getAttribute('aria-checked')]), hidden: el('ssMenu').hidden }));
-  if (SHOTS && lk === 'dock') await p.screenshot({ path: SHOTS + '/vid-1-spisok.png' });
+  if (SHOTS && lk === 'bubble') await p.screenshot({ path: SHOTS + '/vid-1-spisok.png' });
   const b = await p.evaluate((lk) => { const r = el('ssMenu').querySelector('[data-look="' + lk + '"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, lk);
   await p.touchscreen.tap(b.x, b.y); await sleep(500);
   const s = await p.evaluate(() => ({ look: el('selSide').dataset.look, set: SET.selLook, menu: el('ssMenu').hidden, len: String(getSelection()).length, open: el('selSide').classList.contains('open'), shown: !el('selSide').hidden }));
-  ok('«Вид» → ' + lk + ': five looks listed, a tap switches the menu at once, the selection stays', !m.hidden && m.items.length === 5 && s.look === lk && s.set === lk && s.menu && s.len === len0 && s.shown && s.open, { m, s });
+  ok('«Вид» → ' + lk + ': three looks listed, a tap switches the menu at once, the selection stays', !m.hidden && m.items.length === 3 && s.look === lk && s.set === lk && s.menu && s.len === len0 && s.shown && s.open, { m, s });
   if (SHOTS) await p.screenshot({ path: SHOTS + '/vid-' + lk + '.png' });
 }
+const old = await p.evaluate(async () => { const r = []; for (const v of ['dock', 'big']) { SET.selLook = v; ssUpd(); await new Promise(q => setTimeout(q, 200)); r.push(el('selSide').dataset.look); } SET.selLook = 'bar'; ssUpd(); return r; });
+ok('a saved «Полоса снизу» / «С подписями» (10.11 gone) shows as «Плашка»', old.join() === 'bar,bar', old);
 ok('no page errors', errs.length === 0, errs);
 console.log(checks.filter(Boolean).length + '/' + checks.length);
 await browser.close();

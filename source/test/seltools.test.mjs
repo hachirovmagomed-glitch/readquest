@@ -67,7 +67,15 @@ await p.evaluate(async () => { __word('Через базарную площад�
 // «⋯»: a labelled list next to the column, on the side of the text
 const m = await p.evaluate(async () => { el('ssMore').click(); await new Promise(r => setTimeout(r, 150)); const mm = el('ssMenu'), r = mm.getBoundingClientRect(), rr = el('ssRail').getBoundingClientRect();
   return { shown: !mm.hidden, items: [...mm.querySelectorAll('button')].map(b => b.textContent.trim()), right: r.left >= rr.right, inside: r.top >= 0 && r.bottom <= innerHeight && r.right <= innerWidth }; });
-ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'В словарь', 'Закладка здесь', 'Википедия'].every(x => m.items.includes(x)) && !['Предложение, потом абзац', '+ предложение', '+ абзац', 'До конца абзаца', 'До конца страницы'].some(x => m.items.includes(x)), m);
+ok('«Действия» shows the labelled list beside the menu, on screen', m.shown && m.right && m.inside && ['Заметка', 'В словарь', 'Закладка здесь', 'Значение'].every(x => m.items.includes(x)) && !['Википедия', 'Предложение, потом абзац', '+ предложение', '+ абзац', 'До конца абзаца', 'До конца страницы'].some(x => m.items.includes(x)), m);
+// 10.11 (Джессика: «ты не добавил сюда значение слов»): «Значение» for a long selection too — first its words as buttons, a tap opens that word
+const dk = await p.evaluate(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms)); el('ssMore').click(); await w(100); getSelection().removeAllRanges(); await w(200);
+  __word('Через базарную площадь'); { const g = getSelection(), n = g.anchorNode, i = Math.min(g.anchorOffset, g.focusOffset); g.setBaseAndExtent(n, i, n, Math.min(n.nodeValue.length, i + 70)); } await __open(); el('ssMore').click(); await w(150); const item = !!el('ssMenu').querySelector('[data-a="dict"]');
+  el('ssMenu').hidden = true; dkPick('Через базарную площадь идёт полицейский надзиратель Очумелов', null, null, ''); await w(400); const pk = el('rmNote').querySelector('.dkpick'), ws = pk ? [...pk.querySelectorAll('button')].map(b => b.textContent) : [];
+  if (pk) pk.querySelector('button[data-w="площадь"]').click(); await w(600);
+  const r = { item, ws, title: (el('rmNote').querySelector('.rmnh b') || {}).textContent, open: !el('rmNote').hidden }; if (typeof rmFnHide === 'function') rmFnHide();
+  getSelection().removeAllRanges(); await w(200); __word('Через базарную площадь'); await __open(); el('ssMore').click(); await w(150); return r; });
+ok('«Значение» for a long selection: its words as buttons, a tap on «площадь» opens its entry', dk.item && dk.ws.length > 3 && dk.ws.includes('площадь') && dk.open && dk.title === 'площадь', dk);
 const m2 = await p.evaluate(async () => { el('ssFold').click(); await new Promise(r => setTimeout(r, 50)); return el('ssMenu').hidden; });
 ok('«Действия» list closes with the menu', m2, m2);
 const act = (a) => p.evaluate(async (a) => { await __open(); el('ssMore').click(); await new Promise(r => setTimeout(r, 50)); el('ssMenu').querySelector('[data-a="' + a + '"]').click(); await new Promise(r => setTimeout(r, 300)); }, a);
@@ -100,7 +108,7 @@ ok('10. «До конца страницы»: the end on the last word of this p
 
 // 9. «Википедия»: a note in a sheet (no exact article → Wikipedia's own search), a link to the article
 await p.evaluate(async () => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); __word('Очумелов'); });
-await act('wiki'); await w(500);
+await p.evaluate(() => ST_ACT.wiki()); await w(500); // 10.11: no longer in «⋮», the code stays
 const w9 = await p.evaluate(() => { const o = el('stSheet'); return { shown: o && !o.hidden, h: el('stSheetH').textContent, body: el('stSheetB').textContent, href: (el('stSheetB').querySelector('a') || {}).href || '' }; });
 ok('9. «Википедия»: «Очумелов» → search → «Хамелеон (рассказ)», its note and a link', w9.shown && w9.h === 'Хамелеон (рассказ)' && /надзирателе/.test(w9.body) && /wikipedia\.org/.test(w9.href) && wiki.some(u => /opensearch/.test(u)) && wiki.every(u => /^https:\/\/ru\.wikipedia\.org/.test(u)), { w9, wiki });
 await p.evaluate(() => stSheetClose());
@@ -113,7 +121,7 @@ const k12 = await p.evaluate(async () => { getSelection().removeAllRanges(); awa
 ok('«Копировать» in the column (the bar\'s own copy), not in «Действия»; no heroes in «Действия»',
   k12.copied === 'Очумелов' && k12.rail.indexOf('ssCopy') > k12.rail.indexOf('ssCol') && k12.rail.indexOf('ssCopy') < k12.rail.indexOf('ssDict') && !k12.items.some(x => /Копировать|геро/i.test(x)), k12);
 // 04.11 (Джессика: «возможность выбирать в настройках виды бокового меню … ещё 3 варианта»): five looks, SET.selLook
-for (const lk of ['bar', 'bubble', 'dock', 'big']) {
+for (const lk of ['bar', 'bubble']) { // 10.11 «Полоса снизу» and «С подписями» are gone (Джессика: «по сути, бесполезная»)
   const r = await p.evaluate(async (lk) => { getSelection().removeAllRanges(); await new Promise(r => setTimeout(r, 200)); SET.selLook = lk; saveSet(); __word('Очумелов'); await new Promise(r => setTimeout(r, 700));
     const n = el('selSide'), b = n.getBoundingClientRect(), s = [...getSelection().getRangeAt(0).getClientRects()][0], vis = (id) => { const e = el(id); return !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0; };
     return { look: n.dataset.look, open: n.classList.contains('open'), tab: vis('ssTab'), inside: b.left >= 0 && b.right <= innerWidth + 0.5 && b.top >= 0 && b.bottom <= innerHeight, covers: s.bottom > b.top && s.top < b.bottom && s.right > b.left && s.left < b.right,
@@ -135,7 +143,7 @@ const ls = await p.evaluate(async () => { SET.selLook = 'side'; saveSet(); openG
   const chips = box ? [...box.querySelectorAll('button')].map(b => b.textContent) : []; const on0 = box && box.querySelector('.on') && box.querySelector('.on').textContent;
   if (box) [...box.querySelectorAll('button')].find(b => b.textContent === 'У текста').click(); await new Promise(r => setTimeout(r, 100));
   const r = { chips, on0, set: SET.selLook, on1: el('rxSelLook').querySelector('.on').textContent }; SET.selLook = 'side'; saveSet(); return r; });
-ok('settings «Чтение → Меню выделения → Вид меню»: five looks, «Сбоку» by default, a tap picks one', JSON.stringify(ls.chips) === JSON.stringify(['Сбоку', 'Плашка', 'У текста', 'Полоса снизу', 'С подписями']) && ls.on0 === 'Сбоку' && ls.set === 'bubble' && ls.on1 === 'У текста', ls);
+ok('settings «Чтение → Меню выделения → Вид меню»: three looks (10.11), «Сбоку» by default, a tap picks one', JSON.stringify(ls.chips) === JSON.stringify(['Сбоку', 'Плашка', 'У текста']) && ls.on0 === 'Сбоку' && ls.set === 'bubble' && ls.on1 === 'У текста', ls);
 ok('no page errors', !errs.length, errs.slice(0, 3));
 await browser.close();
 const f = checks.filter(x => !x).length; console.log(f ? `${f} FAILED of ${checks.length}` : `ALL ${checks.length} PASSED`); process.exit(f ? 1 : 0);

@@ -49,10 +49,10 @@ const s1 = await p.evaluate(async () => {
   el('homeCard').click(); await w(300);
   r.open = !el('homePage').hidden; r.scene = !!document.querySelector('#hmBody svg.hmscene'); r.rooms = [...document.querySelectorAll('.hmrooms .fchip')].map(b => b.textContent + (b.classList.contains('lock') ? '!' : ''));
   r.tabs = [...document.querySelectorAll('.hmtabs button')].map(b => b.textContent); r.mood = document.querySelector('.hmstage').dataset.mood; r.feedOff = el('hmFeed').disabled;
-  r.pet = !!document.querySelector('.hmscene .hmpet'); r.hero = !!document.querySelector('.hmstage .hmhero svg'); r.nav = history.state && history.state.rq;
+  r.pet = !!document.querySelector('.hmscene .hmpet'); r.hero = !document.querySelector('.hmstage .hmhero'); /* 10.11 «персонажа пока убери» */ r.nav = history.state && history.state.rq;
   homeRoom('attic'); await w(100); r.locked = HV.room === 'main';
   return r; });
-ok('1 карточка «Домик» в профиле рядом с «Инструментами», экран: комната + две закрытые уровнем, 4 вкладки, питомец спит, «Угостить» выключено, герой в комнате',
+ok('1 карточка «Домик» в профиле рядом с «Инструментами», экран: комната + две закрытые уровнем, 4 вкладки, питомец спит, «Угостить» выключено, героя в комнате нет',
   s1.card && s1.tools && s1.cardW > 100 && s1.open && s1.scene && s1.rooms.join() === 'Комната,Чердак · ур. 5!,Сад · ур. 10!' && s1.tabs.join() === 'Домик,Обставить,Питомец,Память' && s1.mood === 'sleep' && s1.feedOff && s1.pet && s1.hero && s1.nav === 'home' && s1.locked, s1);
 await shot('390-1-domik-spit');
 await p.evaluate(() => homeBack()); await sleep(300);

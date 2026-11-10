@@ -7,6 +7,8 @@
    Лакомства: одно за каждые 10 засчитанных минут дня (row.minutes строк, уже прошедших честное чтение), не больше 6 в день,
    в запасе не больше 12. Рост питомца — от всех засчитанных минут, прочитанных с ним. Настроение — от минут за сегодня.
    Наказаний нет: без чтения питомец просто спит. */
+/* 10.11 Джессика: «персонажа пока убери» — героя из профиля в комнатах не рисуем; код оставлен, вернуть = true */
+const HM_HERO_ON=false;
 const HM_TREAT_MIN=10,HM_TREAT_DAY=6,HM_TREAT_MAX=12;
 const HM_STAGES=[['Малыш',0],['Подросток',120],['Взрослый',600],['Легенда',2400]];
 const HM_BOND=[0,3,8,15,25,40];
@@ -463,7 +465,7 @@ function homeRender(){
   if(el('hmGold'))el('hmGold').textContent=coinsP(S.gold);
   const rooms='<div class="hmrooms" role="group" aria-label="Комнаты">'+HM_ROOMS.map(function(r){const op=hmRoomOpen(r);return '<button type="button" class="fchip'+(HV.room===r.id?' on':'')+(op?'':' lock')+'" data-room="'+r.id+'" onclick="homeRoom(\''+r.id+'\')">'+(op?'':rqIcon('lock',12))+r.n+(op?'':' · ур. '+r.lvl)+'</button>';}).join('')+'</div>';
   const room=hmRoom(HV.room),hero=room.hero;let heroH='';
-  try{if(!edit&&typeof heroFigure==='function')heroH='<div class="hmhero heroframe" style="left:'+(hero[0]/320*100).toFixed(2)+'%;bottom:'+((232-hero[1])/232*100).toFixed(2)+'%;--hero-bg:'+(HV.room==='garden'?hmPal().grass:hmPal().wall)+(hmPal().stars?'':';--txt:'+hmPal().line)+'">'+heroFigure()+'</div>';}catch(e){}
+  try{if(HM_HERO_ON&&!edit&&typeof heroFigure==='function')heroH='<div class="hmhero heroframe" style="left:'+(hero[0]/320*100).toFixed(2)+'%;bottom:'+((232-hero[1])/232*100).toFixed(2)+'%;--hero-bg:'+(HV.room==='garden'?hmPal().grass:hmPal().wall)+(hmPal().stars?'':';--txt:'+hmPal().line)+'">'+heroFigure()+'</div>';}catch(e){}
   const scene='<div class="hmstage'+(mood===0?' dim':'')+'" data-room="'+HV.room+'" data-mood="'+HM_MOODS[mood][0]+'">'+hmScene(HV.room,{edit:edit,sel:HV.slot,dim:mood===0&&!edit,sleep:mood===0,petCls:HV.petCls})+heroH+'</div>';
   const tabs='<div class="hmtabs" role="tablist">'+[['home','Домик'],['edit','Обставить'],['pet','Питомец'],['mem','Память']].map(function(t){return '<button type="button" role="tab" aria-selected="'+(HV.tab===t[0])+'" class="'+(HV.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'" onclick="homeTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('')+'</div>';
   const st=body.scrollTop;

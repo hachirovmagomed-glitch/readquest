@@ -501,3 +501,4 @@
 - Начисление: `homeAfterAward` обёрнут вокруг `awardPendingSessions` (после `toolsAfterAward`), пишет только `S.home`.
 - Экспорт/импорт: `S.home` идёт с игровым доменом; старый файл без поля → пустой домик. `schemaVersion` не меняется.
 - Тесты: `test/home.test.mjs`, скриншоты `test/home-shots.mjs`.
+- 10.11 (Джессика: «персонажа пока убери»): герой из профиля в комнатах не рисуется, флаг `HM_HERO_ON=false` в `js/home.js`; данные не меняются.

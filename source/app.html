@@ -944,6 +944,24 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #panel .phead .closes{position:static}
 .ptabs button.on{background:var(--accent);color:var(--on-accent)}
 .ptabs button .ic,.row h1 .ic{vertical-align:-3px} /* 16.10: Lucide instead of emoji in «Дневник» */
+/* 10.11 обложки своих книг (js/covers.js): the «Обложка» sheet over the book card; a web cover (https) lies over the drawn one */
+.cover:has(>.cv-net){position:relative}
+.cover>.cv-net{position:absolute;inset:0;z-index:1}
+#covSheet{position:fixed;z-index:84;max-height:85%}
+#covSheet .cov-h{margin:0 40px 6px 0;font-size:1rem}
+#covSheet .cov-p{margin:0 0 8px;color:var(--muted);font-size:0.875rem}
+#covSheet .cov-q{display:flex;gap:8px;margin:4px 0 10px}
+#covSheet .cov-q input{flex:1 1 auto;width:auto;min-width:0;min-height:44px;margin:0;box-sizing:border-box;padding:0 12px;border-radius:var(--rq-radius-md);border:1px solid var(--card2);background:var(--card);color:var(--txt);font-size:1rem}
+#covSheet .cov-q button{flex:none;width:auto;margin:0;min-height:44px;padding:0 18px}
+#covSheet .cov-stat{margin:6px 0 10px;color:var(--muted);font-size:0.875rem}
+#covSheet .cov-stat.err{color:var(--danger)}
+#covSheet .cov-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#covSheet .cov-grid[aria-busy="true"]{opacity:.55;pointer-events:none}
+#covSheet .cov-tile{display:flex;flex-direction:column;gap:4px;padding:0;background:none;border:0;color:var(--muted);font-size:0.6875rem;text-align:center;cursor:pointer}
+#covSheet .cov-tile img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:var(--rq-radius-sm,8px);background:var(--card2);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+#covSheet .cov-tile:focus-visible img{outline:2px solid var(--accent);outline-offset:2px}
+#covSheet .cov-alt{margin-top:14px}
+#covSheet a.bk-line{text-decoration:none}
 /* 17.10: no emoji anywhere — Lucide in theme colours (progress, calendar, achievements, quests, vocab, covers) */
 .achn{display:inline-flex;align-items:center;gap:6px}.achn .ic,.chip .ic,.qnote .ic,.achd .ic{flex:none;vertical-align:-2px}
 .achitem:not(.got) .achn .ic,.achd .ic{color:var(--muted)}.achitem.got .achn .ic{color:var(--accent2)}
@@ -3650,6 +3668,7 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <script src="js/focus.js"></script>
 <script src="js/rpg.js"></script>
 <script src="js/content.js"></script>
+<script src="js/covers.js"></script>
 <script src="js/quotes.js"></script>
 <script src="js/translate.js"></script>
 <script src="js/ocr.js"></script>

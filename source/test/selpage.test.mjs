@@ -147,8 +147,9 @@ ok('…and a tap on a later word still moves the end', t6.page === 3 && t6.len >
 await p.evaluate(() => { SET.rx.sm.tap = false; });
 [lx, ly] = await xy(0, 520); await p.touchscreen.tap(lx, ly); await settle(300);
 const u6 = await p.evaluate(() => ({ len: String(getSelection()).length, on: SM.on }));
-ok('setting «Нажатие ставит конец» off: a tap leaves the selection as it is', u6.on && u6.len === t6.len, { t6, u6 });
+ok('setting «Нажатие ставит конец» off: a tap clears the selection (10.11: тапом снимается)', !u6.on && u6.len === 0, { t6, u6 });
 await p.evaluate(() => { SET.rx.sm.tap = true; SET.rx.sm.drag = 'any'; });
+[lx, ly] = await xy(0, 470); await p.touchscreen.touchStart(lx, ly); await sleep(700); await p.touchscreen.touchEnd(); await settle(300); /* a new selection to drag */
 const [ax, ay] = await xy(0, 560), [bx, by] = await xy(0, 640);
 await p.touchscreen.touchStart(ax, ay); await p.touchscreen.touchMove(ax - 20, ay); await p.touchscreen.touchMove(bx, by + 22); await p.touchscreen.touchEnd(); await settle(300);
 const v6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page, on: SM.on }));

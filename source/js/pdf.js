@@ -562,7 +562,7 @@ function pdfTap(cx,cy){
   const sel=selText();
   pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
   if(quoteTapAt(cx,cy))return; /* 22.10: a saved highlight → its bar (no double-tap wait) */
-  if(sel)return;
+  if(sel){if(Date.now()-touchTapAt<80&&typeof selDone==='function')selDone();return;} /* 10.11: a finger tap clears a selection */
   const now=performance.now();
   if(P.tapT&&now-P.tapAt<=PDF_DBL_MS&&Math.hypot(cx-P.tapX,cy-P.tapY)<60){clearTimeout(P.tapT);P.tapT=null;pdfDoubleTap(cx,cy);return;}
   const r=pdfVR(),x=(cx-r.left)/r.width,y=(cy-r.top)/r.height;
@@ -1002,7 +1002,7 @@ el('viewer').addEventListener('click',e=>{
 function viewerTap(cx,cy){
   if(typeof SM!=='undefined'&&SM.on&&R.mode==='text'){smTapAt(cx,cy);return;} /* 28.10: selecting — the tap moves the end of the selection, pages turn by swipe */
   if(quoteTapAt(cx,cy))return; /* 22.10: a tap on a saved highlight opens its bar; with the bar open the tap only closes it */
-  if(selText())return; // идёт выделение текста — не листаем
+  if(selText()){if(Date.now()-touchTapAt<80)selDone();return;} // идёт выделение текста — не листаем; 10.11: касание пальцем снимает его (мышь — нет: щелчок после протяжки)
   const r=el('viewer').getBoundingClientRect();
   const x=(cx-r.left)/r.width;
   const y=(cy-r.top)/r.height;

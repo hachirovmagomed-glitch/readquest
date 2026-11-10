@@ -650,12 +650,18 @@ function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rang
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
 /** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
 function smTap(x,y){
-  if(!smCfg().tap||!smSync())return;
-  const p=smPt(x,y);if(!p)return;const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
+  /* 10.11 (тестер: «если случайно выделить текст, режим выделения не сбрасывается просто нажатием в любую область экрана»): a tap off the text
+     (an empty line, under the last line, the margins) clears the selection; with «Нажатие ставит конец» off any tap clears it */
+  if(!smSync()){selDone();return;}
+  const p=smPt(x,y);if(!p||!smCfg().tap||!smNear(p,x,y)){selDone();return;}const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
   if(smCmp(SM.lo,w[0])>=0)SM.hi=w[1];else SM.lo=w[0];
   SM.set=true;smApply();setTimeout(updSelPop,30);
 }
 /** a tap from the reader's tap handlers while selecting — not the click Chrome may send after the long press itself */
+/** the tap on a line of the text (Chrome's caret test snaps a tap on an empty place — under the last line, between paragraphs — to the nearest
+    text); right of a paragraph's short last line is still that line (05.11: the end goes to the paragraph's end) */
+function smNear(p,x,y){const q=smCharRect(p[0],p[1])||smCharRect(p[0],p[1]-1);if(!q)return false;const h=Math.max(12,q.bottom-q.top);
+  return y>=q.top-h*0.6&&y<=q.bottom+h*0.6;}
 function smTapAt(cx,cy){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-SM.lpXY[0])<16&&Math.abs(cy-SM.lpXY[1])<16))smTap(cx,cy);}
 /* long press: our timer (Chrome's own long press is cancelled below) */
 function smLpStart(e){
@@ -1267,7 +1273,7 @@ el('viewer').addEventListener('touchend',e=>{
 /* 28.10 (ревизия чтения, баг 5): поля слева и справа от колонки текста — тоже страница: тап листает, свайп листает */
 let mg0=null;
 function rqMarginHit(e,t){if(R.mode==='pdf'||e.target!==el('reader'))return false;const r=el('viewer').getBoundingClientRect();return t.clientY>=r.top&&t.clientY<=r.bottom&&(t.clientX<r.left||t.clientX>r.right);}
-function rqMarginTap(x,y){if(SM.on)return;const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
+function rqMarginTap(x,y){if(SM.on||selText()){selDone();return;} /* 10.11: a tap on a margin while selecting clears the selection */const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
 el('reader').addEventListener('touchstart',e=>{mg0=null;if(e.touches.length===1&&rqMarginHit(e,e.touches[0]))mg0={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
 el('reader').addEventListener('touchend',e=>{
   const m=mg0;mg0=null;if(!m||e.touches.length)return;

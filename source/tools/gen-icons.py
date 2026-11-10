@@ -16,7 +16,7 @@ amphora notebook quote layers chevron-down flower flower-2 map castle scroll-tex
 footprints sunrise zap flag package ellipsis-vertical message-circle send scan-text
 maximize minimize undo-2 redo-2 underline strikethrough list-ordered list-checks heading align-left
 history sunset hand move-vertical circle-help users git-compare
-hourglass pen-tool ruler sticker flashlight backpack feather shield-check sparkle puzzle'''.split()
+hourglass pen-tool ruler sticker flashlight backpack feather shield-check sparkle puzzle crop'''.split()
 out = []
 for n in NAMES:
     p = os.path.join(HAND, n + '.svg')

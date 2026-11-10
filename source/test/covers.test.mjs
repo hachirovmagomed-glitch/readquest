@@ -25,7 +25,14 @@ for (const w of [360, 390]) {
   await p.goto(BASE + 'app.html', { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
   const img64 = { blue: await p.evaluate(PIXEL + '("rgb(30,60,200)")'), red: await p.evaluate(PIXEL + '("rgb(200,30,30)")') };
   await p.setRequestInterception(true);
+  img64.green = await p.evaluate(PIXEL + '("rgb(20,160,60)")');
+  const qOf = (u) => { const m = /[?&](?:q|gsrsearch)=([^&]*)/.exec(u); return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : ''; };
   p.on('request', r => { const u = r.url();
+    /* «название автор» finds nothing anywhere → the search tries the title alone (улучшение 3) */
+    if (/googleapis\.com\/books|openlibrary\.org\/search|wikipedia\.org\/w\/api/.test(u) && /Обложкин/.test(qOf(u))) return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{}' });
+    if (u.startsWith('https://ru.wikipedia.org/w/api.php')) { const q = qOf(u); return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ query: { pages: { 7: { index: 1, title: q, thumbnail: { source: 'https://upload.wikimedia.org/wikipedia/ru/thumb/1/1a/C.jpg/320px-C.jpg', width: 320, height: 480 } }, 8: { index: 2, title: 'Флаг', thumbnail: { source: 'https://upload.wikimedia.org/x/Flag_of_X.svg/320px-Flag_of_X.svg.png', width: 320 } } } } }) }); }
+    if (u.startsWith('https://upload.wikimedia.org/')) return r.respond({ status: 200, contentType: 'image/jpeg', headers: { 'access-control-allow-origin': '*' }, body: Buffer.from(img64.green, 'base64') });
     if (u.startsWith('https://www.googleapis.com/books/')) return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
       body: JSON.stringify({ items: [{ volumeInfo: { title: 'Идиот', authors: ['Ф. Достоевский'], imageLinks: { thumbnail: 'http://books.google.com/books/content?id=A1&printsec=frontcover&img=1&zoom=1&edge=curl' } } }] }) });
     if (u.startsWith('https://openlibrary.org/search.json')) return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
@@ -59,8 +66,26 @@ for (const w of [360, 390]) {
   await p.evaluate((id) => { bookInfo(id); covFromBook(id); }, pdfId);
   await p.waitForFunction(() => el('covGrid') && el('covGrid').querySelectorAll('.cov-tile').length === 4, { timeout: 20000 });
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/${w}-2-stranica-pdf.png` });
-  await p.click('#covGrid .cov-tile[data-i="2"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
-  ok(`${w} «Страница из PDF»: page 2 (white) becomes the cover, the sheet closes`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), pdfId, colourOf), [255, 255, 255]));
+  await p.click('#covGrid .cov-tile[data-i="2"]'); await p.waitForFunction(() => !!el('covCrop') && el('covCropImg').naturalWidth > 0, { timeout: 10000 });
+  await p.click('#covCropOk'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
+  ok(`${w} «Страница из PDF»: page 2 (white) becomes the cover, then «Обрезать и сдвинуть» opens, «Готово» closes`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), pdfId, colourOf), [255, 255, 255]));
+  /* улучшение 1 «Обрезать и сдвинуть»: EPUB 3 cover (600×900, white text band at the top third) → zoom 2, drag the picture up */
+  const e3 = await p.evaluate(() => S.userBooks.find(b => b.fname === 'Обложка EPUB3.epub').id);
+  ok(`${w} crop: the card offers «Обрезать и сдвинуть» for a picture cover`, await p.evaluate((id) => { bookInfo(id); return [...el('bookSheetBody').querySelectorAll('.bk-line')].some(x => x.textContent === 'Обрезать и сдвинуть'); }, e3));
+  await p.evaluate((id) => covCropOpen(id), e3); await p.waitForFunction(() => el('covCropImg') && el('covCropImg').naturalWidth > 0 && el('covCropImg').style.width, { timeout: 10000 });
+  if (SHOTS) await p.screenshot({ path: `${SHOTS}/${w}-5-obrezat.png` });
+  const fr0 = await p.evaluate(() => { const z = el('covZoom'); z.value = 2; z.dispatchEvent(new Event('input')); const r = el('covCrop').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, h: r.height }; });
+  await p.mouse.move(fr0.x, fr0.y); await p.mouse.down(); await p.mouse.move(fr0.x + 400, fr0.y + 400, { steps: 6 }); await p.mouse.up(); /* far up-left: clamps to the top-left corner */
+  await p.click('#covCropOk'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
+  const cr = await p.evaluate(async (id, cs) => { const hi = await idbGet('cov:' + id), src = await idbGet('covsrc:' + id); const c = S.covCrop[id];
+    return { c, hi: hi ? await eval(cs)(URL.createObjectURL(hi)) : null, src: src instanceof Blob, edge: await (async () => { const im = new Image(); im.src = URL.createObjectURL(hi); await im.decode();
+      const cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight; const x = cv.getContext('2d'); x.drawImage(im, 0, 0);
+      return [[...x.getImageData(4, 200, 1, 1).data].slice(0, 3), [...x.getImageData(47, 200, 1, 1).data].slice(0, 3)]; })() }; }, e3, colourOf);
+  ok(`${w} crop: zoom 2 + drag → window at the top-left corner, sharp copy 420×560 (3:4), the picture kept for later (covsrc)`, cr.c && Math.abs(cr.c.z - 2) < 0.01 && cr.c.x < 0.3 && cr.c.y < 0.3 && cr.hi && cr.hi[3] === 420 && cr.hi[4] === 560 && cr.src, cr);
+  /* picture 600 px wide, frame line at x 30…38; window 300 px wide from x 0 → ×1.4 in the 420 px result: blue at x 4, white at x 47 */
+  ok(`${w} crop: the result is exactly that window (blue edge, then the picture's white frame line at x≈47)`, near(cr.edge[0], [40, 90, 160]) && cr.edge[1][0] > 200 && cr.edge[1][2] > 200, cr.edge);
+  const cr2 = await p.evaluate(async (id) => { await covCropOpen(id); await new Promise(r => setTimeout(r, 300)); const v = +el('covZoom').value; el('covCropReset').click(); const v2 = +el('covZoom').value; covClose(); return [v, v2]; }, e3);
+  ok(`${w} crop: opens again with the saved zoom, «Как было» resets it`, Math.abs(cr2[0] - 2) < 0.01 && cr2[1] === 1, cr2);
   /* «Картинка из книги» on a book without pictures → hint + «Взять обложку из файла книги»: the same EPUB 3 file → its cover */
   const noId = await p.evaluate(() => S.userBooks.find(b => b.fname === 'Без обложки.epub').id);
   await p.evaluate((id) => covFromBook(id), noId); await p.waitForFunction(() => /нет картинок/.test(el('covStat').textContent), { timeout: 10000 });
@@ -71,14 +96,17 @@ for (const w of [360, 390]) {
   /* «Найти в интернете» */
   const fbId = await p.evaluate(() => S.userBooks.find(b => /fb2/i.test(b.fname)).id);
   await p.evaluate((id) => { bookInfo(id); covFromWeb(id); }, fbId);
-  await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 2, { timeout: 10000 }); await sleep(400);
+  await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 3, { timeout: 10000 }); await sleep(400);
   const web = await p.evaluate(() => ({ q: el('covQIn').value, ya: el('covYa').href, tiles: [...el('covGrid').querySelectorAll('.cov-tile span')].map(s => s.textContent), stat: el('covStat').textContent }));
-  ok(`${w} web: query = title + author, 2 results (Google Книги, Open Library; a hit without a cover dropped), Яндекс link`, web.q === 'Обложка FB2 Тест Обложкин' && web.tiles.join('|') === 'Google Книги|Open Library' && /yandex\.ru\/images\/search\?text=/.test(web.ya), web);
+  ok(`${w} web: «название автор» found nothing → tried the title alone; Russian → Википедия first (a flag dropped), then Google Книги, Open Library (a hit without a cover dropped); Яндекс link`, web.q === 'Обложка FB2' && web.tiles.join('|') === 'Википедия|Google Книги|Open Library' && /yandex\.ru\/images\/search\?text=/.test(web.ya), web);
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/${w}-3-internet.png` });
   await p.click('#covGrid .cov-tile[data-i="0"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
-  ok(`${w} web: a site that allows copying (Google) → a copy on the phone`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), fbId, colourOf), [30, 60, 200]));
-  await p.evaluate((id) => covFromWeb(id), fbId); await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 2, { timeout: 10000 });
+  ok(`${w} web: Википедия → a copy on the phone`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), fbId, colourOf), [20, 160, 60]));
+  await p.evaluate((id) => covFromWeb(id), fbId); await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 3, { timeout: 10000 });
   await p.click('#covGrid .cov-tile[data-i="1"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
+  ok(`${w} web: a site that allows copying (Google) → a copy on the phone`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), fbId, colourOf), [30, 60, 200]));
+  await p.evaluate((id) => covFromWeb(id), fbId); await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 3, { timeout: 10000 });
+  await p.click('#covGrid .cov-tile[data-i="2"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
   const net = await p.evaluate(async (id) => ({ cv: S.covers[id], hi: await idbGet('cov:' + id), img: (() => { bookInfo(id); const i = el('bookSheetBody').querySelector('.cover img.cv-net'); return i && i.src; })() }), fbId);
   ok(`${w} web: a site without CORS (Open Library here) → its https address, shown over the drawn cover, no stale sharp copy`, net.cv === 'https://covers.openlibrary.org/b/id/42-L.jpg' && !net.hi && net.img === net.cv, net);
   /* «Вернуть стандартную» + the start-up pass */
@@ -92,6 +120,25 @@ for (const w of [360, 390]) {
   }, pdfId, colourOf);
   ok(`${w} «Вернуть стандартную»: cover and sharp copy gone; the start-up pass does not bring it back`, auto.gone && auto.kept, auto);
   ok(`${w} start-up pass: an old PDF gets page 1; an EPUB with no pictures in its text stays drawn`, near(auto.pdf, C['Обложка PDF.pdf']) && !auto.epubNoImgs, auto);
+  /* улучшение 4 «Подобрать обложки» (⋮ библиотеки): PDF → page 1, no picture in the text → the web hit whose title matches */
+  const all = await p.evaluate(async (pdfId, e3, noId, cs) => { covDrop(pdfId); covDrop(e3); covDrop(noId); save(); show('library');
+    libSortMenu(true); const btn = el('libCovAll'); const has = !!btn; btn.click();
+    for (let i = 0; i < 100 && !/Готово/.test((el('covStat') || {}).textContent || ''); i++) await new Promise(r => setTimeout(r, 200));
+    const c = async (id) => S.covers[id] ? (S.covers[id].startsWith('data:') ? await eval(cs)(S.covers[id]) : S.covers[id]) : null;
+    return { has, stat: el('covStat').textContent, pdf: await c(pdfId), e3: await c(e3), no: await c(noId) }; }, pdfId, e3, noId, colourOf);
+  ok(`${w} «Подобрать обложки»: in the ⋮ menu; all found — PDF page 1, two EPUBs from the web by their title`, all.has && /Поставлено обложек: (\d) из \1\./.test(all.stat) && near(all.pdf, C['Обложка PDF.pdf']) && near(all.e3, [20, 160, 60]) && near(all.no, [20, 160, 60]), all);
+  if (SHOTS) await p.screenshot({ path: `${SHOTS}/${w}-6-podobrat.png` });
+  await p.evaluate(() => covClose());
+  /* улучшение 2: the skin's frame over a picture cover */
+  const fr = await p.evaluate(async () => { const out = {}; show('library');
+    S.gold = 99999;
+    for (const t of ['sepia', 'ellada', 'celestial', 'alisa', 'babochkovyi', 'pencil']) {
+      if (t === 'sepia') { SET.skin = null; SET.color = null; SET.theme = 'sepia'; saveSet(); applySet(); } else { const id = SHOP_CATALOG.find(x => x.type === 'skin' && x.id.indexOf(t) >= 0).id; buy(id); wear(id); }
+      renderLibrary(); await new Promise(r => setTimeout(r, 200));
+      const c = document.querySelector('#shelf .cover:has(>img[data-cv])'); const a = c && getComputedStyle(c, '::after');
+      out[t] = { skin: document.documentElement.dataset.skin || '', sh: a ? a.boxShadow.slice(0, 60) : null, bg: a ? a.backgroundImage.slice(0, 30) : null }; }
+    SET.skin = null; SET.color = null; SET.theme = 'sepia'; saveSet(); applySet(); return out; });
+  ok(`${w} frames: every skin draws its own frame over a picture cover (meander, gold, card, …)`, Object.values(fr).every(x => x.sh && x.sh !== 'none') && /url/.test(fr.ellada.bg) && new Set(Object.values(fr).map(x => x.sh)).size >= 5, fr);
   /* persistence: covers + covAuto survive a reload */
   await sleep(300); await p.reload({ waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(800);
   const per = await p.evaluate(() => ({ n: Object.keys(S.covers).length, auto: Object.keys(S.covAuto || {}).length, blobs: [...document.querySelectorAll('#shelf .cover img[data-cv]')].filter(i => i.src.startsWith('blob:')).length }));

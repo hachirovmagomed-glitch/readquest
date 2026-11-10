@@ -731,6 +731,7 @@ function bookInfo(id){
     line('image','Выбрать картинку с телефона','pickCover')+
     (builtin||!(b.type==='pdf'||/\.(epub|fb2|zip)$/i.test(b.fname||''))?'':line(b.type==='pdf'?'file-text':'book-open',b.type==='pdf'?'Страница из PDF':'Картинка из книги','covFromBook'))+
     line('search','Найти в интернете','covFromWeb')+
+    (S.covers[id]&&S.covers[id].indexOf('data:')===0?line('crop','Обрезать и сдвинуть','covCropOpen'):'')+
     (S.covers[id]?line('rotate-cw','Вернуть стандартную','resetCover'):'')+
     '</div>'+
     '<div class="bk-list bk-danger">'+
@@ -781,7 +782,7 @@ let COVID=null;
 function pickCover(id){COVID=id;el('covInp').click();}
 el('covInp').onchange=e=>{
   const f=e.target.files[0];e.target.value='';if(!f||!COVID)return;
-  covSetBlob(COVID,f).catch(function(e2){rqAlert(/decode|прочитать/i.test(String(e2&&e2.message))?'Не удалось прочитать изображение':'Не удалось сохранить обложку: '+(e2&&e2.message||e2));});
+  const id=COVID;covSetBlob(id,f).then(function(){covCropOpen(id);}).catch(function(e2){rqAlert(/decode|прочитать/i.test(String(e2&&e2.message))?'Не удалось прочитать изображение':'Не удалось сохранить обложку: '+(e2&&e2.message||e2));});
 };
 function resetCover(id){covDrop(id);save();renderLibrary();bookInfo(id);}
 

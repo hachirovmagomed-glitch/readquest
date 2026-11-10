@@ -468,15 +468,35 @@ function alisaCover(b){
     '<b class="al-t">'+esc(b.title||'')+'</b><small class="al-a">'+esc(bookAuthor(b))+'</small><svg class="al-big" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+AL_SUITS[su]+'"/></svg></span>';
 }
 function statOf(b){return S.bookStat[b.id]||b.stat;}
+/* 10.11 (Джессика: «чтобы можно было подгрузить обложки книг, которые сам загружаешь»; js/covers.js).
+   S.covers[id] = a small JPEG (88×116, data:) — draws at once and goes into the export; the sharp copy (up to 480 px tall, the picture's own
+   proportions) is a blob in IDB «cov:<id>», swapped in once read (COV_HI = id → object URL, '' = no sharp copy / still reading).
+   A web cover the site would not let us copy is kept as its https address (shown only online; the drawn cover stays under it). */
+const COV_HI={};
+function covHiSrc(id){
+  if(Object.prototype.hasOwnProperty.call(COV_HI,id))return COV_HI[id];
+  COV_HI[id]='';
+  try{idbGet('cov:'+id).then(function(v){
+    if(!(v instanceof Blob)||COV_HI[id])return;
+    COV_HI[id]=URL.createObjectURL(v);
+    document.querySelectorAll('img[data-cv]').forEach(function(im){if(im.dataset.cv===id)im.src=COV_HI[id];});
+  }).catch(function(){});}catch(e){}
+  return '';
+}
+function covDrawn(b){
+  if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
+  const sk=document.documentElement.dataset.skin;
+  if(sk==='ellada')return elladaCover(b);
+  if(sk==='babochkovyi')return bbCover(b);
+  if(sk==='celestial')return celCover(b);
+  if(sk==='alisa')return alisaCover(b);
+  return genCover(b); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) */
+}
 function coverHtml(b){
   const cv=S.covers[b.id];
-  if(cv&&cv.indexOf('data:')===0)return '<img src="'+cv+'" alt="">';
-  if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
-  if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
-  if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
-  if(document.documentElement.dataset.skin==='celestial')return celCover(b);
-  if(document.documentElement.dataset.skin==='alisa')return alisaCover(b);
-  return genCover(b); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) */
+  if(cv&&cv.indexOf('data:')===0)return '<img src="'+(covHiSrc(b.id)||cv)+'" data-cv="'+esc(b.id)+'" alt="" decoding="async">';
+  if(cv&&/^https:\/\//.test(cv))return '<img class="cv-net" src="'+esc(cv)+'" alt="" referrerpolicy="no-referrer" onerror="this.remove()">'+covDrawn(b);
+  return covDrawn(b);
 }
 /* 18.10: the filter row under the header is gone (filters live in «⋮», libFilterItems); #libChips stays empty and hidden */
 function renderLibChips(){const box=el('libChips');if(box){box.innerHTML='';box.hidden=true;}}
@@ -523,7 +543,7 @@ async function bookImgsPut(id,imgs){
   for(let i=0;i<(imgs||[]).length;i++){const x=imgs[i];if(!x)continue;try{await idbPut('img:'+id+':'+i,new Blob([x.data],{type:x.type}));}catch(e){console.warn('[rq] img',e);}}
 }
 async function importBookFile(f,setBusy){
-  let b;
+  let b,cov=null; /* 10.11: the book's own cover (EPUB / FB2 picture, PDF page 1) → covSetBlob after the book is on the shelf */
   if(/\.pdf$/i.test(f.name)){
     setBusy('Загружаю PDF...');
     await loadPdfJs();
@@ -531,6 +551,7 @@ async function importBookFile(f,setBusy){
     const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
     const nPages=doc.numPages;
     let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText; 23.10 {l, w} */
+    try{cov=await covPdfPage(doc,1);}catch(_){}
     try{doc.destroy();}catch(_){}
     const id=newBookId();
     await idbPut('pdf:'+id,buf);
@@ -540,12 +561,12 @@ async function importBookFile(f,setBusy){
     setBusy('Разбираю FB2...');
     const r=await parseFb2(/\.zip$/i.test(f.name)?await fb2FromZip(f):f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
-    await bookImgsPut(b.id,r.imgs);
+    await bookImgsPut(b.id,r.imgs);cov=r.cover||null;
   }else if(/\.epub$/i.test(f.name)){
     setBusy('Распаковываю EPUB...');
     const r=await parseEpub(f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
-    await bookImgsPut(b.id,r.imgs);
+    await bookImgsPut(b.id,r.imgs);cov=r.cover||null;
   }else{
     let txt=await f.text();
     if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */
@@ -554,7 +575,9 @@ async function importBookFile(f,setBusy){
   }
   if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
   /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
-  return rqAddBook(b);
+  const nb=await rqAddBook(b);
+  if(cov){try{await covSetBlob(nb.id,cov instanceof Blob?cov:new Blob([cov.data],{type:cov.type}),{quiet:true});}catch(e){console.warn('[rq] cover',e);}}
+  return nb;
 }
 /* one way a new book reaches the shelf (file import and «Путь читателя»): text body to IDB once, then the card, then save() */
 async function rqAddBook(b){

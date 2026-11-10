@@ -194,6 +194,8 @@ export const LIBRARY_DEF = {
   hidden: [],
   shelfOrder: [],
   covers: {},
+  /** 10.11 обложки своих книг (js/covers.js): id → 1 = the one-time start-up cover pass has seen this book (or the reader chose) */
+  covAuto: {},
   autoDiff: true,
   /** arch.md 19.10 «Приключения»: «Хочу прочитать» [{sid, page?, n?, t, a, tr?, ed?, lang?}] ≤ 200 и последние поиски ≤ 8 */
   advWant: [],
@@ -746,6 +748,7 @@ export function hydrateLibrary(lib) {
   out.hidden = out.hidden || [];
   out.shelfOrder = out.shelfOrder || [];
   out.covers = out.covers || {};
+  out.covAuto = out.covAuto && typeof out.covAuto === 'object' && !Array.isArray(out.covAuto) ? out.covAuto : {};
   if (out.autoDiff === undefined) out.autoDiff = true;
   out.advWant = Array.isArray(out.advWant)
     ? out.advWant.filter((x) => x && typeof x === 'object' && typeof x.sid === 'string' && /^(wikisource|gutenberg|se|ia):./.test(x.sid)).slice(0, 200)

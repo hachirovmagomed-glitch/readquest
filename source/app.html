@@ -892,7 +892,7 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #selSide:not([data-look="side"]) #ssColBox #spColors{flex-direction:row}
 #selSide:not([data-look="side"]) #ssColBox{left:0}
 /* 08.11 (Джессика, скрин: цвета «как-то странно появляются» — висят над текстом без фона, рамка плашки сжата в узкую полоску): the colour box never shrinks narrower than its colours */
-#selSide:not([data-look="side"]):not([data-look="bar"]):not([data-look="big"]) #ssColBox{width:max-content;max-width:calc(100vw - 16px);box-sizing:border-box}
+#selSide:not([data-look="side"]):not([data-look="big"]) #ssColBox{width:max-content;max-width:calc(100vw - 16px);box-sizing:border-box}
 #ssColBox #spColors{flex-wrap:nowrap}
 #ssColBox #spColors>button{flex:0 0 auto}
 /* «У текста»: a small row next to the words; no count, no «Начало» */
@@ -902,11 +902,25 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 /* «Плашка» and «С подписями»: a card at the bottom above ‹ ›, the colours its first row */
 #selSide:is([data-look="bar"],[data-look="big"],[data-look="dock"]){left:50%;right:auto;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 16px)}
 #selSide:is([data-look="bar"],[data-look="big"],[data-look="dock"]).attop{top:calc(env(safe-area-inset-top,0px) + 12px);bottom:auto}
-#selSide:is([data-look="bar"],[data-look="big"]){display:flex;flex-direction:column;background:var(--sheet);color:var(--txt);border-radius:26px;box-shadow:0 6px 24px rgba(0,0,0,.28);padding:6px 6px 4px}
-#selSide:is([data-look="bar"],[data-look="big"]) #ssCol{display:none!important}
-#selSide:is([data-look="bar"],[data-look="big"]) #ssColBox{order:-1;position:static;border:0;box-shadow:none;background:none;padding:2px 0 4px;margin:0 6px;border-bottom:1px solid color-mix(in srgb,var(--txt) 18%,transparent);border-radius:0}
-#selSide:is([data-look="bar"],[data-look="big"]) #ssColBox #spColors{justify-content:space-around;gap:4px}
-#selSide:is([data-look="bar"],[data-look="big"]) #ssRail{border:0;background:none;box-shadow:none;border-radius:0;padding:2px 0 0}
+#selSide[data-look="big"]{display:flex;flex-direction:column;background:var(--sheet);color:var(--txt);border-radius:26px;box-shadow:0 6px 24px rgba(0,0,0,.28);padding:6px 6px 4px}
+#selSide[data-look="big"] #ssCol{display:none!important}
+#selSide[data-look="big"] #ssColBox{order:-1;position:static;border:0;box-shadow:none;background:none;padding:2px 0 4px;margin:0 6px;border-bottom:1px solid color-mix(in srgb,var(--txt) 18%,transparent);border-radius:0}
+#selSide[data-look="big"] #ssColBox #spColors{justify-content:space-around;gap:4px}
+#selSide[data-look="big"] #ssRail{border:0;background:none;box-shadow:none;border-radius:0;padding:2px 0 0}
+/* 10.11 (Джессика: меню выделения «слишком громоздкие и не очень очевидные», выбрала вариант «B. Одна строка»): «Плашка» is one row —
+   the colours folded into a round button of the current colour (a tap opens them above the row), no «≡ Вид» and no dividers in the row,
+   the count of words is on top of «Ещё»; «Ещё» is a grid of tiles with captions (see stMenu in js/sel-tools.js) */
+#selSide[data-look="bar"]{display:flex;background:var(--sheet);color:var(--txt);border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.28);padding:4px 6px}
+#selSide[data-look="bar"] #ssRail{border:0;background:none;box-shadow:none;border-radius:0;padding:0;flex-wrap:nowrap}
+#selSide[data-look="bar"] :is(#ssView,#ssCnt,#ssRail>hr){display:none!important}
+#selSide[data-look="bar"] #ssRail>button{width:44px;height:44px}
+#selSide[data-look="bar"] #ssCol i{width:26px;height:26px}
+#ssMenu.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:min(300px,calc(100vw - 16px));max-width:none;min-width:0;box-sizing:border-box}
+#ssMenu.tiles>button{flex-direction:column;justify-content:center;gap:4px;min-height:62px;padding:8px 2px 6px;text-align:center;font-size:12.5px;line-height:1.15}
+#ssMenu.tiles .ic{width:22px;height:22px}
+#ssMenu.tiles>.stHead{order:-1;grid-column:1/-1;display:flex;align-items:baseline;gap:6px;padding:2px 8px 6px;margin-bottom:2px;font-size:13px;border-bottom:1px solid color-mix(in srgb,var(--txt) 16%,transparent)}
+#ssMenu.tiles>.stHead b{font-size:15px}
+#ssMenu.tiles>.stHead button{margin-left:auto;padding:4px 0;color:var(--accent);background:none;font-size:12.5px;text-decoration:underline}
 /* «Полоса снизу»: one row across the screen */
 #selSide[data-look="dock"]{left:8px;right:8px;transform:none;width:auto;max-width:none}
 #selSide[data-look="dock"] #ssRail{flex-wrap:nowrap;justify-content:space-around;box-shadow:0 4px 16px rgba(0,0,0,.25)}

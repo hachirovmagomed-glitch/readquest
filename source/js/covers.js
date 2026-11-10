@@ -346,3 +346,60 @@ async function covAll(){
   if(miss.length)el('covAllList').innerHTML='<div class="bk-note">Не нашлось ('+miss.length+'), для них откройте ⓘ книги → «Найти в интернете» или «Выбрать картинку с телефона»:</div><ul>'+miss.slice(0,40).map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>';
   stop.textContent='Закрыть';
 }
+
+/* --- 10.11 (Джессика: «чтобы можно было подгрузить все обложки, а не по одной на книгу»): ⋮ библиотеки → «Обложки из файлов».
+   Много картинок за раз (галерея или папка) → каждая находит свою книгу по имени файла («Идиот.jpg», «Достоевский - Идиот.png»,
+   имя файла книги); в списке у каждой картинки выбор книги (можно поправить или «не ставить»), одна кнопка ставит все. --- */
+function covFileKey(n){return covNorm(String(n||'').replace(/\.[a-z0-9]{2,5}$/i,''));}
+function covMatchScore(key,b){
+  const t=covNorm(b.title),f=covFileKey(b.fname||''),a=covNorm(bookAuthor(b));
+  if(!key||!t)return 0;
+  if(key===t||(f&&key===f))return 100;
+  if(a&&(key===a+' '+t||key===t+' '+a))return 98;
+  if(t.length>=3&&(' '+key+' ').indexOf(' '+t+' ')>=0)return 60+Math.min(30,t.length);
+  if(key.length>=4&&t.indexOf(key)===0)return 55+Math.min(20,key.length);
+  return 0;
+}
+function covMatchFiles(files,books){ /* greedy by score: one picture per book */
+  const pairs=[];files.forEach(function(f,i){const k=covFileKey(f.name);books.forEach(function(b){const sc=covMatchScore(k,b);if(sc)pairs.push({i:i,id:b.id,sc:sc});});});
+  pairs.sort(function(x,y){return y.sc-x.sc;});
+  const out=files.map(function(){return '';}),used={};
+  pairs.forEach(function(p){if(!out[p.i]&&!used[p.id]){out[p.i]=p.id;used[p.id]=1;}});
+  return out;
+}
+function covManyPick(){
+  let inp=el('covManyInp');
+  if(!inp){inp=document.createElement('input');inp.type='file';inp.id='covManyInp';inp.accept='image/*';inp.multiple=true;inp.hidden=true;document.body.appendChild(inp);
+    inp.onchange=function(e){const fs=Array.from(e.target.files||[]).filter(function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|bmp|avif|heic)$/i.test(f.name);});e.target.value='';if(fs.length)covMany(fs);};}
+  inp.click();
+}
+function covMany(files){
+  files=files.slice(0,300);
+  const books=allBooks().slice().sort(function(x,y){return String(x.title).localeCompare(String(y.title));});
+  const match=covMatchFiles(files,books);
+  const opt=function(sel){return '<option value="">— не ставить —</option>'+books.map(function(b){return '<option value="'+esc(b.id)+'"'+(b.id===sel?' selected':'')+'>'+esc(b.title)+(S.covers[b.id]?' · есть обложка':'')+'</option>';}).join('');};
+  const order=files.map(function(f,i){return i;}).sort(function(x,y){return (match[x]?0:1)-(match[y]?0:1);});
+  const nm=match.filter(Boolean).length;
+  covOpen(null,'Обложки из файлов',
+    '<p class="cov-p">Картинок: '+files.length+'. Сами нашли свою книгу по имени файла: '+nm+'. Проверьте и поправьте, если нужно.</p>'+
+    '<div class="cov-many" id="covManyList">'+order.map(function(i){return '<div class="cov-mrow"><img alt="" data-i="'+i+'"><div class="cov-mtx"><small>'+esc(files[i].name)+'</small>'+
+      '<select data-i="'+i+'" aria-label="Книга для «'+esc(files[i].name)+'»">'+opt(match[i])+'</select></div></div>';}).join('')+'</div>'+
+    '<div id="covStat" class="cov-stat" role="status" hidden></div>'+
+    '<div class="cov-btns"><button type="button" class="ghostbtn" id="covManyNo">Отмена</button><button type="button" class="cta" id="covManyOk"></button></div>');
+  const list=el('covManyList'),okb=el('covManyOk');
+  list.querySelectorAll('img[data-i]').forEach(function(im){const u=URL.createObjectURL(files[+im.dataset.i]);COVS.urls.push(u);im.src=u;});
+  const count=function(){const n=[...list.querySelectorAll('select')].filter(function(x){return x.value;}).length;okb.textContent=n?'Поставить ('+n+')':'Поставить';okb.disabled=!n;};
+  list.addEventListener('change',function(e){const sl=e.target.closest('select');if(!sl)return;
+    if(sl.value)list.querySelectorAll('select').forEach(function(o){if(o!==sl&&o.value===sl.value)o.value='';}); /* one picture per book */
+    count();});
+  count();
+  el('covManyNo').onclick=covClose;
+  okb.onclick=async function(){
+    const jobs=[...list.querySelectorAll('select')].filter(function(x){return x.value;}).map(function(x){return {f:files[+x.dataset.i],id:x.value};});
+    okb.disabled=true;let n=0;const bad=[];
+    for(let k=0;k<jobs.length;k++){covStatus('Ставлю: '+(k+1)+' из '+jobs.length);
+      try{await covSetBlob(jobs[k].id,jobs[k].f,{quiet:true});n++;}catch(e){bad.push(jobs[k].f.name);}}
+    try{renderLibrary();}catch(e){}
+    covClose();flashMsg('Обложки поставлены: '+n+(bad.length?'. Не прочитались: '+bad.slice(0,3).join(', '):''),{kind:bad.length?'error':'info',ms:6000});
+  };
+}

@@ -969,6 +969,13 @@ html[data-skin="alisa"] #reader .pdfhls i{background:linear-gradient(90deg,var(-
 #covSheet .cov-zoom input{flex:1;min-height:44px}
 #covSheet .cov-btns{display:flex;gap:10px;margin-top:10px}
 #covSheet .cov-btns button{flex:1;margin:0;min-height:48px}
+#covSheet .cov-many{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;margin:4px 0}
+#covSheet .cov-mrow{display:flex;gap:10px;align-items:center}
+#covSheet .cov-mrow img{width:44px;height:58px;flex:none;object-fit:cover;border-radius:var(--rq-radius-xs,4px);background:var(--card2)}
+#covSheet .cov-mtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+#covSheet .cov-mtx small{color:var(--muted);font-size:0.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#covSheet .cov-mtx select{width:100%;min-height:40px;border-radius:var(--rq-radius-sm,8px);border:1px solid var(--card2);background:var(--card);color:var(--txt);font-size:0.875rem;padding:0 8px}
+#covSheet .cov-btns button:disabled{opacity:.5}
 #covSheet .cov-all ul{margin:6px 0 0;padding-left:20px;color:var(--txt);font-size:0.875rem;line-height:1.5}
 /* 10.11 улучшение 2: a picture cover wears the skin's frame (the drawn covers keep their own); the default = a book spine on the left */
 .cover:has(>img[data-cv],>img.cv-net){position:relative}

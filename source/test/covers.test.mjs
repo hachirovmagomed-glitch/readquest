@@ -129,6 +129,26 @@ for (const w of [360, 390]) {
   ok(`${w} «Подобрать обложки»: in the ⋮ menu; all found — PDF page 1, two EPUBs from the web by their title`, all.has && /Поставлено обложек: (\d) из \1\./.test(all.stat) && near(all.pdf, C['Обложка PDF.pdf']) && near(all.e3, [20, 160, 60]) && near(all.no, [20, 160, 60]), all);
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/${w}-6-podobrat.png` });
   await p.evaluate(() => covClose());
+  /* 10.11 «Обложки из файлов» (⋮): many pictures at once, each finds its book by the file name */
+  const many = await p.evaluate(async (pdfId, noId, cs) => {
+    const mk = (rgb, name) => new Promise(r => { const c = document.createElement('canvas'); c.width = 300; c.height = 450; const x = c.getContext('2d'); x.fillStyle = rgb; x.fillRect(0, 0, 300, 450); c.toBlob(b => r(new File([b], name, { type: 'image/jpeg' })), 'image/jpeg', .9); });
+    const files = [await mk('rgb(240,200,0)', 'Обложка PDF.jpg'), await mk('rgb(120,0,160)', 'Тест Обложкин - Без обложки.png'), await mk('rgb(0,0,0)', 'IMG_2041.jpg')];
+    show('library'); libSortMenu(true); const has = !!el('libCovMany'); libSortMenu(false);
+    covMany(files); await new Promise(r => setTimeout(r, 300));
+    const sel = [...el('covManyList').querySelectorAll('select')].map(x => ({ f: files[+x.dataset.i].name, v: x.value }));
+    const btn = el('covManyOk').textContent;
+    /* the reader moves the unmatched picture onto the PDF → the PDF's old pick is cleared (one picture per book) */
+    const s3 = [...el('covManyList').querySelectorAll('select')].find(x => files[+x.dataset.i].name === 'IMG_2041.jpg'); s3.value = pdfId; s3.dispatchEvent(new Event('change', { bubbles: true }));
+    const after = [...el('covManyList').querySelectorAll('select')].map(x => ({ f: files[+x.dataset.i].name, v: x.value }));
+    el('covManyOk').click();
+    for (let i = 0; i < 50 && !el('covSheet').classList.contains('hidden'); i++) await new Promise(r => setTimeout(r, 100));
+    return { has, sel, btn, after, pdf: await eval(cs)(S.covers[pdfId]), no: await eval(cs)(S.covers[noId]) }; }, pdfId, noId, colourOf);
+  const sv = (arr, f) => (arr.find(x => x.f === f) || {}).v;
+  ok(`${w} «Обложки из файлов»: in the ⋮ menu; «Обложка PDF.jpg» → the PDF, «Автор - Название.png» → its book, «IMG_2041.jpg» → none; button «Поставить (2)»`,
+    many.has && sv(many.sel, 'Обложка PDF.jpg') === pdfId && sv(many.sel, 'Тест Обложкин - Без обложки.png') === noId && sv(many.sel, 'IMG_2041.jpg') === '' && many.btn === 'Поставить (2)', many);
+  ok(`${w} «Обложки из файлов»: a book picked twice keeps only the last picture; one tap sets them all`, sv(many.after, 'Обложка PDF.jpg') === '' && sv(many.after, 'IMG_2041.jpg') === pdfId && near(many.pdf, [0, 0, 0]) && near(many.no, [120, 0, 160]), many);
+  if (SHOTS) { await p.evaluate(async () => { const fs = []; for (const [n, c] of [['Обложка EPUB3.jpg', '#36c'], ['Обложка FB2.png', '#3a6'], ['photo_123.jpg', '#c63']]) fs.push(await new Promise(r => { const cv = document.createElement('canvas'); cv.width = 60; cv.height = 90; const x = cv.getContext('2d'); x.fillStyle = c; x.fillRect(0, 0, 60, 90); cv.toBlob(b => r(new File([b], n, { type: 'image/jpeg' })), 'image/jpeg'); }));
+    covMany(fs); await new Promise(r => setTimeout(r, 300)); }); await p.screenshot({ path: `${SHOTS}/${w}-7-iz-faylov.png` }); await p.evaluate(() => covClose()); }
   /* улучшение 2: the skin's frame over a picture cover */
   const fr = await p.evaluate(async () => { const out = {}; show('library');
     S.gold = 99999;

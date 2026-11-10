@@ -183,6 +183,8 @@ export const GAME_DEF = {
   devMoney: false,
   /** 06.11 «Инструменты читателя» (arch.md): {own, n, parts, pf, drop, hg, sh, sel, pin, on, rw}, normTools */
   tools: null,
+  /** 10.11 «Домик читателя» (arch.md): {pet, pets, gm, bond, nm, treats, tr, own, put, fin, q}, normHome */
+  home: null,
 };
 
 /**
@@ -525,6 +527,28 @@ export function normTools(o) {
   Object.keys(map(o.rw)).slice(0, 100).forEach(function (k) { if (/^[\w:-]{1,40}$/.test(k) && o.rw[k]) t.rw[k] = 1; });
   return t;
 }
+/* ===== 10.11 «Домик читателя» (arch.md). The same rules as js/home.js homeNorm. ===== */
+export function normHome(o) {
+  o = o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+  const ID = /^[a-z0-9-]{1,24}$/, map = function (x) { return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; };
+  const str = function (v, n) { return typeof v === 'string' ? v.slice(0, n) : ''; };
+  const h = { pet: {}, pets: {}, gm: {}, bond: {}, nm: {}, treats: 0, tr: null, own: {}, put: {}, fin: [], q: [] };
+  Object.keys(map(o.pet)).slice(0, 20).forEach(function (k) { if (/^[a-z]{0,14}$/.test(k) && typeof o.pet[k] === 'string' && ID.test(o.pet[k])) h.pet[k] = o.pet[k]; });
+  Object.keys(map(o.pets)).slice(0, 60).forEach(function (k) { if (ID.test(k) && o.pets[k]) h.pets[k] = 1; });
+  Object.keys(map(o.gm)).slice(0, 60).forEach(function (k) { const v = o.gm[k]; if (ID.test(k) && typeof v === 'number' && Number.isFinite(v) && v > 0) h.gm[k] = Math.min(1e7, Math.round(v * 1000) / 1000); });
+  Object.keys(map(o.bond)).slice(0, 60).forEach(function (k) { const v = o.bond[k]; if (ID.test(k) && Number.isInteger(v) && v > 0) h.bond[k] = Math.min(v, 100000); });
+  Object.keys(map(o.nm)).slice(0, 60).forEach(function (k) { const v = str(o.nm[k], 16).trim(); if (ID.test(k) && v) h.nm[k] = v; });
+  if (Number.isInteger(o.treats) && o.treats > 0) h.treats = Math.min(o.treats, 12);
+  const t = map(o.tr); if (DAY_RE.test(t.d) && Number.isInteger(t.k) && t.k >= 0 && t.k <= 6 && typeof t.m === 'number' && t.m >= 0 && t.m < 1440) h.tr = { d: t.d, k: t.k, m: Math.round(t.m * 1000) / 1000 };
+  Object.keys(map(o.own)).slice(0, 300).forEach(function (k) { if (ID.test(k) && o.own[k]) h.own[k] = 1; });
+  Object.keys(map(o.put)).slice(0, 100).forEach(function (k) { const v = o.put[k]; if (/^[a-z]{1,10}:[a-z0-9]{1,8}$/.test(k) && typeof v === 'string' && (v === '-' || ID.test(v))) h.put[k] = v; });
+  const seen = {}; (Array.isArray(o.fin) ? o.fin : []).slice(0, 1000).forEach(function (x) {
+    if (!x || typeof x !== 'object') return; const id = str(x.id, 120); if (!id || seen[id]) return; seen[id] = 1;
+    h.fin.push({ id: id, t: str(x.t, 80), a: str(x.a, 60), d: DAY_RE.test(x.d) ? x.d : '' });
+  });
+  (Array.isArray(o.q) ? o.q : []).slice(0, 3).forEach(function (x) { if (!x || typeof x !== 'object') return; const tx = str(x.t, 240).trim(); if (tx) h.q.push({ t: tx, a: str(x.a, 80) }); });
+  return h;
+}
 export function normInk(o) {
   const out = {};
   if (!o || typeof o !== 'object' || Array.isArray(o)) return out;
@@ -643,6 +667,7 @@ export function hydrateGame(g) {
   out.quizPaid = intMap(out.quizPaid, 1000, /^\d{4}-\d{2}-\d{2}$/);
   out.pomoPaid = intMap(out.pomoPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/); /* 25.10 «Фокус» (arch.md) */
   out.tools = normTools(out.tools); /* 06.11 «Инструменты читателя» */
+  out.home = normHome(out.home); /* 10.11 «Домик читателя» */
   out.chalPaid = intMap(out.chalPaid, 1e6, /^\d{4}-\d{2}-\d{2}$/);
   out.rewardHist = out.rewardHist || [];
   if (out.rewardHist.length && !out.rewardPurchases.length) {

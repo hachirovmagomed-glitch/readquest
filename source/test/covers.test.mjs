@@ -29,7 +29,7 @@ for (const w of [360, 390]) {
   const qOf = (u) => { const m = /[?&](?:q|gsrsearch)=([^&]*)/.exec(u); return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : ''; };
   p.on('request', r => { const u = r.url();
     /* «название автор» finds nothing anywhere → the search tries the title alone (улучшение 3) */
-    if (/googleapis\.com\/books|openlibrary\.org\/search|wikipedia\.org\/w\/api/.test(u) && /Обложкин/.test(qOf(u))) return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{}' });
+    if (/googleapis\.com\/books|openlibrary\.org\/search|wikipedia\.org\/w\/api/.test(u) && /Обложкин/.test(decodeURIComponent(u.replace(/\+/g, ' ')))) return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{}' });
     if (u.startsWith('https://ru.wikipedia.org/w/api.php')) { const q = qOf(u); return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
       body: JSON.stringify({ query: { pages: { 7: { index: 1, title: q, thumbnail: { source: 'https://upload.wikimedia.org/wikipedia/ru/thumb/1/1a/C.jpg/320px-C.jpg', width: 320, height: 480 } }, 8: { index: 2, title: 'Флаг', thumbnail: { source: 'https://upload.wikimedia.org/x/Flag_of_X.svg/320px-Flag_of_X.svg.png', width: 320 } } } } }) }); }
     if (u.startsWith('https://upload.wikimedia.org/')) return r.respond({ status: 200, contentType: 'image/jpeg', headers: { 'access-control-allow-origin': '*' }, body: Buffer.from(img64.green, 'base64') });
@@ -93,17 +93,23 @@ for (const w of [360, 390]) {
   await p.waitForFunction((id) => !!S.covers[id], { timeout: 15000 }, noId);
   ok(`${w} «Взять обложку из файла книги»: the cover of the picked file, the book itself untouched`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), noId, colourOf), C['Обложка EPUB3.epub']) &&
     await p.evaluate((id) => S.userBooks.find(b => b.id === id).title === 'Без обложки', noId));
+  /* 10.11 (скрин Джессики): the author inside a file name is split off before searching */
+  const sp = await p.evaluate(() => ['Криничная Н.А. Мифология воды и водоемов', 'Н. А. Криничная. Мифология воды', 'Достоевский - Идиот', 'Идиот (Достоевский)', 'Толстой Л.Н., Война и мир (2015)', 'Пушкин_А.С._Евгений_Онегин.pdf', 'Мастер и Маргарита'].map(x => { const m = covSplit(x); return m.t + '|' + m.a; }));
+  ok(`${w} search: «Фамилия И.О. Название», «И.О. Фамилия. Название», «Автор - Название», «Название (Автор)», year / .pdf / _ dropped`, JSON.stringify(sp) === JSON.stringify(['Мифология воды и водоемов|Криничная Н.А.', 'Мифология воды|Н. А. Криничная', 'Идиот|Достоевский', 'Идиот|Достоевский', 'Война и мир|Толстой Л.Н.', 'Евгений Онегин|Пушкин А.С.', 'Мастер и Маргарита|']), sp);
+  const gq = await p.evaluate(async () => { const seen = []; const f0 = window.fetch; window.fetch = (u, o) => { seen.push(decodeURIComponent(String(u))); return Promise.reject(new Error('x')); };
+    try { await covSearchAll('Криничная Н.А. Мифология воды и водоемов'); } finally { window.fetch = f0; } return seen; });
+  ok(`${w} search: Google Книги asked by title and author apart (intitle / inauthor), Open Library by title= & author=`, gq.some(u => /intitle:"Мифология воды и водоемов" inauthor:"Криничная"/.test(u)) && gq.some(u => /openlibrary\.org\/search\.json\?title=Мифология воды и водоемов&author=Криничная/.test(u)), gq);
   /* «Найти в интернете» */
   const fbId = await p.evaluate(() => S.userBooks.find(b => /fb2/i.test(b.fname)).id);
   await p.evaluate((id) => { bookInfo(id); covFromWeb(id); }, fbId);
   await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 3, { timeout: 10000 }); await sleep(400);
   const web = await p.evaluate(() => ({ q: el('covQIn').value, ya: el('covYa').href, tiles: [...el('covGrid').querySelectorAll('.cov-tile span')].map(s => s.textContent), stat: el('covStat').textContent }));
-  ok(`${w} web: «название автор» found nothing → tried the title alone; Russian → Википедия first (a flag dropped), then Google Книги, Open Library (a hit without a cover dropped); Яндекс link`, web.q === 'Обложка FB2' && web.tiles.join('|') === 'Википедия|Google Книги|Open Library' && /yandex\.ru\/images\/search\?text=/.test(web.ya), web);
+  ok(`${w} web: «название автор» found nothing → tried the title alone; Google Книги by title/author first, then Википедия (a flag dropped), Open Library (a hit without a cover dropped); Яндекс link`, web.q === 'Обложка FB2 Тест Обложкин' && web.tiles.join('|') === 'Google Книги|Википедия|Open Library' && /yandex\.ru\/images\/search\?text=/.test(web.ya), web);
   if (SHOTS) await p.screenshot({ path: `${SHOTS}/${w}-3-internet.png` });
-  await p.click('#covGrid .cov-tile[data-i="0"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
+  await p.click('#covGrid .cov-tile[data-i="1"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
   ok(`${w} web: Википедия → a copy on the phone`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), fbId, colourOf), [20, 160, 60]));
   await p.evaluate((id) => covFromWeb(id), fbId); await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 3, { timeout: 10000 });
-  await p.click('#covGrid .cov-tile[data-i="1"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
+  await p.click('#covGrid .cov-tile[data-i="0"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });
   ok(`${w} web: a site that allows copying (Google) → a copy on the phone`, near(await p.evaluate((id, cs) => eval(cs)(S.covers[id]), fbId, colourOf), [30, 60, 200]));
   await p.evaluate((id) => covFromWeb(id), fbId); await p.waitForFunction(() => el('covGrid').querySelectorAll('.cov-tile').length === 3, { timeout: 10000 });
   await p.click('#covGrid .cov-tile[data-i="2"]'); await p.waitForFunction(() => el('covSheet').classList.contains('hidden'), { timeout: 10000 });

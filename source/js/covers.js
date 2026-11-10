@@ -236,11 +236,47 @@ async function covSearchWiki(q,lang){
     .map(function(p){const t=p.thumbnail.source;return {thumb:t,full:t,t:p.title||'',a:'',src:'Википедия'};}); /* the 480 px thumbnail is sharp enough for 420×600 */
 }
 function covIsRu(q){return /[а-яё]/i.test(q);}
+/* 10.11 (Джессика, скрин: «Криничная Н.А. Мифология воды и водоемов» → «Ничего не нашлось»): a file name often holds the author too.
+   covSplit → {t: название, a: автор}: «Фамилия И.О. Название», «И.О. Фамилия. Название», «Автор - Название», «Название (Автор)»;
+   the year / [скобки] / «.pdf» are dropped. The services are asked by title and author apart, then by the title alone. */
+const COV_UP='А-ЯЁA-Z',COV_LO='а-яёa-z';
+function covClean(x){return String(x||'').replace(/\.(pdf|epub|fb2|txt|zip|djvu)$/i,'').replace(/[_]+/g,' ').replace(/\[[^\]]*\]/g,' ')
+  .replace(/\((?:19|20)\d\d\)|[,.\s]+(?:19|20)\d\d\s*$/g,' ').replace(/\s+/g,' ').replace(/^[\s,.;:-]+|[\s,;:-]+$/g,'').trim();}
+function covSplit(text,author){
+  const s=covClean(text),A=String(author||'').trim();
+  const sur='['+COV_UP+']['+COV_LO+'\'’]+(?:-['+COV_UP+']['+COV_LO+']+)?',ini='['+COV_UP+']\\.\\s?(?:['+COV_UP+']\\.)?';
+  let m=new RegExp('^('+sur+'\\s+'+ini+')[,\\s]+(.{3,})$').exec(s);
+  if(m)return {t:m[2].trim(),a:m[1].trim()};
+  m=new RegExp('^('+ini+'\\s?'+sur+')[,.\\s]+(.{3,})$').exec(s);
+  if(m)return {t:m[2].trim(),a:m[1].trim()};
+  m=/^(.{2,40}?)\s+[-–—]\s+(.{3,})$/.exec(s);
+  if(m&&m[1].split(' ').length<=4&&!/\d/.test(m[1]))return {t:m[2].trim(),a:m[1].trim()};
+  m=/^(.{3,}?)\s*\(([^()]{3,40})\)$/.exec(s);
+  if(m&&m[2].split(' ').length<=4&&!/\d/.test(m[2]))return {t:m[1].trim(),a:m[2].trim()};
+  return {t:s,a:A};
+}
+function covSurname(a){const w=String(a||'').split(/[\s,]+/).filter(function(x){return x.length>2&&!/\.$/.test(x);});return w.sort(function(x,y){return y.length-x.length;})[0]||'';}
+async function covSearchGBq(m){ /* Google Книги by title and author apart: intitle:"…" inauthor:"…" */
+  const sn=covSurname(m.a);return covSearchGB('intitle:"'+m.t.replace(/"/g,'')+'"'+(sn?' inauthor:"'+sn+'"':''));}
+async function covSearchOLq(m){
+  const j=await covFetchJson('https://openlibrary.org/search.json?title='+encodeURIComponent(m.t)+(m.a?'&author='+encodeURIComponent(covSurname(m.a)||m.a):'')+'&fields=title,author_name,cover_i&limit=24');
+  return (j.docs||[]).filter(function(d){return d.cover_i;}).map(function(d){const u='https://covers.openlibrary.org/b/id/'+d.cover_i;
+    return {thumb:u+'-M.jpg',full:u+'-L.jpg',t:d.title||'',a:(d.author_name||[])[0]||'',src:'Open Library'};});
+}
 async function covSearchAll(q){
-  const ru=covIsRu(q),jobs=ru?[covSearchWiki(q,'ru'),covSearchGB(q),covSearchOL(q)]:[covSearchGB(q),covSearchOL(q),covSearchWiki(q,'en')];
+  const m=typeof q==='string'?covSplit(q):q,plain=[m.t,covSurname(m.a)].filter(Boolean).join(' '),ru=covIsRu(plain);
+  const jobs=ru?[covSearchGBq(m),covSearchWiki(plain,'ru'),covSearchGB(plain),covSearchOLq(m)]:[covSearchGBq(m),covSearchGB(plain),covSearchOLq(m),covSearchWiki(plain,'en')];
   const rs=await Promise.allSettled(jobs),seen={},items=[];
   rs.forEach(function(r){if(r.status==='fulfilled')r.value.forEach(function(x){if(!seen[x.thumb]){seen[x.thumb]=1;items.push(x);}});});
-  return {items:items,off:rs.every(function(r){return r.status==='rejected';}),errs:rs.map(function(r){return r.reason;})};
+  return {items:items,m:m,off:rs.every(function(r){return r.status==='rejected';}),errs:rs.map(function(r){return r.reason;})};
+}
+/* the tries in order: title + author → title alone → the first five words of a long title */
+async function covSearchTries(m,still){
+  let r=await covSearchAll(m);
+  if(!r.items.length&&!r.off&&m.a&&still())r=await covSearchAll({t:m.t,a:''});
+  const w=m.t.split(' ');
+  if(!r.items.length&&!r.off&&w.length>5&&still())r=await covSearchAll({t:w.slice(0,5).join(' '),a:m.a});
+  return r;
 }
 function covFromWeb(id){
   const b=allBooks().find(function(x){return x.id===id;});if(!b)return;
@@ -257,17 +293,16 @@ function covFromWeb(id){
   covWebSearch(id);
 }
 async function covWebSearch(id){
-  const inp=el('covQIn');let q=(inp&&inp.value||'').trim();if(!q)return;
-  const seq=++COVS.seq,g=el('covGrid');g.innerHTML='';g.onclick=null;covStatus('Ищу обложки…');covBusy(true);
-  let r=await covSearchAll(q);
-  /* nothing for «название автор» → once more with the title alone (Russian books are often listed without the author's first name) */
-  const b=allBooks().find(function(x){return x.id===id;}),t=b?String(b.title||'').trim():'';
-  if(!r.items.length&&!r.off&&t&&t!==q&&seq===COVS.seq){q=t;if(inp)inp.value=t;r=await covSearchAll(t);}
+  const inp=el('covQIn');const q=(inp&&inp.value||'').trim();if(!q)return;
+  const seq=++COVS.seq,g=el('covGrid');g.innerHTML='';g.onclick=null;covBusy(true);
+  const b=allBooks().find(function(x){return x.id===id;}),m=b&&q===covQuery(b)?covSplit(b.title,bookAuthor(b)):covSplit(q);
+  covStatus('Ищу «'+m.t+'»'+(m.a?', автор '+m.a:'')+'…');
+  const r=await covSearchTries(m,function(){return seq===COVS.seq;});
   if(seq!==COVS.seq)return;covBusy(false);
   const items=r.items;
   if(!items.length){
     if(r.off)console.warn('[rq] cover search',r.errs);
-    covStatus(r.off?'Не получилось связаться с сервисами обложек. Проверьте интернет или поищите в Яндекс Картинках.':'Ничего не нашлось. Попробуйте только название или только автора.',r.off);return;
+    covStatus(r.off?'Не получилось связаться с сервисами обложек. Проверьте интернет или поищите в Яндекс Картинках.':'Ничего не нашлось по «'+m.t+'»'+(m.a?' ('+m.a+')':'')+'. Попробуйте изменить запрос.',r.off);return;
   }
   covStatus('Нажмите на обложку, чтобы поставить её. Найдено: '+items.length+'.');
   g.innerHTML=items.slice(0,36).map(function(x,i){return covTile(x.thumb,x.src,i);}).join('');
@@ -332,8 +367,9 @@ async function covAll(){
       if(b.type==='pdf'){const doc=await covPdfOpen(b.id);let bl;try{bl=await covPdfPage(doc,1);}finally{try{doc.destroy();}catch(e){}}if(bl){await covSetBlob(b.id,bl,{quiet:true});ok=true;}}
       else{const im=await covTallImg(b.id);if(im){await covSetBlob(b.id,im,{quiet:true});ok=true;}}
       if(!ok&&navigator.onLine!==false){
-        const r=await covSearchAll(covQuery(b));let x=r.items.find(function(it){return covTitleOk(b.title,it.t);});
-        if(!x&&bookAuthor(b)){const r2=await covSearchAll(String(b.title||''));x=r2.items.find(function(it){return covTitleOk(b.title,it.t);});}
+        const m=covSplit(b.title,bookAuthor(b));
+        const r=await covSearchAll(m);let x=r.items.find(function(it){return covTitleOk(m.t,it.t);});
+        if(!x&&m.a){const r2=await covSearchAll({t:m.t,a:''});x=r2.items.find(function(it){return covTitleOk(m.t,it.t);});}
         if(x&&seq===COVS.seq){await covSetFromUrl(b.id,x,{quiet:true});ok=true;}
       }
     }catch(e){console.warn('[rq] cover all',b.id,e);}

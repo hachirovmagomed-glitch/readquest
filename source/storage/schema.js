@@ -194,6 +194,10 @@ export const LIBRARY_DEF = {
   hidden: [],
   shelfOrder: [],
   covers: {},
+  /** 10.11 обложки своих книг (js/covers.js): id → 1 = the one-time start-up cover pass has seen this book (or the reader chose) */
+  covAuto: {},
+  /** 10.11 «Обрезать и сдвинуть»: id → {x, y, z} (centre 0…1, zoom 1…4); the picture itself is IDB covsrc:{id} */
+  covCrop: {},
   autoDiff: true,
   /** arch.md 19.10 «Приключения»: «Хочу прочитать» [{sid, page?, n?, t, a, tr?, ed?, lang?}] ≤ 200 и последние поиски ≤ 8 */
   advWant: [],
@@ -356,7 +360,7 @@ export function normRx(o) {
     sel: { off: ids(s.off), order: ids(s.order), color: ['y', 'g', 'b', 'p', 'o'].includes(s.color) ? s.color : '' },
     screen: { orient: en(sc.orient, ['auto', 'portrait', 'landscape']), spread: en(sc.spread, ['auto', 'land', 'off']) },
     fresh: { set: nm(fr.set), pdf: nm(fr.pdf), toc: bo(fr.toc, false) },
-    sm: ((m) => ({ lp: en(m.lp, ['n', 'f', 's']), tap: bo(m.tap, true), drag: en(m.drag, ['edge', 'any', 'off']), lpd: bo(m.lpd, true), unit: en(m.unit, ['word', 'char']), edge: en(m.edge, ['off', 'f', 's']), hand: en(m.hand, ['n', 'b']), vib: bo(m.vib, true), hint: bo(m.hint, true) }))(ob(o.sm)),
+    sm: ((m) => ({ lp: en(m.lp, ['n', 'f', 's']), tap: m.t2 === true ? bo(m.tap, false) : false, t2: true, /* 10.11: a tap on the text clears the selection by default (t2: switched off once in saved settings) */ drag: en(m.drag, ['edge', 'any', 'off']), lpd: bo(m.lpd, true), unit: en(m.unit, ['word', 'char']), edge: en(m.edge, ['off', 'f', 's']), hand: en(m.hand, ['n', 'b']), vib: bo(m.vib, true), hint: bo(m.hint, true) }))(ob(o.sm)),
     spd: { cpm: num(sp.cpm, 100, 6000), spp: num(sp.spp, 5, 1200), n: typeof sp.n === 'number' && Number.isFinite(sp.n) ? Math.max(0, Math.min(1e6, Math.floor(sp.n))) : 0 },
   };
 }
@@ -746,6 +750,8 @@ export function hydrateLibrary(lib) {
   out.hidden = out.hidden || [];
   out.shelfOrder = out.shelfOrder || [];
   out.covers = out.covers || {};
+  out.covAuto = out.covAuto && typeof out.covAuto === 'object' && !Array.isArray(out.covAuto) ? out.covAuto : {};
+  out.covCrop = out.covCrop && typeof out.covCrop === 'object' && !Array.isArray(out.covCrop) ? out.covCrop : {};
   if (out.autoDiff === undefined) out.autoDiff = true;
   out.advWant = Array.isArray(out.advWant)
     ? out.advWant.filter((x) => x && typeof x === 'object' && typeof x.sid === 'string' && /^(wikisource|gutenberg|se|ia):./.test(x.sid)).slice(0, 200)

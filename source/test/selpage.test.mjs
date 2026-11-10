@@ -13,6 +13,7 @@ const p = await (await browser.createBrowserContext()).newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
 p.on('pageerror', e => { errs.push(e.message); console.log('PAGEERROR', e.message); }); p.on('dialog', d => d.accept());
 await p.goto(BASE, { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(400);
+await p.evaluate(() => { if (typeof rxS === 'function') { rxS().sm.tap = true; saveSet(); } }); /* 10.11: «Нажатие ставит конец» is off by default now; these checks are about it on */
 
 // the longest book, page 3, animations off (the turn is the same with them, only slower to check)
 await p.evaluate(async () => {
@@ -147,8 +148,9 @@ ok('…and a tap on a later word still moves the end', t6.page === 3 && t6.len >
 await p.evaluate(() => { SET.rx.sm.tap = false; });
 [lx, ly] = await xy(0, 520); await p.touchscreen.tap(lx, ly); await settle(300);
 const u6 = await p.evaluate(() => ({ len: String(getSelection()).length, on: SM.on }));
-ok('setting «Нажатие ставит конец» off: a tap leaves the selection as it is', u6.on && u6.len === t6.len, { t6, u6 });
+ok('setting «Нажатие ставит конец» off: a tap clears the selection (10.11: тапом снимается)', !u6.on && u6.len === 0, { t6, u6 });
 await p.evaluate(() => { SET.rx.sm.tap = true; SET.rx.sm.drag = 'any'; });
+[lx, ly] = await xy(0, 470); await p.touchscreen.touchStart(lx, ly); await sleep(700); await p.touchscreen.touchEnd(); await settle(300); /* a new selection to drag */
 const [ax, ay] = await xy(0, 560), [bx, by] = await xy(0, 640);
 await p.touchscreen.touchStart(ax, ay); await p.touchscreen.touchMove(ax - 20, ay); await p.touchscreen.touchMove(bx, by + 22); await p.touchscreen.touchEnd(); await settle(300);
 const v6 = await p.evaluate(() => ({ len: String(getSelection()).length, page: R.page, on: SM.on }));
@@ -162,7 +164,7 @@ await sleep(800); /* the 0,7 s after a touch on the text, when a collapsed selec
 const st6 = await p.evaluate(() => { SET.rx = rqRxNorm(Object.assign({}, SET.rx, { sm: { drag: 'bad', lp: 's', hand: 'b' } })); const m = SET.rx.sm; const r = { m, ms: SM_LP[smCfg().lp] };
   RX_EXP.smx = true; rxRender(); const b = el('rxB' + 'smx'); r.open = b && !b.hidden; r.drag = [...el('rxSmDrag').children].map(x => x.textContent); r.on = (el('rxSmDrag').querySelector('.on') || {}).textContent;
   r.rows = b ? b.querySelectorAll('.setrow').length : 0; SET.rx = rqRxNorm(Object.assign({}, SET.rx, { sm: null })); rxRender(); return r; });
-ok('settings «Выделение текста»: 9 rows, «Тянуть пальцем» За край / С любого места / Только кружки, bad values → defaults, «Дольше» = 700 мс', st6.open && st6.rows === 9 && st6.drag.join('|') === 'За край|С любого места|Только кружки' && st6.on === 'За край' && st6.m.drag === 'edge' && st6.ms === 700 && st6.m.hand === 'b' && st6.m.tap === true, st6);
+ok('settings «Выделение текста»: 9 rows, «Тянуть пальцем» За край / С любого места / Только кружки, bad values → defaults, «Дольше» = 700 мс', st6.open && st6.rows === 9 && st6.drag.join('|') === 'За край|С любого места|Только кружки' && st6.on === 'За край' && st6.m.drag === 'edge' && st6.ms === 700 && st6.m.hand === 'b' && st6.m.tap === false, st6); /* 10.11: «Нажатие ставит конец» off by default */
 // 6b. «Снять выделение» in the side menu ends it all
 const n6 = await p.evaluate(async () => { SS.open = true; ssUpd(); el('ssX').click(); await new Promise(r => setTimeout(r, 300)); return { on: SM.on, sel: String(getSelection()).length, h: el('smLo').hidden && el('smHi').hidden, bar: el('selpop').classList.contains('hidden') }; });
 ok('«Снять выделение» in the side menu: no selection, no handles, no bar', !n6.on && !n6.sel && n6.h && n6.bar, n6);

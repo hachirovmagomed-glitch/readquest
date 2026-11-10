@@ -510,12 +510,36 @@ async function parseEpub(file,opts){
     text+=r.text+'\n\n';
   }
   if(!text.trim())throw new Error('не удалось извлечь текст');
+  let cover=null;try{cover=await epubCover(zip,opf,dir,man,spine);}catch(e){} /* 10.11: the book's own cover → the shelf (library.js importBookFile) */
   /* a book without any <h1-3>: one chapter per file of the spine, named by its first words (the old way) */
   if(!toc.length)files.forEach(function(x,i){const t=x.t.replace(/^￼img:\d+\s*/,'');if(t)toc.push({t:t.slice(0,60),off:x.off});});
   /* the outermost heading level present is level 0 */
   const top=toc.reduce(function(m,x){return Math.min(m,x.lvl||0);},9);toc.forEach(function(x){if(x.lvl!=null)x.lvl=Math.max(0,x.lvl-top);});
   const lang=((opf.match(/<dc:language[^>]*>\s*([A-Za-z]{2,3})/)||[])[1]||'').toLowerCase(); /* 19.10: was the FB2 line (xml is not defined here), so every EPUB import threw */
-  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang,imgs:imgs};
+  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang,imgs:imgs,cover:cover};
+}
+/* 10.11: EPUB cover, the ways books mark it: EPUB 3 properties="cover-image"; EPUB 2 <meta name="cover" content="<item id>">;
+   <guide><reference type="cover"> or a first spine page named «cover» → its first picture; an image item named «cover». */
+const COVER_MAX=12*1024*1024;
+async function epubCover(zip,opf,dir,man,spine){
+  const items=(opf.match(/<item\b[^>]*>/g)||[]).map(function(t){const g=function(a){return decodeEntities((new RegExp('\\b'+a+'\\s*=\\s*["\']([^"\']*)["\']').exec(t)||[])[1]||'');};
+    return {id:g('id'),href:g('href'),mt:g('media-type').toLowerCase(),pr:g('properties')};});
+  const isImg=function(x){return x&&(/^image\//.test(x.mt)||/\.(jpe?g|png|gif|webp|svg)$/i.test(x.href));};
+  const read=async function(pth){const f=zip.file(pth);if(!f)return null;const d=await f.async('uint8array');return d.length&&d.length<=COVER_MAX?{data:d,type:bookImgType(pth)}:null;};
+  const ofItem=function(x){return read(zipPath(dir,decodeURIComponent(x.href)));};
+  let x=items.find(function(i){return /(^|\s)cover-image(\s|$)/.test(i.pr);});
+  if(!isImg(x)){const m=/<meta\b[^>]*name\s*=\s*["']cover["'][^>]*>/i.exec(opf)||/<meta\b[^>]*content\s*=\s*["'][^"']+["'][^>]*name\s*=\s*["']cover["'][^>]*>/i.exec(opf);
+    const c=m&&(/content\s*=\s*["']([^"']+)["']/.exec(m[0])||[])[1];if(c)x=items.find(function(i){return i.id===c;})||items.find(function(i){return i.href===c;});}
+  if(isImg(x)){const r=await ofItem(x);if(r)return r;}
+  /* a cover page: <guide> «cover» / «title-page», else the first spine page if its name says cover */
+  const pages=[];const g=/<reference\b[^>]*type\s*=\s*["']cover["'][^>]*>/i.exec(opf);
+  if(g){const h=(/href\s*=\s*["']([^"'#]+)/.exec(g[0])||[])[1];if(h)pages.push(h);}
+  const s0=man[spine[0]];if(s0&&(/cover|titlepage|title_page/i.test(s0)||/cover/i.test(spine[0])))pages.push(s0);
+  for(const h of pages){const fp=zipPath(dir,decodeURIComponent(h)),f=zip.file(fp);if(!f)continue;
+    const xh=await f.async('string'),m=/<(?:img|image)\b[^>]*\s(?:src|(?:xlink:)?href)\s*=\s*["']([^"']+)["']/i.exec(xh);
+    if(m){const r=await read(zipPath(fp.replace(/[^\/]*$/,''),decodeURIComponent(decodeEntities(m[1]))));if(r)return r;}}
+  x=items.find(function(i){return isImg(i)&&/cover/i.test(i.id+' '+i.href);});
+  return x?ofItem(x):null;
 }
 
 async function idbDel(k){
@@ -704,7 +728,10 @@ function bookInfo(id){
     '</div></div>'+
     '<div class="bset-reward" id="bsetReward">'+bookRewardPreview(b)+'</div></div>')+
     '<div class="bk-h">Обложка</div><div class="bk-list">'+
-    line('image','Выбрать картинку','pickCover')+
+    line('image','Выбрать картинку с телефона','pickCover')+
+    (builtin||!(b.type==='pdf'||/\.(epub|fb2|zip)$/i.test(b.fname||''))?'':line(b.type==='pdf'?'file-text':'book-open',b.type==='pdf'?'Страница из PDF':'Картинка из книги','covFromBook'))+
+    line('search','Найти в интернете','covFromWeb')+
+    (S.covers[id]&&S.covers[id].indexOf('data:')===0?line('crop','Обрезать и сдвинуть','covCropOpen'):'')+
     (S.covers[id]?line('rotate-cw','Вернуть стандартную','resetCover'):'')+
     '</div>'+
     '<div class="bk-list bk-danger">'+
@@ -750,25 +777,14 @@ function onImpSlide(id,v){
   el('bsetImpVal').textContent=(+v)+'%';
   el('bsetReward').innerHTML=bookRewardPreview(b);
 }
+/* «Выбрать картинку»: any picture from the phone → covSetBlob (js/covers.js: small copy in S.covers, sharp one in IDB «cov:<id>») */
 let COVID=null;
 function pickCover(id){COVID=id;el('covInp').click();}
 el('covInp').onchange=e=>{
-  const f=e.target.files[0];if(!f||!COVID)return;e.target.value='';
-  const img=new Image();
-  img.onload=()=>{
-    const cv=document.createElement('canvas');cv.width=88;cv.height=116;
-    const ctx=cv.getContext('2d');
-    const s2=Math.max(88/img.width,116/img.height);
-    ctx.drawImage(img,(88-img.width*s2)/2,(116-img.height*s2)/2,img.width*s2,img.height*s2);
-    try{
-      S.covers[COVID]=cv.toDataURL('image/jpeg',0.72);
-      save();renderLibrary();bookInfo(COVID);
-    }catch(e2){rqAlert('Не удалось сохранить обложку: '+e2.message);}
-  };
-  img.onerror=()=>rqAlert('Не удалось прочитать изображение');
-  img.src=URL.createObjectURL(f);
+  const f=e.target.files[0];e.target.value='';if(!f||!COVID)return;
+  const id=COVID;covSetBlob(id,f).then(function(){covCropOpen(id);}).catch(function(e2){rqAlert(/decode|прочитать/i.test(String(e2&&e2.message))?'Не удалось прочитать изображение':'Не удалось сохранить обложку: '+(e2&&e2.message||e2));});
 };
-function resetCover(id){delete S.covers[id];save();renderLibrary();bookInfo(id);}
+function resetCover(id){covDrop(id);save();renderLibrary();bookInfo(id);}
 
 /* --- ИИ «Объясни» (20.10): выделение → объяснение по смыслу книги ---
    Только на своём ключе человека (Джессика 20.10: «делай так, чтобы люди ставили свои ключи»). Настройки → ИИ-помощник:
@@ -1070,6 +1086,7 @@ async function removeBook(id,wipeFile){
   const fi=S.favs.indexOf(id);if(fi>-1)S.favs.splice(fi,1);
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */
+  if(!builtin)covDrop(id); /* 10.11: its cover (S.covers + IDB «cov:<id>») */
   if(wipeFile){try{await idbDel('ocr:'+id);if(typeof OCR_MEM!=='undefined')delete OCR_MEM[id];}catch(e){}} /* 28.10: pages recognised on the phone (js/ocr.js) */
   save();el('bookSheet').classList.add('hidden');renderLibrary();
   flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');
@@ -1231,7 +1248,11 @@ async function parseFb2(f){
   if(notes){const r=bookHtmlText(notes.x.replace(/<title>([\s\S]*?)<\/title>/g,'<p>$1</p>'));if(r.text){toc.push({t:'Примечания',off:text.length+(text?2:0),lvl:0});text+=(text?'\n\n':'')+r.text;}}
   if(!text.trim())throw new Error('пустой FB2');
   const lang=((/<lang>\s*([A-Za-z]{2,3})/.exec(ti)||[])[1]||'').toLowerCase();
-  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang||undefined,imgs:imgs};
+  /* 10.11: <coverpage><image l:href="#cover.jpg"/> in <title-info> → the shelf cover */
+  let cover=null;const cp=/<coverpage>([\s\S]*?)<\/coverpage>/.exec(ti);
+  if(cp){const cid=(/href\s*=\s*["']#?([^"']+)["']/.exec(cp[1])||[])[1],bn=cid&&bins[cid];
+    if(bn){try{const raw=atob(bn.b64.replace(/\s+/g,''));if(raw.length<=COVER_MAX){const d=new Uint8Array(raw.length);for(let k=0;k<raw.length;k++)d[k]=raw.charCodeAt(k);cover={data:d,type:bookImgType(cid,bn.type)};}}catch(e){}}}
+  return {title:title,author:author,text:text.trim(),toc:toc,lang:lang||undefined,imgs:imgs,cover:cover};
 }
 
 

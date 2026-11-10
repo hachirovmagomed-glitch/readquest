@@ -106,3 +106,58 @@ function rqPeel(host,sheet,dir){
     if(k>=1){rqCurlStop();return;}draw(k);st.raf=requestAnimationFrame(step);};
   st.raf=requestAnimationFrame(step);
 }
+/* ===== 10.11 (тестер: «сворачиваешь приложение и заходишь назад — страница на время слетает») =====================
+   Leaving the app ends the browser fullscreen, and coming back re-lays out the WHOLE book (the strip of all its pages:
+   seconds on a phone for a long book). Android has dropped the screen's tiles in the background, so the first frame waits
+   for that layout → an empty page. Now, when the app goes to the background, a copy of the page on screen (rqTextPageCopy,
+   same as «Загиб») is put over the text and the strip itself is taken out of the layout (display:none). The first frame
+   back is that light copy — the page is there at once. Two frames later the strip comes back (one layout; a changed screen
+   size is measured before, so the book is laid out once at the new size, the reading place kept) and the copy goes.
+   Not with read-aloud (it turns pages in the background), «Прокрутка», a selection, the search screen or PDF. Writes nothing. */
+const BGS={on:false,sheet:null,anchor:null,due:false,tok:0,takes:0,backs:0};
+window.__rqBgSnap=BGS; /* test hook */
+function rqBgSnapOk(){
+  const r=el('reader');
+  if(!R||!R.book||R.mode==='pdf'||!r||r.classList.contains('hidden')||rqScrollMode()||!R.step)return false;
+  if((typeof ttsOn!=='undefined'&&ttsOn)||(typeof speaking!=='undefined'&&speaking))return false;
+  if(window.__rqFindOpen||(typeof SM!=='undefined'&&SM&&SM.on))return false;
+  try{const s=window.getSelection&&getSelection();if(s&&!s.isCollapsed&&String(s).length)return false;}catch(e){}
+  return true;
+}
+function rqBgSnapTake(){
+  if(BGS.on||!rqBgSnapOk())return;
+  try{
+    rqCurlStop();
+    const anchor=readingAnchor(),sh=rqTextPageCopy(R.page);if(!sh)return;
+    sh.classList.add('rqBgSnap');sh.setAttribute('aria-hidden','true');
+    el('viewer').appendChild(sh);
+    el('content').style.display='none';
+    BGS.on=true;BGS.sheet=sh;BGS.anchor=anchor;BGS.due=false;BGS.takes++;
+  }catch(e){console.warn('[rq] bg snap',e);}
+}
+/** the strip back (idempotent). quiet: the reader is closing — no re-layout. */
+function rqBgSnapRestore(quiet){
+  if(!BGS.on)return;
+  BGS.on=false;BGS.tok++;
+  const sh=BGS.sheet,anchor=BGS.anchor;BGS.sheet=null;BGS.anchor=null;BGS.due=false;
+  const v=el('viewer'),c=el('content');
+  try{
+    let sz=null;
+    if(!quiet&&R.mode!=='pdf'&&!el('reader').classList.contains('hidden')){
+      if(typeof rqHalfSync==='function'&&rqHalfSync())applySet();
+      rqTextMargin();sz={w:v.clientWidth,h:v.clientHeight}; /* cheap: the strip is still out of the layout */
+    }
+    if(sh)sh.remove();
+    c.style.display='';
+    if(sz&&R.layoutKey!==layoutKey(sz.w,sz.h)&&!window.__rqFindOpen)relayout({force:true,size:sz,anchor:anchor&&anchor.node&&anchor.node.isConnected?anchor:null});
+    BGS.backs++;
+  }catch(e){c.style.display='';if(sh)sh.remove();console.warn('[rq] bg snap back',e);}
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden'){rqBgSnapTake();return;}
+  if(!BGS.on)return;
+  const t=++BGS.tok;
+  const go=function(){if(t===BGS.tok&&document.visibilityState!=='hidden')rqBgSnapRestore();};
+  requestAnimationFrame(function(){requestAnimationFrame(go);}); /* the copy is on screen first, then the long layout */
+  setTimeout(go,700); /* no frames (yet) → the book comes back anyway */
+});

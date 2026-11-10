@@ -1811,6 +1811,7 @@ function renderSummary(r){
   el('sumNote').textContent=notes.join(' · ');
   quizRender(r);
   {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */
+  {const sh=el('sumHome');if(sh){let h='';try{h=typeof homeSummaryHtml==='function'?homeSummaryHtml(r.row):'';}catch(e){}sh.innerHTML=h;sh.classList.toggle('hidden',!h);}} /* 10.11 «В домике» */
   {const st=el('sumTools');if(st){const h=typeof toolsSummaryHtml==='function'?toolsSummaryHtml(r.row):'';st.innerHTML=h;st.classList.toggle('hidden',!h);}} /* 06.11 инструменты */
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));

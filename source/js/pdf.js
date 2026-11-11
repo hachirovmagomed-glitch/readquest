@@ -758,7 +758,7 @@ function relayout(opts){
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
   R.relay=true;try{goPage(p,false);}finally{R.relay=false;} /* 1в: a re-layout keeps the text in view; it never grows «reached» (e.g. after read-aloud) */
-  if(rqScrollMode()&&anchor)rqScrollToAnchor(anchor); /* scroll: the anchor's line at the top, not just its screen */
+  if(rqScrollMode()&&anchor){rqScrollToAnchor(anchor);rqScrollPosSync(false);} /* scroll: the anchor's line at the top, not just its screen; 11.11: pos = that line */
   R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
 }
 /* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
@@ -768,6 +768,23 @@ function readingAnchor(){
   if(R.anc&&R.anc.page===R.page&&R.anc.a&&R.anc.a.node&&R.anc.a.node.isConnected)return R.anc.a;
   return captureAnchor();
 }
+/** 11.11: called before a setting changes the text's look (applySet): the first visible line becomes the anchor of the relayout that follows.
+    Pages: an anchor kept for this page stays (chains of relayouts do not drift). «Прокрутка»: always the line at the top now. */
+function rqKeepPlace(){
+  try{if(R.mode==='pdf'||!R.book||!(R.pageCount>0)||el('reader').classList.contains('hidden'))return;
+    const k=layoutKey(el('viewer').clientWidth,el('viewer').clientHeight);
+    if(k===R.layoutKey){R.keptKey=null;return;} /* nothing to lay out again */
+    if(k===R.keptKey)return; /* already taken for this look: by now the styles are new and the screen shows other text */
+    R.keptKey=k;const a=rqScrollMode()?captureAnchor():readingAnchor();if(a)R.anc={a:a,page:R.page};}catch(e){}
+}
+/** «Прокрутка»: the place inside the book as a number 0..1 (screens, with the part of a screen), null outside it. */
+function rqScrollFine(){
+  if(R.mode==='pdf'||!rqScrollMode()||!(R.pageCount>1)||!(R.step>0))return null;
+  const v=el('viewer');if(v.scrollTop>=(R.scrollMax||0)-2)return 1;
+  return Math.max(0,Math.min(1,v.scrollTop/(R.step*(R.pageCount-1))));
+}
+/** 11.11 «Прокрутка»: pos = the exact place (not the nearest whole screen); grow: the farthest place grows with it (a move of the reader, not a re-layout). */
+function rqScrollPosSync(grow){const f=rqScrollFine();if(f==null)return false;R.pos=f;if(grow)R.maxRatio=Math.max(R.maxRatio||0,f);return true;}
 /** Font size change (Aa / pinch / Ctrl+wheel): exactly one reflow, position kept. */
 function setFontSizeKeepPos(size){
   size=Math.max(14,Math.min(30,Math.round(size)));
@@ -796,6 +813,7 @@ function persistPageBg(){
   if(!R||!R.book||el('reader').classList.contains('hidden'))return;
   const sliding=!!(R.sliding||(typeof P!=='undefined'&&P.sliding));
   if(sliding){if(typeof R.posPreSlide==='number')persistPage(R.posPreSlide);return;}
+  if(!(window.__rqBgSnap&&__rqBgSnap.on))rqScrollPosSync(true); /* 11.11 «Прокрутка»: hidden in the middle of a scroll / the autoscroll — the place of this moment */
   persistPage();
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')persistPageBg();});
@@ -855,7 +873,8 @@ function rqScrollSettle(){
   const v=el('viewer');
   if(R.progTop!=null&&Math.abs(v.scrollTop-R.progTop)<2)return;
   R.progTop=null;
-  const np=rqScrollPage(),d=np-R.page;if(!d)return;
+  const np=rqScrollPage(),d=np-R.page;
+  if(!d){if(rqScrollPosSync(true))persistPage();return;} /* 11.11: the same screen, another line — the place is still saved */
   R.fromScroll=true;
   try{if(Math.abs(d)===1)goPage(np,true);else{R.jumping=true;try{goPage(np,false);}finally{R.jumping=false;}}}
   finally{R.fromScroll=false;}
@@ -885,7 +904,7 @@ function goPage(p,turn){
   const ak=(turn&&!R.sliding&&!R.relay&&!R.jumping&&Math.abs(np-prev)===1&&!rqScrollMode())?rqAnimKind():null;
   rqShowPage(np,ak,prev);
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
+  if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;if(R.fromScroll)rqScrollPosSync(!R.ttsAdv&&!R.relay);} /* 11.11 «Прокрутка»: the exact place where the finger stopped */ /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */

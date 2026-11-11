@@ -178,6 +178,10 @@ function flashMsg(t,o){
   if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12+(el('bnRead')?32:0))+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title; 20.10: and over the «Читать» bump */
   if(inReader){const rb=el('reader').querySelector('.rbot');if(rb&&!el('reader').classList.contains('barsoff')){const h=window.innerHeight-rb.getBoundingClientRect().top;if(rb.offsetHeight&&h>40&&h<window.innerHeight/2)d.style.setProperty('bottom',Math.round(h+12)+'px','important');}} /* audit 19.10: over the panel, not on it */
   if(d.scrollWidth>d.clientWidth+1)d.classList.add('imp'); /* long text wraps instead of running off the screen */
+  if(opt.pass){d.style.pointerEvents='none'; /* 11.11: the selection's hint never takes a touch (it came up under the finger and the release dropped the selection) */
+    if(inReader){const H=window.innerHeight,fy=typeof opt.fingerY==='number'?opt.fingerY:H; /* away from the finger and from ‹ ›: at the top; a finger at the top — at the bottom, above ‹ › */
+      if(fy>H*0.4){d.style.setProperty('bottom','auto','important');d.style.setProperty('top','calc(56px + env(safe-area-inset-top))','important');}
+      else d.style.setProperty('bottom','calc(92px + env(safe-area-inset-bottom))','important');}}
   const dur=ms!=null?ms:(inReader?3000:1600);
   setTimeout(function(){try{d.remove();}catch(e){}},dur);
 }
@@ -561,7 +565,13 @@ function ssPlaceLook(n){
   if(lk==='bubble'){n.classList.remove('attop');n.style.left='0px';n.style.top='0px';
     const r=n.getBoundingClientRect(),w=r.width,h=r.height;let x=(W-w)/2,y=H*.4;
     if(rs.length){const a=rs[0],z=rs[rs.length-1],mid=(Math.min(a.left,z.left)+Math.max(a.right,z.right))/2;x=mid-w/2;
-      y=a.top-h-12>=8?a.top-h-12:(z.bottom+12+h<=H-8?z.bottom+12:Math.max(8,(H-h)/2));}
+      y=a.top-h-12>=8?a.top-h-12:(z.bottom+12+h<=H-8?z.bottom+12:Math.max(8,(H-h)/2));
+      /* 11.11: never on a handle of the selection (after › it lay on the handle and the selection could not be dragged on) */
+      const X=Math.max(8,Math.min(W-w-8,x)),hs=[].slice.call(document.querySelectorAll('.smh')).filter(function(q){return !q.hidden;}).map(function(q){return q.getBoundingClientRect();}).filter(function(q){return q.width>0;});
+      const hit=function(yy){return hs.some(function(q){return yy<q.bottom+6&&yy+h>q.top-6&&X<q.right+6&&X+w>q.left-6;});};
+      if(hs.length&&hit(y)){const tops=hs.map(function(q){return q.top;}),bots=hs.map(function(q){return q.bottom;});
+        const cand=[a.top-h-12,z.bottom+12,Math.min.apply(null,tops)-h-10,Math.max.apply(null,bots)+10,Math.min(a.top,Math.min.apply(null,tops))-h-10,Math.max(z.bottom,Math.max.apply(null,bots))+10];
+        for(let i=0;i<cand.length;i++)if(cand[i]>=8&&cand[i]+h<=H-8&&!hit(cand[i])){y=cand[i];break;}}}
     n.style.left=Math.round(Math.max(8,Math.min(W-w-8,x)))+'px';n.style.top=Math.round(Math.max(8,Math.min(H-h-8,y)))+'px';return;}
   n.style.left='';n.style.top='';n.classList.remove('attop');
   if(!rs.length)return;const b=n.getBoundingClientRect(),z=rs[rs.length-1];
@@ -644,7 +654,7 @@ function smSync(){if(!SM.on||!SM.lo||!SM.hi)return false;if(SM.lo[0].isConnected
   const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount){smOff();return false;}const rg=s.getRangeAt(0);
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];return true;}
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
-function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
+function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter',pass:true,fingerY:Date.now()-(SM.lpAt||0)<1500&&SM.lpXY?SM.lpXY[1]:null});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
 function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
   return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f+(c.tap?'':'. Нажатие снимает выделение');} /* 10.11 */
 function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smLock(false);smDraw();}
@@ -1231,10 +1241,11 @@ el('viewer').addEventListener('touchstart',e=>{
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   tx0=e.touches[0].clientX;
-  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
+  bright=(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)?{x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}:null; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
+  if(bright&&SM.lpHeld)bright=null; /* 11.11: a long press at the left edge selects, it does not dim */
   if(bright&&e.touches.length===1){
     const dy=e.touches[0].clientY-bright.y0,dx=e.touches[0].clientX-bright.x0;
     if(!bright.mv){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)*1.2){bright.mv=true;tx0=null;}else{if(Math.abs(dx)>12)bright=null;return;}} /* 28.10: яркость только вертикальным ведением */
@@ -1254,7 +1265,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
-  if(SM.lpHeld){tx0=null;return;} /* 04.11: the end of a long press (and its drag) is not a swipe / tap */
+  if(SM.lpHeld){tx0=null;bright=null;return;} /* 04.11: the end of a long press (and its drag) is not a swipe / tap; 11.11: nor does it leave the brightness gesture armed for the next swipe */
   if(bright){const mv=bright.mv;bright=null;if(mv){tx0=null;SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
   if(pinch0){
     pinch0=null;tx0=null;
@@ -1651,6 +1662,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
+  try{rqScrollPosSync(true);}catch(e){} /* 11.11 «Прокрутка»: closed before the scroll settled — the place of this moment */
   R.book=null;PQ=null;smOff();rqOwnLeave(); /* 29.10: the common look back in SET (SET.bookSet) */if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();

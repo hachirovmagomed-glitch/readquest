@@ -641,6 +641,12 @@ input[type=color]{width:38px;height:38px;border:none;background:none;padding:0;b
 /* ===== Итог сессии ===== */
 #summary{background:radial-gradient(120% 90% at 50% 0%,#1a4a57 0%,#12121a 70%);align-items:center;justify-content:center;text-align:center;padding:24px}
 .sumbox{max-width:420px;width:100%}
+/* 12.11 (тестер: итог «зависает» — не листается и не закрывается): the summary grew taller than a phone screen («В домике», «Вопрос по прочитанному»),
+   and .screen is overflow:hidden + justify-content:center → top and bottom (with «В библиотеку») were cut off with no scroll.
+   Now the summary scrolls; margin:auto keeps a short summary centred and lets a long one start at the top. */
+#summary{overflow-y:auto;overflow-x:hidden;justify-content:flex-start;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#summary>.sumbox{margin-top:auto;margin-bottom:auto;flex-shrink:0}
+#summary::after{content:"";flex:0 0 calc(16px + env(safe-area-inset-bottom))} /* room under «В библиотеку» at the end of the scroll */
 .bigxp{font-size:3.25rem;font-weight:800;color:var(--accent2)}
 .sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0}
 .sumcell{background:rgba(255,255,255,.06);border-radius:var(--rq-radius-md);padding:14px}

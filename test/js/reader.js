@@ -181,6 +181,7 @@ function saveSet(){rqSaveSetGated();}
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */
 function applySet(){
+  rqKeepPlace(); /* 11.11: the place is taken BEFORE the look changes (font, line height, spacing, weight, fields) — after it the same page number shows other text */
   rqHalfSync();
   const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
@@ -438,7 +439,9 @@ async function openBook(id){
   if(__tracker)__tracker.begin(id,p,trackerOpts());
   pauseReset(); /* 25.10: a new book starts counting, the circle shows if it is on */
   if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус»: new session = no rounds yet; the chosen sound */
+  const f0=rqPos(id);
   goPage(p,false);
+  if(rqScrollMode()&&R.pageCount>1){const f=f0,v=el('viewer');v.scrollTop=f>=1?(R.scrollMax||0):Math.min(R.scrollMax||0,Math.round(f*R.step*(R.pageCount-1)));R.progTop=v.scrollTop;R.pos=f;persistPage();} /* 11.11 «Прокрутка»: the line the book was closed at, not the nearest whole screen */
   if(hy)hyphWaitRun(hy,p);
 }
 /* 28.10 (ревизия чтения): text → paragraphs with their offsets in b.text.
@@ -524,12 +527,13 @@ function hyphWaitRun(h,p){
     if(!R.book||R.book.id!==h.book.id||R.mode==='pdf'||el('reader').classList.contains('hidden')){if(t)t.classList.add('hidden');return;}
     if(relay){
       const off=firstOffsetOfPage(R.page); /* char offset of the first visible line */
+      const sa=rqScrollMode()?captureAnchor():null; /* 11.11 «Прокрутка»: the line at the top stays at the top */
       if(h.late){const c=el('content');c.style.hyphens=c.style.webkitHyphens='auto';}
       hyphMark(el('content').lang); /* dictionary works now → justify, in the same silent re-layout */
       layout();
       let np=pageOfOffset(txtNodes(),off);if(np<0)np=R.page;
       np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;
-      rqShowPage(np,null);
+      rqShowPage(np,null);if(sa&&rqScrollMode())rqScrollToAnchor(sa);
       el('rPage').textContent=el('pgNum').textContent=(np+1)+' / '+R.pageCount;
       const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;if(typeof pgArtSync==='function')pgArtSync();
       HY.off=off;HY.relayouts++; /* silent: no goPage → R.pos / R.maxRatio / persist / tracker untouched */

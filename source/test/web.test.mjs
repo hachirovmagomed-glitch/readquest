@@ -40,7 +40,7 @@ p.on('request', r => {
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };
 await p.goto(BASE, { waitUntil: 'load' }); await boot();
 const books = () => p.evaluate(() => S.userBooks.filter(b => b.genre === 'Сайт').map(b => ({ id: b.id, t: b.title, a: b.author, src: b.srcId || '', toc: (b.toc || []).map(x => x.t), fname: b.fname })));
-const text = (id) => p.evaluate(async (id) => { const b = S.userBooks.find(x => x.id === id); return b.text || ((await __rq.getBookText?.(id)) || ''); }, id);
+const text = (id) => p.evaluate(async (id) => { const b = S.userBooks.find(x => x.id === id); return b.text || ''; }, id);
 const inReader = () => p.evaluate(() => !el('reader').classList.contains('hidden'));
 const toLib = async () => { await p.evaluate(() => { try { closeReader(); } catch (e) {} try { show('library'); } catch (e) {} el('bookSheet').classList.add('hidden'); }); await sleep(400); };
 const openSheet = async () => { await p.evaluate(() => { el('btnAdd').click(); }); await sleep(200);

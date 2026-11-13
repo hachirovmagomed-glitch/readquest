@@ -1,4 +1,4 @@
-# Temporary (thread hd9bis, 13.11): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
+# Temporary (thread hd9bis, 13.11, run 2): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
 name: web-probe
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
             await new Promise(r => setTimeout(r, 1000));
             const r = await p.evaluate(async () => { const bk = S.userBooks.find(x => x.genre === 'Сайт' || x.srcId); const msg = (el('webMsg') || {}).textContent || '';
               if (!bk) return { msg, n: S.userBooks.length };
-              const t = await __rq.getBookText(bk.id); return { title: bk.title, author: bk.author, genre: bk.genre, len: t.length, toc: (bk.toc || []).slice(0, 12).map(x => x.t), head: t.slice(0, 700), tail: t.slice(-400) }; });
+              const t = bk.text || ''; return { title: bk.title, author: bk.author, genre: bk.genre, len: t.length, toc: (bk.toc || []).slice(0, 12).map(x => x.t), head: t.slice(0, 700), tail: t.slice(-400) }; });
             out.push(Object.assign({ url: u, jina, ms: Date.now() - t0 }, r)); console.log(JSON.stringify(out[out.length - 1]).slice(0, 400));
             await ctx.close();
           }

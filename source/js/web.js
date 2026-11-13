@@ -10,9 +10,9 @@ const WEB_JINA='https://r.jina.ai/';
 const WEB_MIN=200; /* меньше 200 знаков текста — это не статья, а меню или ошибка */
 const WEB_DROP='script,style,noscript,template,iframe,object,embed,svg,canvas,video,audio,form,button,input,select,textarea,nav,header,footer,aside,'+
   '[role=navigation],[role=banner],[role=contentinfo],[role=complementary],[aria-hidden=true],[hidden],'+
-  '.mw-editsection,.ws-noexport,#headertemplate,.headertemplate,.ws-summary,.reference,sup.reference,.mw-cite-backlink,.navbox,.vertical-navbox,.infobox,.metadata,.ambox,.hatnote,.mw-empty-elt,.noprint,.toc,#toc,.mw-jump-link,.thumb,figure,.sidebar,.catlinks,'+
+  '.mw-editsection,.ws-noexport,#headertemplate,.headertemplate,.ws-summary,.reference,sup.reference,.mw-cite-backlink,.navbox,.vertical-navbox,.infobox,.metadata,.ambox,.hatnote,.mw-empty-elt,.noprint,.toc,#toc,.mw-jump-link,.sidebar,.mw-references-wrap,.reflist,.gallery,.magnify,.catlinks,'+
   '.share,.social,.comments,#comments,.related,.advert,.ads,.ad,.cookie,.breadcrumbs,.breadcrumb,.pagination,.subscribe,.newsletter';
-const WEB_BLOCK=/^(P|H[1-6]|LI|BLOCKQUOTE|PRE|DD|DT|FIGCAPTION|TR|DIV|SECTION|ARTICLE|MAIN|UL|OL|DL|TABLE|TBODY|THEAD|HR|BR|CENTER|ADDRESS|DETAILS|SUMMARY)$/;
+const WEB_BLOCK=/^(P|H[1-6]|LI|BLOCKQUOTE|PRE|DD|DT|FIGURE|FIGCAPTION|TR|DIV|SECTION|ARTICLE|MAIN|UL|OL|DL|TABLE|TBODY|THEAD|HR|BR|CENTER|ADDRESS|DETAILS|SUMMARY)$/;
 
 function webNorm(u){u=String(u||'').trim();if(!u)return '';if(!/^https?:\/\//i.test(u))u='https://'+u.replace(/^\/+/,'');
   try{const x=new URL(u);x.hash='';return x.href;}catch(e){return '';}}
@@ -20,8 +20,103 @@ function webHost(u){try{return new URL(u).hostname.replace(/^www\.|^m\./,'');}ca
 function webOnShelf(u){return (S.userBooks||[]).find(function(b){return b&&b.srcId==='web:'+u;});}
 function webClean(s){return String(s||'').replace(/[   ]/g,' ').replace(/[ \t\r\f\v]+/g,' ').replace(/ *\n */g,'\n').trim();}
 
-/* html (строка) → {title, author, text, toc, lang}. Своя «Readability» на коротком поводке: берём <article>/<main> или блок,
-   где больше всего текста в абзацах, и проходим его по блокам; заголовки становятся оглавлением. */
+/* ---- «раскладчик» (Джессика 13.11 вечер: «чтение неудобное… раскладывать текст с сайтов удобно, убирая лишнее») ----
+   Любая страница (html сайта, html из файла, markdown от Jina Reader) сначала становится списком блоков:
+     {k:'h',lvl,t} заголовок · {k:'p',t,ld} абзац · {k:'li',t,ld} пункт списка · {k:'q',t} цитата · {k:'pre',t} код · {k:'img',src} картинка · {k:'cap',t} подпись
+   (ld — доля текста внутри ссылок). webTidy убирает лишнее (меню, счётчики над статьёй, «читайте также», комментарии), webBlocksToBook
+   складывает книгу. В тексте книги вид абзаца хранит невидимый знак в его начале (как U+2063 у перевода, arch.md 13.11):
+   U+2061 цитата, U+2062 подзаголовок, U+2064 подпись к картинке, U+2061U+2062 строка кода; «• » — пункт списка; «￼img:N» — картинка из IDB.
+   Читалка (js/reader.js rqBodyHtml) рисует их классами rq-q / rq-h2 / rq-cap / rq-pre / rq-li. */
+const WEB_Q='⁡',WEB_H2='⁢',WEB_CAP='⁤',WEB_PRE='⁡⁢';
+const WEB_IMG_MAX=24;
+const WEB_JUNK=/^(skip to (main )?content|перейти к (основному )?(содержанию|контенту)|реклама|advertisement|поделиться|share( this)?|подписаться|subscribe|читать (далее|дальше|полностью)|read more|войти|sign in|log in|меню|menu|поиск|search|комментарии\s*\d*|\d+\s*комментари\S*|comments?\s*\d*|назад|вперёд|далее|previous|next|наверх|back to top|copy link|скопировать ссылку|\d+|[\d\s.,]+[kкKК]?)$/i;
+const WEB_TAIL=/^(комментарии|читайте также|читать также|похожие (статьи|публикации|материалы|записи)|ещё по теме|еще по теме|по теме|материалы по теме|другие (статьи|материалы|новости)|рекомендуем|вам может понравиться|related( articles| posts| stories)?|more from|more on this|read (more|next)|you (may|might) also like|comments|leave a (reply|comment)|теги|tags|поделиться|share this|подпишитесь|подписка|newsletter|лучшие за сутки|публикации|информация)(?![\p{L}])/iu;
+function webImgOk(src,alt,w,h){
+  if(!/^https?:\/\//i.test(src)||/\.svg(\?|$)/i.test(src))return false;
+  if(/sprite|icon|logo|avatar|emoji|pixel|spacer|blank|tracking|counter|badge|button|userpic/i.test(src)||/^(avatar|logo|icon|аватар|логотип)/i.test(alt||''))return false;
+  if((w&&w<160)||(h&&h<90))return false;return true;}
+function webHtmlBlocks(root,base){
+  const B=[];let buf='',lk=0;
+  const emit=function(kind,t,l){t.split(/\n{2,}/).forEach(function(x){x=webClean(x);if(x)B.push({k:kind,t:x,ld:t.length?Math.min(1,l/t.length):0});});};
+  const flush=function(ctx){const raw=buf,l=lk;buf='';lk=0;if(!webClean(raw))return;
+    let kind='p';if(ctx.q)kind='q';else if(ctx.li&&ctx.li.first){kind='li';ctx.li.first=false;raw.trim();}
+    if(kind==='li'){const t=webClean(raw);B.push({k:'li',t:(ctx.li.n?ctx.li.n+'. ':'• ')+t,ld:t.length?Math.min(1,l/t.length):0});}else emit(kind,raw,l);};
+  const abs=function(v){try{return new URL(v,base||undefined).href;}catch(e){return '';}};
+  const walk=function(n,ctx){
+    for(let c=n.firstChild;c;c=c.nextSibling){
+      if(c.nodeType===3){const v=ctx.pre?c.nodeValue:c.nodeValue.replace(/\s+/g,' ');buf+=v;if(ctx.a)lk+=v.trim().length;continue;}
+      if(c.nodeType!==1)continue;
+      const tg=c.tagName;
+      if(tg==='BR'){buf+='\n';continue;}
+      if(tg==='IMG'){
+        const ss=String(c.getAttribute('srcset')||c.getAttribute('data-srcset')||'').split(',').map(function(x){return x.trim().split(/\s+/)[0];}).filter(Boolean);
+        const src=abs(c.getAttribute('data-src')||c.getAttribute('data-lazy-src')||c.getAttribute('data-original')||(ss.length?ss[ss.length-1]:'')||c.getAttribute('src')||'');
+        if(webImgOk(src,c.getAttribute('alt'),+c.getAttribute('width')||0,+c.getAttribute('height')||0)){flush(ctx);B.push({k:'img',src:src});}
+        continue;}
+      if(tg==='A'){const was=ctx.a;ctx.a=true;walk(c,ctx);ctx.a=was;continue;}
+      if(!WEB_BLOCK.test(tg)&&!/thumbcaption/.test(c.className||'')){walk(c,ctx);continue;}
+      flush(ctx);
+      if(/^H[1-6]$/.test(tg)){const t=webClean(c.textContent);if(t&&/[\p{L}\p{N}]/u.test(t))B.push({k:'h',lvl:+tg.charAt(1),t:t});continue;}
+      if(tg==='FIGCAPTION'||/thumbcaption/.test(c.className||'')){const t=webClean(c.textContent);if(t)B.push({k:'cap',t:t});continue;}
+      if(tg==='LI'){const ol=c.parentElement&&c.parentElement.tagName==='OL';
+        const x={pre:ctx.pre,a:ctx.a,q:ctx.q,li:{first:true,n:ol?Array.prototype.indexOf.call(c.parentElement.children,c)+1:0}};walk(c,x);flush(x);continue;}
+      if(tg==='TR'){const cells=Array.from(c.children).map(function(x){return webClean(x.textContent);}).filter(Boolean);
+        if(cells.length){const t=cells.join(' · '),l=webClean(Array.from(c.querySelectorAll('a')).map(function(x){return x.textContent;}).join('')).length;B.push({k:'p',t:t,ld:Math.min(1,l/t.length)});}continue;}
+      if(tg==='PRE'){const t=String(c.textContent||'').replace(/\r\n?/g,'\n').replace(/^\n+|\s+$/g,'');if(t.trim())B.push({k:'pre',t:t});continue;}
+      if(tg==='BLOCKQUOTE'){const x={pre:ctx.pre,a:ctx.a,q:true,li:null};walk(c,x);flush(x);continue;}
+      walk(c,ctx);flush(ctx);
+    }
+  };
+  const ctx={pre:false,a:false,q:false,li:null};walk(root,ctx);flush(ctx);
+  return B;
+}
+/* уборка: что на странице не статья. trusted (Википедия, Викитека) — только повторы и пустое */
+function webTidy(B,trusted){
+  B=B.filter(function(x){return x.k==='img'||(x.t&&x.t.trim());});
+  B=B.filter(function(x,i){const p=B[i-1];return !(p&&p.k===x.k&&p.k!=='img'&&p.t===x.t);});
+  if(trusted)return B;
+  const isBody=function(x){return (x.k==='p'||x.k==='q')&&x.t.length>=140&&(x.ld||0)<0.3;};
+  B=B.filter(function(x){return x.k==='img'||x.k==='pre'||x.k==='h'||!(WEB_JUNK.test(x.t)||(x.t.length<220&&/cookie|куки|файлы cookie/i.test(x.t)));});
+  let first=B.findIndex(isBody),last=-1;for(let i=B.length-1;i>=0;i--)if(isBody(B[i])){last=i;break;}
+  if(first<0)return B; /* стихи, короткие заметки, список заголовков: чистить нечего */
+  /* хвост: «Комментарии», «Читайте также»… после середины статьи — до конца */
+  for(let i=first+1;i<B.length;i++){const x=B[i];if(x.k==='h'&&i>=B.length*0.4&&WEB_TAIL.test(x.t)){B=B.slice(0,i);break;}
+    if(x.k!=='h'&&i>last&&x.t&&x.t.length<60&&WEB_TAIL.test(x.t)){B=B.slice(0,i);break;}}
+  /* пачки ссылок (меню, «похожие»): 3+ подряд коротких блоков-ссылок вне статьи, 6+ где угодно */
+  const linky=function(x){return (x.k==='p'||x.k==='li')&&(x.ld||0)>0.75&&x.t.length<90;};
+  const keep=B.map(function(){return true;});
+  for(let i=0;i<B.length;){if(!linky(B[i])){i++;continue;}let j=i;while(j<B.length&&linky(B[j]))j++;
+    const n=j-i,out=j<=first||i>last;if(n>=6||(n>=3&&out)||(out&&i>last))for(let k=i;k<j;k++)keep[k]=false;i=j;}
+  /* над статьёй: счётчики, дата, «7 мин», имя автора — короткие строки без точки в конце */
+  for(let i=0;i<first;i++){const x=B[i];if((x.k==='p'||x.k==='li'||x.k==='cap')&&x.t.length<60)keep[i]=false;}
+  B=B.filter(function(x,i){return keep[i];});
+  /* заголовок, под которым ничего не осталось */
+  B=B.filter(function(x,i){const nx=B[i+1];return !(x.k==='h'&&(!nx||(nx.k==='h'&&nx.lvl<=x.lvl)));});
+  while(B.length&&(B[B.length-1].k==='img'||B[B.length-1].k==='cap'||B[B.length-1].k==='h'))B.pop();
+  return B;
+}
+function webBlocksToBook(B,o){
+  o=o||{};B=webTidy(B,o.trusted);
+  let title=o.title||'';const h0=B.findIndex(function(x){return x.k==='h';}),b0=B.findIndex(function(x){return x.k!=='img'&&x.k!=='cap';});
+  /* статья начинается с заголовка — он и есть название («Статья — Сайт» в <title>, <h1>Статья</h1>) */
+  if(h0>=0&&h0===b0&&B[h0].t.length>3&&B[h0].t.length<=200&&(!o.titleFixed||B[h0].t===title)){title=B[h0].t;B.splice(h0,1);}
+  title=(title||o.site||'Страница').slice(0,200);
+  const out=[],toc=[],imgs=[];let len=0;
+  const push=function(t){out.push(t);len+=t.length+2;};
+  /* оглавление: верхний уровень заголовков; следующий тоже, если верхних меньше двух (или это Википедия) — остальные идут подзаголовками в тексте */
+  const minLvl=B.reduce(function(m,x){return x.k==='h'?Math.min(m,x.lvl):m;},6),nTop=B.filter(function(x){return x.k==='h'&&x.lvl===minLvl;}).length;
+  const tocLvl=o.trusted||nTop<2?minLvl+1:minLvl;
+  B.forEach(function(x){
+    if(x.k==='h'){if(x.lvl<=tocLvl){toc.push({t:x.t.slice(0,80),off:len});push(x.t);}else push(WEB_H2+x.t);}
+    else if(x.k==='q')push(WEB_Q+x.t);
+    else if(x.k==='cap')push(WEB_CAP+x.t);
+    else if(x.k==='pre')push(x.t.split('\n').filter(function(l){return l.trim();}).map(function(l){return WEB_PRE+l.replace(/\t/g,'  ');}).join('\n'));
+    else if(x.k==='img'){if(imgs.length<WEB_IMG_MAX&&imgs.indexOf(x.src)<0){push('￼img:'+imgs.length);imgs.push(x.src);}}
+    else push(x.t);
+  });
+  return {title:title,author:o.site||'Сайт',text:out.join('\n\n'),toc:toc.length>1?toc:undefined,lang:o.lang||undefined,imgs:imgs};
+}
+/* html (строка) → книга. Своя «Readability» на коротком поводке: <article>/<main> или блок, где больше всего текста в абзацах */
 function webHtmlToBook(html,url,opt){
   opt=opt||{};
   const doc=new DOMParser().parseFromString(String(html||''),'text/html');
@@ -43,32 +138,10 @@ function webHtmlToBook(html,url,opt){
     root=best&&(!top||bl>=tv*0.8)?best:(top||doc.body);
   }
   if(!root)root=doc.body||doc.documentElement;
-  const out=[],toc=[];let buf='',len=0;
-  const flush=function(){const t=webClean(buf);buf='';if(t){out.push(t);len+=t.length+2;}};
-  const walk=function(n,pre){
-    for(let c=n.firstChild;c;c=c.nextSibling){
-      if(c.nodeType===3){buf+=pre?c.nodeValue:c.nodeValue.replace(/\s+/g,' ');continue;}
-      if(c.nodeType!==1)continue;
-      const tg=c.tagName;
-      if(tg==='BR'){if(pre)buf+='\n';else flush();continue;}
-      if(tg==='IMG')continue;
-      if(!WEB_BLOCK.test(tg)){walk(c,pre);continue;}
-      flush();
-      if(/^H[1-6]$/.test(tg)){const t=webClean(c.textContent);if(t){if(!(out.length===0&&t===title))toc.push({t:t.slice(0,80),off:len});out.push(t);len+=t.length+2;}continue;}
-      if(tg==='LI'){walk(c,pre);const t=webClean(buf);buf='';if(t){out.push('• '+t);len+=t.length+4;}continue;}
-      if(tg==='TR'){const cells=Array.from(c.children).map(function(x){return webClean(x.textContent);}).filter(Boolean);if(cells.length){const t=cells.join(' · ');out.push(t);len+=t.length+2;}continue;}
-      if(tg==='PRE'){walk(c,true);const t=String(buf).replace(/\s+$/,'');buf='';if(t.trim()){out.push(t);len+=t.length+2;}continue;}
-      walk(c,pre);flush();
-    }
-  };
-  walk(root,false);flush();
-  /* статья начинается с заголовка — он и есть название («Статья — Сайт» в <title>, <h1>Статья</h1>) */
-  if(!opt.title&&toc.length&&toc[0].off===0&&out[0]&&out[0].length>3&&out[0].length<=200)title=out[0];
-  else if(out.length&&out[0].length>3&&title&&title!==out[0]&&title.indexOf(out[0])>=0)title=out[0];
-  if(toc.length&&toc[0].off===0&&toc[0].t===title.slice(0,80))toc.shift();
-  let text=out.join('\n\n');
-  if(title&&text.indexOf(title)!==0){text=title+'\n\n'+text;toc.forEach(function(x){x.off+=title.length+2;});}
-  return {title:(title||site).slice(0,200),author:site,text:text,toc:toc.length>1?toc:undefined,lang:lang||undefined};
+  const B=webHtmlBlocks(root,url);
+  /* <title> «Статья — Сайт», а в тексте <h1>Статья</h1>: название — заголовок */
+  const fh=B.find(function(x){return x.k==='h';});
+  return webBlocksToBook(B,{title:title,titleFixed:!!opt.title&&!(fh&&fh.t===opt.title),site:site,lang:lang,trusted:!!opt.trusted});
 }
 
 /* MHTML («Скачать страницу» в Chrome на Android): письмо из частей, берём первую text/html; quoted-printable или base64 */
@@ -102,7 +175,9 @@ async function webFileBook(f){
     const sv=/<!-- saved from url=\(\d+\)(\S+) -->/.exec(bin.slice(0,600))||/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)/i.exec(html.slice(0,20000));if(sv)url=sv[1];}
   const r=webHtmlToBook(html,url);
   if(!r.title||r.title===webHost(url))r.title=f.name.replace(/\.(html?|mht(ml)?)$/i,'');
-  return webMakeBook(r,webNorm(url),f.name,f.size);
+  const b=webMakeBook(r,webNorm(url),f.name,f.size);
+  await webStoreImgs(b.id,b.webImgs,b.text);
+  return b;
 }
 function webMakeBook(r,url,fname,size){
   /* название читалка сама пишет над текстом — в самом тексте его не повторяем */
@@ -111,6 +186,7 @@ function webMakeBook(r,url,fname,size){
   const b={id:newBookId(),title:r.title,author:r.author||'Сайт',genre:'Сайт',stat:'Воля',cover:'',text:r.text,toc:r.toc,lang:r.lang||undefined,
     fname:fname||((webHost(url)||'sait')+'-'+String(r.title).replace(/[^\p{L}\p{N}]+/gu,'-').slice(0,60)+'.txt'),size:size||r.text.length};
   if(url)b.srcId='web:'+url;
+  Object.defineProperty(b,'webImgs',{value:r.imgs||[],enumerable:false}); /* не поле книги: только чтобы забрать картинки при добавлении */
   return b;
 }
 
@@ -123,7 +199,7 @@ async function webGetWiki(w,u){
   const res=await fetch(api);if(!res.ok)throw new Error('Википедия ответила '+res.status);
   const j=await res.json();if(j.error)throw new Error(j.error.code==='missingtitle'?'такой страницы нет':j.error.info||'ошибка '+w.host);
   const title=webClean(new DOMParser().parseFromString(j.parse.displaytitle||j.parse.title,'text/html').body.textContent);
-  const r=webHtmlToBook('<html lang="'+w.lang+'"><body>'+j.parse.text+'</body></html>',u,{title:title,root:'.mw-parser-output'});
+  const r=webHtmlToBook('<html lang="'+w.lang+'"><body>'+j.parse.text+'</body></html>',u,{title:title,root:'.mw-parser-output',trusted:true});
   r.author=w.ws?(w.lang==='ru'?'Викитека':'Wikisource'):(w.lang==='ru'?'Википедия':'Wikipedia');r.lang=w.lang;
   if(w.ws)return r; /* в Викитеке примечания — часть текста */
   /* хвост «Примечания / Литература / Ссылки» — не чтение */
@@ -154,31 +230,47 @@ async function webGetJina(u){
   return webMdToBook(md,tm?tm[1].trim():'',u);
 }
 function webMdToBook(md,title,u){
-  const out=[],toc=[];let len=0,para=[];
+  const B=[];let para=[],q=false;
   /* картинки и ссылки бывают вложенными: [![картинка](a)](b), [[1]](#cite) — снимаем в два прохода, сноски [1] убираем */
-  const IMG=/!\[(?:[^\[\]]|\[[^\[\]]*\])*\]\((?:[^()]|\([^()]*\))*\)/g,LNK=/\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\((?:[^()]|\([^()]*\))*\)/g;
+  const IMG=/!\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\(((?:[^()\s]|\([^()]*\))*)[^)]*\)/g,LNK=/\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\((?:[^()]|\([^()]*\))*\)/g;
   const inl=function(s){for(let k=0;k<2;k++)s=s.replace(IMG,'').replace(LNK,'$1');return s.replace(/\[\d{1,3}\]|\[(?:прим|нет АИ|источник не указан)[^\]]*\]/g,'').replace(/<[^>]+>/g,'').replace(/(\*\*|__|`)/g,'').replace(/(^|\s)[*_](\S[^*_]*\S)[*_](?=\s|$|[.,;:!?])/g,'$1$2');};
-  const push=function(t){t=webClean(t);if(!t)return;out.push(t);len+=t.length+2;};
-  const flush=function(){if(para.length){push(para.join(' '));para=[];}};
+  const ldOf=function(raw){let l=0;const s=raw.replace(IMG,'');s.replace(LNK,function(m,t){l+=webClean(inl(t)).length;return m;});const t=webClean(inl(raw));return t.length?Math.min(1,l/t.length):0;};
+  const imgsOf=function(raw){raw.replace(IMG,function(m,alt,src){alt=String(alt).replace(/^Image \d+:?\s*/i,'');if(webImgOk(src,alt,0,0))B.push({k:'img',src:src});return m;});};
+  const flush=function(){if(!para.length)return;const raw=para.join(' ');para=[];const t=webClean(inl(raw));imgsOf(raw);if(t)B.push({k:q?'q':'p',t:t,ld:ldOf(raw)});q=false;};
   const lines=String(md).replace(/\r\n?/g,'\n').split('\n');
   for(let k=0;k<lines.length;k++){let s=lines[k];
+    if(/^\s*(```|~~~)/.test(s)){flush();const code=[];k++;while(k<lines.length&&!/^\s*(```|~~~)/.test(lines[k]))code.push(lines[k++]);if(code.join('').trim())B.push({k:'pre',t:code.join('\n')});continue;}
     if(/^\s*$/.test(s)){flush();continue;}
     if(/^\s*(={3,}|-{3,}|\*{3,})\s*$/.test(s)){ /* setext: строка выше — заголовок */
-      if(para.length&&/^=|^-/.test(s.trim())){const t=webClean(inl(para.join(' ')));para=[];if(t){toc.push({t:t.slice(0,80),off:len});push(t);}}else flush();continue;}
+      if(para.length&&/^=|^-/.test(s.trim())){const t=webClean(inl(para.join(' ')));para=[];if(t&&/[\p{L}\p{N}]/u.test(t))B.push({k:'h',lvl:s.trim().charAt(0)==='='?1:2,t:t});}else flush();continue;}
     if(/^\s*\|/.test(s)){flush();if(/^\s*\|[\s|:-]+\|\s*$/.test(s))continue; /* таблица: строка через « · », разделитель | --- | пропускаем */
-      const t=s.trim().replace(/^\||\|$/g,'').split('|').map(function(x){return webClean(inl(x));}).filter(Boolean).join(' · ');if(t)push(t);continue;}
-    const h=/^\s*#{1,6}\s+(.*?)\s*#*\s*$/.exec(s);
-    if(h){flush();const t=webClean(inl(h[1]));if(t&&/[\p{L}\p{N}]/u.test(t)){toc.push({t:t.slice(0,80),off:len});push(t);}continue;}
-    const li=/^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(s);
-    if(li){flush();const t=inl(li[1]);if(webClean(t))push('• '+t);continue;}
-    s=inl(s.replace(/^\s*>\s?/,''));if(/^\s*https?:\/\/\S+\s*$/.test(s))continue;
+      const t=s.trim().replace(/^\||\|$/g,'').split('|').map(function(x){return webClean(inl(x));}).filter(Boolean).join(' · ');if(t)B.push({k:'p',t:t,ld:ldOf(s)});continue;}
+    const h=/^\s*(#{1,6})\s+(.*?)\s*#*\s*$/.exec(s);
+    if(h){flush();const t=webClean(inl(h[2]));imgsOf(h[2]);if(t&&/[\p{L}\p{N}]/u.test(t))B.push({k:'h',lvl:h[1].length,t:t});continue;}
+    const li=/^\s*(?:([-*+])|(\d+)[.)])\s+(.*)$/.exec(s);
+    if(li){flush();const t=webClean(inl(li[3]));imgsOf(li[3]);if(t)B.push({k:'li',t:(li[2]?li[2]+'. ':'• ')+t,ld:ldOf(li[3])});continue;}
+    if(/^\s*>/.test(s)){if(!para.length)q=true;s=s.replace(/^\s*>\s?/,'');if(!s.trim()){flush();continue;}}
+    if(/^\s*https?:\/\/\S+\s*$/.test(inl(s)))continue;
     para.push(s);
   }
   flush();
-  let text=out.join('\n\n');
-  if(title&&text.indexOf(title)!==0){text=title+'\n\n'+text;toc.forEach(function(x){x.off+=title.length+2;});}
-  if(toc.length&&toc[0].t===title)toc.shift();
-  return {title:(title||webHost(u)).slice(0,200),author:webHost(u),text:text,toc:toc.length>1?toc:undefined};
+  const r=webBlocksToBook(B,{title:title,site:webHost(u)});
+  if(!r.title||r.title==='Страница')r.title=webHost(u);
+  return r;
+}
+/* картинки статьи: забираем те, что сайт отдаёт приложению (CORS), в IDB «img:<книга>:<n>» — как у FB2 и EPUB; остальные абзацы-картинки читалка прячет */
+async function webStoreImgs(id,imgs,text){
+  if(typeof idbPut!=='function')return 0;let ok=0;
+  for(let n=0;n<WEB_IMG_MAX;n++){try{await idbDel('img:'+id+':'+n);}catch(e){}}
+  if(navigator.onLine===false)return 0;
+  await Promise.all((imgs||[]).map(async function(src,n){
+    if(text&&text.indexOf('￼img:'+n)<0)return;
+    try{const ac=new AbortController(),tm=setTimeout(function(){ac.abort();},8000);
+      const res=await fetch(src,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',signal:ac.signal});
+      const blob=res.ok?await res.blob():null;clearTimeout(tm);
+      if(!blob||!/^image\/(jpeg|png|webp|gif|avif)/.test(blob.type)||blob.size<2500||blob.size>3000000)return;
+      await idbPut('img:'+id+':'+n,blob);ok++;}catch(e){}}));
+  return ok;
 }
 
 /* ---- шторка «Страница сайта» ----
@@ -250,7 +342,8 @@ async function webGo(raw,viaJina){
 function webWords(t){return (String(t).match(/[\p{L}\p{N}]+/gu)||[]).length;}
 function webPreview(){
   const p=WEB.pend;if(!p)return;const b=p.b,w=webWords(b.text),min=Math.max(1,Math.round(w/180));
-  let head=b.text.slice(0,600);if(b.text.length>600)head=head.replace(/\s+\S*$/,'')+'…';
+  const plain=b.text.replace(/\ufffcimg:\d+\n*/g,'').replace(/[\u2061\u2062\u2064]/g,'');
+  let head=plain.slice(0,600);if(plain.length>600)head=head.replace(/\s+\S*$/,'')+'…';
   webMsg('<div class="bk-h">Что получилось</div><div class="bk-row"><span class="bk-k">'+esc(b.title)+'</span><span class="bk-v">'+esc(b.author)+'</span></div>'+
     '<div class="bk-note">Около '+min+' '+plural(min,'минуты','минут','минут')+' чтения'+(b.toc&&b.toc.length?' · '+b.toc.length+' '+plural(b.toc.length,'раздел','раздела','разделов'):'')+'</div>'+
     '<div class="bk-h">Начало текста</div><div class="bk-note advpre webpre">'+esc(head)+'</div>'+
@@ -266,6 +359,8 @@ async function webAddPend(){
   if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне','info');return;}
   if(webOnShelf(p.u)){webGo(p.u,false);return;}
   WEB.busy=true;
+  {const ab=el('webAdd');if(ab){ab.disabled=true;ab.textContent=p.b.webImgs.length?'Забираю картинки…':'Добавляю…';}}
+  try{await webStoreImgs(p.b.id,p.b.webImgs,p.b.text);}catch(e){}
   try{await rqAddBook(p.b);}catch(e){WEB.busy=false;flashMsg('Не удалось добавить: '+(e&&e.message||e),'info');return;}
   WEB.busy=false;WEB.pend=null;
   el('bookSheet').classList.add('hidden');
@@ -346,6 +441,7 @@ async function webRefresh(id,viaJina){
       if(j>=0)pos=Math.min(1,Math.max(0,j/nb.text.length));}
     b.text=nb.text;b.toc=nb.toc;b.size=nb.text.length;
     await __rq.upsertUserBook(null,b,{text:nb.text});
+    try{await webStoreImgs(id,nb.webImgs,nb.text);}catch(e){}
     if(p&&pos!==null){p.pos=pos;if(!(p.ratio>=pos))p.ratio=pos;}
     save();
     try{renderLibrary();}catch(e){}

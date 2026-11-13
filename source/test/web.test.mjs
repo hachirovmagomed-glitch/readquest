@@ -7,6 +7,7 @@
 //  6) вставленный текст становится книгой; слишком короткий — нет;
 //  7) сохранённая страница .html и .mhtml («Скачать» в Chrome) через выбор файлов;
 //  8) «Поделиться → ReadQuest» ссылкой (сразу «Начало текста») и выделенным текстом (шторка с текстом);
+//  15) раскладчик: чистка (меню, счётчики, «читайте также», комментарии) и вид (цитата, подзаголовок, список, код, картинка с подписью);
 // 13.11 «давай все»: 9) страницы сайтов не идут в «дочитанные книги» и ачивки за книги; 10) «Обновить с сайта» — новый текст, место сохранено;
 //  11) фильтр «Сайты»; 12) одно поле: ссылка или текст; 13) «Больше не спрашивать» про Jina; 14) «Начало текста» и «Отмена» — без записи.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node web.test.mjs
@@ -25,6 +26,18 @@ const SITE = '<html lang="ru"><head><title>Как читать больше — 
   '<h2>Совет первый</h2>' + P(3) + '<ul><li>Читать каждый день</li><li>Носить книгу с собой</li></ul><h2>Совет второй</h2>' + P(3) + '</article></main><footer>Подвал-мусор © 2026</footer><script>var x="скрипт-мусор"</script></body></html>';
 const JINA = 'Title: Закрытая статья\n\nURL Source: https://closed.example/article\n\nMarkdown Content:\nЗакрытая статья\n===============\n\n![картинка](https://closed.example/a.png)\n\n' +
   Array.from({ length: 6 }, (_, i) => 'Текст закрытой статьи, абзац ' + (i + 1) + ', с [ссылкой](https://closed.example/x) и **жирным** словом.').join('\n\n') + '\n\n## Вторая часть\n\n* пункт один\n* пункт два\n\nПоследний абзац закрытой статьи.';
+// 15) раскладчик: грязная страница — меню, счётчики, «читайте также», комментарии уходят; цитата, список, код, подзаголовок, картинка и подпись остаются
+const LONG = (n) => 'Это настоящий длинный абзац статьи номер ' + n + ': в нём больше ста сорока знаков, чтобы раскладчик понял, что перед ним основной текст, а не подпись, меню или счётчик просмотров.';
+const PNG = Buffer.concat([Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8cfc0f01f0005050201a5f645400000000049454e44ae426082', 'hex'), Buffer.alloc(3000)]);
+const MESSY = '<html lang="ru"><head><title>Большая статья | Журнал</title><meta property="og:site_name" content="Журнал"></head><body><div class="page"><div class="top"><a href="/">Главная</a> <a href="/news">Новости</a> <a href="/blog">Блоги</a> <a href="/about">О нас</a></div>' +
+  '<div class="content"><h1>Большая статья</h1><div class="meta"><span>Иван Автор</span><p>7 мин</p><p>19K</p><p>12 ноября</p></div>' +
+  '<p>' + LONG(1) + '</p><img src="https://img.example/pic.png" width="800" height="400" alt="Схема"><figure><figcaption>Подпись к схеме</figcaption></figure><img src="https://img.example/nocors.png" width="800"><img src="/icons/logo.png" width="32">' +
+  '<h2>Первая часть</h2><p>' + LONG(2) + '</p><blockquote><p>Чтение — вот лучшее учение.</p></blockquote><h3>Подробности</h3><p>' + LONG(3) + '</p><ol><li>Первый шаг</li><li>Второй шаг</li></ol>' +
+  '<pre>function read(book) {\n  return book.pages;\n}</pre><p>Стих первая строка<br>Стих вторая строка</p><h2>Вторая часть</h2><p>' + LONG(4) + '</p>' +
+  '<h2>Читайте также</h2><ul><li><a href="/1">Другая статья один</a></li><li><a href="/2">Другая статья два</a></li><li><a href="/3">Другая статья три</a></li></ul>' +
+  '<h2>Комментарии 15</h2><p>Вася: отличная статья, спасибо автору за труд!</p></div></div></body></html>';
+const MESSY_MD = 'Title: Статья из службы\n\nURL Source: https://closed.example/messy\n\nMarkdown Content:\n[Skip to content](https://closed.example/#main)\n\n* [Главная](https://closed.example/)\n* [Новости](https://closed.example/news)\n* [Блоги](https://closed.example/blog)\n* [Контакты](https://closed.example/c)\n\nСтатья из службы\n================\n\nСредний\n\n7 мин\n\n19K\n\n' +
+  LONG(1) + '\n\n![Image 3: Фото](https://img.example/md.png)\n\n## Раздел\n\n> Цитата из статьи.\n\n' + LONG(2) + '\n\n```\nlet x = 1;\n  let y = 2;\n```\n\n1. Раз\n2. Два\n\n' + LONG(3) + '\n\n## Похожие публикации\n\n* [Ещё статья](https://closed.example/a)\n* [И ещё статья](https://closed.example/b)\n\n## Комментарии\n\nКто-то: первый!';
 const hits = { wiki: 0, jina: [], closed: 0 }; let SITE_V = SITE;
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
@@ -36,6 +49,9 @@ p.on('request', r => {
   if (u.host === 'ru.wikisource.org') { hits.ws = (hits.ws || 0) + 1; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ parse: { title: 'Каштанка (Чехов)', displaytitle: 'Каштанка (Чехов)',
     text: '<div class="mw-parser-output"><div class="ws-noexport">Навигация-мусор</div><h2>Глава первая</h2>' + P(3) + '<h2>Глава вторая</h2>' + P(3) + '<h2>Примечания</h2><p>Примечание Чехова к рассказу, его надо сохранить в книге.</p></div>' } }) }); }
   else if (u.host === 'ru.wikipedia.org') { hits.wiki++; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(WIKI) }); }
+  else if (u.host === 'img.example') { hits.img = (hits.img || 0) + 1; if (/nocors/.test(u.pathname)) r.respond({ status: 200, contentType: 'image/png', body: PNG }); else r.respond({ status: 200, contentType: 'image/png', headers: CORS, body: PNG }); }
+  else if (u.host === 'open.example' && u.pathname === '/messy') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: MESSY });
+  else if (u.host === 'r.jina.ai' && /messy/.test(u.pathname)) r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: MESSY_MD });
   else if (u.host === 'open.example') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: SITE_V });
   else if (u.host === 'closed.example' || u.host === 'closed2.example') { hits.closed++; r.respond({ status: 200, contentType: 'text/html', body: SITE }); } /* без Access-Control-Allow-Origin */
   else if (u.host === 'r.jina.ai') { hits.jina.push(u.pathname); r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: JINA }); }
@@ -113,7 +129,7 @@ await p.evaluate(() => el('webAdd').click()); await sleep(1500);
 bs = await books(); const b5 = bs.find(b => b.src === 'web:https://closed.example/article');
 t = b5 ? await text(b5.id) : '';
 ok('5) через Jina Reader: адрес ушёл службе, книга на полке', hits.jina.length === 1 && hits.jina[0] === '/https://closed.example/article' && b5 && b5.t === 'Закрытая статья' && b5.a === 'closed.example', { jina: hits.jina, b5 });
-ok('5) markdown в чистый текст: без картинок, ссылок и звёздочек', t.startsWith('Текст закрытой статьи, абзац 1, с ссылкой и жирным словом.') && /• пункт два/.test(t) && !/\]\(|\*\*|!\[|https?:/.test(t), t.slice(0, 140));
+ok('5) markdown в чистый текст: без картинок, ссылок и звёздочек', t.startsWith('\ufffcimg:0\n\nТекст закрытой статьи, абзац 1, с ссылкой и жирным словом.') && /• пункт два/.test(t) && !/\]\(|\*\*|!\[|https?:/.test(t), t.slice(0, 140));
 await toLib(); await openSheet();
 ok('13) в шторке видно «Спрашивать снова»', await p.evaluate(() => !!el('webJinaOff')));
 await go('https://closed2.example/next', false);
@@ -204,6 +220,29 @@ await p.evaluate(() => el('webRef').click()); await sleep(1500);
 const r10 = await p.evaluate(async (id) => { const b = S.userBooks.find(x => x.id === id); const at = Math.floor(S.progress[id].pos * b.text.length);
   return { here: b.text.slice(at, at + 40), starts: b.text.slice(0, 30), idb: ((await __rq.idb.getText(id)) || '').slice(0, 30), pos: S.progress[id].pos, ratio: S.progress[id].ratio }; }, b10.id);
 ok('10) обновлено: новый текст в книге и в хранилище, место то же', r10.starts.startsWith('Новое вступление') && r10.idb.startsWith('Новое вступление') && r10.here.trim().slice(0, 30) === before10.trim().slice(0, 30) && r10.ratio >= r10.pos, { r10, before10 });
+
+// 15: раскладчик
+await p.evaluate(() => { el('bookSheet').classList.add('hidden'); }); await toLib(); await openSheet(); await go('https://open.example/messy');
+bs = await books(); const b15 = bs.find(b => b.src === 'web:https://open.example/messy'); t = b15 ? await text(b15.id) : '';
+ok('15) название из <h1>, автор = сайт, оглавление из h2 без «Читайте также» и «Комментариев»', b15 && b15.t === 'Большая статья' && b15.a === 'Журнал' && b15.toc.join() === 'Первая часть,Вторая часть', b15);
+ok('15) убрано: меню, автор и счётчики над статьёй, «Читайте также», комментарии, логотип', t.startsWith('Это настоящий длинный абзац статьи номер 1') && !/Главная|Новости|7 мин|19K|12 ноября|Иван Автор|Другая статья|Вася|Комментарии|Читайте также/.test(t), t.slice(0, 200));
+ok('15) осталось: цитата, подзаголовок, список 1. 2., код с отступом, стих, картинка и подпись', t.includes('⁡Чтение — вот лучшее учение.') && t.includes('⁢Подробности') && t.includes('1. Первый шаг\n\n2. Второй шаг') && t.includes('⁡⁢function read(book) {\n⁡⁢  return book.pages;\n⁡⁢}') && t.includes('Стих первая строка\nСтих вторая строка') && t.includes('￼img:0\n\n⁤Подпись к схеме') && t.includes('￼img:1') && !t.includes('img:2'), JSON.stringify(t.slice(150, 420)));
+const im15 = await p.evaluate(async (id) => ({ a: !!(await idbGet('img:' + id + ':0')), b: !!(await idbGet('img:' + id + ':1')) }), b15.id);
+ok('15) картинка, которую сайт отдаёт, сохранена в телефон; закрытая — нет', im15.a && !im15.b, im15);
+await sleep(1200);
+const r15 = await p.evaluate(() => { const c = el('content'), q = (s) => c.querySelector(s); const cs = (s, k) => q(s) ? getComputedStyle(q(s))[k] : null;
+  return { reader: !el('reader').classList.contains('hidden'), wp: c.querySelectorAll('p.rq-wp').length, indent: cs('p.rq-wp', 'textIndent'), q: !!q('p.rq-q'), qStyle: cs('p.rq-q', 'fontStyle'), h2: cs('p.rq-h2', 'fontWeight'), li: c.querySelectorAll('p.rq-li.rq-ol').length,
+    pre: cs('p.rq-pre', 'whiteSpace'), cap: !!q('p.rq-cap'), vs: !!q('p.rq-wp.rq-vs'), h: c.querySelectorAll('p.rq-h').length, imgShown: c.querySelectorAll('p.rq-img:not(.gone) img').length, imgGone: c.querySelectorAll('p.rq-img.gone').length }; });
+ok('15) читалка: абзацы без красной строки, цитата курсивом, подзаголовок жирный, нумерованный список, код моноширинно, подпись, стих', r15.reader && r15.wp >= 8 && r15.indent === '0px' && r15.q && r15.qStyle === 'italic' && +r15.h2 >= 700 && r15.li === 2 && /pre-wrap/.test(r15.pre) && r15.cap && r15.vs && r15.h === 2, r15);
+ok('15) читалка: сохранённая картинка видна, несохранённая спрятана', r15.imgShown === 1 && r15.imgGone === 1, r15);
+await p.screenshot({ path: '/tmp/rq-web-shots/15-layout.png' });
+await toLib(); await openSheet(); await go('https://closed.example/messy', false); await p.evaluate(() => el('webJina').click()); await sleep(1500);
+const pv15 = await p.evaluate(() => (document.querySelector('.webpre') || {}).textContent || '');
+ok('15) «Начало текста» без служебных знаков и строк картинок', pv15.startsWith('Это настоящий длинный абзац статьи номер 1') && !/[⁡⁢⁤￼]/.test(pv15), pv15.slice(0, 80));
+await p.evaluate(() => el('webAdd').click()); await sleep(1800);
+bs = await books(); const b15m = bs.find(b => b.src === 'web:https://closed.example/messy'); t = b15m ? await text(b15m.id) : '';
+ok('15) служба (markdown): название, без меню, счётчиков, «Похожих» и комментариев', b15m && b15m.t === 'Статья из службы' && t.startsWith('Это настоящий длинный абзац статьи номер 1') && !/Skip to|Главная|Контакты|Средний|7 мин|19K|Ещё статья|первый!|Похожие|Комментарии/.test(t), t.slice(0, 120));
+ok('15) служба: цитата, код с отступом, список, картинка на месте', t.includes('⁡Цитата из статьи.') && t.includes('⁡⁢let x = 1;\n⁡⁢  let y = 2;') && t.includes('1. Раз\n\n2. Два') && t.includes('￼img:0'), JSON.stringify(t.slice(180, 330)));
 
 ok('нет ошибок страницы', errs.length === 0, errs);
 await browser.close();

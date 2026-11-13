@@ -462,12 +462,17 @@ function rqParas(t){
     «￼img:N» (FB2 / EPUB picture, js/content.js) → an <img> filled from IDB after the layout */
 function rqBodyHtml(b){
   const toc=(typeof tocOf==='function'?tocOf(b):[])||[],heads={};toc.forEach(function(x,i){if(typeof x.off==='number'&&!(x.off in heads))heads[x.off]=i;});
+  const web=typeof rqIsWebBook==='function'&&rqIsWebBook(b);
   const ps=rqParas(b.text),hs=Object.keys(heads).map(Number).sort(function(a,z){return a-z;});let k=0;
   return ps.map(function(p,n){
     if(p.s.charCodeAt(0)===0x2063)return '<p class="rq-bitr" lang="ru">'+esc(p.s)+'</p>'; /* 25.10: translation under each paragraph (adv.js, «с переводом») */
     const im=/^￼img:(\d+)$/.exec(p.s);if(im)return '<p class="rq-img"><img data-img="'+im[1]+'" alt=""></p>';
     const end=n+1<ps.length?ps[n+1].off:Infinity;let h=-1;
     while(k<hs.length&&hs[k]<end){if(hs[k]>=p.off-2&&h<0)h=heads[hs[k]];k++;}
+    if(web&&h<0){ /* 13.11 «Страница сайта» (js/web.js): абзацы статьи без красной строки, с отступом между ними; вид абзаца — по невидимому знаку в начале */
+      const c0=p.s.charCodeAt(0),c1=p.s.charCodeAt(1);
+      const cls=c0===0x2061&&c1===0x2062?'rq-pre':c0===0x2061?'rq-q':c0===0x2062?'rq-h2':c0===0x2064?'rq-cap':p.s.indexOf('• ')===0?'rq-li':/^\d{1,3}\. /.test(p.s)?'rq-li rq-ol':rqVerse(p.s)?'rq-vs':'';
+      return '<p class="rq-wp'+(cls?' '+cls:'')+'">'+esc(p.s)+'</p>';}
     return h>=0?'<p class="rq-h" data-toc="'+h+'">'+esc(p.s)+'</p>':'<p'+(rqVerse(p.s)?' class="rq-vs"':'')+'>'+esc(p.s)+'</p>';}).join('');
 }
 /* 28.10 (Джессика: копирование «во всех форматах»): a TXT stanza — short lines of a paragraph (≤ 55 letters, ~40 on average) — keeps its

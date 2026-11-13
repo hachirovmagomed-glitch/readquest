@@ -611,6 +611,14 @@ body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p,.rqCurlTxt p{margin:0 0 0;text-indent:1.4em;line-height:inherit}
 #content p.rq-bitr,.rqCurlTxt p.rq-bitr{font-style:italic;opacity:.72;margin-bottom:.6em} /* 25.10: перевод под абзацем (книга «с переводом») */
 #content p.rq-h,.rqCurlTxt p.rq-h,#content.noind p.rq-h{text-indent:0;font-weight:700;font-size:1.12em;line-height:1.35;margin:1.1em 0 .7em;break-after:avoid;hyphens:none;-webkit-hyphens:none;text-align:left} /* 28.10: chapter title (FB2 / EPUB / «Глава N» in TXT), plain bold, no decor */
+/* 13.11 «Страница сайта»: раскладка статьи (js/web.js → js/reader.js rqBodyHtml). Без декора и цвета: только отступы, начертание и линия цвета текста */
+#content p.rq-wp,.rqCurlTxt p.rq-wp{text-indent:0;margin:0 0 .8em}
+#content p.rq-li,.rqCurlTxt p.rq-li{padding-left:1.2em;text-indent:-1.2em;margin-bottom:.4em;text-align:left}
+#content p.rq-li.rq-ol,.rqCurlTxt p.rq-li.rq-ol{padding-left:1.7em;text-indent:-1.7em}
+#content p.rq-q,.rqCurlTxt p.rq-q{padding-left:.9em;border-left:3px solid color-mix(in srgb,currentColor 30%,transparent);font-style:italic;break-inside:avoid}
+#content p.rq-h2,.rqCurlTxt p.rq-h2{font-weight:700;margin:1.1em 0 .45em;text-align:left;hyphens:none;-webkit-hyphens:none;break-after:avoid}
+#content p.rq-cap,.rqCurlTxt p.rq-cap{font-size:.82em;line-height:1.4;opacity:.72;text-align:center;margin:-.1em 0 1em;hyphens:none;-webkit-hyphens:none}
+#content p.rq-pre,.rqCurlTxt p.rq-pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8em;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;hyphens:none;-webkit-hyphens:none;padding-left:.7em;border-left:3px solid color-mix(in srgb,currentColor 18%,transparent)}
 #content p.rq-img,.rqCurlTxt p.rq-img{text-indent:0;text-align:center;margin:.6em 0;break-inside:avoid;line-height:0}
 #content p.rq-img img,.rqCurlTxt p.rq-img img{max-width:100%;max-height:78vh;height:auto;display:inline-block}
 #content p.rq-img.gone,.rqCurlTxt p.rq-img.gone{display:none}

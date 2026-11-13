@@ -6,7 +6,9 @@
 //  5) сайт, который не пускает: вопрос про Jina Reader, без согласия запроса к службе нет; после нажатия книга из ответа службы;
 //  6) вставленный текст становится книгой; слишком короткий — нет;
 //  7) сохранённая страница .html и .mhtml («Скачать» в Chrome) через выбор файлов;
-//  8) «Поделиться → ReadQuest» ссылкой (открывается сразу) и выделенным текстом (шторка с текстом).
+//  8) «Поделиться → ReadQuest» ссылкой (сразу «Начало текста») и выделенным текстом (шторка с текстом);
+// 13.11 «давай все»: 9) страницы сайтов не идут в «дочитанные книги» и ачивки за книги; 10) «Обновить с сайта» — новый текст, место сохранено;
+//  11) фильтр «Сайты»; 12) одно поле: ссылка или текст; 13) «Больше не спрашивать» про Jina; 14) «Начало текста» и «Отмена» — без записи.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node web.test.mjs
 import puppeteer from 'puppeteer-core';
 import fs from 'fs'; import os from 'os'; import path from 'path';
@@ -23,7 +25,7 @@ const SITE = '<html lang="ru"><head><title>Как читать больше — 
   '<h2>Совет первый</h2>' + P(3) + '<ul><li>Читать каждый день</li><li>Носить книгу с собой</li></ul><h2>Совет второй</h2>' + P(3) + '</article></main><footer>Подвал-мусор © 2026</footer><script>var x="скрипт-мусор"</script></body></html>';
 const JINA = 'Title: Закрытая статья\n\nURL Source: https://closed.example/article\n\nMarkdown Content:\nЗакрытая статья\n===============\n\n![картинка](https://closed.example/a.png)\n\n' +
   Array.from({ length: 6 }, (_, i) => 'Текст закрытой статьи, абзац ' + (i + 1) + ', с [ссылкой](https://closed.example/x) и **жирным** словом.').join('\n\n') + '\n\n## Вторая часть\n\n* пункт один\n* пункт два\n\nПоследний абзац закрытой статьи.';
-const hits = { wiki: 0, jina: [], closed: 0 };
+const hits = { wiki: 0, jina: [], closed: 0 }; let SITE_V = SITE;
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const ctx = await browser.createBrowserContext(); const p = await ctx.newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
@@ -34,48 +36,60 @@ p.on('request', r => {
   if (u.host === 'ru.wikisource.org') { hits.ws = (hits.ws || 0) + 1; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ parse: { title: 'Каштанка (Чехов)', displaytitle: 'Каштанка (Чехов)',
     text: '<div class="mw-parser-output"><div class="ws-noexport">Навигация-мусор</div><h2>Глава первая</h2>' + P(3) + '<h2>Глава вторая</h2>' + P(3) + '<h2>Примечания</h2><p>Примечание Чехова к рассказу, его надо сохранить в книге.</p></div>' } }) }); }
   else if (u.host === 'ru.wikipedia.org') { hits.wiki++; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(WIKI) }); }
-  else if (u.host === 'open.example') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: SITE });
-  else if (u.host === 'closed.example') { hits.closed++; r.respond({ status: 200, contentType: 'text/html', body: SITE }); } /* без Access-Control-Allow-Origin */
+  else if (u.host === 'open.example') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: SITE_V });
+  else if (u.host === 'closed.example' || u.host === 'closed2.example') { hits.closed++; r.respond({ status: 200, contentType: 'text/html', body: SITE }); } /* без Access-Control-Allow-Origin */
   else if (u.host === 'r.jina.ai') { hits.jina.push(u.pathname); r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: JINA }); }
   else r.continue();
 });
+
 const boot = async () => { await p.waitForFunction(() => window.__rqReady, { timeout: 20000 }); await sleep(500); };
 await p.goto(BASE, { waitUntil: 'load' }); await boot();
 const books = () => p.evaluate(() => S.userBooks.filter(b => b.genre === 'Сайт').map(b => ({ id: b.id, t: b.title, a: b.author, src: b.srcId || '', toc: (b.toc || []).map(x => x.t), fname: b.fname })));
-const text = (id) => p.evaluate(async (id) => { const b = S.userBooks.find(x => x.id === id); return b.text || ''; }, id);
+const text = (id) => p.evaluate((id) => (S.userBooks.find(x => x.id === id) || {}).text || '', id);
 const inReader = () => p.evaluate(() => !el('reader').classList.contains('hidden'));
-const toLib = async () => { await p.evaluate(() => { try { closeReader(); } catch (e) {} try { show('library'); } catch (e) {} el('bookSheet').classList.add('hidden'); }); await sleep(400); };
+const toLib = async () => { await p.evaluate(async () => { try { await closeReader({ quiet: true }); } catch (e) {} try { show('library'); } catch (e) {} el('bookSheet').classList.add('hidden'); }); await sleep(400); };
 const openSheet = async () => { await p.evaluate(() => { el('btnAdd').click(); }); await sleep(200);
   await p.evaluate(() => { const b = Array.from(document.querySelectorAll('#addMenu .lso')).find(x => x.dataset.k === 'web'); b && b.click(); }); await sleep(200); };
-const go = async (url) => { await p.evaluate((u) => { el('webUrl').value = u; el('webGo').click(); }, url); };
+const type = (v) => p.evaluate((v) => { const i = el('webIn'); i.value = v; i.dispatchEvent(new Event('input')); }, v);
+const goBtn = () => p.evaluate(() => ({ t: el('webGo').textContent.trim(), dis: el('webGo').disabled, title: !el('webTitle').hidden }));
+const go = async (url, add = true) => { await type(url); await p.evaluate(() => el('webGo').click()); await sleep(1500);
+  if (add) { await p.evaluate(() => { const b = el('webAdd'); b && b.click(); }); await sleep(1200); } };
 
-// 1
+// 1, 12
 await p.evaluate(() => { el('btnAdd').click(); }); await sleep(200);
 const rows = await p.evaluate(() => Array.from(document.querySelectorAll('#addMenu .lso')).map(x => x.textContent.trim()));
 ok('1) в меню «+» есть «Страница сайта»', rows.includes('Страница сайта'), rows);
 await p.evaluate(() => { const b = Array.from(document.querySelectorAll('#addMenu .lso')).find(x => x.dataset.k === 'web'); b.click(); }); await sleep(300);
-const sh = await p.evaluate(() => ({ open: !el('bookSheet').classList.contains('hidden'), url: !!el('webUrl'), txt: !!el('webText'), file: !!el('webFile') }));
-ok('1) шторка: ссылка, текст, файл', sh.open && sh.url && sh.txt && sh.file, sh);
+const sh = await p.evaluate(() => ({ open: !el('bookSheet').classList.contains('hidden'), inp: !!el('webIn'), file: !!el('webFile'), old: !!el('webUrl') || !!el('webText') }));
+ok('12) шторка: одно поле и файл страницы', sh.open && sh.inp && sh.file && !sh.old, sh);
+let g = await goBtn(); ok('12) пустое поле: кнопка «Вставьте ссылку или текст» неактивна', g.dis && /Вставьте ссылку или текст/.test(g.t) && !g.title, g);
+await type('ru.wikipedia.org/wiki/Чехов'); g = await goBtn(); ok('12) ссылка без https: «Открыть ссылку как книгу», без поля названия', !g.dis && /Открыть ссылку/.test(g.t) && !g.title, g);
+await type('Просто текст с сайта, несколько слов.'); g = await goBtn(); ok('12) текст: «Сделать книгу из текста» и поле названия', /Сделать книгу из текста/.test(g.t) && g.title, g);
 fs.mkdirSync('/tmp/rq-web-shots', { recursive: true }); await p.screenshot({ path: '/tmp/rq-web-shots/1-sheet.png' });
-const wide = await p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1); ok('1) шторка без горизонтальной прокрутки на 390', wide);
+ok('1) шторка без горизонтальной прокрутки на 390', await p.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
 
-// 2
-await go('https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович'); await sleep(1500);
+// 2, 14
+await go('https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович', false);
+const pv = await p.evaluate(() => ({ add: !!el('webAdd'), cancel: !!el('webCancel'), pre: (document.querySelector('.webpre') || {}).textContent || '', msg: el('webMsg').textContent, n: S.userBooks.length }));
+ok('14) перед добавлением: «Начало текста», «На полку и читать», «Отмена»; на полку ещё не легло', pv.add && pv.cancel && pv.pre.startsWith('Антон Павлович Чехов — русский писатель.') && /Чехов, Антон Павлович/.test(pv.msg) && /минут/.test(pv.msg) && (await books()).length === 0, pv);
+await p.screenshot({ path: '/tmp/rq-web-shots/2-preview.png' });
+await p.evaluate(() => el('webCancel').click()); await sleep(300);
+ok('14) «Отмена»: ничего не записано, превью убрано', (await books()).length === 0 && await p.evaluate(() => !el('webAdd')));
+await p.evaluate(() => el('webGo').click()); await sleep(1500); await p.evaluate(() => el('webAdd').click()); await sleep(1500);
 let bs = await books();
-ok('2) статья Википедии на полке', bs.length === 1 && bs[0].a === 'Википедия' && bs[0].t === 'Чехов, Антон Павлович' && bs[0].src === 'web:https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%85%D0%BE%D0%B2,_%D0%90%D0%BD%D1%82%D0%BE%D0%BD_%D0%9F%D0%B0%D0%B2%D0%BB%D0%BE%D0%B2%D0%B8%D1%87', bs);
+ok('2) статья Википедии на полке', bs.length === 1 && bs[0].a === 'Википедия' && bs[0].t === 'Чехов, Антон Павлович' && bs[0].src.indexOf('web:https://ru.wikipedia.org/wiki/') === 0, bs);
 ok('2) оглавление: Биография, Творчество (без Примечаний)', bs[0] && JSON.stringify(bs[0].toc) === JSON.stringify(['Биография', 'Творчество']), bs[0] && bs[0].toc);
 let t = bs[0] ? await text(bs[0].id) : '';
 ok('2) текст без названия (оно над текстом), инфобокса, сносок, «[править]» и хвоста', t.startsWith('Антон Павлович Чехов — русский писатель.') && !/Инфобокс|Сноска|Ссылка-хвост|\[1\]|править|Не путать/.test(t), t.slice(0, 160));
 ok('2) книга открылась в читалке', await inReader());
-await p.screenshot({ path: '/tmp/rq-web-shots/2-wiki-reader.png' });
 
 // 3
-await toLib(); await openSheet(); await go('ru.wikipedia.org/wiki/Чехов,_Антон_Павлович'); await sleep(500);
+await toLib(); await openSheet(); await go('ru.wikipedia.org/wiki/Чехов,_Антон_Павлович', false);
 const m3 = await p.evaluate(() => el('webMsg').textContent);
-ok('3) повтор: «уже на полке», книга одна', /уже на полке/.test(m3) && (await books()).length === 1 && hits.wiki === 1, { m3, wiki: hits.wiki });
+ok('3) повтор: «уже на полке», книга одна', /уже на полке/.test(m3) && (await books()).length === 1 && hits.wiki === 2, { m3, wiki: hits.wiki });
 
 // 4
-await go('https://open.example/blog/kak-chitat'); await sleep(1500);
+await go('https://open.example/blog/kak-chitat');
 bs = await books(); const b4 = bs.find(b => b.src === 'web:https://open.example/blog/kak-chitat');
 t = b4 ? await text(b4.id) : '';
 ok('4) открытый сайт: книга, автор = сайт, название из <h1>', b4 && b4.a === 'Блог читателя' && b4.t === 'Как читать больше', b4);
@@ -83,29 +97,37 @@ ok('4) только статья, без повтора названия: без
 ok('4) оглавление: два совета', b4 && JSON.stringify(b4.toc) === JSON.stringify(['Совет первый', 'Совет второй']), b4 && b4.toc);
 
 // 4b
-await toLib(); await openSheet(); await go('https://ru.wikisource.org/wiki/Каштанка_(Чехов)'); await sleep(1500);
+await toLib(); await openSheet(); await go('https://ru.wikisource.org/wiki/Каштанка_(Чехов)');
 bs = await books(); const b4b = bs.find(b => b.a === 'Викитека');
 t = b4b ? await text(b4b.id) : '';
 ok('4b) Викитека через API: главы в оглавлении, примечания на месте, без навигации', b4b && b4b.t === 'Каштанка (Чехов)' && b4b.toc.join() === 'Глава первая,Глава вторая,Примечания' && /Примечание Чехова/.test(t) && !/мусор/.test(t) && hits.ws === 1, { b4b, ws: hits.ws });
 
-// 5
-await toLib(); await openSheet(); await go('https://closed.example/article'); await sleep(1500);
-const m5 = await p.evaluate(() => ({ msg: el('webMsg').textContent, btn: !!el('webJina') }));
-ok('5) закрытый сайт: вопрос про Jina Reader, к службе без согласия не ходили', m5.btn && /Jina Reader/.test(m5.msg) && /уйдёт/.test(m5.msg) && hits.jina.length === 0, { m5, jina: hits.jina });
+// 5, 13
+await toLib(); await openSheet(); await go('https://closed.example/article', false);
+const m5 = await p.evaluate(() => ({ msg: el('webMsg').textContent, btn: !!el('webJina'), chk: !!el('webJinaAlways') }));
+ok('5) закрытый сайт: вопрос про Jina Reader и «Больше не спрашивать», к службе без согласия не ходили', m5.btn && m5.chk && /Jina Reader/.test(m5.msg) && /уйдёт/.test(m5.msg) && hits.jina.length === 0, { m5, jina: hits.jina });
 await p.screenshot({ path: '/tmp/rq-web-shots/5-closed.png' });
-await p.evaluate(() => el('webJina').click()); await sleep(1500);
+await p.evaluate(() => { el('webJinaAlways').checked = true; el('webJina').click(); }); await sleep(1500);
+ok('13) галочка: SET.webJina запомнен', await p.evaluate(() => SET.webJina === 1));
+await p.evaluate(() => el('webAdd').click()); await sleep(1500);
 bs = await books(); const b5 = bs.find(b => b.src === 'web:https://closed.example/article');
 t = b5 ? await text(b5.id) : '';
 ok('5) через Jina Reader: адрес ушёл службе, книга на полке', hits.jina.length === 1 && hits.jina[0] === '/https://closed.example/article' && b5 && b5.t === 'Закрытая статья' && b5.a === 'closed.example', { jina: hits.jina, b5 });
-ok('5) markdown в чистый текст: без картинок, ссылок и звёздочек', t.startsWith('Текст закрытой статьи, абзац 1, с ссылкой и жирным словом.') && /• пункт два/.test(t) && !/\]\(|\*\*|!\[|https?:/.test(t) && b5.toc.join() === 'Вторая часть' || (b5 && b5.toc.length === 0), t.slice(0, 140));
-ok('5) книга открылась в читалке', await inReader());
+ok('5) markdown в чистый текст: без картинок, ссылок и звёздочек', t.startsWith('Текст закрытой статьи, абзац 1, с ссылкой и жирным словом.') && /• пункт два/.test(t) && !/\]\(|\*\*|!\[|https?:/.test(t), t.slice(0, 140));
+await toLib(); await openSheet();
+ok('13) в шторке видно «Спрашивать снова»', await p.evaluate(() => !!el('webJinaOff')));
+await go('https://closed2.example/next', false);
+ok('13) следующий закрытый сайт — сразу через Jina, без вопроса', hits.jina.length === 2 && await p.evaluate(() => !el('webJina') && !!el('webAdd')), hits.jina);
+await p.evaluate(() => el('webCancel').click());
+await p.evaluate(() => el('webJinaOff').click()); await sleep(200);
+ok('13) «Спрашивать снова» снимает галочку', await p.evaluate(() => !SET.webJina));
 
 // 6
 await toLib(); await openSheet();
 const n6 = (await books()).length;
-await p.evaluate(() => { el('webText').value = 'Коротко.'; el('webTextGo').click(); }); await sleep(300);
+await type('Коротко.'); await p.evaluate(() => el('webGo').click()); await sleep(300);
 ok('6) слишком короткий текст — книги нет', (await books()).length === n6);
-await p.evaluate(() => { el('webText').value = 'Заметка о чтении\n\n' + 'Длинный вставленный текст с сайта. '.repeat(20); el('webTextGo').click(); }); await sleep(800);
+await type('Заметка о чтении\n\n' + 'Длинный вставленный текст с сайта. '.repeat(20)); await p.evaluate(() => el('webGo').click()); await sleep(1000);
 bs = await books(); const b6 = bs.find(b => b.t === 'Заметка о чтении');
 ok('6) вставленный текст — книга «Заметка о чтении», открылась', b6 && b6.a === 'Вставленный текст' && !b6.src && await inReader(), b6);
 
@@ -133,18 +155,55 @@ await toLib();
 const putShare = (o) => p.evaluate(async (o) => { const c = await caches.open((window.RQ_NS || 'rq') + '_share'); await c.put(new Request('share/' + Date.now() + '-web'), new Response(JSON.stringify(o), { headers: { 'Content-Type': 'application/json', 'X-RQ-Web': '1' } })); }, o);
 await putShare({ title: 'Блог', text: 'Посмотри https://open.example/second', url: '' });
 await p.goto(BASE + '?share=1', { waitUntil: 'load' }); await boot(); await sleep(1500);
+const s8a = await p.evaluate(() => ({ v: el('webIn') && el('webIn').value, add: !!el('webAdd') }));
+await p.evaluate(() => el('webAdd') && el('webAdd').click()); await sleep(1200);
 bs = await books();
-ok('8) поделились ссылкой: страница сразу легла на полку', bs.some(b => b.src === 'web:https://open.example/second'), bs.map(b => b.src));
+ok('8) поделились ссылкой: ссылка в поле, «Начало текста», после нажатия на полке', s8a.v === 'https://open.example/second' && s8a.add && bs.some(b => b.src === 'web:https://open.example/second'), { s8a, src: bs.map(b => b.src) });
 await toLib();
 await putShare({ title: 'Отрывок', text: 'Выделенный кусок статьи. '.repeat(20), url: 'https://open.example/third' });
 await p.goto(BASE + '?share=1', { waitUntil: 'load' }); await boot(); await sleep(800);
-const s8 = await p.evaluate(() => ({ open: !el('bookSheet').classList.contains('hidden'), t: el('webText') && el('webText').value.slice(0, 25), ttl: el('webTitle') && el('webTitle').value }));
+const s8 = await p.evaluate(() => ({ open: !el('bookSheet').classList.contains('hidden'), t: el('webIn') && el('webIn').value.slice(0, 25), ttl: el('webTitle') && !el('webTitle').hidden && el('webTitle').value }));
 ok('8) поделились выделенным текстом: шторка с текстом и названием', s8.open && s8.t === 'Выделенный кусок статьи. ' && s8.ttl === 'Отрывок', s8);
-await p.evaluate(() => el('webTextGo').click()); await sleep(800);
+await p.evaluate(() => el('webGo').click()); await sleep(800);
 bs = await books();
 ok('8) из текста — книга «Отрывок» с адресом страницы', bs.some(b => b.t === 'Отрывок' && b.src === 'web:https://open.example/third' && b.a === 'open.example'), bs.filter(b => b.t === 'Отрывок'));
 const left = await p.evaluate(async () => (await (await caches.open((window.RQ_NS || 'rq') + '_share')).keys()).length);
 ok('8) общий кэш «Поделиться» пустой', left === 0, left);
+
+
+// 9: страница сайта дочитана — «Прочитано» на полке, но не в счёт дочитанных книг и ачивок за книги
+await toLib();
+const r9 = await p.evaluate(() => { const w = S.userBooks.find(b => b.genre === 'Сайт'); const before = rqFinBooks().length; S.finished.push(w.id); S.finishDates[w.id] = today();
+  const inp = achInput(); const fin = rqFinBooks().length; const st = bookStatus ? bookStatus(w.id) : '';
+  const res = { before, fin, inAch: inp.finished.indexOf(w.id) >= 0, st, isWeb: rqIsWebBook(w), src: (inp.books.find(b => b.id === w.id) || {}).src };
+  S.finished.pop(); delete S.finishDates[w.id]; return res; });
+ok('9) дочитанная страница сайта: на полке «Прочитано», в дочитанные книги и ачивки не идёт', r9.isWeb && r9.fin === r9.before && !r9.inAch && r9.st === 'done' && r9.src === 'web', r9);
+const r9b = await p.evaluate(() => { const qs = (typeof QUESTS !== 'undefined' ? QUESTS : []).filter(q => /^finish2$|^chain1$/.test(q.id)).map(q => q.info()); return qs; });
+ok('9) задания «Дочитать книгу» считают только книги', r9b.every(x => /^0 \//.test(x)), r9b);
+
+// 11: фильтр «Сайты»
+await p.evaluate(() => libFilterPick('web')); await sleep(400);
+const r11 = await p.evaluate(() => ({ title: el('libTitle').textContent, web: S.userBooks.filter(rqIsWebBook).map(b => b.title).sort(),
+  shown: Array.from(document.querySelectorAll('#shelf .bookcard .btitle')).map(x => x.textContent.trim()).sort() }));
+ok('11) фильтр «Сайты»: только страницы сайтов', r11.title === 'Сайты' && r11.shown.length > 0 && JSON.stringify(r11.shown) === JSON.stringify(r11.web), r11);
+await p.screenshot({ path: '/tmp/rq-web-shots/11-filter.png' });
+await p.evaluate(() => libFilterPick('all')); await sleep(200);
+
+// 10: «Обновить с сайта» — место в тексте сохраняется
+const b10 = (await books()).find(b => b.src === 'web:https://open.example/blog/kak-chitat');
+await p.evaluate((id) => { const b = S.userBooks.find(x => x.id === id); const at = b.text.indexOf('Абзац номер 1 о том', b.text.indexOf('Совет второй')); S.progress[id] = Object.assign(S.progress[id] || {}, { pos: at / b.text.length, ratio: at / b.text.length }); save(); bookInfo(id); }, b10.id);
+await sleep(300);
+const c10 = await p.evaluate(() => ({ ref: !!el('webRef'), link: (document.querySelector('#bookSheetBody a.bk-line') || {}).href || '' }));
+ok('10) в карточке: «Обновить с сайта» и «Открыть на сайте»', c10.ref && c10.link === 'https://open.example/blog/kak-chitat', c10);
+await p.screenshot({ path: '/tmp/rq-web-shots/10-card.png' });
+await p.evaluate(() => el('webRef').click()); await sleep(1500);
+ok('10) сайт не менялся: «ничего не изменилось»', /ничего не изменилось/.test(await p.evaluate(() => el('webRefMsg').textContent)));
+SITE_V = SITE.replace('<h1>Как читать больше</h1>', '<h1>Как читать больше</h1><p>Новое вступление: статью дополнили большим абзацем в самом начале, чтобы проверить, что место в тексте не потеряется.</p>');
+const before10 = await p.evaluate((id) => { const b = S.userBooks.find(x => x.id === id); const at = Math.floor(S.progress[id].pos * b.text.length); return b.text.slice(at, at + 40); }, b10.id);
+await p.evaluate(() => el('webRef').click()); await sleep(1500);
+const r10 = await p.evaluate(async (id) => { const b = S.userBooks.find(x => x.id === id); const at = Math.floor(S.progress[id].pos * b.text.length);
+  return { here: b.text.slice(at, at + 40), starts: b.text.slice(0, 30), idb: ((await __rq.idb.getText(id)) || '').slice(0, 30), pos: S.progress[id].pos, ratio: S.progress[id].ratio }; }, b10.id);
+ok('10) обновлено: новый текст в книге и в хранилище, место то же', r10.starts.startsWith('Новое вступление') && r10.idb.startsWith('Новое вступление') && r10.here.trim().slice(0, 30) === before10.trim().slice(0, 30) && r10.ratio >= r10.pos, { r10, before10 });
 
 ok('нет ошибок страницы', errs.length === 0, errs);
 await browser.close();

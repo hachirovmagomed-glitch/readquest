@@ -231,6 +231,7 @@ function renderLibrary(){
   shelfBarRender(shCur);
   if(shCur)list=list.filter(b=>shCur.b.indexOf(b.id)>=0);
   else if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
+  else if(LIB.f==='web')list=list.filter(rqIsWebBook);
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   LIB.sort=libSortGet();
@@ -313,7 +314,7 @@ function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet())
   SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
 /* 18.10 (Джессика, как в ReadEra): фильтр живёт в «⋮» шапки, а не строкой под ней. LIB.f: all|reading|want|done|fav|sh:<id>; LIB.author — автор.
    Заголовок экрана называет активный фильтр («Читаю сейчас», имя полки, автор), «Библиотека» — когда показаны все книги. */
-const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'}];
+const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'},{k:'web',t:'Сайты'}]; /* 13.11: страницы сайтов (js/web.js) */
 function libFilterLabel(){if(LIB.author)return LIB.author;
   if(LIB.f.indexOf('sh:')===0){const sh=shelvesGet().find(function(x){return 'sh:'+x.id===LIB.f;});return sh?sh.n:'Библиотека';}
   if(LIB.f==='all')return 'Библиотека';return (LIB_FILTERS.find(function(o){return o.k===LIB.f;})||{t:'Библиотека'}).t;}

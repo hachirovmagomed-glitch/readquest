@@ -181,33 +181,54 @@ function webMdToBook(md,title,u){
   return {title:(title||webHost(u)).slice(0,200),author:webHost(u),text:text,toc:toc.length>1?toc:undefined};
 }
 
-/* ---- шторка «Страница сайта» ---- */
-const WEB={busy:false,url:''};
+/* ---- шторка «Страница сайта» ----
+   13.11 (Джессика «давай все»): одно поле — ссылка или текст, приложение само понимает что; перед добавлением ссылки — «Начало текста»
+   и «Отмена»; про Jina Reader можно «Больше не спрашивать» (SET.webJina, arch.md 13.11) */
+const WEB={busy:false,url:'',shareUrl:'',pend:null};
+function webIsUrl(v){v=String(v||'').trim();if(!v||/\s/.test(v))return false;
+  return /^https?:\/\/\S+$/i.test(v)||/^(www\.)?[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)*\.[\p{L}]{2,}([\/?#:].*)?$/u.test(v);}
+function webJinaOk(){return !!(typeof SET!=='undefined'&&SET&&SET.webJina);}
+function webJinaSet(on){if(typeof SET==='undefined'||!SET)return;if(on)SET.webJina=1;else delete SET.webJina;if(typeof saveSet==='function')saveSet();}
 function webSheet(o){
-  o=o||{};
+  o=o||{};WEB.pend=null;
+  const v=o.text||o.url||'';
   el('bookSheetBody').innerHTML=
     '<div class="bk-head"><div class="cover webcov">'+rqIcon('compass',34)+'</div><div class="bk-ttl"><b>Страница сайта</b><div class="bk-sub">Читать сайт как книгу</div></div></div>'+
-    '<div class="bk-note">Текст страницы ляжет на полку как книга. Чтение засчитывается как обычно: страницы, минуты, опыт и ежедневное задание.</div>'+
-    '<div class="bk-h">Ссылка</div>'+
-    '<input id="webUrl" class="searchinp" type="url" inputmode="url" autocomplete="off" placeholder="https://…" aria-label="Ссылка на страницу" value="'+esc(o.url||'')+'">'+
-    '<button type="button" class="cta" id="webGo">'+rqIcon('download',18)+' Открыть как книгу</button>'+
+    '<div class="bk-note">Текст страницы ляжет на полку как книга. Чтение засчитывается как обычно: страницы, минуты, опыт, серия и ежедневное задание. В счёт дочитанных книг и ачивок за книги страницы сайтов не идут.</div>'+
+    '<textarea id="webIn" class="searchinp webtext" rows="3" maxlength="2000000" autocomplete="off" placeholder="Вставьте ссылку на страницу или текст с сайта" aria-label="Ссылка или текст">'+esc(v)+'</textarea>'+
+    '<input id="webTitle" class="searchinp webtitle" type="text" autocomplete="off" placeholder="Название (необязательно)" aria-label="Название" value="'+esc(o.title||'')+'" hidden>'+
+    '<button type="button" class="cta" id="webGo"></button>'+
     '<div id="webMsg" role="status"></div>'+
-    '<div class="bk-h">Или вставьте текст</div>'+
-    '<textarea id="webText" class="searchinp webtext" rows="5" maxlength="2000000" placeholder="Выделите текст на сайте, скопируйте и вставьте сюда" aria-label="Текст страницы">'+esc(o.text||'')+'</textarea>'+
-    '<input id="webTitle" class="searchinp webtitle" type="text" autocomplete="off" placeholder="Название (необязательно)" aria-label="Название" value="'+esc(o.title||'')+'">'+
-    '<button type="button" class="buy advwant" id="webTextGo">'+rqIcon('file-text',18)+' Сделать книгу из текста</button>'+
+    (webJinaOk()?'<div class="bk-note webjinaon">Закрытые сайты открываются через Jina Reader без вопроса. <button type="button" class="weblink" id="webJinaOff">Спрашивать снова</button></div>':'')+
     '<div class="bk-h">Или откройте сохранённую страницу</div>'+
     '<div class="bk-note">В браузере на телефоне откройте меню и нажмите значок скачивания: страница сохранится файлом. На компьютере: Ctrl+S. Потом выберите этот файл здесь.</div>'+
     '<button type="button" class="buy advwant" id="webFile">'+rqIcon('folder',18)+' Выбрать файл страницы</button>';
   el('bookSheet').classList.remove('hidden');el('bookSheet').scrollTop=0;
-  el('webGo').onclick=function(){webGo(el('webUrl').value,false);};
-  el('webUrl').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();webGo(el('webUrl').value,false);}};
-  el('webTextGo').onclick=webFromText;
+  el('webIn').oninput=webMode;
+  el('webGo').onclick=function(){const x=String(el('webIn').value||'').trim();if(webIsUrl(x))webGo(x,false);else webFromText();};
   el('webFile').onclick=function(){el('fileInp').click();};
+  if(el('webJinaOff'))el('webJinaOff').onclick=function(){webJinaSet(false);const n=document.querySelector('.webjinaon');if(n)n.remove();};
+  webMode();
   if(o.go&&o.url)webGo(o.url,false);
 }
+/* поле само понимает, что в нём: ссылка → «Открыть ссылку», текст → «Сделать книгу из текста» и поле названия */
+function webMode(){const inp=el('webIn'),b=el('webGo');if(!inp||!b||WEB.busy)return;
+  const x=String(inp.value||'').trim(),url=webIsUrl(x);
+  el('webTitle').hidden=!x||url;
+  b.disabled=!x;
+  b.innerHTML=!x?'Вставьте ссылку или текст':url?rqIcon('download',18)+' Открыть ссылку как книгу':rqIcon('file-text',18)+' Сделать книгу из текста';
+  if(WEB.pend&&(!url||webNorm(x)!==WEB.pend.u)){WEB.pend=null;webMsg('');}}
 function webMsg(h){const m=el('webMsg');if(m)m.innerHTML=h;}
-function webBusy(t){const b=el('webGo');if(!b)return;b.disabled=!!t;b.innerHTML=t?esc(t):rqIcon('download',18)+' Открыть как книгу';}
+function webBusy(t){const b=el('webGo');if(!b)return;if(t){b.disabled=true;b.textContent=t;}else webMode();}
+async function webFetchBook(u,viaJina){
+  const w=!viaJina&&webWiki(u);
+  if(w)return await webGetWiki(w,u);
+  if(viaJina)return await webGetJina(u);
+  let r;
+  try{r=await webGetDirect(u);}catch(e){if(e&&e.nocors&&webJinaOk())return await webGetJina(u);throw e;}
+  if(!r.file&&(!r.text||r.text.length<WEB_MIN)){if(webJinaOk())return await webGetJina(u);const x=new Error('empty');x.nocors=true;x.empty=true;throw x;} /* текст собирают скрипты: в html пусто */
+  return r;
+}
 async function webGo(raw,viaJina){
   if(WEB.busy)return;
   const u=webNorm(raw);
@@ -216,36 +237,52 @@ async function webGo(raw,viaJina){
   if(own){webMsg('<div class="bk-note">Эта страница уже на полке.</div><button type="button" class="buy advwant" id="webOpenOwn">'+rqIcon('book-open',18)+' Читать</button>');
     el('webOpenOwn').onclick=function(){el('bookSheet').classList.add('hidden');openBook(own.id);};return;}
   if(navigator.onLine===false){webMsg('<div class="bk-note">Нет сети. Страница скачается один раз, дальше читается без интернета.</div>');return;}
-  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне','info');return;}
-  WEB.busy=true;WEB.url=u;webMsg('');webBusy(viaJina?'Открываю через Jina Reader…':'Загружаю страницу…');
+  WEB.busy=true;WEB.url=u;WEB.pend=null;webMsg('');webBusy(viaJina||(!webWiki(u)&&webJinaOk())?'Открываю страницу… бывает до 20 секунд':'Загружаю страницу…');
   try{
-    let r;const w=!viaJina&&webWiki(u);
-    if(w)r=await webGetWiki(w,u);
-    else if(viaJina)r=await webGetJina(u);
-    else{
-      try{r=await webGetDirect(u);}
-      catch(e){if(e&&e.nocors){webNoCors(u);return;}throw e;}
-      if(r.file){el('bookSheet').classList.add('hidden');await importBookFiles([r.file]);return;}
-      if(!r.text||r.text.length<WEB_MIN){webNoCors(u,true);return;} /* страница собирается скриптами: в html пусто */
-    }
-    const b=webMakeBook(r,u);
-    await rqAddBook(b);
-    el('bookSheet').classList.add('hidden');
-    try{renderLibrary();libFlashNew();}catch(e){}
-    openBook(b.id);
+    let r;
+    try{r=await webFetchBook(u,viaJina);}catch(e){if(e&&e.nocors){webNoCors(u,e.empty);return;}throw e;}
+    if(r.file){el('bookSheet').classList.add('hidden');await importBookFiles([r.file]);return;}
+    WEB.pend={b:webMakeBook(r,u),u:u};webPreview();
   }catch(e){console.warn('[rq] web',e);webMsg('<div class="bk-note">Не получилось: '+esc(e&&e.message||e)+'</div>');}
   finally{WEB.busy=false;webBusy('');}
+}
+/* «Начало текста» перед добавлением: видно, статья ли это или меню сайта; «Отмена» ничего не пишет */
+function webWords(t){return (String(t).match(/[\p{L}\p{N}]+/gu)||[]).length;}
+function webPreview(){
+  const p=WEB.pend;if(!p)return;const b=p.b,w=webWords(b.text),min=Math.max(1,Math.round(w/180));
+  let head=b.text.slice(0,600);if(b.text.length>600)head=head.replace(/\s+\S*$/,'')+'…';
+  webMsg('<div class="bk-h">Что получилось</div><div class="bk-row"><span class="bk-k">'+esc(b.title)+'</span><span class="bk-v">'+esc(b.author)+'</span></div>'+
+    '<div class="bk-note">Около '+min+' '+plural(min,'минуты','минут','минут')+' чтения'+(b.toc&&b.toc.length?' · '+b.toc.length+' '+plural(b.toc.length,'раздел','раздела','разделов'):'')+'</div>'+
+    '<div class="bk-h">Начало текста</div><div class="bk-note advpre webpre">'+esc(head)+'</div>'+
+    '<div class="bk-note">Если вместо статьи тут меню сайта, нажмите «Отмена» и вставьте нужный кусок текста в поле выше.</div>'+
+    '<button type="button" class="cta" id="webAdd">'+rqIcon('book-open',18)+' На полку и читать</button>'+
+    '<button type="button" class="buy advwant" id="webCancel">'+rqIcon('x',18)+' Отмена</button>');
+  el('webAdd').onclick=webAddPend;
+  el('webCancel').onclick=function(){WEB.pend=null;webMsg('');};
+  try{el('webMsg').scrollIntoView({block:'start',behavior:'smooth'});}catch(e){}
+}
+async function webAddPend(){
+  const p=WEB.pend;if(!p||WEB.busy)return;
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне','info');return;}
+  if(webOnShelf(p.u)){webGo(p.u,false);return;}
+  WEB.busy=true;
+  try{await rqAddBook(p.b);}catch(e){WEB.busy=false;flashMsg('Не удалось добавить: '+(e&&e.message||e),'info');return;}
+  WEB.busy=false;WEB.pend=null;
+  el('bookSheet').classList.add('hidden');
+  try{renderLibrary();libFlashNew();}catch(e){}
+  openBook(p.b.id);
 }
 /* сайт не пустил приложение (или страница пустая без скриптов): спросить про Jina Reader, рядом остальные пути */
 function webNoCors(u,empty){
   webMsg('<div class="bk-note">'+(empty?'На этой странице текст появляется только в браузере, приложение его не видит.':'Этот сайт не даёт приложению открыть страницу напрямую.')+
     ' Можно открыть её через Jina Reader: это бесплатная служба, которая сама откроет страницу и отдаст текст. Адрес страницы уйдёт этой службе.</div>'+
+    '<label class="webchk"><input type="checkbox" id="webJinaAlways"><span>Больше не спрашивать, сразу открывать через Jina Reader</span></label>'+
     '<button type="button" class="cta" id="webJina">'+rqIcon('download',18)+' Открыть через Jina Reader</button>'+
-    '<div class="bk-note">Или вставьте текст страницы ниже, или сохраните страницу файлом.</div>');
-  el('webJina').onclick=function(){webGo(u,true);};
+    '<div class="bk-note">Или вставьте в поле выше сам текст страницы, или сохраните страницу файлом.</div>');
+  el('webJina').onclick=function(){if(el('webJinaAlways').checked)webJinaSet(true);webGo(u,true);};
 }
 async function webFromText(){
-  const t=String(el('webText').value||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  const t=String(el('webIn').value||'').replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
   if(t.length<WEB_MIN){flashMsg('Текста слишком мало для книги','info');return;}
   if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне','info');return;}
   const first=(t.split('\n')[0]||'').trim();
@@ -265,6 +302,55 @@ function webFromShare(o){
   const url=webNorm(o.url||(m?m[0]:''));
   const rest=m?text.replace(m[0],'').trim():text;
   try{show('library');}catch(e){}
-  if(rest.length>=WEB_MIN){WEB.shareUrl=url;webSheet({text:rest,title:o.title||'',url:url});return;} /* поделились выделенным текстом */
-  webSheet({url:url,go:!!url});
+  if(rest.length>=WEB_MIN){WEB.shareUrl=url;webSheet({text:rest,title:o.title||''});return;} /* поделились выделенным текстом */
+  WEB.shareUrl='';webSheet({url:url,go:!!url});
+}
+
+/* ---- карточка книги: «Обновить с сайта», «Открыть на сайте» (js/content.js bookInfo) ----
+   Обновление переписывает текст этой книги (единственное место, где текст книги пишется второй раз, arch.md 13.11).
+   Место в тексте: кусок текста у старого pos ищется в новом тексте; не нашёлся — pos как был. ratio только растёт. */
+function webUrlOf(b){const u=String(b&&b.srcId||'').replace(/^web:/,'');return /^https?:\/\//.test(u)?u:'';}
+function webCardHtml(b){
+  if(!rqIsWebBook(b))return '';const u=webUrlOf(b);if(!u)return '';
+  return '<div class="bk-h">Сайт</div><div class="bk-list">'+
+    '<button type="button" class="bk-line" id="webRef" onclick="webRefresh(\''+esc(b.id)+'\')">'+rqIcon('rotate-cw',20)+'<span>Обновить с сайта</span></button>'+
+    '<a class="bk-line" href="'+esc(u)+'" target="_blank" rel="noopener">'+rqIcon('compass',20)+'<span>Открыть на сайте</span></a>'+
+    '</div><div class="bk-note" id="webRefMsg">Место в тексте сохранится. Если текст на сайте сильно поменялся, цитаты и выделения в этой странице могут сместиться.</div>';
+}
+function webRefMsg(h){const m=el('webRefMsg');if(m)m.innerHTML=h;}
+async function webRefresh(id,viaJina){
+  const b=(S.userBooks||[]).find(function(x){return x&&x.id===id;}),u=webUrlOf(b);
+  if(!b||!u||WEB.busy)return;
+  if(typeof R!=='undefined'&&R&&R.book&&R.book.id===id){flashMsg('Закройте страницу, потом обновите','info');return;}
+  if(window.__rqWriter&&!window.__rqWriter.mayWrite()){flashMsg('Приложение открыто в другом окне','info');return;}
+  if(navigator.onLine===false){flashMsg('Нет сети','info');return;}
+  WEB.busy=true;const btn=el('webRef');if(btn){btn.disabled=true;btn.querySelector('span').textContent='Загружаю страницу…';}
+  try{
+    let r;
+    try{r=await webFetchBook(u,viaJina);}
+    catch(e){if(e&&e.nocors){
+      webRefMsg('Этот сайт не даёт приложению открыть страницу напрямую. Можно открыть её через Jina Reader, адрес страницы уйдёт этой службе.'+
+        '<label class="webchk"><input type="checkbox" id="webJinaAlways"><span>Больше не спрашивать</span></label>'+
+        '<button type="button" class="buy advwant" id="webRefJina">'+rqIcon('rotate-cw',18)+' Обновить через Jina Reader</button>');
+      el('webRefJina').onclick=function(){if(el('webJinaAlways').checked)webJinaSet(true);WEB.busy=false;webRefresh(id,true);};return;}
+      throw e;}
+    if(r.file)throw new Error('по ссылке теперь файл, а не страница');
+    const nb=webMakeBook(r,u);
+    let old=b.text;if(typeof old!=='string'||!old){try{old=await __rq.idb.getText(id);}catch(e){old='';}}
+    if(old===nb.text){webRefMsg('На сайте ничего не изменилось.');return;}
+    const p=S.progress[id];let pos=p&&typeof p.pos==='number'?p.pos:null;
+    if(pos!==null&&old){const at=Math.floor(pos*old.length),snip=old.slice(at,at+80).trim();
+      /* кусок может встречаться несколько раз — берём вхождение, ближайшее к тому же месту по доле текста */
+      const want=pos*nb.text.length;let j=-1,best=Infinity;
+      if(snip.length>=20)for(let k=nb.text.indexOf(snip);k>=0;k=nb.text.indexOf(snip,k+1)){const d=Math.abs(k-want);if(d<best){best=d;j=k;}}
+      if(j>=0)pos=Math.min(1,Math.max(0,j/nb.text.length));}
+    b.text=nb.text;b.toc=nb.toc;b.size=nb.text.length;
+    await __rq.upsertUserBook(null,b,{text:nb.text});
+    if(p&&pos!==null){p.pos=pos;if(!(p.ratio>=pos))p.ratio=pos;}
+    save();
+    try{renderLibrary();}catch(e){}
+    try{bookInfo(id);}catch(e){}
+    flashMsg('Страница обновлена','info');
+  }catch(e){console.warn('[rq] web refresh',e);webRefMsg('Не получилось: '+esc(e&&e.message||e));}
+  finally{WEB.busy=false;const bt=el('webRef');if(bt){bt.disabled=false;const sp=bt.querySelector('span');if(sp)sp.textContent='Обновить с сайта';}}
 }

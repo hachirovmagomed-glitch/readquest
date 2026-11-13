@@ -501,6 +501,10 @@ var addLocalDays=function(day,n){const p=String(day).slice(0,10).split('-').map(
 function today(){return localDay(Date.now());}
 function yesterday(){return addLocalDays(today(),-1);}
 function allBooks(){return BOOKS.filter(b=>!S.hidden.includes(b.id)).concat(S.userBooks||[]);}
+/* 13.11 «Страница сайта» (js/web.js): страница сайта — книга для чтения (минуты, опыт, серия, ежедневка, «Прочитано» на полке),
+   но не для наград за дочитанные книги: в счёт «Дочитать N книг», ачивок, целей на год, трофеев и наград домика идут только настоящие книги */
+function rqIsWebBook(b){return !!b&&(b.genre==='Сайт'||/^web:/.test(String(b.srcId||'')));}
+function rqFinBooks(){const web={};(S.userBooks||[]).forEach(function(b){if(rqIsWebBook(b))web[b.id]=1;});return (S.finished||[]).filter(function(id){return !web[id];});}
 function level(xp){return Math.floor(Math.sqrt(xp/100))+1;}
 function lvlBounds(lv){return [100*(lv-1)*(lv-1),100*lv*lv];}
 function daysBetween(a,b){if(!a||!b)return 0;const d1=new Date(a+'T00:00:00'),d2=new Date(b+'T00:00:00');return Math.round((d2-d1)/86400000);}

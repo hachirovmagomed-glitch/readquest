@@ -11,8 +11,8 @@
  *
  * North-star: days/week with ≥10 minutes → daysMeetingThreshold({ minMinutes: 10 }).
  */
-import { IDB_STORE_SESSIONS } from './schema.js?v=20261112-1108';
-import { openDb } from './idb.js?v=20261112-1108';
+import { IDB_STORE_SESSIONS } from './schema.js?v=20261113-2041';
+import { openDb } from './idb.js?v=20261113-2041';
 
 /** Session UUID (reader-generated). crypto.randomUUID with a random v4 fallback. */
 export function newSessionId() {

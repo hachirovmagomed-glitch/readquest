@@ -255,8 +255,10 @@
     /* выходные: суббота + воскресенье одних выходных */
     let weekend = 0;
     days.forEach(function (d) { if (dow(d) === 5) weekend = Math.max(weekend, Math.floor((dayMin[d] || 0) + (dayMin[d + 1] || 0) + 1e-9)); else if (dow(d) === 6 && !dayMin[d - 1]) weekend = Math.max(weekend, dayFloor[d]); });
+    /* 13.11: страницы сайтов (src 'web', js/web.js) — чтение, но не «книги» для ачивок про книги */
+    const webB = {}; Object.keys(books).forEach(function (id) { if (books[id] && books[id].src === 'web') webB[id] = 1; });
     /* книги за неделю: по 10 минут в книге за неделю */
-    const wb = {}; Object.keys(bookDayMin).forEach(function (k) { const i = k.lastIndexOf('|'), b = k.slice(0, i), d = +k.slice(i + 1), w = d - dow(d); const o = (wb[w] = wb[w] || {}); o[b] = (o[b] || 0) + bookDayMin[k]; });
+    const wb = {}; Object.keys(bookDayMin).forEach(function (k) { const i = k.lastIndexOf('|'), b = k.slice(0, i), d = +k.slice(i + 1), w = d - dow(d); if (webB[b]) return; const o = (wb[w] = wb[w] || {}); o[b] = (o[b] || 0) + bookDayMin[k]; });
     let weekBooks = 0; Object.keys(wb).forEach(function (w) { weekBooks = Math.max(weekBooks, Object.keys(wb[w]).filter(function (b) { return wb[w][b] >= GOAL; }).length); });
     /* даты: день с ≥ цели */
     const dates = {}; let mirror = 0, fri13 = 0, exactDay = 0, maxDay = 0;
@@ -291,11 +293,11 @@
     const authorsN = Object.keys(byAuthor).length, oneAuthor = authorsN ? Math.max.apply(null, Object.keys(byAuthor).map(function (k) { return byAuthor[k]; })) : 0;
     /* форматы и свои книги */
     const fmtMin = {}; let ownRead = 0;
-    Object.keys(bookMin).forEach(function (id) { const b = books[id], f = fmtOf(b); if (f) fmtMin[f] = (fmtMin[f] || 0) + bookMin[id]; if (b && b.own && bookMin[id] >= GOAL) ownRead++; });
+    Object.keys(bookMin).forEach(function (id) { const b = books[id], f = fmtOf(b); if (f) fmtMin[f] = (fmtMin[f] || 0) + bookMin[id]; if (b && b.own && !webB[id] && bookMin[id] >= GOAL) ownRead++; });
     const formats = Object.keys(fmtMin).filter(function (f) { return fmtMin[f] >= GOAL; }).length;
     /* тёзки: две прочитанные (≥ 10 мин) книги с общим словом от 4 букв в названии */
     let twins = 0; const seenW = {};
-    Object.keys(bookMin).forEach(function (id) { if (bookMin[id] < GOAL || !books[id]) return; const ws = {}; words(books[id].title).forEach(function (w) { ws[w] = 1; });
+    Object.keys(bookMin).forEach(function (id) { if (bookMin[id] < GOAL || !books[id] || webB[id]) return; const ws = {}; words(books[id].title).forEach(function (w) { ws[w] = 1; });
       Object.keys(ws).forEach(function (w) { if (seenW[w] && seenW[w] !== id) twins = 1; seenW[w] = seenW[w] || id; }); });
     /* цитаты: только в книгах с ≥ 10 мин, не больше одной на 2 засчитанные минуты книги */
     let quotes = 0, quoteBooks = 0; const Q = I.quotes || {};

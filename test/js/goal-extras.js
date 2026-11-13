@@ -22,7 +22,7 @@ function gxWeekRender(){
 
 /* ---------- Цель на год ---------- */
 function gxYear(){return new Date().getFullYear();}
-function gxYearDone(y){const fd=S.finishDates||{},fin=S.finished||[];return fin.filter(function(id){return String(fd[id]||'').slice(0,4)===String(y);}).length;}
+function gxYearDone(y){const fd=S.finishDates||{},fin=rqFinBooks();return fin.filter(function(id){return String(fd[id]||'').slice(0,4)===String(y);}).length;}
 function gxYearSet(n){S.yearGoal=n?{y:gxYear(),n:Math.max(1,Math.min(365,n))}:null;save();gxRender();}
 function gxYearHtml(){
   const y=gxYear(),g=S.yearGoal&&S.yearGoal.y===y?S.yearGoal:null;

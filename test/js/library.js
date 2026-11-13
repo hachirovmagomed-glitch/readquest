@@ -231,6 +231,7 @@ function renderLibrary(){
   shelfBarRender(shCur);
   if(shCur)list=list.filter(b=>shCur.b.indexOf(b.id)>=0);
   else if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
+  else if(LIB.f==='web')list=list.filter(rqIsWebBook);
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   LIB.sort=libSortGet();
@@ -313,7 +314,7 @@ function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet())
   SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
 /* 18.10 (Джессика, как в ReadEra): фильтр живёт в «⋮» шапки, а не строкой под ней. LIB.f: all|reading|want|done|fav|sh:<id>; LIB.author — автор.
    Заголовок экрана называет активный фильтр («Читаю сейчас», имя полки, автор), «Библиотека» — когда показаны все книги. */
-const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'}];
+const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'},{k:'web',t:'Сайты'}]; /* 13.11: страницы сайтов (js/web.js) */
 function libFilterLabel(){if(LIB.author)return LIB.author;
   if(LIB.f.indexOf('sh:')===0){const sh=shelvesGet().find(function(x){return 'sh:'+x.id===LIB.f;});return sh?sh.n:'Библиотека';}
   if(LIB.f==='all')return 'Библиотека';return (LIB_FILTERS.find(function(o){return o.k===LIB.f;})||{t:'Библиотека'}).t;}
@@ -529,7 +530,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','
    a file already on the shelf (same fname + size) is skipped, so picking the same folder twice adds nothing; a single picked file is
    added as before (savetext contract). Unsupported extensions are ignored, a broken file does not stop the rest, the batch result is one
    toast (arch.md «1в: импорт пачкой»); a single file keeps its old alert. */
-const BOOK_EXT=/\.(txt|epub|fb2|pdf|zip)$/i; /* 28.10: + .fb2.zip (a .zip with an FB2 inside) */
+const BOOK_EXT=/\.(txt|epub|fb2|pdf|zip|html?|mht|mhtml)$/i; /* 28.10: + .fb2.zip (a .zip with an FB2 inside); 13.11: + сохранённая страница сайта (js/web.js) */
 let bookIdN=0;
 function newBookId(){try{if(crypto&&crypto.randomUUID)return 'u'+crypto.randomUUID();}catch(e){}return 'u'+Date.now()+'-'+(++bookIdN);} /* arch.md 1в: id is never parsed as time */
 function importToast(t,err){flashMsg(t,{kind:err?'error':'info',ms:6000});const d=document.querySelector('.rq-toast');if(d)d.classList.add('imp');}
@@ -568,6 +569,9 @@ async function importBookFile(f,setBusy){
     const r=await parseFb2(/\.zip$/i.test(f.name)?await fb2FromZip(f):f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
     await bookImgsPut(b.id,r.imgs);cov=r.cover||null;
+  }else if(/\.(html?|mht|mhtml)$/i.test(f.name)&&typeof webFileBook==='function'){
+    setBusy('Разбираю страницу...');
+    b=await webFileBook(f); /* 13.11 «Страница сайта»: сохранённая страница → текст, заголовки в оглавление */
   }else if(/\.epub$/i.test(f.name)){
     setBusy('Распаковываю EPUB...');
     const r=await parseEpub(f);
@@ -637,8 +641,9 @@ function addMenu(open){const m=el('addMenu'),b=el('btnAdd');if(!m||!b)return;m.h
 (function(){const m=el('addMenu'),b=el('btnAdd');
   if(!m){b.onclick=function(){el('fileInp').click();};return;}
   const rows=[{k:'files',t:'Выбрать файлы',i:'file-text'}];if(addFolderOk())rows.push({k:'folder',t:'Выбрать папку',i:'folder'});
+  rows.push({k:'web',t:'Страница сайта',i:'compass'}); /* 13.11: читать сайт как книгу (js/web.js, грузится позже) */
   m.innerHTML=rows.map(function(o){return '<button type="button" class="lso" role="menuitem" data-k="'+o.k+'">'+rqIcon(o.i,20)+'<span>'+esc(o.t)+'</span></button>';}).join('');
-  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();addMenu(false);el(o.dataset.k==='folder'?'dirInp':'fileInp').click();});
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();addMenu(false);if(o.dataset.k==='web'){if(typeof webSheet==='function')webSheet();return;}el(o.dataset.k==='folder'?'dirInp':'fileInp').click();});
   b.onclick=function(e){e.stopPropagation();if(b.getAttribute('aria-busy')==='true')return;if(rows.length===1){el('fileInp').click();return;}addMenu(m.hidden);};
   document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)addMenu(false);});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)addMenu(false);});})();
@@ -648,9 +653,11 @@ async function importSharedBooks(){
   if(!/[?&]share=1(&|$)/.test(location.search))return;
   try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
   if(!('caches' in window))return;
-  const name=(window.RQ_NS||'rq')+'_share';let files=[];
+  const name=(window.RQ_NS||'rq')+'_share';let files=[],web=null;
   try{const c=await caches.open(name);const reqs=await c.keys();
-    for(const r of reqs){const res=await c.match(r);if(!res)continue;const blob=await res.blob();
+    for(const r of reqs){const res=await c.match(r);if(!res)continue;
+      if(res.headers.get('X-RQ-Web')){try{web=await res.json();}catch(e){}continue;} /* 13.11: поделились ссылкой или текстом (js/web.js) */
+      const blob=await res.blob();
       let fn='';try{fn=decodeURIComponent(res.headers.get('X-RQ-Name')||'');}catch(e){}
       if(!BOOK_EXT.test(fn)){const t=blob.type||'';const ext=/pdf/.test(t)?'.pdf':/epub/.test(t)?'.epub':/fictionbook/.test(t)?'.fb2':/zip/.test(t)?'.fb2.zip':/^text\/plain/.test(t)?'.txt':'';
         if(ext)fn=(fn||'Книга')+ext;} /* a shared file may come without its extension: the type tells which */
@@ -658,6 +665,7 @@ async function importSharedBooks(){
     await caches.delete(name);
   }catch(e){console.warn('[rq] share',e);}
   if(files.length){try{show('library');}catch(e){}await importBookFiles(files);}
+  else if(web&&typeof webFromShare==='function')webFromShare(web);
 }
 
 /* drawer gestures (spec): swipe right from the left edge (20px) opens it — not in the reader (edge = page turns); swipe left on the drawer closes it. Nothing is written. */

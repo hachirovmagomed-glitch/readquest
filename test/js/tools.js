@@ -123,7 +123,7 @@ function toolsRewards(last){
   const T=TS();let ch=false;const give=function(key,id,why){if(T.rw[key])return;T.rw[key]=1;ch=true;
     if(TOOL_USE.indexOf(id)>=0){const t=tool(id);if((T.n[id]||0)<t.max){T.n[id]=(T.n[id]||0)+1;if(last)last.rw.push({id:id,why:why});}}
     else if(!T.own[id]){T.own[id]=1;delete T.parts[id];if(last)last.rw.push({id:id,why:why});}};
-  const fin=S.finished||[],books=typeof allBooks==='function'?allBooks():[];
+  const fin=rqFinBooks(),books=typeof allBooks==='function'?allBooks():[];
   const byId=function(id){return books.find(function(b){return b&&b.id===id;});};
   if(fin.some(function(id){const b=byId(id);return b&&b.type==='pdf';}))give('pdf1','lupa','первая прочитанная PDF-книга');
   if(fin.some(function(id){const b=byId(id);return b&&((+b.pages||0)>=500||(+b.textLen||0)>=900000||(b.text&&b.text.length>=900000));}))give('big500','lamp','роман длиннее 500 страниц');

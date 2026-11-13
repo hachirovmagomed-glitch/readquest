@@ -332,7 +332,7 @@ function homePick(id){if(!hmWriteOk())return;const pd=hmPetDef(id);if(!pd||!hmPe
 /* ---------- после начисления сессий: лакомства, рост, корешки ---------- */
 let HOME_LAST={ids:[],treats:0,full:false,stage:-1,mood:-1,fin:[]};
 function hmSyncFin(){const H=HS(),have={};H.fin.forEach(function(x){have[x.id]=1;});const add=[];let books=[];try{books=allBooks();}catch(e){}
-  (S.finished||[]).forEach(function(id){if(have[id]||typeof id!=='string')return;const b=books.find(function(x){return x&&x.id===id;});if(!b)return;
+  rqFinBooks().forEach(function(id){if(have[id]||typeof id!=='string')return;const b=books.find(function(x){return x&&x.id===id;});if(!b)return;
     const row={id:id.slice(0,120),t:String(b.title||b.t||'Книга').slice(0,80),a:String(b.author||b.a||'').slice(0,60),d:''};H.fin.push(row);have[id]=1;add.push(row);});
   if(H.fin.length>1000)H.fin=H.fin.slice(-1000);return add;}
 function homeAfterAward(res){

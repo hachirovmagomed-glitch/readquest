@@ -319,11 +319,11 @@ function distinctStats(){return allStats().filter(s=>(S.stats[s]||0)>0).length;}
 const QUESTS=[
  {id:'daily30',name:'Прочитать 30 минут за день',reward:50,period:()=>today(),prog:()=>Math.min(1,S.minToday/30),info:()=>Math.round(S.minToday)+' / 30 мин'},
  {id:'genre3',name:'Качнуть 3 разные характеристики',reward:100,period:()=>'once',prog:()=>Math.min(1,distinctStats()/3),info:()=>distinctStats()+' / 3'},
- {id:'finish2',name:'Дочитать 2 книги',reward:200,period:()=>'once',prog:()=>Math.min(1,S.finished.length/2),info:()=>S.finished.length+' / 2'},
+ {id:'finish2',name:'Дочитать 2 книги',reward:200,period:()=>'once',prog:()=>Math.min(1,rqFinBooks().length/2),info:()=>rqFinBooks().length+' / 2'},
  {id:'streak7q',name:'Удержать стрик 7 дней',reward:150,period:()=>'once',prog:()=>Math.min(1,S.streak/7),info:()=>S.streak+' / 7'},
- {id:'chain1',name:'Путь читателя I: дочитать книгу',reward:100,period:()=>'once',prog:()=>Math.min(1,S.finished.length/1),info:()=>S.finished.length+' / 1'},
- {id:'chain2',name:'Путь читателя II: 3 книги',reward:250,period:()=>'once',prog:()=>Math.min(1,S.finished.length/3),info:()=>S.finished.length+' / 3',need:'chain1'},
- {id:'chain3',name:'Путь читателя III: 5 книг',reward:500,period:()=>'once',prog:()=>Math.min(1,S.finished.length/5),info:()=>S.finished.length+' / 5',need:'chain2'},
+ {id:'chain1',name:'Путь читателя I: дочитать книгу',reward:100,period:()=>'once',prog:()=>Math.min(1,rqFinBooks().length/1),info:()=>rqFinBooks().length+' / 1'},
+ {id:'chain2',name:'Путь читателя II: 3 книги',reward:250,period:()=>'once',prog:()=>Math.min(1,rqFinBooks().length/3),info:()=>rqFinBooks().length+' / 3',need:'chain1'},
+ {id:'chain3',name:'Путь читателя III: 5 книг',reward:500,period:()=>'once',prog:()=>Math.min(1,rqFinBooks().length/5),info:()=>rqFinBooks().length+' / 5',need:'chain2'},
  {id:'month10',name:'Сезонный: 10 дней чтения в этом месяце',reward:300,period:()=>today().slice(0,7),prog:()=>Math.min(1,monthDays()/10),info:()=>monthDays()+' / 10'}
 ];
 function monthDays(){
@@ -705,6 +705,7 @@ function bookInfo(id){
     act('bookmark',want?'В «Хочу»':'Хочу прочитать','toggleWant',want)+
     act('share-2','Поделиться','shareBook',null)+
     '</div>'+
+    (typeof webCardHtml==='function'?webCardHtml(b):'')+ /* 13.11 «Страница сайта»: обновить с сайта, открыть на сайте */
     '<div class="bk-list bk-dy">'+line('notebook',diaryOf(id)?'Дневник книги · '+dyStats(diaryOf(id)):'Завести дневник книги','diaryFromBook')+'</div>'+ /* 25.10 «Дневники» (js/diary.js) */
     '<div class="bk-h">Мои полки</div><div class="chips bk-shelves">'+ /* 18.10: свои полки (library.js shelf*) */
     shelvesGet().map(sh=>'<button type="button" class="fchip'+(sh.b.indexOf(id)>=0?' on':'')+'" aria-pressed="'+(sh.b.indexOf(id)>=0)+'" onclick="shelfToggle(\''+id+'\',\''+sh.id+'\')">'+(sh.b.indexOf(id)>=0?rqIcon('check',14):'')+esc(sh.n)+'</button>').join('')+

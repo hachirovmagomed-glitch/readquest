@@ -1714,8 +1714,8 @@ async function closeReaderImpl(opts){
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
     questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,pomoGold:res.pomoGold||0,chal:res.chal||[],lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
   }else{
-    xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
-    gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
+    xp=Math.round((pages*5+min*10)*dmul)+(justFinished&&!rqIsWebBook(b)?Math.round(200*dmul):0);
+    gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished&&!rqIsWebBook(b)?Math.round(100*dmul*imMul):0);
     const luck=Math.random();mult=luck<0.02?3:luck<0.08?2:1;
     xp=Math.round(xp*mult*xpMultEff()*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
   }
@@ -1754,7 +1754,7 @@ async function closeReaderImpl(opts){
   if(min>=30)earn('marathon');
   if(S.streak>=3)earn('streak3');
   if(S.streak>=7)earn('streak7');
-  if(justFinished)earn('finisher');
+  if(justFinished&&!rqIsWebBook(b))earn('finisher');
   if(level(S.xp)>=5)earn('lvl5');
   const newAch=checkAchievements();
   const achNew=typeof achRun==='function'?achRun():[]; /* v2: recorded once, shown only on the summary (no toast in the reader) */
@@ -1836,7 +1836,7 @@ function renderSummary(r){
     (r.dmul>1&&!isMvp()?' · '+r.dName+' ×'+r.dmul:'')+
     '';
   /* audit 19.10 SUM-04: «Книга прочитана» is its own badge line, not glued to the streak */
-  const sf=el('sumFin');if(sf){sf.classList.toggle('hidden',!r.justFinished);sf.innerHTML=r.justFinished?rqIcon('book-open',16)+'<span>Книга прочитана, бонус!</span>':'';}
+  const sf=el('sumFin');if(sf){sf.classList.toggle('hidden',!r.justFinished);sf.innerHTML=r.justFinished?rqIcon('book-open',16)+'<span>'+(rqIsWebBook(allBooks().find(function(x){return x.id===r.bookId;}))?'Страница прочитана':'Книга прочитана, бонус!')+'</span>':'';}
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});

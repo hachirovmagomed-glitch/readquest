@@ -1,4 +1,4 @@
-# Temporary (thread hd9bis, 13.11, run 3): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
+# Temporary (thread hd9bis, 13.11, run 4): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
 name: web-probe
 on:
   push:
@@ -18,14 +18,14 @@ jobs:
       - run: |
           cat > /tmp/nm/probe.mjs <<'JS'
           import puppeteer from 'puppeteer-core'; import fs from 'fs';
-          const URLS = ['https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович','https://ru.wikisource.org/wiki/Каштанка_(Чехов)','https://paulgraham.com/read.html','https://habr.com/ru/articles/717906/','https://ilibrary.ru/text/1199/p.1/index.html','https://developer.mozilla.org/ru/docs/Web/HTTP/CORS','https://www.bbc.com/russian/articles/c4g9kwzxl5lo','https://lenta.ru/articles/2024/01/15/books/','https://arzamas.academy/mag/1211-reading','https://vc.ru/books/1000000','https://nplus1.ru/material/2024/05/20/reading-brain','https://meduza.io/feature/2024/01/10/chto-chitat'];
+          const URLS = ['https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович','https://ru.wikisource.org/wiki/Каштанка_(Чехов)','https://paulgraham.com/read.html','https://habr.com/ru/articles/717906/','https://ilibrary.ru/text/1199/p.1/index.html','https://developer.mozilla.org/ru/docs/Web/HTTP/CORS','https://www.bbc.com/russian/articles/c4g9kwzxl5lo','https://lenta.ru/articles/2024/01/15/books/','https://arzamas.academy/mag/1211-reading','https://en.wikipedia.org/wiki/Reading','https://www.theguardian.com/books/2023/jan/01/the-big-idea-do-we-still-need-to-read-books','https://knife.media/reading/'];
           const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox'] });
           const out = [];
           for (const u of URLS) for (const jina of [/wiki/.test(u) ? false : true]) {
             const ctx = await b.createBrowserContext(); const p = await ctx.newPage();
             await p.goto('http://127.0.0.1:8790/readquest/test/', { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 30000 }); await new Promise(r => setTimeout(r, 500));
             const t0 = Date.now();
-            await p.evaluate((u, j) => { webSheet(); webGo(u, j); }, u, jina);
+            await p.evaluate((u, j) => { webSheet(); el('webIn').value = u; webGo(u, j); }, u, jina);
             try { await p.waitForFunction(() => !WEB.busy, { timeout: 60000 }); } catch (e) {}
             await new Promise(r => setTimeout(r, 500)); await p.evaluate(() => { const b = el('webAdd'); b && b.click(); }); try { await p.waitForFunction(() => !WEB.busy && S.userBooks.some(x => x.genre === 'Сайт'), { timeout: 30000 }); } catch (e) {} await new Promise(r => setTimeout(r, 800));
             const r = await p.evaluate(async () => { const bk = S.userBooks.find(x => x.genre === 'Сайт' || x.srcId); const msg = (el('webMsg') || {}).textContent || '';

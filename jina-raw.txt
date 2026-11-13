@@ -1,0 +1,34 @@
+== https://ru.wikipedia.org/wiki/Reading
+HTTP/2 200 
+access-control-allow-origin: http://127.0.0.1:8790
+access-control-max-age: 25200
+access-control-allow-credentials: true
+x-ratelimit-limit: 20, 20;w=60
+x-ratelimit-remaining: 18
+Title: Рединг
+
+URL Source: https://ru.wikipedia.org/wiki/Reading
+
+Published Time: 2007-01-08T22:26:01Z
+
+Markdown Content:
+[Город](https://ru.wikipedia.org/wiki/%D0%93%D0%BE%D1%80%D0%BE%D0%B4 "Город") и [боро](https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D1%80%D0%BE "Боро")
+Рединг
+[англ.](https://ru.wikipedia.org/wiki/%D0%90%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D1%8F%D0%B7%D1%8B%D0%BA "Английский язык")Reading
+[![Image 1: Виды Рединга. Ратуша Рединга[англ.] и церковь Св. Лаврентия[а�
+== https://paulgraham.com/read.html
+HTTP/2 200 
+access-control-allow-origin: http://127.0.0.1:8790
+access-control-max-age: 25200
+access-control-allow-credentials: true
+x-ratelimit-limit: 20, 20;w=60
+x-ratelimit-remaining: 18
+Title: The Need to Read
+
+URL Source: https://paulgraham.com/read.html
+
+Markdown Content:
+![Image 1: The Need to Read](https://s.turbifycdn.com/aah/paulgraham/the-need-to-read-5.gif)November 2022
+In the science fiction books I read as a kid, reading had often been replaced by some more efficient way of acquiring knowledge. Mysterious "tapes" would load it into one's brain like a program being loaded into a computer.
+
+That sort of thing is unlikely to happen anytime soon. Not just because it would be hard to build a replacement for reading, but because even if one existed, it would be insufficie

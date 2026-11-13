@@ -30,7 +30,7 @@ function webClean(s){return String(s||'').replace(/[   ]/g,' ').replace(/[ 
 const WEB_Q='⁡',WEB_H2='⁢',WEB_CAP='⁤',WEB_PRE='⁡⁢';
 const WEB_IMG_MAX=24;
 const WEB_JUNK=/^(skip to (main )?content|перейти к (основному )?(содержанию|контенту)|реклама|advertisement|поделиться|share( this)?|подписаться|subscribe|читать (далее|дальше|полностью)|read more|войти|sign in|log in|меню|menu|поиск|search|комментарии\s*\d*|\d+\s*комментари\S*|comments?\s*\d*|назад|вперёд|далее|previous|next|наверх|back to top|copy link|скопировать ссылку|\d+|[\d\s.,]+[kкKК]?)$/i;
-const WEB_TAIL=/^(комментарии|читайте также|читать также|похожие (статьи|публикации|материалы|записи)|ещё по теме|еще по теме|по теме|материалы по теме|другие (статьи|материалы|новости)|рекомендуем|вам может понравиться|related( articles| posts| stories)?|more from|more on this|read (more|next)|you (may|might) also like|comments|leave a (reply|comment)|теги|tags|поделиться|share this|подпишитесь|подписка|newsletter|лучшие за сутки|публикации|информация)(?![\p{L}])/iu;
+const WEB_TAIL=/^(комментарии|читайте также|читать также|похожие (статьи|публикации|материалы|записи)|ещё по теме|еще по теме|по теме|материалы по теме|другие (статьи|материалы|новости)|рекомендуем|вам может понравиться|related( articles| posts| stories)?|more from|more on this|read (more|next)|you (may|might) also like|comments|leave a (reply|comment)|теги|tags|поделиться|share this|подпишитесь|подписка|newsletter|лучшие за сутки|публикации|информация|help improve|was this (page|article) helpful)(?![\p{L}])/iu;
 function webImgOk(src,alt,w,h){
   if(!/^https?:\/\//i.test(src)||/\.svg(\?|$)/i.test(src))return false;
   if(/sprite|icon|logo|avatar|emoji|pixel|spacer|blank|tracking|counter|badge|button|userpic/i.test(src)||/^(avatar|logo|icon|аватар|логотип)/i.test(alt||''))return false;
@@ -74,7 +74,11 @@ function webHtmlBlocks(root,base){
 function webTidy(B,trusted){
   B=B.filter(function(x){return x.k==='img'||(x.t&&x.t.trim());});
   B=B.filter(function(x,i){const p=B[i-1];return !(p&&p.k===x.k&&p.k!=='img'&&p.t===x.t);});
-  if(trusted)return B;
+  B.forEach(function(x){if(x.k==='h')x.t=x.t.replace(/^[▍▎▌█■□●○◆◇►▶▸•·#\s]+/,'')||x.t;}); /* «▍ Заголовок» на Хабре */
+  const ends=function(L){ /* заголовок, под которым ничего не осталось; картинки и заголовки в самом конце */
+    L=L.filter(function(x,i){const nx=L[i+1];return !(x.k==='h'&&(!nx||(nx.k==='h'&&nx.lvl<=x.lvl)));});
+    while(L.length&&(L[L.length-1].k==='img'||L[L.length-1].k==='cap'||L[L.length-1].k==='h'))L.pop();return L;};
+  if(trusted)return ends(ends(B));
   const isBody=function(x){return (x.k==='p'||x.k==='q')&&x.t.length>=140&&(x.ld||0)<0.3;};
   B=B.filter(function(x){return x.k==='img'||x.k==='pre'||x.k==='h'||!(WEB_JUNK.test(x.t)||(x.t.length<220&&/cookie|куки|файлы cookie/i.test(x.t)));});
   let first=B.findIndex(isBody),last=-1;for(let i=B.length-1;i>=0;i--)if(isBody(B[i])){last=i;break;}
@@ -90,16 +94,13 @@ function webTidy(B,trusted){
   /* над статьёй: счётчики, дата, «7 мин», имя автора — короткие строки без точки в конце */
   for(let i=0;i<first;i++){const x=B[i];if((x.k==='p'||x.k==='li'||x.k==='cap')&&x.t.length<60)keep[i]=false;}
   B=B.filter(function(x,i){return keep[i];});
-  /* заголовок, под которым ничего не осталось */
-  B=B.filter(function(x,i){const nx=B[i+1];return !(x.k==='h'&&(!nx||(nx.k==='h'&&nx.lvl<=x.lvl)));});
-  while(B.length&&(B[B.length-1].k==='img'||B[B.length-1].k==='cap'||B[B.length-1].k==='h'))B.pop();
-  return B;
+  return ends(ends(B));
 }
 function webBlocksToBook(B,o){
   o=o||{};B=webTidy(B,o.trusted);
   let title=o.title||'';const h0=B.findIndex(function(x){return x.k==='h';}),b0=B.findIndex(function(x){return x.k!=='img'&&x.k!=='cap';});
   /* статья начинается с заголовка — он и есть название («Статья — Сайт» в <title>, <h1>Статья</h1>) */
-  if(h0>=0&&h0===b0&&B[h0].t.length>3&&B[h0].t.length<=200&&(!o.titleFixed||B[h0].t===title)){title=B[h0].t;B.splice(h0,1);}
+  if(h0>=0&&h0===b0&&B[h0].t.length>3&&B[h0].t.length<=200&&(!o.titleFixed||B[h0].t===title)&&(B[h0].lvl===1||!title||title.indexOf(B[h0].t)>=0)){title=B[h0].t;B.splice(h0,1);}
   title=(title||o.site||'Страница').slice(0,200);
   const out=[],toc=[],imgs=[];let len=0;
   const push=function(t){out.push(t);len+=t.length+2;};
@@ -268,7 +269,7 @@ async function webStoreImgs(id,imgs,text){
     try{const ac=new AbortController(),tm=setTimeout(function(){ac.abort();},8000);
       const res=await fetch(src,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',signal:ac.signal});
       const blob=res.ok?await res.blob():null;clearTimeout(tm);
-      if(!blob||!/^image\/(jpeg|png|webp|gif|avif)/.test(blob.type)||blob.size<2500||blob.size>3000000)return;
+      if(!blob||!/^image\/(jpeg|png|webp|gif|avif)/.test(blob.type)||blob.size<2500||blob.size>2000000)return;
       await idbPut('img:'+id+':'+n,blob);ok++;}catch(e){}}));
   return ok;
 }

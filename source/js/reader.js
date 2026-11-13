@@ -428,7 +428,7 @@ async function openBook(id){
   let body=rqBodyHtml(b); /* 28.10: paragraphs of any TXT (Windows line breaks, a paragraph per line), chapter titles, pictures */
   {const seen={};(S.hl[b.id]||[]).forEach(t=>{const k=esc(t),j=seen[t]=(seen[t]||0)+1,q=hlSame(b.id,t)[j-1];
     if(hlHas(body,hlPieces(t)[0]))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
-  c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
+  c.innerHTML='<h3'+(typeof rqIsWebBook==='function'&&rqIsWebBook(b)?' class="rq-wt"':'')+'>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   hlPaintCustom(); /* own quote colours on this page */
   rqBookImgs(b);

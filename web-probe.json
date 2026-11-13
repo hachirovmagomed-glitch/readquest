@@ -1,0 +1,86 @@
+[
+ {
+  "url": "https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович",
+  "jina": false,
+  "ms": 31596,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://ru.wikisource.org/wiki/Каштанка_(Чехов)",
+  "jina": false,
+  "ms": 31532,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://paulgraham.com/read.html",
+  "jina": true,
+  "ms": 31743,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://habr.com/ru/articles/717906/",
+  "jina": true,
+  "ms": 42507,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://ilibrary.ru/text/1199/p.1/index.html",
+  "jina": true,
+  "ms": 47694,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://developer.mozilla.org/ru/docs/Web/HTTP/CORS",
+  "jina": true,
+  "ms": 32514,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://www.bbc.com/russian/articles/c4g9kwzxl5lo",
+  "jina": true,
+  "ms": 34380,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://lenta.ru/articles/2024/01/15/books/",
+  "jina": true,
+  "ms": 47288,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://arzamas.academy/mag/1211-reading",
+  "jina": true,
+  "ms": 37209,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://vc.ru/books/1000000",
+  "jina": true,
+  "ms": 47511,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://nplus1.ru/material/2024/05/20/reading-brain",
+  "jina": true,
+  "ms": 34213,
+  "msg": "Не получилось: на странице почти нет текста",
+  "n": 0
+ },
+ {
+  "url": "https://meduza.io/feature/2024/01/10/chto-chitat",
+  "jina": true,
+  "ms": 32910,
+  "msg": "Не получилось: на странице почти нет текста",
+  "n": 0
+ }
+]

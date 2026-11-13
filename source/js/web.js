@@ -10,7 +10,7 @@ const WEB_JINA='https://r.jina.ai/';
 const WEB_MIN=200; /* меньше 200 знаков текста — это не статья, а меню или ошибка */
 const WEB_DROP='script,style,noscript,template,iframe,object,embed,svg,canvas,video,audio,form,button,input,select,textarea,nav,header,footer,aside,'+
   '[role=navigation],[role=banner],[role=contentinfo],[role=complementary],[aria-hidden=true],[hidden],'+
-  '.mw-editsection,.reference,sup.reference,.mw-cite-backlink,.navbox,.vertical-navbox,.infobox,.metadata,.ambox,.hatnote,.mw-empty-elt,.noprint,.toc,#toc,.mw-jump-link,.thumb,figure,.sidebar,.catlinks,'+
+  '.mw-editsection,.ws-noexport,#headertemplate,.headertemplate,.ws-summary,.reference,sup.reference,.mw-cite-backlink,.navbox,.vertical-navbox,.infobox,.metadata,.ambox,.hatnote,.mw-empty-elt,.noprint,.toc,#toc,.mw-jump-link,.thumb,figure,.sidebar,.catlinks,'+
   '.share,.social,.comments,#comments,.related,.advert,.ads,.ad,.cookie,.breadcrumbs,.breadcrumb,.pagination,.subscribe,.newsletter';
 const WEB_BLOCK=/^(P|H[1-6]|LI|BLOCKQUOTE|PRE|DD|DT|FIGCAPTION|TR|DIV|SECTION|ARTICLE|MAIN|UL|OL|DL|TABLE|TBODY|THEAD|HR|BR|CENTER|ADDRESS|DETAILS|SUMMARY)$/;
 
@@ -105,6 +105,8 @@ async function webFileBook(f){
   return webMakeBook(r,webNorm(url),f.name,f.size);
 }
 function webMakeBook(r,url,fname,size){
+  /* название читалка сама пишет над текстом — в самом тексте его не повторяем */
+  if(r.title&&r.text&&r.text.indexOf(r.title+'\n\n')===0){const d=r.title.length+2;r.text=r.text.slice(d);if(r.toc){r.toc=r.toc.map(function(x){return {t:x.t,off:Math.max(0,x.off-d)};});}}
   if(!r.text||r.text.length<WEB_MIN)throw new Error('на странице почти нет текста');
   const b={id:newBookId(),title:r.title,author:r.author||'Сайт',genre:'Сайт',stat:'Воля',cover:'',text:r.text,toc:r.toc,lang:r.lang||undefined,
     fname:fname||((webHost(url)||'sait')+'-'+String(r.title).replace(/[^\p{L}\p{N}]+/gu,'-').slice(0,60)+'.txt'),size:size||r.text.length};
@@ -113,14 +115,17 @@ function webMakeBook(r,url,fname,size){
 }
 
 /* ---- загрузка по ссылке ---- */
-function webWiki(u){const m=/^https?:\/\/([a-z\-]+)\.(?:m\.)?wikipedia\.org\/wiki\/([^?#]+)/i.exec(u);return m?{lang:m[1],page:decodeURIComponent(m[2])}:null;}
+/* Википедия и Викитека: MediaWiki API открыт для всех (origin=*), сама страница — нет */
+function webWiki(u){const m=/^https?:\/\/([a-z\-]+)\.(?:m\.)?(wikipedia|wikisource)\.org\/wiki\/([^?#]+)/i.exec(u);
+  return m?{lang:m[1],ws:m[2].toLowerCase()==='wikisource',host:m[1]+'.'+m[2].toLowerCase()+'.org',page:decodeURIComponent(m[3])}:null;}
 async function webGetWiki(w,u){
-  const api='https://'+w.lang+'.wikipedia.org/w/api.php?action=parse&format=json&formatversion=2&origin=*&redirects=1&disableeditsection=1&prop=text%7Cdisplaytitle&page='+encodeURIComponent(w.page);
+  const api='https://'+w.host+'/w/api.php?action=parse&format=json&formatversion=2&origin=*&redirects=1&disableeditsection=1&prop=text%7Cdisplaytitle&page='+encodeURIComponent(w.page);
   const res=await fetch(api);if(!res.ok)throw new Error('Википедия ответила '+res.status);
-  const j=await res.json();if(j.error)throw new Error(j.error.code==='missingtitle'?'такой статьи в Википедии нет':j.error.info||'ошибка Википедии');
+  const j=await res.json();if(j.error)throw new Error(j.error.code==='missingtitle'?'такой страницы нет':j.error.info||'ошибка '+w.host);
   const title=webClean(new DOMParser().parseFromString(j.parse.displaytitle||j.parse.title,'text/html').body.textContent);
   const r=webHtmlToBook('<html lang="'+w.lang+'"><body>'+j.parse.text+'</body></html>',u,{title:title,root:'.mw-parser-output'});
-  r.author='Википедия';r.lang=w.lang;
+  r.author=w.ws?(w.lang==='ru'?'Викитека':'Wikisource'):(w.lang==='ru'?'Википедия':'Wikipedia');r.lang=w.lang;
+  if(w.ws)return r; /* в Викитеке примечания — часть текста */
   /* хвост «Примечания / Литература / Ссылки» — не чтение */
   const cut=(r.toc||[]).find(function(x){return /^(Примечания|Литература|Ссылки|Источники|См\. также|References|Notes|External links|See also|Further reading)$/i.test(x.t);});
   if(cut){r.text=r.text.slice(0,cut.off).replace(/\s+$/,'');r.toc=r.toc.filter(function(x){return x.off<cut.off;});if(r.toc.length<2)r.toc=undefined;}
@@ -142,7 +147,7 @@ async function webGetDirect(u){
 async function webGetJina(u){
   let res;try{res=await fetch(WEB_JINA+u,{credentials:'omit'});}catch(e){throw new Error(navigator.onLine===false?'нет сети':'служба Jina Reader не ответила');}
   if(res.status===429)throw new Error('служба Jina Reader занята, попробуйте через минуту');
-  if(!res.ok)throw new Error('служба Jina Reader ответила '+res.status);
+  if(!res.ok)throw new Error('служба Jina Reader не смогла открыть эту страницу (код '+res.status+')');
   const raw=await res.text();
   const tm=/^Title:\s*(.*)$/m.exec(raw),i=raw.indexOf('Markdown Content:');
   const md=i>=0?raw.slice(i+17):raw;
@@ -150,7 +155,9 @@ async function webGetJina(u){
 }
 function webMdToBook(md,title,u){
   const out=[],toc=[];let len=0,para=[];
-  const inl=function(s){return s.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/<[^>]+>/g,'').replace(/(\*\*|__|`)/g,'').replace(/(^|\s)[*_](\S[^*_]*\S)[*_](?=\s|$|[.,;:!?])/g,'$1$2');};
+  /* картинки и ссылки бывают вложенными: [![картинка](a)](b), [[1]](#cite) — снимаем в два прохода, сноски [1] убираем */
+  const IMG=/!\[(?:[^\[\]]|\[[^\[\]]*\])*\]\((?:[^()]|\([^()]*\))*\)/g,LNK=/\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\((?:[^()]|\([^()]*\))*\)/g;
+  const inl=function(s){for(let k=0;k<2;k++)s=s.replace(IMG,'').replace(LNK,'$1');return s.replace(/\[\d{1,3}\]|\[(?:прим|нет АИ|источник не указан)[^\]]*\]/g,'').replace(/<[^>]+>/g,'').replace(/(\*\*|__|`)/g,'').replace(/(^|\s)[*_](\S[^*_]*\S)[*_](?=\s|$|[.,;:!?])/g,'$1$2');};
   const push=function(t){t=webClean(t);if(!t)return;out.push(t);len+=t.length+2;};
   const flush=function(){if(para.length){push(para.join(' '));para=[];}};
   const lines=String(md).replace(/\r\n?/g,'\n').split('\n');
@@ -158,8 +165,10 @@ function webMdToBook(md,title,u){
     if(/^\s*$/.test(s)){flush();continue;}
     if(/^\s*(={3,}|-{3,}|\*{3,})\s*$/.test(s)){ /* setext: строка выше — заголовок */
       if(para.length&&/^=|^-/.test(s.trim())){const t=webClean(inl(para.join(' ')));para=[];if(t){toc.push({t:t.slice(0,80),off:len});push(t);}}else flush();continue;}
+    if(/^\s*\|/.test(s)){flush();if(/^\s*\|[\s|:-]+\|\s*$/.test(s))continue; /* таблица: строка через « · », разделитель | --- | пропускаем */
+      const t=s.trim().replace(/^\||\|$/g,'').split('|').map(function(x){return webClean(inl(x));}).filter(Boolean).join(' · ');if(t)push(t);continue;}
     const h=/^\s*#{1,6}\s+(.*?)\s*#*\s*$/.exec(s);
-    if(h){flush();const t=webClean(inl(h[1]));if(t){toc.push({t:t.slice(0,80),off:len});push(t);}continue;}
+    if(h){flush();const t=webClean(inl(h[1]));if(t&&/[\p{L}\p{N}]/u.test(t)){toc.push({t:t.slice(0,80),off:len});push(t);}continue;}
     const li=/^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(s);
     if(li){flush();const t=inl(li[1]);if(webClean(t))push('• '+t);continue;}
     s=inl(s.replace(/^\s*>\s?/,''));if(/^\s*https?:\/\/\S+\s*$/.test(s))continue;
@@ -242,7 +251,7 @@ async function webFromText(){
   const first=(t.split('\n')[0]||'').trim();
   const title=webClean(el('webTitle').value)||(first.length<=90?first:first.slice(0,60).replace(/\s+\S*$/,'')+'…');
   const u=webNorm(WEB.shareUrl||'');
-  const b=webMakeBook({title:title,author:u?webHost(u):'Вставленный текст',text:title&&t.indexOf(title)!==0?title+'\n\n'+t:t},'','',0);
+  const b=webMakeBook({title:title,author:u?webHost(u):'Вставленный текст',text:t},'','',0);
   if(u&&!webOnShelf(u))b.srcId='web:'+u;
   b.fname=(u?webHost(u)+'-':'')+String(title).replace(/[^\p{L}\p{N}]+/gu,'-').slice(0,60)+'.txt';
   try{await rqAddBook(b);}catch(e){flashMsg('Не удалось добавить: '+(e&&e.message||e),'info');return;}

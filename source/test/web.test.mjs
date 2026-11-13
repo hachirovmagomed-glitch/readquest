@@ -31,7 +31,9 @@ const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d 
 await p.setRequestInterception(true);
 p.on('request', r => {
   const u = new URL(r.url());
-  if (u.host === 'ru.wikipedia.org') { hits.wiki++; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(WIKI) }); }
+  if (u.host === 'ru.wikisource.org') { hits.ws = (hits.ws || 0) + 1; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify({ parse: { title: 'Каштанка (Чехов)', displaytitle: 'Каштанка (Чехов)',
+    text: '<div class="mw-parser-output"><div class="ws-noexport">Навигация-мусор</div><h2>Глава первая</h2>' + P(3) + '<h2>Глава вторая</h2>' + P(3) + '<h2>Примечания</h2><p>Примечание Чехова к рассказу, его надо сохранить в книге.</p></div>' } }) }); }
+  else if (u.host === 'ru.wikipedia.org') { hits.wiki++; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(WIKI) }); }
   else if (u.host === 'open.example') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: SITE });
   else if (u.host === 'closed.example') { hits.closed++; r.respond({ status: 200, contentType: 'text/html', body: SITE }); } /* без Access-Control-Allow-Origin */
   else if (u.host === 'r.jina.ai') { hits.jina.push(u.pathname); r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: JINA }); }
@@ -63,7 +65,7 @@ let bs = await books();
 ok('2) статья Википедии на полке', bs.length === 1 && bs[0].a === 'Википедия' && bs[0].t === 'Чехов, Антон Павлович' && bs[0].src === 'web:https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%85%D0%BE%D0%B2,_%D0%90%D0%BD%D1%82%D0%BE%D0%BD_%D0%9F%D0%B0%D0%B2%D0%BB%D0%BE%D0%B2%D0%B8%D1%87', bs);
 ok('2) оглавление: Биография, Творчество (без Примечаний)', bs[0] && JSON.stringify(bs[0].toc) === JSON.stringify(['Биография', 'Творчество']), bs[0] && bs[0].toc);
 let t = bs[0] ? await text(bs[0].id) : '';
-ok('2) текст без инфобокса, сносок, «[править]» и хвоста', t.startsWith('Чехов, Антон Павлович\n\nАнтон Павлович Чехов — русский писатель.') && !/Инфобокс|Сноска|Ссылка-хвост|\[1\]|править|Не путать/.test(t), t.slice(0, 160));
+ok('2) текст без названия (оно над текстом), инфобокса, сносок, «[править]» и хвоста', t.startsWith('Антон Павлович Чехов — русский писатель.') && !/Инфобокс|Сноска|Ссылка-хвост|\[1\]|править|Не путать/.test(t), t.slice(0, 160));
 ok('2) книга открылась в читалке', await inReader());
 await p.screenshot({ path: '/tmp/rq-web-shots/2-wiki-reader.png' });
 
@@ -77,8 +79,14 @@ await go('https://open.example/blog/kak-chitat'); await sleep(1500);
 bs = await books(); const b4 = bs.find(b => b.src === 'web:https://open.example/blog/kak-chitat');
 t = b4 ? await text(b4.id) : '';
 ok('4) открытый сайт: книга, автор = сайт, название из <h1>', b4 && b4.a === 'Блог читателя' && b4.t === 'Как читать больше', b4);
-ok('4) только статья: без меню, рекламы, подвала, скрипта', t.startsWith('Как читать больше\n\nАбзац номер 1') && /• Читать каждый день/.test(t) && !/мусор/.test(t), t.slice(0, 120));
+ok('4) только статья, без повтора названия: без меню, рекламы, подвала, скрипта', t.startsWith('Абзац номер 1') && /• Читать каждый день/.test(t) && !/мусор/.test(t), t.slice(0, 120));
 ok('4) оглавление: два совета', b4 && JSON.stringify(b4.toc) === JSON.stringify(['Совет первый', 'Совет второй']), b4 && b4.toc);
+
+// 4b
+await toLib(); await openSheet(); await go('https://ru.wikisource.org/wiki/Каштанка_(Чехов)'); await sleep(1500);
+bs = await books(); const b4b = bs.find(b => b.a === 'Викитека');
+t = b4b ? await text(b4b.id) : '';
+ok('4b) Викитека через API: главы в оглавлении, примечания на месте, без навигации', b4b && b4b.t === 'Каштанка (Чехов)' && b4b.toc.join() === 'Глава первая,Глава вторая,Примечания' && /Примечание Чехова/.test(t) && !/мусор/.test(t) && hits.ws === 1, { b4b, ws: hits.ws });
 
 // 5
 await toLib(); await openSheet(); await go('https://closed.example/article'); await sleep(1500);
@@ -89,7 +97,7 @@ await p.evaluate(() => el('webJina').click()); await sleep(1500);
 bs = await books(); const b5 = bs.find(b => b.src === 'web:https://closed.example/article');
 t = b5 ? await text(b5.id) : '';
 ok('5) через Jina Reader: адрес ушёл службе, книга на полке', hits.jina.length === 1 && hits.jina[0] === '/https://closed.example/article' && b5 && b5.t === 'Закрытая статья' && b5.a === 'closed.example', { jina: hits.jina, b5 });
-ok('5) markdown в чистый текст: без картинок, ссылок и звёздочек', t.startsWith('Закрытая статья\n\nТекст закрытой статьи, абзац 1, с ссылкой и жирным словом.') && /• пункт два/.test(t) && !/\]\(|\*\*|!\[|https?:/.test(t) && b5.toc.join() === 'Вторая часть' || (b5 && b5.toc.length === 0), t.slice(0, 140));
+ok('5) markdown в чистый текст: без картинок, ссылок и звёздочек', t.startsWith('Текст закрытой статьи, абзац 1, с ссылкой и жирным словом.') && /• пункт два/.test(t) && !/\]\(|\*\*|!\[|https?:/.test(t) && b5.toc.join() === 'Вторая часть' || (b5 && b5.toc.length === 0), t.slice(0, 140));
 ok('5) книга открылась в читалке', await inReader());
 
 // 6
@@ -118,7 +126,7 @@ bs = await books();
 const b7 = bs.find(b => b.src === 'web:https://saved.example/page/one'), b8 = bs.find(b => b.src === 'web:https://mht.example/story');
 ok('7) сохранённая .html: книга с адресом и названием', b7 && b7.t === 'Сохранённая статья' && b7.a === 'Сохранёнка' && b7.fname === 'Сохранённая.html', b7);
 t = b8 ? await text(b8.id) : '';
-ok('7) .mhtml (quoted-printable, кириллица): книга, текст без мусора', b8 && b8.t === 'История из MHTML' && b8.a === 'МХТ' && t.indexOf('Абзац номер 1 о том, как Антон Павлович') > 0 && !/мусор|=D0/.test(t), { b8, t: t.slice(0, 100) });
+ok('7) .mhtml (quoted-printable, кириллица): книга, текст без мусора', b8 && b8.t === 'История из MHTML' && b8.a === 'МХТ' && t.indexOf('Абзац номер 1 о том, как Антон Павлович') === 0 && !/мусор|=D0/.test(t), { b8, t: t.slice(0, 100) });
 
 // 8
 await toLib();

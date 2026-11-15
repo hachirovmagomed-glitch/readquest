@@ -1,22 +1,22 @@
 == https://paulgraham.com/greatwork.html
 HTTP/2 200 
-date: Sun, 15 Nov 2026 03:18:49 GMT
+date: Sun, 15 Nov 2026 03:21:23 GMT
 content-type: text/plain; charset=utf-8
 vary: *
 x-usage-tokens: 15190
 x-ratelimit-limit: 20, 20;w=60
 x-ratelimit-remaining: 19
-report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=cp9dQGz5nFi%2BbjvI%2B6dPJLZjUbEffskVUXfNhzLQOMHaA4blB5cMTx42Ilt%2BGsvDa0IjgqFa2NCZQWHNglzDu83d1mLalP5fWSl9MPsoQnpuszljvaWQkV%2FaEw%3D%3D"}]}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=GPuzo7aAfIWmX0Ra%2FppuI5Vd5D0jkYYaMxR4uNB3QbsqbCnfq3kDX2U5Uze4Z9JkyR9fmZAuMQJ%2BL%2BtUOR2NPSSIZHSwjV4IoMvxiWN%2FaIHmiNtE1Hnv73DASg%3D%3D"}]}
 x-decompressed-content-length: 69786
 cache-control: no-transform
 server: cloudflare
-traceparent: 00-003e6f474bffe05db221fb291dc12de8-4622197d8e7eba05-00
-x-cloud-trace-context: 003e6f474bffe05db221fb291dc12de8/5053629758915394053
+x-cloud-trace-context: cfa44738aad5024baae78df7580d2fa7/8663607318344013638
+traceparent: 00-cfa44738aad5024baae78df7580d2fa7-783b50f44b5e9746-00
 via: 1.1 google
 alt-svc: h3=":443"; ma=86400
 cf-cache-status: DYNAMIC
 nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
-cf-ray: a5ab1c5b29921ccd-MSP
+cf-ray: a5ab201a0bafefce-PDX
 
 Title: How to Do Great Work
 
@@ -27,23 +27,23 @@ Markdown Content:
 If you collected lists of techniques for doing great work in a lot of different fields, what would the intersection look like? I decided to find out by 
 == https://habr.com/ru/articles/717906/
 HTTP/2 200 
-date: Sun, 15 Nov 2026 03:19:05 GMT
+date: Sun, 15 Nov 2026 03:21:24 GMT
 content-type: text/plain; charset=utf-8
 vary: *
 x-usage-tokens: 7429
 x-ratelimit-limit: 20, 20;w=60
 x-ratelimit-remaining: 18
-report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=mUfqmT8qdP%2FSUxai6PMtCyq08KqHdoVILPJvCjrOV8rievqA6e7qPWxcptO1Vz24lCQeTWf5nCr7cJScOBhWTUTwKgTPNNpsr45yGZUjEou4juXidcTil9Y%2BMA%3D%3D"}]}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=ZJXZqzWR7cNQdXPHYs7nxDWQDM7cGeKrPXSbLRcuY1yQ5aa0H6If%2BkV86YRv54Po35x%2FmzL4XI8nomACVMp0ShtpFZK2EBU1jtFzc1kIKNjE9Gw2%2BuEAGy%2F6Xw%3D%3D"}]}
 x-decompressed-content-length: 26051
 cache-control: no-transform
 server: cloudflare
-traceparent: 00-a9726776d4941366838f98de3ad73789-bdf34629a03288d3-00
-x-cloud-trace-context: a9726776d4941366838f98de3ad73789/13687360837104339155
+x-cloud-trace-context: d45f4914faeb639f3684d9c2f92d8a1b/13068606983270755293
+traceparent: 00-d45f4914faeb639f3684d9c2f92d8a1b-b55d04cf930aebdd-00
 via: 1.1 google
 alt-svc: h3=":443"; ma=86400
 cf-cache-status: DYNAMIC
 nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
-cf-ray: a5ab1c5e0ee4348b-MSP
+cf-ray: a5ab20242b358639-PDX
 
 Title: 4 электронные музыкальные шкатулки своими руками. Знакомимся с логическими микросхемами
 
@@ -54,6 +54,4 @@ Final URL: https://habr.com/ru/companies/ruvds/articles/717906/
 Published Time: 2023-03-09T12:00:01+03:00
 
 Markdown Content:
-Средний
-
-
+Средни

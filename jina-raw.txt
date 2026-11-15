@@ -1,0 +1,59 @@
+== https://paulgraham.com/greatwork.html
+HTTP/2 200 
+date: Sun, 15 Nov 2026 03:18:49 GMT
+content-type: text/plain; charset=utf-8
+vary: *
+x-usage-tokens: 15190
+x-ratelimit-limit: 20, 20;w=60
+x-ratelimit-remaining: 19
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=cp9dQGz5nFi%2BbjvI%2B6dPJLZjUbEffskVUXfNhzLQOMHaA4blB5cMTx42Ilt%2BGsvDa0IjgqFa2NCZQWHNglzDu83d1mLalP5fWSl9MPsoQnpuszljvaWQkV%2FaEw%3D%3D"}]}
+x-decompressed-content-length: 69786
+cache-control: no-transform
+server: cloudflare
+traceparent: 00-003e6f474bffe05db221fb291dc12de8-4622197d8e7eba05-00
+x-cloud-trace-context: 003e6f474bffe05db221fb291dc12de8/5053629758915394053
+via: 1.1 google
+alt-svc: h3=":443"; ma=86400
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a5ab1c5b29921ccd-MSP
+
+Title: How to Do Great Work
+
+URL Source: https://paulgraham.com/greatwork.html
+
+Markdown Content:
+![Image 1: How to Do Great Work](https://s.turbifycdn.com/aah/paulgraham/how-to-do-great-work-2.gif)July 2023
+If you collected lists of techniques for doing great work in a lot of different fields, what would the intersection look like? I decided to find out by 
+== https://habr.com/ru/articles/717906/
+HTTP/2 200 
+date: Sun, 15 Nov 2026 03:19:05 GMT
+content-type: text/plain; charset=utf-8
+vary: *
+x-usage-tokens: 7429
+x-ratelimit-limit: 20, 20;w=60
+x-ratelimit-remaining: 18
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=mUfqmT8qdP%2FSUxai6PMtCyq08KqHdoVILPJvCjrOV8rievqA6e7qPWxcptO1Vz24lCQeTWf5nCr7cJScOBhWTUTwKgTPNNpsr45yGZUjEou4juXidcTil9Y%2BMA%3D%3D"}]}
+x-decompressed-content-length: 26051
+cache-control: no-transform
+server: cloudflare
+traceparent: 00-a9726776d4941366838f98de3ad73789-bdf34629a03288d3-00
+x-cloud-trace-context: a9726776d4941366838f98de3ad73789/13687360837104339155
+via: 1.1 google
+alt-svc: h3=":443"; ma=86400
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a5ab1c5e0ee4348b-MSP
+
+Title: 4 электронные музыкальные шкатулки своими руками. Знакомимся с логическими микросхемами
+
+URL Source: https://habr.com/ru/articles/717906/
+
+Final URL: https://habr.com/ru/companies/ruvds/articles/717906/
+
+Published Time: 2023-03-09T12:00:01+03:00
+
+Markdown Content:
+Средний
+
+

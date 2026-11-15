@@ -464,7 +464,7 @@ const ALICE_COVER_ART=[
  /* caterpillar / mushroom */
  '<path d="M10 29q20-32 40 0zM24 30h12l-3 23h-6zM16 25h3m10-6h3m12 6h3M5 50q7-13 14 0m23 0q7-13 14 0"/><circle cx="30" cy="23" r="3"/>'
 ];
-function aliceCover(b){
+function aliceFallbackCover(b){
   const key=String(b.id||b.title||'');let h=2166136261;
   for(let i=0;i<key.length;i++)h=Math.imul(h^key.charCodeAt(i),16777619)>>>0;
   const mixed=Math.imul(h^(h>>>16),2246822519)>>>0;
@@ -476,6 +476,23 @@ function aliceCover(b){
     '<i class="alice-cover-format">'+bookFmt(b)+'</i><b class="alice-cover-title">'+esc(b.title||'')+'</b>'+
     '<svg class="alice-cover-emblem" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">'+art+'</g></svg>'+
     '<small class="alice-cover-author">'+esc(bookAuthor(b))+'</small></span>';
+}
+
+
+/* Alice illustrated cover pack (34 unique WebP illustrations).
+   Deterministic assignment keeps a book's art stable between sessions.
+   Uploaded personal covers are checked first by coverHtml().
+   A missing image falls back to the lightweight, offline SVG jacket. */
+const ALICE_ILLUSTRATED_COUNT=34;
+function aliceCover(b){
+  const key=String(b.id||b.title||'');let h=2166136261;
+  for(let i=0;i<key.length;i++)h=Math.imul(h^key.charCodeAt(i),16777619)>>>0;
+  const mixed=Math.imul(h^(h>>>16),2246822519)>>>0;
+  const num=String(mixed%ALICE_ILLUSTRATED_COUNT+1).padStart(2,'0');
+  const url='skins/alice-covers/'+num+'.webp';
+  return '<span class="alice-cover-picture"><img class="alice-cover-photo" src="'+url+
+    '" alt="" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+
+    '<span class="alice-fallback" hidden>'+aliceFallbackCover(b)+'</span></span>';
 }
 
 function coverHtml(b){

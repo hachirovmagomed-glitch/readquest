@@ -469,7 +469,10 @@ function aliceCover(b){
   for(let i=0;i<key.length;i++)h=Math.imul(h^key.charCodeAt(i),16777619)>>>0;
   const mixed=Math.imul(h^(h>>>16),2246822519)>>>0;
   const variant=mixed%50,theme=ALICE_COVER_PALETTES[Math.floor(variant/10)],art=ALICE_COVER_ART[variant%10];
+  /* 34 individually painted WebP covers. Stable ID-based selection; old SVG jacket serves as an image-error fallback. */
+  const painted=String(mixed%34+1).padStart(2,'0');
   return '<span class="alice-cover" style="--ac-bg:'+theme[0]+';--ac-ink:'+theme[1]+';--ac-gold:'+theme[2]+'">'+
+    '<img class="alice-cover-painted" src="skins/alice-covers/'+painted+'.webp" alt="" loading="lazy" decoding="async">'+
     '<i class="alice-cover-format">'+bookFmt(b)+'</i><b class="alice-cover-title">'+esc(b.title||'')+'</b>'+
     '<svg class="alice-cover-emblem" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">'+art+'</g></svg>'+
     '<small class="alice-cover-author">'+esc(bookAuthor(b))+'</small></span>';

@@ -1088,6 +1088,7 @@ async function removeBook(id,wipeFile){
   if(wipeFile&&b.type==='pdf'){try{await idbDel('pdf:'+id);}catch(e){}}
   if(wipeFile&&b.text){const n=(String(b.text).match(/\uFFFCimg:\d+/g)||[]).reduce(function(m,x){return Math.max(m,+x.slice(5)+1);},0);for(let i=0;i<n;i++){try{await idbDel('img:'+id+':'+i);}catch(e){}}} /* 28.10: its pictures */
   if(!builtin)covDrop(id); /* 10.11: its cover (S.covers + IDB «cov:<id>») */
+  if(typeof webxDel==='function'){try{await webxDel(id);}catch(e){}} /* 13.11: «webx:<id>» страницы сайта (js/web.js) */
   if(wipeFile){try{await idbDel('ocr:'+id);if(typeof OCR_MEM!=='undefined')delete OCR_MEM[id];}catch(e){}} /* 28.10: pages recognised on the phone (js/ocr.js) */
   save();el('bookSheet').classList.add('hidden');renderLibrary();
   flashMsg(wipeFile?'Книга и файл удалены':'Книга убрана из библиотеки');

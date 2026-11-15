@@ -9,10 +9,13 @@
 //  8) «Поделиться → ReadQuest» ссылкой (сразу «Начало текста») и выделенным текстом (шторка с текстом);
 //  15) раскладчик: чистка (меню, счётчики, «читайте также», комментарии) и вид (цитата, подзаголовок, список, код, картинка с подписью);
 // 13.11 «давай все»: 9) страницы сайтов не идут в «дочитанные книги» и ачивки за книги; 10) «Обновить с сайта» — новый текст, место сохранено;
+//  16) «делай все» 13.11 ночь: жирный и курсив, таблицы, ссылки (нажатие, «Добавить на полку», список, выключатель), продолжение на 2-й странице,
+//      строка вместо закрытой картинки, время чтения по своей скорости, «Убрать лишнее», формулы и сноски.
 //  11) фильтр «Сайты»; 12) одно поле: ссылка или текст; 13) «Больше не спрашивать» про Jina; 14) «Начало текста» и «Отмена» — без записи.
 // Run: RQ_URL=http://127.0.0.1:8767/readquest/test/ node web.test.mjs
 import puppeteer from 'puppeteer-core';
 import fs from 'fs'; import os from 'os'; import path from 'path';
+import { RICH, RICH2, RICH_MD, RICH_MD2 } from './web-rich.fixture.mjs';
 const BASE = process.env.RQ_URL || 'http://127.0.0.1:8767/readquest/test/';
 const checks = []; const ok = (n, p, i) => { checks.push(!!p); console.log((p ? 'PASS ' : 'FAIL ') + n + (i !== undefined ? ' — ' + JSON.stringify(i) : '')); };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -50,6 +53,8 @@ p.on('request', r => {
     text: '<div class="mw-parser-output"><div class="ws-noexport">Навигация-мусор</div><h2>Глава первая</h2>' + P(3) + '<h2>Глава вторая</h2>' + P(3) + '<h2>Примечания</h2><p>Примечание Чехова к рассказу, его надо сохранить в книге.</p></div>' } }) }); }
   else if (u.host === 'ru.wikipedia.org') { hits.wiki++; r.respond({ status: 200, contentType: 'application/json', headers: CORS, body: JSON.stringify(WIKI) }); }
   else if (u.host === 'img.example') { hits.img = (hits.img || 0) + 1; if (/nocors/.test(u.pathname)) r.respond({ status: 200, contentType: 'image/png', body: PNG }); else r.respond({ status: 200, contentType: 'image/png', headers: CORS, body: PNG }); }
+  else if (u.host === 'open.example' && u.pathname === '/rich') { hits.rich = (hits.rich || 0) + 1; r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: u.search ? RICH2 : RICH }); }
+  else if (u.host === 'r.jina.ai' && /closed\.example\/rich/.test(u.pathname)) r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: /page=2/.test(u.href) ? RICH_MD2 : RICH_MD });
   else if (u.host === 'open.example' && u.pathname === '/messy') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: MESSY });
   else if (u.host === 'r.jina.ai' && /messy/.test(u.pathname)) r.respond({ status: 200, contentType: 'text/plain; charset=utf-8', headers: CORS, body: MESSY_MD });
   else if (u.host === 'open.example') r.respond({ status: 200, contentType: 'text/html; charset=utf-8', headers: CORS, body: SITE_V });
@@ -232,9 +237,9 @@ ok('15) картинка, которую сайт отдаёт, сохранен
 await sleep(1200);
 const r15 = await p.evaluate(() => { const c = el('content'), q = (s) => c.querySelector(s); const cs = (s, k) => q(s) ? getComputedStyle(q(s))[k] : null;
   return { reader: !el('reader').classList.contains('hidden'), wp: c.querySelectorAll('p.rq-wp').length, indent: cs('p.rq-wp', 'textIndent'), q: !!q('p.rq-q'), qStyle: cs('p.rq-q', 'fontStyle'), h2: cs('p.rq-h2', 'fontWeight'), li: c.querySelectorAll('p.rq-li.rq-ol').length,
-    pre: cs('p.rq-pre', 'whiteSpace'), cap: !!q('p.rq-cap'), vs: !!q('p.rq-wp.rq-vs'), h: c.querySelectorAll('p.rq-h').length, imgShown: c.querySelectorAll('p.rq-img:not(.gone) img').length, imgGone: c.querySelectorAll('p.rq-img.gone').length }; });
+    pre: cs('p.rq-pre', 'whiteSpace'), cap: !!q('p.rq-cap'), vs: !!q('p.rq-wp.rq-vs'), h: c.querySelectorAll('p.rq-h').length, imgShown: c.querySelectorAll('p.rq-img:not(.gone) img').length, imgGone: c.querySelectorAll('p.rq-img.gone').length, noimg: c.querySelectorAll('p.rq-noimg').length }; });
 ok('15) читалка: абзацы без красной строки, цитата курсивом, подзаголовок жирный, нумерованный список, код моноширинно, подпись, стих', r15.reader && r15.wp >= 8 && r15.indent === '0px' && r15.q && r15.qStyle === 'italic' && +r15.h2 >= 700 && r15.li === 2 && /pre-wrap/.test(r15.pre) && r15.cap && r15.vs && r15.h === 2, r15);
-ok('15) читалка: сохранённая картинка видна, несохранённая спрятана', r15.imgShown === 1 && r15.imgGone === 1, r15);
+ok('15) читалка: сохранённая картинка видна, на месте несохранённой строка «Картинка не сохранилась»', r15.imgShown === 1 && r15.imgGone === 0 && r15.noimg === 1, r15);
 await p.screenshot({ path: '/tmp/rq-web-shots/15-layout.png' });
 await toLib(); await openSheet(); await go('https://closed.example/messy', false); await p.evaluate(() => el('webJina').click()); await sleep(1500);
 const pv15 = await p.evaluate(() => (document.querySelector('.webpre') || {}).textContent || '');
@@ -243,6 +248,81 @@ await p.evaluate(() => el('webAdd').click()); await sleep(1800);
 bs = await books(); const b15m = bs.find(b => b.src === 'web:https://closed.example/messy'); t = b15m ? await text(b15m.id) : '';
 ok('15) служба (markdown): название, без меню, счётчиков, «Похожих» и комментариев', b15m && b15m.t === 'Статья из службы' && t.startsWith('Это настоящий длинный абзац статьи номер 1') && !/Skip to|Главная|Контакты|Средний|7 мин|19K|Ещё статья|первый!|Похожие|Комментарии/.test(t), t.slice(0, 120));
 ok('15) служба: цитата, код с отступом, список, картинка на месте', t.includes('⁡Цитата из статьи.') && t.includes('⁡⁢let x = 1;\n⁡⁢  let y = 2;') && t.includes('1. Раз\n\n2. Два') && t.includes('￼img:0'), JSON.stringify(t.slice(180, 330)));
+
+// 16: улучшения раскладчика
+await toLib(); await p.evaluate(() => { const s = rqRx().spd; s.cpm = 2000; s.n = 9; });
+await openSheet(); await go('https://open.example/rich', false);
+const pv16 = await p.evaluate(() => (el('webTime') || {}).textContent || '');
+const len16 = await p.evaluate(() => WEB.pend.b.text.replace(/￼img:\d+\n*/g, '').replace(/[⁠-⁤]/g, '').length);
+ok('16) время чтения по своей скорости и «собрано страниц: 2»', new RegExp('Около ' + Math.max(1, Math.round(len16 / 2000)) + ' минут').test(pv16) && /с вашей скоростью/.test(pv16) && /собрано страниц: 2/.test(pv16), pv16);
+await p.evaluate(() => el('webAdd').click()); await sleep(2500);
+bs = await books(); const b16 = bs.find(b => b.src === 'web:https://open.example/rich'); t = b16 ? await text(b16.id) : '';
+ok('16) две страницы статьи в одной книге, без повтора названия и меню; «Далее» и «Читайте также» убраны', b16 && b16.t === 'Как устроена память' && t.includes('Вторая страница статьи') && t.includes('Конец второй страницы.') && !/Главная|Далее|Назад|Читайте также|50 книг/.test(t) && t.split('Как устроена память').length === 1 && b16.toc.join() === 'Кривая забывания,Сравнение приёмов,Что делать читателю', b16 && b16.toc);
+ok('16) в тексте книги нет служебных знаков разметки, слова на месте', !/[-]/.test(t) && t.startsWith('Память делится на кратковременную и долговременную, об этом писал Герман Эббингауз ещё в 1885 году[1].'), t.slice(0, 110));
+ok('16) формулы строкой: в абзаце и отдельной строкой; текст сноски ушёл из статьи', t.includes('по формуле R = e^(-t/S), где') && t.includes('⁤⁡E = mc² + a/b') && !t.includes('Лейпциг') && !t.includes('R=e−t/S'), JSON.stringify(t.slice(340, 420)));
+ok('16) таблица: строки с ячейками через табуляцию, первая — шапка', t.includes('⁤⁢⁢Срок\tПомним\tЗабыли\n\n⁤⁢20 минут\t58 %\t42 %') && t.includes('⁤⁢Карточки\t10 мин\tвысокая\tсредняя\tстудентам\tчерез день'));
+const x16 = await p.evaluate(async (id) => { const x = await idbGet('webx:' + id); return x && { len: x.len, f: x.f.length, l: x.l, n: x.n, im: x.im, pages: x.pages, hasField: Object.keys(S.userBooks.find(b => b.id === id)).some(k => /webX|webImgs/.test(k)) }; }, b16.id);
+ok('16) запись webx в IDB: места выделений, ссылки, сноска, адрес картинки; в карточке книги новых полей нет', x16 && x16.len === t.length && x16.f >= 5 && x16.l.includes('https://open.example/people/ebbinghaus') && x16.l.includes('https://other.example/povtorenie') && x16.n[0] === 'Эббингауз Г. О памяти. Лейпциг, 1885.' && x16.im.length === 1 && x16.pages === 2 && !x16.hasField, x16);
+const r16 = await p.evaluate(() => { const c = el('content'), q = (s) => c.querySelector(s), cs = (s, k) => q(s) ? getComputedStyle(q(s))[k] : null;
+  return { b: (q('p.rq-wp b') || {}).textContent, i: (q('p.rq-wp i') || {}).textContent, l: Array.from(c.querySelectorAll('span.rq-wl')).map(x => x.textContent), ld: cs('span.rq-wl', 'textDecorationLine'), n: (q('sup.rq-wn') || {}).textContent,
+    tr: c.querySelectorAll('p.rq-tr').length, grid: cs('p.rq-tr:not(.rq-trw)', 'display'), cols: (cs('p.rq-tr:not(.rq-trw)', 'gridTemplateColumns') || '').split(' ').length, hdW: cs('p.rq-trh', 'fontWeight'),
+    wide: c.querySelectorAll('p.rq-trw').length, wideHd: cs('p.rq-trw.rq-trh', 'display'), dh: Array.from(c.querySelectorAll('p.rq-trw:not(.rq-trh)')[0].querySelectorAll('span')).map(x => x.dataset.h + '=' + x.textContent).join('|'),
+    fm: (q('p.rq-fm') || {}).textContent, fmA: cs('p.rq-fm', 'textAlign'), noimg: (q('p.rq-noimg') || {}).textContent, shown: c.querySelectorAll('p.rq-img:not(.gone) img').length }; });
+ok('16) читалка: жирный и курсив на своих словах, ссылки подчёркнуты, сноска маленькой цифрой', r16.b === 'кратковременную' && r16.i === 'долговременную' && r16.l.join('|') === 'Герман Эббингауз|статье про интервальное повторение' && /underline/.test(r16.ld) && r16.n === '[1]', r16);
+ok('16) читалка: таблица из 3 колонок сеткой с жирной шапкой; из 6 колонок — карточками «шапка: значение»', r16.tr === 7 && r16.grid === 'grid' && r16.cols === 3 && +r16.hdW >= 700 && r16.wide === 3 && r16.wideHd === 'none' && r16.dh === 'Приём=Пересказ|Время=2 мин|Польза=высокая|Сложность=низкая|Кому=всем|Когда=сразу', r16);
+ok('16) читалка: формула отдельной строкой по центру; закрытая картинка показана с сайта или строкой', /E = mc² \+ a\/b/.test(r16.fm) && r16.fmA === 'center' && (r16.noimg === 'Картинка не сохранилась: открыть на сайте' || r16.shown === 1), r16);
+const mk16 = await p.evaluate(() => { const h = el('content').innerHTML, a = hlPutQ(h, 'делится на кратковременную и долговременную, об этом', 0, 'y'); return { marks: (a.match(/<mark/g) || []).length, bold: /<b><mark[^>]*>кратковременную<\/mark><\/b>/.test(a) }; });
+ok('16) выделение цитаты поверх жирного и курсива ложится на все слова', mk16.marks >= 3 && mk16.bold, mk16);
+const at = (sel) => p.evaluate((sel) => { const r = document.querySelector('#content ' + sel).getClientRects()[0]; return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, sel);
+const pop = () => p.evaluate(() => { const d = el('rmNote'); return d && !d.hidden ? d.textContent : ''; });
+let pt = await at('sup.rq-wn'); const pg0 = await p.evaluate(() => R.page); await p.touchscreen.tap(pt.x, pt.y); await sleep(500);
+ok('16) нажатие на сноску открывает её текст, страница не листается', /Сноска 1/.test(await pop()) && /Эббингауз Г\. О памяти\. Лейпциг, 1885\./.test(await pop()) && (await p.evaluate(() => R.page)) === pg0, await pop());
+await p.evaluate(() => rmFnHide()); await sleep(450);
+pt = await at('span.rq-wl'); await p.touchscreen.tap(pt.x, pt.y); await sleep(500);
+const lp = await p.evaluate(() => ({ t: el('rmNote').hidden ? '' : el('rmNote').textContent, add: !!el('webLpAdd'), href: el('webLpOpen') ? el('webLpOpen').href : '', page: R.page }));
+ok('16) нажатие на ссылку: окно с «Добавить на полку» и «Открыть в браузере», страница не листается', /Герман Эббингауз/.test(lp.t) && lp.add && lp.href === 'https://open.example/people/ebbinghaus' && lp.page === pg0, lp);
+await p.evaluate(() => el('webLpAdd').click()); await sleep(1800);
+const add16 = await p.evaluate(() => ({ sheet: !el('bookSheet').classList.contains('hidden'), pend: WEB.pend && WEB.pend.u, btn: !!el('webAdd') }));
+ok('16) «Добавить на полку» из ссылки: страница по ссылке загружена, ждёт «На полку и читать»', add16.sheet && add16.pend === 'https://open.example/people/ebbinghaus' && add16.btn, add16);
+await p.evaluate(() => { el('webCancel').click(); el('bookSheet').classList.add('hidden'); }); await sleep(300);
+// без сети: строка вместо картинки
+await toLib(); await p.setOfflineMode(true); await p.evaluate((id) => openBook(id), b16.id); await sleep(1800);
+const off16 = await p.evaluate(() => ({ line: (el('content').querySelector('p.rq-noimg') || {}).textContent, src: (el('content').querySelector('p.rq-noimg') || { getAttribute() {} }).getAttribute('data-src'), gone: el('content').querySelectorAll('p.rq-img.gone').length }));
+await p.setOfflineMode(false);
+ok('16) без сети на месте закрытой картинки строка со ссылкой на неё', off16.line === 'Картинка не сохранилась: открыть на сайте' && off16.src === 'https://img.example/nocors.png' && off16.gone === 0, off16);
+// карточка: ссылки из статьи, выключатель ссылок, «Убрать лишнее»
+await toLib(); await p.evaluate((id) => bookInfo(id), b16.id); await sleep(600);
+const card16 = await p.evaluate(() => ({ links: !!el('webLinksBtn'), cut: !!el('webCutBtn'), tgl: el('webLinksTgl') && el('webLinksTgl').textContent.trim() }));
+await p.evaluate(() => el('webLinksBtn').click()); await sleep(600);
+const ll16 = await p.evaluate(() => Array.from(document.querySelectorAll('#webLinksL .bk-line')).map(x => x.textContent.trim()));
+ok('16) карточка: «Ссылки из статьи» — список ссылок текста', card16.links && card16.cut && ll16.length === 2 && /Герман Эббингауз/.test(ll16[0]) && /other\.example/.test(ll16[1]), ll16);
+await p.evaluate(() => el('webCutBack').click()); await sleep(500);
+await p.evaluate(() => el('webLinksTgl').click()); await sleep(500);
+const tg16 = await p.evaluate(() => ({ set: SET.webLinks, t: el('webLinksTgl').textContent.trim() }));
+await p.evaluate(async (id) => { el('bookSheet').classList.add('hidden'); await openBook(id); }, b16.id); await sleep(1500);
+const nol16 = await p.evaluate(() => ({ l: el('content').querySelectorAll('span.rq-wl').length, b: el('content').querySelectorAll('p.rq-wp b').length }));
+ok('16) «Ссылки в тексте» выключаются: подчёркиваний нет, жирный остаётся', /нажимаются/.test(card16.tgl) && tg16.set === 0 && /выключены/.test(tg16.t) && nol16.l === 0 && nol16.b === 1, { card16, tg16, nol16 });
+await toLib(); await p.evaluate((id) => { webLinksSet(true); bookInfo(id); }, b16.id); await sleep(500);
+await p.evaluate(() => el('webCutBtn').click()); await sleep(700);
+const cut16 = await p.evaluate(() => { const bs = Array.from(document.querySelectorAll('#webCutL .webcut')); const i = bs.findIndex(x => /^Доля запомненного/.test(x.textContent)); bs[i].click(); return { n: bs.length, i, go: el('webCutGo').textContent, dis: el('webCutGo').disabled, kinds: bs.map(x => (x.querySelector('.wck') || {}).textContent || '').filter(Boolean).join() }; });
+await p.evaluate(() => el('webCutGo').click()); await sleep(1500);
+const t16c = await text(b16.id);
+const x16c = await p.evaluate(async (id) => { const x = await idbGet('webx:' + id), b = S.userBooks.find(z => z.id === id); return { len: x.len, cut: x.cut, bold: b.text.substr(x.f[0][0], x.f[0][1]), link2: b.text.substr(x.f[x.f.length - 1][0], x.f[x.f.length - 1][1]), toc: (b.toc || []).map(z => b.text.substr(z.off, z.t.length)) }; }, b16.id);
+ok('16) «Убрать лишнее»: список кусков страницы с видами (заголовок, таблица, формула, картинка)', cut16.i > 0 && /Убрать отмеченное: 1/.test(cut16.go) && !cut16.dis && /Картинка 1/.test(cut16.kinds) && /Заголовок/.test(cut16.kinds) && /Таблица/.test(cut16.kinds) && /Формула/.test(cut16.kinds), cut16);
+ok('16) убранный кусок вырезан из текста; оглавление, жирный и ссылки остались на своих словах', !t16c.includes('Доля запомненного') && t16c.includes('статьи номер 3') && x16c.len === t16c.length && x16c.bold === 'кратковременную' && x16c.link2 === 'статье про интервальное повторение' && x16c.toc.join() === 'Кривая забывания,Сравнение приёмов,Что делать читателю' && x16c.cut.length === 1, x16c);
+await p.evaluate((id) => bookInfo(id), b16.id); await sleep(400); await p.evaluate(() => el('webRef').click()); await sleep(2500);
+const t16r = await text(b16.id);
+ok('16) «Обновить с сайта» не возвращает убранный кусок', !t16r.includes('Доля запомненного') && t16r.includes('статьи номер 3') && t16r.includes('Конец второй страницы.') && t16r.length === t16c.length, t16r.length + ' / ' + t16c.length);
+// служба (markdown): жирный, курсив, ссылка, таблица, формула, вторая страница
+await p.evaluate(() => { el('bookSheet').classList.add('hidden'); }); await toLib(); await openSheet(); await go('https://closed.example/rich', false); await p.evaluate(() => el('webJina').click()); await sleep(2500);
+await p.evaluate(() => el('webAdd').click()); await sleep(2200);
+bs = await books(); const b16m = bs.find(b => b.src === 'web:https://closed.example/rich'); t = b16m ? await text(b16m.id) : '';
+const r16m = await p.evaluate(() => { const c = el('content'); return { b: (c.querySelector('p.rq-wp b') || {}).textContent, i: (c.querySelector('p.rq-wp i') || {}).textContent, l: (c.querySelector('span.rq-wl') || {}).textContent, tr: c.querySelectorAll('p.rq-tr').length, fm: (c.querySelector('p.rq-fm') || {}).textContent }; });
+ok('16) служба: жирный, курсив, ссылка, таблица, формула; вторая страница дописана, «Далее» убрано', b16m && t.startsWith('В этом абзаце есть жирное слово, курсивное слово и ссылка на другую статью.') && !/[*\[\]]|Далее/.test(t.slice(0, 400)) && t.includes('Вторая страница из службы') && t.split('Статья с таблицей').length === 1 &&
+  r16m.b === 'жирное слово' && r16m.i === 'курсивное слово' && r16m.l === 'ссылка на другую статью' && r16m.tr === 3 && /E = mc²/.test(r16m.fm), { r16m, t: t.slice(0, 90) });
+// удаление книги стирает запись webx
+await toLib(); const del16 = await p.evaluate(async (id) => { await webxDel('zzz'); const a = !!(await idbGet('webx:' + id)); await webxDel(id); return { a, b: !!(await idbGet('webx:' + id)) }; }, b16m.id);
+ok('16) запись webx стирается', del16.a && !del16.b, del16);
 
 ok('нет ошибок страницы', errs.length === 0, errs);
 await browser.close();

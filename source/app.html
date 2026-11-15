@@ -620,6 +620,27 @@ body.mvp #btnTimer,body.mvp #timerHint{display:none!important}
 #content p.rq-h2,.rqCurlTxt p.rq-h2{font-weight:700;margin:1.1em 0 .45em;text-align:left;hyphens:none;-webkit-hyphens:none;break-after:avoid}
 #content p.rq-cap,.rqCurlTxt p.rq-cap{font-size:.82em;line-height:1.4;opacity:.72;text-align:center;margin:-.1em 0 1em;hyphens:none;-webkit-hyphens:none}
 #content p.rq-pre,.rqCurlTxt p.rq-pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8em;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;hyphens:none;-webkit-hyphens:none;padding-left:.7em;border-left:3px solid color-mix(in srgb,currentColor 18%,transparent)}
+/* 13.11 ночь: таблица (строка = абзац-сетка; шире 4 колонок — карточка «шапка: значение»), формула, ссылка, сноска, строка вместо картинки */
+#content p.rq-tr,.rqCurlTxt p.rq-tr{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:0 .7em;text-align:left;font-size:.84em;line-height:1.35;margin:0;padding:.4em 0;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent);break-inside:avoid;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
+#content p.rq-tr1,.rqCurlTxt p.rq-tr1{border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);margin-top:.5em}
+#content p.rq-trh,.rqCurlTxt p.rq-trh{font-weight:700;border-bottom-color:color-mix(in srgb,currentColor 45%,transparent)}
+#content p.rq-tr+p:not(.rq-tr),.rqCurlTxt p.rq-tr+p:not(.rq-tr){margin-top:.9em}
+#content p.rq-trw,.rqCurlTxt p.rq-trw{display:block;padding:.55em 0}
+#content p.rq-trw span,.rqCurlTxt p.rq-trw span{display:block}
+#content p.rq-trw span.e,.rqCurlTxt p.rq-trw span.e,#content p.rq-trw.rq-trh,.rqCurlTxt p.rq-trw.rq-trh{display:none}
+#content p.rq-trw span[data-h]::before,.rqCurlTxt p.rq-trw span[data-h]::before{content:attr(data-h) ': ';opacity:.62}
+#content p.rq-trw span:first-child,.rqCurlTxt p.rq-trw span:first-child{font-weight:700}
+#content p.rq-fm,.rqCurlTxt p.rq-fm{text-align:center;margin:.9em 0;hyphens:none;-webkit-hyphens:none;overflow-wrap:anywhere;font-family:'Cambria Math','STIX Two Math',Georgia,serif;font-size:1.05em;break-inside:avoid}
+#content span.rq-wl,.rqCurlTxt span.rq-wl{text-decoration:underline;text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb,currentColor 38%,transparent);text-underline-offset:.2em}
+#content sup.rq-wn,.rqCurlTxt sup.rq-wn{font-size:.66em;line-height:0;opacity:.7;font-style:normal;font-weight:400}
+#content p.rq-noimg,.rqCurlTxt p.rq-noimg{font-size:.82em;line-height:1.4;opacity:.75;text-align:center;border:1px dashed color-mix(in srgb,currentColor 35%,transparent);border-radius:8px;padding:.7em;hyphens:none;-webkit-hyphens:none}
+#rmNote .weblp .weblpt{font-weight:600}#rmNote .weblp .weblpu{font-size:.8125rem;color:var(--muted);overflow-wrap:anywhere;margin:2px 0 8px}
+#rmNote .weblp .cta,#rmNote .weblp .advwant{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:6px 0 0;text-decoration:none;box-sizing:border-box}
+#bookSheet .webcut{display:block;width:100%;text-align:left;padding:8px 10px;margin:5px 0;border:1px solid var(--line,rgba(128,128,128,.3));border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:.875rem;line-height:1.35;min-height:44px}
+#bookSheet .webcut.on{opacity:.5;text-decoration:line-through;border-style:dashed}
+#bookSheet .webcut .wck{display:block;font-size:.72rem;color:var(--muted)}#bookSheet .webcut.wch .wct{font-weight:700}
+#bookSheet .webcutgo{position:sticky;bottom:8px;z-index:1}
+#bookSheet .weblinks .bk-line span{text-align:left;min-width:0}#bookSheet .weblinks .bk-line b{display:block;font-weight:600;overflow-wrap:anywhere}#bookSheet .weblinks .bk-line small{display:block;color:var(--muted);font-size:.75rem}
 #content p.rq-img,.rqCurlTxt p.rq-img{text-indent:0;text-align:center;margin:.6em 0;break-inside:avoid;line-height:0}
 #content p.rq-img img,.rqCurlTxt p.rq-img img{max-width:100%;max-height:78vh;height:auto;display:inline-block}
 #content p.rq-img.gone,.rqCurlTxt p.rq-img.gone{display:none}

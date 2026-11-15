@@ -405,6 +405,7 @@ async function openBook(id){
   if(b.type==='pdf'&&b.asText&&typeof ptxtLoad==='function'){const x=await ptxtLoad(b0);if(x)b=x;} /* 05.11 «Читать текстом» (js/pdf-more.js) */
   if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
   if(b.type!=='pdf'&&!b.text){rqAlert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+  if(b.type!=='pdf'&&typeof webxLoad==='function'&&typeof rqIsWebBook==='function'&&rqIsWebBook(b)){try{await webxLoad(b.id);}catch(e){}} /* 13.11: жирный, ссылки и сноски страницы сайта (IDB «webx:<книга>», js/web.js) */
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
   if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
@@ -463,7 +464,7 @@ function rqParas(t){
 function rqBodyHtml(b){
   const toc=(typeof tocOf==='function'?tocOf(b):[])||[],heads={};toc.forEach(function(x,i){if(typeof x.off==='number'&&!(x.off in heads))heads[x.off]=i;});
   const web=typeof rqIsWebBook==='function'&&rqIsWebBook(b);
-  const ps=rqParas(b.text),hs=Object.keys(heads).map(Number).sort(function(a,z){return a-z;});let k=0;
+  const ps=rqParas(b.text),hs=Object.keys(heads).map(Number).sort(function(a,z){return a-z;});let k=0,wth=null;
   return ps.map(function(p,n){
     if(p.s.charCodeAt(0)===0x2063)return '<p class="rq-bitr" lang="ru">'+esc(p.s)+'</p>'; /* 25.10: translation under each paragraph (adv.js, «с переводом») */
     const im=/^￼img:(\d+)$/.exec(p.s);if(im)return '<p class="rq-img"><img data-img="'+im[1]+'" alt=""></p>';
@@ -471,8 +472,14 @@ function rqBodyHtml(b){
     while(k<hs.length&&hs[k]<end){if(hs[k]>=p.off-2&&h<0)h=heads[hs[k]];k++;}
     if(web&&h<0){ /* 13.11 «Страница сайта» (js/web.js): абзацы статьи без красной строки, с отступом между ними; вид абзаца — по невидимому знаку в начале */
       const c0=p.s.charCodeAt(0),c1=p.s.charCodeAt(1);
-      const cls=c0===0x2061&&c1===0x2062?'rq-pre':c0===0x2061?'rq-q':c0===0x2062?'rq-h2':c0===0x2064?'rq-cap':p.s.indexOf('• ')===0?'rq-li':/^\d{1,3}\. /.test(p.s)?'rq-li rq-ol':rqVerse(p.s)?'rq-vs':'';
-      return '<p class="rq-wp'+(cls?' '+cls:'')+'">'+esc(p.s)+'</p>';}
+      if(c0===0x2064&&c1===0x2062){ /* строка таблицы: ячейки через табуляцию; до 4 колонок — сетка, шире — карточка «шапка: значение» */
+        const hd=p.s.charCodeAt(2)===0x2062,cells=p.s.slice(hd?3:2).split('\t'),nc=cells.length,wide=nc>4;
+        if(hd||!(n&&ps[n-1].s.charCodeAt(0)===0x2064&&ps[n-1].s.charCodeAt(1)===0x2062))wth=hd?cells:null;
+        const first=!(n&&ps[n-1].s.charCodeAt(0)===0x2064&&ps[n-1].s.charCodeAt(1)===0x2062);
+        return '<p class="rq-wp rq-tr'+(hd?' rq-trh':'')+(wide?' rq-trw':'')+(first?' rq-tr1':'')+'" style="--n:'+nc+'">'+cells.map(function(c,i){
+          return '<span'+(c==='\u2060'?' class="e"':'')+(wide&&!hd&&wth&&wth[i]&&wth[i]!=='\u2060'?' data-h="'+esc(wth[i])+'"':'')+'>'+esc(c)+'</span>';}).join('\t')+'</p>';}
+      const cls=c0===0x2061&&c1===0x2062?'rq-pre':c0===0x2064&&c1===0x2061?'rq-fm':c0===0x2061?'rq-q':c0===0x2062?'rq-h2':c0===0x2064?'rq-cap':p.s.indexOf('• ')===0?'rq-li':/^\d{1,3}\. /.test(p.s)?'rq-li rq-ol':rqVerse(p.s)?'rq-vs':'';
+      return '<p class="rq-wp'+(cls?' '+cls:'')+'">'+(typeof webParaHtml==='function'?webParaHtml(b,p.off,p.s):esc(p.s))+'</p>';}
     return h>=0?'<p class="rq-h" data-toc="'+h+'">'+esc(p.s)+'</p>':'<p'+(rqVerse(p.s)?' class="rq-vs"':'')+'>'+esc(p.s)+'</p>';}).join('');
 }
 /* 28.10 (Джессика: копирование «во всех форматах»): a TXT stanza — short lines of a paragraph (≤ 55 letters, ~40 on average) — keeps its
@@ -483,6 +490,7 @@ function rqVerse(s){const ls=String(s).split('\n');if(ls.length<2)return false;l
 function rqBookImgs(b){
   const c=el('content'),ims=[...c.querySelectorAll('img[data-img]')];if(!ims.length||typeof idbGet!=='function')return;
   Promise.all(ims.map(function(im){return idbGet('img:'+b.id+':'+im.dataset.img).then(function(v){
+      if(!v&&R.book&&R.book.id===b.id&&typeof webImgFallback==='function'){const w=webImgFallback(b,im);if(w)return w;} /* 13.11: картинка страницы сайта, которую сайт не дал сохранить */
       if(!v||!R.book||R.book.id!==b.id){im.parentNode.classList.add('gone');return;}
       return new Promise(function(res){im.onload=im.onerror=function(){if(!im.naturalWidth)im.parentNode.classList.add('gone');res();};im.src=URL.createObjectURL(v instanceof Blob?v:new Blob([v]));});
     }).catch(function(){im.parentNode.classList.add('gone');});}))

@@ -1,0 +1,165 @@
+/* ReadQuest · Алиса в стране чудес. Original Victorian storybook-inspired visual skin.
+   Decorative elements stay in app chrome, never over the text of a book. */
+html[data-skin="alice"]{
+  --rq-bg:#f3e8d4;--rq-surface:#fff9ed;--rq-surface-2:#f7efdf;--rq-sheet:#fff9ed;
+  --rq-line:#d6b995;--rq-border-strong:#9b7652;
+  --rq-text:#302322;--rq-text-2:#67534c;--rq-text-disabled:#8c7e73;
+  --rq-accent:#8b2636;--rq-accent-pressed:#721b2a;--rq-accent-text:#8b2636;
+  --rq-on-accent:#fff9ed;--rq-control-on:#fff9ed;
+  --rq-accent-tint:#f2dfe0;--rq-accent-border:#bc868c;
+  --rq-coin:#926016;--rq-coin-tint:#f8edce;
+  --rq-success:#286c63;--rq-danger:#a52937;--rq-focus:#126e7b;
+  --rq-radius-xs:4px;--rq-radius-sm:8px;--rq-radius-md:12px;--rq-radius-lg:16px;
+  --rq-font-ui:Georgia,"Noto Serif",serif;--rq-font-display:Georgia,"Times New Roman",serif;
+  --rq-font-num:Georgia,serif;--rq-font-read:Georgia,"Noto Serif",serif;
+  --rq-shadow-1:0 1px 3px rgba(71,39,23,.12);
+  --rq-shadow-2:0 2px 0 #e8d4b4,0 5px 14px rgba(71,39,23,.11);
+  --rq-shadow-3:0 14px 40px rgba(50,25,16,.22);
+  --alice-ink:#302322;--alice-gold:#bb8a40;--alice-red:#8b2636;--alice-teal:#286c63;
+  color-scheme:light;
+}
+html[data-skin="alice"][data-theme="night"]{
+  --rq-bg:#121a30;--rq-surface:#1d2742;--rq-surface-2:#252e4b;--rq-sheet:#1d2742;
+  --rq-line:#52617a;--rq-border-strong:#ad936d;
+  --rq-text:#f5e9d8;--rq-text-2:#c5b8aa;--rq-text-disabled:#948e93;
+  --rq-accent:#e2ba75;--rq-accent-pressed:#f2ce91;--rq-accent-text:#f0c77e;
+  --rq-on-accent:#1d2339;--rq-control-on:#1d2339;
+  --rq-accent-tint:#3a354a;--rq-accent-border:#8b7658;
+  --rq-coin:#e9c077;--rq-coin-tint:#41374a;
+  --rq-success:#9ccfc3;--rq-danger:#f0a4a8;--rq-focus:#e8c980;
+  --rq-shadow-1:0 1px 3px rgba(0,0,0,.24);
+  --rq-shadow-2:0 2px 0 #39435a,0 6px 16px rgba(0,0,0,.22);
+  --rq-shadow-3:0 14px 40px rgba(0,0,0,.4);
+  --alice-ink:#f3e6d1;--alice-gold:#e2ba75;--alice-red:#c75c69;--alice-teal:#92c7bb;
+  color-scheme:dark;
+}
+/* Reader page stays flat, distraction-free. The book chrome carries the Wonderland details. */
+html[data-skin="alice"] [data-page="day"]{--r-bg:#fff9ed;--r-txt:#302322;--r-txt-2:#67534c;--r-dim:0}
+html[data-skin="alice"] [data-page="sepia"]{--r-bg:#f4ead7;--r-txt:#46352e;--r-txt-2:#735b4e;--r-dim:0}
+html[data-skin="alice"] [data-page="night"]{--r-bg:#131a30;--r-txt:#f1e5d3;--r-txt-2:#bdb3bd;--r-dim:.35}
+/* Light parchment grain and very faint checkerboard at the outer edges. */
+html[data-skin="alice"] body{
+  background-image:radial-gradient(rgba(120,86,51,.07) .65px,transparent 1px),
+    linear-gradient(90deg,rgba(167,114,61,.035) 1px,transparent 1px),
+    linear-gradient(rgba(167,114,61,.035) 1px,transparent 1px);
+  background-size:12px 12px,28px 28px,28px 28px;
+  background-color:var(--rq-bg);
+}
+html[data-skin="alice"][data-theme="night"] body{background-image:radial-gradient(rgba(232,203,157,.09) .75px,transparent 1px);background-size:26px 26px}
+/* Book, quest and profile cards. Restrict ornaments to the borders, leaving content unobscured. */
+html[data-skin="alice"] :is(.bookcard,.goalcard,.continuecard,.kpi,.qcard,.pcard,.herocard,.shopcard){
+  border:1px solid var(--rq-border-strong);border-radius:var(--rq-radius-md);
+  background:var(--rq-surface);box-shadow:var(--rq-shadow-2);
+}
+html[data-skin="alice"] :is(.bookcard,.goalcard,.continuecard,.qcard,.pcard,.herocard){
+  outline:1px solid var(--rq-line);outline-offset:-5px;
+}
+html[data-skin="alice"] :is(#libTitle,#profile h1,#rewardsSheet h3,#settings h1,#look h1,.shopname){
+  font-family:var(--rq-font-display);font-weight:700;letter-spacing:.012em
+}
+html[data-skin="alice"] :is(.libgold,.bigxp,#ringTxt,.shopprice){font-family:var(--rq-font-num);font-weight:700}
+html[data-skin="alice"] #libHead{position:relative;padding-bottom:14px;margin-bottom:12px}
+html[data-skin="alice"] #libHead::after{
+  content:"♠   ♡   ♣   ♢   ♠";position:absolute;bottom:0;left:0;right:0;
+  border-bottom:1px solid var(--alice-gold);color:var(--alice-red);
+  font:11px/12px Georgia,serif;text-align:center;letter-spacing:3px;pointer-events:none
+}
+/* A checkerboard running edge, inspired by the chessboard world behind the looking-glass. */
+html[data-skin="alice"] #botnav{position:relative;border-top:1px solid var(--alice-gold);box-shadow:0 -3px 0 var(--rq-surface)}
+html[data-skin="alice"] #botnav::before{
+  content:"";position:absolute;left:0;right:0;top:-9px;height:6px;
+  background:conic-gradient(var(--alice-ink) 25%,transparent 0 50%,var(--alice-ink) 0 75%,transparent 0) 0 0/12px 12px;
+  opacity:.52;pointer-events:none
+}
+html[data-skin="alice"] .botnav-btn.on{border:1px solid var(--alice-gold);box-shadow:inset 0 0 0 1px var(--rq-accent-border)}
+html[data-skin="alice"] :is(.fchip,.lsortbtn,.searchinp,.ghostbtn){border-radius:var(--rq-radius-sm)}
+html[data-skin="alice"] .fchip.on{box-shadow:inset 0 0 0 1px var(--alice-gold)}
+/* Reader chrome ornaments never extend into the text area. */
+html[data-skin="alice"] :is(.rhead,.rfoot,.rbar){background:var(--rq-surface-2)}
+html[data-skin="alice"] .rhead{border-bottom:2px solid var(--alice-gold)}
+html[data-skin="alice"] .rfoot{border-top:2px solid var(--alice-gold)}
+html[data-skin="alice"] .rbar{border-color:var(--rq-line)}
+/* Victorian dividers, watch and playing-card accents on non-reader headings. */
+html[data-skin="alice"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1){position:relative}
+html[data-skin="alice"] .screen:not(#reader):not(#library) .wrap > .row:first-child:has(> h1)::after{
+  content:"♧  ♡  ♧";position:absolute;left:0;right:0;bottom:0;
+  height:9px;line-height:9px;text-align:center;color:var(--alice-gold);letter-spacing:7px;
+  border-bottom:1px solid var(--rq-line);font-size:10px;pointer-events:none
+}
+html[data-skin="alice"] .goalcard{position:relative}
+html[data-skin="alice"] .goalcard::after{content:"♧";position:absolute;right:12px;top:8px;font-size:12px;color:var(--alice-gold);pointer-events:none;opacity:.65}
+html[data-skin="alice"] .emptyhint::before{
+  content:"♠  ♡  ♣";display:block;text-align:center;color:var(--alice-gold);
+  font:28px/1.3 Georgia,serif;margin-bottom:12px
+}
+html[data-skin="alice"] :is(.cta,.buy:not(.owned)){border:1px solid var(--alice-gold);box-shadow:inset 0 0 0 2px var(--rq-accent)}
+html[data-skin="alice"] #summary{background:var(--rq-bg)}
+html[data-skin="alice"] .bigxp{color:var(--rq-accent-text)}
+@media(prefers-reduced-motion:reduce){
+ html[data-skin="alice"] *,html[data-skin="alice"] *::before,html[data-skin="alice"] *::after{animation:none!important;transition:none!important}
+}
+
+
+/* 50 procedural illustrated book jackets: title, author and ink emblem remain legible. */
+html[data-skin="alice"] .cover .alice-cover{
+  display:flex;position:relative;flex-direction:column;align-items:center;justify-content:space-between;
+  width:100%;height:100%;min-height:0;overflow:hidden;isolation:isolate;
+  padding:9px 6px 8px;border:2px solid var(--ac-gold);border-radius:5px;
+  color:var(--ac-ink);background:var(--ac-bg);
+  box-shadow:inset 0 0 0 3px var(--ac-bg),inset 0 0 0 4px var(--ac-gold);
+  text-align:center;line-height:1.12;font-family:Georgia,"Noto Serif",serif;
+}
+html[data-skin="alice"] .alice-cover::before{
+  content:"♠  ♡  ♣  ♢";display:block;position:absolute;inset:5px 5px auto;
+  padding:2px 0 4px;border-bottom:1px solid var(--ac-gold);
+  color:var(--ac-gold);font-size:7px;line-height:1;letter-spacing:1px;pointer-events:none
+}
+html[data-skin="alice"] .alice-cover::after{
+  content:"";position:absolute;inset:auto 5px 5px;
+  height:4px;border-top:1px solid var(--ac-gold);pointer-events:none
+}
+html[data-skin="alice"] .alice-cover .alice-cover-format{
+  position:relative;z-index:1;display:block;margin:11px 0 4px;
+  font:700 8px/1 Georgia,serif;letter-spacing:2px;color:var(--ac-gold);text-transform:uppercase
+}
+html[data-skin="alice"] .alice-cover .alice-cover-title{
+  position:relative;z-index:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;
+  max-width:100%;overflow:hidden;overflow-wrap:anywhere;flex:0 1 auto;
+  font-size:clamp(10px,2.7vw,14px);line-height:1.2;font-weight:700;color:var(--ac-ink)
+}
+html[data-skin="alice"] .alice-cover .alice-cover-emblem{
+  display:block;width:min(75%,74px);height:auto;max-height:32%;min-height:20px;flex:0 1 auto;
+  color:var(--ac-gold);margin:4px auto;fill:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,.08))
+}
+html[data-skin="alice"] .alice-cover .alice-cover-author{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;overflow-wrap:anywhere;max-width:100%;font-size:9px;line-height:1.2;
+  color:var(--ac-ink);opacity:.9;margin:2px auto 7px
+}
+/* Compact cover placements can shrink without displacing surrounding controls. */
+html[data-skin="alice"] :is(.bk-head,.bookcard) .cover .alice-cover{padding:6px 4px}
+html[data-skin="alice"] #shelf:is(.v-short,.v-full) .alice-cover .alice-cover-emblem{display:none}
+html[data-skin="alice"] #shelf:is(.v-short,.v-full) .alice-cover .alice-cover-author{display:none}
+html[data-skin="alice"] #shelf:is(.v-short,.v-full) .alice-cover .alice-cover-title{font-size:9px;-webkit-line-clamp:3}
+
+
+/* Painted collectible jackets: a real WebP covers the procedural fallback.
+   If a file is unavailable or fails loading, the SVG jacket remains underneath. */
+html[data-skin="alice"] .cover .alice-cover > img.alice-cover-painted{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;z-index:10;border:0;border-radius:3px;
+  max-width:none;max-height:none;pointer-events:none;
+}
+
+/* Illustrated covers: replace procedural jackets when WebP pack exists.
+   The fallback stays hidden unless the asset fails to load. */
+html[data-skin="alice"] .cover .alice-cover-picture{
+  display:block;position:relative;width:100%;height:100%;overflow:hidden;
+  border-radius:5px;background:#2e2631;
+}
+html[data-skin="alice"] .cover .alice-cover-photo{
+  display:block;width:100%;height:100%;object-fit:fill;border:0;
+}
+html[data-skin="alice"] .cover .alice-cover-picture [hidden]{display:none!important}
+html[data-skin="alice"] .cover .alice-fallback:not([hidden]){display:block;width:100%;height:100%}
+html[data-skin="alice"] .cover .alice-fallback .alice-cover{width:100%;height:100%}

@@ -60,6 +60,7 @@ const SHOP_CATALOG=(function(){
   sk('dungeon','Подземелье',800,'Каменные своды и факелы',[['base','Подземелье','#1b1a1f'],['emerald','Изумруд','#10261f'],['ice','Лёд','#1a2630']]);
   sk('celestial','Небесный',800,'Небо на закате, золотые рамки и звёздная ночь',[['base','Небесный','#f6efe2']]); /* handoff/skins/celestial (17.10, прототип rannie/mockups/celestial); день и ночь внутри скина */
   sk('krik','Крик',800,'Экспрессия: закат и мост',[['base','Крик','#f0a35b'],['night','Ночь','#1f2340']]);
+  sk('alice','Алиса в стране чудес',0,'Викторианские гравюры, шахматы, розы и чаепитие',[['base','Страна чудес','#f3e8d4']]);
   sk('ellada','Эллада',500,'Вазопись, белый мрамор и Эгейское море',[['base','Эллада','#f4f0e8']]); /* handoff/skins/ellada (Джессика 15.10) */
   sk('babochkovyi','Бабочковый',500,'Перламутровые крылья, летний луг и мотыльки',[['base','Бабочковый','#f4f2f8']]); /* handoff/skins/babochkovyi (16.10) */
   const seen={};L.forEach(x=>{if(seen[x.id])throw new Error('SHOP_CATALOG: duplicate id '+x.id);seen[x.id]=1;});
@@ -70,7 +71,7 @@ function shopMigrateId(id){if(typeof id!=='string')return id;if(SHOP_OLD_IDS[id]
 function shopItem(id){return SHOP_CATALOG.find(x=>x.id===id)||null;}
 /* audit 15.10 (Маня): a skin without its app styling yet is «Скоро» — no «Купить», buy() refuses. Already bought on /test/: stays owned, no refund.
    A skin joins this list in the build that ships its styling (tests may push ids to exercise the buy contract). */
-const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial'];
+const SHOP_READY=['skin-pencil','skin-ellada','skin-babochkovyi','skin-celestial','skin-alice'];
 function shopReady(id){const it=shopItem(id);if(!it)return false;const sid=it.type==='skin'?it.id:it.skin;
   return SHOP_READY.indexOf(sid)>=0;}
 /** owned: bought (S.owned) or free (price 0 skin) or bundled colour of an owned skin */

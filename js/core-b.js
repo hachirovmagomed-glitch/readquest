@@ -27,6 +27,8 @@ const SKIN_THEMES={
  'ellada-night':{name:'Эллада',bg:'#100d0b',txt:'#ebe0d2',skin:'ellada',shop:'skin-ellada',icon:'amphora',night:true,base:'ellada'},
  babochkovyi:{name:'Бабочковый',bg:'#fcfbf8',txt:'#1d2140',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2'},
  'babochkovyi-night':{name:'Бабочковый',bg:'#0e1019',txt:'#e4e6ef',skin:'babochkovyi',shop:'skin-babochkovyi',icon:'flower-2',night:true,base:'babochkovyi'},
+ alice:{name:'Алиса в стране чудес',bg:'#fff9ed',txt:'#302322',skin:'alice',shop:'skin-alice',icon:'key-round'},
+ 'alice-night':{name:'Алиса в стране чудес',bg:'#131a30',txt:'#f1e5d3',skin:'alice',shop:'skin-alice',icon:'key-round',night:true,base:'alice'},
  celestial:{name:'Небесный',bg:'#fbf6ea',txt:'#2b2742',skin:'celestial',shop:'skin-celestial',icon:'moon'},
  'celestial-night':{name:'Небесный',bg:'#14172a',txt:'#e7dcc6',skin:'celestial',shop:'skin-celestial',icon:'moon',night:true,base:'celestial'}
 };

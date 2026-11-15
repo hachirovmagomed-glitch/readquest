@@ -2,7 +2,7 @@
  {
   "url": "https://ru.wikipedia.org/wiki/Теорема_Пифагора",
   "jina": false,
-  "ms": 1882,
+  "ms": 1880,
   "title": "Теорема Пифагора",
   "author": "Википедия",
   "genre": "Сайт",
@@ -56,7 +56,7 @@
  {
   "url": "https://en.wikipedia.org/wiki/Euler%27s_identity",
   "jina": false,
-  "ms": 1640,
+  "ms": 1583,
   "title": "Euler's identity",
   "author": "Wikipedia",
   "genre": "Сайт",
@@ -105,7 +105,7 @@
  {
   "url": "https://ilibrary.ru/text/1199/p.1/index.html",
   "jina": true,
-  "ms": 1980,
+  "ms": 1936,
   "title": "Ф. М. Достоевский. Братья Карамазовы. Текст произведения",
   "author": "ilibrary.ru",
   "genre": "Сайт",
@@ -134,7 +134,7 @@
  {
   "url": "https://habr.com/ru/articles/717906/",
   "jina": true,
-  "ms": 4691,
+  "ms": 3827,
   "title": "4 электронные музыкальные шкатулки своими руками. Знакомимся с логическими микросхемами",
   "author": "habr.com",
   "genre": "Сайт",

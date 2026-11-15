@@ -434,10 +434,52 @@ function celCover(b){
   return '<span class="cl-cover cl-'+CL_INKS[h%CL_INKS.length]+'"><i>'+bookFmt(b)+'</i><b class="cl-t">'+esc(b.title||'')+'</b><small class="cl-a">'+esc(bookAuthor(b))+'</small><svg viewBox="0 0 30 30" aria-hidden="true" focusable="false">'+CL_EMB[em[(m>>>8)%em.length]]+'</svg></span>';
 }
 function statOf(b){return S.bookStat[b.id]||b.stat;}
+
+/* Alice: fifty illustrated covers = 10 original Wonderland emblems × 5 bound-book palettes.
+   The hashed book ID fixes its appearance across renders. User-uploaded covers take priority. */
+const ALICE_COVER_PALETTES=[
+ ['#792a37','#fbe8c5','#e0ae61'],['#193c46','#f9eacf','#d6ae69'],
+ ['#243150','#f5e5c6','#cda55e'],['#ecddbf','#513025','#9c2635'],
+ ['#473146','#fff0da','#d5a06b']
+];
+const ALICE_COVER_ART=[
+ /* pocket watch */
+ '<circle cx="30" cy="29" r="16"/><circle cx="30" cy="29" r="12"/><path d="M26 10h8m-6 0V6h4v4M30 18v11l7 5M30 16v2M30 40v2M17 29h2M41 29h2"/>',
+ /* rabbit in a waistcoat */
+ '<path d="M22 22C17 12 17 4 21 4s7 11 8 18M32 22C33 10 37 4 40 7s0 13-5 18"/><ellipse cx="30" cy="32" rx="13" ry="13"/><path d="M25 29h1m9 0h1M28 34l2 2 2-2M24 45l-3 9m17-9 3 9M26 45l4 6 4-6"/>',
+ /* tea cup */
+ '<path d="M14 23h30v13q-2 12-15 12T14 36zM44 26h5q10 1 5 10-3 5-10 4M10 49h40M22 12q-6 5 0 9m9-11q-5 5 0 10m9-9q-5 5 0 9"/>',
+ /* key */
+ '<circle cx="23" cy="18" r="9"/><circle cx="23" cy="18" r="3"/><path d="M29 25l22 22m-8-8 5-5m-1 10 5-5"/>',
+ /* red rose */
+ '<path d="M30 36q-13-7-10-18 5-9 12-1 9-9 13 2 2 10-15 17zM30 36l-2 20m1-10q-15-12-18-3 8 10 18 6m0 0q10-14 20-8-7 11-20 11M26 22q5-8 10-1-2 7-9 6"/>',
+ /* chess queen */
+ '<path d="M16 48h30l-3 6H19zM20 45h22l5-26-10 9-7-13-7 13-10-9z"/><circle cx="13" cy="17" r="3"/><circle cx="30" cy="12" r="3"/><circle cx="47" cy="17" r="3"/><path d="M20 40h22"/>',
+ /* top hat */
+ '<path d="M16 45h32l-4-7H20zM22 38l2-25h18l2 25M23 31h20M13 46q17 8 38 0"/>',
+ /* playing cards */
+ '<g transform="rotate(-13 25 31)"><rect x="12" y="13" width="26" height="38" rx="2"/><path d="M25 28c-7-8-15 2 0 13 15-11 7-21 0-13z"/></g><g transform="rotate(16 42 33)"><rect x="36" y="18" width="14" height="29" rx="2"/><path d="M43 28v8m-4-4h8"/></g>',
+ /* looking glass */
+ '<ellipse cx="30" cy="25" rx="15" ry="20"/><ellipse cx="30" cy="25" rx="11" ry="16"/><path d="M30 45v9m-9 0h18M24 18l9-9m-12 17 15-15"/>',
+ /* caterpillar / mushroom */
+ '<path d="M10 29q20-32 40 0zM24 30h12l-3 23h-6zM16 25h3m10-6h3m12 6h3M5 50q7-13 14 0m23 0q7-13 14 0"/><circle cx="30" cy="23" r="3"/>'
+];
+function aliceCover(b){
+  const key=String(b.id||b.title||'');let h=2166136261;
+  for(let i=0;i<key.length;i++)h=Math.imul(h^key.charCodeAt(i),16777619)>>>0;
+  const mixed=Math.imul(h^(h>>>16),2246822519)>>>0;
+  const variant=mixed%50,theme=ALICE_COVER_PALETTES[Math.floor(variant/10)],art=ALICE_COVER_ART[variant%10];
+  return '<span class="alice-cover" style="--ac-bg:'+theme[0]+';--ac-ink:'+theme[1]+';--ac-gold:'+theme[2]+'">'+
+    '<i class="alice-cover-format">'+bookFmt(b)+'</i><b class="alice-cover-title">'+esc(b.title||'')+'</b>'+
+    '<svg class="alice-cover-emblem" viewBox="0 0 60 60" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">'+art+'</g></svg>'+
+    '<small class="alice-cover-author">'+esc(bookAuthor(b))+'</small></span>';
+}
+
 function coverHtml(b){
   const cv=S.covers[b.id];
   if(cv&&cv.indexOf('data:')===0)return '<img src="'+cv+'" alt="">';
   if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
+  if(document.documentElement.dataset.skin==='alice')return aliceCover(b);
   if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
   if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
   if(document.documentElement.dataset.skin==='celestial')return celCover(b);

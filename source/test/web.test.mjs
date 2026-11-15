@@ -320,6 +320,16 @@ bs = await books(); const b16m = bs.find(b => b.src === 'web:https://closed.exam
 const r16m = await p.evaluate(() => { const c = el('content'); return { b: (c.querySelector('p.rq-wp b') || {}).textContent, i: (c.querySelector('p.rq-wp i') || {}).textContent, l: (c.querySelector('span.rq-wl') || {}).textContent, tr: c.querySelectorAll('p.rq-tr').length, fm: (c.querySelector('p.rq-fm') || {}).textContent }; });
 ok('16) служба: жирный, курсив, ссылка, таблица, формула; вторая страница дописана, «Далее» убрано', b16m && t.startsWith('В этом абзаце есть жирное слово, курсивное слово и ссылка на другую статью.') && !/[*\[\]]|Далее/.test(t.slice(0, 400)) && t.includes('Вторая страница из службы') && t.split('Статья с таблицей').length === 1 &&
   r16m.b === 'жирное слово' && r16m.i === 'курсивное слово' && r16m.l === 'ссылка на другую статью' && r16m.tr === 3 && /E = mc²/.test(r16m.fm), { r16m, t: t.slice(0, 90) });
+// формулы MathML без TeX (так их теперь отдаёт Википедия) и «Дальше» в title ссылки (ilibrary)
+const mml16 = await p.evaluate(() => {
+  const M = (x, blk) => '<span class="mwe-math-element"><math class="mwe-math-element mwe-math-element-' + (blk ? 'block' : 'inline') + '" display="' + (blk ? 'block' : 'inline') + '" xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mstyle displaystyle="true">' + x + '</mstyle></mrow></math></span>';
+  const L = 'Длинный абзац о теореме, чтобы раскладчик понял, что это основной текст статьи, а не меню сайта или подпись к картинке, и оставил его в книге целиком.';
+  const html = '<html><body><article><p>Катеты ' + M('<mi>a</mi>') + ' и ' + M('<mi>b</mi>') + ': ' + M('<msup><mi>c</mi><mn>2</mn></msup><mo>=</mo><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup>') + '. ' + L + '</p>' +
+    M('<mi>d</mi><mo>=</mo><msqrt><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msubsup><mi>a</mi><mi>i</mi><mn>2</mn></msubsup></msqrt><mo>,</mo><mfrac><mn>1</mn><mn>2</mn></mfrac>', true) + '<p>' + L + '</p><p><a title="Дальше" href="/text/1/p.2/index.html"><div>&gt;&gt;&gt;</div></a></p></article></body></html>';
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const r = webHtmlToBook(html, 'https://lib.example/text/1/p.1/index.html');
+  return { t: r.text.slice(0, 40), fm: (r.text.match(/⁤⁡[^\n]*/) || [''])[0], next: webNextUrl(doc, 'https://lib.example/text/1/p.1/index.html') }; });
+ok('16) формулы MathML без TeX: c² = a² + b² в строке, √(∑ᵢ₌₁ⁿaᵢ²) отдельной строкой; «Дальше» в title ссылки', mml16.t.startsWith('Катеты a и b: c² = a² + b².') && mml16.fm === '⁤⁡d = √(∑ᵢ₌₁ⁿaᵢ²), 1/2' && mml16.next === 'https://lib.example/text/1/p.2/index.html', mml16);
 // удаление книги стирает запись webx
 await toLib(); const del16 = await p.evaluate(async (id) => { await webxDel('zzz'); const a = !!(await idbGet('webx:' + id)); await webxDel(id); return { a, b: !!(await idbGet('webx:' + id)) }; }, b16m.id);
 ok('16) запись webx стирается', del16.a && !del16.b, del16);

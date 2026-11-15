@@ -98,17 +98,46 @@ function webNotesPrep(doc,acc){
     const host=a.closest('sup')||a;host.parentNode.replaceChild(sp,host);drop.push(box);});
   drop.forEach(function(x){if(x.parentNode)x.remove();});
 }
+/* MathML (Википедия с 2025 года отдаёт формулы только так, без TeX) → строка знаками */
+function webMathml(n){
+  const kids=function(x){return Array.from(x.children);},one=function(x){return x?webMathml(x):'';};
+  const sup=function(t,mark){t=t.replace(/\s+/g,'');let o='';for(const ch of t){if(!WEB_SUP[ch])return mark+(t.length>1?'('+t+')':t);o+=WEB_SUP[ch];}return o;};
+  const sub=function(t){t=t.replace(/\s+/g,'');let o='';for(const ch of t){if(!WEB_SUB[ch])return '_'+(t.length>1?'('+t+')':t);o+=WEB_SUB[ch];}return o;};
+  const wrap=function(x){return /^(\p{N}+([.,]\p{N}+)?|[\p{L}∞]|)$/u.test(x)?x:'('+x+')';};
+  const tag=(n.localName||n.tagName||'').toLowerCase(),c=kids(n);
+  switch(tag){
+    case 'annotation':case 'annotation-xml':case 'none':case 'mprescripts':return '';
+    case 'semantics':return one(c[0]);
+    case 'mi':case 'mn':case 'mtext':case 'ms':return (n.textContent||'').replace(/⁡/g,'');
+    case 'mo':{const t=(n.textContent||'').replace(/[⁡-⁤]/g,'');return /^[=<>≤≥≠≈+−\-→←⇒⇔∈×·±]$/.test(t)?' '+t.replace('-','−')+' ':/^[,;]$/.test(t)?t+' ':t;}
+    case 'mspace':return ' ';
+    case 'msup':return one(c[0])+sup(one(c[1]).trim(),'^');
+    case 'msub':return one(c[0])+sub(one(c[1]).trim());
+    case 'msubsup':return one(c[0])+sub(one(c[1]).trim())+sup(one(c[2]).trim(),'^');
+    case 'munderover':return one(c[0])+sub(one(c[1]).trim())+sup(one(c[2]).trim(),'^');
+    case 'munder':{const b=one(c[0]),u=one(c[1]).trim();return /^(lim|max|min|sup|inf|∑|∏|∫)/.test(b.trim())?b+sub(u):b;}
+    case 'mover':{const b=one(c[0]),o=one(c[1]).trim();return o==='→'?b+'⃗':o==='¯'||o==='‾'||o==='―'?b+'̅':o==='^'||o==='ˆ'?b+'̂':o==='~'||o==='˜'?b+'̃':o==='˙'?b+'̇':b;}
+    case 'mfrac':return wrap(one(c[0]).trim())+'/'+wrap(one(c[1]).trim());
+    case 'msqrt':return '√'+wrap(c.map(webMathml).join('').trim());
+    case 'mroot':{const k=one(c[1]).trim();return (k==='3'?'∛':k==='4'?'∜':'('+k+')√')+wrap(one(c[0]).trim());}
+    case 'mfenced':return (n.getAttribute('open')||'(')+c.map(webMathml).join(n.getAttribute('separators')||', ')+(n.getAttribute('close')||')');
+    case 'mtable':return c.map(webMathml).join('; ');
+    case 'mtr':case 'mlabeledtr':return c.map(webMathml).join(' ');
+    default:return c.length?c.map(webMathml).join(''):(n.textContent||'');
+  }
+}
+function webMathTidy(t){return String(t).replace(/\s+/g,' ').replace(/\( /g,'(').replace(/ \)/g,')').replace(/ ([,.;])/g,'$1').trim();}
 /* формулы (Википедия, MathJax, KaTeX): TeX из разметки → строка знаками; большая формула становится отдельным абзацем */
 function webMathPrep(doc){
-  Array.from(doc.querySelectorAll('.mwe-math-element,.katex-display,.katex,.MathJax_Display,.MathJax,mjx-container,script[type^="math/tex"],math')).forEach(function(m){
+  Array.from(doc.querySelectorAll('.mwe-math-element,.mwe-math-element-block,.katex-display,.katex,.MathJax_Display,.MathJax,mjx-container,script[type^="math/tex"],math')).forEach(function(m){
     if(!m.isConnected||(m.parentElement&&m.parentElement.closest('.mwe-math-element,.katex-display,.katex,.MathJax_Display,.MathJax,mjx-container')))return;
     const an=m.matches('script')?m:m.querySelector('annotation[encoding*="tex" i],script[type^="math/tex"]'),im=m.querySelector('img[alt]');
     const mt=m.matches('math')?m:m.querySelector('math[alttext]');
     const tex=an?an.textContent:mt&&mt.getAttribute('alttext')?mt.getAttribute('alttext'):im?im.getAttribute('alt'):'';
-    if(!tex||!tex.trim())return;
-    const t=webTex(tex);if(!t)return;
+    const mm0=mt||(m.matches('math')?m:m.querySelector('math'));
+    const t=tex&&tex.trim()?webTex(tex):mm0?webMathTidy(webMathml(mm0)):'';if(!t)return;
     const mm=m.matches('math')?m:m.querySelector('math');
-    const blk=/display/i.test(m.className||'')||/mode=display/.test(m.getAttribute('type')||'')||(mm&&mm.getAttribute('display')==='block')||m.getAttribute('display')==='true'||!!m.querySelector('.mwe-math-fallback-image-display');
+    const blk=/display|block/i.test(m.className||'')||/mwe-math-element-block|mwe-math-display/.test((m.parentElement&&m.parentElement.className)||'')||(m.parentElement&&m.parentElement.tagName==='DD'&&m.parentElement.textContent.trim()===m.textContent.trim())||/mode=display/.test(m.getAttribute('type')||'')||(mm&&mm.getAttribute('display')==='block')||m.getAttribute('display')==='true'||!!m.querySelector('.mwe-math-fallback-image-display');
     const sp=doc.createElement('span');sp.setAttribute('data-rqfm',blk?'b':'i');sp.textContent=t;m.parentNode.replaceChild(sp,m);});
   doc.querySelectorAll('.MathJax_Preview,.katex-html').forEach(function(x){x.remove();});
 }
@@ -136,7 +165,7 @@ function webNextUrl(doc,url){
   const abs=function(v){try{const u=new URL(v,url);u.hash='';return u.href;}catch(e){return '';}};
   const c=[];doc.querySelectorAll('link[rel~="next"][href],a[rel~="next"][href]').forEach(function(a){c.push(a.getAttribute('href'));});
   doc.querySelectorAll('a[href]').forEach(function(a){const im=a.querySelector('img[alt]');
-    const t=webClean(a.textContent||a.getAttribute('aria-label')||a.getAttribute('title')||(im&&im.getAttribute('alt'))||'').replace(/^[←→»«›‹<>\s]+(?=\S{2})|(?<=\S{2})[\s←→»«›‹<>]+$/g,'');if(t.length<=24&&WEB_NEXT.test(t))c.push(a.getAttribute('href'));});
+    if([a.textContent,a.getAttribute('aria-label'),a.getAttribute('title'),im&&im.getAttribute('alt')].some(function(v){const t=webClean(v||'').replace(/^[←→»«›‹<>\s]+(?=\S{2})|(?<=\S{2})[\s←→»«›‹<>]+$/g,'');return t&&t.length<=24&&WEB_NEXT.test(t);}))c.push(a.getAttribute('href'));});
   for(const h of c){const u=abs(h);if(u&&webPagey(url,u))return u;}
   return '';
 }

@@ -1,0 +1,65 @@
+[
+ {
+  "url": "https://ru.wikipedia.org/wiki/Теорема_Пифагора",
+  "jina": false,
+  "ms": 32348,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://en.wikipedia.org/wiki/List_of_best-selling_books",
+  "jina": false,
+  "ms": 31529,
+  "msg": "",
+  "n": 0
+ },
+ {
+  "url": "https://paulgraham.com/greatwork.html",
+  "jina": true,
+  "ms": 31396,
+  "msg": "Не получилось: служба Jina Reader не смогла открыть эту страницу (код 401)",
+  "n": 0
+ },
+ {
+  "url": "https://habr.com/ru/articles/717906/",
+  "jina": true,
+  "ms": 31505,
+  "msg": "Не получилось: служба Jina Reader не смогла открыть эту страницу (код 401)",
+  "n": 0
+ },
+ {
+  "url": "https://developer.mozilla.org/ru/docs/Web/HTTP/Status",
+  "jina": true,
+  "ms": 31397,
+  "msg": "Не получилось: служба Jina Reader не смогла открыть эту страницу (код 401)",
+  "n": 0
+ },
+ {
+  "url": "https://ilibrary.ru/text/1199/p.1/index.html",
+  "jina": true,
+  "ms": 31585,
+  "msg": "Не получилось: служба Jina Reader не смогла открыть эту страницу (код 401)",
+  "n": 0
+ },
+ {
+  "url": "https://arzamas.academy/mag/1211-reading",
+  "jina": true,
+  "ms": 31657,
+  "msg": "Не получилось: служба Jina Reader не смогла открыть эту страницу (код 401)",
+  "n": 0
+ },
+ {
+  "url": "https://knife.media/reading/",
+  "jina": true,
+  "ms": 31450,
+  "msg": "Не получилось: служба Jina Reader не смогла открыть эту страницу (код 401)",
+  "n": 0
+ },
+ {
+  "url": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "jina": false,
+  "ms": 31418,
+  "msg": "Этот сайт не даёт приложению открыть страницу напрямую. Можно открыть её через Jina Reader: это бесплатная служба, которая сама откроет страницу и отдаст текст. Адрес страницы уйдёт этой службе.Больше не спрашивать, сразу открывать через Jina Reader Открыть через Jina ReaderИли вставьте в поле выше сам текст страницы, или сохраните страницу файлом.",
+  "n": 0
+ }
+]

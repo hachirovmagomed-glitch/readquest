@@ -103,7 +103,8 @@ function webMathPrep(doc){
   Array.from(doc.querySelectorAll('.mwe-math-element,.katex-display,.katex,.MathJax_Display,.MathJax,mjx-container,script[type^="math/tex"],math')).forEach(function(m){
     if(!m.isConnected||(m.parentElement&&m.parentElement.closest('.mwe-math-element,.katex-display,.katex,.MathJax_Display,.MathJax,mjx-container')))return;
     const an=m.matches('script')?m:m.querySelector('annotation[encoding*="tex" i],script[type^="math/tex"]'),im=m.querySelector('img[alt]');
-    const tex=an?an.textContent:im?im.getAttribute('alt'):m.matches('math')&&m.getAttribute('alttext')?m.getAttribute('alttext'):'';
+    const mt=m.matches('math')?m:m.querySelector('math[alttext]');
+    const tex=an?an.textContent:mt&&mt.getAttribute('alttext')?mt.getAttribute('alttext'):im?im.getAttribute('alt'):'';
     if(!tex||!tex.trim())return;
     const t=webTex(tex);if(!t)return;
     const mm=m.matches('math')?m:m.querySelector('math');
@@ -112,7 +113,7 @@ function webMathPrep(doc){
   doc.querySelectorAll('.MathJax_Preview,.katex-html').forEach(function(x){x.remove();});
 }
 /* «статья на нескольких страницах»: ссылка «Далее / Next / rel=next» на ту же статью, только с другим номером страницы */
-const WEB_NEXT=/^(далее|дальше|вперёд|вперед|следующая( страница| часть)?|след\.?|next( page| part)?|older( posts)?|→|»|›|>|>>)$/i;
+const WEB_NEXT=/^(далее|дальше|вперёд|вперед|следующая( страница| часть| глава)?|следующая стр\.?|след\.?( стр\.?)?|продолжение|next( page| part| chapter)?|older( posts)?|→|»|›|>|>>)$/i;
 function webPagey(cur,nx){
   let a,b;try{a=new URL(cur);b=new URL(nx);}catch(e){return false;}
   if(a.hostname!==b.hostname||a.pathname+a.search===b.pathname+b.search)return false;
@@ -134,7 +135,8 @@ function webPagey(cur,nx){
 function webNextUrl(doc,url){
   const abs=function(v){try{const u=new URL(v,url);u.hash='';return u.href;}catch(e){return '';}};
   const c=[];doc.querySelectorAll('link[rel~="next"][href],a[rel~="next"][href]').forEach(function(a){c.push(a.getAttribute('href'));});
-  doc.querySelectorAll('a[href]').forEach(function(a){const t=webClean(a.textContent||a.getAttribute('aria-label')||a.getAttribute('title')||'');if(t.length<=24&&WEB_NEXT.test(t))c.push(a.getAttribute('href'));});
+  doc.querySelectorAll('a[href]').forEach(function(a){const im=a.querySelector('img[alt]');
+    const t=webClean(a.textContent||a.getAttribute('aria-label')||a.getAttribute('title')||(im&&im.getAttribute('alt'))||'').replace(/^[←→»«›‹<>\s]+(?=\S{2})|(?<=\S{2})[\s←→»«›‹<>]+$/g,'');if(t.length<=24&&WEB_NEXT.test(t))c.push(a.getAttribute('href'));});
   for(const h of c){const u=abs(h);if(u&&webPagey(url,u))return u;}
   return '';
 }

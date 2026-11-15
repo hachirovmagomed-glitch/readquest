@@ -98,3 +98,46 @@ html[data-skin="alice"] .bigxp{color:var(--rq-accent-text)}
 @media(prefers-reduced-motion:reduce){
  html[data-skin="alice"] *,html[data-skin="alice"] *::before,html[data-skin="alice"] *::after{animation:none!important;transition:none!important}
 }
+
+
+/* 50 procedural illustrated book jackets: title, author and ink emblem remain legible. */
+html[data-skin="alice"] .cover .alice-cover{
+  display:flex;position:relative;flex-direction:column;align-items:center;justify-content:space-between;
+  width:100%;height:100%;min-height:0;overflow:hidden;isolation:isolate;
+  padding:9px 6px 8px;border:2px solid var(--ac-gold);border-radius:5px;
+  color:var(--ac-ink);background:var(--ac-bg);
+  box-shadow:inset 0 0 0 3px var(--ac-bg),inset 0 0 0 4px var(--ac-gold);
+  text-align:center;line-height:1.12;font-family:Georgia,"Noto Serif",serif;
+}
+html[data-skin="alice"] .alice-cover::before{
+  content:"♠  ♡  ♣  ♢";display:block;position:absolute;inset:5px 5px auto;
+  padding:2px 0 4px;border-bottom:1px solid var(--ac-gold);
+  color:var(--ac-gold);font-size:7px;line-height:1;letter-spacing:1px;pointer-events:none
+}
+html[data-skin="alice"] .alice-cover::after{
+  content:"";position:absolute;inset:auto 5px 5px;
+  height:4px;border-top:1px solid var(--ac-gold);pointer-events:none
+}
+html[data-skin="alice"] .alice-cover .alice-cover-format{
+  position:relative;z-index:1;display:block;margin:11px 0 4px;
+  font:700 8px/1 Georgia,serif;letter-spacing:2px;color:var(--ac-gold);text-transform:uppercase
+}
+html[data-skin="alice"] .alice-cover .alice-cover-title{
+  position:relative;z-index:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;
+  max-width:100%;overflow:hidden;overflow-wrap:anywhere;flex:0 1 auto;
+  font-size:clamp(10px,2.7vw,14px);line-height:1.2;font-weight:700;color:var(--ac-ink)
+}
+html[data-skin="alice"] .alice-cover .alice-cover-emblem{
+  display:block;width:min(75%,74px);height:auto;max-height:32%;min-height:20px;flex:0 1 auto;
+  color:var(--ac-gold);margin:4px auto;fill:none;filter:drop-shadow(0 1px 0 rgba(0,0,0,.08))
+}
+html[data-skin="alice"] .alice-cover .alice-cover-author{
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  overflow:hidden;overflow-wrap:anywhere;max-width:100%;font-size:9px;line-height:1.2;
+  color:var(--ac-ink);opacity:.9;margin:2px auto 7px
+}
+/* Compact cover placements can shrink without displacing surrounding controls. */
+html[data-skin="alice"] :is(.bk-head,.bookcard) .cover .alice-cover{padding:6px 4px}
+html[data-skin="alice"] #shelf:is(.v-short,.v-full) .alice-cover .alice-cover-emblem{display:none}
+html[data-skin="alice"] #shelf:is(.v-short,.v-full) .alice-cover .alice-cover-author{display:none}
+html[data-skin="alice"] #shelf:is(.v-short,.v-full) .alice-cover .alice-cover-title{font-size:9px;-webkit-line-clamp:3}

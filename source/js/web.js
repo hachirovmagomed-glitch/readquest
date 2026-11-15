@@ -108,7 +108,7 @@ function webMathml(n){
   switch(tag){
     case 'annotation':case 'annotation-xml':case 'none':case 'mprescripts':return '';
     case 'semantics':return one(c[0]);
-    case 'mi':case 'mn':case 'mtext':case 'ms':{const t=(n.textContent||'').replace(/⁡/g,'');return tag==='mi'&&t.length>1&&n.nextElementSibling&&/^m[in]$/.test(n.nextElementSibling.localName)?t+' ':t;}
+    case 'mi':case 'mn':case 'mtext':case 'ms':{const t=(n.textContent||'').replace(/⁡/g,'');const nx=n.nextElementSibling;return tag==='mi'&&t.length>1&&nx&&(/^m[in]$/.test(nx.localName)||(nx.localName==='mo'&&/^[\u2061\s]*$/.test(nx.textContent)))?t+' ':t;}
     case 'mo':{const t=(n.textContent||'').replace(/[⁡-⁤]/g,'');return /^[=<>≤≥≠≈+−\-→←⇒⇔∈×·±]$/.test(t)?' '+t.replace('-','−')+' ':/^[,;]$/.test(t)?t+' ':t;}
     case 'mspace':return ' ';
     case 'msup':return one(c[0])+sup(one(c[1]).trim(),'^');

@@ -1,4 +1,4 @@
-# Temporary (thread hd9bis, 13.11, run 11: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
+# Temporary (thread hd9bis, 13.11, run 12: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
 name: web-probe
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
           JS
           cd /tmp/nm && node probe.mjs
       - run: |
-          curl -s -m 30 https://ilibrary.ru/text/1199/p.1/index.html | iconv -f cp1251 -t utf-8 2>/dev/null | grep -io '<a[^>]*p\.2[^>]*>[^<]*<[^>]*>' | head -5 > ilib-next.txt; cat ilib-next.txt
+          curl -s -m 40 https://r.jina.ai/https://ilibrary.ru/text/1199/p.1/index.html | grep -n 'p\.2\|Дальше\|>>' | head -10 > ilib-next.txt; curl -s -m 30 https://ilibrary.ru/text/1199/p.1/index.html | iconv -f cp1251 -t utf-8 2>/dev/null | grep -io '.\{0,200\}p\.2.\{0,200\}' | head -3 >> ilib-next.txt; curl -sI -m 30 https://ilibrary.ru/text/1199/p.1/index.html | grep -i 'access-control\|content-type' >> ilib-next.txt; cat ilib-next.txt
           curl -s -m 30 'https://ru.wikipedia.org/w/api.php?action=parse&format=json&formatversion=2&prop=text&page=%D0%A2%D0%B5%D0%BE%D1%80%D0%B5%D0%BC%D0%B0_%D0%9F%D0%B8%D1%84%D0%B0%D0%B3%D0%BE%D1%80%D0%B0' | grep -o 'mwe-math-element.\{0,700\}' | head -2 >> ilib-next.txt
       - run: |
           for u in https://paulgraham.com/greatwork.html https://habr.com/ru/articles/717906/; do echo "== $u"; curl -s -m 30 -D - "https://r.jina.ai/$u" | head -c 1200; echo; done > jina-raw.txt 2>&1; cat jina-raw.txt

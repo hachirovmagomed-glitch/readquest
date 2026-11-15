@@ -1,54 +1,8 @@
 [
  {
-  "url": "https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович",
-  "jina": false,
-  "ms": 2113,
-  "title": "Чехов, Антон Павлович",
-  "author": "Википедия",
-  "genre": "Сайт",
-  "len": 54513,
-  "webx": {
-   "len": 54513,
-   "kinds": {
-    "1": 1,
-    "2": 6,
-    "3": 283,
-    "4": 76
-   },
-   "links": 238,
-   "notes": 81,
-   "note0": "Краткая литературная энциклопедия — М.: Советская энциклопедия, 1962.",
-   "pages": 1
-  },
-  "tr": 0,
-  "fm": [],
-  "trs": [],
-  "toc": [
-   "Биография",
-   "Детство и юность",
-   "Становление",
-   "Сахалин",
-   "Поздние годы",
-   "Здоровье",
-   "Смерть",
-   "Творчество",
-   "Драматургия",
-   "Особенности драматургии",
-   "Псевдонимы Чехова",
-   "Значение творчества"
-  ],
-  "imgMarks": 23,
-  "imgSaved": 23,
-  "head": "Анто́н Па́влович Че́хов (рус. дореф. Антонъ Павловичъ Чеховъ; 17 (29) января 1860, Таганрог, Екатеринославская губерния, Российская империя — 2 (15) июля 1904, Баденвайлер, Германская империя[4][5]) — русский писатель, прозаик, драматург, публицист[6], врач, общественный деятель в сфере благотворительности[7][8][9].\n\nКлассик мировой литературы. Почётный академик Императорской академии наук по разряду изящной словесности (1900—1902). Один из самых известных драматургов мира. Его произведения переведены более чем на сто языков. Его пьесы, в особенности «Чайка», «Три сестры» и «Вишнёвый сад», на протяжении более ста лет ставятся во многих театрах мира.\n\nЗа 25 лет творчества — с момента выпуска из гимназии в 1879 году вплоть до кончины в июле 1904 года — Чехов создал более пятисот различных произведений (коротких юмористических рассказов, фельетонов, серьёзных рассказов и повестей, пьес), многие из которых стали классикой мировой литературы. Особенное внимание обратили на себя повести «Степь», «Скучная история», «Дуэль», «Палата № 6» (1892), «Дом с мезонином» (1896), «Душечка», «Попрыгунья», «Рассказ неизвестного человека», «Мужики», «Человек в футляре» (1897—1898), «В овраге», «Детвор",
-  "tail": "1899 — Успенский переулок, 1/12 (Малая Дмитровка, 12) — здесь жила сестра — М. П. Чехова.\n\n• 1899 — Малая Дмитровка, 11/10 — Доходный дом А. А. Шешкова, квартира № 14.\n\n• 1900, 1901 — Тверская улица, 6 (гостиница «Дрезден»).\n\n• 1902 — Звонарский переулок, 2/14 — дом Фирсановой.\n\n• 1902 — Звонарский переулок, 21 — дом Гонецкой.\n\n• 1904 — Леонтьевский переулок, 24 — дом А. И. Катыка. Последний московский адрес.\n\nСанкт-Петербургские адреса\n\n• Невский пр., 132, кв. 15, адрес его брата Александра[69]",
-  "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)"
-  ]
- },
- {
   "url": "https://ru.wikipedia.org/wiki/Теорема_Пифагора",
   "jina": false,
-  "ms": 1900,
+  "ms": 1882,
   "title": "Теорема Пифагора",
   "author": "Википедия",
   "genre": "Сайт",
@@ -68,6 +22,14 @@
   },
   "tr": 0,
   "fm": [],
+  "tex": 0,
+  "fmIn": [
+   "вырождающееся в теорему Пифагора при θ=π/2. Соотношение является следствием подо",
+   "S02=∑i=1nSi2.",
+   "d2=∑i=1nai2.",
+   "бой октант единичной сферы, имеют длину π/2, что противоречит теореме Пифагора.",
+   "d(p,q)=∑i=1n(pi−qi)2."
+  ],
   "trs": [],
   "toc": [
    "История",
@@ -92,94 +54,87 @@
   ]
  },
  {
-  "url": "https://en.wikipedia.org/wiki/List_of_best-selling_books",
+  "url": "https://en.wikipedia.org/wiki/Euler%27s_identity",
   "jina": false,
-  "ms": 1897,
-  "title": "List of best-selling books",
+  "ms": 1640,
+  "title": "Euler's identity",
   "author": "Wikipedia",
   "genre": "Сайт",
-  "len": 31145,
+  "len": 7106,
   "webx": {
-   "len": 31145,
+   "len": 7106,
    "kinds": {
-    "1": 1,
-    "2": 13,
-    "3": 27,
-    "4": 21
+    "1": 2,
+    "2": 25,
+    "3": 65,
+    "4": 14
    },
-   "links": 42,
-   "notes": 377,
-   "note0": "\"Best selling book of non-fiction\". Guinness World Records. Archived from the original on 15 March 2015. Retrieved 5 April 2026.",
+   "links": 100,
+   "notes": 16,
+   "note0": "Gallagher, James (13 February 2014). \"Mathematics: Why the brain sees maths as beauty\". BBC News. Retrieved 26 December 2017.",
    "pages": 1
   },
-  "tr": 310,
+  "tr": 0,
   "fm": [],
-  "trs": [
-   "⁤⁢⁢Book\tAuthor(s)\tOriginal language\tFirst published\tApproximate sales\tGenre",
-   "⁤⁢A Tale of Two Cities\tCharles Dickens\tEnglish\t1859\t>200 million[20]\tHistorical fiction",
-   "⁤⁢The Little Prince (Le Petit Prince)\tAntoine de Saint-Exupéry\tFrench\t1943\t200 million[21][22][23]\tFantasy",
-   "⁤⁢The Alchemist (O Alquimista)\tPaulo Coelho\tPortuguese\t1988\t150 million[24][25]\tFantasy",
-   "⁤⁢Harry Potter and the Philosopher's Stone\tJ. K. Rowling\tEnglish\t1997\t120 million[26][27]\tFantasy"
+  "tex": 0,
+  "fmIn": [
+   " as Euler's equation) is the equality eiπ+1=0 where",
+   "• π is pi, the ratio of the circumference o",
+   "a eix=cos⁡x+isin⁡x when evaluated for x=π. Euler's identity is considered an exem",
+   "• The number π (π = 3.14159...), the fundamental circle c",
+   "rom 1 to 100. The computation of (1 + ⁠iπ/N⁠)N is displayed as the combined effec",
+   " point being the actual value of (1 + ⁠iπ/N⁠)N. It can be seen that as N gets lar"
   ],
+  "trs": [],
   "toc": [
-   "Legend",
-   "List of best-selling individual books",
-   "More than 100 million copies",
-   "Between 50 million and 100 million copies",
-   "Between 20 million and 50 million copies",
-   "Between 10 million and 20 million copies",
-   "List of best-selling book series",
-   "More than 100 million copies",
-   "Between 50 million and 100 million copies",
-   "Between 30 million and 50 million copies",
-   "Between 20 million and 30 million copies",
-   "Between 15 million and 20 million copies"
+   "Mathematical beauty",
+   "Explanations",
+   "Imaginary exponents",
+   "Geometric interpretation",
+   "Generalizations",
+   "History"
   ],
-  "imgMarks": 0,
-  "imgSaved": 0,
-  "head": "This page provides lists of best-selling books and book series to date and in any language. \"Best-selling\" refers to the estimated number of copies sold of each book, rather than the number of books printed or currently owned. Comics and textbooks are not included in this list. The books are listed according to the highest sales estimate as reported in reliable, independent sources.\n\nAccording to Guinness World Records, the Bible is the best-selling book of all time with an estimated 5 to 7 billion copies sold and distributed as of 2021.[1] Sales estimates for other printed religious texts include at least 800 million copies for the Qur'an and 200 million copies for the Book of Mormon.[2] Additionally, a single publisher has produced more than 162.1 million copies of the Bhagavad Gita.[3] Among non-religious texts, the Quotations from Chairman Mao Tse-tung, also known as the Little Red Book, has produced a wide array of sales and distribution figures—with estimates ranging from 800 million[1] to over 6.5 billion printed volumes.[4] Some claim the distribution ran into the \"billions\"[5] and some cite \"over a billion\" official volumes between 1966 and 1969 alone as well as \"untold nu",
-  "tail": "o. 1 Ladies Detective Agency\tAlexander McCall Smith\tEnglish\t23\t1999–present\t15 million[331]\n\n⁤⁢Der Regenbogenfisch (Rainbow Fish)\tMarcus Pfister\tGerman\t⁠\t1992–present\t15 million[332]\n\n⁤⁢The Riftwar Cycle\tRaymond E. Feist\tEnglish\t25\t1982–present\t15 million[333]\n\n⁤⁢The Thrawn trilogy\tTimothy Zahn\tEnglish\t3\t1991–93\t15 million[334]\n\n⁤⁢Wiedźmin (The Witcher)\tAndrzej Sapkowski\tPolish\t9\t1990–2013\t15 million[335]\n\n⁤⁢14ひきのシリーズ (The family of fourteen)\tKazuo Iwamura\tJapanese\t⁠\t1983–present\t15 million[336]",
+  "imgMarks": 2,
+  "imgSaved": 2,
+  "head": "In mathematics, Euler's identity (also known as Euler's equation) is the equality eiπ+1=0 where\n\n• e is Euler's number, the base of natural logarithms,\n\n• i is the imaginary unit, which by definition satisfies i2=−1, and\n\n• π is pi, the ratio of the circumference of a circle to its diameter.\n\nEuler's identity is named after the Swiss mathematician Leonhard Euler. It is a special case of Euler's formula eix=cos⁡x+isin⁡x when evaluated for x=π. Euler's identity is considered an exemplar of mathematical beauty, as it involves several of the most important numbers in mathematics.\n\nMathematical beauty\n\nEuler's identity is often cited as an example of deep mathematical beauty.[3] Three of the basic arithmetic operations occur exactly once each: addition, multiplication, and exponentiation. The identity also links five fundamental mathematical constants:[4]\n\n• The number 0, the additive identity\n\n• The number 1, the multiplicative identity\n\n• The number π (π = 3.14159...), the fundamental circle constant\n\n• The number e (e = 2.71828...), also known as Euler's number, which occurs widely in mathematical analysis\n\n• The number i, the imaginary unit such that i2 = −1\n\nThe equation is often g",
+  "tail": "\nRobin Wilson writes:[16]\n\n⁡We've seen how [Euler's identity] can easily be deduced from results of Johann Bernoulli and Roger Cotes, but that neither of them seem to have done so. Even Euler does not seem to have written it down explicitly—and certainly it doesn't appear in any of his publications—though he must surely have realized that it follows immediately from his identity [i.e. Euler's formula], eix = cos x + i sin x. Moreover, it seems to be unknown who first stated the result explicitly",
   "errs": [
    "error Failed to load resource: the server responded with a status of 404 (File not found)"
   ]
  },
  {
-  "url": "https://paulgraham.com/greatwork.html",
+  "url": "https://ilibrary.ru/text/1199/p.1/index.html",
   "jina": true,
-  "ms": 1891,
-  "title": "How to Do Great Work",
-  "author": "paulgraham.com",
+  "ms": 1980,
+  "title": "Ф. М. Достоевский. Братья Карамазовы. Текст произведения",
+  "author": "ilibrary.ru",
   "genre": "Сайт",
-  "len": 66952,
+  "len": 4026,
   "webx": {
-   "len": 66952,
-   "kinds": {
-    "1": 2,
-    "2": 16,
-    "3": 40
-   },
-   "links": 21,
+   "len": 4026,
+   "kinds": {},
+   "links": 0,
    "notes": 0,
    "pages": 1
   },
   "tr": 0,
   "fm": [],
+  "tex": 0,
+  "fmIn": [],
   "trs": [],
   "toc": [],
-  "imgMarks": 1,
+  "imgMarks": 0,
   "imgSaved": 0,
-  "head": "￼img:0\n\nJuly 2023 If you collected lists of techniques for doing great work in a lot of different fields, what would the intersection look like? I decided to find out by making it.\n\nPartly my goal was to create a guide that could be used by someone working in any field. But I was also curious about the shape of the intersection. And one thing this exercise shows is that it does have a definite shape; it's not just a point labelled \"work hard.\"\n\nThe following recipe assumes you're very ambitious.\n\nThe first step is to decide what to work on. The work you choose needs to have three qualities: it has to be something you have a natural aptitude for, that you have a deep interest in, and that offers scope to do great work.\n\nIn practice you don't have to worry much about the third criterion. Ambitious people are if anything already too conservative about it. So all you need to do is find something you have an aptitude for and great interest in.\n\nThat sounds straightforward, but it's often quite difficult. When you're young you don't know what you're good at or what different kinds of work are like. Some kinds of work you end up doing may not even exist yet. So while some people know what",
-  "tail": "] It may be helpful always to walk or run the same route, because that frees attention for thinking. It feels that way to me, and there is some historical evidence for it.Thanks to Trevor Blackwell, Daniel Gackle, Pam Graham, Tom Howard, Patrick Hsu, Steve Huffman, Jessica Livingston, Henry Lloyd-Baker, Bob Metcalfe, Ben Miller, Robert Morris, Michael Nielsen, Courtenay Pipkin, Joris Poort, Mieke Roos, Rajat Suri, Harj Taggar, Garry Tan, and my younger son for suggestions and for reading drafts.",
+  "head": "Истинно, истинно говорю вам: если пшеничное зерно, падши в землю, не умрет, то останется одно; а если умрет, то принесет много плода. (Евангелие от Иоанна, гл. XII, ст. 24)\n\nБратья Карамазовы\n\nРоман В четырех частях с эпилогом\n\n⁢От автора\n\nНачиная жизнеописание героя моего, Алексея Федоровича Карамазова, нахожусь в некотором недоумении. А именно: хотя я и называю Алексея Федоровича моим героем, но, однако, сам знаю, что человек он отнюдь не великий, а посему и предвижу неизбежные вопросы вроде таковых: чем же замечателен ваш Алексей Федорович, что вы выбрали его своим героем? Что сделал он такого? Кому и чем известен? Почему я, читатель, должен тратить время на изучение фактов его жизни?Последний вопрос самый роковой, ибо на него могу лишь ответить: «Может быть, увидите сами из романа». Ну а коль прочтут роман и не увидят, не согласятся с примечательностью моего Алексея Федоровича? Говорю так, потому что с прискорбием это предвижу. Для меня он примечателен, но решительно сомневаюсь, успею ли это доказать читателю. Дело в том, что это, пожалуй, и деятель, но деятель неопределенный, невыяснившийся. Впрочем, странно бы требовать в такое время, как наше, от людей ясности. Одно, пожалуй",
+  "tail": "аскрывать более. Но ведь есть такие деликатные читатели, которые непременно захотят дочитать до конца, чтобы не ошибиться в беспристрастном суждении; таковы, например, все русские критики. Так вот перед такими-то все-таки сердцу легче: несмотря на всю их аккуратность и добросовестность, все-таки даю им самый законный предлог бросить рассказ на первом эпизоде романа. Ну вот и всё предисловие. Я совершенно согласен, что оно лишнее, но так как оно уже написано, то пусть и останется.А теперь к делу.",
   "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)",
-   "error Access to fetch at 'https://s.turbifycdn.com/aah/paulgraham/how-to-do-great-work-2.gif' from origin 'http://127.0.0.1:8790' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-   "error Failed to load resource: net::ERR_FAILED"
+   "error Failed to load resource: the server responded with a status of 404 (File not found)"
   ]
  },
  {
   "url": "https://habr.com/ru/articles/717906/",
   "jina": true,
-  "ms": 3781,
+  "ms": 4691,
   "title": "4 электронные музыкальные шкатулки своими руками. Знакомимся с логическими микросхемами",
   "author": "habr.com",
   "genre": "Сайт",
@@ -196,6 +151,8 @@
   },
   "tr": 0,
   "fm": [],
+  "tex": 0,
+  "fmIn": [],
   "trs": [],
   "toc": [
    "16 семплов в одной микросхеме",
@@ -210,156 +167,6 @@
   "tail": "тся в такт музыке или шуму.\n\nКатоды десяти светодиодов подключены к общему проводу через общий резистор R4, но одновременно светит только один светодиод, потому расположить их при сборке можно по своему усмотрению.\n\nПослушать и посмотреть, как работают все эти пять устройств, а также понаблюдать за процессом их сборки, можно на видео.\n\nНапишите в комментариях про фабричные и самодельные музыкальные устройства из своих детства и юности. Спасибо за внимание!\n\n⁡? Голосуй за нас на премии «ЦОДы РФ»!",
   "errs": [
    "error Failed to load resource: the server responded with a status of 404 (File not found)"
-  ]
- },
- {
-  "url": "https://developer.mozilla.org/ru/docs/Web/HTTP/Status",
-  "jina": true,
-  "ms": 1689,
-  "title": "Коды состояния ответа HTTP - HTTP | MDN",
-  "author": "developer.mozilla.org",
-  "genre": "Сайт",
-  "len": 11442,
-  "webx": {
-   "len": 11442,
-   "kinds": {
-    "2": 2,
-    "3": 80
-   },
-   "links": 80,
-   "notes": 0,
-   "pages": 1
-  },
-  "tr": 0,
-  "fm": [],
-  "trs": [],
-  "toc": [
-   "Информационные ответы",
-   "Успешные ответы",
-   "Сообщения о перенаправлении",
-   "Ошибки клиента",
-   "Ошибки сервера",
-   "Смотрите также"
-  ],
-  "imgMarks": 0,
-  "imgSaved": 0,
-  "head": "Информационные ответы\n\n100 Continue Промежуточный ответ, он указывает, что клиент должен продолжить запрос или игнорировать этот ответ, если запрос уже завершен.\n\n101 Switching Protocols Этот код отправляется в ответ на заголовок запроса Upgrade от клиента и указывает протокол, на который переключается сервер.\n\n102 Processing (WebDAV) Сервер получил и обрабатывает запрос, но ответа пока нет.\n\n103 Early Hints Этот код в первую очередь предназначен для использования с заголовком Link, позволяя пользовательскому агенту начать предварительную загрузку ресурсов или осуществить предварительное соединение к источнику ресурсов, пока сервер готовит ответ.\n\nУспешные ответы\n\n200 OK Запрос успешно выполнен. Значение результата «успех» зависит от метода HTTP:\n\n• GET: Ресурс был получен и передан в теле сообщения.\n\n• HEAD: Ответ содержит заголовки, но тела сообщения нет.\n\n• PUT или POST: Ресурс, описывающий результат действия, передан в теле сообщения.\n\n• TRACE: Тело сообщения содержит сообщение запроса, полученное сервером.\n\n201 Created Запрос выполнен успешно, и в результате был создан новый ресурс. Обычно это ответ, отправляемый на запросы POST или PUT.\n\n202 Accepted Запрос получен, но еще не",
-  "tail": "ия вариант ресурса не является подходящим.\n\n507 Insufficient Storage (WebDAV) Запрос не выполнен, потому что серверу не удалось сохранить данные.\n\n508 Loop Detected (WebDAV) Запрос не выполнен, потому что на сервере был обнаружен бесконечный цикл обработки данных.\n\n510 Not Extended Для выполнения запроса необходимо его расширить.\n\n511 Network Authentication Required Клиенту необходимо пройти аутентификацию для получения доступа к сети.\n\nСмотрите также\n\n• Список кодов состояния HTTP\") в Википедии",
-  "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)"
-  ]
- },
- {
-  "url": "https://ilibrary.ru/text/1199/p.1/index.html",
-  "jina": true,
-  "ms": 1945,
-  "title": "Ф. М. Достоевский. Братья Карамазовы. Текст произведения",
-  "author": "ilibrary.ru",
-  "genre": "Сайт",
-  "len": 4026,
-  "webx": {
-   "len": 4026,
-   "kinds": {},
-   "links": 0,
-   "notes": 0,
-   "pages": 1
-  },
-  "tr": 0,
-  "fm": [],
-  "trs": [],
-  "toc": [],
-  "imgMarks": 0,
-  "imgSaved": 0,
-  "head": "Истинно, истинно говорю вам: если пшеничное зерно, падши в землю, не умрет, то останется одно; а если умрет, то принесет много плода. (Евангелие от Иоанна, гл. XII, ст. 24)\n\nБратья Карамазовы\n\nРоман В четырех частях с эпилогом\n\n⁢От автора\n\nНачиная жизнеописание героя моего, Алексея Федоровича Карамазова, нахожусь в некотором недоумении. А именно: хотя я и называю Алексея Федоровича моим героем, но, однако, сам знаю, что человек он отнюдь не великий, а посему и предвижу неизбежные вопросы вроде таковых: чем же замечателен ваш Алексей Федорович, что вы выбрали его своим героем? Что сделал он такого? Кому и чем известен? Почему я, читатель, должен тратить время на изучение фактов его жизни?Последний вопрос самый роковой, ибо на него могу лишь ответить: «Может быть, увидите сами из романа». Ну а коль прочтут роман и не увидят, не согласятся с примечательностью моего Алексея Федоровича? Говорю так, потому что с прискорбием это предвижу. Для меня он примечателен, но решительно сомневаюсь, успею ли это доказать читателю. Дело в том, что это, пожалуй, и деятель, но деятель неопределенный, невыяснившийся. Впрочем, странно бы требовать в такое время, как наше, от людей ясности. Одно, пожалуй",
-  "tail": "аскрывать более. Но ведь есть такие деликатные читатели, которые непременно захотят дочитать до конца, чтобы не ошибиться в беспристрастном суждении; таковы, например, все русские критики. Так вот перед такими-то все-таки сердцу легче: несмотря на всю их аккуратность и добросовестность, все-таки даю им самый законный предлог бросить рассказ на первом эпизоде романа. Ну вот и всё предисловие. Я совершенно согласен, что оно лишнее, но так как оно уже написано, то пусть и останется.А теперь к делу.",
-  "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)"
-  ]
- },
- {
-  "url": "https://arzamas.academy/mag/1211-reading",
-  "jina": true,
-  "ms": 5236,
-  "title": "Что пятиметровый свиток рассказывает о Средневековом Китае?",
-  "author": "arzamas.academy",
-  "genre": "Сайт",
-  "len": 31787,
-  "webx": {
-   "len": 31787,
-   "kinds": {
-    "1": 7,
-    "2": 1,
-    "3": 2
-   },
-   "links": 4,
-   "notes": 0,
-   "pages": 1
-  },
-  "tr": 0,
-  "fm": [],
-  "trs": [],
-  "toc": [
-   "Разбор одного шедевра: «По реке в День поминовения усопших» Чжан Цзэдуаня",
-   "Общее",
-   "Посетители кладбища",
-   "Предместья вдоль реки",
-   "Город",
-   "P.S. Как и зачем Чжан Цзэдуань создал свиток?"
-  ],
-  "imgMarks": 24,
-  "imgSaved": 17,
-  "head": "Разбор одного шедевра: «По реке в День поминовения усопших» Чжан Цзэдуаня\n\nПлавучий ресторан, радужный мост,женщины на мулах, толпа ученых в очереди к предсказателю, матросы в беде и певички, зазывающие в трактиры. Рассматриваем пятиметровый китайский свиток и гуляем по средневековому городу\n\nОбщее\n\n«По реке в День поминовения усопших»Чжан Цзэдуаня— одна из самых известных китайских картин, ее можно назвать визуальным символом традиционного Китая. Она изображает город Кайфэн, столицу империи Северная Сун Империя Северная Сун существовала с 960 по 1127 год.,в День поминовения усопших. Предположительно, свиток был написан в начале XII века, незадолго до завоевания Северного Китая чжурчжэнями и разрушения Кайфэна.\n\nИсторию картины мы можем проследить по колофонам —каллиграфическим подписям, которые добавлялись к левой части свитка коллекционерами и ценителями искусства. Первый колофон относится к 1186 году и принадлежит кисти хранителя императорской коллекции чжурчжэньского государства Цзинь Чжан Чжу. Это единственный источник информации об авторе картины. Из него обычно заключают, что Чжан Цзэдуань, уроженец восточной китайской провинции Шаньдун, приехал в Кайфэн, чтобы сдавать экзам",
-  "tail": "оляет узнать об этнографи­ческих особенностях городского быта и понять, как воспринимали эту эпоху ее совре­менники.\n\nРазбор одного шедевра: «Снятие с креста» Рубенса\n\nРассматриваем картину из Антверпена во всех деталях\n\nРазбор одного шедевра: «Безумная Грета» Брейгеля\n\nО чем нам говорят лицо и вуаль Греты, глаза и нос адской пасти, демон-акробат и яйцезадый\n\nРазбор одного шедевра: «Мадонна каноника ван дер Пале» Яна ван Эйка\n\nЧто на картине означают попугай, отражение в щите и гениталии Христа?",
-  "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)"
-  ]
- },
- {
-  "url": "https://knife.media/reading/",
-  "jina": true,
-  "ms": 2460,
-  "title": "В Томске начался марафон чтения Стругацких",
-  "author": "knife.media",
-  "genre": "Сайт",
-  "len": 1328,
-  "webx": {
-   "len": 1328,
-   "kinds": {
-    "3": 2
-   },
-   "links": 2,
-   "notes": 0,
-   "pages": 1
-  },
-  "tr": 0,
-  "fm": [],
-  "trs": [],
-  "toc": [],
-  "imgMarks": 4,
-  "imgSaved": 0,
-  "head": "Любители творчества Аркадия и Бориса Стругацких собрались в университетской библиотеке Томска и восемь часов подряд читают вслух «Понедельник начинается в субботу». Марафон начался в полдень по сибирскому времени и на момент публикации читатели уже подобрались к середине повести — сатирической главе «Суета сует».\n\nЧитать приятнее в компании, чем порознь, утверждают организаторы марафона, основатели «Открытого университета» — образовательного проекта для вечных студентов. «Счастье в непрерывном познании неизвестного» — эта цитата из книги стала девизом чтений.\n\nВ читке уже поучаствовали сотрудники библиотеки, выпускники филфака и актрисы театра кукол, своими впечатлениями они поделились на странице мероприятия «ВКонтакте». Присоединиться к марафону можно в любой момент. Для этого не нужно заранее регистрироваться или иметь читательский билет, главное — оказаться рядом с научной библиотекой ТГУ до восьми вечера.\n\nМарафон проходит третий год подряд: в 2015-м участники читали произведения Пушкина, в 2016-м — «Мастера и Маргариту» Булгакова.\n\n«Открытый университет» действует в Томске с 2013-го, в том же году он вошел в число лучших гражданских инициатив РФ и получил президентский грант.",
-  "tail": "иметь читательский билет, главное — оказаться рядом с научной библиотекой ТГУ до восьми вечера.\n\nМарафон проходит третий год подряд: в 2015-м участники читали произведения Пушкина, в 2016-м — «Мастера и Маргариту» Булгакова.\n\n«Открытый университет» действует в Томске с 2013-го, в том же году он вошел в число лучших гражданских инициатив РФ и получил президентский грант. Главный принцип лектория — свобода: вход на мероприятия открыт для всех желающих.\n\n￼img:0\n\n￼img:1\n\n￼img:2\n\n￼img:3\n\nФото: vk.com",
-  "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)",
-   "error Access to fetch at 'https://knife.media/wp-content/uploads/2017/09/speaker.jpg' from origin 'http://127.0.0.1:8790' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-   "error Failed to load resource: net::ERR_FAILED",
-   "error Access to fetch at 'https://knife.media/wp-content/uploads/2017/09/reader.jpg' from origin 'http://127.0.0.1:8790' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-   "error Failed to load resource: net::ERR_FAILED",
-   "error Access to fetch at 'https://knife.media/wp-content/uploads/2017/09/reader2.jpg' from origin 'http://127.0.0.1:8790' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-   "error Failed to load resource: net::ERR_FAILED",
-   "error Access to fetch at 'https://knife.media/wp-content/uploads/2017/09/readers.jpg' from origin 'http://127.0.0.1:8790' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource."
-  ]
- },
- {
-  "url": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
-  "jina": false,
-  "ms": 31581,
-  "msg": "Этот сайт не даёт приложению открыть страницу напрямую. Можно открыть её через Jina Reader: это бесплатная служба, которая сама откроет страницу и отдаст текст. Адрес страницы уйдёт этой службе.Больше не спрашивать, сразу открывать через Jina Reader Открыть через Jina ReaderИли вставьте в поле выше сам текст страницы, или сохраните страницу файлом.",
-  "n": 0,
-  "errs": [
-   "error Failed to load resource: the server responded with a status of 404 (File not found)",
-   "error Access to fetch at 'https://www.gutenberg.org/files/1342/1342-h/1342-h.htm' from origin 'http://127.0.0.1:8790' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
-   "error Failed to load resource: net::ERR_FAILED"
   ]
  }
 ]

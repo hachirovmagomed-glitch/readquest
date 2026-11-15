@@ -116,12 +116,20 @@ const WEB_NEXT=/^(далее|дальше|вперёд|вперед|следую
 function webPagey(cur,nx){
   let a,b;try{a=new URL(cur);b=new URL(nx);}catch(e){return false;}
   if(a.hostname!==b.hostname||a.pathname+a.search===b.pathname+b.search)return false;
-  const ap=a.pathname.replace(/\/+$/,''),bp=b.pathname.replace(/\/+$/,''),q=/(^|[?&])(page|p|pg|pn|paged|part|start|offset|str)=(\d+)/i;
-  if(ap===bp){const m=q.exec(b.search);return !!m&&+m[3]>0&&(+m[3]<=60||/start|offset/i.test(m[2]));}
-  const base=ap.replace(/\.(html?|php|aspx?)$/i,''),m=new RegExp('^'+base.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:[/_-](?:page|part|p|str)?[/_-]?)(\\d{1,2})(?:\\.(?:html?|php|aspx?))?$','i').exec(bp);
-  if(m&&+m[1]>=2)return true;
-  const x=/^(.*?[\/_-](?:page|part|p|str)?[\/_-]?)(\d{1,2})(\.(?:html?|php|aspx?))?$/i.exec(ap),y=/^(.*?[\/_-](?:page|part|p|str)?[\/_-]?)(\d{1,2})(\.(?:html?|php|aspx?))?$/i.exec(bp);
-  return !!(x&&y&&x[1]===y[1]&&/(page|part|p|str)[\/_-]?$/i.test(x[1])&&+y[2]===+x[2]+1);
+  const q=/(^|[?&])(page|p|pg|pn|paged|part|start|offset|str|PAGEN_\d+)=(\d+)/i;
+  if(a.pathname.replace(/\/+$/,'')===b.pathname.replace(/\/+$/,'')){const m=q.exec(b.search),m0=q.exec(a.search);if(!m)return false;
+    return /start|offset/i.test(m[2])?(!m0||+m[3]>+m0[3]):(+m[3]>=2&&+m[3]<=60&&(!m0||+m[3]===+m0[3]+1));}
+  /* путь: отличается одним куском, и в нём номер на 1 больше (/p.1/ → /p.2/, /2/ → /3/), или у первой страницы номера нет (/statya → /statya/2, statya-2.html) */
+  const A=a.pathname.replace(/\/+$/,'').split('/'),B=b.pathname.replace(/\/+$/,'').split('/');
+  const num=function(x){const m=/^(.*?)(\d{1,2})(\.(?:s?html?|php|aspx?))?$/i.exec(x);return m?{pre:m[1],n:+m[2],ext:m[3]||''}:null;};
+  const bare=function(x){return x.replace(/\.(?:s?html?|php|aspx?)$/i,'');};
+  if(A.length===B.length){let d=-1;for(let i=0;i<A.length;i++)if(A[i]!==B[i]){if(d>=0)return false;d=i;}
+    if(d<0)return false;const x=num(A[d]),y=num(B[d]);
+    if(x&&y&&x.pre===y.pre&&y.n===x.n+1&&(x.pre===''?d===A.length-1:/[._\-]|page|part|p|str$/i.test(x.pre)))return true;
+    return !x&&!!y&&y.n===2&&bare(A[d])===bare(y.pre).replace(/[._\-]?(page|part|p|str)?[._\-]?$/i,'');}
+  if(B.length===A.length+1||B.length===A.length+2){for(let i=0;i<A.length;i++)if(A[i]!==B[i])return false;
+    const rest=B.slice(A.length).join('/');return /^((page|part|p|str)\/)?2$/i.test(rest);}
+  return false;
 }
 function webNextUrl(doc,url){
   const abs=function(v){try{const u=new URL(v,url);u.hash='';return u.href;}catch(e){return '';}};

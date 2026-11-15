@@ -1,0 +1,44 @@
+# Temporary (thread hd9bis, 15.11, run 15): which free CORS services open pages for the browser (fallback after Jina). Removed after.
+name: web-probe
+on:
+  push:
+    branches: [claude/project-thread-hd9bis]
+    paths: [.github/workflows/web-probe.yml]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: claude/project-thread-hd9bis }
+      - run: mkdir -p /tmp/srv && echo '<html><body>probe</body></html>' > /tmp/srv/index.html && (cd /tmp/srv && nohup python3 -m http.server 8790 >/dev/null 2>&1 &) && sleep 2
+      - run: mkdir -p /tmp/nm && cd /tmp/nm && npm i -s puppeteer-core >/dev/null 2>&1
+      - run: |
+          cat > /tmp/nm/probe.mjs <<'JS'
+          import puppeteer from 'puppeteer-core'; import fs from 'fs';
+          const URLS = ['http://lib.ru/PROZA/CHEHOW/kashtanka.txt','http://az.lib.ru/c/chehow_a_p/text_0050.shtml','https://www.gutenberg.org/files/1342/1342-h/1342-h.htm','https://habr.com/ru/articles/717906/','https://www.bbc.com/russian','https://example.com/nonexistent-page-xyz'];
+          const SV = {
+            allorigins: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+            codetabs: u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u),
+            corsproxyio: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+            corslol: u => 'https://api.cors.lol/?url=' + encodeURIComponent(u),
+            thingproxy: u => 'https://thingproxy.freeboard.io/fetch/' + u,
+            jina: u => 'https://r.jina.ai/' + u,
+            wbAvail: u => 'https://archive.org/wayback/available?url=' + encodeURIComponent(u),
+            wbRaw: u => 'https://web.archive.org/web/2025id_/' + u,
+          };
+          const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox'] });
+          const p = await b.newPage(); await p.goto('http://127.0.0.1:8790/');
+          const out = [];
+          for (const [k, f] of Object.entries(SV)) for (const u of URLS) {
+            const r = await p.evaluate(async (url) => { const t0 = Date.now(); try { const ac = new AbortController(); setTimeout(() => ac.abort(), 25000); const res = await fetch(url, { credentials: 'omit', signal: ac.signal }); const buf = await res.arrayBuffer(); const txt = new TextDecoder('latin1').decode(new Uint8Array(buf).subarray(0, 300));
+              return { st: res.status, ct: res.headers.get('content-type'), len: buf.byteLength, ms: Date.now() - t0, head: txt.replace(/\s+/g, ' ').slice(0, 160) }; } catch (e) { return { err: String(e).slice(0, 120), ms: Date.now() - t0 }; } }, f(u));
+            out.push(Object.assign({ sv: k, u }, r)); console.log(k, u, JSON.stringify(r).slice(0, 260));
+          }
+          fs.writeFileSync(process.env.GITHUB_WORKSPACE + '/web-probe.json', JSON.stringify(out, null, 1)); await b.close();
+          JS
+          cd /tmp/nm && node probe.mjs
+      - run: |
+          git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
+          git add web-probe.json && git commit -m "web-probe: результаты (временно)" && git push

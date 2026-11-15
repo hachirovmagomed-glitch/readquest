@@ -562,7 +562,7 @@ function pdfTap(cx,cy){
   const sel=selText();
   pdfLog({ev:'tap',x:Math.round(cx),y:Math.round(cy),sel:sel?sel.slice(0,20):'',z:P.z,dbl:!!P.tapT,t:Math.round(performance.now())});
   if(quoteTapAt(cx,cy))return; /* 22.10: a saved highlight → its bar (no double-tap wait) */
-  if(sel)return;
+  if(sel){if(Date.now()-touchTapAt<80&&typeof selDone==='function')selDone();return;} /* 10.11: a finger tap clears a selection */
   const now=performance.now();
   if(P.tapT&&now-P.tapAt<=PDF_DBL_MS&&Math.hypot(cx-P.tapX,cy-P.tapY)<60){clearTimeout(P.tapT);P.tapT=null;pdfDoubleTap(cx,cy);return;}
   const r=pdfVR(),x=(cx-r.left)/r.width,y=(cy-r.top)/r.height;
@@ -690,11 +690,11 @@ function rqCols(w){const sp=rqRx().screen.spread;if(sp==='off')return 1;if(w>=86
 function rqTextMargin(){const v=el('viewer');if(!v||R.mode==='pdf')return;const W=window.innerWidth,m=SET.margin;
   const mw=(W>=600&&W<860&&!(rqRx().screen.spread==='land'&&W>window.innerHeight))?Math.max(m,Math.floor((W-SET.size*36)/2)):m; /* 29.10: two pages in landscape keep the plain margins */
   if(v._mw!==mw){v._mw=mw;v.style.margin='0 '+mw+'px';el('reader').style.setProperty('--r-margin',mw+'px');}}
-function layout(){
+function layout(sz){
   if(R.mode==='pdf'){pdfOnResize();return;}
   rqTextMargin();
   const v=el('viewer'),c=el('content');
-  const w=v.clientWidth,h=v.clientHeight,gap=48;
+  const w=sz?sz.w:v.clientWidth,h=sz?sz.h:v.clientHeight,gap=48; /* 10.11 sz: measured by rqBgSnapRestore while the book was still put away (no extra full re-layout) */
   if(rqScrollMode()){ /* 16.10: one vertical strip; «page» = one screen, the last page = the end of the text */
     c.style.columnWidth='auto';c.style.columnGap='normal';c.style.height='auto';c.style.width=w+'px';c.style.transform='none';
     R.step=h;const max=Math.max(0,v.scrollHeight-h);R.scrollMax=max;
@@ -749,15 +749,16 @@ function relayout(opts){
   if(rqHalfSync())applySet(); /* 05.11 половина экрана: свой шрифт и поля */
   if(window.__rqFindOpen&&!o.force){R.relayDue=true;return;} /* 22.10: the keyboard of the search screen shrinks the viewport — no re-pagination of the whole book under it (black screen); done once on close */
   if(R.mode==='pdf'){pdfOnResize();return;} /* CSS-scale now, one re-render when the size is stable */
+  if(window.__rqBgSnap&&__rqBgSnap.on){__rqBgSnap.due=true;return;} /* 10.11: the book is put away while the app is in the background (js/page-curl.js rqBgSnapTake) — measured once on return */
   const v=el('viewer');
   if(!o.force&&R.layoutKey===layoutKey(v.clientWidth,v.clientHeight))return; /* nothing changed → no reflow, no jump */
   const anchor=o.anchor||readingAnchor();
   const ratio=R.pageCount>1?R.page/(R.pageCount-1):0;
-  layout();
+  layout(o.size);
   let p=anchor?pageOfAnchor(anchor):-1;
   if(p<0)p=Math.round(ratio*(R.pageCount-1));
   R.relay=true;try{goPage(p,false);}finally{R.relay=false;} /* 1в: a re-layout keeps the text in view; it never grows «reached» (e.g. after read-aloud) */
-  if(rqScrollMode()&&anchor)rqScrollToAnchor(anchor); /* scroll: the anchor's line at the top, not just its screen */
+  if(rqScrollMode()&&anchor){rqScrollToAnchor(anchor);rqScrollPosSync(false);} /* scroll: the anchor's line at the top, not just its screen; 11.11: pos = that line */
   R.anc=anchor?{a:anchor,page:R.page}:null; /* keep THIS anchor for the next relayout on the same page */
 }
 /* The reading position survives chains of relayouts (bars ↔ fullscreen ↔ rotation): while the reader
@@ -767,6 +768,23 @@ function readingAnchor(){
   if(R.anc&&R.anc.page===R.page&&R.anc.a&&R.anc.a.node&&R.anc.a.node.isConnected)return R.anc.a;
   return captureAnchor();
 }
+/** 11.11: called before a setting changes the text's look (applySet): the first visible line becomes the anchor of the relayout that follows.
+    Pages: an anchor kept for this page stays (chains of relayouts do not drift). «Прокрутка»: always the line at the top now. */
+function rqKeepPlace(){
+  try{if(R.mode==='pdf'||!R.book||!(R.pageCount>0)||el('reader').classList.contains('hidden'))return;
+    const k=layoutKey(el('viewer').clientWidth,el('viewer').clientHeight);
+    if(k===R.layoutKey){R.keptKey=null;return;} /* nothing to lay out again */
+    if(k===R.keptKey)return; /* already taken for this look: by now the styles are new and the screen shows other text */
+    R.keptKey=k;const a=rqScrollMode()?captureAnchor():readingAnchor();if(a)R.anc={a:a,page:R.page};}catch(e){}
+}
+/** «Прокрутка»: the place inside the book as a number 0..1 (screens, with the part of a screen), null outside it. */
+function rqScrollFine(){
+  if(R.mode==='pdf'||!rqScrollMode()||!(R.pageCount>1)||!(R.step>0))return null;
+  const v=el('viewer');if(v.scrollTop>=(R.scrollMax||0)-2)return 1;
+  return Math.max(0,Math.min(1,v.scrollTop/(R.step*(R.pageCount-1))));
+}
+/** 11.11 «Прокрутка»: pos = the exact place (not the nearest whole screen); grow: the farthest place grows with it (a move of the reader, not a re-layout). */
+function rqScrollPosSync(grow){const f=rqScrollFine();if(f==null)return false;R.pos=f;if(grow)R.maxRatio=Math.max(R.maxRatio||0,f);return true;}
 /** Font size change (Aa / pinch / Ctrl+wheel): exactly one reflow, position kept. */
 function setFontSizeKeepPos(size){
   size=Math.max(14,Math.min(30,Math.round(size)));
@@ -795,6 +813,7 @@ function persistPageBg(){
   if(!R||!R.book||el('reader').classList.contains('hidden'))return;
   const sliding=!!(R.sliding||(typeof P!=='undefined'&&P.sliding));
   if(sliding){if(typeof R.posPreSlide==='number')persistPage(R.posPreSlide);return;}
+  if(!(window.__rqBgSnap&&__rqBgSnap.on))rqScrollPosSync(true); /* 11.11 «Прокрутка»: hidden in the middle of a scroll / the autoscroll — the place of this moment */
   persistPage();
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')persistPageBg();});
@@ -854,7 +873,8 @@ function rqScrollSettle(){
   const v=el('viewer');
   if(R.progTop!=null&&Math.abs(v.scrollTop-R.progTop)<2)return;
   R.progTop=null;
-  const np=rqScrollPage(),d=np-R.page;if(!d)return;
+  const np=rqScrollPage(),d=np-R.page;
+  if(!d){if(rqScrollPosSync(true))persistPage();return;} /* 11.11: the same screen, another line — the place is still saved */
   R.fromScroll=true;
   try{if(Math.abs(d)===1)goPage(np,true);else{R.jumping=true;try{goPage(np,false);}finally{R.jumping=false;}}}
   finally{R.fromScroll=false;}
@@ -862,6 +882,7 @@ function rqScrollSettle(){
 el('viewer').addEventListener('scroll',function(){if(rqScrollMode()){rqScrollSoon();if(__tracker&&__tracker.userActive)__tracker.userActive('scroll');}},{passive:true}); /* 25.10: scrolling = a sign of life */
 function goPage(p,turn){
   if(window.__rqWriter&&!__rqWriter.mayWrite())return; /* passive: page stays put under the overlay */
+  if(window.__rqBgSnap&&__rqBgSnap.on&&!R.relay)rqBgSnapRestore(); /* 10.11: a turn while the book is put away (back from the background) — the book comes back first */
   if(R.mode==='pdf'){ /* PDF: the page is shown (and counted) at the swap; ±1 turns chain from the pending target */
     if(turn&&Math.abs(p-R.page)===1)pdfFlip(p-R.page);else pdfGo(p,turn?'flip':'nav');
     return;
@@ -883,7 +904,7 @@ function goPage(p,turn){
   const ak=(turn&&!R.sliding&&!R.relay&&!R.jumping&&Math.abs(np-prev)===1&&!rqScrollMode())?rqAnimKind():null;
   rqShowPage(np,ak,prev);
   const ratio=R.pageCount>1?np/(R.pageCount-1):1;
-  if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;} /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
+  if(!R.sliding){if(!R.ttsAdv&&!R.relay)R.maxRatio=Math.max(R.maxRatio,ratio);R.pos=ratio;if(R.fromScroll)rqScrollPosSync(!R.ttsAdv&&!R.relay);} /* 11.11 «Прокрутка»: the exact place where the finger stopped */ /* 1б-144: slider preview is not «reached»; 1в: nor is a read-aloud page */
   /* page number + book progress: same task as the transform → same frame as the new text */
   el('rPage').textContent=(np+1)+' / '+R.pageCount;
   el('pgNum').textContent=(np+1)+' / '+R.pageCount; /* always-visible number, same frame */
@@ -1002,7 +1023,7 @@ el('viewer').addEventListener('click',e=>{
 function viewerTap(cx,cy){
   if(typeof SM!=='undefined'&&SM.on&&R.mode==='text'){smTapAt(cx,cy);return;} /* 28.10: selecting — the tap moves the end of the selection, pages turn by swipe */
   if(quoteTapAt(cx,cy))return; /* 22.10: a tap on a saved highlight opens its bar; with the bar open the tap only closes it */
-  if(selText())return; // идёт выделение текста — не листаем
+  if(selText()){if(Date.now()-touchTapAt<80)selDone();return;} // идёт выделение текста — не листаем; 10.11: касание пальцем снимает его (мышь — нет: щелчок после протяжки)
   const r=el('viewer').getBoundingClientRect();
   const x=(cx-r.left)/r.width;
   const y=(cy-r.top)/r.height;

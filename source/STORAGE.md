@@ -7,7 +7,7 @@
 | Что | Где | Форма |
 |-----|-----|--------|
 | **schemaVersion** | `localStorage` envelope `rq_v1` | `1` |
-| **Тела книг** | IndexedDB only (`files`) | `text:{id}` / `pdf:{id}` — **не** в localStorage; картинки FB2/EPUB `img:{id}:{n}` (Blob, с 28.10) |
+| **Тела книг** | IndexedDB only (`files`) | `text:{id}` / `pdf:{id}` — **не** в localStorage; картинки FB2/EPUB `img:{id}:{n}` (Blob, с 28.10); чёткая обложка `cov:{id}` (JPEG ≤ 420×600, с 10.11; маленькая 88×116 — в `library.covers`, `library.covAuto` = книги, которые разовый проход обложек уже видел; сама картинка `covsrc:{id}` ≤ 1000 px и `library.covCrop` = обрезка {x,y,z}) |
 | **progress** | localStorage (`rq_v1.progress`) | прогресс по книгам, hist, минуты дня, … |
 | **goal** | localStorage (`rq_v1.progress.goal`) | **defaultMinutes: 10** (в коде поле `goal`) |
 | **streak** | localStorage (`rq_v1.progress.streak`) | soft floor **≥ 3 мин** (`STREAK_MIN` в `js/core-a.js`; storage только хранит) |
@@ -60,7 +60,7 @@
 
 | Store | Назначение |
 |-------|------------|
-| `files` | тела книг (`text:{id}`, `pdf:{id}`); картинки книг `img:{id}:{n}` — в тексте метка `\uFFFCimg:{n}` отдельным абзацем; удаляются вместе с книгой (removeBook, wipeFile) |
+| `files` | тела книг (`text:{id}`, `pdf:{id}`); картинки книг `img:{id}:{n}` — в тексте метка `\uFFFCimg:{n}` отдельным абзацем; удаляются вместе с книгой (removeBook, wipeFile); обложка `cov:{id}` (js/covers.js) — при «Убрать» и «Вернуть стандартную» |
 | `sessions` | append-only **sessions[]** |
 | `events` | append-only reading events (`pageVisibleMs`) |
 

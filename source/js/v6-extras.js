@@ -132,7 +132,7 @@ const QUEST_METRICS={
   minutesToday:{label:'минут за сегодня',unit:'мин',val:()=>Math.round(S.minToday),period:()=>today()},
   minutesTotal:{label:'минут всего',unit:'мин',val:()=>Math.round(S.totalMin),period:()=>'once'},
   pagesTotal:{label:'страниц всего',unit:'стр',val:()=>S.totalPages,period:()=>'once'},
-  booksFinished:{label:'книг дочитано',unit:'кн',val:()=>S.finished.length,period:()=>'once'},
+  booksFinished:{label:'книг дочитано',unit:'кн',val:()=>rqFinBooks().length,period:()=>'once'},
   streak:{label:'дней серии подряд',unit:'дн',val:()=>S.streak,period:()=>'once'},
   daysThisMonth:{label:'дней чтения в месяце',unit:'дн',val:()=>monthDays(),period:()=>today().slice(0,7)},
   quotes:{label:'цитат собрано',unit:'шт',val:()=>Object.keys(S.quotes).reduce((a,k)=>a+(S.quotes[k]||[]).length,0),period:()=>'once'}
@@ -289,8 +289,8 @@ const DEFAULT_ACH=[
  {id:'goldA5k',name:'Богач',desc:'5000 валюты заработано всего',mult:0.04,ck:()=>goldAll()>=5000,now:()=>goldAll()+'/5000'},
  {id:'sess10',name:'Постоянство',desc:'10 сессий чтения',mult:0.02,ck:()=>S.sessions>=10,now:()=>S.sessions+'/10'},
  {id:'sess50',name:'Книжный червь',desc:'50 сессий чтения',mult:0.04,ck:()=>S.sessions>=50,now:()=>S.sessions+'/50'},
- {id:'fin1',name:'Первая книга',desc:'Дочитать 1 книгу',mult:0.02,ck:()=>S.finished.length>=1,now:()=>S.finished.length+'/1'},
- {id:'fin5',name:'Книголюб',desc:'Дочитать 5 книг',mult:0.04,ck:()=>S.finished.length>=5,now:()=>S.finished.length+'/5'},
+ {id:'fin1',name:'Первая книга',desc:'Дочитать 1 книгу',mult:0.02,ck:()=>rqFinBooks().length>=1,now:()=>rqFinBooks().length+'/1'},
+ {id:'fin5',name:'Книголюб',desc:'Дочитать 5 книг',mult:0.04,ck:()=>rqFinBooks().length>=5,now:()=>rqFinBooks().length+'/5'},
  {id:'sk5',name:'Мастер навыка',desc:'Навык до 5 уровня',mult:0.03,ck:()=>maxSkillLevel()>=5,now:()=>maxSkillLevel()+'/5'},
  {id:'char10',name:'Развитый ум',desc:'Характеристика до 10 уровня',mult:0.05,ck:()=>maxCharLevel()>=10,now:()=>maxCharLevel()+'/10'}
 ];
@@ -481,7 +481,7 @@ function statCountersHtml(){
   const cells=[
     [''+S.sessions,'сессий выполнено'],
     [''+(S.userBooks?S.userBooks.length:0),'книг добавлено'],
-    [''+S.finished.length,'книг дочитано'],
+    [''+rqFinBooks().length,'книг дочитано'],
     [''+goldAll(),'монет за всё время'],
     [''+S.xp,'XP за всё время'],
     [''+skillsXpAll(),'XP по навыкам'],
@@ -657,7 +657,7 @@ function setLang(l){if(S.lang===l)return;S.lang=l;save();location.reload();}
 let shelfJustAdded=null;
 function syncShelf(){
   S.shelfOrder=S.shelfOrder||[];
-  const ids=(S.finished||[]).filter(id=>allBooks().some(b=>b.id===id)); // полка трофеев = прочитанные книги
+  const ids=rqFinBooks().filter(id=>allBooks().some(b=>b.id===id)); // полка трофеев = прочитанные книги
   S.shelfOrder=S.shelfOrder.filter(id=>ids.indexOf(id)>=0);
   ids.forEach(id=>{if(S.shelfOrder.indexOf(id)<0)S.shelfOrder.push(id);});
 }

@@ -1,7 +1,7 @@
 'use strict';
 /* ================= НАСТРОЙКИ ЧТЕНИЯ ================= */
 let SET;
-const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null,tp:null};
+const SETDEF={font:0,size:19,lh:1.65,theme:'sepia',margin:24,mtop:12,cTxt:null,cBg:null,align:'j',hyph:true,indent:true,ls:0,weight:400,nav:null,mvp:true,focus:'button',pdfDim:0.35,readCounter:true,bright:1,warm:0,pdfFont:false,pdfTheme:false,flip:null,hlc:'y',hlx:null,pauseBtn:true,pauseXY:null,wsp:0,psp:0,rm:null,tp:null};
 try{SET=Object.assign({},SETDEF,JSON.parse(localStorage.getItem(RQ_K.set)||'{}'));}catch(e){SET=Object.assign({},SETDEF);}
 /* SET.flip (Архитектор 15.10, arch.md): page-turn settings, separate from SET.nav (bottom-bar tabs). Additive, default FLIP_DEF.
    Not an object → dropped (default). Once at load: no flip + nav is the OLD flip object (not a tab list) → copied to flip.
@@ -34,6 +34,7 @@ function normSet(s){delete s.focusMode;if(['off','button','auto'].indexOf(s.focu
   s.pauseXY=pauseXYNorm(s.pauseXY);
   const st=function(v,lo,hi,d){return (typeof v==='number'&&isFinite(v))?Math.round(Math.max(lo,Math.min(hi,v))*20)/20:d;}; /* 18.10 SET.bright / SET.warm */
   s.bright=st(s.bright,0.3,1,1);s.warm=st(s.warm,0,0.6,0);
+  s.mtop=(typeof s.mtop==='number'&&isFinite(s.mtop))?Math.round(Math.max(0,Math.min(60,s.mtop))):12; /* 08.11 «Поле сверху» (arch.md SET.mtop): px над текстом сверх выреза камеры */
   /* 20.10 (Джессика): «Затемнение» and «Тёплый только ночью» removed. An old SET.dim is folded into «Яркость» once (same screen:
      1 − (1 − dim)·bright), the warm tint now follows «Тёплый оттенок» on every page; both old keys are dropped */
   if(typeof s.dim==='number'&&isFinite(s.dim)&&s.dim>0)s.bright=st((1-Math.min(0.7,s.dim))*s.bright,0.3,1,1);
@@ -90,7 +91,7 @@ function rqRxNorm(o){
     sel:{off:ids(s.off),order:ids(s.order),color:['y','g','b','p','o'].indexOf(s.color)>=0?s.color:''},
     screen:{orient:en(sc.orient,['auto','portrait','landscape']),spread:en(sc.spread,['auto','land','off'])},
     fresh:{set:nm(fr.set),pdf:nm(fr.pdf),toc:bo(fr.toc,false)},
-    sm:(function(m){return {lp:en(m.lp,['n','f','s']),tap:bo(m.tap,true),drag:en(m.drag,['edge','any','off']),lpd:bo(m.lpd,true),unit:en(m.unit,['word','char']),edge:en(m.edge,['off','f','s']),hand:en(m.hand,['n','b']),vib:bo(m.vib,true),hint:bo(m.hint,true)};})(ob(o.sm)),
+    sm:(function(m){return {lp:en(m.lp,['n','f','s']),tap:m.t2===true?bo(m.tap,false):false,t2:true, /* 10.11 (Джессика выбрала «Снимает выделение»): a tap on the text clears the selection by default; t2 — the switch turned off once in saved settings */drag:en(m.drag,['edge','any','off']),lpd:bo(m.lpd,true),unit:en(m.unit,['word','char']),edge:en(m.edge,['off','f','s']),hand:en(m.hand,['n','b']),vib:bo(m.vib,true),hint:bo(m.hint,true)};})(ob(o.sm)),
     spd:{cpm:num(sp.cpm,100,6000),spp:num(sp.spp,5,1200),n:(typeof sp.n==='number'&&isFinite(sp.n))?Math.max(0,Math.min(1e6,Math.floor(sp.n))):0}
   };
 }
@@ -180,6 +181,7 @@ function saveSet(){rqSaveSetGated();}
 function bookLang(b){if(b&&b.lang&&/^[a-z]{2,3}(-|$)/i.test(b.lang))return b.lang;const t=((b&&b.text)||'').slice(0,4000);const cy=(t.match(/[\u0400-\u04FF]/g)||[]).length,la=(t.match(/[A-Za-z]/g)||[]).length;return cy>=la?'ru':'en';}
 const R_TXT2_MAIN=['kraft']; /* «Крафт» #4a3b22 on #e8d9b5 = 7.7 (≥ 4.5 UI, ≥ 7 book; contrast.tsv) */
 function applySet(){
+  rqKeepPlace(); /* 11.11: the place is taken BEFORE the look changes (font, line height, spacing, weight, fields) — after it the same page number shows other text */
   rqHalfSync();
   const t=activeTheme();
   const bg=SET.cBg||t.bg, tx=SET.cTxt||t.txt;
@@ -189,6 +191,7 @@ function applySet(){
   r.style.background=bg;r.style.color=tx;
   {const hx=function(v){return /^#[0-9a-f]{6}$/i.test(v||'')?v.toLowerCase():null;},ct=el('cTxt'),cb=el('cBg'); /* 28.10: «Свои цвета» show the colours on the page (day/night drops own colours) */
    if(ct&&hx(tx)&&ct.value!==hx(tx))ct.value=hx(tx);if(cb&&hx(bg)&&cb.value!==hx(bg))cb.value=hx(bg);}
+  r.style.setProperty('--r-mtop',(SET.mtop==null?12:SET.mtop)+'px'); /* 08.11: поле сверху + вырез камеры (app.html #reader:not(.pdfmode)) */
   r.style.setProperty('--r-margin',SET.margin+'px');r.classList.toggle('narrowm',SET.margin<44||R.mode==='pdf');
   if(R.mode==='pdf')el('viewer').style.margin='0';else{el('viewer')._mw=null;rqTextMargin();} /* PDF: full width, no side fields; text: SET.margin, wider on a portrait tablet (audit 19.10 RD-TAB-01) */
   r.dataset.page=!isLightBg(bg)?'night':(t===THEMES.sepia&&!SET.cBg?'sepia':'day'); /* tokens: --r-txt-2, night PDF layer */
@@ -220,6 +223,7 @@ function applySet(){
   el('lhVal').textContent=SET.lh.toFixed(2);
   el('lsVal').textContent=(SET.ls||0);
   if(el('mgVal'))el('mgVal').textContent=SET.margin;
+  if(el('mtVal'))el('mtVal').textContent=SET.mtop==null?12:SET.mtop;
   rqSw('halfTgl',!SET.half||SET.half.on);if(el('halfTglS'))el('halfTglS').textContent=RQ_HALF?'сейчас включено: размер и поля ниже — для половины экрана':'свой размер шрифта и поля, когда читалка открыта рядом с другим приложением';
   el('alignJ').classList.toggle('on',SET.align!=='l');
   el('alignL').classList.toggle('on',SET.align==='l');
@@ -302,6 +306,8 @@ el('lhPlus').onclick=()=>{SET.lh=Math.min(2.4,+(SET.lh+0.1).toFixed(2));saveSet(
 el('mgMinus').onclick=()=>{SET.margin=Math.max(10,SET.margin-6);saveSet();applySet();relayout();};
 el('halfTgl').onclick=()=>{const was=!!RQ_HALF;if(was)rqHalfOff();SET.half=Object.assign({},SET.half,{on:!(SET.half&&SET.half.on)});saveSet();applySet();relayout({force:true});};
 el('mgPlus').onclick=()=>{SET.margin=Math.min(80,SET.margin+6);saveSet();applySet();relayout();};
+el('mtMinus').onclick=()=>{SET.mtop=Math.max(0,(SET.mtop==null?12:SET.mtop)-6);saveSet();applySet();relayout();};
+el('mtPlus').onclick=()=>{SET.mtop=Math.min(60,(SET.mtop==null?12:SET.mtop)+6);saveSet();applySet();relayout();};
 el('lsMinus').onclick=()=>{SET.ls=Math.max(-1,+(((SET.ls||0)-0.5)).toFixed(1));saveSet();applySet();relayout();};
 el('lsPlus').onclick=()=>{SET.ls=Math.min(3,+(((SET.ls||0)+0.5)).toFixed(1));saveSet();applySet();relayout();};
 el('alignJ').onclick=()=>{SET.align='j';saveSet();applySet();};
@@ -399,6 +405,7 @@ async function openBook(id){
   if(b.type==='pdf'&&b.asText&&typeof ptxtLoad==='function'){const x=await ptxtLoad(b0);if(x)b=x;} /* 05.11 «Читать текстом» (js/pdf-more.js) */
   if(b.type!=='pdf'&&!b.text&&typeof b.pathId==='string'&&typeof pathFind==='function'&&pathFind(b.pathId)){pathRead(b.pathId);return;} /* «Путь читателя»: text was deleted from the phone → download it again */
   if(b.type!=='pdf'&&!b.text){rqAlert('Текст книги не найден в IndexedDB. Импортируйте файл снова.');return;}
+  if(b.type!=='pdf'&&typeof webxLoad==='function'&&typeof rqIsWebBook==='function'&&rqIsWebBook(b)){try{await webxLoad(b.id);}catch(e){}} /* 13.11: жирный, ссылки и сноски страницы сайта (IDB «webx:<книга>», js/web.js) */
   /* 1б: a session still running (reader left without closing, double open) is closed the normal way FIRST —
      one row, its minutes kept, paid — just without the summary (closeReader quiet path, idempotent). */
   if(R.book||(__tracker&&__tracker.isRunning&&__tracker.isRunning())){try{await closeReader({quiet:true});}catch(e){console.warn('[rq] close stale session',e);}}
@@ -422,7 +429,7 @@ async function openBook(id){
   let body=rqBodyHtml(b); /* 28.10: paragraphs of any TXT (Windows line breaks, a paragraph per line), chapter titles, pictures */
   {const seen={};(S.hl[b.id]||[]).forEach(t=>{const k=esc(t),j=seen[t]=(seen[t]||0)+1,q=hlSame(b.id,t)[j-1];
     if(hlHas(body,hlPieces(t)[0]))body=hlPutQ(body,t,q&&q.n,quoteColor(b.id,t,j-1));});} /* 20.10: in the quote's colour; 21.10: at its own occurrence (q.n) */
-  c.innerHTML='<h3>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
+  c.innerHTML='<h3'+(typeof rqIsWebBook==='function'&&rqIsWebBook(b)?' class="rq-wt"':'')+'>'+esc(b.title)+'</h3><p class="meta">'+[bookAuthor(b),b.genre].filter(Boolean).map(esc).join(' · ')+'</p>'+body;
   c.lang=bookLang(b); /* hyphens:auto needs a language on the text block */
   hlPaintCustom(); /* own quote colours on this page */
   rqBookImgs(b);
@@ -433,7 +440,9 @@ async function openBook(id){
   if(__tracker)__tracker.begin(id,p,trackerOpts());
   pauseReset(); /* 25.10: a new book starts counting, the circle shows if it is on */
   if(typeof fzOnOpen==='function')fzOnOpen(); /* 25.10 «Фокус»: new session = no rounds yet; the chosen sound */
+  const f0=rqPos(id);
   goPage(p,false);
+  if(rqScrollMode()&&R.pageCount>1){const f=f0,v=el('viewer');v.scrollTop=f>=1?(R.scrollMax||0):Math.min(R.scrollMax||0,Math.round(f*R.step*(R.pageCount-1)));R.progTop=v.scrollTop;R.pos=f;persistPage();} /* 11.11 «Прокрутка»: the line the book was closed at, not the nearest whole screen */
   if(hy)hyphWaitRun(hy,p);
 }
 /* 28.10 (ревизия чтения): text → paragraphs with their offsets in b.text.
@@ -454,12 +463,23 @@ function rqParas(t){
     «￼img:N» (FB2 / EPUB picture, js/content.js) → an <img> filled from IDB after the layout */
 function rqBodyHtml(b){
   const toc=(typeof tocOf==='function'?tocOf(b):[])||[],heads={};toc.forEach(function(x,i){if(typeof x.off==='number'&&!(x.off in heads))heads[x.off]=i;});
-  const ps=rqParas(b.text),hs=Object.keys(heads).map(Number).sort(function(a,z){return a-z;});let k=0;
+  const web=typeof rqIsWebBook==='function'&&rqIsWebBook(b);
+  const ps=rqParas(b.text),hs=Object.keys(heads).map(Number).sort(function(a,z){return a-z;});let k=0,wth=null;
   return ps.map(function(p,n){
     if(p.s.charCodeAt(0)===0x2063)return '<p class="rq-bitr" lang="ru">'+esc(p.s)+'</p>'; /* 25.10: translation under each paragraph (adv.js, «с переводом») */
     const im=/^￼img:(\d+)$/.exec(p.s);if(im)return '<p class="rq-img"><img data-img="'+im[1]+'" alt=""></p>';
     const end=n+1<ps.length?ps[n+1].off:Infinity;let h=-1;
     while(k<hs.length&&hs[k]<end){if(hs[k]>=p.off-2&&h<0)h=heads[hs[k]];k++;}
+    if(web&&h<0){ /* 13.11 «Страница сайта» (js/web.js): абзацы статьи без красной строки, с отступом между ними; вид абзаца — по невидимому знаку в начале */
+      const c0=p.s.charCodeAt(0),c1=p.s.charCodeAt(1);
+      if(c0===0x2064&&c1===0x2062){ /* строка таблицы: ячейки через табуляцию; до 4 колонок — сетка, шире — карточка «шапка: значение» */
+        const hd=p.s.charCodeAt(2)===0x2062,cells=p.s.slice(hd?3:2).split('\t'),nc=cells.length,wide=nc>4;
+        if(hd||!(n&&ps[n-1].s.charCodeAt(0)===0x2064&&ps[n-1].s.charCodeAt(1)===0x2062))wth=hd?cells:null;
+        const first=!(n&&ps[n-1].s.charCodeAt(0)===0x2064&&ps[n-1].s.charCodeAt(1)===0x2062);
+        return '<p class="rq-wp rq-tr'+(hd?' rq-trh':'')+(wide?' rq-trw':'')+(first?' rq-tr1':'')+'" style="--n:'+nc+'">'+cells.map(function(c,i){
+          return '<span'+(c==='\u2060'?' class="e"':'')+(wide&&!hd&&wth&&wth[i]&&wth[i]!=='\u2060'?' data-h="'+esc(wth[i])+'"':'')+'>'+esc(c)+'</span>';}).join('\t')+'</p>';}
+      const cls=c0===0x2061&&c1===0x2062?'rq-pre':c0===0x2064&&c1===0x2061?'rq-fm':c0===0x2061?'rq-q':c0===0x2062?'rq-h2':c0===0x2064?'rq-cap':p.s.indexOf('• ')===0?'rq-li':/^\d{1,3}\. /.test(p.s)?'rq-li rq-ol':rqVerse(p.s)?'rq-vs':'';
+      return '<p class="rq-wp'+(cls?' '+cls:'')+'">'+(typeof webParaHtml==='function'?webParaHtml(b,p.off,p.s):esc(p.s))+'</p>';}
     return h>=0?'<p class="rq-h" data-toc="'+h+'">'+esc(p.s)+'</p>':'<p'+(rqVerse(p.s)?' class="rq-vs"':'')+'>'+esc(p.s)+'</p>';}).join('');
 }
 /* 28.10 (Джессика: копирование «во всех форматах»): a TXT stanza — short lines of a paragraph (≤ 55 letters, ~40 on average) — keeps its
@@ -470,6 +490,7 @@ function rqVerse(s){const ls=String(s).split('\n');if(ls.length<2)return false;l
 function rqBookImgs(b){
   const c=el('content'),ims=[...c.querySelectorAll('img[data-img]')];if(!ims.length||typeof idbGet!=='function')return;
   Promise.all(ims.map(function(im){return idbGet('img:'+b.id+':'+im.dataset.img).then(function(v){
+      if(!v&&R.book&&R.book.id===b.id&&typeof webImgFallback==='function'){const w=webImgFallback(b,im);if(w)return w;} /* 13.11: картинка страницы сайта, которую сайт не дал сохранить */
       if(!v||!R.book||R.book.id!==b.id){im.parentNode.classList.add('gone');return;}
       return new Promise(function(res){im.onload=im.onerror=function(){if(!im.naturalWidth)im.parentNode.classList.add('gone');res();};im.src=URL.createObjectURL(v instanceof Blob?v:new Blob([v]));});
     }).catch(function(){im.parentNode.classList.add('gone');});}))
@@ -519,12 +540,13 @@ function hyphWaitRun(h,p){
     if(!R.book||R.book.id!==h.book.id||R.mode==='pdf'||el('reader').classList.contains('hidden')){if(t)t.classList.add('hidden');return;}
     if(relay){
       const off=firstOffsetOfPage(R.page); /* char offset of the first visible line */
+      const sa=rqScrollMode()?captureAnchor():null; /* 11.11 «Прокрутка»: the line at the top stays at the top */
       if(h.late){const c=el('content');c.style.hyphens=c.style.webkitHyphens='auto';}
       hyphMark(el('content').lang); /* dictionary works now → justify, in the same silent re-layout */
       layout();
       let np=pageOfOffset(txtNodes(),off);if(np<0)np=R.page;
       np=Math.max(0,Math.min(R.pageCount-1,np));R.page=np;R.anc=null;
-      rqShowPage(np,null);
+      rqShowPage(np,null);if(sa&&rqScrollMode())rqScrollToAnchor(sa);
       el('rPage').textContent=el('pgNum').textContent=(np+1)+' / '+R.pageCount;
       const sl=el('pgSlider');sl.max=Math.max(0,R.pageCount-1);sl.value=np;if(typeof pgArtSync==='function')pgArtSync();
       HY.off=off;HY.relayouts++; /* silent: no goPage → R.pos / R.maxRatio / persist / tracker untouched */

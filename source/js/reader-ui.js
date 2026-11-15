@@ -178,6 +178,10 @@ function flashMsg(t,o){
   if(!inReader){const nb=typeof rqNavH==='function'?rqNavH():0;d.style.top='auto';d.style.bottom=nb?(nb+12+(el('bnRead')?32:0))+'px':'calc(24px + env(safe-area-inset-bottom))';} /* audit 19.10 LIB-ERR-02: above the bottom bar, never over a title; 20.10: and over the «Читать» bump */
   if(inReader){const rb=el('reader').querySelector('.rbot');if(rb&&!el('reader').classList.contains('barsoff')){const h=window.innerHeight-rb.getBoundingClientRect().top;if(rb.offsetHeight&&h>40&&h<window.innerHeight/2)d.style.setProperty('bottom',Math.round(h+12)+'px','important');}} /* audit 19.10: over the panel, not on it */
   if(d.scrollWidth>d.clientWidth+1)d.classList.add('imp'); /* long text wraps instead of running off the screen */
+  if(opt.pass){d.style.pointerEvents='none'; /* 11.11: the selection's hint never takes a touch (it came up under the finger and the release dropped the selection) */
+    if(inReader){const H=window.innerHeight,fy=typeof opt.fingerY==='number'?opt.fingerY:H; /* away from the finger and from ‹ ›: at the top; a finger at the top — at the bottom, above ‹ › */
+      if(fy>H*0.4){d.style.setProperty('bottom','auto','important');d.style.setProperty('top','calc(56px + env(safe-area-inset-top))','important');}
+      else d.style.setProperty('bottom','calc(92px + env(safe-area-inset-bottom))','important');}}
   const dur=ms!=null?ms:(inReader?3000:1600);
   setTimeout(function(){try{d.remove();}catch(e){}},dur);
 }
@@ -434,8 +438,10 @@ const SS={open:false,on:false,drag:null,moved:false};
    side = the column at an edge (as before), bar = a card at the bottom, colours on top and icons under them (as on her picture),
    bubble = a small row right next to the selected words, dock = one row across the screen above ‹ ›, big = the card with captions.
    The same buttons and branches in all of them, only the CSS (#selSide[data-look]) and the place (ssPlace) differ. */
-const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста'],['dock','Полоса снизу'],['big','С подписями']];
-function ssLook(){const v=SET.selLook;return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
+/* 10.11 (Джессика: «убери полосу снизу и с подписями … по сути, бесполезная»): three looks left; a saved «Полоса снизу» / «С подписями»
+   shows as «Плашка» (also one row at the bottom). Their CSS stays unused. */
+const SS_LOOKS=[['side','Сбоку'],['bar','Плашка'],['bubble','У текста']];
+function ssLook(){const v=SET.selLook;if(v==='dock'||v==='big')return 'bar';return SS_LOOKS.some(function(x){return x[0]===v;})?v:'side';}
 function ssPos(){const p=SET.selSide||{};return {s:p.s==='R'?'R':'L',y:typeof p.y==='number'?Math.min(.95,Math.max(.05,p.y)):.62};}
 function ssEl(){let n=el('selSide');if(n)return n;n=document.createElement('div');n.id='selSide';n.hidden=true;
   const L=function(t){return '<span class="ssL" aria-hidden="true">'+t+'</span>';}; /* a caption: only in the look «С подписями» */
@@ -531,7 +537,7 @@ function qbPlace(){const n=el('selpop');if(!n)return;if(rqPinPlace(n,'quote',qbP
    «Вид» in the menu itself lists the five looks; a tap switches at once (the same SET.selLook as «Чтение → Меню выделения»), the selection stays */
 function ssLooksMenu(anchor){const m=el('ssMenu'),b=anchor||el('ssView'),cur=ssLook();if(!m||!b)return;
   m.innerHTML=SS_LOOKS.map(function(l){const on=l[0]===cur;return '<button type="button" role="menuitemradio" aria-checked="'+on+'" data-look="'+l[0]+'">'+(on?rqIcon('check',18):'<span class="ic" style="display:inline-block;width:18px"></span>')+'<span>'+esc(l[1])+'</span></button>';}).join('');
-  m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
+  m.classList.remove('tiles'); m.hidden=false;b.setAttribute('aria-expanded','true');if(typeof stBranch==='function')stBranch(m,b);}
 function ssLookSet(v){if(!SS_LOOKS.some(function(l){return l[0]===v;}))return;const m=el('ssMenu');if(m)m.hidden=true;const b=el('ssView');if(b)b.setAttribute('aria-expanded','false');
   SET.selLook=v;saveSet();SS.open=true;if(typeof stCol==='function')stCol(false); /* the card's colour row would stay over the new look's buttons */ssUpd();} /* no toast: it would lie over the menu that has just moved there */
 /** the menu at its edge, its middle at the remembered height, whole on screen; the other looks: see ssPlaceLook */
@@ -559,7 +565,13 @@ function ssPlaceLook(n){
   if(lk==='bubble'){n.classList.remove('attop');n.style.left='0px';n.style.top='0px';
     const r=n.getBoundingClientRect(),w=r.width,h=r.height;let x=(W-w)/2,y=H*.4;
     if(rs.length){const a=rs[0],z=rs[rs.length-1],mid=(Math.min(a.left,z.left)+Math.max(a.right,z.right))/2;x=mid-w/2;
-      y=a.top-h-12>=8?a.top-h-12:(z.bottom+12+h<=H-8?z.bottom+12:Math.max(8,(H-h)/2));}
+      y=a.top-h-12>=8?a.top-h-12:(z.bottom+12+h<=H-8?z.bottom+12:Math.max(8,(H-h)/2));
+      /* 11.11: never on a handle of the selection (after › it lay on the handle and the selection could not be dragged on) */
+      const X=Math.max(8,Math.min(W-w-8,x)),hs=[].slice.call(document.querySelectorAll('.smh')).filter(function(q){return !q.hidden;}).map(function(q){return q.getBoundingClientRect();}).filter(function(q){return q.width>0;});
+      const hit=function(yy){return hs.some(function(q){return yy<q.bottom+6&&yy+h>q.top-6&&X<q.right+6&&X+w>q.left-6;});};
+      if(hs.length&&hit(y)){const tops=hs.map(function(q){return q.top;}),bots=hs.map(function(q){return q.bottom;});
+        const cand=[a.top-h-12,z.bottom+12,Math.min.apply(null,tops)-h-10,Math.max.apply(null,bots)+10,Math.min(a.top,Math.min.apply(null,tops))-h-10,Math.max(z.bottom,Math.max.apply(null,bots))+10];
+        for(let i=0;i<cand.length;i++)if(cand[i]>=8&&cand[i]+h<=H-8&&!hit(cand[i])){y=cand[i];break;}}}
     n.style.left=Math.round(Math.max(8,Math.min(W-w-8,x)))+'px';n.style.top=Math.round(Math.max(8,Math.min(H-h-8,y)))+'px';return;}
   n.style.left='';n.style.top='';n.classList.remove('attop');
   if(!rs.length)return;const b=n.getBoundingClientRect(),z=rs[rs.length-1];
@@ -575,7 +587,7 @@ function ssUpd(){
   n.hidden=false;n.classList.toggle('open',SS.open);n.classList.toggle('pgoff',!pg);
   el('ssTab').setAttribute('aria-expanded',SS.open?'true':'false');
   if(!SS.open&&typeof stMenu==='function'){stMenu(false);stCol(false);}
-  if((lk==='bar'||lk==='big')&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card */
+  if(lk==='big'&&typeof stCol==='function'&&el('ssColBox').hidden)stCol(true); /* the colours are always shown on the card (10.11: «Плашка» folds them into a button) */
   const f=el('selFrom'),from=!SQ&&pg&&f&&!f.hidden?+el('selFromGo').dataset.p:-1;
   el('ssFrom').hidden=from<0;const k=el('ssN');k.hidden=from<0;
   if(from>=0){const lab=R.mode==='pdf'&&typeof pdfLabel==='function'?pdfLabel(from):String(from+1);
@@ -619,7 +631,7 @@ function selPdfShown(n){
    page's real Selection (set by code), so the bar, colours, notes, copy and «Объясни» work on it as before. Pages turn by swipe only meanwhile. */
 const SM={on:false,lo:null,hi:null,set:false,ptr:'',lp:null,tapAt:0,drag:null,raf:0,prog:false};
 /** 04.11 (Джессика: «чтобы можно было тянуть выделение и тапать … тонкие настройки этого процесса»): «Чтение → Выделение текста», SET.rx.sm */
-function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
+function smCfg(){const x=typeof rqRx==='function'?rqRx():null;return (x&&x.sm)||{lp:'n',tap:false,t2:true,drag:'edge',lpd:true,unit:'word',edge:'off',hand:'n',vib:true,hint:true};}
 function smOk(){return typeof R!=='undefined'&&R&&R.book&&(R.mode==='text'||R.mode==='pdf')&&!el('reader').classList.contains('hidden');} /* 04.11 (Джессика: «в тхт и Epub с Fb2 … выделять нужный участок … С PDF так делать нельзя, нужно тянуть»): PDF too */
 /** a book's text: the column of a text book or a PDF page's text layer (not the painted quote boxes on it) */
 function smInText(n){const e=n&&(n.nodeType===3?n.parentNode:n);if(!e||!e.closest||e.closest('.pdfhls'))return false;return el('content').contains(e)||!!e.closest('#viewer .textLayer');}
@@ -642,20 +654,26 @@ function smSync(){if(!SM.on||!SM.lo||!SM.hi)return false;if(SM.lo[0].isConnected
   const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount){smOff();return false;}const rg=s.getRangeAt(0);
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];return true;}
 function smApply(){if(!SM.lo||!SM.hi)return;const s=window.getSelection();SM.prog=true;try{s.setBaseAndExtent(SM.lo[0],SM.lo[1],SM.hi[0],SM.hi[1]);}catch(e){}SM.prog=false;smDraw();}
-function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter'});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
+function smStart(lo,hi){el('reader').classList.toggle('smbig',smCfg().hand==='b');SM.on=true;SM.set=false;SM.lo=lo;SM.hi=hi;SA.mini=true;smApply();const c=smCfg();if(c.hint&&(SM.hints=(SM.hints||0)+1)<=3)flashMsg(smHint(c),{kind:'info',icon:'highlighter',pass:true,fingerY:Date.now()-(SM.lpAt||0)<1500&&SM.lpXY?SM.lpXY[1]:null});if(c.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}smLoop();}
 function smHint(c){const a=c.tap?'Нажми на слово, где закончить':'',b=c.drag==='any'?'тяни пальцем по тексту':c.drag==='edge'?'или тяни за край выделения':'',f=c.drag==='any'?'Листать — стрелками внизу':'Листать можно свайпом';
-  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f;}
+  return ((a?a+(b?', '+b.replace(/^или /,'или '):''):b.replace(/^или /,'').replace(/^./,function(z){return z.toUpperCase();}))||'Двигай кружки на краях')+'. '+f+(c.tap?'':'. Нажатие снимает выделение');} /* 10.11 */
 function smOff(){SM.keep=false;if(!SM.on)return;SM.on=false;SM.lo=SM.hi=null;SM.drag=null;cancelAnimationFrame(SM.raf);smLock(false);smDraw();}
 function smFromSel(){const s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return false;const rg=s.getRangeAt(0);if(!smInText(rg.commonAncestorContainer))return false;
   SM.lo=[rg.startContainer,rg.startOffset];SM.hi=[rg.endContainer,rg.endOffset];if(!SM.on){SM.on=true;smLoop();}return true;}
 /** a tap while selecting: the selection ends at the tapped word (or begins there, when it is before the start) */
 function smTap(x,y){
-  if(!smCfg().tap||!smSync())return;
-  const p=smPt(x,y);if(!p)return;const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
+  /* 10.11 (тестер: «если случайно выделить текст, режим выделения не сбрасывается просто нажатием в любую область экрана»): a tap off the text
+     (an empty line, under the last line, the margins) clears the selection; with «Нажатие ставит конец» off any tap clears it */
+  if(!smSync()){selDone();return;}
+  const p=smPt(x,y);if(!p||!smCfg().tap||!smNear(p,x,y)){selDone();return;}const w=smCfg().unit==='char'?[p,[p[0],Math.min(p[0].nodeValue.length,p[1]+1)]]:smWord(p);if(!w)return;
   if(smCmp(SM.lo,w[0])>=0)SM.hi=w[1];else SM.lo=w[0];
   SM.set=true;smApply();setTimeout(updSelPop,30);
 }
 /** a tap from the reader's tap handlers while selecting — not the click Chrome may send after the long press itself */
+/** the tap on a line of the text (Chrome's caret test snaps a tap on an empty place — under the last line, between paragraphs — to the nearest
+    text); right of a paragraph's short last line is still that line (05.11: the end goes to the paragraph's end) */
+function smNear(p,x,y){const q=smCharRect(p[0],p[1])||smCharRect(p[0],p[1]-1);if(!q)return false;const h=Math.max(12,q.bottom-q.top);
+  return y>=q.top-h*0.6&&y<=q.bottom+h*0.6;}
 function smTapAt(cx,cy){if(!(Date.now()-(SM.lpAt||0)<900&&SM.lpXY&&Math.abs(cx-SM.lpXY[0])<16&&Math.abs(cy-SM.lpXY[1])<16))smTap(cx,cy);}
 /* long press: our timer (Chrome's own long press is cancelled below) */
 function smLpStart(e){
@@ -1223,10 +1241,11 @@ el('viewer').addEventListener('touchstart',e=>{
   if(pinch0||e.touches.length>2)return;
   ty0=e.touches[0].clientY;tt0=Date.now();
   tx0=e.touches[0].clientX;
-  if(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)bright={x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
+  bright=(tx0-el('viewer').getBoundingClientRect().left<28&&!rqScrollMode()&&rqRx().gest.bright)?{x0:tx0,y0:e.touches[0].clientY,d0:SET.bright==null?1:SET.bright}:null; // жест яркости у левого края (в прокрутке палец у края прокручивает); 28.10: тап и свайп оттуда тоже листают
 },{passive:true});
 el('viewer').addEventListener('touchmove',e=>{
   if(R.mode==='pdf'){pdfTouchMove(e);return;}
+  if(bright&&SM.lpHeld)bright=null; /* 11.11: a long press at the left edge selects, it does not dim */
   if(bright&&e.touches.length===1){
     const dy=e.touches[0].clientY-bright.y0,dx=e.touches[0].clientX-bright.x0;
     if(!bright.mv){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)*1.2){bright.mv=true;tx0=null;}else{if(Math.abs(dx)>12)bright=null;return;}} /* 28.10: яркость только вертикальным ведением */
@@ -1246,7 +1265,7 @@ el('viewer').addEventListener('touchmove',e=>{
 },{passive:false});
 el('viewer').addEventListener('touchend',e=>{
   if(R.mode==='pdf'){pdfTouchEnd(e);return;}
-  if(SM.lpHeld){tx0=null;return;} /* 04.11: the end of a long press (and its drag) is not a swipe / tap */
+  if(SM.lpHeld){tx0=null;bright=null;return;} /* 04.11: the end of a long press (and its drag) is not a swipe / tap; 11.11: nor does it leave the brightness gesture armed for the next swipe */
   if(bright){const mv=bright.mv;bright=null;if(mv){tx0=null;SET.bright=Math.round(SET.bright*20)/20;saveSet();applySet();flashMsg('Яркость '+Math.round(SET.bright*100)+'%',{kind:'info',icon:'sun'});return;}}
   if(pinch0){
     pinch0=null;tx0=null;
@@ -1267,7 +1286,7 @@ el('viewer').addEventListener('touchend',e=>{
 /* 28.10 (ревизия чтения, баг 5): поля слева и справа от колонки текста — тоже страница: тап листает, свайп листает */
 let mg0=null;
 function rqMarginHit(e,t){if(R.mode==='pdf'||e.target!==el('reader'))return false;const r=el('viewer').getBoundingClientRect();return t.clientY>=r.top&&t.clientY<=r.bottom&&(t.clientX<r.left||t.clientX>r.right);}
-function rqMarginTap(x,y){if(SM.on)return;const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
+function rqMarginTap(x,y){if(SM.on||selText()){selDone();return;} /* 10.11: a tap on a margin while selecting clears the selection */const r=el('viewer').getBoundingClientRect();viewerTap(Math.max(r.left+1,Math.min(r.right-1,x)),y);}
 el('reader').addEventListener('touchstart',e=>{mg0=null;if(e.touches.length===1&&rqMarginHit(e,e.touches[0]))mg0={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};},{passive:true});
 el('reader').addEventListener('touchend',e=>{
   const m=mg0;mg0=null;if(!m||e.touches.length)return;
@@ -1632,6 +1651,7 @@ function closeReader(opts){
 }
 async function closeReaderImpl(opts){
   const o=opts||{};
+  if(typeof rqBgSnapRestore==='function')rqBgSnapRestore(true); /* 10.11: closed while put away in the background (handover) — the strip back, no re-layout */
   if(R.mode==='pdf')pdfClose(); /* cancel renders, free canvases + worker document */
   if(typeof bfReset==='function'){bfReset();const fo=el('bookFind');if(fo&&!fo.hidden)bfHide();} /* 20.10: the search lives with the open book only */
   stopChrome();stopDayBar();el('sheet').classList.add('hidden');el('panel').classList.add('hidden');el('aiChat').classList.add('hidden');el('aiSheet').classList.add('hidden');el('trSheet').classList.add('hidden');el('ocrSheet').classList.add('hidden');relWake();
@@ -1642,6 +1662,7 @@ async function closeReaderImpl(opts){
   if(R.paused||pauseIv){R.paused=false;clearInterval(pauseIv);pauseIv=null;}if(el('rqPause'))el('rqPause').hidden=true;el('reader').classList.remove('paused'); /* 25.10 */
   const b=R.book;if(!b){if(__tracker&&o.quiet){try{await stalePaid(__tracker.end());}catch(e){}}else if(!o.quiet){show('library');navAfterClose(false);}return;}
   const bLvl=bookLvlOf(b); /* 19.10: level the session was read at (for the summary lines) */
+  try{rqScrollPosSync(true);}catch(e){} /* 11.11 «Прокрутка»: closed before the scroll settled — the place of this moment */
   R.book=null;PQ=null;smOff();rqOwnLeave(); /* 29.10: the common look back in SET (SET.bookSet) */if(el('selNav'))el('selNav').hidden=true;if(el('selSide'))el('selSide').hidden=true;if(el('stSheet'))el('stSheet').hidden=true;if(typeof stSayStop==='function')stSayStop();
   S.progress[b.id]=Object.assign({},S.progress[b.id],{ratio:R.maxRatio},typeof R.pos==='number'?{pos:R.pos}:{});
   const a=antiCfg();
@@ -1674,7 +1695,11 @@ async function closeReaderImpl(opts){
   const bs=(S.bookStats[b.id]=S.bookStats[b.id]||{min:0,pages:0});
   bs.min+=min;bs.pages+=pages;
   // честный финиш: бонус только если прочитано ≈70% страниц по анти-чит таймеру
-  const fullRead=bs.pages>=Math.ceil(Math.max(1,R.pageCount-1)*0.7)&&bs.min*60>=Math.max(a.minSec,(R.pageCount-1)*a.minSec*0.5);
+  /* 08.11 (Джессика «делай все», анти-чит): с честными правилами книга «прочитана» только если честно засчитано ≥ 80 % её страниц
+     (отрезки readSpans: свой темп, живой экран, без повторов). Прыжок в конец по оглавлению, поиску или закладке финиша не даёт. */
+  const honFin=honestOn()&&!!(S.readSpans||{})[b.id];
+  const fullRead=honFin?rqSpansLen((S.readSpans||{})[b.id])>=RQ_FIN_SHARE:
+    bs.pages>=Math.ceil(Math.max(1,R.pageCount-1)*0.7)&&bs.min*60>=Math.max(a.minSec,(R.pageCount-1)*a.minSec*0.5);
   const justFinished=R.maxRatio>=0.999&&fullRead&&!S.finished.includes(b.id);
   const cheatFinish=R.maxRatio>=0.999&&!fullRead&&!S.finished.includes(b.id);
   if(justFinished){S.finished.push(b.id);S.shelfOrder=S.shelfOrder||[];if(S.shelfOrder.indexOf(b.id)<0)S.shelfOrder.push(b.id);shelfJustAdded=b.id;S.finishDates=S.finishDates||{};S.finishDates[b.id]=today();}
@@ -1689,8 +1714,8 @@ async function closeReaderImpl(opts){
     gold=0; /* daily/weekly gold already added to S.gold inside awardPendingSessions */
     questPaid={gold:res.gold||0,daily:res.daily||[],weekly:res.weekly||[],lvlGold:res.lvlGold||0,pomoGold:res.pomoGold||0,chal:res.chal||[],lvl:bLvl,rowLvl:(window.__rqGame&&window.__rqGame.rowLevel(row))||0};
   }else{
-    xp=Math.round((pages*5+min*10)*dmul)+(justFinished?Math.round(200*dmul):0);
-    gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished?Math.round(100*dmul*imMul):0);
+    xp=Math.round((pages*5+min*10)*dmul)+(justFinished&&!rqIsWebBook(b)?Math.round(200*dmul):0);
+    gold=Math.round((pages*2+min)*dmul*imMul)+(justFinished&&!rqIsWebBook(b)?Math.round(100*dmul*imMul):0);
     const luck=Math.random();mult=luck<0.02?3:luck<0.08?2:1;
     xp=Math.round(xp*mult*xpMultEff()*talVal('xp'));gold=Math.round(gold*mult*talVal('gold'));
   }
@@ -1729,7 +1754,7 @@ async function closeReaderImpl(opts){
   if(min>=30)earn('marathon');
   if(S.streak>=3)earn('streak3');
   if(S.streak>=7)earn('streak7');
-  if(justFinished)earn('finisher');
+  if(justFinished&&!rqIsWebBook(b))earn('finisher');
   if(level(S.xp)>=5)earn('lvl5');
   const newAch=checkAchievements();
   const achNew=typeof achRun==='function'?achRun():[]; /* v2: recorded once, shown only on the summary (no toast in the reader) */
@@ -1738,7 +1763,7 @@ async function closeReaderImpl(opts){
   /* 25.10: what the mini-check may ask about (text: the book text before the current place; PDF: the last pages read) */
   const quiz=honestOn()&&isMvp()&&min>=window.__rqGame.QUIZ_MIN&&pages>=window.__rqGame.QUIZ_PAGES&&!(S.quizPaid||{})[sd]?
     {book:b,pos:typeof R.pos==='number'?R.pos:R.maxRatio,page:R.page|0,pages:R.pageCount|0,day:sd}:null;
-  const _sumArgs={xp,gold,pages,min,stat:stN,row:row,floorSec:R.floorSec||0,quiz:quiz,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
+  const _sumArgs={bookId:b.id,xp,gold,pages,min,stat:stN,row:row,floorSec:R.floorSec||0,quiz:quiz,statGain,newB,lvBefore,justFinished,mult,flipped:R.turned,cheatFinish,dName:DIFFS[dIdx].n,dmul:dmul,newAch:newAch,achNew:achNew,day:sd,quest:questPaid,title:(b&&b.title)||''};
   if(o.quiet)return; /* closed in passing (begin() over a stale session): counted + paid, no summary, screen untouched */
   if(!summaryWanted(_sumArgs)){renderLibrary();show('library');navAfterClose(false);
     /* audit 19.10 SUM-03: a short session no longer closes silently (a blink-open, under 5 s, stays quiet) */
@@ -1793,10 +1818,12 @@ function renderSummary(r){
   if(rw.rr>0)notes.push(rw.rr+' стр. ты уже читал раньше, за повтор опыт не начисляется');
   if(rw.au>0)notes.push(rw.au+' стр. автолистания без касаний экрана дольше 5 минут не засчитаны');
   if(rw.hon>0&&rw.hon<1)notes.push('Опыт ×'+String(rw.hon).replace('.',',')+': за две недели '+(honWhy()==='idle'?'много времени книга была открыта без чтения':'много страниц пролистано слишком быстро')+'. Читай как обычно, множитель вернётся сам');
-  if(r.cheatFinish)notes.push('Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
+  if(rw.ck===1)notes.push('Часы телефона переведены назад: эта сессия не идёт в серию дней и монеты дня, опыт начислен');
+  if(r.cheatFinish)notes.push(honestOn()?'Книга не отмечена прочитанной: честно прочитано '+Math.round(rqSpansLen((S.readSpans||{})[r.bookId])*100)+'%, нужно от '+Math.round(RQ_FIN_SHARE*100)+'%':'Финиш не засчитан: для бонуса нужно честно прочитать ~70% страниц');
   el('sumNote').textContent=notes.join(' · ');
   quizRender(r);
   {const sf=el('sumFocus');if(sf){const h=typeof fzSummaryHtml==='function'?fzSummaryHtml(r.row,r.quest):'';sf.innerHTML=h;sf.classList.toggle('hidden',!h);}} /* 25.10 «Итог фокуса» */
+  {const sh=el('sumHome');if(sh){let h='';try{h=typeof homeSummaryHtml==='function'?homeSummaryHtml(r.row):'';}catch(e){}sh.innerHTML=h;sh.classList.toggle('hidden',!h);}} /* 10.11 «В домике» */
   {const st=el('sumTools');if(st){const h=typeof toolsSummaryHtml==='function'?toolsSummaryHtml(r.row):'';st.innerHTML=h;st.classList.toggle('hidden',!h);}} /* 06.11 инструменты */
   if(S.ux&&S.ux.vibe!==false&&navigator.vibrate){try{navigator.vibrate(r.mult>1||r.newB.length?[60,40,60]:40);}catch(e){}}
   el('luckLbl').classList.toggle('hidden',!(r.mult>1));
@@ -1809,7 +1836,7 @@ function renderSummary(r){
     (r.dmul>1&&!isMvp()?' · '+r.dName+' ×'+r.dmul:'')+
     '';
   /* audit 19.10 SUM-04: «Книга прочитана» is its own badge line, not glued to the streak */
-  const sf=el('sumFin');if(sf){sf.classList.toggle('hidden',!r.justFinished);sf.innerHTML=r.justFinished?rqIcon('book-open',16)+'<span>Книга прочитана, бонус!</span>':'';}
+  const sf=el('sumFin');if(sf){sf.classList.toggle('hidden',!r.justFinished);sf.innerHTML=r.justFinished?rqIcon('book-open',16)+'<span>'+(rqIsWebBook(allBooks().find(function(x){return x.id===r.bookId;}))?'Страница прочитана':'Книга прочитана, бонус!')+'</span>':'';}
   const bb=el('sumBadges');bb.innerHTML='';
   r.newB.forEach(b=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Новый бейдж: «'+b.name+'»';bb.appendChild(d);});
   (r.newAch||[]).forEach(a=>{const d=document.createElement('div');d.className='newbadge pop';d.textContent='Достижение: «'+a.title+'»'+(a.prize?' — '+a.prize:'');bb.appendChild(d);});

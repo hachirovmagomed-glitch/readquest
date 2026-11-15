@@ -262,16 +262,17 @@ shopConfirmOk=function(){
 };
 function renderHeroShop(){
   const kinds=document.querySelector('#look .shopkinds');if(!kinds)return;
-  const here=heroGearHere();if(heroTab!=='skins'&&heroTab!=='tools'&&!here.some(function(g){return g.kind===heroTab;}))heroTab='skins';
-  kinds.innerHTML=[['skins','Скины'],['tools','Инструменты'],['chars','Персонажи'],['wear','Одежда'],['gear','Снаряжение']].filter(function(k){return k[0]==='skins'||(k[0]==='tools'&&typeof toolsShopRender==='function')||here.some(function(g){return g.kind===k[0];});}).map(function(k){
+  const here=heroGearHere();if(heroTab!=='skins'&&heroTab!=='tools'&&heroTab!=='home'&&!here.some(function(g){return g.kind===heroTab;}))heroTab='skins';
+  kinds.innerHTML=[['skins','Скины'],['tools','Инструменты'],['home','Домик'],['chars','Персонажи'],['wear','Одежда'],['gear','Снаряжение']].filter(function(k){return k[0]==='skins'||(k[0]==='tools'&&typeof toolsShopRender==='function')||(k[0]==='home'&&typeof homeShopRender==='function')||here.some(function(g){return g.kind===k[0];});}).map(function(k){
     return '<button type="button" class="fchip'+(heroTab===k[0]?' on':'')+'" data-k="'+k[0]+'" onclick="heroShopTab(\''+k[0]+'\')">'+k[1]+'</button>';}).join('');
   const list=el('shopList');let box=el('heroShop');
   if(!box){box=document.createElement('div');box.id='heroShop';list.parentNode.insertBefore(box,list.nextSibling);}
-  const skins=heroTab==='skins',tools=heroTab==='tools';list.hidden=!skins;box.hidden=skins||tools;
+  const skins=heroTab==='skins',tools=heroTab==='tools',home=heroTab==='home';list.hidden=!skins;box.hidden=skins||tools||home;
+  const hs=el('homeShop');if(hs){hs.hidden=!home;if(home){try{homeShopRender();}catch(e){console.warn('[rq] home shop',e);}}} /* 10.11 «Домик» (js/home.js) */
   const ts=el('toolShop');if(ts)ts.hidden=!tools; /* 06.11 «Инструменты» (js/tools.js) */
   const tb=el('btnTestGold');if(tb)tb.hidden=false;
   if(tools){try{toolsShopRender();}catch(e){console.warn('[rq] tools shop',e);}}
-  if(skins||tools)return;
+  if(skins||tools||home)return;
   const on=heroOn(),tr=heroItem(heroTry);if(tr)on[tr.slot]=tr.id;
   const items=here.filter(function(g){return g.kind===heroTab;});
   const sk=(items[0]||{}).skin,chars=heroTab==='chars',curCh=heroOn().char||'',note=sk?'<p class="heroskinnote">'+(chars?'Персонажи':'Вещи')+' скина «'+HERO_SKIN_NAME[sk]+'» есть только в этом скине.</p>':'';

@@ -44,8 +44,12 @@ const SHARE = NS + '_share';
 function shareTarget(req) {
   return req.formData().then(function (fd) {
     const files = fd.getAll('books').filter(function (f) { return f && typeof f === 'object' && f.size > 0; });
+    /* 13.11 «Страница сайта»: поделились ссылкой или выделенным текстом — одна запись JSON с X-RQ-Web (js/web.js webFromShare) */
+    const str = function (k) { const v = fd.get(k); return typeof v === 'string' ? v : ''; };
+    const web = files.length ? null : { title: str('title'), text: str('text'), url: str('url') };
     return caches.open(SHARE).then(function (c) {
       const t = Date.now();
+      if (web && (web.text || web.url)) return c.put(new Request('share/' + t + '-web'), new Response(JSON.stringify(web), { headers: { 'Content-Type': 'application/json', 'X-RQ-Web': '1' } }));
       return Promise.all(files.map(function (f, i) {
         return c.put(new Request('share/' + t + '-' + i), new Response(f, { headers: { 'Content-Type': f.type || 'application/octet-stream', 'X-RQ-Name': encodeURIComponent(f.name || '') } }));
       }));

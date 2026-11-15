@@ -121,9 +121,20 @@ function honestSpan(p){const n=R&&R.pageCount;if(!(n>1)||!(p>=0)||p>=n)return nu
 function honestOpts(b){
   const G=window.__rqGame,rows=SESS||[],id=b&&b.id,hi=G.honestyIndex(rows,today());
   const avg=G.pageSecAvg(rows,id); /* 06.11 автолистание: a page turned by the app must stay at least 0.7 of the own pace */
-  return {floorSec:G.paceFloorSec(rows,id),honest:{tailMs:G.tailSec(rows,id)*1000,span:honestSpan,seen:(S.readSpans||{})[id]||[],hon:hi.f,
+  return {floorSec:G.paceFloorSec(rows,id),honest:{tailMs:G.tailSec(rows,id)*1000,span:honestSpan,seen:(S.readSpans||{})[id]||[],hon:hi.f,clock:rqClockBack,
     autoLiveMs:5*60000,autoFloorMs:avg>0?Math.min(45000,Math.round(avg*700)):0}};
 }
+/* 08.11 (Джессика «делай все», анти-чит): часы телефона отвели назад. Самое позднее время, которое видело приложение, лежит в localStorage;
+   если сейчас на 15+ минут раньше — сессия получает row.ck = 1: опыт есть, а в стрик, дневные/недельные монеты и монеты за уровень и круги она не идёт.
+   Смена часового пояса не мешает (сравнивается абсолютное время). */
+const RQ_CLK_SLACK=15*60000;
+function rqClockKey(){return 'rq_clk_'+(window.RQ_NS||'rq');}
+function rqClockMax(){let v=0;try{v=Number(localStorage.getItem(rqClockKey()))||0;}catch(e){}return v;}
+function rqClockTick(){const n=Date.now(),m=rqClockMax();if(n>m){try{localStorage.setItem(rqClockKey(),String(n));}catch(e){}}}
+function rqClockBack(){return honestOn()&&Date.now()<rqClockMax()-RQ_CLK_SLACK;}
+/** 08.11: share of the book covered by merged read spans [[from, to], …] (0…1) */
+function rqSpansLen(sp){return (Array.isArray(sp)?sp:[]).reduce(function(t,x){return t+(Array.isArray(x)&&x[1]>x[0]?Math.min(1,x[1])-Math.max(0,x[0]):0);},0);}
+const RQ_FIN_SHARE=0.8; /* 08.11: honestly read share for «прочитано» */
 function lvlOn(){return isMvp()&&RQ_LVL_NS.indexOf(window.RQ_NS)>=0&&!!window.__rqGame;}
 /* 25.10 «Фокус» (помодоро, тихий режим, звуки, вызовы недели — js/focus.js): only on the test site for now, like the book level */
 const RQ_FOCUS_NS=['rqt'];
@@ -194,10 +205,11 @@ function awardPendingSessions(){
   const q=G.applyQuestAwards(S,SESS,fresh,{goal:goalMin()});
   res.gold=q.gold;res.daily=q.daily;res.weekly=q.weekly;
   /* level bonus: rows carry lvl only when lvlOn() was true at the session start, so no gate is needed here */
-  const lv=G.applyLevelAwards?G.applyLevelAwards(S,SESS,fresh):{gold:0};
+  const paid=fresh.filter(function(r){return r.ck!==1;}); /* 08.11: clock set back → XP only, no coins of the day */
+  const lv=G.applyLevelAwards?G.applyLevelAwards(S,SESS,paid):{gold:0};
   res.lvlGold=lv.gold;res.gold+=lv.gold;
   /* 25.10 «Фокус»: rows carry pomo only when focusOn() was true while reading */
-  const fc=G.applyFocusAwards?G.applyFocusAwards(S,SESS,fresh):{gold:0,pomoGold:0,chalGold:0,chal:[]};
+  const fc=G.applyFocusAwards?G.applyFocusAwards(S,SESS,paid):{gold:0,pomoGold:0,chalGold:0,chal:[]};
   res.pomoGold=fc.pomoGold;res.chalGold=fc.chalGold;res.chal=fc.chal;res.gold+=fc.gold;
   if(res.ids.length||res.gold)save();
   return res;

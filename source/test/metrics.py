@@ -31,7 +31,8 @@ def tester(path, start):
     sessions = data.get("sessions", [])
     fake = 0
     for s in sessions:
-        per_day[d(s["date"])] += s.get("minutes", 0) or 0
+        if s.get("ck") != 1:  # 08.11: read with the clock set back → no day (game-awards dayMinutes)
+            per_day[d(s["date"])] += s.get("minutes", 0) or 0
         if (s.get("minutes", 0) or 0) >= FAKE_MIN_MINUTES and (s.get("pageTurns", 0) or 0) == 0:
             fake += 1
     # whole minutes of a day = floor(sum), the app's dayMinutes() (game-awards.js) — one rule for streak, «N / 10», week, metric

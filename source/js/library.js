@@ -33,10 +33,11 @@ const NAV_CATALOG=[
   {id:'path',t:'Путь читателя',s:'Путь',ic:'map'},
   {id:'adv',t:'Приключения',ic:'compass'}, /* Джессика 18.10: free books from open libraries (js/adv.js) */
   {id:'diary',t:'Дневники',ic:'notebook'}, /* Джессика 25.10: дневники и блокноты (js/diary.js); «Только в меню» — не в NAV_DEF */
+  {id:'home',t:'Домик',ic:'paw-print'}, /* Джессика 10.11: питомец и домик (js/home.js) — в боковом меню, не в профиле */
   {id:'quests',t:'Квесты',ic:'target'},
   {id:'look',t:'Внешний вид',s:'Вид',ic:'palette'}]; /* Джессика 17.10: тема, скин, анимации — own item (was a block in «Общие настройки») */
 /* 18.10 (Джессика, как в Habitica): левое меню по разделам с заголовками; нижняя панель и её настройка берут порядок NAV_CATALOG */
-const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path','diary']},{t:'Герой',ids:['profile','quests']},{t:'Магазины',ids:['rewards','look']}];
+const DRAWER_SECTIONS=[{t:'Чтение',ids:['library','adv','path','diary']},{t:'Герой',ids:['profile','home','quests']},{t:'Магазины',ids:['rewards','look']}];
 const NAV_ALIAS={notes:'diary',vocab:'diary',stats:'diary'}; /* stored NS_set.nav from before 17.10; 26.10 (Джессика): «Инвентарь» слит с «Дневниками» */
 /* 20.10 (Джессика: «5 вкладок базой, количество менять нельзя, только что в них»): the bar always has NAV_N tabs around «Читать»
    (2 + 2, as in Habitica); stored lists that are short get the defaults / catalog appended, long ones are cut — in memory, never written back */
@@ -48,8 +49,8 @@ function navAvail(id){
   return !isMvp()||RQ_MVP_DRAWER_EXTRAS||['library','rewards','profile'].indexOf(id)>=0||id==='settings';}
 function navFill(out,ok){NAV_DEF.concat(NAV_CATALOG.map(function(it){return it.id;})).forEach(function(x){if(out.length<NAV_N&&out.indexOf(x)<0&&ok(x))out.push(x);});return out;}
 function navShown(){return navFill(navGet().filter(navAvail),navAvail);} /* view only: what the bar shows now (a hidden section's slot is filled from the shown ones) */
-const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',diary:'bnDiary',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook'};
-const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook'};
+const NAV_BN={library:'bnLib',path:'bnPath',adv:'bnAdv',diary:'bnDiary',rewards:'bnRew',profile:'bnProf',quests:'bnQuests',stats:'bnStats',look:'bnLook',home:'bnHome'};
+const NAV_DI={library:'dLib',path:'dPath',adv:'dAdv',diary:'dDiary',rewards:'dRew',profile:'dProf',quests:'dQuests',stats:'dStats',look:'dLook',home:'dHome'};
 function navItem(id){return NAV_CATALOG.find(function(x){return x.id===id;})||null;}
 function navRead(v){
   const out=[];if(Array.isArray(v))v.forEach(function(x){if(typeof x==='string'&&NAV_ALIAS[x])x=NAV_ALIAS[x];if(typeof x==='string'&&navItem(x)&&out.indexOf(x)<0)out.push(x);});
@@ -66,6 +67,7 @@ function navGo(id){
   closeDrawer();if(!navAvail(id))id='library';
   if(id==='rewards'){openRewardsSheet();return;}
   try{closeRewardsSheet();}catch(e){}
+  if(id==='home'){if(typeof openHome==='function')openHome();return;} /* 10.11 «Домик» открывается поверх текущего экрана */
   __navAllow=true;
   try{
     if(id==='library'){renderLibrary();show('library');}
@@ -229,6 +231,7 @@ function renderLibrary(){
   shelfBarRender(shCur);
   if(shCur)list=list.filter(b=>shCur.b.indexOf(b.id)>=0);
   else if(LIB.f==='fav')list=list.filter(b=>S.favs.includes(b.id));
+  else if(LIB.f==='web')list=list.filter(rqIsWebBook);
   else if(LIB.f!=='all')list=list.filter(b=>bookStatus(b.id)===LIB.f);
   if(LIB.author)list=list.filter(b=>b.author===LIB.author);
   LIB.sort=libSortGet();
@@ -311,7 +314,7 @@ function libSortPick(k){k=libSortRead(k);libSortMenu(false);if(k===libSortGet())
   SET.libSort=k;LIB.sort=k;rqSaveSetGated();try{renderLibrary();}catch(e){}return true;}
 /* 18.10 (Джессика, как в ReadEra): фильтр живёт в «⋮» шапки, а не строкой под ней. LIB.f: all|reading|want|done|fav|sh:<id>; LIB.author — автор.
    Заголовок экрана называет активный фильтр («Читаю сейчас», имя полки, автор), «Библиотека» — когда показаны все книги. */
-const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'}];
+const LIB_FILTERS=[{k:'all',t:'Все книги'},{k:'reading',t:'Читаю сейчас'},{k:'want',t:'Хочу прочитать'},{k:'done',t:'Прочитано'},{k:'fav',t:'Избранное'},{k:'web',t:'Сайты'}]; /* 13.11: страницы сайтов (js/web.js) */
 function libFilterLabel(){if(LIB.author)return LIB.author;
   if(LIB.f.indexOf('sh:')===0){const sh=shelvesGet().find(function(x){return 'sh:'+x.id===LIB.f;});return sh?sh.n:'Библиотека';}
   if(LIB.f==='all')return 'Библиотека';return (LIB_FILTERS.find(function(o){return o.k===LIB.f;})||{t:'Библиотека'}).t;}
@@ -330,7 +333,9 @@ function libMenuRender(){const m=el('libSortMenu');if(!m)return;const k=libSortG
   const nav=function(p,t,val){return '<button type="button" class="lso lsonav" role="menuitem" data-pane="'+p+'"><span>'+t+'</span><span class="lsov">'+esc(val)+'</span>'+rqIcon('chevron-right',18)+'</button>';};
   const back=function(t){return '<button type="button" class="lso lsoback" data-pane="root">'+rqIcon('chevron-left',18)+'<span>'+t+'</span></button>';};
   const fl=LIB.author||LIB.f!=='all'?libFilterLabel():'Все книги';
-  m.innerHTML='<div class="lsopane" data-p="root"'+(__libPane==='root'?'':' hidden')+'>'+nav('f','Фильтр',fl)+nav('s','Сортировка',libSortLabel(k))+nav('v','Вид',(LIB_VIEWS.find(function(o){return o.k===v;})||LIB_VIEWS[0]).t)+'</div>'+
+  m.innerHTML='<div class="lsopane" data-p="root"'+(__libPane==='root'?'':' hidden')+'>'+nav('f','Фильтр',fl)+nav('s','Сортировка',libSortLabel(k))+nav('v','Вид',(LIB_VIEWS.find(function(o){return o.k===v;})||LIB_VIEWS[0]).t)+
+    '<button type="button" class="lso" role="menuitem" id="libCovAll"><span>Подобрать обложки</span>'+rqIcon('image',20)+'</button>'+
+    '<button type="button" class="lso" role="menuitem" id="libCovMany"><span>Обложки из файлов</span>'+rqIcon('folder',20)+'</button></div>'+
     '<div class="lsopane" data-p="f"'+(__libPane==='f'?'':' hidden')+'>'+back('Фильтр')+libFilterItems()+'</div>'+
     '<div class="lsopane" data-p="s"'+(__libPane==='s'?'':' hidden')+'>'+back('Сортировка')+LIB_SORTS.map(function(o){return it('k',o,o.k===k);}).join('')+'</div>'+
     '<div class="lsopane" data-p="v"'+(__libPane==='v'?'':' hidden')+'>'+back('Вид')+LIB_VIEWS.map(function(o){return it('v',o,o.k===v);}).join('')+'</div>';}
@@ -341,6 +346,8 @@ function libSortMenu(open){const m=el('libSortMenu'),b=el('libSortBtn');if(!m||!
   m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();
     if(o.dataset.pane){__libPane=o.dataset.pane;libMenuRender();m.scrollTop=0;return;}
     if(o.id==='libShelfAdd'){libSortMenu(false);shelfNew();return;}
+    if(o.id==='libCovAll'){libSortMenu(false);covAll();return;} /* 10.11 js/covers.js */
+    if(o.id==='libCovMany'){libSortMenu(false);covManyPick();return;}
     if(o.dataset.a!==undefined)libFilterPick('all',o.dataset.a);else if(o.dataset.f)libFilterPick(o.dataset.f);else if(o.dataset.v)libViewPick(o.dataset.v);else if(o.dataset.k)libSortPick(o.dataset.k);});
   b.onclick=function(e){e.stopPropagation();libSortMenu(m.hidden);};
   document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&!b.contains(e.target))libSortMenu(false);});
@@ -468,15 +475,35 @@ function alisaCover(b){
     '<b class="al-t">'+esc(b.title||'')+'</b><small class="al-a">'+esc(bookAuthor(b))+'</small><svg class="al-big" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+AL_SUITS[su]+'"/></svg></span>';
 }
 function statOf(b){return S.bookStat[b.id]||b.stat;}
+/* 10.11 (Джессика: «чтобы можно было подгрузить обложки книг, которые сам загружаешь»; js/covers.js).
+   S.covers[id] = a small JPEG (88×116, data:) — draws at once and goes into the export; the sharp copy (up to 480 px tall, the picture's own
+   proportions) is a blob in IDB «cov:<id>», swapped in once read (COV_HI = id → object URL, '' = no sharp copy / still reading).
+   A web cover the site would not let us copy is kept as its https address (shown only online; the drawn cover stays under it). */
+const COV_HI={};
+function covHiSrc(id){
+  if(Object.prototype.hasOwnProperty.call(COV_HI,id))return COV_HI[id];
+  COV_HI[id]='';
+  try{idbGet('cov:'+id).then(function(v){
+    if(!(v instanceof Blob)||COV_HI[id])return;
+    COV_HI[id]=URL.createObjectURL(v);
+    document.querySelectorAll('img[data-cv]').forEach(function(im){if(im.dataset.cv===id)im.src=COV_HI[id];});
+  }).catch(function(){});}catch(e){}
+  return '';
+}
+function covDrawn(b){
+  if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
+  const sk=document.documentElement.dataset.skin;
+  if(sk==='ellada')return elladaCover(b);
+  if(sk==='babochkovyi')return bbCover(b);
+  if(sk==='celestial')return celCover(b);
+  if(sk==='alisa')return alisaCover(b);
+  return genCover(b); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) */
+}
 function coverHtml(b){
   const cv=S.covers[b.id];
-  if(cv&&cv.indexOf('data:')===0)return '<img src="'+cv+'" alt="">';
-  if(typeof isPencil==='function'&&isPencil())return pencilCover(b);
-  if(document.documentElement.dataset.skin==='ellada')return elladaCover(b);
-  if(document.documentElement.dataset.skin==='babochkovyi')return bbCover(b);
-  if(document.documentElement.dataset.skin==='celestial')return celCover(b);
-  if(document.documentElement.dataset.skin==='alisa')return alisaCover(b);
-  return genCover(b); /* no emoji covers in any theme (old emoji / emoji picks in S.covers are ignored) */
+  if(cv&&cv.indexOf('data:')===0)return '<img src="'+(covHiSrc(b.id)||cv)+'" data-cv="'+esc(b.id)+'" alt="" decoding="async">';
+  if(cv&&/^https:\/\//.test(cv))return '<img class="cv-net" src="'+esc(cv)+'" alt="" referrerpolicy="no-referrer" onerror="this.remove()">'+covDrawn(b);
+  return covDrawn(b);
 }
 /* 18.10: the filter row under the header is gone (filters live in «⋮», libFilterItems); #libChips stays empty and hidden */
 function renderLibChips(){const box=el('libChips');if(box){box.innerHTML='';box.hidden=true;}}
@@ -503,7 +530,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','
    a file already on the shelf (same fname + size) is skipped, so picking the same folder twice adds nothing; a single picked file is
    added as before (savetext contract). Unsupported extensions are ignored, a broken file does not stop the rest, the batch result is one
    toast (arch.md «1в: импорт пачкой»); a single file keeps its old alert. */
-const BOOK_EXT=/\.(txt|epub|fb2|pdf|zip)$/i; /* 28.10: + .fb2.zip (a .zip with an FB2 inside) */
+const BOOK_EXT=/\.(txt|epub|fb2|pdf|zip|html?|mht|mhtml)$/i; /* 28.10: + .fb2.zip (a .zip with an FB2 inside); 13.11: + сохранённая страница сайта (js/web.js) */
 let bookIdN=0;
 function newBookId(){try{if(crypto&&crypto.randomUUID)return 'u'+crypto.randomUUID();}catch(e){}return 'u'+Date.now()+'-'+(++bookIdN);} /* arch.md 1в: id is never parsed as time */
 function importToast(t,err){flashMsg(t,{kind:err?'error':'info',ms:6000});const d=document.querySelector('.rq-toast');if(d)d.classList.add('imp');}
@@ -523,7 +550,7 @@ async function bookImgsPut(id,imgs){
   for(let i=0;i<(imgs||[]).length;i++){const x=imgs[i];if(!x)continue;try{await idbPut('img:'+id+':'+i,new Blob([x.data],{type:x.type}));}catch(e){console.warn('[rq] img',e);}}
 }
 async function importBookFile(f,setBusy){
-  let b;
+  let b,cov=null; /* 10.11: the book's own cover (EPUB / FB2 picture, PDF page 1) → covSetBlob after the book is on the shelf */
   if(/\.pdf$/i.test(f.name)){
     setBusy('Загружаю PDF...');
     await loadPdfJs();
@@ -531,6 +558,7 @@ async function importBookFile(f,setBusy){
     const doc=await window.pdfjsLib.getDocument({data:buf.slice(0)}).promise;
     const nPages=doc.numPages;
     let lt;if(typeof lvlOn==='function'&&lvlOn()){setBusy('Определяю сложность...');try{lt=await pdfTextLevel(doc);}catch(_){}} /* 19.10: arch.md lvlText; 23.10 {l, w} */
+    try{cov=await covPdfPage(doc,1);}catch(_){}
     try{doc.destroy();}catch(_){}
     const id=newBookId();
     await idbPut('pdf:'+id,buf);
@@ -540,12 +568,15 @@ async function importBookFile(f,setBusy){
     setBusy('Разбираю FB2...');
     const r=await parseFb2(/\.zip$/i.test(f.name)?await fb2FromZip(f):f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'FB2',stat:'Воображение',cover:'📕',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
-    await bookImgsPut(b.id,r.imgs);
+    await bookImgsPut(b.id,r.imgs);cov=r.cover||null;
+  }else if(/\.(html?|mht|mhtml)$/i.test(f.name)&&typeof webFileBook==='function'){
+    setBusy('Разбираю страницу...');
+    b=await webFileBook(f); /* 13.11 «Страница сайта»: сохранённая страница → текст, заголовки в оглавление */
   }else if(/\.epub$/i.test(f.name)){
     setBusy('Распаковываю EPUB...');
     const r=await parseEpub(f);
     b={id:newBookId(),title:r.title,author:r.author,genre:'EPUB',stat:'Воля',cover:'📘',text:r.text,toc:r.toc,lang:r.lang||undefined,fname:f.name,size:f.size};
-    await bookImgsPut(b.id,r.imgs);
+    await bookImgsPut(b.id,r.imgs);cov=r.cover||null;
   }else{
     let txt=await f.text();
     if(!looksLikeText(txt)&&txt.indexOf('\u0000')<0){try{const t2=new TextDecoder('windows-1251').decode(await f.arrayBuffer());if(looksLikeText(t2))txt=t2;}catch(e){}} /* old Russian .txt in cp1251 */
@@ -554,7 +585,9 @@ async function importBookFile(f,setBusy){
   }
   if(b.type!=='pdf'&&(!b.text||b.text.length<20))throw new Error('текст пустой');
   /* the text body goes to IDB once, here (saveFlat writes only the envelope) — before the book appears on the shelf */
-  return rqAddBook(b);
+  const nb=await rqAddBook(b);
+  if(cov){try{await covSetBlob(nb.id,cov instanceof Blob?cov:new Blob([cov.data],{type:cov.type}),{quiet:true});}catch(e){console.warn('[rq] cover',e);}}
+  return nb;
 }
 /* one way a new book reaches the shelf (file import and «Путь читателя»): text body to IDB once, then the card, then save() */
 async function rqAddBook(b){
@@ -608,8 +641,9 @@ function addMenu(open){const m=el('addMenu'),b=el('btnAdd');if(!m||!b)return;m.h
 (function(){const m=el('addMenu'),b=el('btnAdd');
   if(!m){b.onclick=function(){el('fileInp').click();};return;}
   const rows=[{k:'files',t:'Выбрать файлы',i:'file-text'}];if(addFolderOk())rows.push({k:'folder',t:'Выбрать папку',i:'folder'});
+  rows.push({k:'web',t:'Страница сайта',i:'compass'}); /* 13.11: читать сайт как книгу (js/web.js, грузится позже) */
   m.innerHTML=rows.map(function(o){return '<button type="button" class="lso" role="menuitem" data-k="'+o.k+'">'+rqIcon(o.i,20)+'<span>'+esc(o.t)+'</span></button>';}).join('');
-  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();addMenu(false);el(o.dataset.k==='folder'?'dirInp':'fileInp').click();});
+  m.addEventListener('click',function(e){const o=e.target.closest('.lso');if(!o)return;e.stopPropagation();addMenu(false);if(o.dataset.k==='web'){if(typeof webSheet==='function')webSheet();return;}el(o.dataset.k==='folder'?'dirInp':'fileInp').click();});
   b.onclick=function(e){e.stopPropagation();if(b.getAttribute('aria-busy')==='true')return;if(rows.length===1){el('fileInp').click();return;}addMenu(m.hidden);};
   document.addEventListener('click',function(e){if(!m.hidden&&!m.contains(e.target)&&e.target!==b)addMenu(false);});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!m.hidden)addMenu(false);});})();
@@ -619,9 +653,11 @@ async function importSharedBooks(){
   if(!/[?&]share=1(&|$)/.test(location.search))return;
   try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
   if(!('caches' in window))return;
-  const name=(window.RQ_NS||'rq')+'_share';let files=[];
+  const name=(window.RQ_NS||'rq')+'_share';let files=[],web=null;
   try{const c=await caches.open(name);const reqs=await c.keys();
-    for(const r of reqs){const res=await c.match(r);if(!res)continue;const blob=await res.blob();
+    for(const r of reqs){const res=await c.match(r);if(!res)continue;
+      if(res.headers.get('X-RQ-Web')){try{web=await res.json();}catch(e){}continue;} /* 13.11: поделились ссылкой или текстом (js/web.js) */
+      const blob=await res.blob();
       let fn='';try{fn=decodeURIComponent(res.headers.get('X-RQ-Name')||'');}catch(e){}
       if(!BOOK_EXT.test(fn)){const t=blob.type||'';const ext=/pdf/.test(t)?'.pdf':/epub/.test(t)?'.epub':/fictionbook/.test(t)?'.fb2':/zip/.test(t)?'.fb2.zip':/^text\/plain/.test(t)?'.txt':'';
         if(ext)fn=(fn||'Книга')+ext;} /* a shared file may come without its extension: the type tells which */
@@ -629,6 +665,7 @@ async function importSharedBooks(){
     await caches.delete(name);
   }catch(e){console.warn('[rq] share',e);}
   if(files.length){try{show('library');}catch(e){}await importBookFiles(files);}
+  else if(web&&typeof webFromShare==='function')webFromShare(web);
 }
 
 /* drawer gestures (spec): swipe right from the left edge (20px) opens it — not in the reader (edge = page turns); swipe left on the drawer closes it. Nothing is written. */

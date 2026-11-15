@@ -108,7 +108,7 @@ function webMathml(n){
   switch(tag){
     case 'annotation':case 'annotation-xml':case 'none':case 'mprescripts':return '';
     case 'semantics':return one(c[0]);
-    case 'mi':case 'mn':case 'mtext':case 'ms':return (n.textContent||'').replace(/⁡/g,'');
+    case 'mi':case 'mn':case 'mtext':case 'ms':{const t=(n.textContent||'').replace(/⁡/g,'');return tag==='mi'&&t.length>1&&n.nextElementSibling&&/^m[in]$/.test(n.nextElementSibling.localName)?t+' ':t;}
     case 'mo':{const t=(n.textContent||'').replace(/[⁡-⁤]/g,'');return /^[=<>≤≥≠≈+−\-→←⇒⇔∈×·±]$/.test(t)?' '+t.replace('-','−')+' ':/^[,;]$/.test(t)?t+' ':t;}
     case 'mspace':return ' ';
     case 'msup':return one(c[0])+sup(one(c[1]).trim(),'^');
@@ -424,7 +424,9 @@ async function webGetJina(u){
   /* продолжение статьи: «[Далее](…?page=2)» — до WEB_PAGES_JINA страниц, каждая отдельным запросом к службе */
   const seen=[webNorm(u)];let cur=u,part=md;
   while(pages<WEB_PAGES_JINA){
-    let nx='';part.replace(/\[([^\[\]]{1,24})\]\((https?:\/\/[^\s)]+)/g,function(m,t,h){if(!nx&&WEB_NEXT.test(t.trim())&&webPagey(cur,h)&&seen.indexOf(webNorm(h))<0)nx=h;return m;});
+    let nx='';part.replace(/\[([^\[\]]{0,24})\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]{0,40})")?\)/g,function(m,t,h,ti){
+      const ok=[t,ti].some(function(v){v=webClean(webPlain(v||'')).replace(/^[←→»«›‹<>\s]+(?=\S{2})|(?<=\S{2})[\s←→»«›‹<>]+$/g,'');return v&&WEB_NEXT.test(v);});
+      if(!nx&&ok&&webPagey(cur,h)&&seen.indexOf(webNorm(h))<0)nx=h;return m;});
     if(!nx)break;seen.push(webNorm(nx));webStep('Загружаю страницу '+(pages+1)+'…');
     let r2;try{r2=await fetch(WEB_JINA+nx,{credentials:'omit'});if(!r2.ok)break;}catch(e){break;}
     const raw2=await r2.text(),k=raw2.indexOf('Markdown Content:');part=k>=0?raw2.slice(k+17):raw2;if(webPlain(part).trim().length<WEB_MIN)break;

@@ -318,7 +318,7 @@ await p.evaluate(() => { el('bookSheet').classList.add('hidden'); }); await toLi
 await p.evaluate(() => el('webAdd').click()); await sleep(2200);
 bs = await books(); const b16m = bs.find(b => b.src === 'web:https://closed.example/rich'); t = b16m ? await text(b16m.id) : '';
 const r16m = await p.evaluate(() => { const c = el('content'); return { b: (c.querySelector('p.rq-wp b') || {}).textContent, i: (c.querySelector('p.rq-wp i') || {}).textContent, l: (c.querySelector('span.rq-wl') || {}).textContent, tr: c.querySelectorAll('p.rq-tr').length, fm: (c.querySelector('p.rq-fm') || {}).textContent }; });
-ok('16) служба: жирный, курсив, ссылка, таблица, формула; вторая страница дописана, «Далее» убрано', b16m && t.startsWith('В этом абзаце есть жирное слово, курсивное слово и ссылка на другую статью.') && !/[*\[\]]|Далее/.test(t.slice(0, 400)) && t.includes('Вторая страница из службы') && t.split('Статья с таблицей').length === 1 &&
+ok('16) служба: жирный, курсив, ссылка, таблица, формула; вторая страница дописана, «Далее» убрано', b16m && t.startsWith('В этом абзаце есть жирное слово, курсивное слово и ссылка на другую статью.') && !/[*\[\]]|Далее|Дальше|>>>/.test(t.slice(0, 400)) && t.includes('Вторая страница из службы') && t.split('Статья с таблицей').length === 1 &&
   r16m.b === 'жирное слово' && r16m.i === 'курсивное слово' && r16m.l === 'ссылка на другую статью' && r16m.tr === 3 && /E = mc²/.test(r16m.fm), { r16m, t: t.slice(0, 90) });
 // формулы MathML без TeX (так их теперь отдаёт Википедия) и «Дальше» в title ссылки (ilibrary)
 const mml16 = await p.evaluate(() => {

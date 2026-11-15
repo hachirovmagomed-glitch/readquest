@@ -1,4 +1,4 @@
-# Temporary (thread hd9bis, 13.11, run 10: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
+# Temporary (thread hd9bis, 13.11, run 11: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
 name: web-probe
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
       - run: |
           cat > /tmp/nm/probe.mjs <<'JS'
           import puppeteer from 'puppeteer-core'; import fs from 'fs';
-          const URLS = ['https://ru.wikipedia.org/wiki/Теорема_Пифагора','https://en.wikipedia.org/wiki/Euler%27s_identity','https://ilibrary.ru/text/1199/p.1/index.html','https://habr.com/ru/articles/717906/'];
+          const URLS = ['https://en.wikipedia.org/wiki/Euler%27s_identity','https://ilibrary.ru/text/1199/p.1/index.html'];
           const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox'] });
           const out = [];
           for (const u of URLS) for (const jina of [/wiki|gutenberg/.test(u) ? false : true]) {

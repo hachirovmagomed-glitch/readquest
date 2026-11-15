@@ -24,5 +24,5 @@ export const RICH2 = `<html lang="ru"><head><title>Как устроена па�
 <p>Вторая страница статьи: ${L(5)}</p><p>${L(6)} Конец второй страницы.</p>
 <div class="pager"><a href="/rich">Назад</a></div></article></body></html>`;
 export const RICH_MD = 'Title: Статья с таблицей\n\nURL Source: https://closed.example/rich\n\nMarkdown Content:\nСтатья с таблицей\n================\n\n' +
-  'В этом абзаце есть **жирное слово**, *курсивное слово* и [ссылка на другую статью](https://closed.example/drugaya). ' + L(1) + '\n\n| Срок | Помним |\n| --- | --- |\n| 20 минут | 58 % |\n| 1 день | 33 % |\n\n' + L(2) + '\n\n$$\nE=mc^{2}\n$$\n\n' + L(3) + '\n\n[Далее](https://closed.example/rich?page=2)\n';
+  'В этом абзаце есть **жирное слово**, *курсивное слово* и [ссылка на другую статью](https://closed.example/drugaya). ' + L(1) + '\n\n| Срок | Помним |\n| --- | --- |\n| 20 минут | 58 % |\n| 1 день | 33 % |\n\n' + L(2) + '\n\n$$\nE=mc^{2}\n$$\n\n' + L(3) + '\n\n[>>>](https://closed.example/rich?page=2 "Дальше")\n';
 export const RICH_MD2 = 'Title: Статья с таблицей\n\nURL Source: https://closed.example/rich?page=2\n\nMarkdown Content:\nСтатья с таблицей\n================\n\nВторая страница из службы: ' + L(7) + '\n\n' + L(8) + '\n';

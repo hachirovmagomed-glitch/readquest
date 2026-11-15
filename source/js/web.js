@@ -161,6 +161,16 @@ function webPagey(cur,nx){
     const rest=B.slice(A.length).join('/');return /^((page|part|p|str)\/)?2$/i.test(rest);}
   return false;
 }
+/* служба Jina убирает навигацию сайта: если ссылки «Дальше» нет, а номер страницы прямо в адресе (/p.1/, /page/1, ?page=1) — пробуем следующий номер */
+function webGuessNext(u){
+  try{const x=new URL(u);x.hash='';
+    const m=/^(.*\/(?:p\.|(?:page|part|str|glava|chapter)[\/_-]?))(\d{1,3})(?=[\/.]|$)(.*)$/i.exec(x.pathname);
+    if(m){x.pathname=m[1]+(+m[2]+1)+m[3];return x.href;}
+    const q=/(^|[?&])(page|pg|part)=(\d{1,3})(?=&|$)/i.exec(x.search);
+    if(q){x.search=x.search.replace(q[0],q[1]+q[2]+'='+(+q[3]+1));return x.href;}
+  }catch(e){}
+  return '';
+}
 function webNextUrl(doc,url){
   const abs=function(v){try{const u=new URL(v,url);u.hash='';return u.href;}catch(e){return '';}};
   const c=[];doc.querySelectorAll('link[rel~="next"][href],a[rel~="next"][href]').forEach(function(a){c.push(a.getAttribute('href'));});
@@ -427,9 +437,11 @@ async function webGetJina(u){
     let nx='';part.replace(/\[([^\[\]]{0,24})\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]{0,40})")?\)/g,function(m,t,h,ti){
       const ok=[t,ti].some(function(v){v=webClean(webPlain(v||'')).replace(/^[←→»«›‹<>\s]+(?=\S{2})|(?<=\S{2})[\s←→»«›‹<>]+$/g,'');return v&&WEB_NEXT.test(v);});
       if(!nx&&ok&&webPagey(cur,h)&&seen.indexOf(webNorm(h))<0)nx=h;return m;});
-    if(!nx)break;seen.push(webNorm(nx));webStep('Загружаю страницу '+(pages+1)+'…');
+    let guess=false;if(!nx){nx=webGuessNext(cur);guess=true;if(!nx||seen.indexOf(webNorm(nx))>=0)break;}
+    seen.push(webNorm(nx));webStep('Загружаю страницу '+(pages+1)+'…');
     let r2;try{r2=await fetch(WEB_JINA+nx,{credentials:'omit'});if(!r2.ok)break;}catch(e){break;}
-    const raw2=await r2.text(),k=raw2.indexOf('Markdown Content:');part=k>=0?raw2.slice(k+17):raw2;if(webPlain(part).trim().length<WEB_MIN)break;
+    const raw2=await r2.text(),k=raw2.indexOf('Markdown Content:'),prev=part;part=k>=0?raw2.slice(k+17):raw2;if(webPlain(part).trim().length<WEB_MIN)break;
+    if(guess){const b=webClean(webPlain(part)),all=webClean(webPlain(md)),mid=b.slice(Math.floor(b.length/2),Math.floor(b.length/2)+120);if(!b||(mid.length>=60&&all.indexOf(mid)>=0)||/^(404|not found|страница не найдена)/i.test(b.slice(0,80)))break;} /* угаданный адрес: та же страница или «не найдено» — стоп */
     md+='\n\n\uE00F\n\n'+part;cur=nx;pages++;}
   const r=webMdToBook(md,tm?tm[1].trim():'',u);r.pages=pages;return r;
 }

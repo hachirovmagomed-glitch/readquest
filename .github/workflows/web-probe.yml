@@ -1,4 +1,4 @@
-# Temporary (thread hd9bis, 13.11, run 12: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
+# Temporary (thread hd9bis, 13.11, run 14: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
 name: web-probe
 on:
   push:

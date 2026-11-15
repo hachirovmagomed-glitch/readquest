@@ -1,4 +1,4 @@
-# Temporary (thread hd9bis, 13.11, run 5: улучшения раскладчика): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
+# Temporary (thread hd9bis, 13.11, run 6: улучшения раскладчика, ошибки страницы, ответ Jina): «Страница сайта» on real sites — which open directly (CORS), what Jina Reader returns. Removed after.
 name: web-probe
 on:
   push:
@@ -18,11 +18,11 @@ jobs:
       - run: |
           cat > /tmp/nm/probe.mjs <<'JS'
           import puppeteer from 'puppeteer-core'; import fs from 'fs';
-          const URLS = ['https://ru.wikipedia.org/wiki/Теорема_Пифагора','https://en.wikipedia.org/wiki/List_of_best-selling_books','https://paulgraham.com/greatwork.html','https://habr.com/ru/articles/717906/','https://developer.mozilla.org/ru/docs/Web/HTTP/Status','https://ilibrary.ru/text/1199/p.1/index.html','https://arzamas.academy/mag/1211-reading','https://knife.media/reading/','https://www.gutenberg.org/files/1342/1342-h/1342-h.htm'];
+          const URLS = ['https://ru.wikipedia.org/wiki/Чехов,_Антон_Павлович','https://ru.wikipedia.org/wiki/Теорема_Пифагора','https://en.wikipedia.org/wiki/List_of_best-selling_books','https://paulgraham.com/greatwork.html','https://habr.com/ru/articles/717906/','https://developer.mozilla.org/ru/docs/Web/HTTP/Status','https://ilibrary.ru/text/1199/p.1/index.html','https://arzamas.academy/mag/1211-reading','https://knife.media/reading/','https://www.gutenberg.org/files/1342/1342-h/1342-h.htm'];
           const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args: ['--no-sandbox'] });
           const out = [];
           for (const u of URLS) for (const jina of [/wiki|gutenberg/.test(u) ? false : true]) {
-            const ctx = await b.createBrowserContext(); const p = await ctx.newPage();
+            const ctx = await b.createBrowserContext(); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push('ERR ' + e.message + ' ' + (e.stack || '').slice(0, 300))); p.on('console', m => { if (/warn|error/.test(m.type())) errs.push(m.type() + ' ' + m.text().slice(0, 300)); });
             await p.goto('http://127.0.0.1:8790/readquest/test/', { waitUntil: 'load' }); await p.waitForFunction(() => window.__rqReady, { timeout: 30000 }); await new Promise(r => setTimeout(r, 500));
             const t0 = Date.now();
             await p.evaluate((u, j) => { webSheet(); webGo(u, j); }, u, jina);
@@ -31,12 +31,14 @@ jobs:
             const r = await p.evaluate(async () => { const bk = S.userBooks.find(x => x.genre === 'Сайт' || x.srcId); const msg = (el('webMsg') || {}).textContent || '';
               if (!bk) return { msg, n: S.userBooks.length };
               const t = bk.text || ''; let im = 0; for (let n = 0; n < 24; n++) if (await idbGet('img:' + bk.id + ':' + n)) im++; const x = await idbGet('webx:' + bk.id); const kinds = {}; (x && x.f || []).forEach(f => { kinds[f[2]] = (kinds[f[2]] || 0) + 1; }); return { title: bk.title, author: bk.author, genre: bk.genre, len: t.length, webx: x ? { len: x.len, kinds, links: x.l.length, notes: x.n.length, note0: x.n[0], pages: x.pages } : null, tr: (t.match(/\u2064\u2062/g) || []).length, fm: (t.match(/\u2064\u2061[^\n]*/g) || []).slice(0, 6), trs: (t.match(/\u2064\u2062[^\n]*/g) || []).slice(0, 5), toc: (bk.toc || []).slice(0, 12).map(x => x.t), imgMarks: (t.match(/\ufffcimg:/g) || []).length, imgSaved: im, head: t.slice(0, 1200), tail: t.slice(-500) }; });
-            out.push(Object.assign({ url: u, jina, ms: Date.now() - t0 }, r)); console.log(JSON.stringify(out[out.length - 1]).slice(0, 400));
+            r.errs = errs.slice(0, 8); out.push(Object.assign({ url: u, jina, ms: Date.now() - t0 }, r)); console.log(JSON.stringify(out[out.length - 1]).slice(0, 400));
             await ctx.close();
           }
           fs.writeFileSync(process.env.GITHUB_WORKSPACE + '/web-probe.json', JSON.stringify(out, null, 1)); await b.close();
           JS
           cd /tmp/nm && node probe.mjs
       - run: |
+          for u in https://paulgraham.com/greatwork.html https://habr.com/ru/articles/717906/; do echo "== $u"; curl -s -m 30 -D - "https://r.jina.ai/$u" | head -c 1200; echo; done > jina-raw.txt 2>&1; cat jina-raw.txt
+      - run: |
           git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
-          git add web-probe.json && git commit -m "web-probe: результаты (временно)" && git push
+          git add web-probe.json jina-raw.txt && git commit -m "web-probe: результаты (временно)" && git push

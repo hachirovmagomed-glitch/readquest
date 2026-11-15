@@ -1,0 +1,347 @@
+[
+ {
+  "sv": "allorigins",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19677
+ },
+ {
+  "sv": "allorigins",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19449
+ },
+ {
+  "sv": "allorigins",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19454
+ },
+ {
+  "sv": "allorigins",
+  "u": "https://habr.com/ru/articles/717906/",
+  "err": "TypeError: Failed to fetch",
+  "ms": 6595
+ },
+ {
+  "sv": "allorigins",
+  "u": "https://www.bbc.com/russian",
+  "err": "TypeError: Failed to fetch",
+  "ms": 482
+ },
+ {
+  "sv": "allorigins",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "err": "TypeError: Failed to fetch",
+  "ms": 47
+ },
+ {
+  "sv": "codetabs",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19517
+ },
+ {
+  "sv": "codetabs",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19456
+ },
+ {
+  "sv": "codetabs",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19637
+ },
+ {
+  "sv": "codetabs",
+  "u": "https://habr.com/ru/articles/717906/",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19494
+ },
+ {
+  "sv": "codetabs",
+  "u": "https://www.bbc.com/russian",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19745
+ },
+ {
+  "sv": "codetabs",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "err": "TypeError: Failed to fetch",
+  "ms": 19453
+ },
+ {
+  "sv": "corsproxyio",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "st": 401,
+  "ct": "application/json",
+  "len": 81,
+  "ms": 93,
+  "head": "{\"error\":\"A valid API key is required. Get one at https://console.corsproxy.io/\"}"
+ },
+ {
+  "sv": "corsproxyio",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "st": 401,
+  "ct": "application/json",
+  "len": 81,
+  "ms": 23,
+  "head": "{\"error\":\"A valid API key is required. Get one at https://console.corsproxy.io/\"}"
+ },
+ {
+  "sv": "corsproxyio",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "st": 401,
+  "ct": "application/json",
+  "len": 81,
+  "ms": 27,
+  "head": "{\"error\":\"A valid API key is required. Get one at https://console.corsproxy.io/\"}"
+ },
+ {
+  "sv": "corsproxyio",
+  "u": "https://habr.com/ru/articles/717906/",
+  "st": 401,
+  "ct": "application/json",
+  "len": 81,
+  "ms": 16,
+  "head": "{\"error\":\"A valid API key is required. Get one at https://console.corsproxy.io/\"}"
+ },
+ {
+  "sv": "corsproxyio",
+  "u": "https://www.bbc.com/russian",
+  "st": 401,
+  "ct": "application/json",
+  "len": 81,
+  "ms": 16,
+  "head": "{\"error\":\"A valid API key is required. Get one at https://console.corsproxy.io/\"}"
+ },
+ {
+  "sv": "corsproxyio",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "st": 401,
+  "ct": "application/json",
+  "len": 81,
+  "ms": 25,
+  "head": "{\"error\":\"A valid API key is required. Get one at https://console.corsproxy.io/\"}"
+ },
+ {
+  "sv": "corslol",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "err": "TypeError: Failed to fetch",
+  "ms": 311
+ },
+ {
+  "sv": "corslol",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "err": "TypeError: Failed to fetch",
+  "ms": 99
+ },
+ {
+  "sv": "corslol",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "st": 200,
+  "ct": "text/html",
+  "len": 806300,
+  "ms": 1106,
+  "head": "<!DOCTYPE html> <html lang=\"en\"> <head> <link rel=\"icon\" href=\"images/cover.jpg\" type=\"image/x-cover\"> <meta charset=\"utf-8\"> <title>Pride and prejudice | Proje"
+ },
+ {
+  "sv": "corslol",
+  "u": "https://habr.com/ru/articles/717906/",
+  "err": "TypeError: Failed to fetch",
+  "ms": 99
+ },
+ {
+  "sv": "corslol",
+  "u": "https://www.bbc.com/russian",
+  "err": "TypeError: Failed to fetch",
+  "ms": 100
+ },
+ {
+  "sv": "corslol",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "err": "TypeError: Failed to fetch",
+  "ms": 99
+ },
+ {
+  "sv": "thingproxy",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "err": "TypeError: Failed to fetch",
+  "ms": 118
+ },
+ {
+  "sv": "thingproxy",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "err": "TypeError: Failed to fetch",
+  "ms": 13
+ },
+ {
+  "sv": "thingproxy",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "err": "TypeError: Failed to fetch",
+  "ms": 13
+ },
+ {
+  "sv": "thingproxy",
+  "u": "https://habr.com/ru/articles/717906/",
+  "err": "TypeError: Failed to fetch",
+  "ms": 14
+ },
+ {
+  "sv": "thingproxy",
+  "u": "https://www.bbc.com/russian",
+  "err": "TypeError: Failed to fetch",
+  "ms": 13
+ },
+ {
+  "sv": "thingproxy",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "err": "TypeError: Failed to fetch",
+  "ms": 12
+ },
+ {
+  "sv": "jina",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "st": 200,
+  "ct": "text/plain; charset=utf-8",
+  "len": 763,
+  "ms": 3279,
+  "head": "Title: 404 Not Found URL Source: http://lib.ru/PROZA/CHEHOW/kashtanka.txt Final URL: https://lib.ru/PROZA/CHEHOW/kashtanka.txt Warning: Target URL returned erro"
+ },
+ {
+  "sv": "jina",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "st": 200,
+  "ct": "text/plain; charset=utf-8",
+  "len": 1499563,
+  "ms": 4935,
+  "head": "Title: Ð§ÐµÑ…Ð¾Ð² ÐÐ½Ñ‚Ð¾Ð½ ÐŸÐ°Ð²Ð»Ð¾Ð²Ð¸Ñ‡. Ð Ð°ÑÑÐºÐ°Ð·Ñ‹ Ð¸ ÑŽÐ¼Ð¾Ñ€ÐµÑÐºÐ¸ 1886 Ð³ URL Source: http://az.lib.ru/c/chehow_a_p/text_0050.shtml Published "
+ },
+ {
+  "sv": "jina",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "st": 200,
+  "ct": "text/plain; charset=utf-8",
+  "len": 787596,
+  "ms": 3998,
+  "head": "Title: Pride and prejudice | Project Gutenberg URL Source: https://www.gutenberg.org/files/1342/1342-h/1342-h.htm Markdown Content: *** START OF THE PROJECT GUT"
+ },
+ {
+  "sv": "jina",
+  "u": "https://habr.com/ru/articles/717906/",
+  "st": 200,
+  "ct": "text/plain; charset=utf-8",
+  "len": 26051,
+  "ms": 16425,
+  "head": "Title: 4 ÑÐ»ÐµÐºÑ‚Ñ€Ð¾Ð½Ð½Ñ‹Ðµ Ð¼ÑƒÐ·Ñ‹ÐºÐ°Ð»ÑŒÐ½Ñ‹Ðµ ÑˆÐºÐ°Ñ‚ÑƒÐ»ÐºÐ¸ ÑÐ²Ð¾Ð¸Ð¼Ð¸ Ñ€ÑƒÐºÐ°Ð¼Ð¸. Ð—Ð½Ð°ÐºÐ¾Ð¼Ð¸Ð¼ÑÑ Ñ Ð»Ð¾Ð³Ð¸Ñ‡ÐµÑÐºÐ¸Ð¼Ð¸ Ð¼Ð¸ÐºÑ€Ð¾ÑÑ…"
+ },
+ {
+  "sv": "jina",
+  "u": "https://www.bbc.com/russian",
+  "st": 200,
+  "ct": "text/plain; charset=utf-8",
+  "len": 45698,
+  "ms": 338,
+  "head": "Title: Ð“Ð»Ð°Ð²Ð½Ð°Ñ - BBC News Ð ÑƒÑÑÐºÐ°Ñ ÑÐ»ÑƒÐ¶Ð±Ð° URL Source: https://www.bbc.com/russian Markdown Content: [![Image 7](https://static.files.bbci.co."
+ },
+ {
+  "sv": "jina",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "st": 200,
+  "ct": "text/plain; charset=utf-8",
+  "len": 389,
+  "ms": 293,
+  "head": "Title: Example Domain URL Source: https://example.com/nonexistent-page-xyz Warning: Target URL returned error 404: Not Found Warning: This page maybe not yet fu"
+ },
+ {
+  "sv": "wbAvail",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "st": 200,
+  "ct": "application/json",
+  "len": 77,
+  "ms": 1643,
+  "head": "{\"url\": \"http://lib.ru/PROZA/CHEHOW/kashtanka.txt\", \"archived_snapshots\": {}}"
+ },
+ {
+  "sv": "wbAvail",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "st": 200,
+  "ct": "application/json",
+  "len": 258,
+  "ms": 1416,
+  "head": "{\"url\": \"http://az.lib.ru/c/chehow_a_p/text_0050.shtml\", \"archived_snapshots\": {\"closest\": {\"status\": \"200\", \"available\": true, \"url\": \"http://web.archive.org/w"
+ },
+ {
+  "sv": "wbAvail",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "st": 200,
+  "ct": "application/json",
+  "len": 276,
+  "ms": 1540,
+  "head": "{\"url\": \"https://www.gutenberg.org/files/1342/1342-h/1342-h.htm\", \"archived_snapshots\": {\"closest\": {\"status\": \"200\", \"available\": true, \"url\": \"http://web.arch"
+ },
+ {
+  "sv": "wbAvail",
+  "u": "https://habr.com/ru/articles/717906/",
+  "st": 200,
+  "ct": "application/json",
+  "len": 73,
+  "ms": 923,
+  "head": "{\"url\": \"https://habr.com/ru/articles/717906/\", \"archived_snapshots\": {}}"
+ },
+ {
+  "sv": "wbAvail",
+  "u": "https://www.bbc.com/russian",
+  "st": 200,
+  "ct": "application/json",
+  "len": 222,
+  "ms": 409,
+  "head": "{\"url\": \"https://www.bbc.com/russian\", \"archived_snapshots\": {\"closest\": {\"status\": \"200\", \"available\": true, \"url\": \"http://web.archive.org/web/20261115082119/"
+ },
+ {
+  "sv": "wbAvail",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "st": 200,
+  "ct": "application/json",
+  "len": 77,
+  "ms": 230,
+  "head": "{\"url\": \"https://example.com/nonexistent-page-xyz\", \"archived_snapshots\": {}}"
+ },
+ {
+  "sv": "wbRaw",
+  "u": "http://lib.ru/PROZA/CHEHOW/kashtanka.txt",
+  "err": "TypeError: Failed to fetch",
+  "ms": 380
+ },
+ {
+  "sv": "wbRaw",
+  "u": "http://az.lib.ru/c/chehow_a_p/text_0050.shtml",
+  "err": "TypeError: Failed to fetch",
+  "ms": 280
+ },
+ {
+  "sv": "wbRaw",
+  "u": "https://www.gutenberg.org/files/1342/1342-h/1342-h.htm",
+  "err": "TypeError: Failed to fetch",
+  "ms": 297
+ },
+ {
+  "sv": "wbRaw",
+  "u": "https://habr.com/ru/articles/717906/",
+  "err": "TypeError: Failed to fetch",
+  "ms": 302
+ },
+ {
+  "sv": "wbRaw",
+  "u": "https://www.bbc.com/russian",
+  "err": "TypeError: Failed to fetch",
+  "ms": 1272
+ },
+ {
+  "sv": "wbRaw",
+  "u": "https://example.com/nonexistent-page-xyz",
+  "err": "TypeError: Failed to fetch",
+  "ms": 415
+ }
+]

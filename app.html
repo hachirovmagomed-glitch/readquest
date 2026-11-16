@@ -1634,6 +1634,8 @@ body:has(#reader:not(.hidden)) #rqTestBanner{top:0!important;height:3px!importan
 <div id="settings" class="screen hidden">
   <div class="scroll"><div class="wrap gset">
     <div class="row" style="margin-bottom:6px"><button class="menubtn mvp-hide" id="menuSet" aria-label="Меню"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg></button><button class="menubtn" id="setBack" aria-label="Назад"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-arrow-left"/></svg></button><h1>Общие настройки</h1></div>
+    <h2>Курсор на компьютере</h2>
+    <div class="pcard"><div class="setrow"><div class="lab" id="rqQuillLabel">Анимированное перо<div class="sub">Подсветка и отклик на клик. При чтении — обычный курсор.</div></div><button type="button" class="ghostbtn sw" id="rqQuillToggle" role="switch" aria-checked="true" aria-labelledby="rqQuillLabel">Вкл</button></div></div>
     <h2>Во время чтения</h2>
     <div class="pcard">
       <div class="setrow"><svg class="ic" width="22" height="22" aria-hidden="true" focusable="false"><use href="#i-smartphone"/></svg><div class="lab">Не гасить экран<div class="sub">Если поддерживается браузером</div></div><button class="ghostbtn sw" id="uxWake" role="switch">Выкл</button></div>
@@ -2063,5 +2065,6 @@ await window.__rqStart({
 }, tracker);
 window.__rqAfterBoot(window.__rq);
 </script>
+<script src="js/desktop-cursor.js?v=20261116-quill-1"></script>
 </body>
 </html>
